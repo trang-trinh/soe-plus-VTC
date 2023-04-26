@@ -249,6 +249,9 @@ const exportExcel = () => {
     document.body.removeChild(elem);
   }
 };
+const goBack = () => {
+  history.back();
+};
 //Khai báo function
 const renderTreeDV = (data, id, name, title) => {
   let arrChils = [];
@@ -301,6 +304,12 @@ onMounted(() => {
         <div style="background-color: #fff; padding: 1rem;">
         <Toolbar class="w-full custoolbar">
           <template #start>
+            <Button
+            label="Quay lại"
+            icon="pi pi-arrow-left"
+            class="p-button-outlined mr-2 p-button-secondary"
+            @click="goBack()"
+            />
             <span class="p-input-icon-left">
               <i class="pi pi-search" />
               <InputText
@@ -623,6 +632,10 @@ td {
   outline: unset;
   background-color: #fff;
   padding-bottom: 0px;
+}
+tr td {
+    word-break: break-word;
+    vertical-align: middle !important;
 }
 </style>
 <style lang="scss" scoped>

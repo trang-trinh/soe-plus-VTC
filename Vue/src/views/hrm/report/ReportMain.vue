@@ -195,11 +195,8 @@ onMounted(() => {
         <th align="center">
           Tên báo cáo
         </th>
-        <th align="center" width="150">
+        <th align="center" width="200">
           Mã báo cáo
-        </th>
-        <th align="center" width="400" >
-          Ghi chú
         </th>
       </tr>
     </thead>
@@ -207,15 +204,12 @@ onMounted(() => {
         <tr v-for="(item, index) in datalists" :key="index">
           <td  class="text-left"
             >
-            <span :class="item.is_level==0 ? 'row-parent':'row-child'" @click="item.is_level==0?'':goDetailReport(item)">
+            <span :style="(item.module_id == 370 || item.module_id== 358)?'color:#f44336':''" :class="item.is_level==0 ? 'row-parent':'row-child'" @click="item.is_level==0?'':goDetailReport(item)">
               {{ item.label_module }}
             </span>
           </td>
           <td  class="text-center" >
               {{ item.report_code }}
-          </td>
-          <td class="text-left">
-              {{ item.report_note }}
           </td>
         </tr>
     </tbody>

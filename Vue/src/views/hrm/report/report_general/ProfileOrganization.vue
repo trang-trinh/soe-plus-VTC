@@ -106,17 +106,16 @@ const loadData = () => {
                 data[0] = groupBy(data[0], 'department_id');
                     let arr = [];
                     for (let pb in data[0]) {
-                        let data_ns_by_id = groupBy(data[0][pb], 'profile_code');
-                        let arr_ns = [];
-                        for (let ns in data_ns_by_id) {
-                            arr_ns.push({ group_ns: ns, name_group_ns: data_ns_by_id[ns][0].profile_user_name, list_con: data_ns_by_id[ns] });
-                        };
-                        data_ns_by_id = arr_ns;
-                        arr.push({ group_pb: pb, name_group_pb: data[0][pb][0].organization_name, list_ns: data_ns_by_id });
+                        // let data_ns_by_id = groupBy(data[0][pb], 'profile_code');
+                        // let arr_ns = [];
+                        // for (let ns in data_ns_by_id) {
+                        //     arr_ns.push({ group_ns: ns, name_group_ns: data_ns_by_id[ns][0].profile_user_name, list_con: data_ns_by_id[ns] });
+                        // };
+                        // data_ns_by_id = arr_ns;
+                        arr.push({ group_pb: pb, name_group_pb: data[0][pb][0].organization_name, list_ns: data[0][pb] });
                     }
-                data[0] = arr;
-                datalists.value = data[0];
-                options.totalRecords = data[0].length;
+                datalists.value = arr;
+                options.totalRecords = arr.length;
             }
             else datalists.value = [];
             options.value.loading = false;
@@ -190,10 +189,8 @@ const initTudien = () => {
     .catch((error) => {});
 };
 const exportExcel = () => {
-  let text_string = "";
   
-  let name = "BC.HS003";
-  let id = "tablequizz";
+  let name = "BC.HS002";
   var htmltable1 = "";
   // htmltable1 = renderExcel_Ketqua();
   var tab_text = '<html xmlns:x="urn:schemas-microsoft-com:office:excel">';
@@ -212,10 +209,10 @@ const exportExcel = () => {
   tab_text =
     tab_text +
     '<style>.p-datatable-thead th {background:#7bb0d7 !important;height: 30px !important;} .cstd{font-family: Times New Roman;border:none!important; font-size: 12pt; font-weight: 700; text-align: center; vertical-align: center;color:#000000}.head2{font-family: Times New Roman;border:none!important; font-size: 11pt; text-align: left; vertical-align: left;}</style>'    
-  tab_text = tab_text+ "<table><td colspan='18' class='head2'>TỔNG CÔNG TY.../CÔNG TY.........</td></table>";
-  tab_text = tab_text+ "<table><td colspan='18' class='cstd' style='text-align: left; vertical-align: left;'>CÔNG TY/PHÒNG/TRUNG TÂM.........</td></table>";
+  tab_text = tab_text+ "<table><td colspan='18' class='head2'>TỔNG CÔNG TY "+(store.getters.user.organization_name||"...")+"/CÔNG TY"+(store.getters.user.organization_name||"......")+"</td></table>";
+  tab_text = tab_text+ "<table><td colspan='18' class='cstd' style='text-align: left; vertical-align: left;'>CÔNG TY/PHÒNG/TRUNG TÂM"+(store.getters.user.organization_name||".......")+"</td></table>";
   tab_text =
-      tab_text +'<table><td colspan="18" class="cstd" > BÁO CÁO DANH SÁCH NHÂN SỰ</td >';
+      tab_text +'<table><td colspan="18" class="cstd" > BÁO CÁO TỔNG HỢP NHÂN SỰ</td >';
   tab_text = tab_text + "</table>";
   //var exportTable = $('#' + id).clone();
   //exportTable.find('input').each(function (index, elem) { $(elem).remove(); });\
@@ -223,7 +220,7 @@ const exportExcel = () => {
     tab_text +
     "<style>th,table,tr{font-family: Times New Roman; font-size: 11pt; vertical-align: middle;}</style><table border='1'>";
   var exportTable = document
-    .getElementsByClassName("p-datatable-table")[0]
+    .getElementById("table-bc")
     .cloneNode(true).innerHTML;
   tab_text = tab_text + exportTable;
   tab_text = tab_text + htmltable1;
@@ -254,6 +251,9 @@ const exportExcel = () => {
     elem.click();
     document.body.removeChild(elem);
   }
+};
+const goBack = () => {
+  history.back();
 };
 //Khai báo function
 const renderTreeDV = (data, id, name, title) => {
@@ -313,6 +313,12 @@ onMounted(() => {
         <div style="background-color: #fff; padding: 1rem;">
         <Toolbar class="w-full custoolbar">
           <template #start>
+            <Button
+            label="Quay lại"
+            icon="pi pi-arrow-left"
+            class="p-button-outlined mr-2 p-button-secondary"
+            @click="goBack()"
+            />
             <span class="p-input-icon-left">
               <i class="pi pi-search" />
               <InputText
@@ -467,110 +473,139 @@ onMounted(() => {
           </template>
         </Toolbar>
     </div>
-    <div style="overflow-x: scroll;">
-        <table class="table table-condensed table-hover tbpad" style="table-layout: fixed">
+    <div style="overflow: scroll;max-height: calc(100vh - 140px);">
+        <table id="table-bc" class="table table-condensed table-hover tbpad" style="table-layout: fixed;width: 100%;">
         <thead>
             <tr>
-                <th class="text-center sticky left-sticky1" width="50" style="background-color: #F9FAFB;">STT</th>
-                <th class="text-center sticky left-sticky1" width="200" style="background-color: #F9FAFB;">Mã nhân viên</th>
-                <th class="text-center sticky" width="150">Họ và tên</th>
-                <th class="text-center sticky" width="100">Ngày sinh</th>
-                <th class="text-center sticky" width="100">Tuổi</th>
-                <th class="text-center sticky" width="100">Giới tính</th>
-                <th class="text-center sticky" width="150">Chức danh</th>
-                <th class="text-center sticky" width="80">Loại LĐ</th>
-                <th class="text-center sticky" width="100">Chức danh</th>
-                <th class="text-center sticky" width="150">Chức vụ</th>
-                <th class="text-center sticky" width="100">Số điện thoại</th>
-                <th class="text-center sticky" width="150">Loại LĐ</th>
-                <th class="text-center sticky" width="200">Quê quán</th>
-                <th class="text-center sticky" width="100">Tình trạng hôn nhân</th>
-                <th class="text-center sticky" width="200">Dân tộc</th>
-                <th class="text-center sticky" width="100">Tôn giáo</th>
-                <th class="text-center sticky" width="120">Đảng viên</th>
-                <th class="text-center sticky" width="200" rowspan="2">Thuộc diện chính sách</th>
-                <th class="text-center sticky" width="200" rowspan="2">Nơi đăng ký HKTT</th>
-                <th class="text-center sticky" width="200" rowspan="2">Nơi đăng ở hiện nay</th>
-                <th class="text-center sticky" width="100">Liên hệ khẩn cấp</th>
-                <th class="text-center sticky" width="150">Thành phần gia đình</th>
-                <th class="text-center sticky" width="300" rowspan="3">Theo dõi CMND</th>
-                <th class="text-center sticky" width="100">Ngày vào đơn vị</th>
-                <th class="text-center sticky" width="150">Thâm niên công tác</th>
-                <th class="text-center sticky" width="150">Thâm niên phép tính năm</th>
-                <th class="text-center sticky" width="500" rowspan="5">Trình độ chuyên môn chính</th>
-                <th class="text-center sticky" width="150">Số di động</th>
-                <th class="text-center sticky" width="150">Email</th>
-                <th class="text-center sticky" width="150">Chiều cao</th>
-                <th class="text-center sticky" width="150">Cân nặng</th>
+                <th class="text-center" width="50" rowspan="2" >STT</th>
+                <th class="text-center" width="100" rowspan="2" >Mã nhân viên</th>
+                <th class="text-center " width="150" rowspan="2">Họ và tên</th>
+                <th class="text-center " width="100" rowspan="2">Ngày sinh</th>
+                <th class="text-center " width="100" rowspan="2">Tuổi</th>
+                <th class="text-center " width="100" rowspan="2">Giới tính</th>
+                <th class="text-center " width="150" rowspan="2">Chức danh</th>
+                <th class="text-center " width="150" rowspan="2">Chức vụ</th>
+                <th class="text-center " width="100" rowspan="2">Loại LĐ</th>
+                <th class="text-center " width="250" rowspan="2">Quê quán</th>
+                <th class="text-center " width="100" rowspan="2">Tình trạng hôn nhân</th>
+                <th class="text-center " width="200" rowspan="2">Dân tộc</th>
+                <th class="text-center " width="100" rowspan="2">Tôn giáo</th>
+                <th class="text-center " width="120" rowspan="2">Đảng viên</th>
+                <th class="text-center " width="120" rowspan="2">Đoàn viên</th>
+                <th class="text-center " width="300" colspan="2">Thuộc diện chính sách</th>
+                <th class="text-center " width="300" colspan="2">Nơi đăng ký HKTT</th>
+                <th class="text-center " width="300" colspan="2">Nơi đăng ở hiện nay</th>
+                <th class="text-center " width="150" rowspan="2">Liên hệ khẩn cấp</th>
+                <th class="text-center " width="150" rowspan="2">Thành phần gia đình</th>
+                <th class="text-center " width="300" colspan="3">Theo dõi CMND</th>
+                <th class="text-center " width="100" rowspan="2">Ngày vào đơn vị</th>
+                <th class="text-center " width="150" rowspan="2">Thâm niên công tác</th>
+                <th class="text-center " width="150" rowspan="2">Thâm niên phép tính năm</th>
+                <th class="text-center " width="500" colspan="5">Trình độ chuyên môn chính</th>
+                <th class="text-center " width="120" rowspan="2">Số di động</th>
+                <th class="text-center " width="120" rowspan="2">Email</th>
+                <th class="text-center " width="120" rowspan="2">Chiều cao</th>
+                <th class="text-center " width="120" rowspan="2">Cân nặng</th>
             </tr>
             <tr>
-                <th class="text-center sticky1" width="100">Đã tham gia quân đội</th>
-                <th class="text-center sticky1" width="100">Con gia đình chính sách</th>
-                <th class="text-center sticky1" width="100">Số nhà, đường phố</th>
-                <th class="text-center sticky1" width="100">Xã/Phường,Quận/Huyện,Tỉnh/TP</th>
-                <th class="text-center sticky1" width="100">Số nhà, đường phố</th>
-                <th class="text-center sticky1" width="100">Xã/Phường,Quận/Huyện,Tỉnh/TP</th>
-                <th class="text-center sticky1" width="100">Số CMND</th>
-                <th class="text-center sticky1" width="100">Ngày cấp CMND</th>
-                <th class="text-center sticky1" width="100">Nơi cấp CMND</th>
-                <th class="text-center sticky1" width="100">Trình độ văn hóa</th>
-                <th class="text-center sticky1" width="100">Bằng cấp</th>
-                <th class="text-center sticky1" width="100">Chuyên ngành</th>
-                <th class="text-center sticky1" width="100">Trường tốt nghiệp</th>
-                <th class="text-center sticky1" width="100">Hình thức đào tạo</th>
+                <th class="text-center " width="100">Đã tham gia quân đội</th>
+                <th class="text-center " width="100">Con gia đình chính sách</th>
+                <th class="text-center " width="100">Số nhà, đường phố</th>
+                <th class="text-center " width="100">Xã/Phường, Quận/Huyện, Tỉnh/TP</th>
+                <th class="text-center " width="100">Số nhà, đường phố</th>
+                <th class="text-center " width="100">Xã/Phường, Quận/Huyện, Tỉnh/TP</th>
+                <th class="text-center " width="100">Số CMND</th>
+                <th class="text-center " width="100">Ngày cấp CMND</th>
+                <th class="text-center " width="100">Nơi cấp CMND</th>
+                <th class="text-center " width="100">Trình độ văn hóa</th>
+                <th class="text-center " width="100">Bằng cấp</th>
+                <th class="text-center " width="100">Chuyên ngành</th>
+                <th class="text-center " width="100">Trường tốt nghiệp</th>
+                <th class="text-center " width="100">Hình thức đào tạo</th>
             </tr>
         </thead>
-        <!-- <tbody v-for="(fIndex, bc) in datalists" :key="fIndex">
+        <tbody v-for="(bc, index1) in datalists" :key="index1">
             <tr>
-                <td style="background-color: #f6ddcc" colspan="18"><b>{{bc.group}}</b></td>
+                <td colspan="38"><b>{{bc.name_group_pb}}</b></td>
             </tr>
-            <tr v-for="(index2,dg) in bc.list" :key="index2">
-                <td style="background-color: #e5e8e8 " class="text-center">{{index2 + 1}}</td>
-                <td style="background-color:aliceblue" align="center">
-                    {{dg.MaNhansu}}
-                </td>
-                <td style="background-color:aliceblue" align="center">
-                    {{dg.Nguoitudanhgia}}
-                </td>
-                <td align="center">
-                    {{dg.tenChucVu}}
-                </td>
-                <td align="center">
-                    {{dg.Diemtudanhgia}}
-                </td>
-                <td align="center"></td>
-                <td align="left">
-                    {{dg.Ykientudanhgia}}
-                </td>
-                <td align="center">
-                    {{dg.Ngaytudanhgia | date: 'dd/MM/yyyy'}}
-                </td>
-                <td align="center">
-                    {{dg.Manguoidanhgia}}
-                </td>
-                <td align="center">
-                    {{dg.Tennguoidanhgia}}
-                </td>
-                <td align="center">
-                    {{dg.ChucvuNguoidanhgia}}
-                </td>
-                <td align="center">
-                    {{dg.Diemdanhgia}}
-                </td>
-                <td align="center">
-                    {{dg.Xeploaidanhgia}}
+            <tr v-for="(dg, index2) in bc.list_ns" :key="index2">
+                <td class="text-center">{{index2 + 1}}</td>
+                <td  align="left">
+                    {{dg.profile_code}}
                 </td>
                 <td align="left">
-                    {{dg.Ykiendanhgia}}
+                    {{dg.profile_user_name}}
                 </td>
                 <td align="center">
-                    {{dg.Ngaydanhgia | date: 'dd/MM/yyyy'}}
+                  <span v-if="dg.birthday"> {{ moment(new Date(dg.birthday)).format("DD/MM/YYYY ") }}</span>
                 </td>
-                <td align="left">{{dg.Ykientudanhgia}}</td>
-                <td align="left"></td>
-                <td align="left"></td>
-            </tr>
-        </tbody> -->
+                <td align="right">
+                    {{dg.age}}
+                </td>
+                <td align="center">
+                    {{dg.gender}}
+                </td>
+                <td align="left">{{ dg.title_name }}</td>
+                <td align="left">
+                    {{dg.position_name}}
+                </td>
+                <td align="left">
+                    {{dg.personel_groups_name}}
+                </td>
+                <td align="left">
+                    {{dg.birthplace_origin_name}}
+                </td>
+                <td align="center">
+                    {{dg.marital_status==0?'Độc thân':dg.marital_status==1 ?'Kết hôn':dg.marital_status==2?'Ly hôn':''}}
+                </td>
+                <td align="center">
+                    {{dg.ethnic_name}}
+                </td>
+                <td align="center">
+                    {{dg.religion_name}}
+                </td>
+                <td align="center">
+                    {{dg.is_partisan?'X':''}}
+                </td>
+                <td align="center">
+                    {{dg.bevy_date?'X':''}}
+                </td>
+                <td align="center">
+                    {{dg.is_join_military?'X':''}}
+                </td>
+                <td align="left">{{dg.military_policy_family}}</td>
+                <td align="left">{{dg.place_register_permanent_first}}</td>
+                <td align="left">{{dg.place_register_permanent_name}}</td>
+                <td align="left">{{dg.place_permanent}}</td>
+                <td align="left">{{dg.place_residence_name || dg.name}}</td>
+                <td align="left">
+                  <span v-if="dg.relationship_name">{{ dg.relationship_name}}: </span>
+                  <span v-if="dg.involved_name">{{ dg.involved_name}} - </span>
+                  <span v-if="dg.involved_phone">{{ dg.involved_phone}} </span>
+                </td>
+                <td align="left">{{dg.family_member}}</td>
+                <td align="left">{{dg.identity_papers_code}}</td>
+                <td align="left">
+                  <span v-if="dg.identity_date_issue"> {{ moment(new Date(dg.identity_date_issue)).format("DD/MM/YYYY ") }}</span>
+                </td>
+                <td align="left">{{dg.name}}</td>
+                <td align="left">
+                  <span v-if="dg.start_date"> {{ moment(new Date(dg.start_date)).format("DD/MM/YYYY ") }}</span>
+                </td>
+                <td align="left">{{dg.countRecruitment}}</td>
+                <td align="left">{{dg.countAllRecruitment}}</td>
+                <td align="left">{{dg.cultural_level_name}}</td>
+                <td align="left">{{dg.certificate_name}}</td>
+                <td align="left">{{dg.specialization_name}}</td>
+                <td align="left">{{dg.university_name}}</td>
+                <td align="left">{{dg.form_traning_name}}</td>
+                <td align="center">{{dg.phone}}</td>
+                <td align="center">{{dg.email}}</td>
+                <td align="center">{{dg.height}}</td>
+                <td align="center">{{dg.weight}}</td>
+            </tr> 
+      
+          </tbody>
     </table>
     </div>
     </div>
@@ -580,28 +615,7 @@ onMounted(() => {
         margin-bottom: 0px !important;
     }
 
-    th.sticky {
-        position: -webkit-sticky;
-        position: sticky;
-        top: 0px;
-        outline-offset: -1px;
-        color: #313435;
-        z-index: 2;
-        vertical-align: middle !important;
-        background-color: #F9FAFB;
-    }
-
-    th.sticky1 {
-        position: -webkit-sticky;
-        position: sticky;
-        top: 46px;
-        outline-offset: -1px;
-        color: #313435;
-        z-index: 2;
-        vertical-align: middle !important;
-        background-color: #F9FAFB;
-    }
-
+    
     td span {
         text-overflow: ellipsis;
         overflow: hidden;
@@ -620,85 +634,20 @@ onMounted(() => {
         border-left: none !important;
     }
 
-    .cs-input .select2-container .select2-selection--single {
-        height: 35px;
-    }
 
     tr td {
         word-break: break-word;
         vertical-align: middle !important;
     }
 
-    .searchbar .ul-menu {
-        left: 2.5rem !important;
-    }
-
-    .btn.btn-task:last-child {
-        border-top-right-radius: 5px;
-        border-bottom-right-radius: 5px;
-    }
-
-    .btn.btn-task:first-child {
-        border-top-left-radius: 5px;
-        border-bottom-left-radius: 5px;
-    }
-
-    .btn.btn-task {
-        border: 1px solid #dadbdc;
-        background-color: #fafbfa;
-        color: #797a7b;
-        font-weight: 600;
-    }
-
-        .btn.btn-task:hover {
-            background-color: #e6f0f8;
-            color: #2f90d1;
-        }
-
-        .btn.btn-task.true {
-            background-color: #e6f0f8;
-            color: #2f90d1;
-        }
-
-    .tasktab li a {
-        font-size: 14px;
-    }
-
-    .notconfirm-bg {
-        background-color: #fffcd9;
-    }
-
-    .confirm-bg {
-        background-color: #F1F8E8;
-    }
-
-    .bdT {
-        border-top: none !important;
-    }
-
-    .tbpad td {
-        height: 42px !important;
-    }
-
-    .btn-secondary:not(:disabled):not(.disabled).active, .btn-secondary:not(:disabled):not(.disabled):active, .show > .btn-secondary.dropdown-toggle {
-        color: #fff;
-        background-color: #545b62;
-        border-color: aliceblue !important;
-    }
-
     table th {
-        background-color: #8BCFFB !important;
+        background-color: #f8f9fa !important;
     }
 
-    table th, table td {
+    /* table th, table td {
         border: 1px solid rgba(0,0,0,.3) !important;
-    }
+    } */
 
-    ::-webkit-scrollbar {
-        width: 6px;
-        height: 6px !important;
-        background-color: #F5F5F5;
-    }
 </style>
 <style scoped>
 #table-bc{
@@ -710,7 +659,7 @@ onMounted(() => {
 th,
 td {
     background: #fff;
-    padding: 1rem;
+    padding: 0.6rem;
 }
 
 .row-parent {

@@ -147,12 +147,13 @@ const headerDialogLeaveProfile = ref();
 const displayDialogLeaveProfile = ref(false);
 const openDialogLeaveProfile = (item, str) => {
   profile.value = item;
-  forceRerender(0);
   headerDialogLeaveProfile.value = str;
   displayDialogLeaveProfile.value = true;
+  forceRerender(0);
 };
 const closeDialogLeaveProfile = () => {
   displayDialogLeaveProfile.value = false;
+  forceRerender(0);
 };
 
 //function export
