@@ -87,7 +87,7 @@ namespace API.Controllers.Leave
                         leave.month11 = model.month11;
                         leave.month12 = model.month12;
                         leave.modified_by = uid;
-                        leave.modified_date = DateTime  .Now;
+                        leave.modified_date = DateTime.Now;
                         leave.modified_ip = ip;
                         leave.modified_token_id = tid;
                         db.Entry(leave).State = EntityState.Modified;
