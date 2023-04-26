@@ -4,6 +4,7 @@ import { encr } from "../../../util/function";
 import { useToast } from "vue-toastification";
 import moment from "moment";
 import { groupBy } from "lodash";
+import dialogleaveprofile from "./component/dialogleaveprofile.vue";
 
 const store = inject("store");
 const swal = inject("$swal");
@@ -43,6 +44,7 @@ const options = ref({
 const isFirst = ref(true);
 const selectedNodes = ref({});
 const datas = ref([]);
+const profile = ref({});
 
 //Declare dictionary
 const dictionarys = ref([]);
@@ -131,6 +133,26 @@ const addToArray = (temp, array, id, lv, od) => {
       addToArray(temp, array, item.organization_id, lv);
     });
   }
+};
+
+const componentKey = ref({});
+const forceRerender = (type) => {
+  if (!componentKey.value[type]) {
+    componentKey.value[type] = 0;
+  }
+  componentKey.value[type] += 1;
+};
+
+const headerDialogLeaveProfile = ref();
+const displayDialogLeaveProfile = ref(false);
+const openDialogLeaveProfile = (item, str) => {
+  profile.value = item;
+  forceRerender(0);
+  headerDialogLeaveProfile.value = str;
+  displayDialogLeaveProfile.value = true;
+};
+const closeDialogLeaveProfile = () => {
+  displayDialogLeaveProfile.value = false;
 };
 
 //function export
@@ -592,40 +614,47 @@ onMounted(() => {
             </th>
             <th
               class="text-center"
-              :style="{ width: '90px' }"
+              :style="{ width: '70px' }"
               v-for="(item, month_key) in months"
             >
               {{ item.name }}
             </th>
             <th
               class="sticky text-center"
-              :style="{ top: '0', width: '150px' }"
-            >
-              Ngày đã nghỉ
-            </th>
-            <th
-              class="sticky text-center"
-              :style="{ top: '0', width: '150px' }"
+              :style="{ top: '0', width: '100px' }"
             >
               Phép tồn
             </th>
             <th
               class="sticky text-center"
-              :style="{ top: '0', width: '150px' }"
+              :style="{ top: '0', width: '100px' }"
             >
               Phép thưởng
             </th>
             <th
               class="sticky text-center"
-              :style="{ top: '0', width: '150px' }"
+              :style="{ top: '0', width: '100px' }"
             >
-              Ngày được nghỉ
+              Thâm niên
             </th>
             <th
               class="sticky text-center"
-              :style="{ top: '0', width: '150px' }"
+              :style="{ top: '0', width: '100px', backgroundColor: '#F2FBE6' }"
             >
-              Ngày còn lại
+              TỔNG SỐ
+            </th>
+            <th
+              class="sticky text-center"
+              :style="{ top: '0', width: '100px', backgroundColor: '#EEFAF5' }"
+            >
+              ĐÃ NGHỈ
+            </th>
+
+            <th
+              class="sticky text-center"
+              :style="{ top: '0', width: '100px', backgroundColor: '#FDF2F0' }"
+            >
+              CÒN LẠI
             </th>
           </tr>
         </thead>
@@ -640,7 +669,7 @@ onMounted(() => {
               class="sticky"
               :style="{
                 left: 0,
-                background: 'antiquewhite',
+                background: '#DEE6F0',
               }"
             >
               <b>{{ group.department_name }}</b>
@@ -648,11 +677,16 @@ onMounted(() => {
             <td
               :colspan="months.length"
               :style="{
-                background: 'antiquewhite',
+                background: '#DEE6F0',
               }"
             ></td>
           </tr>
-          <tr v-for="(user, user_key) in group.users" :key="user_key">
+          <tr
+            v-for="(user, user_key) in group.users"
+            :key="user_key"
+            @click="openDialogLeaveProfile(user)"
+            class="hover"
+          >
             <td
               class="sticky"
               :style="{
@@ -691,15 +725,6 @@ onMounted(() => {
                 backgroundColor: '#fff',
               }"
             >
-              <span> {{ user.leaveAll }}</span>
-            </td>
-            <td
-              class="text-center"
-              :style="{
-                width: '150px',
-                backgroundColor: '#fff',
-              }"
-            >
               <span> {{ user.leaveInventory }}</span>
             </td>
             <td
@@ -718,7 +743,25 @@ onMounted(() => {
                 backgroundColor: '#fff',
               }"
             >
-              <b> {{ user.leaveHoliday }}</b>
+              <span> {{ user.leaveSeniority }}</span>
+            </td>
+            <td
+              class="text-center"
+              :style="{
+                width: '150px',
+                backgroundColor: '#fff',
+              }"
+            >
+              <span> </span>
+            </td>
+            <td
+              class="text-center"
+              :style="{
+                width: '150px',
+                backgroundColor: '#fff',
+              }"
+            >
+              <span> {{ user.leaveAll }}</span>
             </td>
             <td
               class="text-center"
@@ -811,6 +854,17 @@ onMounted(() => {
       </DataTable>
     </div> -->
   </div>
+
+  <!--dialog-->
+  <dialogleaveprofile
+    :key="componentKey['0']"
+    :headerDialog="headerDialogLeaveProfile"
+    :displayDialog="displayDialogLeaveProfile"
+    :closeDialog="closeDialogLeaveProfile"
+    :profile="profile"
+    :year="options.year"
+    :initData="initData"
+  />
 </template>
 <style scoped>
 .box-table {
@@ -839,7 +893,7 @@ onMounted(() => {
   z-index: 2;
 }
 .thead-custom > tr > th {
-  padding: 1rem;
+  padding: 1rem 0.5rem;
   border: 1px solid #e9ecef;
   border-width: 0 0 1px 0;
   font-weight: 600;
@@ -959,6 +1013,12 @@ th.isHoliday {
 .p-lichip {
   float: left;
   white-space: normal;
+}
+.hover {
+  cursor: pointer;
+}
+.hover:hover td {
+  background-color: aliceblue !important;
 }
 </style>
 <style lang="scss" scoped>
