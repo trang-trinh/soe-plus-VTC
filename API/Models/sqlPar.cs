@@ -81,6 +81,7 @@ namespace API.Models
         public string excelname { get; set; }
         public string proc { get; set; }
         public List<sqlPar> par { get; set; }
+        public bool query { get; set; }
     }
     public class sqlPublicProc
     {
