@@ -494,14 +494,14 @@ onMounted(() => {
         </thead>
         <tbody v-for="(bc, index1) in datalists" :key="index1">
             <tr>
-                <td colspan="38" class="bg-group"><b>{{bc.name_group_pb}}</b></td>
+                <td colspan="38"><b>{{bc.name_group_pb}}</b></td>
             </tr>
             <tr v-for="(dg, index2) in bc.list_ns" :key="index2">
-                <td class="text-center bg-stt">{{dg.stt}}</td>
-                <td  align="left" class="bg-aliceblue" >
+                <td class="text-center">{{dg.stt}}</td>
+                <td  align="left">
                     {{dg.profile_code}}
                 </td>
-                <td align="left" class="bg-aliceblue" >
+                <td align="left">
                     {{dg.profile_user_name}}
                 </td>
                 <td align="center">
@@ -586,12 +586,6 @@ onMounted(() => {
     </div>
 </template>
 <style scoped>
-  .bg-group{
-    background-color: rgb(222, 230, 240) !important;
-  }
-  .bg-stt{
-    background-color: #e6e6e6;
-  }
     .table {
         margin-bottom: 0px !important;
     }
@@ -611,7 +605,7 @@ onMounted(() => {
     }
 
     table{
-      border: 0.3px solid rgba(0,0,0,.3) !important;
+      border: 0.5px solid rgba(0,0,0,.3) !important;
     }
 
     tr td {
@@ -620,11 +614,11 @@ onMounted(() => {
     }
 
     table th {
-        background-color: #e6e6e6 !important;
+        background-color: #f8f9fa !important;
     }
 
     table th, table td {
-        border: 0.3px solid rgba(0,0,0,.3) !important;
+        border: 0.5px solid rgba(0,0,0,.3) !important;
     }
 
 </style>
