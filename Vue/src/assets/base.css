@@ -21,9 +21,14 @@ body {
   font-family: roboto;
   margin: 0;
   height: 100vh;
-  color: #495057;
+  color: #000000;
 }
-
+.p-datatable .p-datatable-tbody>tr{
+  color: #000000 !important;
+}
+/* .p-button.p-button-secondary.p-button-outlined, .p-buttonset.p-button-secondary > .p-button.p-button-outlined, .p-splitbutton.p-button-secondary > .p-button.p-button-outlined{
+  color: #000000 !important;
+} */
 .ck-editor__editable {
   min-height: 100px !important;
   max-height: 400px !important;
