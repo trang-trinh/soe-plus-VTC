@@ -443,7 +443,7 @@ onMounted(() => {
     </div>
     <div style="overflow: scroll;max-height: calc(100vh - 140px);">
         <table cellspacing=0 id="table-bc" class="table table-condensed table-hover tbpad" style="table-layout: fixed;width: 100%;">
-        <thead>
+        <thead style="position: sticky; z-index: 6; top:0">
             <tr>
                 <th class="text-center" width="50" rowspan="2" >STT</th>
                 <th class="text-center" width="100" rowspan="2" >Mã nhân viên</th>
