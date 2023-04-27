@@ -684,19 +684,19 @@ onMounted(() => {
             </th>
             <th
               class="sticky text-center"
-              :style="{ top: '0', width: '100px', backgroundColor: '#DEE6F0' }"
+              :style="{ top: '0', width: '100px', backgroundColor: '#F2FBE6' }"
             >
               TỔNG SỐ
             </th>
             <th
               class="sticky text-center"
-              :style="{ top: '0', width: '100px', backgroundColor: '#DEE6F0' }"
+              :style="{ top: '0', width: '100px', backgroundColor: '#EEFAF5' }"
             >
               ĐÃ NGHỈ
             </th>
             <th
               class="sticky text-center"
-              :style="{ top: '0', width: '100px', backgroundColor: '#DEE6F0' }"
+              :style="{ top: '0', width: '100px', backgroundColor: '#FDF2F0' }"
             >
               CÒN LẠI
             </th>
@@ -794,27 +794,30 @@ onMounted(() => {
               :style="{
                 width: '150px',
                 backgroundColor: '#fff',
+                backgroundColor: '#F2FBE6',
               }"
             >
-              <span> </span>
+              <b> </b>
             </td>
             <td
               class="text-center"
               :style="{
                 width: '150px',
                 backgroundColor: '#fff',
+                backgroundColor: '#EEFAF5',
               }"
             >
-              <span> {{ user.leaveAll }}</span>
+              <b> {{ user.leaveAll }}</b>
             </td>
             <td
               class="text-center"
               :style="{
                 width: '150px',
                 backgroundColor: '#fff',
+                backgroundColor: '#FDF2F0',
               }"
             >
-              <span> {{ user.leaveRemain }}</span>
+              <b> {{ user.leaveRemain }}</b>
             </td>
           </tr>
         </tbody>
@@ -919,8 +922,8 @@ onMounted(() => {
   >
     <h3>
       <label>
-        <a @click="downloadFile(linkformimport)">Nhấn vào đây</a> để tải
-        xuống tệp mẫu.
+        <a @click="downloadFile(linkformimport)">Nhấn vào đây</a> để tải xuống
+        tệp mẫu.
       </label>
     </h3>
     <form>
