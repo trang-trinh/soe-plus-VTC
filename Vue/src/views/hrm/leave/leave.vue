@@ -684,19 +684,19 @@ onMounted(() => {
             </th>
             <th
               class="sticky text-center"
-              :style="{ top: '0', width: '100px', backgroundColor: '#F2FBE6' }"
+              :style="{ top: '0', width: '100px', backgroundColor: '#DEE6F0' }"
             >
               TỔNG SỐ
             </th>
             <th
               class="sticky text-center"
-              :style="{ top: '0', width: '100px', backgroundColor: '#EEFAF5' }"
+              :style="{ top: '0', width: '100px', backgroundColor: '#DEE6F0' }"
             >
               ĐÃ NGHỈ
             </th>
             <th
               class="sticky text-center"
-              :style="{ top: '0', width: '100px', backgroundColor: '#FDF2F0' }"
+              :style="{ top: '0', width: '100px', backgroundColor: '#DEE6F0' }"
             >
               CÒN LẠI
             </th>
