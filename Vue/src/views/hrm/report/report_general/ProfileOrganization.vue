@@ -590,7 +590,7 @@ onMounted(() => {
     background-color: rgb(222, 230, 240) !important;
   }
   .bg-stt{
-    background-color: #f8f9fa;
+    background-color: #e6e6e6;
   }
     .table {
         margin-bottom: 0px !important;
@@ -620,7 +620,7 @@ onMounted(() => {
     }
 
     table th {
-        background-color: #f8f9fa !important;
+        background-color: #e6e6e6 !important;
     }
 
     table th, table td {
