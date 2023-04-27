@@ -88,6 +88,8 @@ namespace API.Controllers.Leave
                         leave.month10 = model.month10;
                         leave.month11 = model.month11;
                         leave.month12 = model.month12;
+                        leave.inventory = model.inventory;
+                        leave.bonus = model.bonus;
                         leave.modified_by = uid;
                         leave.modified_date = DateTime.Now;
                         leave.modified_ip = ip;
