@@ -268,6 +268,19 @@ const upload = () => {
       return;
     });
 };
+const downloadFile = (url) => {
+  const a = document.createElement("a");
+  a.href =
+    basedomainURL +
+    "/Viewer/DownloadFile?url=" +
+    encodeURIComponent(url) +
+    "&title=" +
+    encodeURIComponent("Mẫu Excel Phép năm.xlsx");
+  a.download = "Mẫu Excel Phép năm.xlsx";
+  //a.target = "_blank";
+  a.click();
+  a.remove();
+};
 
 //init
 const initDictionary = () => {
@@ -906,8 +919,8 @@ onMounted(() => {
   >
     <h3>
       <label>
-        <a :href="basefileURL + linkformimport" download>Nhấn vào đây</a> để tải xuống
-        tệp mẫu.
+        <a @click="downloadFile(linkformimport)">Nhấn vào đây</a> để tải
+        xuống tệp mẫu.
       </label>
     </h3>
     <form>
