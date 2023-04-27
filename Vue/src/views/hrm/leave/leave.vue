@@ -162,17 +162,17 @@ const closeDialogLeaveProfile = () => {
 const menuButs = ref();
 const itemButs = ref([
   {
-    label: "Xuất Excel",
+    label: "Export dữ liệu ra Excel",
     icon: "pi pi-file-excel",
     command: (event) => {
-      exportExcel();
+      //exportData("ExportExcel");
     },
   },
   {
-    label: "Nhập Excel",
+    label: "Import dữ liệu từ Excel",
     icon: "pi pi-file-excel",
     command: (event) => {
-      importExcel(event);
+      //exportData("ExportExcel");
     },
   },
 ]);
@@ -468,10 +468,15 @@ onMounted(() => {
           @click="toggleExport"
           label="Tiện ích"
           icon="pi pi-file-excel"
-          class="mr-2 p-button-outlined p-button-secondary"
+          class="p-button-outlined p-button-secondary mr-2"
           aria-haspopup="true"
           aria-controls="overlay_Export"
-        />
+        >
+          <div>
+            <span class="mr-2">Tiện ích</span>
+            <span><i class="pi pi-chevron-down"></i></span>
+          </div>
+        </Button>
         <Menu
           :model="itemButs"
           :popup="true"
