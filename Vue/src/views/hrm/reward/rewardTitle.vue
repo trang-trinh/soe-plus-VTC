@@ -1427,16 +1427,16 @@ onMounted(() => {
             :row-hover="true"
           >
             <Column
-              class="align-items-center justify-content-center text-center"
-              headerStyle="text-align:center;max-width:70px;height:50px"
-              bodyStyle="text-align:center;max-width:70px"
+              class="align-items-center justify-content-center text-center overflow-hidden"
+              headerStyle="text-align:center;max-width:50px;height:50px"
+              bodyStyle="text-align:center;max-width:50px"
                selectionMode="multiple"  v-if="store.getters.user.is_super==true"
             >
             </Column>
             <Column
               field="STT"
               header="STT"
-              class="align-items-center justify-content-center text-center"
+              class="align-items-center justify-content-center text-center overflow-hidden"
               headerStyle="text-align:center;max-width:55px;height:50px"
               bodyStyle="text-align:center;max-width:55px"
             >
@@ -1446,15 +1446,15 @@ onMounted(() => {
               header="Số quyết định"
               headerStyle="text-align:center;max-width:150px;height:50px"
               bodyStyle="text-align:center;max-width:150px"
-              class="align-items-center justify-content-center text-center"
+              class="align-items-center justify-content-center text-center overflow-hidden"
             >
             </Column>
             <Column
               field="reward_number"
               header="Loại"
               headerStyle="text-align:center;max-width:150px;height:50px"
-              bodyStyle="text-align:center;max-width:150px"
-              class="align-items-center justify-content-center text-center"
+              bodyStyle="text-align:center;max-width:150px;overflow:hidden"
+              class="align-items-center justify-content-center text-center overflow-hidden"
             >
               <template #body="data">
                 <div v-if="data.data.reward_type == 1">Cá nhân</div>
@@ -1466,14 +1466,15 @@ onMounted(() => {
               field="vacancy_name"
               header="Đối tượng"
               headerStyle="text-align:center;max-width:250px;height:50px"
-              bodyStyle="text-align:center;max-width:250px"
-              class="align-items-center justify-content-center text-center"
+              bodyStyle="text-align:center;max-width:250px;overflow:hidden"
+              class="align-items-center justify-content-center text-center overflow-hidden"
             >
               <template #body="data">
                 <div
                   v-if="
                     data.data.reward_type == 1 || data.data.reward_type == 3
                   "
+                
                 >
                   <AvatarGroup>
                     <Avatar
@@ -1541,7 +1542,7 @@ onMounted(() => {
               field="reward_content"
               header="Nội dung"
               headerStyle="text-align:left;height:50px"
-              headerClass="align-items-center justify-content-center text-center"
+              headerClass="align-items-center justify-content-center text-center overflow-hidden"
               bodyStyle="text-align:left"
             >
             </Column>
@@ -1550,7 +1551,7 @@ onMounted(() => {
               header="Cấp khen thưởng/kỷ luật"
               headerStyle="text-align:center;max-width:150px;height:50px"
               bodyStyle="text-align:center;max-width:150px"
-              class="align-items-center justify-content-center text-center"
+              class="align-items-center justify-content-center text-center overflow-hidden"
             >
             </Column>
             <Column
@@ -1558,7 +1559,7 @@ onMounted(() => {
               header="Hình thức"
               headerStyle="text-align:center;max-width:200px;height:50px"
               bodyStyle="text-align:center;max-width:200px"
-              class="align-items-center justify-content-center text-center"
+              class="align-items-center justify-content-center text-center overflow-hidden"
             >
             </Column>
             <Column
@@ -1566,7 +1567,7 @@ onMounted(() => {
               header="Ngày quyết định"
               headerStyle="text-align:center;max-width:100px;height:50px"
               bodyStyle="text-align:center;max-width:100px"
-              class="align-items-center justify-content-center text-center"
+              class="align-items-center justify-content-center text-center overflow-hidden"
             >
               <template #body="data">
                 <div v-if="data.data.decision_date">
@@ -1584,7 +1585,7 @@ onMounted(() => {
               header="Ngày/Người lập"
               headerStyle="text-align:center;max-width:120px;height:50px"
               bodyStyle="text-align:center;max-width:120px;"
-              class="align-items-center justify-content-center text-center"
+              class="align-items-center justify-content-center text-center overflow-hidden"
             >
               <template #body="slotProps">
                 <span class="mr-2">
@@ -1634,7 +1635,7 @@ onMounted(() => {
               header=""
               headerStyle="text-align:center;max-width:50px"
               bodyStyle="text-align:center;max-width:50px"
-              class="align-items-center justify-content-center text-center"
+              class="align-items-center justify-content-center text-center  "
             >
               <template #body="slotProps">
                 <Button

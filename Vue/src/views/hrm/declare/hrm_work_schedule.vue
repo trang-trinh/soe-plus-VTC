@@ -232,14 +232,33 @@ function onGetMonth(date) {
 }
 const onSelectedschedule = () => {
   var arr = [...work_schedule.value.work_schedule_daysfake];
-  if(work_schedule.value.work_schedule_monthsfake)
-  work_schedule.value.work_schedule_monthsfake.forEach((element) => {
-    work_schedule.value.work_schedule_daysfake.forEach((item) => {
-      if (onGetMonth(item).getTime() == element.getTime()) {
-        arr = arr.filter((x) => x != item);
-      }
+  if (work_schedule.value.work_schedule_monthsfake)
+    work_schedule.value.work_schedule_monthsfake.forEach((element) => {
+      work_schedule.value.work_schedule_daysfake.forEach((item) => {
+        if (onGetMonth(item).getTime() == element.getTime()) {
+          arr = arr.filter((x) => x != item);
+        }
+      });
     });
-  });
+  work_schedule.value.work_schedule_daysfake = arr;
+};
+const onSelectedscheduleYears = () => {
+  var arr = [...work_schedule.value.work_schedule_daysfake];
+  var arrm = [...work_schedule.value.work_schedule_monthsfake];
+  if (work_schedule.value.work_schedule_yearsfake)
+    work_schedule.value.work_schedule_yearsfake.forEach((element) => {
+      work_schedule.value.work_schedule_daysfake.forEach((item) => {
+        if (item.getFullYear() == element.getFullYear()) {
+          arr = arr.filter((x) => x != item);
+        }
+      });
+      work_schedule.value.work_schedule_monthsfake.forEach((item) => {
+        if (item.getFullYear() == element.getFullYear()) {
+          arrm = arrm.filter((x) => x != item);
+        }
+      });
+    });
+  work_schedule.value.work_schedule_monthsfake = arrm;
   work_schedule.value.work_schedule_daysfake = arr;
 };
 
@@ -248,15 +267,32 @@ const onSelectedschedule = () => {
 const sttStamp = ref(1);
 const saveData = (isFormValid) => {
   submitted.value = true;
-
+  if (
+    work_schedule.value.profile_id_fake == null ||
+    work_schedule.value.config_work_location_id == null ||
+    work_schedule.value.declare_shift_id == null
+  ) {
+    return;
+  }
   let formData = new FormData();
 
   if (work_schedule.value.profile_id_fake)
     work_schedule.value.profile_id =
       work_schedule.value.profile_id_fake.toString();
+      var trr = "";
+  if (work_schedule.value.work_schedule_yearsfake) {
+    work_schedule.value.work_schedule_years = "";
+  
+    work_schedule.value.work_schedule_yearsfake.forEach((element) => {
+      work_schedule.value.work_schedule_years +=
+        trr + moment(new Date(element)).format("MM/DD/YYYY").toString();
+      trr = ",";
+    });
+  }
+
   if (work_schedule.value.work_schedule_monthsfake) {
     work_schedule.value.work_schedule_months = "";
-    var trr = "";
+      trr = "";
     work_schedule.value.work_schedule_monthsfake.forEach((element) => {
       work_schedule.value.work_schedule_months +=
         trr + moment(new Date(element)).format("MM/DD/YYYY").toString();
@@ -265,7 +301,7 @@ const saveData = (isFormValid) => {
   }
   if (work_schedule.value.work_schedule_daysfake) {
     work_schedule.value.work_schedule_days = "";
-    var trr = "";
+
     work_schedule.value.work_schedule_daysfake.forEach((element) => {
       work_schedule.value.work_schedule_days +=
         trr + moment(new Date(element)).format("MM/DD/YYYY").toString();
@@ -370,10 +406,20 @@ const editTem = (dataTem) => {
       let data = JSON.parse(response.data.data)[0];
 
       work_schedule.value = data[0];
+       
       if (work_schedule.value.profile_id)
         work_schedule.value.profile_id_fake =
           work_schedule.value.profile_id.split(",");
-
+      if (work_schedule.value.work_schedule_years) {
+        work_schedule.value.work_schedule_yearsfake = [];
+        work_schedule.value.work_schedule_years
+          .split(",")
+          .forEach((element) => {
+            work_schedule.value.work_schedule_yearsfake.push(
+              new Date(element)
+            );
+          });
+      }
       if (work_schedule.value.work_schedule_months) {
         work_schedule.value.work_schedule_monthsfake = [];
         work_schedule.value.work_schedule_months
@@ -1297,14 +1343,13 @@ onMounted(() => {
             expander
             headerStyle="text-align:center;max-width:50px;height:50px"
             bodyStyle="text-align:center;max-width:50px;"
-        
           />
           <Column
             field="candidate_code"
             header="Ảnh"
             headerStyle="text-align:center;max-width:70px;height:50px"
             bodyStyle="text-align:center;max-width:70px"
-            class="align-items-center justify-content-center text-center"    
+            class="align-items-center justify-content-center text-center"
           >
             <template #body="slotProps">
               <div>
@@ -1419,30 +1464,47 @@ onMounted(() => {
                 >
                   <template #body="data">
                     <div class="w-full">
-                      <div class=" " v-if="data.data.is_full_time == '0'">
-                        <Chip
-                          v-for="(
-                            item, index
-                          ) in data.data.work_schedule_months.split(',')"
-                          :key="index"
-                          class="m-1 bg-blue-300"
-                          :label="
-                            moment(new Date(item)).format('MM/YYYY').toString()
-                          "
-                        ></Chip>
-
-                        <Chip
-                          v-for="(
-                            item, index
-                          ) in data.data.work_schedule_days.split(',')"
-                          :key="index"
-                          class="m-1 bg-bluegray-300"
-                          :label="
-                            moment(new Date(item))
-                              .format('DD/MM/YYYY')
-                              .toString()
-                          "
-                        ></Chip>
+                      <div class="flex" v-if="data.data.is_full_time == '0'">
+                        <div v-if="data.data.work_schedule_years">
+                          <Chip
+                            v-for="(
+                              item, index
+                            ) in data.data.work_schedule_years.split(',')"
+                            :key="index"
+                            class="m-1 bg-blue-500"
+                            :label="
+                              moment(new Date(item)).format('YYYY').toString()
+                            "
+                          ></Chip>
+                        </div>
+                        <div v-if="data.data.work_schedule_months">
+                          <Chip
+                            v-for="(
+                              item, index
+                            ) in data.data.work_schedule_months.split(',')"
+                            :key="index"
+                            class="m-1 bg-blue-300"
+                            :label="
+                              moment(new Date(item))
+                                .format('MM/YYYY')
+                                .toString()
+                            "
+                          ></Chip>
+                        </div>
+                        <div v-if="data.data.work_schedule_days">
+                          <Chip
+                            v-for="(
+                              item, index
+                            ) in data.data.work_schedule_days.split(',')"
+                            :key="index"
+                            class="m-1 bg-bluegray-300"
+                            :label="
+                              moment(new Date(item))
+                                .format('DD/MM/YYYY')
+                                .toString()
+                            "
+                          ></Chip>
+                        </div>
                       </div>
                       <div class="flex" v-else>Toàn thời gian</div>
                     </div>
@@ -1590,6 +1652,9 @@ onMounted(() => {
               :display="'chip'"
               :placeholder="'Chọn nhân sự'"
               :disabled="isSaveTem"
+              :class="{
+                'p-invalid': work_schedule.profile_id_fake == null && submitted,
+              }"
             />
           </div>
         </div>
@@ -1617,17 +1682,47 @@ onMounted(() => {
           class="flex field align-items-center col-12 md:col-12"
           v-if="!work_schedule.is_full_time"
         >
+          <div class="col-3 p-0 flex align-items-center">Đăng ký năm</div>
+          <div class="col-9 p-0">
+            <Calendar
+              v-model="work_schedule.work_schedule_yearsfake"
+              view="year"
+              dateFormat="yy"
+              class="w-full"
+              :showIcon="true"
+              selectionMode="multiple"
+              @date-select="onSelectedscheduleYears($event)"
+            >
+              <template #date="slotProps">
+                <strong
+                  v-if="
+                    slotProps.date.year > 2020 && slotProps.date.year < 2023
+                  "
+                  style="text-decoration: line-through"
+                  >{{ slotProps.date.year }} sss</strong
+                >
+                <template v-else>{{ slotProps.date.year }}</template>
+              </template>
+            </Calendar>
+          </div>
+        </div>
+        <div
+          class="flex field align-items-center col-12 md:col-12"
+          v-if="!work_schedule.is_full_time"
+        >
           <div class="col-3 p-0 flex align-items-center">Đăng ký tháng</div>
           <div class="col-9 p-0">
             <Calendar
               v-model="work_schedule.work_schedule_monthsfake"
               view="month"
               dateFormat="mm/yy"
-              class="w-full" :showOnFocus="false"
+              class="w-full"
+              :showOnFocus="false"
               :showIcon="true"
               selectionMode="multiple"
               @date-select="onSelectedschedule($event)"
-            />
+            >
+            </Calendar>
           </div>
         </div>
 
@@ -1641,10 +1736,19 @@ onMounted(() => {
               v-model="work_schedule.work_schedule_daysfake"
               selectionMode="multiple"
               class="w-full"
-         
-              :showIcon="true" :showOnFocus="false"
+              :showIcon="true"
+              :showOnFocus="false"
               @date-select="onSelectedschedule($event)"
-            />
+            >
+              <!-- <template #date="slotProps">
+                <strong
+                  v-if="slotProps.date.day > 10 && slotProps.date.day < 15"
+                  style="text-decoration: line-through"
+                  >{{ slotProps.date.day }}</strong
+                >
+                <template v-else>{{ slotProps.date.day }}</template>
+              </template> -->
+            </Calendar>
           </div>
         </div>
       </div>

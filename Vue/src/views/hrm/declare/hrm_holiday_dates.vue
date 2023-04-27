@@ -69,6 +69,7 @@ const loadData = (rf) => {
         loadCount();
       }
     }
+    if(optionsHoliday.value==1){
     axios
       .post(
         baseURL + "/api/hrm_ca_SQL/getData",
@@ -95,7 +96,7 @@ const loadData = (rf) => {
         state.value.items = [];
         data.forEach((element, i) => {
           element.STT = options.value.PageNo * options.value.PageSize + i + 1;
-          44;
+       
           if (element.start_date){
             if(element.text_color)
             element.text_color="color:"+element.text_color;
@@ -111,13 +112,14 @@ const loadData = (rf) => {
               endDate: element.end_date
                 ? new Date(element.end_date)
                 : new Date(element.start_date),
-              title:
-             " <span class='text-sm'> [ " +
-                element.holiday_type_name +
-                " ]</span> <span>" +
-                element.reason +
-                "</span>",
-                tooltip:element.reason,
+                title:
+              " <span class='text-sm'> <i class='" +
+              element.icon +
+              " px-1' ></i>" +
+              " </span>   <span>" +
+              element.reason +
+              "</span>",
+            tooltip:  element.holiday_type_name,
                 style:element.text_color  + element.background_color
             });
           }
@@ -138,7 +140,83 @@ const loadData = (rf) => {
           store.commit("gologout");
         }
       });
-  }
+    }
+    else{
+
+      axios
+      .post(
+        baseURL + "/api/hrm_ca_SQL/getData",
+        {
+          str: encr(
+            JSON.stringify({
+              proc: "hrm_holiday_dates_list_all",
+              par: [
+ 
+                { par: "user_id", va: store.getters.user.user_id },
+                { par: "status", va: null },
+              ],
+            }),
+            SecretKey,
+            cryoptojs
+          ).toString(),
+        },
+        config
+      )
+      .then((response) => {
+        let data = JSON.parse(response.data.data)[0];
+        if (isFirst.value) isFirst.value = false;
+        state.value.items = [];
+        data.forEach((element, i) => {
+          element.STT = options.value.PageNo * options.value.PageSize + i + 1;
+       
+          if (element.start_date){
+            if(element.text_color)
+            element.text_color="color:"+element.text_color;
+            else
+            element.text_color="";
+            if(element.background_color)
+            element.background_color="; background-color:"+element.background_color;
+            else
+            element.background_color="";
+            state.value.items.push({
+              id: element.holiday_dates_id,
+              startDate: new Date(element.start_date),
+              endDate: element.end_date
+                ? new Date(element.end_date)
+                : new Date(element.start_date),
+                title:
+              " <span class='text-sm'> <i class='" +
+              element.icon +
+              " px-1' ></i>" +
+              " </span>   <span>" +
+              element.reason +
+              "</span>",
+            tooltip:  element.holiday_type_name,
+                style:element.text_color  + element.background_color
+            });
+          }
+        });
+        datalists.value = data;
+
+        options.value.loading = false;
+      })
+      .catch((error) => {
+        toast.error("Tải dữ liệu không thành công!");
+        options.value.loading = false;
+
+        if (error && error.status === 401) {
+          swal.fire({
+            text: "Mã token đã hết hạn hoặc không hợp lệ, vui lòng đăng nhập lại!",
+            confirmButtonText: "OK",
+          });
+          store.commit("gologout");
+        }
+      });
+   
+
+    }
+  
+    }
 };
 //Phân trang dữ liệu
 const onPage = (event) => {
@@ -947,7 +1025,7 @@ onMounted(() => {
               spellcheck="false"
               placeholder="Tìm kiếm"
             />
-            <Button
+            <!-- <Button
               type="button"
               class="ml-2"
               icon="pi pi-filter"
@@ -960,7 +1038,7 @@ onMounted(() => {
                   ? ''
                   : 'p-button-secondary p-button-outlined'
               "
-            />
+            /> -->
             <OverlayPanel
               ref="op"
               appendTo="body"
@@ -1228,7 +1306,7 @@ onMounted(() => {
               spellcheck="false"
               placeholder="Tìm kiếm"
             />
-            <Button
+            <!-- <Button
               type="button"
               class="ml-2"
               icon="pi pi-filter"
@@ -1241,7 +1319,7 @@ onMounted(() => {
                   ? ''
                   : 'p-button-secondary p-button-outlined'
               "
-            />
+            /> -->
             <OverlayPanel
               ref="op"
               appendTo="body"
@@ -1367,6 +1445,25 @@ onMounted(() => {
           @input="setShowDate"
         />
       </template>
+      <template #dayContent="{ day }">
+          <div
+            v-if="state.displayPeriodUom == 'year'"
+            style="font-weight: bold !important; font-size: 1.2rem !important"
+            class="p-1"
+          >
+            {{ moment(day).format("DD/MM") }}
+          </div>
+          <div
+            v-if="
+              state.displayPeriodUom == 'month' ||
+              state.displayPeriodUom == 'week'
+            "
+            style="font-weight: bold !important; font-size: 1.2rem !important"
+            class="p-1"
+          >
+            {{ moment(day).format("DD") }}
+          </div>
+        </template>
     </calendar-view>
     
   </div>

@@ -1712,7 +1712,7 @@ onMounted(() => {
               field="STT"
               header="STT"
           
-              class="align-items-center flex justify-content-center text-center"
+              class="align-items-center flex justify-content-center text-center overflow-hidden"
               headerStyle="text-align:center ;max-width:70px;height:50px"
               bodyStyle="text-align:center;max-width:70px"
             ></Column>
@@ -1721,7 +1721,8 @@ onMounted(() => {
               header="Mã số"
               headerStyle="text-align:center;max-width:150px;height:50px "
               bodyStyle="text-align:center;max-width:150px"
-              headerClass="align-items-center    justify-content-center text-center"
+              headerClass="align-items-center    justify-content-center text-center "
+              class="overflow-hidden"
               :sortable="true"
             >
               <template #filter="{ filterModel }">
@@ -1735,7 +1736,7 @@ onMounted(() => {
             </Column>
             <Column
               field="training_emps_name"
-              header="Tên khoá đào tạo"
+              header="Tên khoá đào tạo"        class="  overflow-hidden"
               :sortable="true"
               headerStyle="text-align:center;height:50px"
               bodyStyle="text-align:left"
@@ -1754,7 +1755,7 @@ onMounted(() => {
               header="Hình thức"
               headerStyle="text-align:center;max-width:100px;height:50px"
               bodyStyle="text-align:center;max-width:100px"
-              class="align-items-center justify-content-center text-center"
+              class="align-items-center justify-content-center text-center overflow-hidden"
             >
               <template #body="data">
                 <div>
@@ -1773,7 +1774,7 @@ onMounted(() => {
               header="Từ ngày"
               headerStyle="text-align:center;max-width:100px;height:50px"
               bodyStyle="text-align:center;max-width:100px"
-              class="align-items-center justify-content-center text-center"
+              class="align-items-center justify-content-center text-center overflow-hidden"
             >
               <template #body="data">
                 <div v-if="data.data.start_date">
@@ -1789,7 +1790,7 @@ onMounted(() => {
               header="Đến ngày"
               headerStyle="text-align:center;max-width:100px;height:50px"
               bodyStyle="text-align:center;max-width:100px"
-              class="align-items-center justify-content-center text-center"
+              class="align-items-center justify-content-center text-center overflow-hidden"
             >
               <template #body="data">
                 <div v-if="data.data.end_date">
@@ -1804,7 +1805,7 @@ onMounted(() => {
               header="Giảng viên"
               headerStyle="text-align:center;max-width:160px;height:50px"
               bodyStyle="text-align:center;max-width:160px"
-              class="align-items-center justify-content-center text-center"
+              class="align-items-center justify-content-center text-center overflow-hidden"
             >
               <template #body="data">
                 <div>
@@ -1861,7 +1862,7 @@ onMounted(() => {
               header="Học viên"
               headerStyle="text-align:center;max-width:100px;height:50px"
               bodyStyle="text-align:center;max-width:100px"
-              class="align-items-center justify-content-center text-center"
+              class="align-items-center justify-content-center text-center overflow-hidden"
             >
               <template #body="data">
                 <div>
@@ -1874,7 +1875,7 @@ onMounted(() => {
               header="Ngày/Người lập"
               headerStyle="text-align:center;max-width:120px;height:50px"
               bodyStyle="text-align:center;max-width:120px;"
-              class="align-items-center justify-content-center text-center"
+              class="align-items-center justify-content-center text-center overflow-hidden"
             >
               <template #body="slotProps">
                 <span class="mr-2">
@@ -1936,7 +1937,7 @@ onMounted(() => {
               header="Trạng thái"
               headerStyle="text-align:center;max-width:11rem;height:50px"
               bodyStyle="text-align:center;max-width:11rem"
-              class="align-items-center justify-content-center text-center"
+              class="align-items-center justify-content-center text-center overflow-hidden"
             >
               <template #body="slotProps">
                 <div

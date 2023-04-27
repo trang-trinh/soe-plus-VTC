@@ -162,17 +162,17 @@ const closeDialogLeaveProfile = () => {
 const menuButs = ref();
 const itemButs = ref([
   {
-    label: "Xuất Excel",
+    label: "Export dữ liệu ra Excel",
     icon: "pi pi-file-excel",
     command: (event) => {
-      exportExcel();
+      //exportData("ExportExcel");
     },
   },
   {
-    label: "Nhập Excel",
+    label: "Import dữ liệu từ Excel",
     icon: "pi pi-file-excel",
     command: (event) => {
-      importExcel(event);
+      //exportData("ExportExcel");
     },
   },
 ]);
@@ -267,6 +267,19 @@ const upload = () => {
       });
       return;
     });
+};
+const downloadFile = (url) => {
+  const a = document.createElement("a");
+  a.href =
+    basedomainURL +
+    "/Viewer/DownloadFile?url=" +
+    encodeURIComponent(url) +
+    "&title=" +
+    encodeURIComponent("Mẫu Excel Phép năm.xlsx");
+  a.download = "Mẫu Excel Phép năm.xlsx";
+  //a.target = "_blank";
+  a.click();
+  a.remove();
 };
 
 //init
@@ -455,10 +468,15 @@ onMounted(() => {
           @click="toggleExport"
           label="Tiện ích"
           icon="pi pi-file-excel"
-          class="mr-2 p-button-outlined p-button-secondary"
+          class="p-button-outlined p-button-secondary mr-2"
           aria-haspopup="true"
           aria-controls="overlay_Export"
-        />
+        >
+          <div>
+            <span class="mr-2">Tiện ích</span>
+            <span><i class="pi pi-chevron-down"></i></span>
+          </div>
+        </Button>
         <Menu
           :model="itemButs"
           :popup="true"
@@ -469,7 +487,7 @@ onMounted(() => {
           @click="refresh()"
           class="p-button-outlined p-button-secondary"
           icon="pi pi-refresh"
-          label="Tải lại"
+          v-tooltip.top="'Tải lại'"
         />
       </template>
     </Toolbar>
@@ -781,27 +799,30 @@ onMounted(() => {
               :style="{
                 width: '150px',
                 backgroundColor: '#fff',
+                backgroundColor: '#F2FBE6',
               }"
             >
-              <span> </span>
+              <b>{{ user.total }}</b>
             </td>
             <td
               class="text-center"
               :style="{
                 width: '150px',
                 backgroundColor: '#fff',
+                backgroundColor: '#EEFAF5',
               }"
             >
-              <span> {{ user.leaveAll }}</span>
+              <b> {{ user.leaveAll }}</b>
             </td>
             <td
               class="text-center"
               :style="{
                 width: '150px',
                 backgroundColor: '#fff',
+                backgroundColor: '#FDF2F0',
               }"
             >
-              <span> {{ user.leaveRemain }}</span>
+              <b> {{ user.leaveRemain }}</b>
             </td>
           </tr>
         </tbody>
@@ -906,7 +927,7 @@ onMounted(() => {
   >
     <h3>
       <label>
-        <a :href="basefileURL + linkformimport" download>Nhấn vào đây</a> để tải xuống
+        <a @click="downloadFile(linkformimport)">Nhấn vào đây</a> để tải xuống
         tệp mẫu.
       </label>
     </h3>
