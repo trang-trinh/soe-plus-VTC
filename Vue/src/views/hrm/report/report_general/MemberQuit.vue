@@ -107,7 +107,7 @@ const loadData = () => {
             let data = JSON.parse(response.data.data);
             if (data[0].length > 0) {
                 data[0].forEach((item, index) => {
-                    item.is_active = false;
+                    item.stt = index + 1;
                     const startDate = moment(item.recruitment_date || new Date());
                     const endDate = moment(new Date());
                     item.duration = moment.duration(endDate.diff(startDate));
@@ -116,7 +116,6 @@ const loadData = () => {
                 });
                 data[0] = groupBy(data[0], 'department_id');
                     let arr = [];
-                    var count = 1;
                     for (let pb in data[0]) {
                         // let data_ns_by_id = groupBy(data[0][pb], 'profile_code');
                         // let arr_ns = [];
@@ -124,10 +123,6 @@ const loadData = () => {
                         //     arr_ns.push({ group_ns: ns, name_group_ns: data_ns_by_id[ns][0].profile_user_name, list_con: data_ns_by_id[ns] });
                         // };
                         // data_ns_by_id = arr_ns;
-                        data[0][pb].forEach((item)=>{
-                          item.stt = count;
-                          count++
-                        })
                         arr.push({ group_pb: pb, name_group_pb: data[0][pb][0].organization_name, list_ns: data[0][pb] });
                     }
                 datalists.value = arr;
@@ -269,16 +264,6 @@ const exportExcel = () => {
     document.body.removeChild(elem);
   }
 };
-const valueClick = ref();
-const activeRow = (row, value)=>{
-  valueClick.value = value;
-  datalists.value.forEach((item)=>{
-    item.list_ns.forEach((item2)=>{
-      item2.is_active = false;
-    })
-  })
-  row.is_active= true;
-}
 const goBack = () => {
   history.back();
 };
@@ -456,13 +441,13 @@ onMounted(() => {
           </template>
         </Toolbar>
     </div>
-    <div style="overflow: scroll;max-height: calc(100vh - 124px);">
+    <div style="overflow: scroll;max-height: calc(100vh - 140px);">
         <table cellspacing=0 id="table-bc" class="table table-condensed table-hover tbpad" style="table-layout: fixed;width: 100%;">
         <thead style="position: sticky; z-index: 6; top:0">
             <tr>
-                <th class="text-center sticky left-sticky1 left-1" width="50" rowspan="2" >STT</th>
-                <th class="text-center sticky left-sticky1 left-2" width="100" rowspan="2" >Mã nhân viên</th>
-                <th class="text-center sticky left-sticky1 left-3" width="150" rowspan="2">Họ và tên</th>
+                <th class="text-center" width="50" rowspan="2" >STT</th>
+                <th class="text-center" width="100" rowspan="2" >Mã nhân viên</th>
+                <th class="text-center " width="150" rowspan="2">Họ và tên</th>
                 <th class="text-center " width="100" rowspan="2">Ngày sinh</th>
                 <th class="text-center " width="60" rowspan="2">Tuổi</th>
                 <th class="text-center " width="100" rowspan="2">Giới tính</th>
@@ -509,74 +494,73 @@ onMounted(() => {
         </thead>
         <tbody v-for="(bc, index1) in datalists" :key="index1">
             <tr>
-                <td colspan="38" class="bg-group left-sticky1 left-1"><b>{{bc.name_group_pb}}</b></td>
+                <td colspan="38"><b>{{bc.name_group_pb}}</b></td>
             </tr>
-            <tr v-for="(dg, index2) in bc.list_ns" :key="index2" class="item-hover">
-                <td class="text-center bg-stt left-sticky1 left-1" :class="dg.is_active?'active-item':'bg-stt'">{{dg.stt}}</td>
-                <td align="left" class="bg-aliceblue left-sticky1 left-2" @click="activeRow(dg)">
-                   {{dg.profile_code}}
+            <tr v-for="(dg, index2) in bc.list_ns" :key="index2">
+                <td class="text-center">{{dg.stt}}</td>
+                <td  align="left">
+                    {{dg.profile_code}}
                 </td>
-                <td align="left" class="bg-aliceblue left-sticky1 left-3" @click="activeRow(dg, Object.keys(dg)[0])">
-      
+                <td align="left">
                     {{dg.profile_user_name}}
                 </td>
-                <td align="center" @click="activeRow(dg)" >
+                <td align="center">
                   <span v-if="dg.birthday"> {{ moment(new Date(dg.birthday)).format("DD/MM/YYYY ") }}</span>
                 </td>
-                <td align="center" @click="activeRow(dg)" >
+                <td align="center">
                     {{dg.age}}
                 </td>
-                <td align="center" @click="activeRow(dg)" >
+                <td align="center">
                     {{dg.gender}}
                 </td>
-                <td align="left" @click="activeRow(dg)" >{{ dg.title_name }}</td>
-                <td align="left" @click="activeRow(dg)" >
+                <td align="left">{{ dg.title_name }}</td>
+                <td align="left">
                     {{dg.position_name}}
                 </td>
-                <td align="left" @click="activeRow(dg)" >
+                <td align="left">
                     {{dg.personel_groups_name}}
                 </td>
-                <td align="left" @click="activeRow(dg)" >
+                <td align="left">
                     {{dg.birthplace_origin_name}}
                 </td>
-                <td align="center" @click="activeRow(dg)" >
+                <td align="center">
                     {{dg.marital_status==0?'Độc thân':dg.marital_status==1 ?'Kết hôn':dg.marital_status==2?'Ly hôn':''}}
                 </td>
-                <td align="center" @click="activeRow(dg)" >
+                <td align="center">
                     {{dg.ethnic_name}}
                 </td>
-                <td align="center" @click="activeRow(dg)" >
+                <td align="center">
                     {{dg.religion_name}}
                 </td>
-                <td align="center" @click="activeRow(dg)" >
+                <td align="center">
                     {{dg.is_partisan?'X':''}}
                 </td>
-                <td align="center" @click="activeRow(dg)" >
+                <td align="center">
                     {{dg.bevy_date?'X':''}}
                 </td>
-                <td align="center" @click="activeRow(dg)" >
+                <td align="center">
                     {{dg.is_join_military?'X':''}}
                 </td>
-                <td align="left" @click="activeRow(dg)" >{{dg.military_policy_family}}</td>
-                <td align="left" @click="activeRow(dg)" >{{dg.place_register_permanent_first}}</td>
-                <td align="left" @click="activeRow(dg)" >{{dg.place_register_permanent_name}}</td>
-                <td align="left" @click="activeRow(dg)" >{{dg.place_permanent}}</td>
-                <td align="left" @click="activeRow(dg)" >{{dg.place_residence_name || dg.name}}</td>
-                <td align="left" @click="activeRow(dg)" >
+                <td align="left">{{dg.military_policy_family}}</td>
+                <td align="left">{{dg.place_register_permanent_first}}</td>
+                <td align="left">{{dg.place_register_permanent_name}}</td>
+                <td align="left">{{dg.place_permanent}}</td>
+                <td align="left">{{dg.place_residence_name || dg.name}}</td>
+                <td align="left">
                   <span v-if="dg.relationship_name">{{ dg.relationship_name}}: </span>
                   <span v-if="dg.involved_name">{{ dg.involved_name}} - </span>
                   <span v-if="dg.involved_phone">{{ dg.involved_phone}} </span>
                 </td>
-                <td align="left" @click="activeRow(dg)" >{{dg.family_member}}</td>
-                <td align="left" @click="activeRow(dg)" >{{dg.identity_papers_code}}</td>
-                <td align="left" @click="activeRow(dg)" >
+                <td align="left">{{dg.family_member}}</td>
+                <td align="left">{{dg.identity_papers_code}}</td>
+                <td align="left">
                   <span v-if="dg.identity_date_issue"> {{ moment(new Date(dg.identity_date_issue)).format("DD/MM/YYYY ") }}</span>
                 </td>
-                <td align="left" @click="activeRow(dg)" >{{dg.name}}</td>
-                <td align="left" @click="activeRow(dg)" >
+                <td align="left">{{dg.name}}</td>
+                <td align="left">
                   <span v-if="dg.start_date"> {{ moment(new Date(dg.start_date)).format("DD/MM/YYYY ") }}</span>
                 </td>
-                <td align="center" @click="activeRow(dg)" >
+                <td align="center">
                   <span v-if="dg.diffyear > 0">
                     {{ dg.diffyear }} năm
                   </span>
@@ -584,16 +568,16 @@ onMounted(() => {
                     {{ dg.diffmonth }} tháng
                   </span>
                 </td>
-                <td align="center" @click="activeRow(dg)" >{{dg.countAllRecruitment}}</td>
-                <td align="left" @click="activeRow(dg)" >{{dg.cultural_level_name}}</td>
-                <td align="left" @click="activeRow(dg)" >{{dg.certificate_name}}</td>
-                <td align="left" @click="activeRow(dg)" >{{dg.specialization_name}}</td>
-                <td align="left" width="150" @click="activeRow(dg)" >{{dg.university_name}}</td>
-                <td align="left" @click="activeRow(dg)" >{{dg.form_traning_name}}</td>
-                <td align="center" @click="activeRow(dg)" >{{dg.phone}}</td>
-                <td align="center" @click="activeRow(dg)" >{{dg.email}}</td>
-                <td align="center" @click="activeRow(dg)" >{{dg.height}}</td>
-                <td align="center" @click="activeRow(dg)" >{{dg.weight}}</td>
+                <td align="center">{{dg.countAllRecruitment}}</td>
+                <td align="left">{{dg.cultural_level_name}}</td>
+                <td align="left">{{dg.certificate_name}}</td>
+                <td align="left">{{dg.specialization_name}}</td>
+                <td align="left" width="150">{{dg.university_name}}</td>
+                <td align="left">{{dg.form_traning_name}}</td>
+                <td align="center">{{dg.phone}}</td>
+                <td align="center">{{dg.email}}</td>
+                <td align="center">{{dg.height}}</td>
+                <td align="center">{{dg.weight}}</td>
             </tr> 
       
           </tbody>
@@ -602,62 +586,39 @@ onMounted(() => {
     </div>
 </template>
 <style scoped>
-  .item-hover:hover{
-    background-color: #f0f8ff!important;
-  }
-  .bg-group{
-    background-color: rgb(222, 230, 240) !important;
-  }
-  .bg-stt{
-    background-color: #e6e6e6;
-  }
-  .active-item{
-    background-color: #ffd95f;
-  }
-  .active-border{
-    border:2px solid #008eff !important
-  }
     .table {
         margin-bottom: 0px !important;
     }
 
+    
+    /* td span {
+        text-overflow: ellipsis;
+        overflow: hidden;
+        display: -webkit-box;
+        -webkit-line-clamp: 2;
+        -webkit-box-orient: vertical;
+    } */
 
-    .left-sticky1 {
-        position: sticky;
-        z-index: 5;
-        vertical-align: middle !important;
-    }
-
-    .left-1 {
-        left:-1px;
-    }
-    .left-2 {
-        left: 49px;
-    }
-    .left-3 {
-        left: 149px;
-    }
     .btn.btn-secondary:hover {
         background-color: #e6f0f8 !important;
         color: #2f90d1 !important;
     }
 
     table{
-      border: 0.3px solid rgba(0,0,0,.3) !important;
+      border: 0.5px solid rgba(0,0,0,.3) !important;
     }
 
     tr td {
         word-break: break-word;
         vertical-align: middle !important;
-        cursor: pointer;
     }
 
     table th {
-        background-color: #e6e6e6 !important;
+        background-color: #f8f9fa !important;
     }
 
     table th, table td {
-        border: 0.3px solid rgba(0,0,0,.3) !important;
+        border: 0.5px solid rgba(0,0,0,.3) !important;
     }
 
 </style>
