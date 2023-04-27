@@ -34,9 +34,7 @@ const model = ref({
 
 //Function
 const goYear = (date) => {
-  if (date && options.value.tempyear !== date.getFullYear()) {
-    options.value.tempyear = date.getFullYear();
-  }
+  initData(true);
 };
 
 const submitted = ref(false);
@@ -115,6 +113,7 @@ const initData = (ref) => {
       },
     });
   }
+  let year = new Date(model.value.tempyear).getFullYear();
   axios
     .post(
       baseURL + "/api/hrm/callProc",
@@ -122,7 +121,10 @@ const initData = (ref) => {
         str: encr(
           JSON.stringify({
             proc: "hrm_leave_profile_get",
-            par: [{ par: "profile_id", va: props.profile.profile_id }],
+            par: [
+              { par: "profile_id", va: props.profile.profile_id },
+              { par: "year", va: year },
+            ],
           }),
           SecretKey,
           cryoptojs
@@ -146,7 +148,7 @@ const initData = (ref) => {
             model.value = {
               profile_id: props.profile.profile_id,
               tempyear: new Date(
-                props.year,
+                year,
                 newdate.getMonth() + 1,
                 newdate.getDay()
               ),

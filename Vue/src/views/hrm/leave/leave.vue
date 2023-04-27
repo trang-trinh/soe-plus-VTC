@@ -374,38 +374,6 @@ const initData = (ref) => {
         let data = JSON.parse(response.data.data);
         if (data != null) {
           if (data[0] != null && data[0].length > 0) {
-            data[0].forEach((user, i) => {
-              user["STT"] = i + 1;
-              if (user["days"] != null) {
-                user["days"] = JSON.parse(user["days"]);
-                user["days"].forEach((day) => {
-                  day["workday"] = new Date(day["workday"]);
-                  day["workday_string"] = moment(day["workday"]).format(
-                    "DD/MM/YYYY"
-                  );
-                });
-              } else {
-                user["days"] = [];
-              }
-              user["list_days"] = JSON.parse(JSON.stringify(days.value));
-              user["list_days"].forEach((d) => {
-                d["status_name"] = "";
-                if (new Date(d["day"]).getTime() < new Date().getTime()) {
-                  d["status_name"] = "";
-                }
-                var filterDays = user["days"].filter(
-                  (x) => x["workday_string"] === d["day_string"]
-                );
-                filterDays.forEach((day) => {
-                  var idx = dictionarys.value[2].findIndex(
-                    (s) => s["symbol_id"] === parseInt(day["symbol_id"])
-                  );
-                  if (idx !== -1) {
-                    d["status_name"] = dictionarys.value[2][idx]["symbol_code"];
-                  }
-                });
-              });
-            });
             var group = groupBy(data[0], "department_id");
             for (var k in group) {
               let obj = {
@@ -415,6 +383,14 @@ const initData = (ref) => {
               };
               datas.value.push(obj);
             }
+            var count = 1;
+            datas.value.forEach((item) => {
+              if (item.users != null && item.users.length > 0) {
+                item.users.forEach((us) => {
+                  us.stt = count++;
+                });
+              }
+            });
           } else {
             datas.value = [];
           }
@@ -703,7 +679,6 @@ onMounted(() => {
             >
               ĐÃ NGHỈ
             </th>
-
             <th
               class="sticky text-center"
               :style="{ top: '0', width: '100px', backgroundColor: '#FDF2F0' }"
@@ -750,7 +725,7 @@ onMounted(() => {
                 textAlign: 'center',
               }"
             >
-              {{ user_key + 1 }}
+              {{ user.stt }}
             </td>
             <td
               class="sticky text-left"
