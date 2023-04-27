@@ -477,7 +477,7 @@ onMounted(() => {
                 <th class="text-center " width="80" rowspan="2">Đoàn viên</th>
                 <th class="text-center " width="300" colspan="2">Thuộc diện chính sách</th>
                 <th class="text-center " width="300" colspan="2">Nơi đăng ký HKTT</th>
-                <th class="text-center " width="300" colspan="2">Nơi đăng ở hiện nay</th>
+                <th class="text-center " width="300" colspan="2">Nơi ở hiện nay</th>
                 <th class="text-center " width="150" rowspan="2">Liên hệ khẩn cấp</th>
                 <th class="text-center " width="150" rowspan="2">Thành phần gia đình</th>
                 <th class="text-center " width="300" colspan="3">Theo dõi CMND</th>
