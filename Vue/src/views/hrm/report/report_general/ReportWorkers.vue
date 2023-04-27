@@ -480,8 +480,7 @@ onMounted(() => {
             scrollHeight="flex"
             rowGroupMode="subheader"
             groupRowsBy="personel_groups_id"
-            :paginator="true"
-            :totalRecords="options.totalRecords"
+            :paginator="false"
             @page="onPage($event)"
             @filter="onFilter($event)"
             @sort="onSort($event)"
@@ -499,8 +498,8 @@ onMounted(() => {
                     class="align-items-center justify-content-center text-center">
                 </Column>
                 <Column field="profile_code" header="Mã nhân viên" 
-                    headerStyle="text-align:center;width:80px;height:50px;justify-content:center"
-                    bodyStyle="width:80px;text-align:left"
+                    headerStyle="text-align:center;width:120px;height:50px;justify-content:center"
+                    bodyStyle="width:120px;text-align:left"
                     >
                 </Column>
                 <Column field="profile_user_name" header="Họ và tên"
@@ -531,16 +530,16 @@ onMounted(() => {
                     bodyStyle="width:80px;text-align:left"
                   >
                 </Column>
-                <Column field="cultural_level_name" header="Trình độ văn hóa" headerStyle="text-align:center;width:150px;height:50px;justify-content:center"
-                    bodyStyle="width:150px;text-align:left"
+                <Column field="cultural_level_name" header="Trình độ văn hóa" headerStyle="text-align:center;width:120px;height:50px;justify-content:center"
+                    bodyStyle="width:120px;text-align:left"
                    >
                 </Column>
-                <Column field="academic_level_name" header="Trình độ chuyên môn" headerStyle="text-align:center;width:150px;height:50px;justify-content:center"
-                    bodyStyle="width:150px;text-align:left"
+                <Column field="academic_level_name" header="Trình độ chuyên môn" headerStyle="text-align:center;width:120px;height:50px;justify-content:center"
+                    bodyStyle="width:120px;text-align:left"
                   >
                 </Column>
-                <Column field="specialization_name" header="Chuyên ngành" headerStyle="text-align:center;width:150px;height:50px;justify-content:center"
-                    bodyStyle="width:150px;text-align:left"
+                <Column field="specialization_name" header="Chuyên ngành" headerStyle="text-align:center;width:120px;height:50px;justify-content:center"
+                    bodyStyle="width:120px;text-align:left"
                    >
                 </Column>
                 <Column field="professional_work_name" header="Công việc chuyên môn" headerStyle="text-align:center;width:150px;height:50px;justify-content:center"
@@ -565,13 +564,13 @@ onMounted(() => {
                         <span v-if="data.is_partisan">X</span>
                     </template>
                 </Column>
-                <Column field="position_name" header="Chức vụ" headerStyle="text-align:center;width:100px;height:50px;justify-content:center"
-                    bodyStyle="width:100px;text-align:left"
+                <Column field="position_name" header="Chức vụ" headerStyle="text-align:center;width:150px;height:50px;justify-content:center"
+                    bodyStyle="width:150px;text-align:left"
                    >
                 </Column>
                 <Column field="title_name" header="Chức danh"
-                    headerStyle="text-align:center;width:100px;height:50px;justify-content:center"
-                    bodyStyle="width:100px;text-align:left"
+                    headerStyle="text-align:center;width:120px;height:50px;justify-content:center"
+                    bodyStyle="width:120px;text-align:left"
                     >
                 </Column>
                 <Column field="place_permanent" header="Nơi ở hiện nay"
@@ -637,8 +636,14 @@ tr td {
     word-break: break-word;
     vertical-align: middle !important;
 }
+
 </style>
 <style lang="scss" scoped>
+::v-deep(.p-datatable-wrapper) {
+  table, tr>th, tr>td {
+    border:0.5px solid rgba(0,0,0,.3) !important
+  }
+}
 ::v-deep(.p-rowgroup-header) {
   td {
     flex:1 1 0 !important;
