@@ -193,3 +193,28 @@ span.rqxoa, span.uutien2 {
     font-size: 12px;
     align-items: center;
 }
+.cv-request {
+    margin-left: 0.5rem;
+    font-weight: bold;
+    font-size: 1.2rem;
+    color: #888;
+}
+.datetime-request {
+    font-weight: bold;
+    text-align: center;
+}
+.scrollbox-content {
+    visibility: visible;
+    transition: visibility 0s 0.2s;
+}
+.scrollbox_delayed {
+    transition: visibility 0.2s;
+    visibility: hidden;
+}
+.scrollbox_delayed:hover {
+    transition: visibility 0s 0.2s;
+    visibility: visible;
+}
+.request-cdate {
+    font-size: 0.9rem;
+}
