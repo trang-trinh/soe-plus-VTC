@@ -469,7 +469,7 @@ onMounted(() => {
           @click="refresh()"
           class="p-button-outlined p-button-secondary"
           icon="pi pi-refresh"
-          label="Tải lại"
+          v-tooltip.top="'Tải lại'"
         />
       </template>
     </Toolbar>
