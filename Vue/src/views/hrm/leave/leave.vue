@@ -157,6 +157,27 @@ const closeDialogLeaveProfile = () => {
 };
 
 //function export
+//Xuất excel
+const menuButs = ref();
+const itemButs = ref([
+  {
+    label: "Xuất Excel",
+    icon: "pi pi-file-excel",
+    command: (event) => {
+      exportExcel();
+    },
+  },
+  {
+    label: "Nhập Excel",
+    icon: "pi pi-file-excel",
+    command: (event) => {
+      importExcel(event);
+    },
+  },
+]);
+const toggleExport = (event) => {
+  menuButs.value.toggle(event);
+};
 const exportExcel = () => {
   excel("table-leave", "bangphepnam" + options.value.year);
 };
@@ -205,6 +226,45 @@ const excel = (id, name) => {
     elem.click();
     document.body.removeChild(elem);
   }
+};
+
+// Import excel
+let files = [];
+const displayImport = ref(false);
+const importExcel = (type) => {
+  displayImport.value = true;
+};
+const removeFile = (event) => {
+  files = [];
+};
+const selectFile = (event) => {
+  event.files.forEach((element) => {
+    files.push(element);
+  });
+};
+const upload = () => {
+  displayImport.value = false;
+  let formData = new FormData();
+  for (var i = 0; i < files.length; i++) {
+    let file = files[i];
+    formData.append("files", file);
+  }
+  axios
+    .post(baseURL + "/api/hrm_leave/import_excel", formData, config)
+    .then((response) => {
+      toast.success("Nhập dữ liệu thành công");
+      initData(true);
+    })
+    .catch((error) => {
+      swal.close();
+      swal.fire({
+        title: "Thông báo!",
+        text: "Có lỗi xảy ra, vui lòng kiểm tra lại!",
+        icon: "error",
+        confirmButtonText: "OK",
+      });
+      return;
+    });
 };
 
 //init
@@ -407,32 +467,25 @@ onMounted(() => {
         </div>
       </template>
       <template #end>
-        <Button
-          v-if="selectedNodes.length > 0"
+        <!-- <Button
           @click="openUpdateDialog('Chọn loại chấm công')"
           label="Chọn loại chấm công"
           icon="pi pi-check"
           class="mr-2"
-        />
+        /> -->
         <Button
-          v-if="selectedNodes.length > 0"
-          :label="'Bỏ chọn (' + selectedNodes.length + ')'"
-          icon="pi pi-times"
-          class="mr-2 p-button-outlined p-button-danger"
-          @click="removeSelectedNodes()"
-        />
-        <Button
-          v-if="selectedNodes.length > 0"
-          label="Xóa chấm công"
-          icon="pi pi-trash"
-          class="mr-2 p-button-outlined p-button-danger"
-          @click="deleteTimekeep()"
-        />
-        <Button
-          @click="exportExcel()"
-          class="mr-2 p-button-outlined p-button-secondary"
+          @click="toggleExport"
+          label="Tiện ích"
           icon="pi pi-file-excel"
-          label="Xuất Excel"
+          class="mr-2 p-button-outlined p-button-secondary"
+          aria-haspopup="true"
+          aria-controls="overlay_Export"
+        />
+        <Menu
+          :model="itemButs"
+          :popup="true"
+          id="overlay_Export"
+          ref="menuButs"
         />
         <Button
           @click="refresh()"
@@ -866,6 +919,39 @@ onMounted(() => {
     :year="options.year"
     :initData="initData"
   />
+
+  <Dialog
+    header="Tải lên file Excel"
+    v-model:visible="displayImport"
+    :style="{ width: '40vw' }"
+    :closable="true"
+    :modal="true"
+  >
+    <h3>
+      <label>
+        <a :href="basedomainURL + item" download>Nhấn vào đây</a> để tải xuống
+        tệp mẫu.
+      </label>
+    </h3>
+    <form>
+      <FileUpload
+        accept=".xls,.xlsx"
+        @remove="removeFile"
+        @select="selectFile"
+        :multiple="false"
+        :show-upload-button="false"
+        choose-label="Chọn tệp"
+        cancel-label="Hủy"
+      >
+        <template #empty>
+          <p>Kéo và thả tệp vào đây để tải lên.</p>
+        </template>
+      </FileUpload>
+    </form>
+    <template #footer>
+      <Button label="Lưu" icon="pi pi-check" @click="upload" />
+    </template>
+  </Dialog>
 </template>
 <style scoped>
 .box-table {
