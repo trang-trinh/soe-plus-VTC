@@ -23,6 +23,9 @@ body {
   height: 100vh;
   color: #000000;
 }
+.p-datatable .p-datatable-tbody>tr{
+  color: #000000 !important;
+}
 /* .p-button.p-button-secondary.p-button-outlined, .p-buttonset.p-button-secondary > .p-button.p-button-outlined, .p-splitbutton.p-button-secondary > .p-button.p-button-outlined{
   color: #000000 !important;
 } */
