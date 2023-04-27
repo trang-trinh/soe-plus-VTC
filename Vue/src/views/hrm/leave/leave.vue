@@ -802,7 +802,7 @@ onMounted(() => {
                 backgroundColor: '#F2FBE6',
               }"
             >
-              <b> </b>
+              <b>{{ user.total }}</b>
             </td>
             <td
               class="text-center"
