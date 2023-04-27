@@ -88,13 +88,13 @@ const loadData = () => {
             {
                 str: encr(
                     JSON.stringify({
-                        proc: "hrm_report_profile_organization_list",
+                        proc: "hrm_report_profile_organization_list1",
                         par: [
                             { par: "search", va: options.value.SearchText },
                             { par: "user_id", va: store.getters.user.user_id },
                             { par: "department_id", va: options.value.department_id},
-                            { par: "start_date", va: null},
-                            { par: "end_date", va: null},
+                            { par: "gender", va: options.value.gender},
+                            { par: "title_id", va: options.value.title_id},
                         ],
                     }),
                     SecretKey,
@@ -221,7 +221,7 @@ const exportExcel = () => {
   tab_text =
     tab_text +
     '<style>.p-datatable-thead th {background:#7bb0d7 !important;height: 30px !important;} .cstd{font-family: Times New Roman;border:none!important; font-size: 12pt; font-weight: 700; text-align: center; vertical-align: center;color:#000000}.head2{font-family: Times New Roman;border:none!important; font-size: 12pt;font-weight:bold; text-align: left; vertical-align: left;}</style>'    
-  tab_text = tab_text+ "<table><td colspan='18' class='head2'>"+store.getters.user.organization_name+"</td></table>";
+  tab_text = tab_text+ "<table><td colspan='18' class='head2'>"+(department_name.value.toUpperCase() || store.getters.user.organization_name)+"</td></table>";
   // tab_text = tab_text+ "<table><td colspan='18' class='cstd' style='text-align: left; vertical-align: left;'>CÔNG TY/PHÒNG/TRUNG TÂM "+(store.getters.user.organization_name||".......")+"</td></table>";
   tab_text =
       tab_text +'<table><td colspan="18" class="cstd" > BÁO CÁO TỔNG HỢP NHÂN SỰ</td >';
@@ -385,42 +385,6 @@ onMounted(() => {
                   :showClear="true"
                 />
                
-              </div>
-              <div class="field col-12 md:col-12 flex align-items-center">
-                <div class="col-4">Trình độ chuyên môn</div>
-                <Dropdown
-                  class="ip36 col-8"
-                  v-model="options.academic_level_id"
-                  :options="tudiens[1]"
-                  optionLabel="academic_level_name"
-                  optionValue="academic_level_id"
-                  placeholder="Chọn trình độ chuyên môn"
-                  :showClear="true"
-                />              
-              </div>
-              <div class="field col-12 md:col-12 flex align-items-center">
-                <div class="col-4">Chuyên ngành học</div>
-                <Dropdown
-                  class="ip36 col-8"
-                  v-model="options.specialization_id"
-                  :options="tudiens[5]"
-                  optionLabel="specialization_name"
-                  optionValue="specialization_id"
-                  placeholder="Chọn chuyên ngành"
-                  :showClear="true"
-                />              
-              </div>
-              <div class="field col-12 md:col-12 flex align-items-center">
-                <div class="col-4">Công việc chuyên môn</div>
-                <Dropdown
-                  class="ip36 col-8"
-                  v-model="options.professional_work_id"
-                  :options="tudiens[2]"
-                  optionLabel="professional_work_name"
-                  optionValue="professional_work_id"
-                  placeholder="Chọn công việc chuyên môn"
-                  :showClear="true"
-                />              
               </div>
               <div class="field col-12 md:col-12 flex align-items-center">
                 <div class="col-4">Chức danh</div>
