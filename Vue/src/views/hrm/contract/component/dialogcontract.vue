@@ -596,7 +596,7 @@ onMounted(() => {
             </div>
             <div class="col-6 md:col-6">
               <div class="form-group">
-                <label>Mã hợp đồng <span class="redsao">(*)</span></label>
+                <label>Số hợp đồng <span class="redsao">(*)</span></label>
                 <InputText
                   v-model="props.model.contract_code"
                   spellcheck="false"
@@ -610,7 +610,7 @@ onMounted(() => {
                 <div v-if="!props.model.contract_code && submitted">
                   <small class="p-error">
                     <span class="col-12 p-0"
-                      >Mã hợp đồng không được để trống</span
+                      >Số hợp đồng không được để trống</span
                     >
                   </small>
                 </div>

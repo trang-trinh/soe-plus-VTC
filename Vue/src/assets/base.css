@@ -21,9 +21,14 @@ body {
   font-family: roboto;
   margin: 0;
   height: 100vh;
-  color: #495057;
+  color: #000000;
 }
-
+.p-datatable .p-datatable-tbody>tr{
+  color: #000000 !important;
+}
+/* .p-button.p-button-secondary.p-button-outlined, .p-buttonset.p-button-secondary > .p-button.p-button-outlined, .p-splitbutton.p-button-secondary > .p-button.p-button-outlined{
+  color: #000000 !important;
+} */
 .ck-editor__editable {
   min-height: 100px !important;
   max-height: 400px !important;
@@ -888,6 +893,9 @@ li.p-chips-token {
 .d-design-calendar.p-calendar .p-inputtext {
   text-align: center !important;
 }
+.d-design-calendar-1.p-calendar .p-inputtext {
+  opacity: 1 !important; 
+}
 .d-design-inputnumber.p-inputnumber .p-inputtext {
   text-align: center !important;
 }
@@ -1315,4 +1323,64 @@ li.p-chips-token {
 .sidebar-request .p-sidebar-content {
   height: 100%;
   padding: 0 !important;
+}
+
+/* Style khai báo ngày nghỉ lễ */
+.theme-default .cv-header-day{
+  font-weight: bold !important; 
+}
+.theme-default .cv-day-number{
+ display: none;
+}
+.theme-default .cv-header .cv-header-nav .previousYear,.previousPeriod,.currentPeriod,.nextPeriod,.nextYear{
+  background: #ffffff;
+  border: 1px solid #ced4da;
+  color: #495057;
+  transition: background-color 0.2s, color 0.2s, border-color 0.2s, box-shadow 0.2s;
+  display: inline-flex;
+  cursor: pointer;
+  user-select: none;
+  align-items: center;
+  vertical-align: bottom;
+  text-align: center;
+  overflow: hidden;
+  position: relative;
+}
+.theme-default .cv-header .cv-header-nav .currentPeriod{
+ font-weight: bold;
+}
+.theme-default .cv-header .periodLabel{
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  text-align: center;
+  font-weight: bold;
+}
+.cv-wrapper .cv-week .cv-weekdays .cv-item{
+  margin-top: 3px;margin-left: 3px;
+  cursor: pointer;
+}
+.cv-wrapper .cv-week {
+  min-height: 5rem;
+}
+.cv-wrapper .cv-week .cv-weekdays .cv-item.span1{
+  width: calc((100% / 7) - 0.5em);
+}
+.cv-wrapper .cv-week .cv-weekdays .cv-item.span2{
+  width: calc((200% / 7) - 0.5em);
+}
+.cv-wrapper .cv-week .cv-weekdays .cv-item.span3{
+  width: calc((300% / 7) - 0.5em);
+}
+.cv-wrapper .cv-week .cv-weekdays .cv-item.span4{
+  width: calc((400% / 7) - 0.5em);
+}
+.cv-wrapper .cv-week .cv-weekdays .cv-item.span5{
+  width: calc((500% / 7) - 0.5em);
+}
+.cv-wrapper .cv-week .cv-weekdays .cv-item.span6{
+  width: calc((600% / 7) - 0.5em);
+}
+.cv-wrapper .cv-week .cv-weekdays .cv-item.span7{
+  width: calc((700% / 7) - 0.5em);
 }

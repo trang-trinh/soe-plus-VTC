@@ -5,6 +5,7 @@ import { required } from "@vuelidate/validators";
 import { useVuelidate } from "@vuelidate/core";
 import { FilterMatchMode, FilterOperator } from "primevue/api";
 import { encr, checkURL } from "../../../util/function.js";
+import arrIcons from "../../../assets/json/icons.json";
 //Khai báo
  
 const cryoptojs = inject("cryptojs");
@@ -38,6 +39,19 @@ const rules = {
 };
  
  
+const filteredItems = ref([]);
+const searchItems = (event) => {
+  //in a real application, make a request to a remote url with the query and return filtered results, for demo we filter at client side
+  let query = event.query;
+  let filteItems = [];
+  for (let i = 0; i < arrIcons.length; i++) {
+    let item = arrIcons[i];
+    if (item.toLowerCase().indexOf(query.toLowerCase()) != -1) {
+      filteItems.push(item);
+    }
+  }
+  filteredItems.value = filteItems;
+};
 //Lấy số bản ghi
 const loadCount = () => {
   axios
@@ -1086,7 +1100,7 @@ onMounted(() => {  if (!checkURL(window.location.pathname, store.getters.listMod
           <div class="col-6 flex p-0 align-items-center">
             <div class="col-6 p-0  ">Màu chữ</div>
             <div class="col-6 p-0 flex align-items-center">
-              <div class="mr-2" v-if="holiday_type.">  {{ holiday_type.text_color }}</div>
+              <div class="mr-2" v-if="holiday_type.text_color">  {{ holiday_type.text_color }}</div>
               <div>  <Button
                 class="p-button-rounded p-button-outlined p-button-secondary  "
                 :style="{
@@ -1135,25 +1149,43 @@ onMounted(() => {  if (!checkURL(window.location.pathname, store.getters.listMod
         </div>
 
         <div class="col-12 field md:col-12 flex p-0">
-          <div class="field col-6 md:col-6 p-0 align-items-center flex">
-            <div class="col-6 text-left p-0">STT</div>
-            <InputNumber
-              v-model="holiday_type.is_order"
-              class="col-6 ip36 p-0" 
-            />
+          <div class="  col-6 md:col-6 p-0 align-items-center flex">
+            <div class="col-6 p-0">Icon</div>
+            <AutoComplete
+              class="col-6  p-0"
+              v-model="holiday_type.icon"
+              :suggestions="filteredItems"
+              @complete="searchItems"
+              :virtualScrollerOptions="{ itemSize: 20 }"
+              dropdown
+            >
+              <template #item="slotProps">
+                <div class="flex align-items-center">
+                  <i :class="slotProps.item" style="font-size: large"></i>
+                  <div class="ml-2">{{ slotProps.item }}</div>
+                </div>
+              </template>
+            </AutoComplete>
           </div>
+         
           <div class="field col-6 md:col-6   align-items-center flex">
             <div class="col-6 text-left ">Trạng thái</div>
-            <InputSwitch v-model="holiday_type.status" />
+            <InputSwitch v-model="holiday_type.status" class="w-4rem lck-checked"  />
           </div>
          
         </div>
         <div
             class="field col-12 md:col-12 p-0 align-items-center flex"
             v-if="store.getters.user.is_super"
-          >
-            <div class="col-3 text-left p-0">Hệ thống</div>
-            <InputSwitch v-model="holiday_type.is_system" />
+          > <div class="field col-6 md:col-6 p-0 align-items-center flex">
+            <div class="col-6 text-left p-0">STT</div>
+            <InputNumber
+              v-model="holiday_type.is_order"
+              class="col-6 ip36 p-0" 
+            />
+          </div><div class="field col-6 md:col-6 p-0 align-items-center flex">
+            <div class="col-6 text-left p-0 pl-3">Hệ thống</div>
+            <InputSwitch v-model="holiday_type.is_system" class="w-4rem lck-checked" /></div>
           </div>
       </div>
     </form>

@@ -195,27 +195,21 @@ onMounted(() => {
         <th align="center">
           Tên báo cáo
         </th>
-        <th align="center" width="150">
+        <th align="center" width="200">
           Mã báo cáo
-        </th>
-        <th align="center" width="400" >
-          Ghi chú
         </th>
       </tr>
     </thead>
     <tbody>
         <tr v-for="(item, index) in datalists" :key="index">
-          <td  class="text-left"
+          <td  class="text-left item-hover" @click="item.is_level==0?'':goDetailReport(item)" :class="item.is_level==0 ? '':'cursor-pointer'"
             >
-            <span :class="item.is_level==0 ? 'row-parent':'row-child'" @click="item.is_level==0?'':goDetailReport(item)">
+            <span :style="(item.module_id == 370 || item.module_id== 358 || item.module_id== 371)?'color:green':''" :class="item.is_level==0 ? 'row-parent':'row-child'">
               {{ item.label_module }}
             </span>
           </td>
           <td  class="text-center" >
               {{ item.report_code }}
-          </td>
-          <td class="text-left">
-              {{ item.report_note }}
           </td>
         </tr>
     </tbody>
@@ -226,7 +220,9 @@ onMounted(() => {
 </template>
 
 <style scoped>
-
+  .item-hover:hover{
+    background-color: #f0f8ff  !important
+  }
   th, td{
     background: #fff;
     padding: 1rem;

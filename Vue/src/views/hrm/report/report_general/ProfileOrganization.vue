@@ -88,19 +88,13 @@ const loadData = () => {
             {
                 str: encr(
                     JSON.stringify({
-                        proc: "hrm_report_workers_list1",
+                        proc: "hrm_report_profile_organization_list1",
                         par: [
                             { par: "search", va: options.value.SearchText },
                             { par: "user_id", va: store.getters.user.user_id },
                             { par: "department_id", va: options.value.department_id},
                             { par: "gender", va: options.value.gender},
-                            { par: "academic_level_id", va: options.value.academic_level_id},
-                            { par: "specialization_id", va: options.value.specialization_id},
-                            { par: "professional_work_id", va: options.value.professional_work_id},
                             { par: "title_id", va: options.value.title_id},
-                            { par: "description", va: options.value.description},
-                            { par: "pageno", va: options.value.PageNo},
-                            { par: "pagesize", va: options.value.PageSize},
                         ],
                     }),
                     SecretKey,
@@ -114,9 +108,25 @@ const loadData = () => {
             if (data[0].length > 0) {
                 data[0].forEach((item, index) => {
                     item.stt = index + 1;
+                    const startDate = moment(item.recruitment_date || new Date());
+                    const endDate = moment(new Date());
+                    item.duration = moment.duration(endDate.diff(startDate));
+                    item.diffyear = item.duration.years();
+                    item.diffmonth = item.duration.months();
                 });
-                datalists.value = data[0];
-                options.totalRecords = data[0].length;
+                data[0] = groupBy(data[0], 'department_id');
+                    let arr = [];
+                    for (let pb in data[0]) {
+                        // let data_ns_by_id = groupBy(data[0][pb], 'profile_code');
+                        // let arr_ns = [];
+                        // for (let ns in data_ns_by_id) {
+                        //     arr_ns.push({ group_ns: ns, name_group_ns: data_ns_by_id[ns][0].profile_user_name, list_con: data_ns_by_id[ns] });
+                        // };
+                        // data_ns_by_id = arr_ns;
+                        arr.push({ group_pb: pb, name_group_pb: data[0][pb][0].organization_name, list_ns: data[0][pb] });
+                    }
+                datalists.value = arr;
+                options.totalRecords = arr.length;
             }
             else datalists.value = [];
             swal.close();
@@ -191,10 +201,8 @@ const initTudien = () => {
     .catch((error) => {});
 };
 const exportExcel = () => {
-  let text_string = "";
   
-  let name = "BC.HS003";
-  let id = "tablequizz";
+  let name = "BC.HS002";
   var htmltable1 = "";
   // htmltable1 = renderExcel_Ketqua();
   var tab_text = '<html xmlns:x="urn:schemas-microsoft-com:office:excel">';
@@ -224,7 +232,7 @@ const exportExcel = () => {
     tab_text +
     "<style>th,table,tr{font-family: Times New Roman; font-size: 11pt; vertical-align: middle;}</style><table border='1'>";
   var exportTable = document
-    .getElementsByClassName("p-datatable-table")[0]
+    .getElementById("table-bc")
     .cloneNode(true).innerHTML;
   tab_text = tab_text + exportTable;
   tab_text = tab_text + htmltable1;
@@ -299,6 +307,12 @@ const renderTreeDV = (data, id, name, title) => {
     });
   return { arrChils: arrChils, arrtreeChils: arrtreeChils };
 };
+function groupBy(list, props) {
+            return list.reduce((a, b) => {
+                (a[b[props]] = a[b[props]] || []).push(b);
+                return a;
+            }, {});
+        }
 onMounted(() => {
     //init
     loadData();
@@ -341,7 +355,7 @@ onMounted(() => {
             appendTo="body"
             :showCloseIcon="false"
             id="overlay_panelS"
-            style="width: 500px"
+            style="width: 400px"
             :breakpoints="{ '960px': '20vw' }"
           >
             <div class="grid formgrid m-2">
@@ -373,42 +387,6 @@ onMounted(() => {
                
               </div>
               <div class="field col-12 md:col-12 flex align-items-center">
-                <div class="col-4">Trình độ chuyên môn</div>
-                <Dropdown
-                  class="ip36 col-8"
-                  v-model="options.academic_level_id"
-                  :options="tudiens[1]"
-                  optionLabel="academic_level_name"
-                  optionValue="academic_level_id"
-                  placeholder="Chọn trình độ chuyên môn"
-                  :showClear="true"
-                />              
-              </div>
-              <div class="field col-12 md:col-12 flex align-items-center">
-                <div class="col-4">Chuyên ngành học</div>
-                <Dropdown
-                  class="ip36 col-8"
-                  v-model="options.specialization_id"
-                  :options="tudiens[5]"
-                  optionLabel="specialization_name"
-                  optionValue="specialization_id"
-                  placeholder="Chọn chuyên ngành"
-                  :showClear="true"
-                />              
-              </div>
-              <div class="field col-12 md:col-12 flex align-items-center">
-                <div class="col-4">Công việc chuyên môn</div>
-                <Dropdown
-                  class="ip36 col-8"
-                  v-model="options.professional_work_id"
-                  :options="tudiens[2]"
-                  optionLabel="professional_work_name"
-                  optionValue="professional_work_id"
-                  placeholder="Chọn công việc chuyên môn"
-                  :showClear="true"
-                />              
-              </div>
-              <div class="field col-12 md:col-12 flex align-items-center">
                 <div class="col-4">Chức danh</div>
                 <Dropdown
                   class="ip36 col-8"
@@ -419,14 +397,6 @@ onMounted(() => {
                   placeholder="Chọn chức danh"
                   :showClear="true"
                 />              
-              </div>
-              <div class="field col-12 md:col-12 flex align-items-center">
-                <div class="col-4">Mô tả công việc</div>
-                <InputText
-                  spellcheck="false"
-                  class="col-8 ip36"
-                  v-model="options.description"
-                />           
               </div>
               <div class="col-12 field p-0">
                 <Toolbar class="toolbar-filter">
@@ -471,142 +441,193 @@ onMounted(() => {
           </template>
         </Toolbar>
     </div>
-        <div>
-            <DataTable
-            id="table-bc"
-            class="p-datatable-sm e-sm"
-            :value="datalists"
-            dataKey="contract_id"
-            :showGridlines="true"
-            :rowHover="true"
-            :loading="options.loading"
-            currentPageReportTemplate=""
-            responsiveLayout="scroll"
-            rows="100"
-            :scrollable="true"
-            scrollHeight="flex"
-            rowGroupMode="subheader"
-            groupRowsBy="personel_groups_id"
-            :paginator="false"
-            @page="onPage($event)"
-            @filter="onFilter($event)"
-            @sort="onSort($event)"
-            v-model:first="first"
-            scrollDirection="both"
-            >
-            <!-- <DataTable class="table-ca-request" :value="datalists" :paginator="false" :scrollable="true"
-            scrollDirection="both" scrollHeight="flex" :lazy="true" dataKey="request_formd_id" :rowHover="true"
-            > -->
-            <template #groupheader="slotProps">
-               <span class="font-bold">{{ slotProps.data.personel_groups_name }}</span> 
-            </template>
-                <Column field="stt" header="STT" headerStyle="text-align:center;width:50px;height:50px"
-                    bodyStyle="text-align:center;width:50px;"
-                    class="align-items-center justify-content-center text-center">
-                </Column>
-                <Column field="profile_code" header="Mã nhân viên" 
-                    headerStyle="text-align:center;width:120px;height:50px;justify-content:center"
-                    bodyStyle="width:120px;text-align:left"
-                    >
-                </Column>
-                <Column field="profile_user_name" header="Họ và tên"
-                    headerStyle="text-align:center;height:50px;justify-content:center;width:150px"
-                    bodyStyle="text-align:left;word-break:break-word;justify-content:start;width:150px">
-                </Column>
-                <Column field="organization_name" header="Đơn vị/phòng ban"
-                    headerStyle="text-align:center;width:220px;height:50px;justify-content:center"
-                    bodyStyle="width:220px;text-align:left"
-                    >
-                </Column>
-                <Column field="gender" header="Giới tính" headerStyle="text-align:center;width:80px;height:50px;justify-content:center"
-                    bodyStyle="width:80px;text-align:left"
-                   >
-                </Column>
-                <Column field="birthday" header="Ngày sinh" headerStyle="text-align:center;width:100px;height:50px"
-                    bodyStyle="text-align:center;width:100px;"
-                    class="align-items-center justify-content-center text-center">
-                    <template #body="{ data }">
-                        <span v-if="data.birthday"> {{ moment(new Date(data.birthday)).format("DD/MM/YYYY ") }}</span>
-                    </template>
-                </Column>
-                <Column field="age" header="Tuổi" headerStyle="text-align:center;width:60px;height:50px;"
-                    bodyStyle="text-align:center;width:60px;"
-                    class="align-items-center justify-content-center text-center">
-                </Column>
-                <Column field="ethnic_name" header="Dân tộc" headerStyle="text-align:center;width:80px;height:50px;justify-content:center"
-                    bodyStyle="width:80px;text-align:left"
-                  >
-                </Column>
-                <Column field="cultural_level_name" header="Trình độ văn hóa" headerStyle="text-align:center;width:120px;height:50px;justify-content:center"
-                    bodyStyle="width:120px;text-align:left"
-                   >
-                </Column>
-                <Column field="academic_level_name" header="Trình độ chuyên môn" headerStyle="text-align:center;width:120px;height:50px;justify-content:center"
-                    bodyStyle="width:120px;text-align:left"
-                  >
-                </Column>
-                <Column field="specialization_name" header="Chuyên ngành" headerStyle="text-align:center;width:120px;height:50px;justify-content:center"
-                    bodyStyle="width:120px;text-align:left"
-                   >
-                </Column>
-                <Column field="professional_work_name" header="Công việc chuyên môn" headerStyle="text-align:center;width:150px;height:50px;justify-content:center"
-                    bodyStyle="width:150px;text-align:left"
-                   >
-                </Column>
-                <Column field="description" header="Mô tả chi tiết công việc" headerStyle="text-align:center;width:150px;height:50px;justify-content:center"
-                    bodyStyle="width:150px;text-align:left"
-                   >
-                </Column>
-                <Column field="start_date" header="Ngày vào đơn vị" headerStyle="text-align:center;width:100px;height:50px"
-                    bodyStyle="text-align:center;width:100px;"
-                    class="align-items-center justify-content-center text-center">
-                    <template #body="{ data }">
-                        <span v-if="data.birthday"> {{ moment(new Date(data.start_date)).format("DD/MM/YYYY ") }}</span>
-                    </template>
-                </Column>
-                <Column field="is_partisan" header="Đảng viên" headerStyle="text-align:center;width:100px;height:50px;"
-                    bodyStyle="text-align:center;width:100px;"
-                    class="align-items-center justify-content-center text-center">
-                    <template #body="{ data }">
-                        <span v-if="data.is_partisan">X</span>
-                    </template>
-                </Column>
-                <Column field="position_name" header="Chức vụ" headerStyle="text-align:center;width:150px;height:50px;justify-content:center"
-                    bodyStyle="width:150px;text-align:left"
-                   >
-                </Column>
-                <Column field="title_name" header="Chức danh"
-                    headerStyle="text-align:center;width:120px;height:50px;justify-content:center"
-                    bodyStyle="width:120px;text-align:left"
-                    >
-                </Column>
-                <Column field="place_permanent" header="Nơi ở hiện nay"
-                    headerStyle="text-align:center;width:200px;height:50px;justify-content:center"
-                    bodyStyle="width:200px;text-align:left"
-                    >
-                </Column>
-                <Column field="note" header="Ghi chú"
-                    headerStyle="text-align:center;width:100px;height:50px;justify-content:center"
-                    bodyStyle="width:100px;text-align:left"
-                    >
-                </Column>
-                <template #empty>
-                    <div class="
-                    align-items-center
-                    justify-content-center
-                    p-4
-                    text-center
-                    m-auto
-                    " >
-                        <img src="../../../../assets/background/nodata.png" height="144" />
-                        <h3 class="m-1">Không có dữ liệu</h3>
-                    </div>
-                </template>
-            </DataTable>
-        </div>
+    <div style="overflow: scroll;max-height: calc(100vh - 140px);">
+        <table cellspacing=0 id="table-bc" class="table table-condensed table-hover tbpad" style="table-layout: fixed;width: 100%;">
+        <thead style="position: sticky; z-index: 6; top:0">
+            <tr>
+                <th class="text-center" width="50" rowspan="2" >STT</th>
+                <th class="text-center" width="100" rowspan="2" >Mã nhân viên</th>
+                <th class="text-center " width="150" rowspan="2">Họ và tên</th>
+                <th class="text-center " width="100" rowspan="2">Ngày sinh</th>
+                <th class="text-center " width="60" rowspan="2">Tuổi</th>
+                <th class="text-center " width="100" rowspan="2">Giới tính</th>
+                <th class="text-center " width="150" rowspan="2">Chức danh</th>
+                <th class="text-center " width="150" rowspan="2">Chức vụ</th>
+                <th class="text-center " width="100" rowspan="2">Loại LĐ</th>
+                <th class="text-center " width="250" rowspan="2">Quê quán</th>
+                <th class="text-center " width="100" rowspan="2">Tình trạng hôn nhân</th>
+                <th class="text-center " width="80" rowspan="2">Dân tộc</th>
+                <th class="text-center " width="80" rowspan="2">Tôn giáo</th>
+                <th class="text-center " width="80" rowspan="2">Đảng viên</th>
+                <th class="text-center " width="80" rowspan="2">Đoàn viên</th>
+                <th class="text-center " width="300" colspan="2">Thuộc diện chính sách</th>
+                <th class="text-center " width="300" colspan="2">Nơi đăng ký HKTT</th>
+                <th class="text-center " width="300" colspan="2">Nơi đăng ở hiện nay</th>
+                <th class="text-center " width="150" rowspan="2">Liên hệ khẩn cấp</th>
+                <th class="text-center " width="150" rowspan="2">Thành phần gia đình</th>
+                <th class="text-center " width="300" colspan="3">Theo dõi CMND</th>
+                <th class="text-center " width="100" rowspan="2">Ngày vào đơn vị</th>
+                <th class="text-center " width="120" rowspan="2">Thâm niên công tác</th>
+                <th class="text-center " width="120" rowspan="2">Thâm niên phép tính năm</th>
+                <th class="text-center " width="500" colspan="5">Trình độ chuyên môn chính</th>
+                <th class="text-center " width="120" rowspan="2">Số di động</th>
+                <th class="text-center " width="120" rowspan="2">Email</th>
+                <th class="text-center " width="80" rowspan="2">Chiều cao</th>
+                <th class="text-center " width="80" rowspan="2">Cân nặng</th>
+            </tr>
+            <tr>
+                <th class="text-center " width="100">Đã tham gia quân đội</th>
+                <th class="text-center " width="100">Con gia đình chính sách</th>
+                <th class="text-center " width="100">Số nhà, đường phố</th>
+                <th class="text-center " width="100">Xã/Phường, Quận/Huyện, Tỉnh/TP</th>
+                <th class="text-center " width="100">Số nhà, đường phố</th>
+                <th class="text-center " width="100">Xã/Phường, Quận/Huyện, Tỉnh/TP</th>
+                <th class="text-center " width="100">Số CMND</th>
+                <th class="text-center " width="100">Ngày cấp CMND</th>
+                <th class="text-center " width="100">Nơi cấp CMND</th>
+                <th class="text-center " width="100">Trình độ văn hóa</th>
+                <th class="text-center " width="100">Bằng cấp</th>
+                <th class="text-center " width="100">Chuyên ngành</th>
+                <th class="text-center " width="100">Trường tốt nghiệp</th>
+                <th class="text-center " width="100">Hình thức đào tạo</th>
+            </tr>
+        </thead>
+        <tbody v-for="(bc, index1) in datalists" :key="index1">
+            <tr>
+                <td colspan="38" class="bg-group"><b>{{bc.name_group_pb}}</b></td>
+            </tr>
+            <tr v-for="(dg, index2) in bc.list_ns" :key="index2">
+                <td class="text-center bg-stt">{{dg.stt}}</td>
+                <td  align="left" class="bg-aliceblue" >
+                    {{dg.profile_code}}
+                </td>
+                <td align="left" class="bg-aliceblue" >
+                    {{dg.profile_user_name}}
+                </td>
+                <td align="center">
+                  <span v-if="dg.birthday"> {{ moment(new Date(dg.birthday)).format("DD/MM/YYYY ") }}</span>
+                </td>
+                <td align="center">
+                    {{dg.age}}
+                </td>
+                <td align="center">
+                    {{dg.gender}}
+                </td>
+                <td align="left">{{ dg.title_name }}</td>
+                <td align="left">
+                    {{dg.position_name}}
+                </td>
+                <td align="left">
+                    {{dg.personel_groups_name}}
+                </td>
+                <td align="left">
+                    {{dg.birthplace_origin_name}}
+                </td>
+                <td align="center">
+                    {{dg.marital_status==0?'Độc thân':dg.marital_status==1 ?'Kết hôn':dg.marital_status==2?'Ly hôn':''}}
+                </td>
+                <td align="center">
+                    {{dg.ethnic_name}}
+                </td>
+                <td align="center">
+                    {{dg.religion_name}}
+                </td>
+                <td align="center">
+                    {{dg.is_partisan?'X':''}}
+                </td>
+                <td align="center">
+                    {{dg.bevy_date?'X':''}}
+                </td>
+                <td align="center">
+                    {{dg.is_join_military?'X':''}}
+                </td>
+                <td align="left">{{dg.military_policy_family}}</td>
+                <td align="left">{{dg.place_register_permanent_first}}</td>
+                <td align="left">{{dg.place_register_permanent_name}}</td>
+                <td align="left">{{dg.place_permanent}}</td>
+                <td align="left">{{dg.place_residence_name || dg.name}}</td>
+                <td align="left">
+                  <span v-if="dg.relationship_name">{{ dg.relationship_name}}: </span>
+                  <span v-if="dg.involved_name">{{ dg.involved_name}} - </span>
+                  <span v-if="dg.involved_phone">{{ dg.involved_phone}} </span>
+                </td>
+                <td align="left">{{dg.family_member}}</td>
+                <td align="left">{{dg.identity_papers_code}}</td>
+                <td align="left">
+                  <span v-if="dg.identity_date_issue"> {{ moment(new Date(dg.identity_date_issue)).format("DD/MM/YYYY ") }}</span>
+                </td>
+                <td align="left">{{dg.name}}</td>
+                <td align="left">
+                  <span v-if="dg.start_date"> {{ moment(new Date(dg.start_date)).format("DD/MM/YYYY ") }}</span>
+                </td>
+                <td align="center">
+                  <span v-if="dg.diffyear > 0">
+                    {{ dg.diffyear }} năm
+                  </span>
+                  <span v-if="dg.diffmonth > 0">
+                    {{ dg.diffmonth }} tháng
+                  </span>
+                </td>
+                <td align="center">{{dg.countAllRecruitment}}</td>
+                <td align="left">{{dg.cultural_level_name}}</td>
+                <td align="left">{{dg.certificate_name}}</td>
+                <td align="left">{{dg.specialization_name}}</td>
+                <td align="left" width="150">{{dg.university_name}}</td>
+                <td align="left">{{dg.form_traning_name}}</td>
+                <td align="center">{{dg.phone}}</td>
+                <td align="center">{{dg.email}}</td>
+                <td align="center">{{dg.height}}</td>
+                <td align="center">{{dg.weight}}</td>
+            </tr> 
+      
+          </tbody>
+    </table>
+    </div>
     </div>
 </template>
+<style scoped>
+  .bg-group{
+    background-color: rgb(222, 230, 240) !important;
+  }
+  .bg-stt{
+    background-color: #e6e6e6;
+  }
+    .table {
+        margin-bottom: 0px !important;
+    }
 
+    
+    /* td span {
+        text-overflow: ellipsis;
+        overflow: hidden;
+        display: -webkit-box;
+        -webkit-line-clamp: 2;
+        -webkit-box-orient: vertical;
+    } */
+
+    .btn.btn-secondary:hover {
+        background-color: #e6f0f8 !important;
+        color: #2f90d1 !important;
+    }
+
+    table{
+      border: 0.3px solid rgba(0,0,0,.3) !important;
+    }
+
+    tr td {
+        word-break: break-word;
+        vertical-align: middle !important;
+    }
+
+    table th {
+        background-color: #e6e6e6 !important;
+    }
+
+    table th, table td {
+        border: 0.3px solid rgba(0,0,0,.3) !important;
+    }
+
+</style>
 <style scoped>
 #table-bc{
   max-height: calc(100vh - 110px);
@@ -617,7 +638,7 @@ onMounted(() => {
 th,
 td {
     background: #fff;
-    padding: 1rem;
+    padding: 0.6rem;
 }
 
 .row-parent {
@@ -639,18 +660,8 @@ td {
   background-color: #fff;
   padding-bottom: 0px;
 }
-tr td {
-    word-break: break-word;
-    vertical-align: middle !important;
-}
-
 </style>
 <style lang="scss" scoped>
-::v-deep(.p-datatable-wrapper) {
-  table, tr>th, tr>td {
-    border:0.5px solid rgba(0,0,0,.3) !important
-  }
-}
 ::v-deep(.p-rowgroup-header) {
   td {
     flex:1 1 0 !important;
