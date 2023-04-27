@@ -772,6 +772,7 @@ onMounted(() => {
                     display="chip"
                     :filter="true"
                   >
+               
                     <template #option="slotProps">
                       <div v-if="slotProps.option" class="flex">
                         <div class="format-center">
