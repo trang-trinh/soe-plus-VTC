@@ -76,19 +76,25 @@ selectCapcha.value = {};
 // on event
 
 const loadData = () => {
+  swal.fire({
+    width: 110,
+    didOpen: () => {
+      swal.showLoading();
+    },
+  });
     axios
         .post(
             baseURL + "/api/hrm/callProc",
             {
                 str: encr(
                     JSON.stringify({
-                        proc: "hrm_report_profile_organization_list",
+                        proc: "hrm_report_profile_organization_list1",
                         par: [
                             { par: "search", va: options.value.SearchText },
                             { par: "user_id", va: store.getters.user.user_id },
                             { par: "department_id", va: options.value.department_id},
-                            { par: "start_date", va: null},
-                            { par: "end_date", va: null},
+                            { par: "gender", va: options.value.gender},
+                            { par: "title_id", va: options.value.title_id},
                         ],
                     }),
                     SecretKey,
@@ -100,11 +106,17 @@ const loadData = () => {
         .then((response) => {
             let data = JSON.parse(response.data.data);
             if (data[0].length > 0) {
-                // data[0].forEach((item, index) => {
-                //     item.stt = index + 1;
-                // });
+                data[0].forEach((item, index) => {
+                    item.is_active = false;
+                    const startDate = moment(item.recruitment_date || new Date());
+                    const endDate = moment(new Date());
+                    item.duration = moment.duration(endDate.diff(startDate));
+                    item.diffyear = item.duration.years();
+                    item.diffmonth = item.duration.months();
+                });
                 data[0] = groupBy(data[0], 'department_id');
                     let arr = [];
+                    var count = 1;
                     for (let pb in data[0]) {
                         // let data_ns_by_id = groupBy(data[0][pb], 'profile_code');
                         // let arr_ns = [];
@@ -112,12 +124,17 @@ const loadData = () => {
                         //     arr_ns.push({ group_ns: ns, name_group_ns: data_ns_by_id[ns][0].profile_user_name, list_con: data_ns_by_id[ns] });
                         // };
                         // data_ns_by_id = arr_ns;
+                        data[0][pb].forEach((item)=>{
+                          item.stt = count;
+                          count++
+                        })
                         arr.push({ group_pb: pb, name_group_pb: data[0][pb][0].organization_name, list_ns: data[0][pb] });
                     }
                 datalists.value = arr;
                 options.totalRecords = arr.length;
             }
             else datalists.value = [];
+            swal.close();
             options.value.loading = false;
         })
         .catch((error) => {
@@ -208,9 +225,9 @@ const exportExcel = () => {
     "<style>.font-bold {font-weight:bold} th,td,table,tr{padding:5px;font-size:9pt;} .text-right{text-align:right} .text-left{text-align:left}table{margin:20px auto;border-collapse: collapse;}</style>";
   tab_text =
     tab_text +
-    '<style>.p-datatable-thead th {background:#7bb0d7 !important;height: 30px !important;} .cstd{font-family: Times New Roman;border:none!important; font-size: 12pt; font-weight: 700; text-align: center; vertical-align: center;color:#000000}.head2{font-family: Times New Roman;border:none!important; font-size: 11pt; text-align: left; vertical-align: left;}</style>'    
-  tab_text = tab_text+ "<table><td colspan='18' class='head2'>TỔNG CÔNG TY "+(store.getters.user.organization_name||"...")+"/CÔNG TY"+(store.getters.user.organization_name||"......")+"</td></table>";
-  tab_text = tab_text+ "<table><td colspan='18' class='cstd' style='text-align: left; vertical-align: left;'>CÔNG TY/PHÒNG/TRUNG TÂM"+(store.getters.user.organization_name||".......")+"</td></table>";
+    '<style>.p-datatable-thead th {background:#7bb0d7 !important;height: 30px !important;} .cstd{font-family: Times New Roman;border:none!important; font-size: 12pt; font-weight: 700; text-align: center; vertical-align: center;color:#000000}.head2{font-family: Times New Roman;border:none!important; font-size: 12pt;font-weight:bold; text-align: left; vertical-align: left;}</style>'    
+  tab_text = tab_text+ "<table><td colspan='18' class='head2'>"+(department_name.value.toUpperCase() || store.getters.user.organization_name)+"</td></table>";
+  // tab_text = tab_text+ "<table><td colspan='18' class='cstd' style='text-align: left; vertical-align: left;'>CÔNG TY/PHÒNG/TRUNG TÂM "+(store.getters.user.organization_name||".......")+"</td></table>";
   tab_text =
       tab_text +'<table><td colspan="18" class="cstd" > BÁO CÁO TỔNG HỢP NHÂN SỰ</td >';
   tab_text = tab_text + "</table>";
@@ -252,6 +269,16 @@ const exportExcel = () => {
     document.body.removeChild(elem);
   }
 };
+const valueClick = ref();
+const activeRow = (row, value)=>{
+  valueClick.value = value;
+  datalists.value.forEach((item)=>{
+    item.list_ns.forEach((item2)=>{
+      item2.is_active = false;
+    })
+  })
+  row.is_active= true;
+}
 const goBack = () => {
   history.back();
 };
@@ -375,42 +402,6 @@ onMounted(() => {
                
               </div>
               <div class="field col-12 md:col-12 flex align-items-center">
-                <div class="col-4">Trình độ chuyên môn</div>
-                <Dropdown
-                  class="ip36 col-8"
-                  v-model="options.academic_level_id"
-                  :options="tudiens[1]"
-                  optionLabel="academic_level_name"
-                  optionValue="academic_level_id"
-                  placeholder="Chọn trình độ chuyên môn"
-                  :showClear="true"
-                />              
-              </div>
-              <div class="field col-12 md:col-12 flex align-items-center">
-                <div class="col-4">Chuyên ngành học</div>
-                <Dropdown
-                  class="ip36 col-8"
-                  v-model="options.specialization_id"
-                  :options="tudiens[5]"
-                  optionLabel="specialization_name"
-                  optionValue="specialization_id"
-                  placeholder="Chọn chuyên ngành"
-                  :showClear="true"
-                />              
-              </div>
-              <div class="field col-12 md:col-12 flex align-items-center">
-                <div class="col-4">Công việc chuyên môn</div>
-                <Dropdown
-                  class="ip36 col-8"
-                  v-model="options.professional_work_id"
-                  :options="tudiens[2]"
-                  optionLabel="professional_work_name"
-                  optionValue="professional_work_id"
-                  placeholder="Chọn công việc chuyên môn"
-                  :showClear="true"
-                />              
-              </div>
-              <div class="field col-12 md:col-12 flex align-items-center">
                 <div class="col-4">Chức danh</div>
                 <Dropdown
                   class="ip36 col-8"
@@ -421,14 +412,6 @@ onMounted(() => {
                   placeholder="Chọn chức danh"
                   :showClear="true"
                 />              
-              </div>
-              <div class="field col-12 md:col-12 flex align-items-center">
-                <div class="col-4">Mô tả công việc</div>
-                <InputText
-                  spellcheck="false"
-                  class="col-8 ip36"
-                  v-model="options.description"
-                />           
               </div>
               <div class="col-12 field p-0">
                 <Toolbar class="toolbar-filter">
@@ -473,25 +456,25 @@ onMounted(() => {
           </template>
         </Toolbar>
     </div>
-    <div style="overflow: scroll;max-height: calc(100vh - 140px);">
-        <table id="table-bc" class="table table-condensed table-hover tbpad" style="table-layout: fixed;width: 100%;">
-        <thead>
+    <div style="overflow: scroll;max-height: calc(100vh - 124px);">
+        <table cellspacing=0 id="table-bc" class="table table-condensed table-hover tbpad" style="table-layout: fixed;width: 100%;">
+        <thead style="position: sticky; z-index: 6; top:0">
             <tr>
-                <th class="text-center" width="50" rowspan="2" >STT</th>
-                <th class="text-center" width="100" rowspan="2" >Mã nhân viên</th>
-                <th class="text-center " width="150" rowspan="2">Họ và tên</th>
+                <th class="text-center sticky left-sticky1 left-1" width="50" rowspan="2" >STT</th>
+                <th class="text-center sticky left-sticky1 left-2" width="100" rowspan="2" >Mã nhân viên</th>
+                <th class="text-center sticky left-sticky1 left-3" width="150" rowspan="2">Họ và tên</th>
                 <th class="text-center " width="100" rowspan="2">Ngày sinh</th>
-                <th class="text-center " width="100" rowspan="2">Tuổi</th>
+                <th class="text-center " width="60" rowspan="2">Tuổi</th>
                 <th class="text-center " width="100" rowspan="2">Giới tính</th>
                 <th class="text-center " width="150" rowspan="2">Chức danh</th>
                 <th class="text-center " width="150" rowspan="2">Chức vụ</th>
                 <th class="text-center " width="100" rowspan="2">Loại LĐ</th>
                 <th class="text-center " width="250" rowspan="2">Quê quán</th>
                 <th class="text-center " width="100" rowspan="2">Tình trạng hôn nhân</th>
-                <th class="text-center " width="200" rowspan="2">Dân tộc</th>
-                <th class="text-center " width="100" rowspan="2">Tôn giáo</th>
-                <th class="text-center " width="120" rowspan="2">Đảng viên</th>
-                <th class="text-center " width="120" rowspan="2">Đoàn viên</th>
+                <th class="text-center " width="80" rowspan="2">Dân tộc</th>
+                <th class="text-center " width="80" rowspan="2">Tôn giáo</th>
+                <th class="text-center " width="80" rowspan="2">Đảng viên</th>
+                <th class="text-center " width="80" rowspan="2">Đoàn viên</th>
                 <th class="text-center " width="300" colspan="2">Thuộc diện chính sách</th>
                 <th class="text-center " width="300" colspan="2">Nơi đăng ký HKTT</th>
                 <th class="text-center " width="300" colspan="2">Nơi đăng ở hiện nay</th>
@@ -499,13 +482,13 @@ onMounted(() => {
                 <th class="text-center " width="150" rowspan="2">Thành phần gia đình</th>
                 <th class="text-center " width="300" colspan="3">Theo dõi CMND</th>
                 <th class="text-center " width="100" rowspan="2">Ngày vào đơn vị</th>
-                <th class="text-center " width="150" rowspan="2">Thâm niên công tác</th>
-                <th class="text-center " width="150" rowspan="2">Thâm niên phép tính năm</th>
+                <th class="text-center " width="120" rowspan="2">Thâm niên công tác</th>
+                <th class="text-center " width="120" rowspan="2">Thâm niên phép tính năm</th>
                 <th class="text-center " width="500" colspan="5">Trình độ chuyên môn chính</th>
                 <th class="text-center " width="120" rowspan="2">Số di động</th>
                 <th class="text-center " width="120" rowspan="2">Email</th>
-                <th class="text-center " width="120" rowspan="2">Chiều cao</th>
-                <th class="text-center " width="120" rowspan="2">Cân nặng</th>
+                <th class="text-center " width="80" rowspan="2">Chiều cao</th>
+                <th class="text-center " width="80" rowspan="2">Cân nặng</th>
             </tr>
             <tr>
                 <th class="text-center " width="100">Đã tham gia quân đội</th>
@@ -526,83 +509,91 @@ onMounted(() => {
         </thead>
         <tbody v-for="(bc, index1) in datalists" :key="index1">
             <tr>
-                <td colspan="38"><b>{{bc.name_group_pb}}</b></td>
+                <td colspan="38" class="bg-group left-sticky1 left-1"><b>{{bc.name_group_pb}}</b></td>
             </tr>
-            <tr v-for="(dg, index2) in bc.list_ns" :key="index2">
-                <td class="text-center">{{index2 + 1}}</td>
-                <td  align="left">
-                    {{dg.profile_code}}
+            <tr v-for="(dg, index2) in bc.list_ns" :key="index2" class="item-hover">
+                <td class="text-center bg-stt left-sticky1 left-1" :class="dg.is_active?'active-item':'bg-stt'">{{dg.stt}}</td>
+                <td align="left" class="bg-aliceblue left-sticky1 left-2" @click="activeRow(dg)">
+                   {{dg.profile_code}}
                 </td>
-                <td align="left">
+                <td align="left" class="bg-aliceblue left-sticky1 left-3" @click="activeRow(dg, Object.keys(dg)[0])">
+      
                     {{dg.profile_user_name}}
                 </td>
-                <td align="center">
+                <td align="center" @click="activeRow(dg)" >
                   <span v-if="dg.birthday"> {{ moment(new Date(dg.birthday)).format("DD/MM/YYYY ") }}</span>
                 </td>
-                <td align="right">
+                <td align="center" @click="activeRow(dg)" >
                     {{dg.age}}
                 </td>
-                <td align="center">
+                <td align="center" @click="activeRow(dg)" >
                     {{dg.gender}}
                 </td>
-                <td align="left">{{ dg.title_name }}</td>
-                <td align="left">
+                <td align="left" @click="activeRow(dg)" >{{ dg.title_name }}</td>
+                <td align="left" @click="activeRow(dg)" >
                     {{dg.position_name}}
                 </td>
-                <td align="left">
+                <td align="left" @click="activeRow(dg)" >
                     {{dg.personel_groups_name}}
                 </td>
-                <td align="left">
+                <td align="left" @click="activeRow(dg)" >
                     {{dg.birthplace_origin_name}}
                 </td>
-                <td align="center">
+                <td align="center" @click="activeRow(dg)" >
                     {{dg.marital_status==0?'Độc thân':dg.marital_status==1 ?'Kết hôn':dg.marital_status==2?'Ly hôn':''}}
                 </td>
-                <td align="center">
+                <td align="center" @click="activeRow(dg)" >
                     {{dg.ethnic_name}}
                 </td>
-                <td align="center">
+                <td align="center" @click="activeRow(dg)" >
                     {{dg.religion_name}}
                 </td>
-                <td align="center">
+                <td align="center" @click="activeRow(dg)" >
                     {{dg.is_partisan?'X':''}}
                 </td>
-                <td align="center">
+                <td align="center" @click="activeRow(dg)" >
                     {{dg.bevy_date?'X':''}}
                 </td>
-                <td align="center">
+                <td align="center" @click="activeRow(dg)" >
                     {{dg.is_join_military?'X':''}}
                 </td>
-                <td align="left">{{dg.military_policy_family}}</td>
-                <td align="left">{{dg.place_register_permanent_first}}</td>
-                <td align="left">{{dg.place_register_permanent_name}}</td>
-                <td align="left">{{dg.place_permanent}}</td>
-                <td align="left">{{dg.place_residence_name || dg.name}}</td>
-                <td align="left">
+                <td align="left" @click="activeRow(dg)" >{{dg.military_policy_family}}</td>
+                <td align="left" @click="activeRow(dg)" >{{dg.place_register_permanent_first}}</td>
+                <td align="left" @click="activeRow(dg)" >{{dg.place_register_permanent_name}}</td>
+                <td align="left" @click="activeRow(dg)" >{{dg.place_permanent}}</td>
+                <td align="left" @click="activeRow(dg)" >{{dg.place_residence_name || dg.name}}</td>
+                <td align="left" @click="activeRow(dg)" >
                   <span v-if="dg.relationship_name">{{ dg.relationship_name}}: </span>
                   <span v-if="dg.involved_name">{{ dg.involved_name}} - </span>
                   <span v-if="dg.involved_phone">{{ dg.involved_phone}} </span>
                 </td>
-                <td align="left">{{dg.family_member}}</td>
-                <td align="left">{{dg.identity_papers_code}}</td>
-                <td align="left">
+                <td align="left" @click="activeRow(dg)" >{{dg.family_member}}</td>
+                <td align="left" @click="activeRow(dg)" >{{dg.identity_papers_code}}</td>
+                <td align="left" @click="activeRow(dg)" >
                   <span v-if="dg.identity_date_issue"> {{ moment(new Date(dg.identity_date_issue)).format("DD/MM/YYYY ") }}</span>
                 </td>
-                <td align="left">{{dg.name}}</td>
-                <td align="left">
+                <td align="left" @click="activeRow(dg)" >{{dg.name}}</td>
+                <td align="left" @click="activeRow(dg)" >
                   <span v-if="dg.start_date"> {{ moment(new Date(dg.start_date)).format("DD/MM/YYYY ") }}</span>
                 </td>
-                <td align="left">{{dg.countRecruitment}}</td>
-                <td align="left">{{dg.countAllRecruitment}}</td>
-                <td align="left">{{dg.cultural_level_name}}</td>
-                <td align="left">{{dg.certificate_name}}</td>
-                <td align="left">{{dg.specialization_name}}</td>
-                <td align="left">{{dg.university_name}}</td>
-                <td align="left">{{dg.form_traning_name}}</td>
-                <td align="center">{{dg.phone}}</td>
-                <td align="center">{{dg.email}}</td>
-                <td align="center">{{dg.height}}</td>
-                <td align="center">{{dg.weight}}</td>
+                <td align="center" @click="activeRow(dg)" >
+                  <span v-if="dg.diffyear > 0">
+                    {{ dg.diffyear }} năm
+                  </span>
+                  <span v-if="dg.diffmonth > 0">
+                    {{ dg.diffmonth }} tháng
+                  </span>
+                </td>
+                <td align="center" @click="activeRow(dg)" >{{dg.countAllRecruitment}}</td>
+                <td align="left" @click="activeRow(dg)" >{{dg.cultural_level_name}}</td>
+                <td align="left" @click="activeRow(dg)" >{{dg.certificate_name}}</td>
+                <td align="left" @click="activeRow(dg)" >{{dg.specialization_name}}</td>
+                <td align="left" width="150" @click="activeRow(dg)" >{{dg.university_name}}</td>
+                <td align="left" @click="activeRow(dg)" >{{dg.form_traning_name}}</td>
+                <td align="center" @click="activeRow(dg)" >{{dg.phone}}</td>
+                <td align="center" @click="activeRow(dg)" >{{dg.email}}</td>
+                <td align="center" @click="activeRow(dg)" >{{dg.height}}</td>
+                <td align="center" @click="activeRow(dg)" >{{dg.weight}}</td>
             </tr> 
       
           </tbody>
@@ -611,42 +602,63 @@ onMounted(() => {
     </div>
 </template>
 <style scoped>
+  .item-hover:hover{
+    background-color: #f0f8ff!important;
+  }
+  .bg-group{
+    background-color: rgb(222, 230, 240) !important;
+  }
+  .bg-stt{
+    background-color: #e6e6e6;
+  }
+  .active-item{
+    background-color: #ffd95f;
+  }
+  .active-border{
+    border:2px solid #008eff !important
+  }
     .table {
         margin-bottom: 0px !important;
     }
 
-    
-    td span {
-        text-overflow: ellipsis;
-        overflow: hidden;
-        display: -webkit-box;
-        -webkit-line-clamp: 2;
-        -webkit-box-orient: vertical;
+
+    .left-sticky1 {
+        position: sticky;
+        z-index: 5;
+        vertical-align: middle !important;
     }
 
+    .left-1 {
+        left:-1px;
+    }
+    .left-2 {
+        left: 49px;
+    }
+    .left-3 {
+        left: 149px;
+    }
     .btn.btn-secondary:hover {
         background-color: #e6f0f8 !important;
         color: #2f90d1 !important;
     }
 
-    .table-bordered {
-        border-top: none !important;
-        border-left: none !important;
+    table{
+      border: 0.3px solid rgba(0,0,0,.3) !important;
     }
-
 
     tr td {
         word-break: break-word;
         vertical-align: middle !important;
+        cursor: pointer;
     }
 
     table th {
-        background-color: #f8f9fa !important;
+        background-color: #e6e6e6 !important;
     }
 
-    /* table th, table td {
-        border: 1px solid rgba(0,0,0,.3) !important;
-    } */
+    table th, table td {
+        border: 0.3px solid rgba(0,0,0,.3) !important;
+    }
 
 </style>
 <style scoped>

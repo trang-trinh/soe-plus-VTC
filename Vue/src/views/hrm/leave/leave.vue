@@ -17,6 +17,7 @@ const config = {
 const toast = useToast();
 const cryoptojs = inject("cryptojs");
 const basedomainURL = baseURL;
+const basefileURL = fileURL;
 
 //Decalre
 const isFunction = ref(false);
@@ -157,6 +158,27 @@ const closeDialogLeaveProfile = () => {
 };
 
 //function export
+//Xuất excel
+const menuButs = ref();
+const itemButs = ref([
+  {
+    label: "Export dữ liệu ra Excel",
+    icon: "pi pi-file-excel",
+    command: (event) => {
+      //exportData("ExportExcel");
+    },
+  },
+  {
+    label: "Import dữ liệu từ Excel",
+    icon: "pi pi-file-excel",
+    command: (event) => {
+      //exportData("ExportExcel");
+    },
+  },
+]);
+const toggleExport = (event) => {
+  menuButs.value.toggle(event);
+};
 const exportExcel = () => {
   excel("table-leave", "bangphepnam" + options.value.year);
 };
@@ -205,6 +227,59 @@ const excel = (id, name) => {
     elem.click();
     document.body.removeChild(elem);
   }
+};
+
+// Import excel
+const linkformimport = "/Portals/Mau Excel/Mẫu Excel Phép năm.xlsx";
+let files = [];
+const displayImport = ref(false);
+const importExcel = (type) => {
+  displayImport.value = true;
+};
+const removeFile = (event) => {
+  files = [];
+};
+const selectFile = (event) => {
+  event.files.forEach((element) => {
+    files.push(element);
+  });
+};
+const upload = () => {
+  displayImport.value = false;
+  let formData = new FormData();
+  for (var i = 0; i < files.length; i++) {
+    let file = files[i];
+    formData.append("files", file);
+  }
+  axios
+    .post(baseURL + "/api/hrm_leave/import_excel", formData, config)
+    .then((response) => {
+      toast.success("Nhập dữ liệu thành công");
+      initData(true);
+    })
+    .catch((error) => {
+      swal.close();
+      swal.fire({
+        title: "Thông báo!",
+        text: "Có lỗi xảy ra, vui lòng kiểm tra lại!",
+        icon: "error",
+        confirmButtonText: "OK",
+      });
+      return;
+    });
+};
+const downloadFile = (url) => {
+  const a = document.createElement("a");
+  a.href =
+    basedomainURL +
+    "/Viewer/DownloadFile?url=" +
+    encodeURIComponent(url) +
+    "&title=" +
+    encodeURIComponent("Mẫu Excel Phép năm.xlsx");
+  a.download = "Mẫu Excel Phép năm.xlsx";
+  //a.target = "_blank";
+  a.click();
+  a.remove();
 };
 
 //init
@@ -314,38 +389,6 @@ const initData = (ref) => {
         let data = JSON.parse(response.data.data);
         if (data != null) {
           if (data[0] != null && data[0].length > 0) {
-            data[0].forEach((user, i) => {
-              user["STT"] = i + 1;
-              if (user["days"] != null) {
-                user["days"] = JSON.parse(user["days"]);
-                user["days"].forEach((day) => {
-                  day["workday"] = new Date(day["workday"]);
-                  day["workday_string"] = moment(day["workday"]).format(
-                    "DD/MM/YYYY"
-                  );
-                });
-              } else {
-                user["days"] = [];
-              }
-              user["list_days"] = JSON.parse(JSON.stringify(days.value));
-              user["list_days"].forEach((d) => {
-                d["status_name"] = "";
-                if (new Date(d["day"]).getTime() < new Date().getTime()) {
-                  d["status_name"] = "";
-                }
-                var filterDays = user["days"].filter(
-                  (x) => x["workday_string"] === d["day_string"]
-                );
-                filterDays.forEach((day) => {
-                  var idx = dictionarys.value[2].findIndex(
-                    (s) => s["symbol_id"] === parseInt(day["symbol_id"])
-                  );
-                  if (idx !== -1) {
-                    d["status_name"] = dictionarys.value[2][idx]["symbol_code"];
-                  }
-                });
-              });
-            });
             var group = groupBy(data[0], "department_id");
             for (var k in group) {
               let obj = {
@@ -355,6 +398,14 @@ const initData = (ref) => {
               };
               datas.value.push(obj);
             }
+            var count = 1;
+            datas.value.forEach((item) => {
+              if (item.users != null && item.users.length > 0) {
+                item.users.forEach((us) => {
+                  us.stt = count++;
+                });
+              }
+            });
           } else {
             datas.value = [];
           }
@@ -407,38 +458,36 @@ onMounted(() => {
         </div>
       </template>
       <template #end>
-        <Button
-          v-if="selectedNodes.length > 0"
+        <!-- <Button
           @click="openUpdateDialog('Chọn loại chấm công')"
           label="Chọn loại chấm công"
           icon="pi pi-check"
           class="mr-2"
-        />
+        /> -->
         <Button
-          v-if="selectedNodes.length > 0"
-          :label="'Bỏ chọn (' + selectedNodes.length + ')'"
-          icon="pi pi-times"
-          class="mr-2 p-button-outlined p-button-danger"
-          @click="removeSelectedNodes()"
-        />
-        <Button
-          v-if="selectedNodes.length > 0"
-          label="Xóa chấm công"
-          icon="pi pi-trash"
-          class="mr-2 p-button-outlined p-button-danger"
-          @click="deleteTimekeep()"
-        />
-        <Button
-          @click="exportExcel()"
-          class="mr-2 p-button-outlined p-button-secondary"
+          @click="toggleExport"
+          label="Tiện ích"
           icon="pi pi-file-excel"
-          label="Xuất Excel"
+          class="p-button-outlined p-button-secondary mr-2"
+          aria-haspopup="true"
+          aria-controls="overlay_Export"
+        >
+          <div>
+            <span class="mr-2">Tiện ích</span>
+            <span><i class="pi pi-chevron-down"></i></span>
+          </div>
+        </Button>
+        <Menu
+          :model="itemButs"
+          :popup="true"
+          id="overlay_Export"
+          ref="menuButs"
         />
         <Button
           @click="refresh()"
           class="p-button-outlined p-button-secondary"
           icon="pi pi-refresh"
-          label="Tải lại"
+          v-tooltip.top="'Tải lại'"
         />
       </template>
     </Toolbar>
@@ -650,7 +699,6 @@ onMounted(() => {
             >
               ĐÃ NGHỈ
             </th>
-
             <th
               class="sticky text-center"
               :style="{ top: '0', width: '100px', backgroundColor: '#FDF2F0' }"
@@ -697,7 +745,7 @@ onMounted(() => {
                 textAlign: 'center',
               }"
             >
-              {{ user_key + 1 }}
+              {{ user.stt }}
             </td>
             <td
               class="sticky text-left"
@@ -751,27 +799,30 @@ onMounted(() => {
               :style="{
                 width: '150px',
                 backgroundColor: '#fff',
+                backgroundColor: '#F2FBE6',
               }"
             >
-              <span> </span>
+              <b>{{ user.total }}</b>
             </td>
             <td
               class="text-center"
               :style="{
                 width: '150px',
                 backgroundColor: '#fff',
+                backgroundColor: '#EEFAF5',
               }"
             >
-              <span> {{ user.leaveAll }}</span>
+              <b> {{ user.leaveAll }}</b>
             </td>
             <td
               class="text-center"
               :style="{
                 width: '150px',
                 backgroundColor: '#fff',
+                backgroundColor: '#FDF2F0',
               }"
             >
-              <span> {{ user.leaveRemain }}</span>
+              <b> {{ user.leaveRemain }}</b>
             </td>
           </tr>
         </tbody>
@@ -866,6 +917,39 @@ onMounted(() => {
     :year="options.year"
     :initData="initData"
   />
+
+  <Dialog
+    header="Tải lên file Excel"
+    v-model:visible="displayImport"
+    :style="{ width: '40vw' }"
+    :closable="true"
+    :modal="true"
+  >
+    <h3>
+      <label>
+        <a @click="downloadFile(linkformimport)">Nhấn vào đây</a> để tải xuống
+        tệp mẫu.
+      </label>
+    </h3>
+    <form>
+      <FileUpload
+        accept=".xls,.xlsx"
+        @remove="removeFile"
+        @select="selectFile"
+        :multiple="false"
+        :show-upload-button="false"
+        choose-label="Chọn tệp"
+        cancel-label="Hủy"
+      >
+        <template #empty>
+          <p>Kéo và thả tệp vào đây để tải lên.</p>
+        </template>
+      </FileUpload>
+    </form>
+    <template #footer>
+      <Button label="Lưu" icon="pi pi-check" @click="upload" />
+    </template>
+  </Dialog>
 </template>
 <style scoped>
 .box-table {

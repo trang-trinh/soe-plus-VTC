@@ -34,9 +34,7 @@ const model = ref({
 
 //Function
 const goYear = (date) => {
-  if (date && options.value.tempyear !== date.getFullYear()) {
-    options.value.tempyear = date.getFullYear();
-  }
+  initData(true);
 };
 
 const submitted = ref(false);
@@ -115,6 +113,7 @@ const initData = (ref) => {
       },
     });
   }
+  let year = new Date(model.value.tempyear).getFullYear();
   axios
     .post(
       baseURL + "/api/hrm/callProc",
@@ -122,7 +121,10 @@ const initData = (ref) => {
         str: encr(
           JSON.stringify({
             proc: "hrm_leave_profile_get",
-            par: [{ par: "profile_id", va: props.profile.profile_id }],
+            par: [
+              { par: "profile_id", va: props.profile.profile_id },
+              { par: "year", va: year },
+            ],
           }),
           SecretKey,
           cryoptojs
@@ -146,7 +148,7 @@ const initData = (ref) => {
             model.value = {
               profile_id: props.profile.profile_id,
               tempyear: new Date(
-                props.year,
+                year,
                 newdate.getMonth() + 1,
                 newdate.getDay()
               ),
@@ -162,6 +164,8 @@ const initData = (ref) => {
               month10: 0,
               month11: 0,
               month12: 0,
+              inventory: 0,
+              bonus: 0,
             };
           }
         }
@@ -228,6 +232,32 @@ onMounted(() => {
                 />
               </div>
             </div>
+          </div>
+        </div>
+        <div class="col-6 md:col-6">
+          <div class="form-group">
+            <label>Phép tồn</label>
+            <InputNumber
+              v-model="model.inventory"
+              inputId="minmax"
+              :min="0"
+              :max="100"
+              showButtons
+              class="ip36"
+            />
+          </div>
+        </div>
+        <div class="col-6 md:col-6">
+          <div class="form-group">
+            <label>Phép thưởng</label>
+            <InputNumber
+              v-model="model.bonus"
+              inputId="minmax"
+              :min="0"
+              :max="100"
+              showButtons
+              class="ip36"
+            />
           </div>
         </div>
         <div class="col-6 md:col-6">

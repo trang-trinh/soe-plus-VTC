@@ -66,6 +66,21 @@ const bgColor = ref([
   "#8BCFFB",
   "#CCADD7",
 ]);
+const renderColorProgress = (value) => {
+    if (value >= 75) {
+        return "classOver75";
+    }
+    else if (value >= 50) {
+        return "classOver50";
+    }
+    else if (value >= 30) {
+        return "classOver30";
+    }
+    else if (value > 0) {
+        return "classOver0";
+    }
+    return "";
+};
 const listStatusRequests = ref([
     { id: 0,  text: "Mới lập",    class: "rqlap" },
     { id: 1,  text: "Chờ duyệt",  class: "rqchoduyet" },
@@ -777,11 +792,12 @@ onMounted(() => {
                                 >
                                     {{ slotProps.data.priority_level == 1 ? 'Gấp' : 'Rất gấp' }}
                                 </span>
-                                <span class="uutien mr-2" v-tooltip.top="'Bảo mật'" v-if="slotProps.data.is_security">
+                                <span class="uutien mr-2" v-tooltip.top="'Bảo mật'"
+                                    v-if="slotProps.data.is_security">
                                     <i class="pi pi-flag" style="color:red;"></i>
                                 </span>
-                                <span style="padding:0.25rem 0.5rem;background-color: #ff8b4e;color: #fff;margin-right: 0.5rem !important;" 
-                                    class="card-nhom flex text-left" 
+                                <span class="card-nhom flex text-left" 
+                                    style="padding:0.25rem 0.5rem;background-color: #ff8b4e;color: #fff;margin-right: 0.5rem !important;" 
                                     v-if="slotProps.data.is_change_process"
                                 >
                                     Quy trình động
@@ -868,7 +884,10 @@ onMounted(() => {
                             <div class="mt-2" style="vertical-align:middle;width:140px" 
                                 v-if="slotProps.data.Tiendo && slotProps.data.Tiendo > 0"
                             >
-                                <ProgressBar class="progress-bar-custom" :value="(slotProps.data.Tiendo || 0)"></ProgressBar>
+                                <ProgressBar class="progress-bar-custom" 
+                                    :class="renderColorProgress(slotProps.data.Tiendo)"
+                                    :value="(slotProps.data.Tiendo || 0)"
+                                ></ProgressBar>
                             </div>
                         </div>
                     </template>
