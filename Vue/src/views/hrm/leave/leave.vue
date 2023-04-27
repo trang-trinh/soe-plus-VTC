@@ -17,6 +17,7 @@ const config = {
 const toast = useToast();
 const cryoptojs = inject("cryptojs");
 const basedomainURL = baseURL;
+const basefileURL = fileURL;
 
 //Decalre
 const isFunction = ref(false);
@@ -229,6 +230,7 @@ const excel = (id, name) => {
 };
 
 // Import excel
+const linkformimport = "/Portals/Mau Excel/Mẫu Excel Phép năm.xlsx";
 let files = [];
 const displayImport = ref(false);
 const importExcel = (type) => {
@@ -904,7 +906,7 @@ onMounted(() => {
   >
     <h3>
       <label>
-        <a :href="basedomainURL + item" download>Nhấn vào đây</a> để tải xuống
+        <a :href="basefileURL + linkformimport" download>Nhấn vào đây</a> để tải xuống
         tệp mẫu.
       </label>
     </h3>
