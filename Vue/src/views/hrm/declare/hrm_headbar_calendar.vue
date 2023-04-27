@@ -60,14 +60,11 @@ const loadCount = () => {
 //Lấy dữ liệu holiday_dates
 const loadData = (rf) => {
   if (rf) {
-    if (options.value.PageNo == 0) {
-      loadCount();
-    }
+    loadCountCal(state.value.showDate);
   }
   state.value.items = [];
-  options.value.declareShiftCount = 0;
-  options.value.holidayDatesCount = 0;
-  axios
+  (async () => {
+  await axios
     .post(
       baseURL + "/api/hrm_ca_SQL/getData",
       {
@@ -103,6 +100,7 @@ const loadData = (rf) => {
           state.value.items.push({
             id: "nothingshow",
             id_hol: element.holiday_dates_id,
+            holiday_type_id: element.holiday_type_id,
             startDate: new Date(element.start_date),
             endDate: element.end_date
               ? new Date(element.end_date)
@@ -114,12 +112,12 @@ const loadData = (rf) => {
               " </span>   <span>" +
               element.reason +
               "</span>",
-            tooltip: " ",
+            tooltip: element.holiday_type_name,
             style: element.text_color + element.background_color,
           });
         }
       });
-      datalists.value = data;
+ 
 
       options.value.loading = false;
     })
@@ -135,7 +133,7 @@ const loadData = (rf) => {
         store.commit("gologout");
       }
     });
-  axios
+    await axios
     .post(
       baseURL + "/api/hrm_ca_SQL/getData",
       {
@@ -171,18 +169,9 @@ const loadData = (rf) => {
                 endDate: new Date(item),
                 title: element.declare_shift_name,
                 tooltip: " ",
-
+                declare_shift_id: element.declare_shift_id,
                 style: element.text_color + element.background_color,
               });
-              if (state.value.displayPeriodUom == "month") {
-                var dateCount = new Date();
-                if (
-                  new Date(item).getMonth() == dateCount.getMonth() &&
-                  new Date(item).getFullYear() == dateCount.getFullYear()
-                ) {
-                  options.value.declareShiftCount++;
-                }
-              }
             });
           }
           if (element.work_schedule_months) {
@@ -203,19 +192,10 @@ const loadData = (rf) => {
                     index
                   ),
                   endDate: new Date(date.getFullYear(), date.getMonth(), index),
-                  title: element.declare_shift_name,
+                  title: element.declare_shift_name, declare_shift_id: element.declare_shift_id,
                   tooltip: " ",
                   style: element.text_color + element.background_color,
                 });
-                if (state.value.displayPeriodUom == "month") {
-                  var dateCount = new Date();
-                  if (
-                    new Date(item).getMonth() == dateCount.getMonth() &&
-                    new Date(item).getFullYear() == dateCount.getFullYear()
-                  ) {
-                    options.value.declareShiftCount++;
-                  }
-                }
               }
             });
           }
@@ -237,24 +217,16 @@ const loadData = (rf) => {
                   newDate.getMonth(),
                   index
                 ),
-                title: element.declare_shift_name,
+                title: element.declare_shift_name, declare_shift_id: element.declare_shift_id,
                 tooltip: " ",
                 style: element.text_color + element.background_color,
               });
-              if (state.value.displayPeriodUom == "month") {
-                var dateCount = new Date();
-                if (
-                  new Date(item).getMonth() == dateCount.getMonth() &&
-                  new Date(item).getFullYear() == dateCount.getFullYear()
-                ) {
-                  options.value.declareShiftCount++;
-                }
-              }
             }
           }
         }
       });
       options.value.loading = false;
+      itemSave=[... state.value.items ]
     })
     .catch((error) => {
       toast.error("Tải dữ liệu không thành công!");
@@ -268,7 +240,9 @@ const loadData = (rf) => {
         store.commit("gologout");
       }
     });
-};
+  })()
+
+}
 //Phân trang dữ liệu
 const onPage = (event) => {
   if (event.rows != options.value.PageSize) {
@@ -325,11 +299,9 @@ const options = ref({
   holidayDatesCount: 0,
 });
 const setShowDate = (d) => {
-    
   state.value.showDate = d;
   state.value.items = [];
-  options.value.declareShiftCount = 0;
-  options.value.holidayDatesCount = 0;
+
   axios
     .post(
       baseURL + "/api/hrm_ca_SQL/getData",
@@ -366,6 +338,7 @@ const setShowDate = (d) => {
           state.value.items.push({
             id: "nothingshow",
             id_hol: element.holiday_dates_id,
+            holiday_type_id: element.holiday_type_id,
             startDate: new Date(element.start_date),
             endDate: element.end_date
               ? new Date(element.end_date)
@@ -377,13 +350,11 @@ const setShowDate = (d) => {
               " </span>   <span>" +
               element.reason +
               "</span>",
-            tooltip: " ",
+            tooltip:  element.holiday_type_name,
             style: element.text_color + element.background_color,
           });
         }
       });
-      datalists.value = data;
-
       options.value.loading = false;
     })
     .catch((error) => {
@@ -434,14 +405,271 @@ const setShowDate = (d) => {
                 endDate: new Date(item),
                 title: element.declare_shift_name,
                 tooltip: " ",
-
+                declare_shift_id: element.declare_shift_id,
                 style: element.text_color + element.background_color,
               });
-              var dateCount = new Date();
-              //Lọc theo tuần chưa đưcọ
+            });
+          }
+          if (element.work_schedule_months) {
+            element.work_schedule_months.split(",").forEach((item, idx) => {
+              var date = new Date(item);
+              var numDays = new Date(
+                date.getFullYear(),
+                date.getMonth() + 1,
+                0
+              ).getDate();
+
+              for (let index = 1; index <= numDays; index++) {
+                state.value.items.push({
+                  id: element.work_schedule_id,
+                  startDate: new Date(
+                    date.getFullYear(),
+                    date.getMonth(),
+                    index
+                  ),
+                  endDate: new Date(date.getFullYear(), date.getMonth(), index),
+                  title: element.declare_shift_name,
+                  tooltip: " ", declare_shift_id: element.declare_shift_id,
+                  style: element.text_color + element.background_color,
+                });
+              }
+            });
+          }
+        } else {
+          for (let indexs = 0; indexs < 12; indexs++) {
+            var date = d;
+            var numDays = new Date(date.getFullYear(), indexs, 0).getDate();
+            var newDate = new Date(date.getFullYear(), indexs, 0);
+            for (let index = 1; index <= numDays; index++) {
+              state.value.items.push({
+                id: new Date(
+                  newDate.getFullYear(),
+                  newDate.getMonth(),
+                  index
+                ).toString(),
+                startDate: new Date(
+                  newDate.getFullYear(),
+                  newDate.getMonth(),
+                  index
+                ),
+                endDate: new Date(
+                  newDate.getFullYear(),
+                  newDate.getMonth(),
+                  index
+                ),
+                title: element.declare_shift_name,  declare_shift_id: element.declare_shift_id,
+                tooltip: " ",
+                style: element.text_color + element.background_color,
+              });
+            }
+          }
+        }
+      });
+      options.value.loading = false;
+      itemSave=[... state.value.items ]
+    })
+    .catch((error) => {
+      toast.error("Tải dữ liệu không thành công!");
+      options.value.loading = false;
+
+      if (error && error.status === 401) {
+        swal.fire({
+          text: "Mã token đã hết hạn hoặc không hợp lệ, vui lòng đăng nhập lại!",
+          confirmButtonText: "OK",
+        });
+        store.commit("gologout");
+      }
+    });
+  loadCountCal(state.value.showDate);
+};
+function getWeekNumber(date) {
+  const oneJan = new Date(date.getFullYear(), 0, 1);
+  const millisecsInDay = 86400000;
+  return Math.ceil(((date - oneJan) / millisecsInDay + oneJan.getDay()) / 7);
+}
+//Hiển thị dialog
+const loadCountCal = (dateCount) => {
+  options.value.declareShiftCount = 0;
+  options.value.holidayDatesCount = 0;
+  axios
+    .post(
+      baseURL + "/api/hrm_ca_SQL/getData",
+      {
+        str: encr(
+          JSON.stringify({
+            proc: "hrm_holiday_dates_list_all",
+            par: [
+              { par: "user_id", va: store.getters.user.user_id },
+              { par: "status", va: null },
+            ],
+          }),
+          SecretKey,
+          cryoptojs
+        ).toString(),
+      },
+      config
+    )
+    .then((response) => {
+      let data = JSON.parse(response.data.data)[0];
+      data.forEach((element, i) => {
+        if (element.start_date) {
+          if (state.value.displayPeriodUom == "week") {
+            if (
+              getWeekNumber(new Date(element.start_date)) ==
+                getWeekNumber(dateCount) - 1 &&
+              new Date(element.start_date).getFullYear() ==
+                dateCount.getFullYear()
+            ) {
+              let date = new Date(element.start_date); // Tạo đối tượng Date
+              let dayOfWeek = date.getDay(); // Lấy thứ của ngày đó (trả về số từ 0 - 6, 0 là chủ nhật, 1 là thứ 2, ... , 6 là thứ 7)
+              let daysLeftInWeek = 7 - dayOfWeek; // Số ngày còn lại để đến ngày cuối cùng của tuần (6 nếu tuần bắt đầu vào chủ nhật)
+              let lastDayOfWeek = new Date(
+                date.getTime() + daysLeftInWeek * 24 * 60 * 60 * 1000
+              ); // Tạo đối tượng Date mới với ngày cuối cùng của tuần
+              if (!element.end_date) element.end_date = element.start_date;
+              let timeDiff = 0;
+              if (
+                new Date(element.end_date).getTime() > lastDayOfWeek.getTime()
+              )
+                timeDiff =
+                  new Date(element.end_date).getTime() -
+                  lastDayOfWeek.getTime();
+
+              let daysDiff = Math.round(timeDiff / (1000 * 60 * 60 * 24));
+              options.value.holidayDatesCount += daysDiff;
+            }
+            if (
+              getWeekNumber(new Date(element.start_date)) ==
+                getWeekNumber(dateCount) &&
+              new Date(element.start_date).getFullYear() ==
+                dateCount.getFullYear()
+            ) {
+              let date = new Date(element.start_date); // Tạo đối tượng Date
+
+              let dayOfWeek = date.getDay(); // Lấy thứ của ngày đó (trả về số từ 0 - 6, 0 là chủ nhật, 1 là thứ 2, ... , 6 là thứ 7)
+
+              let daysLeftInWeek = 7 - dayOfWeek; // Số ngày còn lại để đến ngày cuối cùng của tuần (6 nếu tuần bắt đầu vào chủ nhật)
+
+              let lastDayOfWeek = new Date(
+                date.getTime() + daysLeftInWeek * 24 * 60 * 60 * 1000
+              ); // Tạo đối tượng Date mới với ngày cuối cùng của tuần
+              if (!element.end_date) element.end_date = element.start_date;
+              let timeDiff = 0;
+              if (
+                new Date(element.end_date).getTime() > lastDayOfWeek.getTime()
+              )
+                timeDiff =
+                  lastDayOfWeek.getTime() -
+                  new Date(element.start_date).getTime();
+              else
+                timeDiff =
+                  new Date(element.end_date).getTime() -
+                  new Date(element.start_date).getTime();
+              let daysDiff = Math.round(timeDiff / (1000 * 60 * 60 * 24)) + 1;
+              options.value.holidayDatesCount += daysDiff;
+            }
+          }
+          if (state.value.displayPeriodUom == "month") {
+            if (
+              new Date(element.start_date).getMonth() == dateCount.getMonth() &&
+              new Date(element.start_date).getFullYear() ==
+                dateCount.getFullYear()
+            ) {
+              let date = new Date(element.start_date); // Tạo đối tượng Date
+              let month = date.getMonth(); // Lấy tháng của ngày đó (trả về số từ 0 - 11, 0 là tháng 1, 1 là tháng 2, ... , 11 là tháng 12)
+              let year = date.getFullYear(); // Lấy năm của ngày đó
+              let firstDayOfNextMonth = new Date(year, month + 1, 1); // Tạo đối tượng Date mới với ngày đầu tiên của tháng tiếp theo
+              let lastDayOfMonth = new Date(
+                firstDayOfNextMonth.getTime() - 24 * 60 * 60 * 1000
+              ); // Trừ đi 1 ngày từ ngày đầu tiên của tháng tiếp theo để tính ra ngày cuối cùng của tháng hiện tại
+
+              if (!element.end_date) element.end_date = element.start_date;
+              let timeDiff = 0;
+              if (
+                new Date(element.end_date).getTime() > lastDayOfMonth.getTime()
+              )
+                timeDiff =
+                  lastDayOfMonth.getTime() -
+                  new Date(element.start_date).getTime();
+              else
+                timeDiff =
+                  new Date(element.end_date).getTime() -
+                  new Date(element.start_date).getTime();
+              let daysDiff = Math.round(timeDiff / (1000 * 60 * 60 * 24)) + 1;
+              options.value.holidayDatesCount += daysDiff;
+            }
+          }
+          if (state.value.displayPeriodUom == "year") {
+            if (
+              new Date(element.start_date).getFullYear() ==
+              dateCount.getFullYear()
+            ) {
+              let date = new Date(element.start_date); // Tạo đối tượng Date
+
+              const year = date.getFullYear(); // Lấy năm của ngày đó
+
+              const firstDayOfNextYear = new Date(year + 1, 0, 1); // Tạo đối tượng Date mới với ngày đầu tiên của năm tiếp theo
+
+              const lastDayOfYear = new Date(
+                firstDayOfNextYear.getTime() - 24 * 60 * 60 * 1000
+              ); // Trừ đi 1 ngày từ ngày đầu tiên của năm tiếp theo để tính ra ngày cuối cùng của năm hiện tại
+
+              if (!element.end_date) element.end_date = element.start_date;
+              let timeDiff = 0;
+              if (
+                new Date(element.end_date).getTime() > lastDayOfYear.getTime()
+              )
+                timeDiff =
+                  lastDayOfYear.getTime() -
+                  new Date(element.start_date).getTime();
+              else
+                timeDiff =
+                  new Date(element.end_date).getTime() -
+                  new Date(element.start_date).getTime();
+              let daysDiff = Math.round(timeDiff / (1000 * 60 * 60 * 24)) + 1;
+              options.value.holidayDatesCount += daysDiff;
+            }
+          }
+        }
+      });
+    })
+    .catch((error) => {
+      toast.error("Tải dữ liệu không thành công!");
+      options.value.loading = false;
+
+      if (error && error.status === 401) {
+        swal.fire({
+          text: "Mã token đã hết hạn hoặc không hợp lệ, vui lòng đăng nhập lại!",
+          confirmButtonText: "OK",
+        });
+        store.commit("gologout");
+      }
+    });
+  axios
+    .post(
+      baseURL + "/api/hrm_ca_SQL/getData",
+      {
+        str: encr(
+          JSON.stringify({
+            proc: "hrm_work_schedule_user_list",
+            par: [{ par: "user_id", va: store.getters.user.user_id }],
+          }),
+          SecretKey,
+          cryoptojs
+        ).toString(),
+      },
+      config
+    )
+    .then((response) => {
+      let data = JSON.parse(response.data.data)[0];
+
+      data.forEach((element, i) => {
+        if (!element.is_full_time) {
+          if (element.work_schedule_days) {
+            element.work_schedule_days.split(",").forEach((item, idx) => {
               if (state.value.displayPeriodUom == "week") {
                 if (
-                  new Date(item).getMonth() == dateCount.getMonth() &&
+                  getWeekNumber(new Date(item)) == getWeekNumber(dateCount) &&
                   new Date(item).getFullYear() == dateCount.getFullYear()
                 ) {
                   options.value.declareShiftCount++;
@@ -472,49 +700,71 @@ const setShowDate = (d) => {
               ).getDate();
 
               for (let index = 1; index <= numDays; index++) {
-                state.value.items.push({
-                  id: element.work_schedule_id,
-                  startDate: new Date(
-                    date.getFullYear(),
-                    date.getMonth(),
-                    index
-                  ),
-                  endDate: new Date(date.getFullYear(), date.getMonth(), index),
-                  title: element.declare_shift_name,
-                  tooltip: " ",
-                  style: element.text_color + element.background_color,
-                });
-                options.value.declareShiftCount++;
+                if (state.value.displayPeriodUom == "week") {
+                  if (
+                    getWeekNumber(
+                      new Date(date.getFullYear(), date.getMonth(), index)
+                    ) == getWeekNumber(dateCount) &&
+                    new Date(item).getFullYear() == dateCount.getFullYear()
+                  ) {
+                    options.value.declareShiftCount++;
+                  }
+                }
+
+                if (state.value.displayPeriodUom == "month") {
+                  if (
+                    new Date(item).getMonth() == dateCount.getMonth() &&
+                    new Date(item).getFullYear() == dateCount.getFullYear()
+                  ) {
+                    options.value.declareShiftCount++;
+                  }
+                }
+                if (state.value.displayPeriodUom == "year") {
+                  if (new Date(item).getFullYear() == dateCount.getFullYear()) {
+                    options.value.declareShiftCount++;
+                  }
+                }
               }
             });
           }
         } else {
           for (let indexs = 0; indexs < 12; indexs++) {
-            var date = d;
+            var date = dateCount;
             var numDays = new Date(date.getFullYear(), indexs, 0).getDate();
             var newDate = new Date(date.getFullYear(), indexs, 0);
             for (let index = 1; index <= numDays; index++) {
-              state.value.items.push({
-                id: new Date(
-                  newDate.getFullYear(),
-                  newDate.getMonth(),
-                  index
-                ).toString(),
-                startDate: new Date(
-                  newDate.getFullYear(),
-                  newDate.getMonth(),
-                  index
-                ),
-                endDate: new Date(
-                  newDate.getFullYear(),
-                  newDate.getMonth(),
-                  index
-                ),
-                title: element.declare_shift_name,
-                tooltip: " ",
-                style: element.text_color + element.background_color,
-              });
-              options.value.declareShiftCount++;
+              var dateCheck = new Date(newDate.getFullYear(), indexs, index);
+              if (state.value.displayPeriodUom == "week") {
+                if (
+                  getWeekNumber(dateCheck) == getWeekNumber(dateCount) &&
+                  new Date(
+                    new Date(newDate.getFullYear(), newDate.getMonth(), index)
+                  ).getFullYear() == dateCount.getFullYear()
+                ) {
+                  options.value.declareShiftCount++;
+                }
+              }
+              if (state.value.displayPeriodUom == "month") {
+                if (
+                  new Date(
+                    new Date(newDate.getFullYear(), newDate.getMonth(), index)
+                  ).getMonth() == dateCount.getMonth() &&
+                  new Date(
+                    new Date(newDate.getFullYear(), newDate.getMonth(), index)
+                  ).getFullYear() == dateCount.getFullYear()
+                ) {
+                  options.value.declareShiftCount++;
+                }
+              }
+              if (state.value.displayPeriodUom == "year") {
+                if (
+                  new Date(
+                    new Date(newDate.getFullYear(), newDate.getMonth(), index)
+                  ).getFullYear() == dateCount.getFullYear()
+                ) {
+                  options.value.declareShiftCount++;
+                }
+              }
             }
           }
         }
@@ -534,9 +784,6 @@ const setShowDate = (d) => {
       }
     });
 };
-
-//Hiển thị dialog
-
 //Thêm bản ghi
 
 const sttStamp = ref(1);
@@ -548,7 +795,9 @@ const listOpCalendar = ref([
   { label: "Tháng", value: "month" },
   { label: "Năm", value: "year" },
 ]);
-
+const onChangeOpCal = () => {
+  loadCountCal(state.value.showDate);
+};
 const checkFilter = ref(false);
 const filterSQL = ref([]);
 const isFirst = ref(true);
@@ -670,7 +919,19 @@ const listWeeks = ref([
 ]);
 
 const filterTrangthai = ref();
-
+const reFilterEmail1 = () => {
+  options.value.filterShift=[];
+   
+  state.value.items=[...itemSave];
+  loadCountCal(state.value.showDate);
+  op1.value.hide();
+};
+const reFilterEmail2 = () => {
+  options.value.filterHolidayType=[];
+  state.value.items=[...itemSave];
+  loadCountCal(state.value.showDate);
+  op2.value.hide();
+};
 const reFilterEmail = () => {
   options.value.displayPeriodCount = 1;
   state.value.displayPeriodCount = 1;
@@ -688,6 +949,43 @@ const filterFileds = () => {
   state.value.startingDayOfWeek = options.value.startingDayOfWeek;
   state.value.displayWeekNumbers = options.value.displayWeekNumbers;
 };
+var itemSave=[];
+const filterFileds1 = () => {
+ 
+  var newARR = [];
+  var ARR = [];
+var arrS=[...itemSave]
+ 
+  options.value.filterShift.forEach((element) => {
+     
+    ARR = arrS.filter((x) => x.declare_shift_id == element);
+    newARR = newARR.concat(ARR);
+  });
+
+  // newARR = newARR.concat( arrS.filter((x) => x.id_hol!=null));
+  options.value.holidayDatesCount=0;
+ options.value.declareShiftCount=newARR.length;
+  state.value.items = newARR;
+  op1.value.hide();
+};
+
+const filterFileds2 = () => {
+ 
+ var newARR = [];
+ var ARR = [];
+var arrS=[...itemSave]
+
+ options.value.filterHolidayType.forEach((element) => {
+   ARR = arrS.filter((x) => x.holiday_type_id == element);
+   newARR = newARR.concat(ARR);
+ });
+ // newARR = newARR.concat( arrS.filter((x) => x.id_hol!=null));
+ state.value.items = newARR;
+ options.value.holidayDatesCount=newARR.length;
+ options.value.declareShiftCount=0;
+ op1.value.hide();
+};
+
 watch(selectedStamps, () => {
   if (selectedStamps.value.length > 0) {
     checkDelList.value = true;
@@ -700,8 +998,57 @@ const op = ref();
 const toggle = (event) => {
   op.value.toggle(event);
 };
+const op1 = ref();
+const toggle1 = (event) => {
+  op1.value.toggle(event);
+};
+const op2 = ref();
+const toggle2 = (event) => {
+  op2.value.toggle(event);
+};
 const listHolidayType = ref([]);
+const listDeclareShift = ref([]);
 const initTudien = () => {
+  listDeclareShift.value = [];
+  axios
+    .post(
+      baseURL + "/api/hrm_ca_SQL/getData",
+      {
+        str: encr(
+          JSON.stringify({
+            proc: "hrm_declare_shift_list",
+            par: [
+              { par: "pageno", va: 0 },
+              { par: "pagesize", va: 1000000 },
+              { par: "user_id", va: store.getters.user.user_id },
+              { par: "status", va: true },
+            ],
+          }),
+          SecretKey,
+          cryoptojs
+        ).toString(),
+      },
+      config
+    )
+    .then((response) => {
+      let data = JSON.parse(response.data.data)[0];
+      if (isFirst.value) isFirst.value = false;
+
+      data.forEach((element, i) => {
+        listDeclareShift.value.push({
+          name: element.declare_shift_name,
+          code: element.declare_shift_id,
+          text_color: element.text_color,
+          background_color: element.background_color,
+        });
+      });
+
+      options.value.loading = false;
+    })
+    .catch((error) => {
+      toast.error("Tải dữ liệu không thành công!");
+      options.value.loading = false;
+    });
   listHolidayType.value = [];
   axios
     .post(
@@ -730,6 +1077,8 @@ const initTudien = () => {
         listHolidayType.value.push({
           name: element.holiday_type_name,
           code: element.holiday_type_id,
+          text_color: element.text_color,
+          background_color: element.background_color,
         });
       });
 
@@ -764,7 +1113,7 @@ const state = ref({
   newItemEndDate: "",
   useDefaultTheme: true,
   useHolidayTheme: true,
-  useTodayIcons: false,
+  useTodayIcons: true,
   items: [
     /*{
 			id: "e0",
@@ -922,11 +1271,7 @@ onMounted(() => {
               aria:haspopup="true"
               aria-controls="overlay_panel"
               v-tooltip="'Cấu hình'"
-              :class="
-                filterTrangthai != null && checkFilter
-                  ? ''
-                  : 'p-button-secondary p-button-outlined'
-              "
+              :class="checkFilter ? '' : 'p-button-secondary p-button-outlined'"
             />
             <OverlayPanel
               ref="op"
@@ -1015,18 +1360,121 @@ onMounted(() => {
             type="button"
             label="Ca làm việc"
             icon="pi pi-briefcase"
-            :badge="options.declareShiftCount"
+            :badge="options.declareShiftCount.toString()"
             badgeClass="p-badge-danger"
             class="p-button-outlined p-button-secondary mx-2"
+            aria:haspopup="true"
+            aria-controls="overlay_panel1"
+            @click="toggle1"
           />
           <Button
             type="button"
             label="Ngày nghỉ lễ"
             icon="pi pi-sort-alt-slash"
-            :badge="options.holidayDatesCount"
+            :badge="options.holidayDatesCount.toString()"
             badgeClass="p-badge-danger"
             class="p-button-outlined p-button-secondary mx-2"
+            aria:haspopup="true"
+            aria-controls="overlay_panel2"
+            @click="toggle2"
           />
+          <OverlayPanel
+            ref="op1"
+            appendTo="body"
+            class="p-0 m-0"
+            :showCloseIcon="false"
+            id="overlay_panel1"
+            style="width: 350px"
+          >
+            <div class="grid formgrid m-0">
+              <div class="col-12 p-0">
+                <Listbox
+                  v-model="options.filterShift"
+                  :options="listDeclareShift"
+                  optionLabel="name"
+                  optionValue="code"
+                  class="w-full"
+                  :multiple="true"
+                  :filter="true"
+                  listStyle="max-height:300px"
+                >
+                  <template #option="slotProps">
+                    <div class="flex align-items-center">
+                      <Chip   class="w-full format-center"
+                        :label="slotProps.option.name"
+                        :style="{
+                          backgroundColor: slotProps.option.background_color,
+                          color: slotProps.option.text_color,
+                        }"
+                      />
+                    </div>
+                  </template>
+                </Listbox>
+              </div>
+              <Toolbar class="border-none surface-0 outline-none pb-0 w-full">
+                <template #start>
+                  <Button
+                    @click="reFilterEmail1"
+                    class="p-button-outlined"
+                    label="Xóa"
+                  ></Button>
+                </template>
+                <template #end>
+                  <Button @click="filterFileds1" label="Lọc"></Button>
+                </template>
+              </Toolbar>
+            </div>
+          </OverlayPanel>
+          <OverlayPanel
+            ref="op2"
+            appendTo="body"
+            class="p-0 m-0"
+            :showCloseIcon="false"
+            id="overlay_panel2"
+            style="width: 350px"
+          >
+            <div class="grid formgrid m-0">
+              <div class="col-12 p-0">
+                <Listbox
+                  v-model="options.filterHolidayType"
+                  :options="listHolidayType"
+                  optionLabel="name"
+                  optionValue="code"
+                  class="w-full"
+                  :multiple="true"
+                  :filter="true"
+                  listStyle="max-height:300px"
+                >
+                  <template #option="slotProps">
+                    <div class="flex align-items-center">
+                      <Chip
+                      class="w-full format-center"
+                        :label="slotProps.option.name"
+                        :style="{
+                          backgroundColor: slotProps.option.background_color,
+                          color: slotProps.option.text_color,
+                        }"
+                      />
+                    </div>
+                  </template>
+                </Listbox>
+              </div>
+              <div class="  col-12 p-0">
+                <Toolbar class="border-none surface-0 outline-none pb-0 w-full">
+                  <template #start>
+                    <Button
+                      @click="reFilterEmail2"
+                      class="p-button-outlined"
+                      label="Xóa"
+                    ></Button>
+                  </template>
+                  <template #end>
+                    <Button @click="filterFileds2" label="Lọc"></Button>
+                  </template>
+                </Toolbar>
+              </div>
+            </div>
+          </OverlayPanel>
         </template>
 
         <template #end>
@@ -1038,6 +1486,7 @@ onMounted(() => {
             dataKey="value"
             class="mx-2"
             aria-labelledby="basic"
+            @change="onChangeOpCal"
           >
           </SelectButton>
 
@@ -1061,7 +1510,7 @@ onMounted(() => {
         :show-times="state.showTimes"
         :display-period-uom="state.displayPeriodUom"
         :display-period-count="state.displayPeriodCount"
-        :current-period-label="state.useTodayIcons ? 'icons' : ''"
+        :current-period-label="'Hiện tại'"
         :displayWeekNumbers="state.displayWeekNumbers"
         :enable-date-selection="true"
         :selection-start="state.selectionStart"

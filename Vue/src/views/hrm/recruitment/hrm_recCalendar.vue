@@ -1332,7 +1332,7 @@ onMounted(() => {
             <Column
               field="STT"
               header="STT"
-              class="align-items-center justify-content-center text-center"
+              class="align-items-center justify-content-center text-center  overflow-hidden"
               headerStyle="text-align:center;max-width:55px;height:50px"
               bodyStyle="text-align:center;max-width:55px"
             ></Column>
@@ -1342,7 +1342,7 @@ onMounted(() => {
               header="Tên lịch phỏng vấn"
               :sortable="true"
               headerStyle="text-align:left;height:50px"
-              bodyStyle="text-align:left"
+              bodyStyle="text-align:left" class=" overflow-hidden"
               headerClass="align-items-center justify-content-center text-center"
             >
               <template #filter="{ filterModel }">
@@ -1359,7 +1359,7 @@ onMounted(() => {
               header="Thời gian"
               headerStyle="text-align:center;max-width:100px;height:50px"
               bodyStyle="text-align:center;max-width:100px"
-              class="align-items-center justify-content-center text-center"
+              class="align-items-center justify-content-center text-center  overflow-hidden"
             >
               <template #body="data">
                 <div v-if="data.data.rec_time_start">
@@ -1377,7 +1377,7 @@ onMounted(() => {
               header="Ngày phỏng vấn"
               headerStyle="text-align:center;max-width:150px;height:50px"
               bodyStyle="text-align:center;max-width:150px"
-              class="align-items-center justify-content-center text-center"
+              class="align-items-center justify-content-center text-center overflow-hidden"
             >
               <template #body="data">
                 <div v-if="    data.data.rec_calendar_date">
@@ -1392,7 +1392,7 @@ onMounted(() => {
               field="end_date"
               header="Chiến dịch tuyển dụng"
               headerStyle="text-align:center;max-width:450px;height:50px"
-              bodyStyle=" max-width:450px"
+              bodyStyle=" max-width:450px" class=" overflow-hidden"
               headerClass="align-items-center justify-content-center text-center"
             >
               <template #body="data">
@@ -1409,7 +1409,7 @@ onMounted(() => {
               header="Ứng viên"
               headerStyle="text-align:center;max-width:100px;height:50px"
               bodyStyle="text-align:center;max-width:100px"
-              class="align-items-center justify-content-center text-center"
+              class="align-items-center justify-content-center text-center overflow-hidden"
             >
               <template #body="data">
                 <div v-if="data.data.countUser">
@@ -1425,7 +1425,7 @@ onMounted(() => {
               header="Người phỏng vấn"
               headerStyle="text-align:center;max-width:150px;height:50px"
               bodyStyle="text-align:center;max-width:150px"
-              class="align-items-center justify-content-center text-center"
+              class="align-items-center justify-content-center text-center overflow-hidden"
             >
               <template #body="data">
                 <div v-if="data.data.listUserRecs">
@@ -1487,7 +1487,7 @@ onMounted(() => {
               header="Ngày/Người lập"
               headerStyle="text-align:center;max-width:150px;height:50px"
               bodyStyle="text-align:center;max-width:150px"
-              class="align-items-center justify-content-center text-center"
+              class="align-items-center justify-content-center text-center overflow-hidden"
             >
             <template #body="slotProps">
                 <span class="mr-2">
