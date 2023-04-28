@@ -218,3 +218,48 @@ span.rqxoa, span.uutien2 {
 .request-cdate {
     font-size: 0.9rem;
 }
+.overdue-request {
+    border-left: 4px solid red;
+}
+.alert-request {
+    position: relative;
+    padding: 0.75rem 1.25rem;
+    margin-bottom: 1rem;
+    border: 1px solid transparent;
+    border-radius: 0.25rem;
+    width: 100%;
+    font-weight:bold;
+}
+.alert-info {
+    color: #00626e;
+    background-color: #ccf2f6;
+    border-color: #b8ecf3
+}
+.alert-success {
+    color: #285b2a;
+    background-color: #dbefdc;
+    border-color: #cde9ce
+}
+.alert-danger {
+    color: #7f231c;
+    background-color: #fdd9d7;
+    border-color: #fccac7
+}
+.alert-warning {
+    color: #857a1f;
+    background-color: #fffbd8;
+    border-color: #fff9c8
+}
+.span-deadline {
+    color: #fff;
+    background-color: orange;
+    padding: 3px 5px; 
+    font-size: 11px; 
+    border-radius: 5px;
+}
+.span-deadline:hover {
+    cursor: pointer;
+}
+.td-table-file {
+    border-bottom: 1px solid #eee;
+}

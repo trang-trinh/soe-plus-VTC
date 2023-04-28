@@ -198,7 +198,7 @@ namespace API.Controllers.Leave
                                 ExcelWorksheet ws = pck.Workbook.Worksheets.First();
                                 List<string> cols = new List<string>();
                                 //var user_now = db.sys_users.FirstOrDefault(x => x.user_id == uid);
-                                for (int i = 2; i <= ws.Dimension.End.Row; i++)
+                                for (int i = 3; i <= ws.Dimension.End.Row; i++)
                                 {
                                     int? organization_id = user_now.organization_id;
                                     if (ws.Cells[i, 2].Value == null)
@@ -216,7 +216,7 @@ namespace API.Controllers.Leave
                                         var vl = ws.Cells[i, j].Value;
                                         switch (column)
                                         {
-                                            case "MNS":
+                                            case "3":
                                                 var profile = db.hrm_profile.FirstOrDefault(x => x.profile_code == vl.ToString());
                                                 if (profile != null)
                                                 {
@@ -224,44 +224,53 @@ namespace API.Controllers.Leave
                                                     organization_id = profile.organization_id;
                                                 }
                                                 break;
-                                            case "Year":
+                                            case "4":
                                                 dv.year = vl != null ? int.Parse(vl.ToString()) : 0;
                                                 break;
-                                            case "T1":
+                                            case "5":
                                                 dv.month1 = vl != null ? double.Parse(vl.ToString()) : 0;
                                                 break;
-                                            case "T2":
+                                            case "6":
                                                 dv.month2 = vl != null ? double.Parse(vl.ToString()) : 0;
                                                 break;
-                                            case "T3":
+                                            case "7":
                                                 dv.month3 = vl != null ? double.Parse(vl.ToString()) : 0;
                                                 break;
-                                            case "T4":
+                                            case "8":
                                                 dv.month4 = vl != null ? double.Parse(vl.ToString()) : 0;
                                                 break;
-                                            case "T5":
+                                            case "9":
                                                 dv.month5 = vl != null ? double.Parse(vl.ToString()) : 0;
                                                 break;
-                                            case "T6":
+                                            case "10":
                                                 dv.month6 = vl != null ? double.Parse(vl.ToString()) : 0;
                                                 break;
-                                            case "T7":
+                                            case "11":
                                                 dv.month7 = vl != null ? double.Parse(vl.ToString()) : 0;
                                                 break;
-                                            case "T8":
+                                            case "12":
                                                 dv.month8 = vl != null ? double.Parse(vl.ToString()) : 0;
                                                 break;
-                                            case "T9":
+                                            case "13":
                                                 dv.month9 = vl != null ? double.Parse(vl.ToString()) : 0;
                                                 break;
-                                            case "T10":
+                                            case "14":
                                                 dv.month10 = vl != null ? double.Parse(vl.ToString()) : 0;
                                                 break;
-                                            case "T11":
+                                            case "15":
                                                 dv.month11 = vl != null ? double.Parse(vl.ToString()) : 0;
                                                 break;
-                                            case "T12":
+                                            case "16":
                                                 dv.month12 = vl != null ? double.Parse(vl.ToString()) : 0;
+                                                break;
+                                            case "17":
+                                                dv.inventory = vl != null ? double.Parse(vl.ToString()) : 0;
+                                                break;
+                                            case "18":
+                                                dv.bonus = vl != null ? double.Parse(vl.ToString()) : 0;
+                                                break;
+                                            case "19":
+                                                dv.seniority = vl != null ? double.Parse(vl.ToString()) : 0;
                                                 break;
                                         }
                                     }
@@ -288,6 +297,9 @@ namespace API.Controllers.Leave
                                             exists.month10 = dv.month10;
                                             exists.month11 = dv.month11;
                                             exists.month12 = dv.month12;
+                                            exists.inventory = dv.inventory;
+                                            exists.bonus = dv.bonus;
+                                            exists.seniority = dv.seniority;
                                         }
                                         else
                                         {
@@ -444,6 +456,116 @@ namespace API.Controllers.Leave
                 }
                 return Request.CreateResponse(HttpStatusCode.OK, new { ms = contents, err = "1" });
             }
+        }
+
+        [HttpPut]
+        public async Task<HttpResponseMessage> update_lave_year()
+        {
+            var identity = User.Identity as ClaimsIdentity;
+            IEnumerable<Claim> claims = identity.Claims;
+            string ip = getipaddress();
+            string name = claims.Where(p => p.Type == "fname").FirstOrDefault()?.Value;
+            string tid = claims.Where(p => p.Type == "tid").FirstOrDefault()?.Value;
+            string uid = claims.Where(p => p.Type == "uid").FirstOrDefault()?.Value;
+            string domainurl = HttpContext.Current.Request.Url.Scheme + "://" + HttpContext.Current.Request.Url.Host + ":" + HttpContext.Current.Request.Url.Port + "/";
+            try
+            {
+                if (identity == null)
+                {
+                    return Request.CreateResponse(HttpStatusCode.OK, new { ms = "Bạn không có quyền truy cập chức năng này!", err = "1" });
+                }
+            }
+            catch
+            {
+                return Request.CreateResponse(HttpStatusCode.OK, new { ms = "Bạn không có quyền truy cập chức năng này!", err = "1" });
+            }
+            try
+            {
+                using (DBEntities db = new DBEntities())
+                {
+                    if (!Request.Content.IsMimeMultipartContent())
+                    {
+                        throw new HttpResponseException(HttpStatusCode.UnsupportedMediaType);
+                    }
+                    // Provider
+                    string rootTemp = HttpContext.Current.Server.MapPath("~/Portals");
+                    bool existsTemp = Directory.Exists(rootTemp);
+                    if (!existsTemp)
+                        Directory.CreateDirectory(rootTemp);
+                    var provider = new MultipartFormDataStreamProvider(rootTemp);
+                    var task = await Request.Content.ReadAsMultipartAsync(provider);
+
+                    // Params
+                    var user_now = await db.sys_users.AsNoTracking().FirstOrDefaultAsync(x => x.user_id == uid);
+                    string en_data = provider.FormData.GetValues("data").SingleOrDefault();
+                    List<temp> datas = JsonConvert.DeserializeObject<List<temp>>(en_data);
+                    if (datas != null)
+                    {
+                        List<hrm_leave_year> leaves = new List<hrm_leave_year>();
+                        foreach (var item in datas)
+                        {
+                            int? organization_id = null;
+                            var profile = db.hrm_profile.FirstOrDefault(x => x.profile_id == item.profile_id);
+                            if (profile != null)
+                            {
+                                organization_id = profile.organization_id;
+                            }
+                            var exists = await db.hrm_leave_year.FirstOrDefaultAsync(x => x.profile_id == item.profile_id);
+                            if (exists != null)
+                            {
+                                exists.leave = item.leave;
+                                exists.modified_by = uid;
+                                exists.modified_date = DateTime.Now;
+                                exists.modified_ip = ip;
+                                exists.modified_token_id = tid;
+                            }
+                            else
+                            {
+                                hrm_leave_year leave = new hrm_leave_year();
+                                leave.profile_id = item.profile_id;
+                                leave.leave = item.leave;
+                                leave.organization_id = organization_id;
+                                leave.created_by = uid;
+                                leave.created_date = DateTime.Now;
+                                leave.created_ip = ip;
+                                leave.created_token_id = tid;
+                                leaves.Add(leave);
+                            }
+                        }
+                        if (leaves.Count > 0)
+                        {
+                            db.hrm_leave_year.AddRange(leaves);
+                        }
+                        await db.SaveChangesAsync();
+                    }
+                    return Request.CreateResponse(HttpStatusCode.OK, new { err = "0" });
+                }
+            }
+            catch (DbEntityValidationException e)
+            {
+                string contents = helper.getCatchError(e, null);
+                helper.saveLog(uid, name, JsonConvert.SerializeObject(new { data = contents }), domainurl + "hrm_leave/update_leave_profile", ip, tid, "Lỗi khi cập nhật", 0, "hrm_leave");
+                if (!helper.debug)
+                {
+                    contents = "";
+                }
+                return Request.CreateResponse(HttpStatusCode.OK, new { ms = contents, err = "1" });
+            }
+            catch (Exception e)
+            {
+                string contents = helper.ExceptionMessage(e);
+                helper.saveLog(uid, name, JsonConvert.SerializeObject(new { data = contents }), domainurl + "hrm_leave/update_leave_profile", ip, tid, "Lỗi khi cập nhật", 0, "hrm_leave");
+                if (!helper.debug)
+                {
+                    contents = "";
+                }
+                return Request.CreateResponse(HttpStatusCode.OK, new { ms = contents, err = "1" });
+            }
+        }
+
+        class temp { 
+            public string profile_id { get; set; }
+            public double leave { get; set; }
         }
     }
 }
