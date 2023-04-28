@@ -204,8 +204,8 @@ onMounted(() => {
         <tr v-for="(item, index) in datalists" :key="index">
           <td  class="text-left item-hover" @click="item.is_level==0?'':goDetailReport(item)" :class="item.is_level==0 ? '':'cursor-pointer'"
             >
-            <span :style="(item.module_id == 370 || item.module_id== 358 || item.module_id== 371)?'color:green':''" :class="item.is_level==0 ? 'row-parent':'row-child'">
-              {{ item.label_module }}
+            <span :style="([370,358,361,362,371]).includes(item.module_id)?'color:green':''" :class="item.is_level==0 ? 'row-parent':'row-child'">
+              {{ item.label_module }}{{ item.module_id }}
             </span>
           </td>
           <td  class="text-center" >

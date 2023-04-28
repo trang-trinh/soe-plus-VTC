@@ -279,26 +279,34 @@ const saveData = (isFormValid) => {
   if (work_schedule.value.profile_id_fake)
     work_schedule.value.profile_id =
       work_schedule.value.profile_id_fake.toString();
-      var trr = "";
+  var trr = "";
   if (work_schedule.value.work_schedule_yearsfake) {
     work_schedule.value.work_schedule_years = "";
-  
+
     work_schedule.value.work_schedule_yearsfake.forEach((element) => {
       work_schedule.value.work_schedule_years +=
         trr + moment(new Date(element)).format("MM/DD/YYYY").toString();
       trr = ",";
     });
   }
-
+  else{
+    work_schedule.value.work_schedule_years=null;
+  }
+   
+  trr = "";
   if (work_schedule.value.work_schedule_monthsfake) {
     work_schedule.value.work_schedule_months = "";
-      trr = "";
+
     work_schedule.value.work_schedule_monthsfake.forEach((element) => {
       work_schedule.value.work_schedule_months +=
         trr + moment(new Date(element)).format("MM/DD/YYYY").toString();
       trr = ",";
     });
   }
+  else{
+    work_schedule.value.work_schedule_months=null;
+  }
+  trr = "";
   if (work_schedule.value.work_schedule_daysfake) {
     work_schedule.value.work_schedule_days = "";
 
@@ -307,6 +315,8 @@ const saveData = (isFormValid) => {
         trr + moment(new Date(element)).format("MM/DD/YYYY").toString();
       trr = ",";
     });
+  }  else{
+    work_schedule.value.work_schedule_days=null;
   }
 
   formData.append("hrm_work_schedule", JSON.stringify(work_schedule.value));
@@ -406,7 +416,7 @@ const editTem = (dataTem) => {
       let data = JSON.parse(response.data.data)[0];
 
       work_schedule.value = data[0];
-       
+
       if (work_schedule.value.profile_id)
         work_schedule.value.profile_id_fake =
           work_schedule.value.profile_id.split(",");
@@ -415,9 +425,7 @@ const editTem = (dataTem) => {
         work_schedule.value.work_schedule_years
           .split(",")
           .forEach((element) => {
-            work_schedule.value.work_schedule_yearsfake.push(
-              new Date(element)
-            );
+            work_schedule.value.work_schedule_yearsfake.push(new Date(element));
           });
       }
       if (work_schedule.value.work_schedule_months) {
@@ -1445,14 +1453,20 @@ onMounted(() => {
                   bodyClass="bg-indigo-50"
                 >
                   <template #body="data">
-                    <Chip
-                      :label="data.data.declare_shift_name"
+                    <div
+                      style="border-radius: 16px; padding: 0 0.5rem"
                       :style="{
                         backgroundColor: data.data.background_color,
                         color: data.data.text_color,
                       }"
-                      class="w-full format-center"
-                    />
+                      class="w-full"
+                    >
+                      <div>{{ data.data.declare_shift_name }}</div>
+
+                      <div class="text-sm pb-1">
+                        {{ data.data.config_work_location_name }}
+                      </div>
+                    </div>
                   </template>
                 </Column>
                 <Column

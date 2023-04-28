@@ -73,32 +73,324 @@ namespace API.Controllers.HRM.Category
                         bool super = claims.Where(p => p.Type == "super").FirstOrDefault()?.Value == "True";
                         foreach (var item in work_schedule.profile_id.Split(','))
                         {
-
-                            work_schedule.profile_id = item;
-                            work_schedule.organization_id = int.Parse(dvid);
-                            work_schedule.created_by = uid;
-                            work_schedule.created_date = DateTime.Now;
-                            work_schedule.created_ip = ip;
-                            work_schedule.created_token_id = tid;
-                            db.hrm_work_schedule.Add(work_schedule);
-                            db.SaveChanges();
-
-                            #region add hrm_log
-                            if (helper.wlog)
+                            var das = db.hrm_work_schedule.Where(a => a.profile_id == item && a.declare_shift_id == work_schedule.declare_shift_id
+                          && a.config_work_location_id == work_schedule.config_work_location_id
+                            ).FirstOrDefault();
+                            if (das == null)
                             {
-                                hrm_log log = new hrm_log();
-                                log.title = "Đăng ký ca làm việc thành công";
-                                log.log_module = "hrm_work_schedule";
-                                log.log_type = 0;
-                                log.id_key = work_schedule.work_schedule_id.ToString();
-                                log.created_date = DateTime.Now;
-                                log.created_by = uid;
-                                log.created_token_id = tid;
-                                log.created_ip = ip;
-                                db.hrm_log.Add(log);
+                                work_schedule.profile_id = item;
+                                work_schedule.organization_id = int.Parse(dvid);
+                                work_schedule.created_by = uid;
+                                work_schedule.created_date = DateTime.Now;
+                                work_schedule.created_ip = ip;
+                                work_schedule.created_token_id = tid;
+                                db.hrm_work_schedule.Add(work_schedule);
                                 db.SaveChanges();
+
+                                #region add hrm_log
+                                if (helper.wlog)
+                                {
+                                    hrm_log log = new hrm_log();
+                                    log.title = "Đăng ký ca làm việc thành công";
+                                    log.log_module = "hrm_work_schedule";
+                                    log.log_type = 0;
+                                    log.id_key = work_schedule.work_schedule_id.ToString();
+                                    log.created_date = DateTime.Now;
+                                    log.created_by = uid;
+                                    log.created_token_id = tid;
+                                    log.created_ip = ip;
+                                    db.hrm_log.Add(log);
+                                    db.SaveChanges();
+                                }
+                                #endregion
                             }
-                            #endregion
+                            else
+                            {
+                                var str = ",";
+                                if (work_schedule.work_schedule_years != null)
+                                    foreach (var elem in work_schedule.work_schedule_years.Split(','))
+                                    {
+                                        if (das.work_schedule_years != null)
+                                        {
+                                            if (das.work_schedule_years.Contains(elem) == false)
+                                            {
+                                                das.work_schedule_years += str + elem;
+
+                                            }
+                                        }
+                                        else
+                                        {
+                                            das.work_schedule_years = work_schedule.work_schedule_years;
+                                        }
+                                        if (das.work_schedule_days != null)
+                                        {
+
+                                            var arrT = das.work_schedule_days.Split(',');
+                                            foreach (var eles in arrT)
+                                            {
+                                                DateTime dateTS = DateTime.Parse(eles);
+                                                DateTime dateTW = DateTime.Parse(elem);
+                                                if (dateTS.Year == dateTW.Year)
+                                                {
+                                                    var scf = arrT.Where((x) => DateTime.Parse(x).Year.ToString() != dateTS.Year.ToString()).ToArray();
+                                                    if (scf.Length > 0)
+                                                    {
+                                                        das.work_schedule_days = "";
+                                                        var stc = "";
+                                                        foreach (var itema in scf)
+                                                        {
+                                                            das.work_schedule_days += stc + itema;
+                                                            stc = ",";
+                                                        }
+
+                                                    }
+                                                    else
+                                                    {
+                                                        das.work_schedule_days = null;
+                                                    }
+
+                                                }
+                                            }
+
+
+                                        }
+                                        if (das.work_schedule_months != null)
+                                        {
+
+                                            var arrT = das.work_schedule_months.Split(',');
+                                            foreach (var eles in arrT)
+                                            {
+                                                DateTime dateTS = DateTime.Parse(eles);
+                                                DateTime dateTW = DateTime.Parse(elem);
+                                                if (dateTS.Year == dateTW.Year)
+                                                {
+                                                    var scf = arrT.Where((x) => DateTime.Parse(x).Year.ToString() != dateTS.Year.ToString()).ToArray();
+                                                    if (scf.Length > 0)
+                                                    {
+                                                        das.work_schedule_months = "";
+                                                        var stc = "";
+                                                        foreach (var itema in scf)
+                                                        {
+                                                            das.work_schedule_months += stc + itema;
+                                                            stc = ",";
+                                                        }
+
+                                                    }
+                                                    else
+                                                    {
+                                                        das.work_schedule_months = null;
+                                                    }
+                                                }
+                                            }
+
+
+                                        }
+
+                                    }
+
+                                if (work_schedule.work_schedule_months != null)
+                                    foreach (var elem in work_schedule.work_schedule_months.Split(','))
+                                    {
+                                        if (das.work_schedule_months != null)
+                                        {
+                                            if (das.work_schedule_months.Contains(elem) == false)
+                                            {
+                                                das.work_schedule_months += str + elem;
+
+                                            }
+                                        }
+                                        else
+                                        {
+                                            das.work_schedule_months = work_schedule.work_schedule_months;
+                                        }
+                                        if (das.work_schedule_days != null)
+                                        {
+
+                                            var arrT = das.work_schedule_days.Split(',');
+
+                                            foreach (var eles in arrT)
+                                            {
+                                                DateTime dateTS = DateTime.Parse(eles);
+                                                DateTime dateTW = DateTime.Parse(elem);
+                                                if (dateTS.Month == dateTW.Month)
+                                                {
+                                                    var scf = arrT.Where((x) => DateTime.Parse(x).Month.ToString() != dateTS.Month.ToString()).ToArray();
+                                                    if (scf.Length > 0)
+                                                    {
+                                                        das.work_schedule_days = "";
+                                                        var stc = "";
+                                                        foreach (var itema in scf)
+                                                        {
+                                                            das.work_schedule_days += stc + itema;
+                                                            stc = ",";
+                                                        }
+
+                                                    }
+                                                    else
+                                                    {
+                                                        das.work_schedule_days = null;
+                                                    }
+                                                }
+                                            }
+
+                                        }
+
+                                    }
+
+
+                                if (work_schedule.work_schedule_days != null)
+                                    foreach (var elem in work_schedule.work_schedule_days.Split(','))
+                                    {
+                                        if (das.work_schedule_days != null)
+                                        {
+                                            if (das.work_schedule_days.Contains(elem) == false)
+                                            {
+                                                das.work_schedule_days += str + elem;
+
+                                            }
+                                        }
+                                        else
+                                        {
+                                            das.work_schedule_days = work_schedule.work_schedule_days;
+                                        }
+
+                                    }
+
+
+                                if (das.work_schedule_months != null && das.work_schedule_days != null)
+                                    foreach (var elem in das.work_schedule_months.Split(','))
+                                    {
+                                        var arrT = das.work_schedule_days.Split(',');
+                                        foreach (var eles in arrT)
+                                        {
+                                            DateTime dateTS = DateTime.Parse(eles);
+                                            DateTime dateTW = DateTime.Parse(elem);
+                                            if (dateTS.Month == dateTW.Month)
+                                            {
+                                                var scf = arrT.Where((x) => DateTime.Parse(x).Month.ToString() != dateTS.Month.ToString()).ToArray();
+                                                if (scf.Length > 0)
+                                                {
+                                                    das.work_schedule_days = "";
+                                                    var stc = "";
+                                                    foreach (var itema in scf)
+                                                    {
+                                                        das.work_schedule_days += stc + itema;
+                                                        stc = ",";
+                                                    }
+
+                                                }
+                                                else
+                                                {
+                                                    das.work_schedule_days = null;
+                                                }
+                                            }
+                                        }
+
+
+                                    }
+                                if (das.work_schedule_years != null)
+                                    foreach (var elem in das.work_schedule_years.Split(','))
+                                    {
+
+                                        if (das.work_schedule_days != null)
+                                        {
+                                            var arrT = das.work_schedule_days.Split(',');
+                                            foreach (var eles in arrT)
+                                            {
+                                                DateTime dateTS = DateTime.Parse(eles);
+                                                DateTime dateTW = DateTime.Parse(elem);
+                                                if (dateTS.Year == dateTW.Year)
+                                                {
+                                                    var scf = arrT.Where((x) => DateTime.Parse(x).Year.ToString() != dateTS.Year.ToString()).ToArray();
+                                                    if (scf.Length > 0)
+                                                    {
+                                                        das.work_schedule_days = "";
+                                                        var stc = "";
+                                                        foreach (var itema in scf)
+                                                        {
+                                                            das.work_schedule_days += stc + itema;
+                                                            stc = ",";
+                                                        }
+
+                                                    }
+                                                    else
+                                                    {
+                                                        das.work_schedule_days = null;
+                                                    }
+
+                                                }
+                                            }
+                                        }
+
+                                        if (das.work_schedule_months != null)
+                                        {
+
+                                            var arrT = das.work_schedule_months.Split(',');
+                                            foreach (var eles in arrT)
+                                            {
+                                                DateTime dateTS = DateTime.Parse(eles);
+                                                DateTime dateTW = DateTime.Parse(elem);
+                                                if (dateTS.Year == dateTW.Year)
+                                                {
+                                                    var scf = arrT.Where((x) => DateTime.Parse(x).Year.ToString() != dateTS.Year.ToString()).ToArray();
+                                                    if (scf.Length > 0)
+                                                    {
+                                                        das.work_schedule_months = "";
+                                                        var stc = "";
+                                                        foreach (var itema in scf)
+                                                        {
+                                                            das.work_schedule_months += stc + itema;
+                                                            stc = ",";
+                                                        }
+
+                                                    }
+                                                    else
+                                                    {
+                                                        das.work_schedule_months = null;
+                                                    }
+                                                }
+                                            }
+
+
+                                        }
+
+
+                                    }
+
+
+
+
+
+                                das.modified_by = uid;
+                                das.modified_date = DateTime.Now;
+                                das.modified_ip = ip;
+                                das.modified_token_id = tid;
+                                db.Entry(das).State = EntityState.Modified;
+                                db.SaveChanges();
+
+
+                                #region add hrm_log
+                                if (helper.wlog)
+                                {
+
+                                    hrm_log log = new hrm_log();
+                                    log.title = "Sửa đăng ký ca làm việc ";
+
+                                    log.log_module = "hrm_work_schedule";
+                                    log.log_type = 1;
+                                    log.id_key = das.work_schedule_id.ToString();
+                                    log.created_date = DateTime.Now;
+                                    log.created_by = uid;
+                                    log.created_token_id = tid;
+                                    log.created_ip = ip;
+                                    db.hrm_log.Add(log);
+                                    db.SaveChanges();
+
+                                }
+                                #endregion
+                            }
+
+
                         }
 
                         return Request.CreateResponse(HttpStatusCode.OK, new { err = "0" });
@@ -190,7 +482,7 @@ namespace API.Controllers.HRM.Category
                         {
 
                             hrm_log log = new hrm_log();
-                            log.title = "Sửa đăng ký ca làm việc "  ;
+                            log.title = "Sửa đăng ký ca làm việc ";
 
                             log.log_module = "hrm_work_schedule";
                             log.log_type = 1;
@@ -370,7 +662,7 @@ namespace API.Controllers.HRM.Category
                             {
 
                                 hrm_log log = new hrm_log();
-                                log.title = "Sửa đăng ký ca làm việc "  ;
+                                log.title = "Sửa đăng ký ca làm việc ";
                                 log.log_module = "hrm_work_schedule";
                                 log.log_type = 1;
                                 log.id_key = das.work_schedule_id.ToString();
