@@ -30,6 +30,10 @@ const options = ref({
   search: "",
 });
 const datas = ref([]);
+//filter
+const search = () => {
+  initData(true);
+};
 
 ///Function
 const submitted = ref(false);
@@ -104,6 +108,7 @@ const initData = (ref) => {
       },
     });
   }
+  datas.value = [];
   axios
     .post(
       baseURL + "/api/hrm/callProc",
@@ -191,6 +196,22 @@ onMounted(() => {
     :closable="true"
     style="z-index: 9000"
   >
+    <Toolbar class="outline-none surface-0 border-none px-0">
+      <template #start>
+        <span class="p-input-icon-left mr-2">
+          <i class="pi pi-search" />
+          <InputText
+            @keypress.enter="search()"
+            v-model="options.search"
+            type="text"
+            spellcheck="false"
+            placeholder="Tìm kiếm"
+            class="ip36 input-search"
+          />
+        </span>
+      </template>
+      <template #end> </template>
+    </Toolbar>
     <table id="table-leave" class="table-custom">
       <thead class="thead-custom">
         <tr>

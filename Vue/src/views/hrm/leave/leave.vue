@@ -168,14 +168,14 @@ const itemButs = ref([
     label: "Export dữ liệu ra Excel",
     icon: "pi pi-file-excel",
     command: (event) => {
-      //exportData("ExportExcel");
+      exportExcel("table-leave");
     },
   },
   {
     label: "Import dữ liệu từ Excel",
     icon: "pi pi-file-excel",
     command: (event) => {
-      //exportData("ExportExcel");
+      importExcel();
     },
   },
 ]);
@@ -1011,8 +1011,8 @@ onMounted(() => {
   >
     <h3>
       <label>
-        <a @click="downloadFile(linkformimport)">Nhấn vào đây</a> để tải xuống
-        tệp mẫu.
+        <a @click="downloadFile(linkformimport)" class="hover2">Nhấn vào đây</a>
+        để tải xuống tệp mẫu.
       </label>
     </h3>
     <form>
@@ -1185,6 +1185,10 @@ th.isHoliday {
 }
 .hover {
   cursor: pointer;
+}
+.hover2:hover{
+  cursor: pointer;
+  color: #2196F3;
 }
 .hover:hover td {
   background-color: aliceblue !important;
