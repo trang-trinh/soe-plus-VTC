@@ -1244,7 +1244,7 @@ onMounted(() => {
             <Column
               field="STT"
               header="STT"
-              class="align-items-center justify-content-center text-center"
+              class="align-items-center justify-content-center text-center overflow-hidden"
               headerStyle="text-align:center;max-width:55px;height:50px"
               bodyStyle="text-align:center;max-width:55px"
             ></Column>
@@ -1253,7 +1253,7 @@ onMounted(() => {
               header="Ảnh"
               headerStyle="text-align:center;max-width:70px;height:50px"
               bodyStyle="text-align:center;max-width:70px"
-              class="align-items-center justify-content-center text-center"
+              class="align-items-center justify-content-center text-center  overflow-hidden"
             >
               <template #body="slotProps">
                 <div>
@@ -1306,7 +1306,7 @@ onMounted(() => {
               header="Họ và tên"
               :sortable="true"
               headerStyle=" height:50px"
-              bodyStyle="text-align:left"
+              bodyStyle="text-align:left" class=" overflow-hidden"
               headerClass="align-items-center justify-content-center text-center"
             >
               <template #filter="{ filterModel }">
@@ -1324,7 +1324,7 @@ onMounted(() => {
               header="Số điện thoại"
               headerStyle="text-align:center;max-width:200px;height:50px"
               bodyStyle="text-align:center;max-width:200px"
-              class="align-items-center justify-content-center text-center"
+              class="align-items-center justify-content-center text-center  overflow-hidden"
             >
               <template #body="data">
                 <div v-if="data.data.candidate_phone">
@@ -1338,7 +1338,7 @@ onMounted(() => {
               header="Email"
               headerStyle="text-align:center;max-width:200px;height:50px"
               bodyStyle="text-align:center;max-width:200px"
-              class="align-items-center justify-content-center text-center"
+              class="align-items-center justify-content-center text-center  overflow-hidden"
             >
               <template #body="data">
                 <div v-if="data.data.candidate_email">
@@ -1351,7 +1351,7 @@ onMounted(() => {
               header="Ngày sinh"
               headerStyle="text-align:center;max-width:100px;height:50px"
               bodyStyle="text-align:center;max-width:100px"
-              class="align-items-center justify-content-center text-center"
+              class="align-items-center justify-content-center text-center  overflow-hidden"
             >
               <template #body="data">
                 <div v-if="data.data.candidate_birthday">
@@ -1368,7 +1368,7 @@ onMounted(() => {
               field="campaign_name"
               header="Chiến dịch"
               headerStyle="text-align:center;max-width:300px;height:50px"
-              bodyStyle=" max-width:300px"
+              bodyStyle=" max-width:300px" class=" overflow-hidden"
               headerClass="align-items-center justify-content-center text-center"
             >
             </Column>
@@ -1377,7 +1377,7 @@ onMounted(() => {
               header="Ngày/Người lập"
               headerStyle="text-align:center;max-width:120px;height:50px"
               bodyStyle="text-align:center;max-width:120px;"
-              class="align-items-center justify-content-center text-center"
+              class="align-items-center justify-content-center text-center  overflow-hidden"
             >
               <template #body="slotProps">
                 <span class="mr-2">
@@ -1428,7 +1428,7 @@ onMounted(() => {
               header="Trạng thái"
               headerStyle="text-align:center;max-width:11rem;height:50px"
               bodyStyle="text-align:center;max-width:11rem"
-              class="align-items-center justify-content-center text-center"
+              class="align-items-center justify-content-center text-center  overflow-hidden"
             >
               <template #body="slotProps">
                 <div

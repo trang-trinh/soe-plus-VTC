@@ -31,6 +31,51 @@ const bgColor = ref([
 const datalists = ref([]);
 const user = store.getters.user;
 const listTeams = ref([]);
+const LoadCount = () => {
+  swal.fire({
+    width: 110,
+    didOpen: () => {
+      swal.showLoading();
+    },
+  });
+
+  axios
+    .post(
+      baseURL + "/api/DictionaryProc/getData",
+      {
+        str: encr(
+          JSON.stringify({
+            proc: "request_team_count",
+            par: [{ par: "user_id", va: user.user_id }],
+          }),
+          SecretKey,
+          cryoptojs,
+        ).toString(),
+      },
+      config,
+    )
+    .then((response) => {
+      let data = JSON.parse(response.data.data)[0];
+
+      listButton.value[0].count = data[0].allreq;
+      listButton.value[1].count = data[0].waiting;
+      listButton.value[2].count = data[0].completed;
+      listButton.value[3].count = data[0].refused;
+      listButton.value[4].count = data[0].finished;
+      listButton.value[5].count = data[0].expired;
+      swal.close();
+    })
+    .catch((error) => {
+      if (error && error.status === 401) {
+        swal.fire({
+          title: "Thông báo",
+          text: "Mã token đã hết hạn hoặc không hợp lệ, vui lòng đăng nhập lại!",
+          icon: "error",
+          confirmButtonText: "OK",
+        });
+      }
+    });
+};
 const loadData = () => {
   swal.fire({
     width: 110,
@@ -122,6 +167,7 @@ const statuspasss = ref([
   { id: 3, text: "Thu hồi", class: "rqthuhoi" },
   { id: -3, text: "Xóa", class: "rqxoa" },
 ]);
+
 const loadMainData = () => {
   swal.fire({
     width: 110,
@@ -137,7 +183,10 @@ const loadMainData = () => {
         str: encr(
           JSON.stringify({
             proc: "request_master_list_Team",
-            par: [{ par: "user_id", va: user.user_id }],
+            par: [
+              { par: "user_id", va: user.user_id },
+              { par: "optionView", va: options.value.optionView },
+            ],
           }),
           SecretKey,
           cryoptojs,
@@ -147,13 +196,86 @@ const loadMainData = () => {
     )
     .then((response) => {
       let data = JSON.parse(response.data.data)[0];
+
       data.forEach((x, i) => {
+        if (x.request_team_id == null) {
+          x.request_team_id = -1;
+          x.request_team_name = "Không thuộc Team";
+        }
+        if (x.request_form_id == null) {
+          x.request_form_id = -1;
+          x.request_form_name = "Khác";
+        }
         x.STT = options.value.pageNo * options.value.pageSize + (i + 1);
         x.status_display = status.value.filter(
           (z) => z.value == x.status,
         )[0].label;
+        x.sign_users = ["Nguyễn Thị Hương", "Trần Cao Duy", "Dữ liệu Fake"];
+        x.TienDo = 50;
       });
-      datalists.value = data;
+      let dataTeam = [];
+      if (options.value.optionView == 3) {
+        data.forEach((x, i) => {
+          if (dataTeam.length == 0) {
+            let k = {
+              request_team_id: x.request_team_id,
+              request_team_name: x.request_team_name,
+              team_data: [],
+            };
+            dataTeam.push(k);
+          } else {
+            let t = dataTeam.filter(
+              (z) => z.request_team_id == x.request_team_id,
+            );
+            if (t.length == 0) {
+              let k = {
+                request_team_id: x.request_team_id,
+                request_team_name: x.request_team_name,
+                team_data: [],
+              };
+              dataTeam.push(k);
+            }
+          }
+        });
+        data.forEach((x, i) => {
+          dataTeam.forEach((z) => {
+            if (x.request_team_id == z.request_team_id) {
+              if (z.team_data.length == 0) {
+                let k = {
+                  request_form_id: x.request_form_id,
+                  request_form_name: x.request_form_name,
+                  request_data: [],
+                };
+                z.team_data.push(k);
+              } else {
+                let check = z.team_data.filter(
+                  (u) => u.request_form_id == x.request_form_id,
+                );
+                if (check.length == 0) {
+                  let k = {
+                    request_form_id: x.request_form_id,
+                    request_form_name: x.request_form_name,
+                    request_data: [],
+                  };
+                  z.team_data.push(k);
+                }
+              }
+            }
+          });
+        });
+
+        dataTeam.forEach((z) => {
+          z.team_data.forEach((k) => {
+            let filter = data.filter(
+              (u) =>
+                u.request_form_id == k.request_form_id &&
+                u.request_team_id == z.request_team_id,
+            );
+            k.request_data = filter;
+          });
+        });
+        datalists.value = dataTeam;
+      } else datalists.value = data;
       swal.close();
     })
     .catch((error) => {
@@ -240,7 +362,65 @@ const dictionarys = ref([]);
 const resetFilter = () => {};
 const filter = () => {};
 const search = () => {};
+const items = ref([
+  {
+    status: false,
+    va: 0,
+    label: "Không nhóm",
+    returnVa: null,
+    command: () => {
+      ChangeView(items.value[0]);
+    },
+  },
+  {
+    status: false,
+    va: 1,
+    label: "Team",
+    returnVa: "request_team_id",
+    command: () => {
+      ChangeView(items.value[1]);
+    },
+  },
+  {
+    status: false,
+    va: 2,
+    label: "Loại đề xuất",
+    returnVa: "request_form_id",
+    command: () => {
+      ChangeView(items.value[2]);
+    },
+  },
+  {
+    status: false,
+    va: 3,
+    label: "Loại đề xuất và team",
+    returnVa: null,
+    command: () => {
+      ChangeView(items.value[3]);
+    },
+  },
+]);
+const menu = ref();
+const toggle = (event) => {
+  menu.value.toggle(event);
+};
+const group = ref();
+const ChangeView = (item) => {
+  item.status = true;
+  items.value
+    .filter((x) => x != item)
+    .forEach((x) => {
+      x.status = false;
+    });
+  if (item.va != 3) group.value = item.returnVa;
+  else group.value = null;
+  options.value.optionView = item.va ?? item;
+  loadMainData();
+};
 onMounted(() => {
+  options.value.optionView = 3;
+  ChangeView(items.value[options.value.optionView]);
+  LoadCount();
   loadData();
   loadMainData();
 });
@@ -250,6 +430,7 @@ onMounted(() => {
     <div class="header">
       <Toolbar class="outline-none border-none">
         <template #start>
+          {{ group }}
           <toolbar_search_request
             :options="options"
             :dictionarys="dictionarys"
@@ -281,10 +462,43 @@ onMounted(() => {
       </Toolbar>
     </div>
     <div class="main-content">
-      <div
-        class="col-12 flex bg-white p-0 text-3xl font-bold text-center justify-content-evenly py-2"
-      >
-        Tổng hợp đề xuất
+      <div class="col-12 flex bg-white p-0 py-2">
+        <div class="col-4 p-0"></div>
+        <div
+          class="col-4 p-0 text-3xl font-bold flex align-items-center justify-content-center"
+        >
+          Tổng hợp đề xuất
+        </div>
+        <div class="col-4 p-0 flex align-items-center justify-content-end">
+          <Button
+            class="mx-2"
+            label="Biểu đồ"
+            icon="pi pi-chart-bar"
+          ></Button>
+          <Button
+            class="mx-2"
+            icon=""
+            type="button"
+            label="Nhóm dữ liệu"
+            @click="toggle"
+            aria-haspopup="true"
+            aria-controls="overlay_menu"
+          />
+          <OverlayPanel
+            ref="menu"
+            id="overlay_menu"
+          >
+            <div
+              class="px-3 py-1 my-2 sort"
+              v-for="(item, index) in items"
+              :key="index"
+              :class="[{ active: item.status == true }]"
+              @click="item.command"
+            >
+              {{ item.label }}
+            </div>
+          </OverlayPanel>
+        </div>
       </div>
       <div class="col-12 flex px-0">
         <div class="col-3 pl-0 pt-0">
@@ -407,7 +621,9 @@ onMounted(() => {
               </div>
             </div>
           </div>
+
           <DataTable
+            v-if="options.optionView != 3"
             :value="datalists"
             :paginator="true"
             :rows="options.pageSize"
@@ -425,7 +641,20 @@ onMounted(() => {
               max-height: calc(100vh - 19rem);
             "
             @row-click="openViewRequest"
+            dataKey="request_id"
+            :rowGroupMode="group != null ? 'subheader' : ''"
+            :groupRowsBy="group != null ? group : ''"
           >
+            <template #groupheader="slotProps">
+              <div class="flex align-items-center gap-2">
+                <span v-if="options.optionView == 2">{{
+                  slotProps.data.request_form_name
+                }}</span>
+                <span v-if="options.optionView == 1">{{
+                  slotProps.data.request_team_name
+                }}</span>
+              </div>
+            </template>
             <Column
               header="STT"
               field="STT"
@@ -470,14 +699,6 @@ onMounted(() => {
               class="align-items-center justify-content-center text-center max-w-7rem"
             >
               <template #body="data">
-                <!-- {{ (data.data.TienDo = 50) }} -->
-                <div style="display: none">
-                  {{
-                    data.index % 2 == 0
-                      ? (data.data.TienDo = 50)
-                      : (data.data.TienDo = 0)
-                  }}
-                </div>
                 <ProgressBar
                   v-if="data.data.TienDo > 0"
                   :value="data.data.TienDo || 0"
@@ -494,21 +715,6 @@ onMounted(() => {
               class="align-items-center justify-content-center text-center max-w-10rem"
             >
               <template #body="data">
-                <div style="display: none">
-                  {{
-                    data.index % 2 == 0
-                      ? (data.data.sign_users = [
-                          "Nguyễn Thị Hương",
-                          "Trần Cao Duy",
-                          "Dữ liệu Fake",
-                        ])
-                      : (data.data.sign_users = [
-                          "Nguyễn Thị Thu Phương",
-                          "Trần Cao Duy",
-                          "Dữ liệu Fake",
-                        ])
-                  }}
-                </div>
                 <div class="block">
                   <span
                     v-for="(user, index) in data.data.sign_users"
@@ -547,6 +753,103 @@ onMounted(() => {
               </template>
             </Column>
           </DataTable>
+          <div
+            class="p-datatable-wrapper"
+            v-else
+          >
+            <table
+              role="table"
+              class="p-datatable-table"
+            >
+              <thead
+                class="p-datatable-thead"
+                role="rowgroup"
+              >
+                <tr role="row">
+                  <th
+                    class="align-items-center justify-content-center max-w-3rem"
+                    role="cell"
+                  >
+                    <div class="p-column-header-content">
+                      <span class="p-column-title">STT</span>
+                    </div>
+                  </th>
+                  <th
+                    class="align-items-center justify-content-center text-center max-w-8rem"
+                    role="cell"
+                  >
+                    <div class="p-column-header-content">
+                      <span class="p-column-title">Mã đề xuất</span>
+                    </div>
+                  </th>
+                  <th
+                    class="align-items-center justify-content-center"
+                    role="cell"
+                  >
+                    <div class="p-column-header-content">
+                      <span class="p-column-title">Tên đề xuất</span>
+                    </div>
+                  </th>
+                  <th
+                    class="align-items-center justify-content-center max-w-10rem"
+                    role="cell"
+                  >
+                    <div class="p-column-header-content">
+                      <span class="p-column-title">Người lập</span>
+                    </div>
+                  </th>
+                  <th
+                    class="align-items-center justify-content-center max-w-8rem"
+                    role="cell"
+                  >
+                    <div class="p-column-header-content">
+                      <span class="p-column-title">Ngày lập</span>
+                    </div>
+                  </th>
+                  <th
+                    class="align-items-center justify-content-center text-center max-w-7rem"
+                    role="cell"
+                  >
+                    <div class="p-column-header-content">
+                      <span class="p-column-title">Trạng thái</span>
+                    </div>
+                  </th>
+                  <th
+                    class="align-items-center justify-content-center text-center max-w-7rem"
+                    role="cell"
+                  >
+                    <div class="p-column-header-content">
+                      <span class="p-column-title">Tiến độ</span>
+                    </div>
+                  </th>
+                  <th
+                    class="align-items-center justify-content-center text-center max-w-10rem"
+                    role="cell"
+                  >
+                    <div class="p-column-header-content">
+                      <span class="p-column-title">Người duyệt</span>
+                    </div>
+                  </th>
+                  <th
+                    class="align-items-center justify-content-center text-center max-w-10rem"
+                    role="cell"
+                  >
+                    <div class="p-column-header-content">
+                      <span class="p-column-title">Ngày hoàn thành</span>
+                    </div>
+                  </th>
+                  <th
+                    class="align-items-center justify-content-center text-center max-w-5rem"
+                    role="cell"
+                  >
+                    <div class="p-column-header-content">
+                      <span class="p-column-title">Số giờ</span>
+                    </div>
+                  </th>
+                </tr>
+              </thead>
+            </table>
+          </div>
         </div>
       </div>
     </div>
@@ -576,7 +879,9 @@ onMounted(() => {
     </detail_request>
   </Sidebar>
 </template>
-
+<style lang="css" scoped>
+@import from "./style/request_team.css";
+</style>
 <style lang="scss" scoped>
 .header {
   height: 4rem;
@@ -656,5 +961,23 @@ onMounted(() => {
 }
 .word-break-break-word {
   word-break: break-word;
+}
+.p-overlaypanel.overlaypanel:before {
+  bottom: 100%;
+  left: calc(var(--overlayArrowLeft, 0) + 6.25rem) !important;
+  content: " ";
+  height: 0;
+  width: 0;
+  position: absolute;
+  pointer-events: none;
+}
+.active {
+  background-color: #2196f3;
+  color: #ffffff;
+}
+.sort:hover {
+  background-color: #2196f3;
+  cursor: pointer;
+  color: #ffffff;
 }
 </style>

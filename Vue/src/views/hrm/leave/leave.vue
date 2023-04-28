@@ -18,6 +18,7 @@ const toast = useToast();
 const cryoptojs = inject("cryptojs");
 const basedomainURL = baseURL;
 const basefileURL = fileURL;
+const PASS_KEY = SecretKey;
 
 //Decalre
 const isFunction = ref(false);
@@ -293,7 +294,7 @@ const initDictionary = () => {
             proc: "hrm_leave_dictionary",
             par: [{ par: "user_id", va: store.getters.user.user_id }],
           }),
-          SecretKey,
+          PASS_KEY,
           cryoptojs
         ).toString(),
       },
@@ -802,7 +803,7 @@ onMounted(() => {
                 backgroundColor: '#F2FBE6',
               }"
             >
-              <b> </b>
+              <b>{{ user.total }}</b>
             </td>
             <td
               class="text-center"
