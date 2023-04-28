@@ -6,6 +6,7 @@ import moment from "moment";
 import { groupBy } from "lodash";
 import dialogleaveprofile from "./component/dialogleaveprofile.vue";
 import dialogtransferinventory from "./component/dialogtransferinventory.vue";
+import dialogconfigleaveyear from "./component/dialogconfigleaveyear.vue";
 
 const store = inject("store");
 const swal = inject("$swal");
@@ -296,6 +297,18 @@ const closeDialogTransferInventory = () => {
   forceRerender(1);
 };
 
+const headerDialogConfigLearYear = ref();
+const displayDialogConfigLeaveYear = ref(false);
+const openDialogConfigLeaveYear = (str) => {
+  headerDialogConfigLearYear.value = str;
+  displayDialogConfigLeaveYear.value = true;
+  forceRerender(2);
+};
+const closeDialogConfigLeaveYear = () => {
+  displayDialogConfigLeaveYear.value = false;
+  forceRerender(2);
+};
+
 //init
 const initDictionary = () => {
   axios
@@ -476,6 +489,12 @@ onMounted(() => {
           @click="openDialogTransferInventory('Chuyển phép tồn')"
           label="Chuyển phép tồn"
           icon="pi pi-calendar"
+          class="mr-2"
+        />
+        <Button
+          @click="openDialogConfigLeaveYear('Thiết lâp phép năm')"
+          label="Thiết lập phép năm"
+          icon="pi pi-cog"
           class="mr-2"
         />
         <Button
@@ -685,37 +704,58 @@ onMounted(() => {
             </th>
             <th
               class="sticky text-center"
-              :style="{ top: '0', width: '100px' }"
+              :style="{ right: '540px', top: '0', width: '90px' }"
+            >
+              Phép năm
+            </th>
+            <th
+              class="sticky text-center"
+              :style="{ right: '450px', top: '0', width: '90px' }"
             >
               Phép tồn
             </th>
             <th
               class="sticky text-center"
-              :style="{ top: '0', width: '100px' }"
+              :style="{ right: '360px', top: '0', width: '90px' }"
             >
               Phép thưởng
             </th>
             <th
               class="sticky text-center"
-              :style="{ top: '0', width: '100px' }"
+              :style="{ right: '270px', top: '0', width: '90px' }"
             >
               Thâm niên
             </th>
             <th
               class="sticky text-center"
-              :style="{ top: '0', width: '100px', backgroundColor: '#F2FBE6' }"
+              :style="{
+                right: '180px',
+                top: '0',
+                width: '90px',
+                backgroundColor: '#F2FBE6',
+              }"
             >
               TỔNG SỐ
             </th>
             <th
               class="sticky text-center"
-              :style="{ top: '0', width: '100px', backgroundColor: '#EEFAF5' }"
+              :style="{
+                right: '90px',
+                top: '0',
+                width: '90px',
+                backgroundColor: '#EEFAF5',
+              }"
             >
               ĐÃ NGHỈ
             </th>
             <th
               class="sticky text-center"
-              :style="{ top: '0', width: '100px', backgroundColor: '#FDF2F0' }"
+              :style="{
+                right: '0',
+                top: '0',
+                width: '90px',
+                backgroundColor: '#FDF2F0',
+              }"
             >
               CÒN LẠI
             </th>
@@ -782,8 +822,19 @@ onMounted(() => {
               <span> {{ user["month" + item.month] }}</span>
             </td>
             <td
-              class="text-center"
+              class="sticky text-center"
               :style="{
+                right: '540px',
+                width: '150px',
+                backgroundColor: '#fff',
+              }"
+            >
+              <span> {{ user.leaveYear }}</span>
+            </td>
+            <td
+              class="sticky text-center"
+              :style="{
+                right: '450px',
                 width: '150px',
                 backgroundColor: '#fff',
               }"
@@ -791,8 +842,9 @@ onMounted(() => {
               <span> {{ user.leaveInventory }}</span>
             </td>
             <td
-              class="text-center"
+              class="sticky text-center"
               :style="{
+                right: '360px',
                 width: '150px',
                 backgroundColor: '#fff',
               }"
@@ -800,8 +852,9 @@ onMounted(() => {
               <span> {{ user.leaveBonus }}</span>
             </td>
             <td
-              class="text-center"
+              class="sticky text-center"
               :style="{
+                right: '270px',
                 width: '150px',
                 backgroundColor: '#fff',
               }"
@@ -809,8 +862,9 @@ onMounted(() => {
               <span> {{ user.leaveSeniority }}</span>
             </td>
             <td
-              class="text-center"
+              class="sticky text-center"
               :style="{
+                right: '180px',
                 width: '150px',
                 backgroundColor: '#fff',
                 backgroundColor: '#F2FBE6',
@@ -819,8 +873,9 @@ onMounted(() => {
               <b>{{ user.total }}</b>
             </td>
             <td
-              class="text-center"
+              class="sticky text-center"
               :style="{
+                right: '90px',
                 width: '150px',
                 backgroundColor: '#fff',
                 backgroundColor: '#EEFAF5',
@@ -829,8 +884,9 @@ onMounted(() => {
               <b> {{ user.leaveAll }}</b>
             </td>
             <td
-              class="text-center"
+              class="sticky text-center"
               :style="{
+                right: '0',
                 width: '150px',
                 backgroundColor: '#fff',
                 backgroundColor: '#FDF2F0',
@@ -937,6 +993,13 @@ onMounted(() => {
     :displayDialog="displayDialogTransferInventory"
     :closeDialog="closeDialogTransferInventory"
     :organization_id="options.filter_organization_id"
+    :initData="initData"
+  />
+  <dialogconfigleaveyear
+    :key="componentKey['2']"
+    :headerDialog="headerDialogConfigLearYear"
+    :displayDialog="displayDialogConfigLeaveYear"
+    :closeDialog="closeDialogConfigLeaveYear"
     :initData="initData"
   />
   <Dialog
