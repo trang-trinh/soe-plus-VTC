@@ -5,6 +5,7 @@ import { useToast } from "vue-toastification";
 import moment from "moment";
 import { groupBy } from "lodash";
 import dialogleaveprofile from "./component/dialogleaveprofile.vue";
+import dialogtransferinventory from "./component/dialogtransferinventory.vue";
 
 const store = inject("store");
 const swal = inject("$swal");
@@ -18,6 +19,7 @@ const toast = useToast();
 const cryoptojs = inject("cryptojs");
 const basedomainURL = baseURL;
 const basefileURL = fileURL;
+const PASS_KEY = SecretKey;
 
 //Decalre
 const isFunction = ref(false);
@@ -162,17 +164,17 @@ const closeDialogLeaveProfile = () => {
 const menuButs = ref();
 const itemButs = ref([
   {
-    label: "Xuất Excel",
+    label: "Export dữ liệu ra Excel",
     icon: "pi pi-file-excel",
     command: (event) => {
-      exportExcel();
+      //exportData("ExportExcel");
     },
   },
   {
-    label: "Nhập Excel",
+    label: "Import dữ liệu từ Excel",
     icon: "pi pi-file-excel",
     command: (event) => {
-      importExcel(event);
+      //exportData("ExportExcel");
     },
   },
 ]);
@@ -268,6 +270,31 @@ const upload = () => {
       return;
     });
 };
+const downloadFile = (url) => {
+  const a = document.createElement("a");
+  a.href =
+    basedomainURL +
+    "/Viewer/DownloadFile?url=" +
+    encodeURIComponent(url) +
+    "&title=" +
+    encodeURIComponent("Mẫu Excel Phép năm.xlsx");
+  a.download = "Mẫu Excel Phép năm.xlsx";
+  //a.target = "_blank";
+  a.click();
+  a.remove();
+};
+
+const headerDialogTransferInventory = ref();
+const displayDialogTransferInventory = ref(false);
+const openDialogTransferInventory = (str) => {
+  headerDialogTransferInventory.value = str;
+  displayDialogTransferInventory.value = true;
+  forceRerender(1);
+};
+const closeDialogTransferInventory = () => {
+  displayDialogTransferInventory.value = false;
+  forceRerender(1);
+};
 
 //init
 const initDictionary = () => {
@@ -280,7 +307,7 @@ const initDictionary = () => {
             proc: "hrm_leave_dictionary",
             par: [{ par: "user_id", va: store.getters.user.user_id }],
           }),
-          SecretKey,
+          PASS_KEY,
           cryoptojs
         ).toString(),
       },
@@ -445,20 +472,25 @@ onMounted(() => {
         </div>
       </template>
       <template #end>
-        <!-- <Button
-          @click="openUpdateDialog('Chọn loại chấm công')"
-          label="Chọn loại chấm công"
-          icon="pi pi-check"
+        <Button
+          @click="openDialogTransferInventory('Chuyển phép tồn')"
+          label="Chuyển phép tồn"
+          icon="pi pi-calendar"
           class="mr-2"
-        /> -->
+        />
         <Button
           @click="toggleExport"
           label="Tiện ích"
           icon="pi pi-file-excel"
-          class="mr-2 p-button-outlined p-button-secondary"
+          class="p-button-outlined p-button-secondary mr-2"
           aria-haspopup="true"
           aria-controls="overlay_Export"
-        />
+        >
+          <div>
+            <span class="mr-2">Tiện ích</span>
+            <span><i class="pi pi-chevron-down"></i></span>
+          </div>
+        </Button>
         <Menu
           :model="itemButs"
           :popup="true"
@@ -469,7 +501,7 @@ onMounted(() => {
           @click="refresh()"
           class="p-button-outlined p-button-secondary"
           icon="pi pi-refresh"
-          label="Tải lại"
+          v-tooltip.top="'Tải lại'"
         />
       </template>
     </Toolbar>
@@ -781,27 +813,30 @@ onMounted(() => {
               :style="{
                 width: '150px',
                 backgroundColor: '#fff',
+                backgroundColor: '#F2FBE6',
               }"
             >
-              <span> </span>
+              <b>{{ user.total }}</b>
             </td>
             <td
               class="text-center"
               :style="{
                 width: '150px',
                 backgroundColor: '#fff',
+                backgroundColor: '#EEFAF5',
               }"
             >
-              <span> {{ user.leaveAll }}</span>
+              <b> {{ user.leaveAll }}</b>
             </td>
             <td
               class="text-center"
               :style="{
                 width: '150px',
                 backgroundColor: '#fff',
+                backgroundColor: '#FDF2F0',
               }"
             >
-              <span> {{ user.leaveRemain }}</span>
+              <b> {{ user.leaveRemain }}</b>
             </td>
           </tr>
         </tbody>
@@ -896,7 +931,14 @@ onMounted(() => {
     :year="options.year"
     :initData="initData"
   />
-
+  <dialogtransferinventory
+    :key="componentKey['1']"
+    :headerDialog="headerDialogTransferInventory"
+    :displayDialog="displayDialogTransferInventory"
+    :closeDialog="closeDialogTransferInventory"
+    :organization_id="options.filter_organization_id"
+    :initData="initData"
+  />
   <Dialog
     header="Tải lên file Excel"
     v-model:visible="displayImport"
@@ -906,7 +948,7 @@ onMounted(() => {
   >
     <h3>
       <label>
-        <a :href="basefileURL + linkformimport" download>Nhấn vào đây</a> để tải xuống
+        <a @click="downloadFile(linkformimport)">Nhấn vào đây</a> để tải xuống
         tệp mẫu.
       </label>
     </h3>

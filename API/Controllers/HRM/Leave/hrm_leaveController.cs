@@ -88,6 +88,8 @@ namespace API.Controllers.Leave
                         leave.month10 = model.month10;
                         leave.month11 = model.month11;
                         leave.month12 = model.month12;
+                        leave.inventory = model.inventory;
+                        leave.bonus = model.bonus;
                         leave.modified_by = uid;
                         leave.modified_date = DateTime.Now;
                         leave.modified_ip = ip;
@@ -335,6 +337,112 @@ namespace API.Controllers.Leave
                     }
                     return Request.CreateResponse(HttpStatusCode.OK, new { ms = contents, err = "1" });
                 }
+            }
+        }
+
+        [HttpPut]
+        public async Task<HttpResponseMessage> update_transfer_inventory()
+        {
+            var identity = User.Identity as ClaimsIdentity;
+            IEnumerable<Claim> claims = identity.Claims;
+            string ip = getipaddress();
+            string name = claims.Where(p => p.Type == "fname").FirstOrDefault()?.Value;
+            string tid = claims.Where(p => p.Type == "tid").FirstOrDefault()?.Value;
+            string uid = claims.Where(p => p.Type == "uid").FirstOrDefault()?.Value;
+            string domainurl = HttpContext.Current.Request.Url.Scheme + "://" + HttpContext.Current.Request.Url.Host + ":" + HttpContext.Current.Request.Url.Port + "/";
+            try
+            {
+                if (identity == null)
+                {
+                    return Request.CreateResponse(HttpStatusCode.OK, new { ms = "Bạn không có quyền truy cập chức năng này!", err = "1" });
+                }
+            }
+            catch
+            {
+                return Request.CreateResponse(HttpStatusCode.OK, new { ms = "Bạn không có quyền truy cập chức năng này!", err = "1" });
+            }
+            try
+            {
+                using (DBEntities db = new DBEntities())
+                {
+                    if (!Request.Content.IsMimeMultipartContent())
+                    {
+                        throw new HttpResponseException(HttpStatusCode.UnsupportedMediaType);
+                    }
+                    // Provider
+                    string rootTemp = HttpContext.Current.Server.MapPath("~/Portals");
+                    bool existsTemp = Directory.Exists(rootTemp);
+                    if (!existsTemp)
+                        Directory.CreateDirectory(rootTemp);
+                    var provider = new MultipartFormDataStreamProvider(rootTemp);
+                    var task = await Request.Content.ReadAsMultipartAsync(provider);
+
+                    // Params
+                    var user_now = await db.sys_users.AsNoTracking().FirstOrDefaultAsync(x => x.user_id == uid);
+                    int start = int.Parse(provider.FormData.GetValues("start").SingleOrDefault());
+                    int end = int.Parse(provider.FormData.GetValues("end").SingleOrDefault());
+                    int? organization_id = int.Parse(provider.FormData.GetValues("organization_id").SingleOrDefault());
+
+                    if (!string.IsNullOrEmpty(organization_id.ToString()) && organization_id != -1)
+                    {
+                        var list_start = await db.hrm_leave_profile.Where(x => x.organization_id == organization_id && x.year == start).ToListAsync();
+                        if (list_start.Count > 0)
+                        {
+                            var list_end = await db.hrm_leave_profile.Where(x => x.organization_id == organization_id && x.year == end).ToListAsync();
+                            foreach (var st in list_start)
+                            {
+                                var current_end = list_end.FirstOrDefault(x => x.profile_id == st.profile_id);
+                                if (current_end != null)
+                                {
+                                    current_end.inventory = st.inventory;
+                                }
+                                else
+                                {
+                                    hrm_leave_profile md = new hrm_leave_profile();
+                                    md.profile_id = st.profile_id;
+                                    md.year = end;
+                                    double inventory = ((st.inventory ?? 0) + (st.bonus ?? 0) + (st.seniority ?? 0)) - ((st.month1 ?? 0) + (st.month2 ?? 0) + (st.month3 ?? 0) + (st.month4 ?? 0) + (st.month5 ?? 0) + (st.month6 ?? 0) + (st.month7 ?? 0) + (st.month8 ?? 0) + (st.month9 ?? 0) + (st.month10 ?? 0) + (st.month11 ?? 0) + (st.month12 ?? 0));
+                                    if (inventory < 0)
+                                    {
+                                        md.inventory = 0;
+                                    }
+                                    else
+                                    {
+                                        md.inventory = inventory;
+                                    }
+                                    md.created_by = uid;
+                                    md.created_date = DateTime.Now;
+                                    md.created_ip = ip;
+                                    md.created_token_id = tid;
+                                    md.organization_id = organization_id;
+                                    db.hrm_leave_profile.Add(md);
+                                }
+                            }
+                        }
+                    }
+                    await db.SaveChangesAsync();
+                    return Request.CreateResponse(HttpStatusCode.OK, new { err = "0" });
+                }
+            }
+            catch (DbEntityValidationException e)
+            {
+                string contents = helper.getCatchError(e, null);
+                helper.saveLog(uid, name, JsonConvert.SerializeObject(new { data = contents }), domainurl + "hrm_leave/update_leave_profile", ip, tid, "Lỗi khi cập nhật", 0, "hrm_leave");
+                if (!helper.debug)
+                {
+                    contents = "";
+                }
+                return Request.CreateResponse(HttpStatusCode.OK, new { ms = contents, err = "1" });
+            }
+            catch (Exception e)
+            {
+                string contents = helper.ExceptionMessage(e);
+                helper.saveLog(uid, name, JsonConvert.SerializeObject(new { data = contents }), domainurl + "hrm_leave/update_leave_profile", ip, tid, "Lỗi khi cập nhật", 0, "hrm_leave");
+                if (!helper.debug)
+                {
+                    contents = "";
+                }
+                return Request.CreateResponse(HttpStatusCode.OK, new { ms = contents, err = "1" });
             }
         }
     }
