@@ -5,6 +5,7 @@ import { useToast } from "vue-toastification";
 import moment from "moment";
 import { groupBy } from "lodash";
 import dialogleaveprofile from "./component/dialogleaveprofile.vue";
+import dialogtransferinventory from "./component/dialogtransferinventory.vue";
 
 const store = inject("store");
 const swal = inject("$swal");
@@ -283,6 +284,18 @@ const downloadFile = (url) => {
   a.remove();
 };
 
+const headerDialogTransferInventory = ref();
+const displayDialogTransferInventory = ref(false);
+const openDialogTransferInventory = (str) => {
+  headerDialogTransferInventory.value = str;
+  displayDialogTransferInventory.value = true;
+  forceRerender(1);
+};
+const closeDialogTransferInventory = () => {
+  displayDialogTransferInventory.value = false;
+  forceRerender(1);
+};
+
 //init
 const initDictionary = () => {
   axios
@@ -459,12 +472,12 @@ onMounted(() => {
         </div>
       </template>
       <template #end>
-        <!-- <Button
-          @click="openUpdateDialog('Chọn loại chấm công')"
-          label="Chọn loại chấm công"
-          icon="pi pi-check"
+        <Button
+          @click="openDialogTransferInventory('Chuyển phép tồn')"
+          label="Chuyển phép tồn"
+          icon="pi pi-calendar"
           class="mr-2"
-        /> -->
+        />
         <Button
           @click="toggleExport"
           label="Tiện ích"
@@ -918,7 +931,14 @@ onMounted(() => {
     :year="options.year"
     :initData="initData"
   />
-
+  <dialogtransferinventory
+    :key="componentKey['1']"
+    :headerDialog="headerDialogTransferInventory"
+    :displayDialog="displayDialogTransferInventory"
+    :closeDialog="closeDialogTransferInventory"
+    :organization_id="options.filter_organization_id"
+    :initData="initData"
+  />
   <Dialog
     header="Tải lên file Excel"
     v-model:visible="displayImport"
