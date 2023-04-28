@@ -97,6 +97,9 @@ const saveModel = () => {
     });
   if (submitted.value) submitted.value = true;
 };
+const changeLeave = (user) => {
+  user.leave_limit = user.leave;
+};
 
 //init
 const initData = (ref) => {
@@ -237,6 +240,16 @@ onMounted(() => {
           >
             Phép năm
           </th>
+          <th
+            class="sticky text-center"
+            :style="{
+              right: '0',
+              top: '0',
+              width: '150px',
+            }"
+          >
+            Phép năm thưc tế
+          </th>
         </tr>
       </thead>
       <tbody
@@ -246,7 +259,7 @@ onMounted(() => {
       >
         <tr>
           <td
-            colspan="3"
+            colspan="4"
             class="sticky"
             :style="{
               left: 0,
@@ -292,6 +305,26 @@ onMounted(() => {
               mode="decimal"
               :minFractionDigits="0"
               :maxFractionDigits="2"
+              :step="0.5"
+              :min="0"
+              :max="100"
+              class="ip36 w-full"
+              @input="changeLeave(user)"
+            />
+          </td>
+          <td
+            class="text-center"
+            :style="{
+              width: '150px',
+              backgroundColor: '#fff',
+            }"
+          >
+            <InputNumber
+              v-model="user.leave_limit"
+              mode="decimal"
+              :minFractionDigits="0"
+              :maxFractionDigits="2"
+              :step="0.5"
               :min="0"
               :max="100"
               class="ip36 w-full"
