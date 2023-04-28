@@ -51,7 +51,6 @@ const options = ref({
     specialization_id: null,
     professional_work_id: null,
     title_id: null,
-    description: null
   });
 const genders = ref(
   [
@@ -88,13 +87,13 @@ const loadData = () => {
             {
                 str: encr(
                     JSON.stringify({
-                        proc: "hrm_report_profile_organization_list1",
+                        proc: "hrm_report_contract_statistical_list",
                         par: [
                             { par: "search", va: options.value.SearchText },
                             { par: "user_id", va: store.getters.user.user_id },
                             { par: "department_id", va: options.value.department_id},
                             { par: "gender", va: options.value.gender},
-                            { par: "title_id", va: options.value.title_id},
+                            { par: "position_id", va: options.value.position_id},
                         ],
                     }),
                     SecretKey,
@@ -106,32 +105,17 @@ const loadData = () => {
         .then((response) => {
             let data = JSON.parse(response.data.data);
             if (data[0].length > 0) {
+               var baocaoct = [];
                 data[0].forEach((item, index) => {
                     item.is_active = false;
-                    const startDate = moment(item.recruitment_date || new Date());
-                    const endDate = moment(new Date());
-                    item.duration = moment.duration(endDate.diff(startDate));
-                    item.diffyear = item.duration.years();
-                    item.diffmonth = item.duration.months();
+                    if (item.Congtac !== null) {
+                        item.Congtac = JSON.parse(item.Congtac);                               
+                    } if (item.Congtac == null) {
+                        item.Congtac = [];
+                        item.Congtac.push(baocaoct);
+                    }  
                 });
-                data[0] = groupBy(data[0], 'department_id');
-                    let arr = [];
-                    var count = 1;
-                    for (let pb in data[0]) {
-                        // let data_ns_by_id = groupBy(data[0][pb], 'profile_code');
-                        // let arr_ns = [];
-                        // for (let ns in data_ns_by_id) {
-                        //     arr_ns.push({ group_ns: ns, name_group_ns: data_ns_by_id[ns][0].profile_user_name, list_con: data_ns_by_id[ns] });
-                        // };
-                        // data_ns_by_id = arr_ns;
-                        data[0][pb].forEach((item)=>{
-                          item.stt = count;
-                          count++
-                        })
-                        arr.push({ group_pb: pb, name_group_pb: data[0][pb][0].organization_name, list_ns: data[0][pb] });
-                    }
-                datalists.value = arr;
-                options.totalRecords = arr.length;
+                datalists.value = data[0];
             }
             else datalists.value = [];
             swal.close();
@@ -207,7 +191,7 @@ const initTudien = () => {
 };
 const exportExcel = () => {
   
-  let name = "BC.HS002";
+  let name = "BC.HS007";
   var htmltable1 = "";
   // htmltable1 = renderExcel_Ketqua();
   var tab_text = '<html xmlns:x="urn:schemas-microsoft-com:office:excel">';
@@ -226,10 +210,10 @@ const exportExcel = () => {
   tab_text =
     tab_text +
     '<style>.p-datatable-thead th {background:#7bb0d7 !important;height: 30px !important;} .cstd{font-family: Times New Roman;border:none!important; font-size: 12pt; font-weight: 700; text-align: center; vertical-align: center;color:#000000}.head2{font-family: Times New Roman;border:none!important; font-size: 12pt;font-weight:bold; text-align: left; vertical-align: left;}</style>'    
-  tab_text = tab_text+ "<table><td colspan='38' class='head2'>"+(department_name.value.toUpperCase() || store.getters.user.organization_name)+"</td></table>";
+  tab_text = tab_text+ "<table><td colspan='15' class='head2'>"+(department_name.value.toUpperCase() || store.getters.user.organization_name)+"</td></table>";
   // tab_text = tab_text+ "<table><td colspan='18' class='cstd' style='text-align: left; vertical-align: left;'>CÔNG TY/PHÒNG/TRUNG TÂM "+(store.getters.user.organization_name||".......")+"</td></table>";
   tab_text =
-      tab_text +'<table><td colspan="38" class="cstd" > BÁO CÁO TỔNG HỢP NHÂN SỰ</td >';
+      tab_text +'<table><td colspan="15" class="cstd" >BÁO CÁO QUÁ TRÌNH CÔNG TÁC CỦA NHÂN SỰ TRƯỚC KHI VÀO CÔNG TY</td >';
   tab_text = tab_text + "</table>";
   //var exportTable = $('#' + id).clone();
   //exportTable.find('input').each(function (index, elem) { $(elem).remove(); });\
@@ -269,7 +253,9 @@ const exportExcel = () => {
     document.body.removeChild(elem);
   }
 };
-const activeRow = (row)=>{
+const valueClick = ref();
+const activeRow = (row, value)=>{
+  valueClick.value = value;
   datalists.value.forEach((item)=>{
     item.list_ns.forEach((item2)=>{
       item2.is_active = false;
@@ -321,11 +307,30 @@ const renderTreeDV = (data, id, name, title) => {
   return { arrChils: arrChils, arrtreeChils: arrtreeChils };
 };
 function groupBy(list, props) {
-            return list.reduce((a, b) => {
-                (a[b[props]] = a[b[props]] || []).push(b);
-                return a;
-            }, {});
-        }
+    return list.reduce((a, b) => {
+        (a[b[props]] = a[b[props]] || []).push(b);
+        return a;
+    }, {});
+}
+function formatNumber(a, b, c, d) {
+  var e = isNaN((b = Math.abs(b))) ? 2 : b;
+  b = void 0 == c ? "," : c;
+  d = void 0 == d ? "," : d;
+  c = 0 > a ? "-" : "";
+  var g = parseInt((a = Math.abs(+a || 0).toFixed(e))) + "",
+    n = 3 < (n = g.length) ? n % 3 : 0;
+  return (
+    c +
+    (n ? g.substr(0, n) + d : "") +
+    g.substr(n).replace(/(\d{3})(?=\d)/g, "$1" + d) +
+    (e
+      ? b +
+        Math.abs(a - g)
+          .toFixed(e)
+          .slice(2)
+      : "")
+  );
+}
 onMounted(() => {
     //init
     loadData();
@@ -348,7 +353,7 @@ onMounted(() => {
               <i class="pi pi-search" />
               <InputText
                 v-model="options.SearchText"
-                v-on:keyup.enter="loadDataDetail(id_active,department_name)"
+                v-on:keyup.enter="loadData()"
                 type="text"
                 spellcheck="false"
                 placeholder="Tìm kiếm"
@@ -455,147 +460,72 @@ onMounted(() => {
         </Toolbar>
     </div>
     <div style="overflow: scroll;max-height: calc(100vh - 124px);min-height: calc(100vh - 124px);background-color: #fff;">
-        <table cellspacing=0 id="table-bc" class="table table-condensed table-hover tbpad" style="table-layout: fixed;width: 100%;">
+        <table cellspacing=0 id="table-bc" class="table table-condensed table-hover tbpad" style="width: max-content;">
         <thead style="position: sticky; z-index: 6; top:0">
             <tr>
-                <th class="text-center sticky left-sticky1 left-1" width="50" rowspan="2" >STT</th>
-                <th class="text-center sticky left-sticky1 left-2" width="100" rowspan="2" >Mã nhân viên</th>
-                <th class="text-center sticky left-sticky1 left-3" width="150" rowspan="2">Họ và tên</th>
-                <th class="text-center " width="100" rowspan="2">Ngày sinh</th>
-                <th class="text-center " width="60" rowspan="2">Tuổi</th>
-                <th class="text-center " width="100" rowspan="2">Giới tính</th>
-                <th class="text-center " width="150" rowspan="2">Chức danh</th>
-                <th class="text-center " width="150" rowspan="2">Chức vụ</th>
-                <th class="text-center " width="100" rowspan="2">Loại LĐ</th>
-                <th class="text-center " width="250" rowspan="2">Quê quán</th>
-                <th class="text-center " width="100" rowspan="2">Tình trạng hôn nhân</th>
-                <th class="text-center " width="80" rowspan="2">Dân tộc</th>
-                <th class="text-center " width="80" rowspan="2">Tôn giáo</th>
-                <th class="text-center " width="80" rowspan="2">Đảng viên</th>
-                <th class="text-center " width="80" rowspan="2">Đoàn viên</th>
-                <th class="text-center " width="300" colspan="2">Thuộc diện chính sách</th>
-                <th class="text-center " width="300" colspan="2">Nơi đăng ký HKTT</th>
-                <th class="text-center " width="300" colspan="2">Nơi ở hiện nay</th>
-                <th class="text-center " width="150" rowspan="2">Liên hệ khẩn cấp</th>
-                <th class="text-center " width="150" rowspan="2">Thành phần gia đình</th>
-                <th class="text-center " width="300" colspan="3">Theo dõi CMND</th>
-                <th class="text-center " width="100" rowspan="2">Ngày vào đơn vị</th>
-                <th class="text-center " width="120" rowspan="2">Thâm niên công tác</th>
-                <th class="text-center " width="120" rowspan="2">Thâm niên phép tính năm</th>
-                <th class="text-center " width="500" colspan="5">Trình độ chuyên môn chính</th>
-                <th class="text-center " width="120" rowspan="2">Số di động</th>
-                <th class="text-center " width="120" rowspan="2">Email</th>
-                <th class="text-center " width="80" rowspan="2">Chiều cao</th>
-                <th class="text-center " width="80" rowspan="2">Cân nặng</th>
+                <th class="text-center" rowspan="2" width="50">STT</th>
+                <th class="text-center" rowspan="2" width="100">Mã nhân sự</th>
+                <th class="text-center" rowspan="2" width="150">Họ và tên</th>
+                <th class="text-center" rowspan="2" width="100">Ngày sinh</th>
+                <th class="text-center" rowspan="2" width="100">Chức vụ</th>
+                <th class="text-center" rowspan="2" width="100">Chức danh</th>
+                <th class="text-center" rowspan="2" width="100">Ngày vào công ty</th>
+                <th class="text-center" rowspan="2" width="100">Ghi chú</th>
+                <th class="text-center" colspan="12">Quá trình ký hợp đồng</th>
             </tr>
             <tr>
-                <th class="text-center " width="100">Đã tham gia quân đội</th>
-                <th class="text-center " width="100">Con gia đình chính sách</th>
-                <th class="text-center " width="100">Số nhà, đường phố</th>
-                <th class="text-center " width="100">Xã/Phường, Quận/Huyện, Tỉnh/TP</th>
-                <th class="text-center " width="100">Số nhà, đường phố</th>
-                <th class="text-center " width="100">Xã/Phường, Quận/Huyện, Tỉnh/TP</th>
-                <th class="text-center " width="100">Số CMND</th>
-                <th class="text-center " width="100">Ngày cấp CMND</th>
-                <th class="text-center " width="100">Nơi cấp CMND</th>
-                <th class="text-center " width="100">Trình độ văn hóa</th>
-                <th class="text-center " width="100">Bằng cấp</th>
-                <th class="text-center " width="100">Chuyên ngành</th>
-                <th class="text-center " width="100">Trường tốt nghiệp</th>
-                <th class="text-center " width="100">Hình thức đào tạo</th>
+                <th class="text-center" width="100">Lần ký</th>
+                <th class="text-center" width="100">Số hợp đồng</th>
+                <th class="text-center" width="100">Ngày ký</th>
+                <th class="text-center" width="100">Loại hợp đồng</th>
+                <th class="text-center" width="100">Thời hạn</th>
+                <th class="text-center" width="100">Ngày hết hạn</th>
+                <th class="text-center" width="100">Người ký</th>
+                <th class="text-center" width="100">Mức lương</th>
+                <th class="text-center" width="100">Ngạch lương</th>
+                <th class="text-center" width="100">Bậc lương</th>
+                <th class="text-center" width="100">Hệ số lương</th>
+                <th class="text-center" width="100">Phụ cấp</th>
             </tr>
         </thead>
         <tbody v-for="(bc, index1) in datalists" :key="index1">
-            <tr>
-                <td colspan="38" class="bg-group"><b>{{bc.name_group_pb}}</b></td>
-            </tr>
-            <tr v-for="(dg, index2) in bc.list_ns" :key="index2" class="item-hover" @click="activeRow(dg)">
-                <td class="text-center bg-stt left-sticky1 left-1" :class="dg.is_active?'active-item':'bg-stt'">{{dg.stt}}</td>
-                <td align="left" class="bg-aliceblue left-sticky1 left-2">
-                   {{dg.profile_code}}
+            <tr v-for="(qt, index3) in bc.Congtac" :key="index3" class="item-hover" > 
+                <td v-if="index3 ==0" :rowspan="bc.Congtac.length" class="text-center bg-stt left-sticky1 left-1" :class="bc.is_active?'active-item':'bg-stt'">{{index1+1}}</td>
+                <td v-if="index3 ==0"  :rowspan="bc.Congtac.length" align="left" class="left-sticky1 left-2">
+                    {{bc.profile_code}}
                 </td>
-                <td align="left" class="bg-aliceblue left-sticky1 left-3">
-      
-                    {{dg.profile_user_name}}
+                <td v-if="index3 ==0"  :rowspan="bc.Congtac.length" align="left" class="left-sticky1 left-3">
+                    {{bc.profile_user_name}}
                 </td>
-                <td align="center">
-                  <span v-if="dg.birthday"> {{ moment(new Date(dg.birthday)).format("DD/MM/YYYY ") }}</span>
+                <td v-if="index3 ==0"  :rowspan="bc.Congtac.length" align="left" class="left-sticky1 left-4">
+                    {{bc.birthday}}
                 </td>
-                <td align="center">
-                    {{dg.age}}
+                <td v-if="index3 ==0"  :rowspan="bc.Congtac.length" align="left" class="left-sticky1 left-4">
+                    {{bc.position_name}}
                 </td>
-                <td align="center">
-                    {{dg.gender}}
+                <td v-if="index3 ==0"  :rowspan="bc.Congtac.length" align="left" class="left-sticky1 left-4">
+                    {{bc.title_name}}
                 </td>
-                <td align="left">{{ dg.title_name }}</td>
-                <td align="left">
-                    {{dg.position_name}}
+                <td v-if="index3 ==0"  :rowspan="bc.Congtac.length" align="left" class="left-sticky1 left-4">
+                    {{bc.start_date}}
                 </td>
-                <td align="left">
-                    {{dg.personel_groups_name}}
+                <td align="left">{{qt.company}}</td>
+                <td align="left">{{qt.address}}</td>
+                <td align="center">{{qt.start_date}}</td>
+                <td align="center">{{qt.end_date}}</td>
+                <td align="center"></td>
+                <td align="center">{{qt.title_name}}</td>
+                <td align="left">{{qt.description}}</td>
+                <td align="left">{{qt.reason}}</td>
+                <td align="right">
+                  <span v-if="qt.wage>0">{{ formatNumber(qt.wage, 0, ".", ".") }}</span>
                 </td>
-                <td align="left">
-                    {{dg.birthplace_origin_name}}
-                </td>
-                <td align="center">
-                    {{dg.marital_status==0?'Độc thân':dg.marital_status==1 ?'Kết hôn':dg.marital_status==2?'Ly hôn':''}}
-                </td>
-                <td align="center">
-                    {{dg.ethnic_name}}
-                </td>
-                <td align="center">
-                    {{dg.religion_name}}
-                </td>
-                <td align="center">
-                    {{dg.is_partisan?'X':''}}
-                </td>
-                <td align="center">
-                    {{dg.bevy_date?'X':''}}
-                </td>
-                <td align="center">
-                    {{dg.is_join_military?'X':''}}
-                </td>
-                <td align="left">{{dg.military_policy_family}}</td>
-                <td align="left">{{dg.place_register_permanent_first}}</td>
-                <td align="left">{{dg.place_register_permanent_name}}</td>
-                <td align="left">{{dg.place_permanent}}</td>
-                <td align="left">{{dg.place_residence_name || dg.name}}</td>
-                <td align="left">
-                  <span v-if="dg.relationship_name">{{ dg.relationship_name}}: </span>
-                  <span v-if="dg.involved_name">{{ dg.involved_name}} - </span>
-                  <span v-if="dg.involved_phone">{{ dg.involved_phone}} </span>
-                </td>
-                <td align="left">{{dg.family_member}}</td>
-                <td align="left">{{dg.identity_papers_code}}</td>
-                <td align="left">
-                  <span v-if="dg.identity_date_issue"> {{ moment(new Date(dg.identity_date_issue)).format("DD/MM/YYYY ") }}</span>
-                </td>
-                <td align="left">{{dg.name}}</td>
-                <td align="left">
-                  <span v-if="dg.start_date"> {{ moment(new Date(dg.start_date)).format("DD/MM/YYYY ") }}</span>
-                </td>
-                <td align="center">
-                  <span v-if="dg.diffyear > 0">
-                    {{ dg.diffyear }} năm
-                  </span>
-                  <span v-if="dg.diffmonth > 0">
-                    {{ dg.diffmonth }} tháng
-                  </span>
-                </td>
-                <td align="center">{{dg.countAllRecruitment}}</td>
-                <td align="left">{{dg.cultural_level_name}}</td>
-                <td align="left">{{dg.certificate_name}}</td>
-                <td align="left">{{dg.specialization_name}}</td>
-                <td align="left" width="150">{{dg.university_name}}</td>
-                <td align="left">{{dg.form_traning_name}}</td>
-                <td align="center">{{dg.phone}}</td>
-                <td align="center">{{dg.email}}</td>
-                <td align="center">{{dg.height}}</td>
-                <td align="center">{{dg.weight}}</td>
-            </tr> 
-      
+                <td align="left">{{qt.reference_name}}</td>
+                <td align="center">{{qt.reference_phone}}</td>
+            </tr>      
           </tbody>
     </table>
+    
     </div>
     </div>
 </template>
@@ -635,6 +565,9 @@ onMounted(() => {
     .left-3 {
         left: 149px;
     }
+    .left-4 {
+        left: 299px;
+    }
     .btn.btn-secondary:hover {
         background-color: #e6f0f8 !important;
         color: #2f90d1 !important;
@@ -660,12 +593,12 @@ onMounted(() => {
 
 </style>
 <style scoped>
-#table-bc{
+/* #table-bc{
   max-height: calc(100vh - 110px);
   overflow-y: auto;
   overflow-x: scroll;
 
-}
+} */
 th,
 td {
     background: #fff;
@@ -685,15 +618,15 @@ td {
 .row-child:hover {
     color: #0078d4;
 }
-td.bg-group>b {
-    position: sticky;
-    left: 10px;
-}
 .toolbar-filter {
   border: unset;
   outline: unset;
   background-color: #fff;
   padding-bottom: 0px;
+}
+td.bg-group>b {
+    position: sticky;
+    left: 10px;
 }
 </style>
 <style lang="scss" scoped>

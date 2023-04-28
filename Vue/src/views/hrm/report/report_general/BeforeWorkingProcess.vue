@@ -370,7 +370,7 @@ onMounted(() => {
               <i class="pi pi-search" />
               <InputText
                 v-model="options.SearchText"
-                v-on:keyup.enter="loadDataDetail(id_active,department_name)"
+                v-on:keyup.enter="loadData()"
                 type="text"
                 spellcheck="false"
                 placeholder="Tìm kiếm"

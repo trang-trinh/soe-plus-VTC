@@ -415,6 +415,7 @@ const HRM_ReportProfileOrganization = () => import("../views/hrm/report/report_g
 const HRM_ReportMemberQuit = () => import("../views/hrm/report/report_general/MemberQuit.vue");
 const HRM_ReportBeforeWorkingProcess = () => import("../views/hrm/report/report_general/BeforeWorkingProcess.vue");
 const HRM_ReportAcademicLevelMember = () => import("../views/hrm/report/report_general/AcademicLevelMember.vue");
+const HRM_ReportContractStatistical = () => import("../views/hrm/report/report_contract/StatisticalContract.vue");
 
 // Request
 const Request_Dashboard = () =>
@@ -1961,6 +1962,11 @@ const router = createRouter({
       path: "/hrm/hrm_report/academic_level_member",
       name: "hrm_report_academic_level_member",
       component: HRM_ReportAcademicLevelMember ,
+    },
+    {
+      path: "/hrm/hrm_report/contract_statistical",
+      name: "hrm_report_contract_statistical",
+      component: HRM_ReportContractStatistical ,
     },
     // Tài liệu
     {
