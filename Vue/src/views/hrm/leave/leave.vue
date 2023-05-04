@@ -702,34 +702,21 @@ onMounted(() => {
             >
               {{ item.name }}
             </th>
-            <th
-              class="sticky text-center"
-              :style="{ right: '540px', top: '0', width: '90px' }"
-            >
+            <th class="text-center" :style="{ top: '0', width: '90px' }">
               Phép năm
             </th>
-            <th
-              class="sticky text-center"
-              :style="{ right: '450px', top: '0', width: '90px' }"
-            >
+            <th class="text-center" :style="{ top: '0', width: '90px' }">
               Phép tồn
             </th>
-            <th
-              class="sticky text-center"
-              :style="{ right: '360px', top: '0', width: '90px' }"
-            >
+            <th class="text-center" :style="{ top: '0', width: '90px' }">
               Phép thưởng
             </th>
-            <th
-              class="sticky text-center"
-              :style="{ right: '270px', top: '0', width: '90px' }"
-            >
+            <th class="text-center" :style="{ top: '0', width: '90px' }">
               Thâm niên
             </th>
             <th
-              class="sticky text-center"
+              class="text-center"
               :style="{
-                right: '180px',
                 top: '0',
                 width: '90px',
                 backgroundColor: '#F2FBE6',
@@ -738,9 +725,8 @@ onMounted(() => {
               TỔNG SỐ
             </th>
             <th
-              class="sticky text-center"
+              class="text-center"
               :style="{
-                right: '90px',
                 top: '0',
                 width: '90px',
                 backgroundColor: '#EEFAF5',
@@ -749,9 +735,8 @@ onMounted(() => {
               ĐÃ NGHỈ
             </th>
             <th
-              class="sticky text-center"
+              class="text-center"
               :style="{
-                right: '0',
                 top: '0',
                 width: '90px',
                 backgroundColor: '#FDF2F0',
@@ -822,9 +807,8 @@ onMounted(() => {
               <span> {{ user["month" + item.month] }}</span>
             </td>
             <td
-              class="sticky text-center"
+              class="text-center"
               :style="{
-                right: '540px',
                 width: '150px',
                 backgroundColor: '#fff',
               }"
@@ -832,9 +816,8 @@ onMounted(() => {
               <span> {{ user.leaveYear }}</span>
             </td>
             <td
-              class="sticky text-center"
+              class="text-center"
               :style="{
-                right: '450px',
                 width: '150px',
                 backgroundColor: '#fff',
               }"
@@ -842,9 +825,8 @@ onMounted(() => {
               <span> {{ user.leaveInventory }}</span>
             </td>
             <td
-              class="sticky text-center"
+              class="text-center"
               :style="{
-                right: '360px',
                 width: '150px',
                 backgroundColor: '#fff',
               }"
@@ -852,9 +834,8 @@ onMounted(() => {
               <span> {{ user.leaveBonus }}</span>
             </td>
             <td
-              class="sticky text-center"
+              class="text-center"
               :style="{
-                right: '270px',
                 width: '150px',
                 backgroundColor: '#fff',
               }"
@@ -862,9 +843,8 @@ onMounted(() => {
               <span> {{ user.leaveSeniority }}</span>
             </td>
             <td
-              class="sticky text-center"
+              class="text-center"
               :style="{
-                right: '180px',
                 width: '150px',
                 backgroundColor: '#fff',
                 backgroundColor: '#F2FBE6',
@@ -873,9 +853,8 @@ onMounted(() => {
               <b>{{ user.total }}</b>
             </td>
             <td
-              class="sticky text-center"
+              class="text-center"
               :style="{
-                right: '90px',
                 width: '150px',
                 backgroundColor: '#fff',
                 backgroundColor: '#EEFAF5',
@@ -884,9 +863,8 @@ onMounted(() => {
               <b> {{ user.leaveAll }}</b>
             </td>
             <td
-              class="sticky text-center"
+              class="text-center"
               :style="{
-                right: '0',
                 width: '150px',
                 backgroundColor: '#fff',
                 backgroundColor: '#FDF2F0',
@@ -1186,9 +1164,9 @@ th.isHoliday {
 .hover {
   cursor: pointer;
 }
-.hover2:hover{
+.hover2:hover {
   cursor: pointer;
-  color: #2196F3;
+  color: #2196f3;
 }
 .hover:hover td {
   background-color: aliceblue !important;
