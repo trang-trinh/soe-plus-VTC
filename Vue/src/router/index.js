@@ -977,7 +977,7 @@ const router = createRouter({
       component: statisticalConfig,
     },
     {
-      path: "/statistical/chart/:id",
+      path: "/statistical/statistical_main/:id",
       name: "statisticalchart",
       component: statisticalChart,
     },
