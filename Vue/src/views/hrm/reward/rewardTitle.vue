@@ -5,7 +5,7 @@ import { FilterMatchMode, FilterOperator } from "primevue/api";
 import { encr } from "../../../util/function.js";
 import moment from "moment";
 import dialogReward from "./component/dialog_reward.vue";
-import DropdownUser from "../component/DropdownUser.vue";
+import DropdownUser from "../component/DropdownUsers.vue";
 import router from "@/router";
 //Khai báo
 const emitter = inject("emitter");
@@ -80,93 +80,89 @@ const reward = ref({
 });
 //Lấy dữ liệu reward
 const loadData = (rf) => {
- 
-    if (isDynamicSQL.value) {
-      loadDataSQL();
-      return false;
+  if (isDynamicSQL.value) {
+    loadDataSQL();
+    return false;
+  }
+  if (rf) {
+    if (options.value.PageNo == 0) {
+      loadCount();
     }
-    if (rf) {
-      if (options.value.PageNo == 0) {
-        loadCount();
-      }
-    }
-    axios
-      .post(
-        baseURL + "/api/hrm_ca_SQL/getData",
-        {
-          str: encr(
-            JSON.stringify({
-              proc: "hrm_reward_list",
-              par: [
-                { par: "pageno", va: options.value.PageNo },
-                { par: "pagesize", va: options.value.PageSize },
-                { par: "user_id", va: store.getters.user.user_id },
-                { par: "reward_type", va: options.value.tab },
-              ],
-            }),
-            SecretKey,
-            cryoptojs
-          ).toString(),
-        },
-        config
-      )
-      .then((response) => {
-        let data = JSON.parse(response.data.data)[0];
-        if (isFirst.value) isFirst.value = false;
-        data.forEach((element, i) => {
-          element.STT = options.value.PageNo * options.value.PageSize + i + 1;
+  }
+  axios
+    .post(
+      baseURL + "/api/hrm_ca_SQL/getData",
+      {
+        str: encr(
+          JSON.stringify({
+            proc: "hrm_reward_list",
+            par: [
+              { par: "pageno", va: options.value.PageNo },
+              { par: "pagesize", va: options.value.PageSize },
+              { par: "user_id", va: store.getters.user.user_id },
+              { par: "reward_type", va: options.value.tab },
+            ],
+          }),
+          SecretKey,
+          cryoptojs
+        ).toString(),
+      },
+      config
+    )
+    .then((response) => {
+      let data = JSON.parse(response.data.data)[0];
+      if (isFirst.value) isFirst.value = false;
+      data.forEach((element, i) => {
+        element.STT = options.value.PageNo * options.value.PageSize + i + 1;
 
-          if (element.listRewards) {
-            element.listRewards = JSON.parse(element.listRewards);
-            if (element.reward_type == 1 || element.reward_type == 3) {
-              element.listRewards.forEach((item) => {
-                if (!item.position_name) {
-                  item.position_name = "";
-                } else {
-                  item.position_name =
-                    " </br> <span class='text-sm'>" +
-                    item.position_name +
-                    "</span>";
-                }
-                if (!item.department_name) {
-                  item.department_name = "";
-                } else {
-                  item.department_name =
-                    " </br> <span class='text-sm'>" +
-                    item.department_name +
-                    "</span>";
-                }
-              });
-            }
+        if (element.listRewards) {
+          element.listRewards = JSON.parse(element.listRewards);
+          if (element.reward_type == 1 || element.reward_type == 3) {
+            element.listRewards.forEach((item) => {
+              if (!item.position_name) {
+                item.position_name = "";
+              } else {
+                item.position_name =
+                  " </br> <span class='text-sm'>" +
+                  item.position_name +
+                  "</span>";
+              }
+              if (!item.department_name) {
+                item.department_name = "";
+              } else {
+                item.department_name =
+                  " </br> <span class='text-sm'>" +
+                  item.department_name +
+                  "</span>";
+              }
+            });
           }
-          if (!element.position_name) {
-            element.position_name = "";
-          } else {
-            element.position_name =
-              " </br> <span class='text-sm'>" +
-              element.position_name +
-              "</span>";
-          }
-          if (!element.department_name) {
-            element.department_name = "";
-          } else {
-            element.department_name =
-              " </br> <span class='text-sm'>" +
-              element.department_name +
-              "</span>";
-          }
-        });
-
-        datalists.value = data;
-
-        options.value.loading = false;
-      })
-      .catch((error) => {
-        console.log(error);
-        toast.error("Tải dữ liệu không thành công!");
-        options.value.loading = false;
+        }
+        if (!element.position_name) {
+          element.position_name = "";
+        } else {
+          element.position_name =
+            " </br> <span class='text-sm'>" + element.position_name + "</span>";
+        }
+        if (!element.department_name) {
+          element.department_name = "";
+        } else {
+          element.department_name =
+            " </br> <span class='text-sm'>" +
+            element.department_name +
+            "</span>";
+        }
       });
- 
+
+      datalists.value = data;
+
+      options.value.loading = false;
+    })
+    .catch((error) => {
+      console.log(error);
+      toast.error("Tải dữ liệu không thành công!");
+      options.value.loading = false;
+    });
 };
 //Phân trang dữ liệu
 const onPage = (event) => {
@@ -217,7 +213,7 @@ const options = ref({
   totalRecords3: 0,
   totalRecordsExport: 50,
   pagenoExport: 1,
-  reward_name:[]
+  reward_name: [],
 });
 
 //Hiển thị dialog
@@ -346,27 +342,24 @@ const checkLoadCount = ref(true);
 const loadDataSQL = () => {
   datalists.value = [];
 
-
-  if (options.value.tab==0) {
+  if (options.value.tab == 0) {
     let filterS1 = {
-      filterconstraints: [{ value: 1, matchMode: "equals" },{ value: 2, matchMode: "equals" }],
+      filterconstraints: [
+        { value: 1, matchMode: "equals" },
+        { value: 2, matchMode: "equals" },
+      ],
       filteroperator: "or",
       key: "reward_type",
     };
-      filterSQL.value.push(filterS1);
-  }
-  else{
+    filterSQL.value.push(filterS1);
+  } else {
     let filterS1 = {
       filterconstraints: [{ value: 3, matchMode: "equals" }],
       filteroperator: "and",
       key: "reward_type",
     };
-      filterSQL.value.push(filterS1);
-
+    filterSQL.value.push(filterS1);
   }
-
-
-
 
   let data = {
     id: "reward_id",
@@ -412,21 +405,21 @@ const loadDataSQL = () => {
               });
             }
             if (!element.position_name) {
-            element.position_name = "";
-          } else {
-            element.position_name =
-              " </br> <span class='text-sm'>" +
-              element.position_name +
-              "</span>";
-          }
-          if (!element.department_name) {
-            element.department_name = "";
-          } else {
-            element.department_name =
-              " </br> <span class='text-sm'>" +
-              element.department_name +
-              "</span>";
-          }
+              element.position_name = "";
+            } else {
+              element.position_name =
+                " </br> <span class='text-sm'>" +
+                element.position_name +
+                "</span>";
+            }
+            if (!element.department_name) {
+              element.department_name = "";
+            } else {
+              element.department_name =
+                " </br> <span class='text-sm'>" +
+                element.department_name +
+                "</span>";
+            }
           }
         });
 
@@ -618,92 +611,93 @@ const toggleExport = (event) => {
   menuButs.value.toggle(event);
 };
 const exportData = (method) => {
-  
   swal.fire({
     width: 110,
     didOpen: () => {
       swal.showLoading();
     },
   });
- 
-    axios
-      .post(
-        baseURL + "/api/Excel/ExportExcelWithLogo",
-        {
-          excelname: options.value.tab==0?"DANH SÁCH KHEN THƯỞNG":"DANH SÁCH KỶ LUẬT",
-          proc: "hrm_reward_export",
-          par: [
-            { par: "user_id", va: store.state.user.user_id },
-            { par: "search", va: options.value.SearchText },
-            {
-              par: "reward_name",
-              va: options.value.reward_name
-                ? options.value.reward_name.toString()
-                : null,
-            },
-            {
-              par: "reward_level_id",
-              va: options.value.reward_level_id
-                ? options.value.reward_level_id.toString()
-                : null,
-            },
-            {
-              par: "reward_title_id",
-              va: options.value.reward_title_id
-                ? options.value.reward_title_id.toString()
-                : null,
-            },
-            { par: "reward_type", va: options.value.tab  },
-            { par: "start_date", va:   options.value.start_dateI},
-            { par: "end_date", va:options.value.end_dateI },
-        
-            { par: "sort", va: options.value.sort },
-            { par: "pageno", va: options.value.pagenoExport - 1 },
-            { par: "pagesize", va: options.value.totalRecordsExport },
-          ],
-        },
-        config
-      )
-      .then((response) => {
+
+  axios
+    .post(
+      baseURL + "/api/Excel/ExportExcelWithLogo",
+      {
+        excelname:
+          options.value.tab == 0
+            ? "DANH SÁCH KHEN THƯỞNG"
+            : "DANH SÁCH KỶ LUẬT",
+        proc: "hrm_reward_export",
+        par: [
+          { par: "user_id", va: store.state.user.user_id },
+          { par: "search", va: options.value.SearchText },
+          {
+            par: "reward_name",
+            va: options.value.reward_name
+              ? options.value.reward_name.toString()
+              : null,
+          },
+          {
+            par: "reward_level_id",
+            va: options.value.reward_level_id
+              ? options.value.reward_level_id.toString()
+              : null,
+          },
+          {
+            par: "reward_title_id",
+            va: options.value.reward_title_id
+              ? options.value.reward_title_id.toString()
+              : null,
+          },
+          { par: "reward_type", va: options.value.tab },
+          { par: "start_date", va: options.value.start_dateI },
+          { par: "end_date", va: options.value.end_dateI },
+
+          { par: "sort", va: options.value.sort },
+          { par: "pageno", va: options.value.pagenoExport - 1 },
+          { par: "pagesize", va: options.value.totalRecordsExport },
+        ],
+      },
+      config
+    )
+    .then((response) => {
+      swal.close();
+      if (response.data.err != "1") {
         swal.close();
-        if (response.data.err != "1") {
-          swal.close();
 
-          toast.success("Kết xuất Data thành công!");
+        toast.success("Kết xuất Data thành công!");
 
-          if (response.data.path != null) {
-            let pathReplace = response.data.path
-              .replace(/\\+/g, "/")
-              .replace(/\/+/g, "/")
-              .replace(/^\//g, "");
-            var listPath = pathReplace.split("/");
-            var pathFile = "";
-            listPath.forEach((item) => {
-              if (item.trim() != "") {
-                pathFile += "/" + item;
-              }
-            });
-            window.open(baseURL + pathFile);
-          }
-        } else {
-          swal.fire({
-            title: "Error!",
-            text: response.data.ms,
-            icon: "error",
-            confirmButtonText: "OK",
+        if (response.data.path != null) {
+          let pathReplace = response.data.path
+            .replace(/\\+/g, "/")
+            .replace(/\/+/g, "/")
+            .replace(/^\//g, "");
+          var listPath = pathReplace.split("/");
+          var pathFile = "";
+          listPath.forEach((item) => {
+            if (item.trim() != "") {
+              pathFile += "/" + item;
+            }
           });
+          window.open(baseURL + pathFile);
         }
-      })
-      .catch((error) => {
-        if (error.status === 401) {
-          swal.fire({
-            text: "Mã token đã hết hạn hoặc không hợp lệ, vui lòng đăng nhập lại!",
-            confirmButtonText: "OK",
-          });
-          store.commit("gologout");
-        }
-      });
- 
+      } else {
+        swal.fire({
+          title: "Error!",
+          text: response.data.ms,
+          icon: "error",
+          confirmButtonText: "OK",
+        });
+      }
+    })
+    .catch((error) => {
+      if (error.status === 401) {
+        swal.fire({
+          text: "Mã token đã hết hạn hoặc không hợp lệ, vui lòng đăng nhập lại!",
+          confirmButtonText: "OK",
+        });
+        store.commit("gologout");
+      }
+    });
 };
 
 const activeTab = (tab) => {
@@ -835,14 +829,13 @@ const goProfile = (profile) => {
 };
 //Filter
 const reFilter = () => {
-  
   options.value.reward_level_id = null;
- 
+
   options.value.start_dateI = null;
   options.value.end_dateI = null;
- 
+
   options.value.reward_title_id = null;
- 
+
   checkLoadCount.value = true;
   isDynamicSQL.value = false;
   checkFilter.value = false;
@@ -854,20 +847,24 @@ const reFilterEmail = () => {
   op.value.hide();
   loadData(true);
 };
- 
+
 const filterFileds = () => {
   filterSQL.value = [];
   checkFilter.value = true;
 
-  if (options.value.reward_name.length>0) {
+  if (options.value.reward_name.length > 0) {
     let filterS1 = {
-      filterconstraints: [ { value: options.value.reward_name.toString(), matchMode: "arrIntersec" }],
+      filterconstraints: [
+        {
+          value: options.value.reward_name.toString(),
+          matchMode: "arrIntersec",
+        },
+      ],
       filteroperator: "or",
       key: "reward_name",
     };
-     
-      filterSQL.value.push(filterS1);
-  
+
+    filterSQL.value.push(filterS1);
   }
   if (options.value.reward_level_id) {
     let filterS1 = {
@@ -966,8 +963,6 @@ const onDayClick = () => {
       filterSQL.value.push(filterS2);
     }
   }
-
-   
 };
 watch(selectedStamps, () => {
   if (selectedStamps.value.length > 0) {
@@ -1131,19 +1126,18 @@ const loadUserProfiles = () => {
       }
     });
 };
-  emitter.on("emitData", (obj) => {
-    switch (obj.type) {
-      case "submitModel":
-        if (obj.data) {
-           
-         options.value.reward_name=obj.data;
- 
-        }
-        break;
-     
-      default: break;
-    }
-  });
+emitter.on("emitData", (obj) => {
+  switch (obj.type) {
+    case "submitModel":
+      if (obj.data) {
+        options.value.reward_name = obj.data;
+      }
+      break;
+
+    default:
+      break;
+  }
+});
 onMounted(() => {
   loadUserProfiles();
   initTudien();
@@ -1189,12 +1183,11 @@ onMounted(() => {
               <Button
                 @click="toggle"
                 type="button"
-                class="ml-2 "
+                class="ml-2"
                 aria:haspopup="true"
                 aria-controls="overlay_panel"
                 :class="
-            checkFilter 
-                    ? '': 'p-button-secondary p-button-outlined'
+                  checkFilter ? '' : 'p-button-secondary p-button-outlined'
                 "
               >
                 <div>
@@ -1223,20 +1216,23 @@ onMounted(() => {
                   >
                     <div class="flex">
                       <div class="col-12 md:col-12">
-                        
-                        <div class="row" >
+                        <div class="row">
                           <div class="col-12 md:col-12">
-                            <div class="py-2"  >Đối tượng khen thưởng</div>
-                            <DropdownUser  :model="options.reward_name"
-                            
-                            :display="'chip'"
-                            :placeholder="'Chọn đối tượng khen thưởng'"/>
+                            <div class="py-2">Đối tượng khen thưởng</div>
+                            <DropdownUser
+                              :model="options.reward_name"
+                              :display="'chip'"
+                              :placeholder="'Chọn đối tượng khen thưởng'"
+                            />
                           </div>
                           <div class="col-12 md:col-12">
-                            <div class="py-2" v-if="options.tab == 0">Cấp khen thưởng</div>
-                            <div class="py-2"   v-if="options.tab == 1">Cấp kỷ luật</div>
+                            <div class="py-2" v-if="options.tab == 0">
+                              Cấp khen thưởng
+                            </div>
+                            <div class="py-2" v-if="options.tab == 1">
+                              Cấp kỷ luật
+                            </div>
 
-                          
                             <MultiSelect
                               :options="listRewardLevels"
                               :filter="true"
@@ -1254,9 +1250,12 @@ onMounted(() => {
                             </MultiSelect>
                           </div>
                           <div class="col-12 md:col-12">
-                     
-                            <div class="py-2" v-if="options.tab == 0">Hình thức khen thưởng</div>
-                            <div class="py-2"   v-if="options.tab == 1">Hình thức kỷ luật</div>
+                            <div class="py-2" v-if="options.tab == 0">
+                              Hình thức khen thưởng
+                            </div>
+                            <div class="py-2" v-if="options.tab == 1">
+                              Hình thức kỷ luật
+                            </div>
                             <MultiSelect
                               :options="listRewardTitles"
                               :filter="false"
@@ -1269,12 +1268,12 @@ onMounted(() => {
                               placeholder="Chọn hình thức"
                               class="w-full limit-width"
                               style="min-height: 36px"
-                              panelClass="d-design-dropdown" 
+                              panelClass="d-design-dropdown"
                             >
                             </MultiSelect>
                           </div>
                         </div>
- 
+
                         <div class="row">
                           <div class="col-12 md:col-12">
                             <div class="py-2">Ngày quyết định</div>
@@ -1285,7 +1284,8 @@ onMounted(() => {
                                     :showIcon="true"
                                     class="ip36"
                                     autocomplete="on"
-                                    inputId="time24" :showOnFocus="false"
+                                    inputId="time24"
+                                    :showOnFocus="false"
                                     v-model="options.start_dateI"
                                     placeholder="Từ ngày"
                                   />
@@ -1297,7 +1297,8 @@ onMounted(() => {
                                     :showIcon="true"
                                     class="ip36"
                                     autocomplete="on"
-                                    inputId="time24" :showOnFocus="false"
+                                    inputId="time24"
+                                    :showOnFocus="false"
                                     v-model="options.end_dateI"
                                     placeholder="Đến ngày"
                                   />
@@ -1309,7 +1310,7 @@ onMounted(() => {
                       </div>
                     </div>
                   </div>
-                  <div class="col-12 md:col-12  ">
+                  <div class="col-12 md:col-12">
                     <Toolbar
                       class="border-none surface-0 outline-none px-0 pb-0 w-full"
                     >
@@ -1430,7 +1431,8 @@ onMounted(() => {
               class="align-items-center justify-content-center text-center overflow-hidden"
               headerStyle="text-align:center;max-width:50px;height:50px"
               bodyStyle="text-align:center;max-width:50px"
-               selectionMode="multiple"  v-if="store.getters.user.is_super==true"
+              selectionMode="multiple"
+              v-if="store.getters.user.is_super == true"
             >
             </Column>
             <Column
@@ -1450,7 +1452,6 @@ onMounted(() => {
             >
             </Column>
             <Column
-              
               header="Loại"
               headerStyle="text-align:center;max-width:150px;height:50px"
               bodyStyle="text-align:center;max-width:150px;overflow:hidden"
@@ -1474,7 +1475,6 @@ onMounted(() => {
                   v-if="
                     data.data.reward_type == 1 || data.data.reward_type == 3
                   "
-                
                 >
                   <AvatarGroup>
                     <Avatar
@@ -1635,7 +1635,7 @@ onMounted(() => {
               header=""
               headerStyle="text-align:center;max-width:50px"
               bodyStyle="text-align:center;max-width:50px"
-              class="align-items-center justify-content-center text-center  "
+              class="align-items-center justify-content-center text-center"
             >
               <template #body="slotProps">
                 <Button

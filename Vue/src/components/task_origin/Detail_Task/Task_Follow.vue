@@ -7,14 +7,12 @@ import moment from "moment";
 import TaskFollowDetailVue from "./follow/TaskFollowDetail.vue";
 import DetailedWork from "../DetailedWork.vue";
 import useVuelidate from "@vuelidate/core";
-
 const cryoptojs = inject("cryptojs");
 const emitter = inject("emitter");
 const axios = inject("axios");
 const store = inject("store");
 const toast = useToast();
 const swal = inject("$swal");
-
 // eslint-disable-next-line no-undef
 const basedomainURL = baseURL;
 const config = {
@@ -219,8 +217,7 @@ const saveData = (isFormValid) => {
       });
     });
 };
-const isIndex = ref();
-const filterFollow = ref();
+
 const loadData = () => {
   swal.fire({
     width: 110,
@@ -246,7 +243,7 @@ const loadData = () => {
     .then((response) => {
       datalists.value = [];
       let data = JSON.parse(response.data.data)[0];
-      if (data.length > 0)
+      if (data.length > 0) {
         data.forEach((x) => {
           let type = listDrdType.value.filter((xz) => xz.value == x.type)[0];
           x.type_display = {};
@@ -305,14 +302,14 @@ const loadData = () => {
             x.task_follow_step = [];
           }
         });
-      datalists.value = data;
-      swal.close();
-      let filter = data.filter((x) => x.status == 1);
-      if (filter.length > 0) {
-        let e = { data: filter[0] };
-        selectedProduct.value = e.data;
-        rowSelected(e);
+        datalists.value = data;
+        if (datalists.value.length > 0) {
+          expandAll(datalists.value);
+        }
+      } else {
+        datalists.value = [];
       }
+      swal.close();
     })
     .catch((error) => {
       options.value.loading = false;
@@ -324,6 +321,24 @@ const loadData = () => {
         store.commit("gologout");
       }
     });
+};
+const indexSelected = ref();
+const expandAll = (e) => {
+  let dataFilter = e.filter((x) => x.status == 1)[0];
+  if (dataFilter != null) {
+    let add = [];
+    if (dataFilter.task_follow_step.length > 0) {
+      console.log(dataFilter.task_follow_step);
+      let findIndex = dataFilter.task_follow_step.findIndex((x) => {
+        return x.status === 1;
+      });
+      if (findIndex >= 0) {
+        indexSelected.value = findIndex;
+      } else indexSelected.value = null;
+    }
+    add.push(dataFilter);
+    expandedRows.value = add;
+  }
 };
 const round = ref();
 const componentKey = ref(0);
@@ -776,15 +791,7 @@ emitter.on("SideBar1", () => {
 emitter.on("psb", (obj) => {
   PositionSideBar.value = obj;
 });
-const taskInStep = ref([]);
-const taskInStep_step_name = ref();
-const typeDoTask = ref();
-const ChangeStep = (data, index) => {
-  isIndex.value = index;
-  taskInStep.value = data.task_info;
-  taskInStep_step_name.value = data.step_name;
-  typeDoTask.value = data.type;
-};
+
 onBeforeMount(() => {
   loadData();
 });
@@ -813,39 +820,16 @@ onMounted(() => {
     TypeMember.value = 4;
   }
 });
-const selectedProduct = ref();
-const rowSelected = (e) => {
-  filterFollow.value = null;
-  taskInStep_step_name.value = null;
-  taskInStep.value = [];
-
-  ////////////////////*************************
-  filterFollow.value = e.data;
-  isIndex.value = null;
-  if (filterFollow.value.task_follow_step.length > 0) {
-    isIndex.value = 0;
-    taskInStep_step_name.value =
-      filterFollow.value.task_follow_step[0].step_name;
-    taskInStep.value = filterFollow.value.task_follow_step[0].task_info;
-    typeDoTask.value = e.data.task_follow_step[0].type;
-  }
-};
+const expandedRows = ref([]);
 </script>
 <template>
   <div class="h-custom">
-    <!-- {{ selectedProduct }} -->
     <DataTable
-      class="pb-2"
-      style="height: 40vh"
       :value="datalists"
       scrollable
       scrollHeight="flex"
-      v-model:selection="selectedProduct"
-      selectionMode="single"
       dataKey="follow_id"
-      :metaKeySelection="false"
-      @row-select="rowSelected"
-      @row-unselect="rowUnslected"
+      v-model:expandedRows="expandedRows"
     >
       <Toolbar class="w-full custoolbar">
         <template #end>
@@ -860,7 +844,10 @@ const rowSelected = (e) => {
           ></Button>
         </template>
       </Toolbar>
-
+      <Column
+        expander
+        class="max-w-3rem"
+      />
       <Column
         header="Tên quy trình"
         field="follow_name"
@@ -899,7 +886,7 @@ const rowSelected = (e) => {
       >
         <template #body="data">
           <div
-            class="w-full justify-content-center align-items-center text-center max-w-10rem"
+            class="w-full justify-content-center align-items-center text-center max-w-8rem"
           >
             <div>
               {{ data.data.countTaskFinished }} / {{ data.data.countTask }}
@@ -946,10 +933,21 @@ const rowSelected = (e) => {
       <Column
         header="Chức năng"
         field=""
-        class="justify-content-center align-items-center max-w-10rem"
+        class="justify-content-center align-items-center max-w-12rem"
       >
         <template #body="data">
           <div class="flex">
+            <Button
+              class="p-button-rounded p-button-secondary p-button-outlined mx-1"
+              icon="pi pi-plus"
+              v-tooltip="'Thêm bước'"
+              v-if="
+                (user.is_admin == true || TypeMember == 0) &&
+                data.data != null &&
+                props.isClose != true
+              "
+              @click="openStepDialog(data.data)"
+            ></Button>
             <Button
               class="p-button-rounded p-button-secondary p-button-outlined mx-1"
               type="button"
@@ -995,190 +993,69 @@ const rowSelected = (e) => {
           <h3 class="m-1">Không có dữ liệu</h3>
         </div>
       </template>
-    </DataTable>
-
-    <div
-      class="pt-2 overflow-y-auto h-50 border-top-1 border-gray-400"
-      style="height: 52vh"
-      v-if="filterFollow != null"
-    >
-      <div>
-        <div class="col-12 p-0 pt-2 flex align-items-center">
-          <div class="col-10 p-0 flex align-items-center">
-            <span
-              >Các bước thực hiện của quy trình:
-              <b>{{ filterFollow.follow_name }}</b></span
-            >
-          </div>
-          <div class="col p-0 flex align-items-center">
-            <Button
-              class="mx-1"
-              icon="pi pi-plus"
-              v-tooltip="'Thêm bước'"
-              v-if="
-                (user.is_admin == true || TypeMember == 0) &&
-                filterFollow != null &&
-                props.isClose != true
-              "
-              @click="openStepDialog(filterFollow)"
-            ></Button>
-            <Button
-              class="mx-1"
-              icon="pi pi-pencil"
-              v-tooltip="'Sửa bước đang chọn'"
-              v-if="
-                (user.is_admin == true || TypeMember == 0) &&
-                isIndex != null &&
-                props.isClose != true
-              "
-              @click="
-                openEditStepDialog(
-                  filterFollow.task_follow_step[isIndex],
-                  filterFollow,
-                )
-              "
-            ></Button>
-            <Button
-              class="mx-1 p-button-danger"
-              icon="pi pi-trash"
-              v-tooltip="'Xóa bước đang chọn'"
-              v-if="
-                (user.is_admin == true || TypeMember == 0) &&
-                isIndex != null &&
-                props.isClose != true
-              "
-              @click="DeleteStep(filterFollow.task_follow_step[isIndex], true)"
-            ></Button>
-          </div>
-        </div>
-        <div v-if="filterFollow.task_follow_step.length > 0">
-          <div class="multi-step numbered">
-            <ul class="multi-step-list">
-              <li
-                class="multi-step-item active"
-                v-for="(item, index) in filterFollow.task_follow_step"
-                :key="index"
-                :class="[{ current: index == isIndex }]"
-                @click="ChangeStep(item, index)"
-              >
-                <div
-                  class="item-wrap flex align-items-center justify-content-center"
+      <template #expansion="slotProps">
+        <div>
+          <div v-if="slotProps.data.task_follow_step.length > 0">
+            <div class="multi-step numbered">
+              <div class="buttonfunc">
+                <Button
+                  class="mx-1"
+                  icon="pi pi-plus"
+                  v-tooltip="'Thêm bước'"
+                  v-if="
+                    (user.is_admin == true || TypeMember == 0) &&
+                    slotProps.data != null &&
+                    props.isClose != true
+                  "
+                  @click="openStepDialog(slotProps.data)"
+                ></Button>
+                <Button
+                  class="mx-1"
+                  icon="pi pi-pencil"
+                  v-tooltip="'Sửa bước đang chọn'"
+                  v-if="
+                    (user.is_admin == true || TypeMember == 0) &&
+                    indexSelected != null &&
+                    props.isClose != true
+                  "
+                  @click="
+                    openEditStepDialog(
+                      slotProps.data.task_follow_step[indexSelected],
+                      slotProps.data,
+                    )
+                  "
+                ></Button>
+                <Button
+                  class="mx-1 p-button-danger"
+                  icon="pi pi-trash"
+                  v-tooltip="'Xóa bước đang chọn'"
+                  v-if="
+                    (user.is_admin == true || TypeMember == 0) &&
+                    indexSelected != null &&
+                    props.isClose != true
+                  "
+                  @click="
+                    DeleteStep(
+                      slotProps.data.task_follow_step[indexSelected],
+                      true,
+                    )
+                  "
+                ></Button>
+              </div>
+              <ul class="multi-step-list">
+                <li
+                  class="multi-step-item active"
+                  v-for="(item, index) in slotProps.data.task_follow_step"
+                  :key="index"
+                  :class="[{ current: index == indexSelected }]"
                 >
-                  <p class="item-title text-center">{{ item.step_name }}</p>
-                </div>
-              </li>
-            </ul>
-          </div>
-        </div>
-        <div
-          v-else
-          class="top-50 block row col-12 align-items-center justify-content-center p-4 text-center"
-        >
-          <img
-            src="../../../assets/background/nodata.png"
-            height="144"
-          />
-          <h3 class="m-1">Quy trình chưa có các bước thực hiện!</h3>
-        </div>
-        <div v-if="filterFollow.task_follow_step.length > 0">
-          <div>
-            Công việc thuộc bước: <b>{{ taskInStep_step_name }}</b>
-          </div>
-          <div
-            style="height: 33vh; overflow: auto"
-            v-if="taskInStep.length > 0"
-          >
-            <div
-              class="m-2 grid align-items-center justify-content-center flex-column"
-              v-for="(item2, index) in taskInStep"
-              :key="index"
-            >
-              <Card
-                class="bg-bluegray-50 w-30rem"
-                @click="onNodeSelect(item2.task_id)"
-              >
-                <template #header>
                   <div
-                    class="w-full align-items-center justify-content-center flex"
+                    class="item-wrap flex align-items-center justify-content-center"
                   >
-                    <span
-                      class="bg-white flex w-2rem h-2rem align-items-center justify-content-center text-center border-circle z-1 shadow-1 text-2xl font-bold text-blue-500"
-                    >
-                      {{ item2.step }}
-                    </span>
-                  </div></template
-                >
-                <template #title>
-                  <span class="font-bold text-xl">
-                    Công việc:
-                    <span class="text-blue-700"> {{ item2.task_name }}</span>
-                  </span>
-                </template>
-                <template #subtitle>
-                  <div class="flex justify-content-center align-items-center">
-                    <span
-                      v-if="item2.start_date || item2.end_date"
-                      style="color: #98a9bc"
-                    >
-                      <i
-                        style="margin-right: 5px"
-                        class="pi pi-calendar"
-                      >
-                      </i>
-                      {{
-                        item2.start_date
-                          ? moment(new Date(item2.start_date)).format(
-                              "DD/MM/YYYY",
-                            )
-                          : null
-                      }}
-                      -
-                      {{
-                        item2.end_date
-                          ? moment(new Date(item2.end_date)).format(
-                              "DD/MM/YYYY",
-                            )
-                          : null
-                      }}
-                    </span>
+                    <p class="item-title text-center">{{ item.step_name }}</p>
                   </div>
-                </template>
-                <template #content>
-                  <div
-                    class="w-50 flex justify-content-center align-items-center"
-                  >
-                    <span
-                      class=""
-                      :style="{
-                        background: item2.status_display.bg_color,
-                        color: item2.status_display.text_color,
-                        padding: '2px 8px',
-                        border: '1px solid' + item2.status_display.bg_color,
-                        borderRadius: '5px',
-                      }"
-                    >
-                      {{ item2.status_display.text }}
-                    </span>
-                  </div>
-                </template>
-                <template #footer>
-                  <div
-                    v-if="item2.progress != 0"
-                    style="width: 100%"
-                  >
-                    <ProgressBar :value="item2.progress ?? 0" /></div
-                ></template>
-              </Card>
-              <icon
-                v-tooltip="'Tuần tự'"
-                class="py-2 pi pi-arrow-down font-bold text-2xl flex justify-content-center"
-                v-if="typeDoTask == 1 && index < taskInStep.length - 1"
-              ></icon>
-              <icon
-                class="py-2 pi pi-sort-alt font-bold text-2xl flex justify-content-center"
-                v-tooltip="'Song song'"
-                v-if="typeDoTask == 2 && index < taskInStep.length - 1"
-              ></icon>
+                </li>
+              </ul>
             </div>
           </div>
           <div
@@ -1189,22 +1066,129 @@ const rowSelected = (e) => {
               src="../../../assets/background/nodata.png"
               height="144"
             />
-            <h3 class="m-1">Chưa có công việc được giao!</h3>
+            <h3 class="m-1">Quy trình chưa có các bước thực hiện!</h3>
+          </div>
+          <div v-if="slotProps.data.task_follow_step.length > 0">
+            <div
+              v-if="
+                slotProps.data.task_follow_step[indexSelected].task_info
+                  .length > 0
+              "
+            >
+              <div
+                class="m-2 grid align-items-center justify-content-center flex-column"
+                v-for="(item2, index2) in slotProps.data.task_follow_step[
+                  indexSelected
+                ].task_info"
+                :key="index2"
+              >
+                <Card
+                  class="bg-bluegray-50 w-30rem card-hover"
+                  @click="onNodeSelect(item2.task_id)"
+                >
+                  <template #title>
+                    <span class="font-bold text-xl">
+                      Công việc:
+                      <span class="text-blue-700"> {{ item2.task_name }}</span>
+                    </span>
+                  </template>
+                  <template #subtitle>
+                    <div class="flex justify-content-center align-items-center">
+                      <span
+                        v-if="item2.start_date || item2.end_date"
+                        style="color: #98a9bc"
+                      >
+                        <i
+                          style="margin-right: 5px"
+                          class="pi pi-calendar"
+                        >
+                        </i>
+                        {{
+                          item2.start_date
+                            ? moment(new Date(item2.start_date)).format(
+                                "DD/MM/YYYY",
+                              )
+                            : null
+                        }}
+                        -
+                        {{
+                          item2.end_date
+                            ? moment(new Date(item2.end_date)).format(
+                                "DD/MM/YYYY",
+                              )
+                            : null
+                        }}
+                      </span>
+                    </div>
+                  </template>
+                  <template #content>
+                    <div
+                      class="w-50 flex justify-content-center align-items-center"
+                    >
+                      <span
+                        class=""
+                        :style="{
+                          background: item2.status_display.bg_color,
+                          color: item2.status_display.text_color,
+                          padding: '2px 8px',
+                          border: '1px solid' + item2.status_display.bg_color,
+                          borderRadius: '5px',
+                        }"
+                      >
+                        {{ item2.status_display.text }}
+                      </span>
+                    </div>
+                  </template>
+                  <template #footer>
+                    <div
+                      v-if="item2.progress != 0"
+                      style="width: 100%"
+                    >
+                      <ProgressBar :value="item2.progress ?? 0" /></div
+                  ></template>
+                </Card>
+
+                <icon
+                  v-tooltip="'Tuần tự'"
+                  class="py-2 pi pi-arrow-down font-bold text-2xl flex justify-content-center"
+                  v-if="
+                    slotProps.data.task_follow_step[indexSelected].status ==
+                      1 &&
+                    index2 <
+                      slotProps.data.task_follow_step[indexSelected].task_info
+                        .length -
+                        1
+                  "
+                ></icon>
+                <icon
+                  class="py-2 pi pi-sort-alt font-bold text-2xl flex justify-content-center"
+                  v-tooltip="'Song song'"
+                  v-if="
+                    slotProps.data.task_follow_step[indexSelected].status ==
+                      2 &&
+                    index2 <
+                      slotProps.data.task_follow_step[indexSelected].task_info
+                        .length -
+                        1
+                  "
+                >
+                </icon>
+              </div>
+            </div>
+            <div
+              v-else
+              class="top-50 block row col-12 align-items-center justify-content-center p-4 text-center"
+            >
+              <img
+                src="../../../assets/background/nodata.png"
+                height="144"
+              />
+              <h3 class="m-1">Chưa có công việc được giao!</h3>
+            </div>
           </div>
         </div>
-      </div>
-    </div>
-    <div
-      v-else
-      style="height: 52vh"
-      class="top-50 block row col-12 align-items-center justify-content-center p-4 text-center"
-    >
-      <img
-        src="../../../assets/background/nodata.png"
-        height="144"
-      />
-      <h3 class="m-1">Không có quy trình đang thực hiện!</h3>
-    </div>
+      </template>
+    </DataTable>
   </div>
 
   <TaskFollowDetailVue
@@ -1894,6 +1878,10 @@ $base-padding: 1em;
 $base-border-radius: 0.2em;
 $screen-xs-max: 786px;
 
+$screen-qHD: 2048px;
+$screen-fHD: 1920px;
+$screen-HD: 1366px;
+
 $text-color: #263238;
 $text-color-inverted: #fff;
 $clickable-hover: #d8f1ff;
@@ -1911,14 +1899,10 @@ $icon-success: "✓";
 
 $animation-time: 0.5s;
 
-// Multi-step code
-
 .multi-step {
-  /*margin: ($base-margin / 2) 0;*/
   margin: 0;
 }
 
-// Setting up flexbox for list
 .multi-step-list {
   position: relative;
   display: flex;
@@ -1926,9 +1910,18 @@ $animation-time: 0.5s;
   justify-content: flex-start;
   list-style-type: none;
   padding: 10px 10px 10px 10px;
-  padding: 0 auto;
   overflow: auto;
   background: #efefef;
+
+  @media only screen and (max-width: $screen-qHD) {
+    max-width: 46.9vw;
+  }
+  @media only screen and (max-width: $screen-fHD) {
+    max-width: 46.9vw;
+  }
+  @media only screen and (max-width: $screen-HD) {
+    max-width: 53.9vw;
+  }
   .multi-step-item:first-child {
     margin-left: 0;
   }
@@ -1965,6 +1958,9 @@ $animation-time: 0.5s;
     font-weight: 600;
     margin: 0;
     white-space: nowrap;
+    max-width: 10rem;
+    overflow: hidden;
+    text-overflow: ellipsis;
   }
 
   // Different step states [ active, current, completed, error]
@@ -1989,9 +1985,15 @@ $animation-time: 0.5s;
     content: $icon-danger;
     color: $brand-danger;
   }
+  :hover .item-title {
+    color: $brand-primary;
+    font-weight: 600;
+    margin: 0;
+    white-space: nowrap;
+    max-width: max-content;
+  }
 }
 
-// Creates the 'arrow' effect / background colors
 .item-wrap {
   padding: $base-padding;
   position: relative;
@@ -2173,5 +2175,26 @@ $animation-time: 0.5s;
 }
 ::-webkit-scrollbar-thumb {
   background-color: #fff;
+}
+.p-card :hover {
+  background: #c5e5ff !important;
+}
+.buttonfunc {
+  position: absolute;
+  right: 0px;
+  max-width: 12rem;
+  z-index: 100;
+  display: none;
+  padding: 0 0.5rem 0 0;
+}
+.multi-step {
+  .multi-step-list {
+    padding-top: 3rem;
+  }
+}
+.multi-step:hover {
+  .buttonfunc {
+    display: unset;
+  }
 }
 </style>
