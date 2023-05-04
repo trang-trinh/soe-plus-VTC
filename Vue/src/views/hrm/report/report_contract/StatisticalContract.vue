@@ -463,9 +463,9 @@ onMounted(() => {
         <table cellspacing=0 id="table-bc" class="table table-condensed table-hover tbpad" style="width: max-content;">
         <thead style="position: sticky; z-index: 6; top:0">
             <tr>
-                <th class="text-center" rowspan="2" width="50">STT</th>
-                <th class="text-center" rowspan="2" width="100">Mã nhân sự</th>
-                <th class="text-center" rowspan="2" width="150">Họ và tên</th>
+                <th class="text-center sticky left-sticky1 left-1" rowspan="2" width="50">STT</th>
+                <th class="text-center sticky left-sticky1 left-2" rowspan="2" width="100">Mã nhân sự</th>
+                <th class="text-center sticky left-sticky1 left-3" rowspan="2" width="150">Họ và tên</th>
                 <th class="text-center" rowspan="2" width="100">Ngày sinh</th>
                 <th class="text-center" rowspan="2" width="100">Chức vụ</th>
                 <th class="text-center" rowspan="2" width="100">Chức danh</th>
@@ -474,10 +474,10 @@ onMounted(() => {
                 <th class="text-center" colspan="12">Quá trình ký hợp đồng</th>
             </tr>
             <tr>
-                <th class="text-center" width="100">Lần ký</th>
-                <th class="text-center" width="100">Số hợp đồng</th>
+                <th class="text-center" width="80">Lần ký</th>
+                <th class="text-center" width="120">Số hợp đồng</th>
                 <th class="text-center" width="100">Ngày ký</th>
-                <th class="text-center" width="100">Loại hợp đồng</th>
+                <th class="text-center" width="150">Loại hợp đồng</th>
                 <th class="text-center" width="100">Thời hạn</th>
                 <th class="text-center" width="100">Ngày hết hạn</th>
                 <th class="text-center" width="100">Người ký</th>
@@ -497,31 +497,41 @@ onMounted(() => {
                 <td v-if="index3 ==0"  :rowspan="bc.Congtac.length" align="left" class="left-sticky1 left-3">
                     {{bc.profile_user_name}}
                 </td>
-                <td v-if="index3 ==0"  :rowspan="bc.Congtac.length" align="left" class="left-sticky1 left-4">
-                    {{bc.birthday}}
+                <td v-if="index3 ==0"  :rowspan="bc.Congtac.length" align="center">
+                  <span v-if="bc.birthday"> {{ moment(new Date(bc.birthday)).format("DD/MM/YYYY ") }}</span>
                 </td>
-                <td v-if="index3 ==0"  :rowspan="bc.Congtac.length" align="left" class="left-sticky1 left-4">
+                <td v-if="index3 ==0"  :rowspan="bc.Congtac.length" align="left" >
                     {{bc.position_name}}
                 </td>
-                <td v-if="index3 ==0"  :rowspan="bc.Congtac.length" align="left" class="left-sticky1 left-4">
+                <td v-if="index3 ==0"  :rowspan="bc.Congtac.length" align="left">
                     {{bc.title_name}}
                 </td>
-                <td v-if="index3 ==0"  :rowspan="bc.Congtac.length" align="left" class="left-sticky1 left-4">
-                    {{bc.start_date}}
+                <td v-if="index3 ==0"  :rowspan="bc.Congtac.length" align="center">
+                  <span v-if="bc.recruitment_date"> {{ moment(new Date(bc.recruitment_date)).format("DD/MM/YYYY ") }}</span>
                 </td>
-                <td align="left">{{qt.company}}</td>
-                <td align="left">{{qt.address}}</td>
-                <td align="center">{{qt.start_date}}</td>
-                <td align="center">{{qt.end_date}}</td>
+                <td v-if="index3 ==0"  :rowspan="bc.Congtac.length" align="left" class="left-sticky1 left-4"></td>
+                <td align="center" v-if="qt.contract_code">Lần {{index3+1}}</td>
+                <td align="left">{{qt.contract_code}}</td>
+                <td align="center">{{qt.sign_date}}</td>
+                <td align="left">{{qt.type_contract_name}}</td>
                 <td align="center"></td>
-                <td align="center">{{qt.title_name}}</td>
-                <td align="left">{{qt.description}}</td>
-                <td align="left">{{qt.reason}}</td>
+                <td align="center">
+                  <span v-if="qt.end_date"> {{ moment(new Date(qt.end_date)).format("DD/MM/YYYY ") }}</span>
+                </td>
+                <td align="left">{{qt.user_sign}}</td>
                 <td align="right">
                   <span v-if="qt.wage>0">{{ formatNumber(qt.wage, 0, ".", ".") }}</span>
                 </td>
-                <td align="left">{{qt.reference_name}}</td>
-                <td align="center">{{qt.reference_phone}}</td>
+                <td align="left">
+                  {{qt.wage_name}}
+                </td>
+                <td align="center">
+                  <span v-if="qt.wage_level>0">{{qt.wage_level}}</span>
+                </td>
+                <td align="center">
+                  <span v-if="qt.coef_salary_name>0">{{qt.coef_salary_name}}</span>
+                </td>
+                <td align="center"></td>
             </tr>      
           </tbody>
     </table>
