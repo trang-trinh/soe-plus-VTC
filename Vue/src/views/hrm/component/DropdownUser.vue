@@ -126,18 +126,17 @@ onUpdated(() => {
     optionValue="code"
     :placeholder="props.placeholder"
     @change="submitModel"
-   
     class="w-full p-0 d-multi-design"
- :class="props.class"
+    :class="props.class"
     :display="props.display"
     :filter="true"
     v-if="isShow"
     :disabled="props.disabled"
   >
     <template #value="slotProps"> 
-      <div style="min-height: 2rem;"    >
+      <div style="min-height: 2rem; ;cursor: default"    >
         <span
-          class=" mx-1  relative "
+          class=" mx-1  relative  "
           v-for="(item, index) in slotProps.value"
           :key="index" style="vertical-align: top; "
         >
@@ -165,7 +164,7 @@ onUpdated(() => {
               class="p-0  "
             />
             <div class="p-chip-text px-1  ">{{ item.profile_user_name }}</div>
-            <div class="p-2 align-items-center format-center  " @click=" removeUser(item)">
+            <div class="p-2 align-items-center format-center p-multiselect-token-icon " @click=" removeUser(item)">
               <i class="pi pi-times-circle" ></i>
             </div>
           </div>

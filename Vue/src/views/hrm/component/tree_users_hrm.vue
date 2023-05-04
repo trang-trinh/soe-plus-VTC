@@ -277,6 +277,7 @@ const onRefresh = () => {
   options.value.search = "";
 };
 const initOrganization = () => {
+  options.value.loading=true;
   axios
     .post(
       baseURL + "/api/Proc/CallProc",
@@ -311,6 +312,7 @@ const initOrganization = () => {
           temporganizations.value = [];
         }
         initUser(true);
+        options.value.loading=false;
       }
     })
     .catch((error) => {
@@ -322,6 +324,7 @@ const initOrganization = () => {
         icon: "error",
         confirmButtonText: "OK",
       });
+      options.value.loading=false;
       return;
     });
 };
@@ -502,6 +505,7 @@ onMounted(() => {
             :value="temporganizations"
             :scrollable="true"
             :rowHover="true"
+            :loading="options.loading"
             :expandedKeys="expandedKeys"
             :lazy="true"
             dataKey="organization_id"
