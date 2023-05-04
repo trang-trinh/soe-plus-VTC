@@ -1707,16 +1707,7 @@ onMounted(() => {
               selectionMode="multiple"
               @date-select="onSelectedscheduleYears($event)"
             >
-              <template #date="slotProps">
-                <strong
-                  v-if="
-                    slotProps.date.year > 2020 && slotProps.date.year < 2023
-                  "
-                  style="text-decoration: line-through"
-                  >{{ slotProps.date.year }} sss</strong
-                >
-                <template v-else>{{ slotProps.date.year }}</template>
-              </template>
+              
             </Calendar>
           </div>
         </div>

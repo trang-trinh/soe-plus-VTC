@@ -51,7 +51,7 @@ const saveModel = () => {
   datas.value.forEach((group) => {
     if (group.users && group.users.length > 0) {
       group.users.forEach((user) => {
-        let obj = { profile_id: user.profile_id, leave: user.leave };
+        let obj = { profile_id: user.profile_id, leave: user.leave, leave_limit: user.leave_limit };
         data.push(obj);
       });
     }

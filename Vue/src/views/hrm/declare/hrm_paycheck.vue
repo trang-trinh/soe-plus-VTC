@@ -1654,8 +1654,8 @@ onMounted(() => {
 
             <Dropdown v-model="paycheck.paycheck_type" :options="listPaycheckType" optionLabel="name" optionValue="code"
               class="sel-placeholder  col-6" panelClass="d-design-dropdown" />
-          </div>
-          <div class="  col-6 md:col-6 p-0 align-items-center flex"  >
+            </div>
+           <div class="  col-6 md:col-6 p-0 align-items-center flex"  >
               <div class="col-6 text-left p-0 pl-3">Loại sắp xếp</div>
               <InputText v-model="paycheck.type_order" class="col-6 ip36 p-0 px-2" />
             </div>
