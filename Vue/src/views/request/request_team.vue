@@ -429,12 +429,28 @@ const onPage = (e) => {
   let new1 = JSON.parse(
     JSON.stringify([options.value.pageNo, options.value.pageSize]),
   );
-  console.log(old, new1, old == new1);
+
   if (old != new1) {
     LoadCount();
     loadData();
     loadMainData();
   }
+};
+const ButtonClick = (item) => {
+  item.active = true;
+  listButton.value
+    .filter((x) => x != item)
+    .forEach((e) => {
+      e.active = false;
+    });
+};
+const click_Org = (item) => {
+  item.actived = true;
+  listTeams.value
+    .filter((x) => x != item)
+    .forEach((e) => {
+      e.actived = false;
+    });
 };
 onMounted(() => {
   options.value.optionView = 3;
@@ -535,7 +551,7 @@ onMounted(() => {
               :key="index"
             >
               <span
-                class="font-bold col flex align-items-center"
+                class="font-bold col flex align-items-center tc-hover"
                 :class="[{ actived: item.actived }]"
               >
                 <span
@@ -554,7 +570,12 @@ onMounted(() => {
                   >
                   </icon>
                 </span>
-                <span class="px-2"> {{ item.organization_name }}</span>
+                <span
+                  class="px-2"
+                  @click="click_Org(item)"
+                >
+                  {{ item.organization_name }}</span
+                >
               </span>
               <span v-if="arrayTeam.includes(item.organization_id) == true">
                 <div
@@ -634,6 +655,7 @@ onMounted(() => {
                 class="item font bold text-xl align-items-center justify-content-center line-height-2"
                 :class="[{ type_active: item.active == true }]"
                 :style="[item.style]"
+                @click="ButtonClick(item)"
               >
                 <span>{{ item.count }}</span>
                 <span>{{ item.label }}</span>
@@ -922,7 +944,7 @@ onMounted(() => {
                         :key="teamIndex"
                       >
                         <tr
-                          class="p-rowgroup-header"
+                          class=""
                           role="row"
                           style="top: 47px"
                         >
@@ -1229,6 +1251,8 @@ onMounted(() => {
 .actived {
   cursor: pointer;
   background-color: #ffdead;
+  border: 1px solid white;
+  border-radius: 25px;
 }
 .button_filter {
   width: 10rem;
@@ -1292,5 +1316,8 @@ onMounted(() => {
   background-color: #2196f3;
   cursor: pointer;
   color: #ffffff;
+}
+.tc-hover:hover {
+  background-color: #bbe0ff;
 }
 </style>
