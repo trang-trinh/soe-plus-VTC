@@ -226,10 +226,10 @@ const exportExcel = () => {
   tab_text =
     tab_text +
     '<style>.p-datatable-thead th {background:#7bb0d7 !important;height: 30px !important;} .cstd{font-family: Times New Roman;border:none!important; font-size: 12pt; font-weight: 700; text-align: center; vertical-align: center;color:#000000}.head2{font-family: Times New Roman;border:none!important; font-size: 12pt;font-weight:bold; text-align: left; vertical-align: left;}</style>'    
-  tab_text = tab_text+ "<table><td colspan='18' class='head2'>"+(department_name.value.toUpperCase() || store.getters.user.organization_name)+"</td></table>";
+  tab_text = tab_text+ "<table><td colspan='38' class='head2'>"+(department_name.value.toUpperCase() || store.getters.user.organization_name)+"</td></table>";
   // tab_text = tab_text+ "<table><td colspan='18' class='cstd' style='text-align: left; vertical-align: left;'>CÔNG TY/PHÒNG/TRUNG TÂM "+(store.getters.user.organization_name||".......")+"</td></table>";
   tab_text =
-      tab_text +'<table><td colspan="18" class="cstd" > BÁO CÁO TỔNG HỢP NHÂN SỰ</td >';
+      tab_text +'<table><td colspan="38" class="cstd" > BÁO CÁO TỔNG HỢP NHÂN SỰ</td >';
   tab_text = tab_text + "</table>";
   //var exportTable = $('#' + id).clone();
   //exportTable.find('input').each(function (index, elem) { $(elem).remove(); });\
@@ -269,9 +269,7 @@ const exportExcel = () => {
     document.body.removeChild(elem);
   }
 };
-const valueClick = ref();
-const activeRow = (row, value)=>{
-  valueClick.value = value;
+const activeRow = (row)=>{
   datalists.value.forEach((item)=>{
     item.list_ns.forEach((item2)=>{
       item2.is_active = false;
@@ -456,7 +454,7 @@ onMounted(() => {
           </template>
         </Toolbar>
     </div>
-    <div style="overflow: scroll;max-height: calc(100vh - 124px);">
+    <div style="overflow: scroll;max-height: calc(100vh - 124px);min-height: calc(100vh - 124px);background-color: #fff;">
         <table cellspacing=0 id="table-bc" class="table table-condensed table-hover tbpad" style="table-layout: fixed;width: 100%;">
         <thead style="position: sticky; z-index: 6; top:0">
             <tr>
@@ -509,74 +507,74 @@ onMounted(() => {
         </thead>
         <tbody v-for="(bc, index1) in datalists" :key="index1">
             <tr>
-                <td colspan="38" class="bg-group left-sticky1 left-1"><b>{{bc.name_group_pb}}</b></td>
+                <td colspan="38" class="bg-group"><b>{{bc.name_group_pb}}</b></td>
             </tr>
-            <tr v-for="(dg, index2) in bc.list_ns" :key="index2" class="item-hover">
+            <tr v-for="(dg, index2) in bc.list_ns" :key="index2" class="item-hover" @click="activeRow(dg)">
                 <td class="text-center bg-stt left-sticky1 left-1" :class="dg.is_active?'active-item':'bg-stt'">{{dg.stt}}</td>
-                <td align="left" class="bg-aliceblue left-sticky1 left-2" @click="activeRow(dg)">
+                <td align="left" class="bg-aliceblue left-sticky1 left-2">
                    {{dg.profile_code}}
                 </td>
-                <td align="left" class="bg-aliceblue left-sticky1 left-3" @click="activeRow(dg, Object.keys(dg)[0])">
+                <td align="left" class="bg-aliceblue left-sticky1 left-3">
       
                     {{dg.profile_user_name}}
                 </td>
-                <td align="center" @click="activeRow(dg)" >
+                <td align="center">
                   <span v-if="dg.birthday"> {{ moment(new Date(dg.birthday)).format("DD/MM/YYYY ") }}</span>
                 </td>
-                <td align="center" @click="activeRow(dg)" >
+                <td align="center">
                     {{dg.age}}
                 </td>
-                <td align="center" @click="activeRow(dg)" >
+                <td align="center">
                     {{dg.gender}}
                 </td>
-                <td align="left" @click="activeRow(dg)" >{{ dg.title_name }}</td>
-                <td align="left" @click="activeRow(dg)" >
+                <td align="left">{{ dg.title_name }}</td>
+                <td align="left">
                     {{dg.position_name}}
                 </td>
-                <td align="left" @click="activeRow(dg)" >
+                <td align="left">
                     {{dg.personel_groups_name}}
                 </td>
-                <td align="left" @click="activeRow(dg)" >
+                <td align="left">
                     {{dg.birthplace_origin_name}}
                 </td>
-                <td align="center" @click="activeRow(dg)" >
+                <td align="center">
                     {{dg.marital_status==0?'Độc thân':dg.marital_status==1 ?'Kết hôn':dg.marital_status==2?'Ly hôn':''}}
                 </td>
-                <td align="center" @click="activeRow(dg)" >
+                <td align="center">
                     {{dg.ethnic_name}}
                 </td>
-                <td align="center" @click="activeRow(dg)" >
+                <td align="center">
                     {{dg.religion_name}}
                 </td>
-                <td align="center" @click="activeRow(dg)" >
+                <td align="center">
                     {{dg.is_partisan?'X':''}}
                 </td>
-                <td align="center" @click="activeRow(dg)" >
+                <td align="center">
                     {{dg.bevy_date?'X':''}}
                 </td>
-                <td align="center" @click="activeRow(dg)" >
+                <td align="center">
                     {{dg.is_join_military?'X':''}}
                 </td>
-                <td align="left" @click="activeRow(dg)" >{{dg.military_policy_family}}</td>
-                <td align="left" @click="activeRow(dg)" >{{dg.place_register_permanent_first}}</td>
-                <td align="left" @click="activeRow(dg)" >{{dg.place_register_permanent_name}}</td>
-                <td align="left" @click="activeRow(dg)" >{{dg.place_permanent}}</td>
-                <td align="left" @click="activeRow(dg)" >{{dg.place_residence_name || dg.name}}</td>
-                <td align="left" @click="activeRow(dg)" >
+                <td align="left">{{dg.military_policy_family}}</td>
+                <td align="left">{{dg.place_register_permanent_first}}</td>
+                <td align="left">{{dg.place_register_permanent_name}}</td>
+                <td align="left">{{dg.place_permanent}}</td>
+                <td align="left">{{dg.place_residence_name || dg.name}}</td>
+                <td align="left">
                   <span v-if="dg.relationship_name">{{ dg.relationship_name}}: </span>
                   <span v-if="dg.involved_name">{{ dg.involved_name}} - </span>
                   <span v-if="dg.involved_phone">{{ dg.involved_phone}} </span>
                 </td>
-                <td align="left" @click="activeRow(dg)" >{{dg.family_member}}</td>
-                <td align="left" @click="activeRow(dg)" >{{dg.identity_papers_code}}</td>
-                <td align="left" @click="activeRow(dg)" >
+                <td align="left">{{dg.family_member}}</td>
+                <td align="left">{{dg.identity_papers_code}}</td>
+                <td align="left">
                   <span v-if="dg.identity_date_issue"> {{ moment(new Date(dg.identity_date_issue)).format("DD/MM/YYYY ") }}</span>
                 </td>
-                <td align="left" @click="activeRow(dg)" >{{dg.name}}</td>
-                <td align="left" @click="activeRow(dg)" >
+                <td align="left">{{dg.name}}</td>
+                <td align="left">
                   <span v-if="dg.start_date"> {{ moment(new Date(dg.start_date)).format("DD/MM/YYYY ") }}</span>
                 </td>
-                <td align="center" @click="activeRow(dg)" >
+                <td align="center">
                   <span v-if="dg.diffyear > 0">
                     {{ dg.diffyear }} năm
                   </span>
@@ -584,16 +582,16 @@ onMounted(() => {
                     {{ dg.diffmonth }} tháng
                   </span>
                 </td>
-                <td align="center" @click="activeRow(dg)" >{{dg.countAllRecruitment}}</td>
-                <td align="left" @click="activeRow(dg)" >{{dg.cultural_level_name}}</td>
-                <td align="left" @click="activeRow(dg)" >{{dg.certificate_name}}</td>
-                <td align="left" @click="activeRow(dg)" >{{dg.specialization_name}}</td>
-                <td align="left" width="150" @click="activeRow(dg)" >{{dg.university_name}}</td>
-                <td align="left" @click="activeRow(dg)" >{{dg.form_traning_name}}</td>
-                <td align="center" @click="activeRow(dg)" >{{dg.phone}}</td>
-                <td align="center" @click="activeRow(dg)" >{{dg.email}}</td>
-                <td align="center" @click="activeRow(dg)" >{{dg.height}}</td>
-                <td align="center" @click="activeRow(dg)" >{{dg.weight}}</td>
+                <td align="center">{{dg.countAllRecruitment}}</td>
+                <td align="left">{{dg.cultural_level_name}}</td>
+                <td align="left">{{dg.certificate_name}}</td>
+                <td align="left">{{dg.specialization_name}}</td>
+                <td align="left" width="150">{{dg.university_name}}</td>
+                <td align="left">{{dg.form_traning_name}}</td>
+                <td align="center">{{dg.phone}}</td>
+                <td align="center">{{dg.email}}</td>
+                <td align="center">{{dg.height}}</td>
+                <td align="center">{{dg.weight}}</td>
             </tr> 
       
           </tbody>
@@ -686,6 +684,10 @@ td {
 
 .row-child:hover {
     color: #0078d4;
+}
+td.bg-group>b {
+    position: sticky;
+    left: 10px;
 }
 .toolbar-filter {
   border: unset;

@@ -131,12 +131,29 @@ const loadData = (rf) => {
 			}
 		});
 };
+const searchData = (event) => {
+	if (event.code == "Enter") {
+		loadData(true);
+	}
+};
 
 const displayBasic = ref(false);
 const isAdd = ref(false);
 const headerDialogForm = ref();
 const openBasic = (headerName) => {
-	request_form.value.is_order = datalists.value.length + 1;
+	request_form.value = {
+		request_form_name: "",
+		request_form_code: "",
+		request_group_id: null,
+		description: "",
+		is_type_team: null,
+		status: true,
+		is_order: datalists.value.length + 1,
+		time_max_process: 1,
+		is_process: 0,
+		is_review: false,
+		is_use_all: true,
+	};
 	listGroupTeams.value = [];
 	listTeamUses.value = [];
 	displayBasic.value = true;
@@ -175,6 +192,7 @@ const editForm = (data) => {
 			config
 		)
 		.then((response) => {
+			isAdd.value = false;
 			let data = JSON.parse(response.data.data);
 			request_form.value = data[0][0];
 			data[1].forEach((e, k) => {
@@ -264,7 +282,7 @@ const delTem = (model) => {
 						if (response.data.err != "1") {
 							swal.close();
 							toast.success("Xoá loại đề xuất thành công!");
-							checkDelList.value = false;
+							// checkDelList.value = false;
 							loadData(true);
 						} else {
 							swal.fire({
@@ -292,17 +310,13 @@ const delTem = (model) => {
 //Checkbox
 const onCheckBox = (value, check) => {
 	if (check) {
-		let data = {
-			IntID: value.request_form_id,
-			TextID: value.request_form_id + "",
-			IntTrangthai: 1,
-			BitTrangthai: value.status,
-		};
+		let formData = new FormData();
+		formData.append("request_form", JSON.stringify(value));
 		axios
-			.put(
+			.post(
 				baseUrlCheck +
 				"/api/request_ca_form/update_status_request_ca_form",
-				data,
+				formData,
 				config
 			)
 			.then((response) => {
@@ -456,7 +470,7 @@ const openModalSetting = (model) => {
 			selectedFormID.value = model.request_form_id;
 			request_form.value = model;
 			if (data[0].length > 0) {
-				data[0].forEach((e) => {
+				data[0].forEach((e, i) => {
 					if (e.is_type >= 0 && e.is_type <= 5) {
 						let arr = listDataType.value.filter(x => x.code == 0)[0];
 						e.selectedType = { label: arr.items.filter(x => x.value == e.is_type)[0].label, value: arr.items.filter(x => x.value == e.is_type)[0].value };
@@ -607,8 +621,8 @@ onMounted(() => {
 					<template #start>
 						<span class="p-input-icon-left">
 							<i class="pi pi-search" />
-							<InputText type="text" spellcheck="false" v-model="filters['global'].value"
-								placeholder="Tìm kiếm" style="min-width:30rem;" />
+							<InputText type="text" spellcheck="false" v-model="options.SearchText" placeholder="Tìm kiếm"
+								@keyup="searchData" style="min-width:30rem;" />
 						</span>
 					</template>
 					<template #end>
@@ -656,16 +670,15 @@ onMounted(() => {
 								<div v-for="(value, index) in l.requestGroup1" :key="index">
 									<div>
 										<Avatar v-tooltip.bottom="{
-											value:
-												value.full_name +
-												'<br/>' +
-												(value.tenChucVu || '') +
-												'<br/>' +
-												(value.tenToChuc || ''),
-											escape: true,
-										}" v-bind:label="
-	value.avatar ? '' : (value.last_name ?? '').substring(0, 1)
-" v-bind:image="basedomainURL + value.avatar" style="
+												value:
+													value.full_name +
+													'<br/>' +
+													(value.tenChucVu || '') +
+													'<br/>' +
+													(value.tenToChuc || ''),
+												escape: true,
+											}" v-bind:label="value.avatar ? '' : (value.last_name ?? '').substring(0, 1)
+		" v-bind:image="basedomainURL + value.avatar" style="
 								                    background-color: #2196f3;
 								                    color: #ffffff;
 								                    width: 32px;
@@ -673,17 +686,15 @@ onMounted(() => {
 								                    font-size: 15px !important;
 								                    margin-left: -10px;
 								                  " :style="{
-								                  	background: bgColor[index % 7] + '!important',
-								                  }" class="cursor-pointer" size="xlarge" shape="circle" />
+								                  		background: bgColor[index % 7] + '!important',
+								                  	}" class="cursor-pointer" size="xlarge" shape="circle" />
 									</div>
 								</div>
-								<Avatar v-if="
-									l.requestGroup2.length > 0
-								" :label="
-	'+' +
-	(l.requestGroup2.length) +
-	''
-" class="cursor-pointer" shape="circle" style="
+								<Avatar v-if="l.requestGroup2.length > 0
+									" :label="'+' +
+		(l.requestGroup2.length) +
+		''
+		" class="cursor-pointer" shape="circle" style="
 								                background-color: #e9e9e9 !important;
 								                color: #98a9bc;
 								                font-size: 14px !important;
@@ -710,11 +721,10 @@ onMounted(() => {
 				bodyStyle="text-align:center;max-width:8rem;border-left:none;border-right:none;"
 				class="align-items-center justify-content-center text-center">
 				<template #body="data">
-					<Checkbox :disabled="
-						!(store.state.user.is_super == true || store.state.user.user_id == data.data.created_by ||
+					<Checkbox :disabled="!(store.state.user.is_super == true || store.state.user.user_id == data.data.created_by ||
 							(store.state.user.role_id == 'admin' && store.state.user.organization_id == data.data.organization_id)
 						)
-					" :binary="true" v-model="data.data.status" @click="onCheckBox(data.data, true, true)" />
+						" :binary="true" v-model="data.data.status" @click="onCheckBox(data.data, true, true)" />
 				</template>
 			</Column>
 			<Column field="self_point" header="Quy trình"
@@ -731,10 +741,9 @@ onMounted(() => {
 				bodyStyle="max-width:10rem;border-left:none;border-right:none;"
 				class="align-items-center justify-content-center text-center">
 				<template #body="Tem">
-					<div v-if="
-						store.state.user.is_super == true || store.state.user.user_id == Tem.data.created_by ||
+					<div v-if="store.state.user.is_super == true || store.state.user.user_id == Tem.data.created_by ||
 						(store.state.user.role_id == 'admin' && store.state.user.organization_id == Tem.data.organization_id)
-					">
+						">
 						<Button @click="editForm(Tem.data)" class="
 																									p-button-rounded
 																									p-button-secondary
@@ -801,16 +810,16 @@ onMounted(() => {
 		:closeDialogSetting="closeDialogFormSetting"></dialogSettingForm>
 
 	<Sidebar v-model:visible="showProcedure" :position="PositionSideBar" :style="{
-		width:
-			PositionSideBar == 'right'
-				? width1 > 1800
-					? '65vw'
-					: '80vw'
-				: '100vw',
-		'min-height': '100vh !important',
-		'z-index': '100',
-		'background-color': '#eee',
-	}" :showCloseIcon="false">
+			width:
+				PositionSideBar == 'right'
+					? width1 > 1800
+						? '65vw'
+						: '80vw'
+					: '100vw',
+			'min-height': '100vh !important',
+			'z-index': '100',
+			'background-color': '#eee',
+		}" :showCloseIcon="false">
 		<procedureDetail :isShow="showProcedure" :id="selectedFormID" :headerShowProcedure="headerShowProcedure" :turn="0">
 		</procedureDetail>
 	</Sidebar>

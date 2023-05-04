@@ -175,7 +175,6 @@ const loadMainData = () => {
       swal.showLoading();
     },
   });
-
   axios
     .post(
       baseURL + "/api/DictionaryProc/getData",
@@ -196,15 +195,14 @@ const loadMainData = () => {
     )
     .then((response) => {
       let data = JSON.parse(response.data.data)[0];
-
       data.forEach((x, i) => {
         if (x.request_team_id == null) {
           x.request_team_id = -1;
-          x.request_team_name = "Không thuộc Team";
+          x.request_team_name = "Cá nhân";
         }
         if (x.request_form_id == null) {
           x.request_form_id = -1;
-          x.request_form_name = "Khác";
+          x.request_form_name = "Đề xuất khác";
         }
         x.STT = options.value.pageNo * options.value.pageSize + (i + 1);
         x.status_display = status.value.filter(
@@ -218,64 +216,66 @@ const loadMainData = () => {
         data.forEach((x, i) => {
           if (dataTeam.length == 0) {
             let k = {
-              request_team_id: x.request_team_id,
-              request_team_name: x.request_team_name,
-              team_data: [],
+              request_form_id: x.request_form_id,
+              request_form_name: x.request_form_name,
+              request_team_data: [],
             };
             dataTeam.push(k);
           } else {
             let t = dataTeam.filter(
-              (z) => z.request_team_id == x.request_team_id,
+              (z) => z.request_form_id == x.request_form_id,
             );
             if (t.length == 0) {
               let k = {
-                request_team_id: x.request_team_id,
-                request_team_name: x.request_team_name,
-                team_data: [],
+                request_form_id: x.request_form_id,
+                request_form_name: x.request_form_name,
+                request_team_data: [],
               };
               dataTeam.push(k);
             }
           }
         });
-        data.forEach((x, i) => {
-          dataTeam.forEach((z) => {
-            if (x.request_team_id == z.request_team_id) {
-              if (z.team_data.length == 0) {
-                let k = {
-                  request_form_id: x.request_form_id,
-                  request_form_name: x.request_form_name,
-                  request_data: [],
+        dataTeam.forEach((element) => {
+          data.forEach((k) => {
+            if (element.request_team_data.length == 0) {
+              let container = {
+                request_team_id: k.request_team_id,
+                request_team_name: k.request_team_name,
+                team_data: [],
+              };
+              element.request_team_data.push(container);
+            } else {
+              let filter = element.request_team_data.filter(
+                (u) => u.request_team_id == k.request_team_id,
+              );
+              if (filter.length == 0) {
+                let container = {
+                  request_team_id: k.request_team_id,
+                  request_team_name: k.request_team_name,
+                  team_data: [],
                 };
-                z.team_data.push(k);
-              } else {
-                let check = z.team_data.filter(
-                  (u) => u.request_form_id == x.request_form_id,
-                );
-                if (check.length == 0) {
-                  let k = {
-                    request_form_id: x.request_form_id,
-                    request_form_name: x.request_form_name,
-                    request_data: [],
-                  };
-                  z.team_data.push(k);
-                }
+                element.request_team_data.push(container);
               }
             }
           });
         });
 
-        dataTeam.forEach((z) => {
-          z.team_data.forEach((k) => {
-            let filter = data.filter(
-              (u) =>
-                u.request_form_id == k.request_form_id &&
-                u.request_team_id == z.request_team_id,
+        dataTeam.forEach((z, i) => {
+          z.request_team_data.forEach((x, k) => {
+            let datafilter = data.filter(
+              (d) =>
+                x.request_team_id == d.request_team_id &&
+                z.request_form_id == d.request_form_id,
             );
-            k.request_data = filter;
+            datafilter.forEach((x, i) => {
+              x.STT = options.value.pageNo * options.value.pageSize + (i + 1);
+            });
+            x.team_data = datafilter;
           });
         });
         datalists.value = dataTeam;
       } else datalists.value = data;
+      // datalists.value = [];
       swal.close();
     })
     .catch((error) => {
@@ -356,7 +356,10 @@ const hideall = () => {
 const openViewRequest = (dataRequest) => {
   forceRerenderDetail();
   showDetailRequest.value = true;
-  selectedRequestID.value = dataRequest.data.request_id;
+  selectedRequestID.value =
+    options.value.optionView == 3
+      ? dataRequest.request_id
+      : dataRequest.data.request_id;
 };
 const dictionarys = ref([]);
 const resetFilter = () => {};
@@ -416,6 +419,38 @@ const ChangeView = (item) => {
   else group.value = null;
   options.value.optionView = item.va ?? item;
   loadMainData();
+};
+const onPage = (e) => {
+  let old = JSON.parse(
+    JSON.stringify([options.value.pageNo, options.value.pageSize]),
+  );
+  if (options.value.pageNo != e.page) options.value.pageNo = e.page;
+  if (options.value.pageSize != e.rows) options.value.pageNo = e.rows;
+  let new1 = JSON.parse(
+    JSON.stringify([options.value.pageNo, options.value.pageSize]),
+  );
+
+  if (old != new1) {
+    LoadCount();
+    loadData();
+    loadMainData();
+  }
+};
+const ButtonClick = (item) => {
+  item.active = true;
+  listButton.value
+    .filter((x) => x != item)
+    .forEach((e) => {
+      e.active = false;
+    });
+};
+const click_Org = (item) => {
+  item.actived = true;
+  listTeams.value
+    .filter((x) => x != item)
+    .forEach((e) => {
+      e.actived = false;
+    });
 };
 onMounted(() => {
   options.value.optionView = 3;
@@ -516,7 +551,7 @@ onMounted(() => {
               :key="index"
             >
               <span
-                class="font-bold col flex align-items-center"
+                class="font-bold col flex align-items-center tc-hover"
                 :class="[{ actived: item.actived }]"
               >
                 <span
@@ -535,7 +570,12 @@ onMounted(() => {
                   >
                   </icon>
                 </span>
-                <span class="px-2"> {{ item.organization_name }}</span>
+                <span
+                  class="px-2"
+                  @click="click_Org(item)"
+                >
+                  {{ item.organization_name }}</span
+                >
               </span>
               <span v-if="arrayTeam.includes(item.organization_id) == true">
                 <div
@@ -615,6 +655,7 @@ onMounted(() => {
                 class="item font bold text-xl align-items-center justify-content-center line-height-2"
                 :class="[{ type_active: item.active == true }]"
                 :style="[item.style]"
+                @click="ButtonClick(item)"
               >
                 <span>{{ item.count }}</span>
                 <span>{{ item.label }}</span>
@@ -644,7 +685,19 @@ onMounted(() => {
             dataKey="request_id"
             :rowGroupMode="group != null ? 'subheader' : ''"
             :groupRowsBy="group != null ? group : ''"
+            @page="onPage"
           >
+            <template #empty>
+              <div
+                class="w-full align-items-center justify-content-center p-4 text-center"
+              >
+                <img
+                  src="../../assets/background/nodata.png"
+                  height="144"
+                />
+                <h3 class="m-1">Không có dữ liệu</h3>
+              </div>
+            </template>
             <template #groupheader="slotProps">
               <div class="flex align-items-center gap-2">
                 <span v-if="options.optionView == 2">{{
@@ -754,101 +807,385 @@ onMounted(() => {
             </Column>
           </DataTable>
           <div
-            class="p-datatable-wrapper"
             v-else
+            class="p-datatable p-component p-datatable-hoverable-rows p-datatable-scrollable p-datatable-scrollable-vertical p-datatable-flex-scrollable p-datatable-responsive-scroll p-datatable-gridlines"
+            data-scrollselectors=".p-datatable-wrapper"
+            style="
+              overflow: hidden auto;
+              min-height: calc(100vh - 19rem);
+              max-height: calc(100vh - 19rem);
+            "
           >
-            <table
-              role="table"
-              class="p-datatable-table"
-            >
-              <thead
-                class="p-datatable-thead"
-                role="rowgroup"
+            <div class="p-datatable-wrapper">
+              <table
+                role="table"
+                class="p-datatable-table"
+                v-if="datalists.length > 0"
               >
-                <tr role="row">
-                  <th
-                    class="align-items-center justify-content-center max-w-3rem"
-                    role="cell"
+                <thead
+                  class="p-datatable-thead"
+                  role="rowgroup"
+                >
+                  <tr role="row">
+                    <th
+                      class="align-items-center justify-content-center max-w-3rem"
+                      role="cell"
+                    >
+                      <div class="p-column-header-content">
+                        <span class="p-column-title">STT</span>
+                      </div>
+                    </th>
+                    <th
+                      class="align-items-center justify-content-center text-center max-w-8rem"
+                      role="cell"
+                    >
+                      <div class="p-column-header-content">
+                        <span class="p-column-title">Mã đề xuất</span>
+                      </div>
+                    </th>
+                    <th
+                      class="align-items-center justify-content-center"
+                      role="cell"
+                    >
+                      <div class="p-column-header-content">
+                        <span class="p-column-title">Tên đề xuất</span>
+                      </div>
+                    </th>
+                    <th
+                      class="align-items-center justify-content-center max-w-10rem"
+                      role="cell"
+                    >
+                      <div class="p-column-header-content">
+                        <span class="p-column-title">Người lập</span>
+                      </div>
+                    </th>
+                    <th
+                      class="align-items-center justify-content-center max-w-8rem"
+                      role="cell"
+                    >
+                      <div class="p-column-header-content">
+                        <span class="p-column-title">Ngày lập</span>
+                      </div>
+                    </th>
+                    <th
+                      class="align-items-center justify-content-center text-center max-w-7rem"
+                      role="cell"
+                    >
+                      <div class="p-column-header-content">
+                        <span class="p-column-title">Trạng thái</span>
+                      </div>
+                    </th>
+                    <th
+                      class="align-items-center justify-content-center text-center max-w-7rem"
+                      role="cell"
+                    >
+                      <div class="p-column-header-content">
+                        <span class="p-column-title">Tiến độ</span>
+                      </div>
+                    </th>
+                    <th
+                      class="align-items-center justify-content-center text-center max-w-10rem"
+                      role="cell"
+                    >
+                      <div class="p-column-header-content">
+                        <span class="p-column-title">Người duyệt</span>
+                      </div>
+                    </th>
+                    <th
+                      class="align-items-center justify-content-center text-center max-w-10rem"
+                      role="cell"
+                    >
+                      <div class="p-column-header-content">
+                        <span class="p-column-title">Ngày hoàn thành</span>
+                      </div>
+                    </th>
+                    <th
+                      class="align-items-center justify-content-center text-center max-w-5rem"
+                      role="cell"
+                    >
+                      <div class="p-column-header-content">
+                        <span class="p-column-title">Số giờ</span>
+                      </div>
+                    </th>
+                  </tr>
+                </thead>
+
+                <tbody
+                  class="p-datatable-tbody"
+                  role="rowgroup"
+                  v-for="(item, index) in datalists"
+                  :key="index"
+                >
+                  <tr
+                    class="p-rowgroup-header"
+                    role="row"
+                    style="top: 47px"
                   >
-                    <div class="p-column-header-content">
-                      <span class="p-column-title">STT</span>
-                    </div>
-                  </th>
-                  <th
-                    class="align-items-center justify-content-center text-center max-w-8rem"
-                    role="cell"
+                    <td
+                      colspan="9"
+                      class="p-2"
+                      style="background-color: #f6ddcc; font-size: 16px"
+                    >
+                      <div class="flex align-items-center gap-2">
+                        <span>{{ item.request_form_name }}</span>
+                        <!-- <span>{{ item }}</span> -->
+                      </div>
+                    </td>
+                  </tr>
+                  <div>
+                    <table
+                      role="table"
+                      class="p-datatable-table"
+                    >
+                      <tbody
+                        class="p-datatable-tbody"
+                        role="rowgroup"
+                        v-for="(team, teamIndex) in item.request_team_data"
+                        :key="teamIndex"
+                      >
+                        <tr
+                          class=""
+                          role="row"
+                          style="top: 47px"
+                        >
+                          <td
+                            colspan="9"
+                            style="background-color: #d5f5e3"
+                          >
+                            <div class="flex align-items-center gap-2">
+                              <span>{{ team.request_team_name }}</span>
+                            </div>
+                          </td>
+                        </tr>
+                        <tr
+                          class=""
+                          role="row"
+                          v-for="(request, reqIndex) in team.team_data"
+                          :key="reqIndex"
+                          @click="openViewRequest(request)"
+                        >
+                          <td
+                            class="align-items-center justify-content-center max-w-3rem"
+                            role="cell"
+                          >
+                            {{ request.STT }}
+                          </td>
+                          <td
+                            class="align-items-center justify-content-center text-center max-w-8rem word-break-break-all"
+                            role="cell"
+                          >
+                            {{ request.request_code }}
+                          </td>
+                          <td
+                            class=""
+                            role="cell"
+                          >
+                            {{ request.request_name }}
+                          </td>
+                          <td
+                            class="align-items-center justify-content-center text-center max-w-10rem word-break-break-word"
+                            role="cell"
+                          >
+                            {{ request.created_by_full_name }}
+                          </td>
+                          <td
+                            class="align-items-center justify-content-center max-w-8rem"
+                            role="cell"
+                          >
+                            {{
+                              moment(request.created_date).format("DD/MM/YYYY")
+                            }}
+                          </td>
+                          <td
+                            class="align-items-center justify-content-center text-center max-w-7rem"
+                            role="cell"
+                          >
+                            {{ request.status_display }}
+                          </td>
+                          <td
+                            class="align-items-center justify-content-center text-center max-w-7rem"
+                            role="cell"
+                          >
+                            <ProgressBar
+                              v-if="request.TienDo > 0"
+                              :value="request.TienDo || 0"
+                              :show-value="true"
+                              class="w-full"
+                            >
+                            </ProgressBar>
+                            <div v-else>0%</div>
+                          </td>
+                          <td
+                            class="align-items-center justify-content-center text-center max-w-10rem"
+                            role="cell"
+                          >
+                            <div class="block">
+                              <span
+                                v-for="(user, index) in request.sign_users"
+                                :key="index"
+                              >
+                                - {{ user }}<br />
+                              </span>
+                            </div>
+                          </td>
+                          <td
+                            class="align-items-center justify-content-center text-center max-w-10rem"
+                            role="cell"
+                          >
+                            <div v-if="request.completed_date">
+                              {{
+                                moment(new Date(request.completed_date)).format(
+                                  "DD/MM/YYYY",
+                                )
+                              }}
+                            </div>
+                          </td>
+                          <td
+                            class="align-items-center justify-content-center text-center max-w-5rem"
+                            role="cell"
+                          >
+                            <div v-if="request.times_processing_max">
+                              {{ request.SoNgayHan }} /
+                              {{ request.times_processing_max }}
+                            </div>
+                          </td>
+                        </tr>
+                      </tbody>
+                    </table>
+                  </div>
+                </tbody>
+              </table>
+              <table
+                v-else
+                role="table"
+                class="p-datatable-table"
+              >
+                <thead
+                  class="p-datatable-thead"
+                  role="rowgroup"
+                >
+                  <tr role="row">
+                    <th
+                      class="align-items-center justify-content-center max-w-3rem"
+                      role="cell"
+                    >
+                      <div class="p-column-header-content">
+                        <span class="p-column-title">STT</span>
+                      </div>
+                    </th>
+                    <th
+                      class="align-items-center justify-content-center text-center max-w-8rem"
+                      role="cell"
+                    >
+                      <div class="p-column-header-content">
+                        <span class="p-column-title">Mã đề xuất</span>
+                      </div>
+                    </th>
+                    <th
+                      class="align-items-center justify-content-center"
+                      role="cell"
+                    >
+                      <div class="p-column-header-content">
+                        <span class="p-column-title">Tên đề xuất</span>
+                      </div>
+                    </th>
+                    <th
+                      class="align-items-center justify-content-center max-w-10rem"
+                      role="cell"
+                    >
+                      <div class="p-column-header-content">
+                        <span class="p-column-title">Người lập</span>
+                      </div>
+                    </th>
+                    <th
+                      class="align-items-center justify-content-center max-w-8rem"
+                      role="cell"
+                    >
+                      <div class="p-column-header-content">
+                        <span class="p-column-title">Ngày lập</span>
+                      </div>
+                    </th>
+                    <th
+                      class="align-items-center justify-content-center text-center max-w-7rem"
+                      role="cell"
+                    >
+                      <div class="p-column-header-content">
+                        <span class="p-column-title">Trạng thái</span>
+                      </div>
+                    </th>
+                    <th
+                      class="align-items-center justify-content-center text-center max-w-7rem"
+                      role="cell"
+                    >
+                      <div class="p-column-header-content">
+                        <span class="p-column-title">Tiến độ</span>
+                      </div>
+                    </th>
+                    <th
+                      class="align-items-center justify-content-center text-center max-w-10rem"
+                      role="cell"
+                    >
+                      <div class="p-column-header-content">
+                        <span class="p-column-title">Người duyệt</span>
+                      </div>
+                    </th>
+                    <th
+                      class="align-items-center justify-content-center text-center max-w-10rem"
+                      role="cell"
+                    >
+                      <div class="p-column-header-content">
+                        <span class="p-column-title">Ngày hoàn thành</span>
+                      </div>
+                    </th>
+                    <th
+                      class="align-items-center justify-content-center text-center max-w-5rem"
+                      role="cell"
+                    >
+                      <div class="p-column-header-content">
+                        <span class="p-column-title">Số giờ</span>
+                      </div>
+                    </th>
+                  </tr>
+                </thead>
+
+                <tbody
+                  class="p-datatable-tbody"
+                  role="rowgroup"
+                >
+                  <tr
+                    class="p-datatable-emptymessage"
+                    role="row"
                   >
-                    <div class="p-column-header-content">
-                      <span class="p-column-title">Mã đề xuất</span>
-                    </div>
-                  </th>
-                  <th
-                    class="align-items-center justify-content-center"
-                    role="cell"
-                  >
-                    <div class="p-column-header-content">
-                      <span class="p-column-title">Tên đề xuất</span>
-                    </div>
-                  </th>
-                  <th
-                    class="align-items-center justify-content-center max-w-10rem"
-                    role="cell"
-                  >
-                    <div class="p-column-header-content">
-                      <span class="p-column-title">Người lập</span>
-                    </div>
-                  </th>
-                  <th
-                    class="align-items-center justify-content-center max-w-8rem"
-                    role="cell"
-                  >
-                    <div class="p-column-header-content">
-                      <span class="p-column-title">Ngày lập</span>
-                    </div>
-                  </th>
-                  <th
-                    class="align-items-center justify-content-center text-center max-w-7rem"
-                    role="cell"
-                  >
-                    <div class="p-column-header-content">
-                      <span class="p-column-title">Trạng thái</span>
-                    </div>
-                  </th>
-                  <th
-                    class="align-items-center justify-content-center text-center max-w-7rem"
-                    role="cell"
-                  >
-                    <div class="p-column-header-content">
-                      <span class="p-column-title">Tiến độ</span>
-                    </div>
-                  </th>
-                  <th
-                    class="align-items-center justify-content-center text-center max-w-10rem"
-                    role="cell"
-                  >
-                    <div class="p-column-header-content">
-                      <span class="p-column-title">Người duyệt</span>
-                    </div>
-                  </th>
-                  <th
-                    class="align-items-center justify-content-center text-center max-w-10rem"
-                    role="cell"
-                  >
-                    <div class="p-column-header-content">
-                      <span class="p-column-title">Ngày hoàn thành</span>
-                    </div>
-                  </th>
-                  <th
-                    class="align-items-center justify-content-center text-center max-w-5rem"
-                    role="cell"
-                  >
-                    <div class="p-column-header-content">
-                      <span class="p-column-title">Số giờ</span>
-                    </div>
-                  </th>
-                </tr>
-              </thead>
-            </table>
+                    <td colspan="10">
+                      <div
+                        data-v-e7fddb26=""
+                        class="w-full align-items-center justify-content-center p-4 text-center"
+                      >
+                        <img
+                          data-v-e7fddb26=""
+                          src="/src/assets/background/nodata.png"
+                          height="144"
+                        />
+                        <h3
+                          data-v-e7fddb26=""
+                          class="m-1"
+                        >
+                          Không có dữ liệu
+                        </h3>
+                      </div>
+                    </td>
+                  </tr>
+                </tbody>
+              </table>
+            </div>
+            <Paginator
+              :rows="options.pageSize"
+              :totalRecords="datalists.length"
+              template="FirstPageLink PrevPageLink PageLinks NextPageLink
+            LastPageLink RowsPerPageDropdown"
+              :rowsPerPageOptions="[100, 200, 300, 500]"
+              @page="onPage"
+            />
           </div>
         </div>
       </div>
@@ -879,9 +1216,7 @@ onMounted(() => {
     </detail_request>
   </Sidebar>
 </template>
-<style lang="css" scoped>
-@import from "./style/request_team.css";
-</style>
+
 <style lang="scss" scoped>
 .header {
   height: 4rem;
@@ -916,6 +1251,8 @@ onMounted(() => {
 .actived {
   cursor: pointer;
   background-color: #ffdead;
+  border: 1px solid white;
+  border-radius: 25px;
 }
 .button_filter {
   width: 10rem;
@@ -979,5 +1316,8 @@ onMounted(() => {
   background-color: #2196f3;
   cursor: pointer;
   color: #ffffff;
+}
+.tc-hover:hover {
+  background-color: #bbe0ff;
 }
 </style>

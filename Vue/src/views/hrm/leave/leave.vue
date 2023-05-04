@@ -5,6 +5,8 @@ import { useToast } from "vue-toastification";
 import moment from "moment";
 import { groupBy } from "lodash";
 import dialogleaveprofile from "./component/dialogleaveprofile.vue";
+import dialogtransferinventory from "./component/dialogtransferinventory.vue";
+import dialogconfigleaveyear from "./component/dialogconfigleaveyear.vue";
 
 const store = inject("store");
 const swal = inject("$swal");
@@ -166,14 +168,14 @@ const itemButs = ref([
     label: "Export dữ liệu ra Excel",
     icon: "pi pi-file-excel",
     command: (event) => {
-      //exportData("ExportExcel");
+      exportExcel("table-leave");
     },
   },
   {
     label: "Import dữ liệu từ Excel",
     icon: "pi pi-file-excel",
     command: (event) => {
-      //exportData("ExportExcel");
+      importExcel();
     },
   },
 ]);
@@ -281,6 +283,30 @@ const downloadFile = (url) => {
   //a.target = "_blank";
   a.click();
   a.remove();
+};
+
+const headerDialogTransferInventory = ref();
+const displayDialogTransferInventory = ref(false);
+const openDialogTransferInventory = (str) => {
+  headerDialogTransferInventory.value = str;
+  displayDialogTransferInventory.value = true;
+  forceRerender(1);
+};
+const closeDialogTransferInventory = () => {
+  displayDialogTransferInventory.value = false;
+  forceRerender(1);
+};
+
+const headerDialogConfigLearYear = ref();
+const displayDialogConfigLeaveYear = ref(false);
+const openDialogConfigLeaveYear = (str) => {
+  headerDialogConfigLearYear.value = str;
+  displayDialogConfigLeaveYear.value = true;
+  forceRerender(2);
+};
+const closeDialogConfigLeaveYear = () => {
+  displayDialogConfigLeaveYear.value = false;
+  forceRerender(2);
 };
 
 //init
@@ -459,12 +485,18 @@ onMounted(() => {
         </div>
       </template>
       <template #end>
-        <!-- <Button
-          @click="openUpdateDialog('Chọn loại chấm công')"
-          label="Chọn loại chấm công"
-          icon="pi pi-check"
+        <Button
+          @click="openDialogTransferInventory('Chuyển phép tồn')"
+          label="Chuyển phép tồn"
+          icon="pi pi-calendar"
           class="mr-2"
-        /> -->
+        />
+        <Button
+          @click="openDialogConfigLeaveYear('Thiết lâp phép năm')"
+          label="Thiết lập phép năm"
+          icon="pi pi-cog"
+          class="mr-2"
+        />
         <Button
           @click="toggleExport"
           label="Tiện ích"
@@ -672,37 +704,58 @@ onMounted(() => {
             </th>
             <th
               class="sticky text-center"
-              :style="{ top: '0', width: '100px' }"
+              :style="{ right: '540px', top: '0', width: '90px' }"
+            >
+              Phép năm
+            </th>
+            <th
+              class="sticky text-center"
+              :style="{ right: '450px', top: '0', width: '90px' }"
             >
               Phép tồn
             </th>
             <th
               class="sticky text-center"
-              :style="{ top: '0', width: '100px' }"
+              :style="{ right: '360px', top: '0', width: '90px' }"
             >
               Phép thưởng
             </th>
             <th
               class="sticky text-center"
-              :style="{ top: '0', width: '100px' }"
+              :style="{ right: '270px', top: '0', width: '90px' }"
             >
               Thâm niên
             </th>
             <th
               class="sticky text-center"
-              :style="{ top: '0', width: '100px', backgroundColor: '#F2FBE6' }"
+              :style="{
+                right: '180px',
+                top: '0',
+                width: '90px',
+                backgroundColor: '#F2FBE6',
+              }"
             >
               TỔNG SỐ
             </th>
             <th
               class="sticky text-center"
-              :style="{ top: '0', width: '100px', backgroundColor: '#EEFAF5' }"
+              :style="{
+                right: '90px',
+                top: '0',
+                width: '90px',
+                backgroundColor: '#EEFAF5',
+              }"
             >
               ĐÃ NGHỈ
             </th>
             <th
               class="sticky text-center"
-              :style="{ top: '0', width: '100px', backgroundColor: '#FDF2F0' }"
+              :style="{
+                right: '0',
+                top: '0',
+                width: '90px',
+                backgroundColor: '#FDF2F0',
+              }"
             >
               CÒN LẠI
             </th>
@@ -769,8 +822,19 @@ onMounted(() => {
               <span> {{ user["month" + item.month] }}</span>
             </td>
             <td
-              class="text-center"
+              class="sticky text-center"
               :style="{
+                right: '540px',
+                width: '150px',
+                backgroundColor: '#fff',
+              }"
+            >
+              <span> {{ user.leaveYear }}</span>
+            </td>
+            <td
+              class="sticky text-center"
+              :style="{
+                right: '450px',
                 width: '150px',
                 backgroundColor: '#fff',
               }"
@@ -778,8 +842,9 @@ onMounted(() => {
               <span> {{ user.leaveInventory }}</span>
             </td>
             <td
-              class="text-center"
+              class="sticky text-center"
               :style="{
+                right: '360px',
                 width: '150px',
                 backgroundColor: '#fff',
               }"
@@ -787,8 +852,9 @@ onMounted(() => {
               <span> {{ user.leaveBonus }}</span>
             </td>
             <td
-              class="text-center"
+              class="sticky text-center"
               :style="{
+                right: '270px',
                 width: '150px',
                 backgroundColor: '#fff',
               }"
@@ -796,8 +862,9 @@ onMounted(() => {
               <span> {{ user.leaveSeniority }}</span>
             </td>
             <td
-              class="text-center"
+              class="sticky text-center"
               :style="{
+                right: '180px',
                 width: '150px',
                 backgroundColor: '#fff',
                 backgroundColor: '#F2FBE6',
@@ -806,8 +873,9 @@ onMounted(() => {
               <b>{{ user.total }}</b>
             </td>
             <td
-              class="text-center"
+              class="sticky text-center"
               :style="{
+                right: '90px',
                 width: '150px',
                 backgroundColor: '#fff',
                 backgroundColor: '#EEFAF5',
@@ -816,8 +884,9 @@ onMounted(() => {
               <b> {{ user.leaveAll }}</b>
             </td>
             <td
-              class="text-center"
+              class="sticky text-center"
               :style="{
+                right: '0',
                 width: '150px',
                 backgroundColor: '#fff',
                 backgroundColor: '#FDF2F0',
@@ -918,7 +987,21 @@ onMounted(() => {
     :year="options.year"
     :initData="initData"
   />
-
+  <dialogtransferinventory
+    :key="componentKey['1']"
+    :headerDialog="headerDialogTransferInventory"
+    :displayDialog="displayDialogTransferInventory"
+    :closeDialog="closeDialogTransferInventory"
+    :organization_id="options.filter_organization_id"
+    :initData="initData"
+  />
+  <dialogconfigleaveyear
+    :key="componentKey['2']"
+    :headerDialog="headerDialogConfigLearYear"
+    :displayDialog="displayDialogConfigLeaveYear"
+    :closeDialog="closeDialogConfigLeaveYear"
+    :initData="initData"
+  />
   <Dialog
     header="Tải lên file Excel"
     v-model:visible="displayImport"
@@ -928,8 +1011,8 @@ onMounted(() => {
   >
     <h3>
       <label>
-        <a @click="downloadFile(linkformimport)">Nhấn vào đây</a> để tải xuống
-        tệp mẫu.
+        <a @click="downloadFile(linkformimport)" class="hover2">Nhấn vào đây</a>
+        để tải xuống tệp mẫu.
       </label>
     </h3>
     <form>
@@ -1102,6 +1185,10 @@ th.isHoliday {
 }
 .hover {
   cursor: pointer;
+}
+.hover2:hover{
+  cursor: pointer;
+  color: #2196F3;
 }
 .hover:hover td {
   background-color: aliceblue !important;

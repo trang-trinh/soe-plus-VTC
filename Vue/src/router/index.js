@@ -414,7 +414,9 @@ const HRM_Report = () => import("../views/hrm/report/ReportMain.vue");
 const HRM_ReportWorkers = () => import("../views/hrm/report/report_general/ReportWorkers.vue");
 const HRM_ReportProfileOrganization = () => import("../views/hrm/report/report_general/ProfileOrganization.vue");
 const HRM_ReportMemberQuit = () => import("../views/hrm/report/report_general/MemberQuit.vue");
-
+const HRM_ReportBeforeWorkingProcess = () => import("../views/hrm/report/report_general/BeforeWorkingProcess.vue");
+const HRM_ReportAcademicLevelMember = () => import("../views/hrm/report/report_general/AcademicLevelMember.vue");
+const HRM_ReportContractStatistical = () => import("../views/hrm/report/report_contract/StatisticalContract.vue");
 
 // Request
 const Request_Dashboard = () =>
@@ -1955,6 +1957,21 @@ const router = createRouter({
       path: "/hrm/hrm_report/member_quit",
       name: "hrm_report_member_quit",
       component: HRM_ReportMemberQuit ,
+    },
+    {
+      path: "/hrm/hrm_report/before_working_process",
+      name: "hrm_report_before_working_process",
+      component: HRM_ReportBeforeWorkingProcess ,
+    },
+    {
+      path: "/hrm/hrm_report/academic_level_member",
+      name: "hrm_report_academic_level_member",
+      component: HRM_ReportAcademicLevelMember ,
+    },
+    {
+      path: "/hrm/hrm_report/contract_statistical",
+      name: "hrm_report_contract_statistical",
+      component: HRM_ReportContractStatistical ,
     },
     // Tài liệu
     {
