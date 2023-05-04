@@ -1450,7 +1450,7 @@ onMounted(() => {
             >
             </Column>
             <Column
-              field="reward_number"
+              
               header="Loại"
               headerStyle="text-align:center;max-width:150px;height:50px"
               bodyStyle="text-align:center;max-width:150px;overflow:hidden"

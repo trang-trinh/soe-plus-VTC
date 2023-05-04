@@ -367,6 +367,7 @@ const caHRMTypeContract = () =>
   const caHRMDeclareShift = () => import("../views/hrm/declare/hrm_delare_shift.vue");
 
   const declarePaycheck = () => import("../views/hrm/declare/hrm_declare_paycheck.vue");
+  const hrmPayroll = () => import("../views/hrm/payroll/hrm_payroll.vue");
 
   
   const hrmHolidayDate = () => import("../views/hrm/declare/hrm_holiday_dates.vue");
@@ -1759,6 +1760,10 @@ const router = createRouter({
       path: "/hrm/declare/declare_paycheck",
       name: "caHRMDeclarePaycheck",
       component: declarePaycheck,
+    },    {
+      path: "/hrm/payroll/hrm_payroll",
+      name: "hrmPayroll",
+      component: hrmPayroll,
     },
     
     {

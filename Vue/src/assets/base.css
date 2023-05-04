@@ -1324,13 +1324,25 @@ li.p-chips-token {
   height: 100%;
   padding: 0 !important;
 }
-
+.d-calendar-design-m .p-datepicker-header{
+display: none !important;
+}
 /* Style khai báo ngày nghỉ lễ */
 .theme-default .cv-header-day{
   font-weight: bold !important; 
 }
 .theme-default .cv-day-number{
  display: none;
+}
+.d-chip-design img{
+  margin-left: 0 !important;
+  margin-right: 0 !important ;
+}
+.d-multi-design .p-multiselect-label{
+  white-space: unset !important;
+  cursor: pointer !important; 
+   overflow: unset !important; 
+     text-overflow: unset !important;  
 }
 .theme-default .cv-header .cv-header-nav .previousYear,.previousPeriod,.currentPeriod,.nextPeriod,.nextYear{
   background: #ffffff;
