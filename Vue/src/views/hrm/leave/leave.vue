@@ -702,16 +702,16 @@ onMounted(() => {
             >
               {{ item.name }}
             </th>
-            <th class="text-center" :style="{ top: '0', width: '90px' }">
+            <th class="text-center" :style="{ top: '0', width: '90px', backgroundColor: '#FFFEEC' }">
               Phép năm
             </th>
-            <th class="text-center" :style="{ top: '0', width: '90px' }">
+            <th class="text-center" :style="{ top: '0', width: '90px', backgroundColor: '#FFFEEC' }">
               Phép tồn
             </th>
-            <th class="text-center" :style="{ top: '0', width: '90px' }">
+            <th class="text-center" :style="{ top: '0', width: '90px', backgroundColor: '#FFFEEC' }">
               Phép thưởng
             </th>
-            <th class="text-center" :style="{ top: '0', width: '90px' }">
+            <th class="text-center" :style="{ top: '0', width: '90px', backgroundColor: '#FFFEEC' }">
               Thâm niên
             </th>
             <th
@@ -810,7 +810,7 @@ onMounted(() => {
               class="text-center"
               :style="{
                 width: '150px',
-                backgroundColor: '#fff',
+                backgroundColor: '#FFFEEC'
               }"
             >
               <span> {{ user.leaveYear }}</span>
@@ -819,7 +819,7 @@ onMounted(() => {
               class="text-center"
               :style="{
                 width: '150px',
-                backgroundColor: '#fff',
+                backgroundColor: '#FFFEEC'
               }"
             >
               <span> {{ user.leaveInventory }}</span>
@@ -828,7 +828,7 @@ onMounted(() => {
               class="text-center"
               :style="{
                 width: '150px',
-                backgroundColor: '#fff',
+                backgroundColor: '#FFFEEC'
               }"
             >
               <span> {{ user.leaveBonus }}</span>
@@ -837,7 +837,7 @@ onMounted(() => {
               class="text-center"
               :style="{
                 width: '150px',
-                backgroundColor: '#fff',
+                backgroundColor: '#FFFEEC'
               }"
             >
               <span> {{ user.leaveSeniority }}</span>
@@ -978,6 +978,7 @@ onMounted(() => {
     :headerDialog="headerDialogConfigLearYear"
     :displayDialog="displayDialogConfigLeaveYear"
     :closeDialog="closeDialogConfigLeaveYear"
+    :year="options.year"
     :initData="initData"
   />
   <Dialog
@@ -1030,7 +1031,8 @@ onMounted(() => {
   border-left-width: 0;
 }
 .table-custom {
-  border-collapse: collapse;
+  border-collapse: separate;
+  border-spacing: 0;
   width: 100%;
   table-layout: fixed;
 }

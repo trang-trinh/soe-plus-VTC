@@ -251,6 +251,27 @@ const openBasic = (str) => {
   displayBasic.value = true;
 };
 
+
+
+const openBasicWRP = (id) => {
+  submitted.value = false;
+  payroll.value = {
+    payroll_name: "",
+    emote_file: "",
+    status: true,
+    is_order: sttStamp.value,
+    organization_id: store.getters.user.organization_id,
+    is_system: store.getters.user.is_super ? true : false,
+    declare_paycheck_id:id
+  };
+  listFilesS.value = [];
+  checkIsmain.value = false;
+  isSaveTem.value = false;
+  headerDialog.value = 'Thêm mới bảng lương';
+  displayBasic.value = true;
+};
+
+
 const closeDialog = () => {
   payroll.value = {
     payroll_name: "",
@@ -981,6 +1002,42 @@ emitter.on("emitData", (obj) => {
       break;
   }
 });
+const onChangeUsersReceive=(  declare_paycheck_id)=>{
+  axios
+    .post(
+      baseURL + "/api/hrm_ca_SQL/getData",
+      {
+        str: encr(
+          JSON.stringify({
+            proc: "hrm_user_de_paycheck_get",
+            par: [
+              { par: "declare_paycheck_id", va: declare_paycheck_id } 
+             
+            ],
+          }),
+          SecretKey,
+          cryoptojs
+        ).toString(),
+      },
+      config
+    )
+    .then((response) => {
+      let data = JSON.parse(response.data.data)[0];
+      payroll.value.profile_id_fake=[];
+      data.forEach((element, i) => {
+        payroll.value.profile_id_fake.push({
+          profile_id: element.profile_id,
+            profile_user_name: element.profile_user_name,
+            avatar: element.avatar
+        });
+      });
+    })
+    .catch((error) => {
+      console.log(error);
+
+      store.commit("gologout");
+    });
+}
 onMounted(() => {
   initTuDien();
 
@@ -1031,6 +1088,8 @@ onMounted(() => {
       dataKey="payroll_id"
       responsiveLayout="scroll"
       v-model:selection="selectedStamps"
+      rowGroupMode="subheader"
+      groupRowsBy="declare_paycheck_name"
     >
       <template #header>
         <h3 class="module-title mt-0 ml-1 mb-2">
@@ -1156,18 +1215,19 @@ onMounted(() => {
       >
       <template #groupheader="slotProps">
         <span class="ml-2 font-bold text-blue-500"
-          >{{ slotProps.data.declare_paycheck_name }}  </span
+          >{{ slotProps.data.declare_paycheck_name }} ({{
+            slotProps.data.totalRecordGroups
+          }})</span
         >
-        <!-- <Button
+        <Button
           style="padding: 5px"
-          @click="openDGBaocao(slotProps.data.report_group)"
+          @click="openBasicWRP(slotProps.data.declare_paycheck_id)"
           icon="pi pi-plus-circle"
-          severity="secondary"
-          outlined
-          text
-          class="ml-1"
-        /> -->
+     
+          class="ml-1 p-button-text p-button-rounded"
+        />
       </template>
+
       <Column
         class="align-items-center justify-content-center text-center"
         headerStyle="text-align:center;max-width:70px;height:50px"
@@ -1200,7 +1260,11 @@ onMounted(() => {
             placeholder="Từ khoá"
           />
         </template>
-      
+        <!-- <template #body="ddd">
+        <div>
+          {{ ddd.data }}
+        </div>
+      </template> -->
       </Column>
       <Column
         header="Tháng"
@@ -1224,7 +1288,6 @@ onMounted(() => {
       </Column>
 
       <Column
-     
         header="Tổng lương (VNĐ)"
         headerStyle="text-align:center;max-width:150px;height:50px"
         bodyStyle="text-align:center;max-width:150px;overflow:hidden"
@@ -1415,6 +1478,7 @@ onMounted(() => {
             :class="{
               'p-invalid': payroll.declare_paycheck_id == null && submitted,
             }"
+            @change="onChangeUsersReceive( payroll.declare_paycheck_id)"
           />
         </div>
         <div
