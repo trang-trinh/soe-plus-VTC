@@ -4,12 +4,9 @@ import { useToast } from "vue-toastification";
 import { required } from "@vuelidate/validators";
 import { useVuelidate } from "@vuelidate/core";
 import { FilterMatchMode, FilterOperator } from "primevue/api";
-import tree_users_hrm from "../component/tree_users_hrm.vue";
-import DropdownUser from "../component/DropdownUser.vue";
 import { encr, checkURL } from "../../../util/function.js";
-import moment from "moment";
 //Khai báo
-const emitter = inject("emitter");
+
 const cryoptojs = inject("cryptojs");
 const axios = inject("axios");
 const store = inject("store");
@@ -20,32 +17,24 @@ const config = {
 };
 const filters = ref({
   global: { value: null, matchMode: FilterMatchMode.CONTAINS },
-  payroll_name: {
+  report_name: {
     operator: FilterOperator.AND,
     constraints: [{ value: null, matchMode: FilterMatchMode.STARTS_WITH }],
   },
 });
 const rules = {
-  payroll_name: {
+  report_name: {
     required,
     $errors: [
       {
-        $property: "payroll_name",
+        $property: "report_name",
         $validator: "required",
-        $message: "Tên bảng lương không được để trống!",
+        $message: "Tên báo cáo không được để trống!",
       },
     ],
   },
 };
-const bgColor = ref([
-  "#F8E69A",
-  "#AFDFCF",
-  "#F4B2A3",
-  "#9A97EC",
-  "#CAE2B0",
-  "#8BCFFB",
-  "#CCADD7",
-]);
+
 //Lấy số bản ghi
 const loadCount = () => {
   axios
@@ -54,7 +43,7 @@ const loadCount = () => {
       {
         str: encr(
           JSON.stringify({
-            proc: "hrm_payroll_count",
+            proc: "smart_report_count",
             par: [
               { par: "user_id", va: store.getters.user.user_id },
               { par: "status", va: null },
@@ -75,7 +64,7 @@ const loadCount = () => {
     })
     .catch((error) => {});
 };
-//Lấy dữ liệu payroll
+//Lấy dữ liệu smart_report
 const loadData = (rf) => {
   if (rf) {
     if (isDynamicSQL.value) {
@@ -93,7 +82,7 @@ const loadData = (rf) => {
         {
           str: encr(
             JSON.stringify({
-              proc: "hrm_payroll_list",
+              proc: "smart_report_list",
               par: [
                 { par: "pageno", va: options.value.PageNo },
                 { par: "pagesize", va: options.value.PageSize },
@@ -110,53 +99,16 @@ const loadData = (rf) => {
       .then((response) => {
         let data = JSON.parse(response.data.data)[0];
         if (isFirst.value) isFirst.value = false;
-
+        options.value.totalRecordView = 0;
+        options.value.totalRecordProc = 0;
         data.forEach((element, i) => {
           element.STT = options.value.PageNo * options.value.PageSize + i + 1;
-
-          if (element.report_key) {
-            element.report_key_name = listTypeContractSave.value.find(
-              (x) => x.report_key == element.report_key
-            ).report_name;
-          }
-          if (element.listUsers) {
-            element.listUsers = JSON.parse(element.listUsers);
-
-            element.listUsers.forEach((item) => {
-              if (!item.position_name) {
-                item.position_name = "";
-              } else {
-                item.position_name =
-                  " </br> <span class='text-sm'>" +
-                  item.position_name +
-                  "</span>";
-              }
-              if (!item.department_name) {
-                item.department_name = "";
-              } else {
-                item.department_name =
-                  " </br> <span class='text-sm'>" +
-                  item.department_name +
-                  "</span>";
-              }
-            });
-          } else element.listUsers = [];
-
-          if (!element.position_name) {
-            element.position_name = "";
+          if (element.is_proc) {
+            element.is_proc_type = 1;
+            options.value.totalRecordProc++;
           } else {
-            element.position_name =
-              " </br> <span class='text-sm'>" +
-              element.position_name +
-              "</span>";
-          }
-          if (!element.department_name) {
-            element.department_name = "";
-          } else {
-            element.department_name =
-              " </br> <span class='text-sm'>" +
-              element.department_name +
-              "</span>";
+            element.is_proc_type = 2;
+            options.value.totalRecordView++;
           }
         });
         datalists.value = data;
@@ -177,6 +129,9 @@ const loadData = (rf) => {
       });
   }
 };
+const onRowGroupExpand = (event) => {
+  console.log(event, expandedRowGroups.value);
+};
 //Phân trang dữ liệu
 const onPage = (event) => {
   if (event.rows != options.value.PageSize) {
@@ -193,27 +148,29 @@ const onPage = (event) => {
   } else if (event.page > options.value.PageNo) {
     //Trang sau
 
-    options.value.id = datalists.value[datalists.value.length - 1].payroll_id;
+    options.value.id =
+      datalists.value[datalists.value.length - 1].smart_report_id;
     options.value.IsNext = true;
   } else if (event.page < options.value.PageNo) {
     //Trang trước
-    options.value.id = datalists.value[0].payroll_id;
+    options.value.id = datalists.value[0].smart_report_id;
     options.value.IsNext = false;
   }
   options.value.PageNo = event.page;
   loadData(true);
 };
 
-const payroll = ref({
-  payroll_name: "",
+const smart_report = ref({
+  report_name: "",
   emote_file: "",
   status: true,
   is_order: 1,
 });
-
+const collapsed1=ref(true);
+const collapsed2=ref(true);
 const selectedStamps = ref();
 const submitted = ref(false);
-const v$ = useVuelidate(rules, payroll);
+const v$ = useVuelidate(rules, smart_report);
 const isSaveTem = ref(false);
 const datalists = ref();
 const toast = useToast();
@@ -228,53 +185,48 @@ const options = ref({
   PageSize: 20,
   loading: true,
   totalRecords: null,
+  totalRecordView: 0,
+  totalRecordProc: 0,
 });
 
 //Hiển thị dialog
 const headerDialog = ref();
 const displayBasic = ref(false);
-const listTypeContract = ref([]);
 const openBasic = (str) => {
   submitted.value = false;
-  payroll.value = {
-    payroll_name: "",
+  smart_report.value = {
+    report_name: "",
     emote_file: "",
     status: true,
     is_order: sttStamp.value,
     organization_id: store.getters.user.organization_id,
     is_system: store.getters.user.is_super ? true : false,
   };
-  listFilesS.value = [];
+
   checkIsmain.value = false;
   isSaveTem.value = false;
   headerDialog.value = str;
   displayBasic.value = true;
 };
-
-
-
 const openBasicWRP = (id) => {
   submitted.value = false;
-  payroll.value = {
-    payroll_name: "",
-    emote_file: "",
-    status: true,
+  smart_report.value = {
+    report_name: "",
+
     is_order: sttStamp.value,
     organization_id: store.getters.user.organization_id,
-    is_system: store.getters.user.is_super ? true : false,
-    declare_paycheck_id:id
+
+    is_proc: id,
   };
-  listFilesS.value = [];
+
   checkIsmain.value = false;
   isSaveTem.value = false;
-  headerDialog.value = 'Thêm mới bảng lương';
+  headerDialog.value = "Thêm báo cáo";
   displayBasic.value = true;
 };
-
-
 const closeDialog = () => {
-  payroll.value = {
-    payroll_name: "",
+  smart_report.value = {
+    report_name: "",
     emote_file: "",
     status: true,
     is_order: 1,
@@ -285,33 +237,18 @@ const closeDialog = () => {
 };
 
 //Thêm bản ghi
-
+const checkDisabled = ref(false);
 const sttStamp = ref(1);
 const saveData = (isFormValid) => {
   submitted.value = true;
   if (!isFormValid) {
     return;
   }
-  if (
-    payroll.value.profile_id_fake == null ||
-    payroll.value.payroll_name == null ||
-    payroll.value.declare_paycheck_id == null
-  ) {
-    return;
-  }
 
-  if (payroll.value.profile_id_fake) {
-    var str = "";
-    payroll.value.list_profile_id = "";
-    payroll.value.profile_id_fake.forEach((element) => {
-      payroll.value.list_profile_id += str + element.profile_id;
-      str = ",";
-    });
-  }
-  if (payroll.value.payroll_name.length > 250) {
+  if (smart_report.value.report_name.length > 250) {
     swal.fire({
       title: "Error!",
-      text: "Tên bảng lương không được vượt quá 250 ký tự!",
+      text: "Tên báo cáo không được vượt quá 250 ký tự!",
       icon: "error",
       confirmButtonText: "OK",
     });
@@ -319,8 +256,9 @@ const saveData = (isFormValid) => {
   }
   let formData = new FormData();
 
-  formData.append("hrm_files", JSON.stringify(listFilesS.value));
-  formData.append("hrm_payroll", JSON.stringify(payroll.value));
+  if (smart_report.value.countryside_fake)
+    smart_report.value.countryside = smart_report.value.countryside_fake;
+  formData.append("smart_report", JSON.stringify(smart_report.value));
   swal.fire({
     width: 110,
     didOpen: () => {
@@ -329,11 +267,12 @@ const saveData = (isFormValid) => {
   });
   if (!isSaveTem.value) {
     axios
-      .post(baseURL + "/api/hrm_payroll/add_hrm_payroll", formData, config)
+      .post(baseURL + "/api/smart_report/add_smart_report", formData, config)
       .then((response) => {
         if (response.data.err != "1") {
           swal.close();
-          toast.success("Thêm bảng lương thành công!");
+          toast.success("Thêm báo cáo thành công!");
+          loadData(true);
 
           closeDialog();
         } else {
@@ -356,11 +295,11 @@ const saveData = (isFormValid) => {
       });
   } else {
     axios
-      .put(baseURL + "/api/hrm_payroll/update_hrm_payroll", formData, config)
+      .put(baseURL + "/api/smart_report/update_smart_report", formData, config)
       .then((response) => {
         if (response.data.err != "1") {
           swal.close();
-          toast.success("Sửa bảng lương thành công!");
+          toast.success("Sửa báo cáo thành công!");
 
           closeDialog();
         } else {
@@ -387,26 +326,15 @@ const checkIsmain = ref(true);
 //Sửa bản ghi
 const editTem = (dataTem) => {
   submitted.value = false;
-  payroll.value = dataTem;
-
-  if (payroll.value.listUsers) {
-    payroll.value.profile_id_fake = [];
-    payroll.value.listUsers.forEach((element) => {
-      payroll.value.profile_id_fake.push({
-        profile_id: element.profile_id,
-        profile_user_name: element.full_name,
-        avatar: element.avatar,
-      });
-    });
+  smart_report.value = dataTem;
+  if (smart_report.value.countryside)
+    smart_report.value.countryside_fake = smart_report.value.countryside;
+  if (smart_report.value.is_default) {
+    checkIsmain.value = false;
+  } else {
+    checkIsmain.value = true;
   }
-
-  if (payroll.value.payroll_month)
-    payroll.value.payroll_month = new Date(payroll.value.payroll_month);
-  if (payroll.value.payroll_year)
-    payroll.value.payroll_year = new Date(payroll.value.payroll_year);
-  if (payroll.value.sign_date)
-    payroll.value.sign_date = new Date(payroll.value.sign_date);
-  headerDialog.value = "Sửa bảng lương";
+  headerDialog.value = "Sửa báo cáo";
   isSaveTem.value = true;
   displayBasic.value = true;
 };
@@ -433,15 +361,15 @@ const delTem = (Tem) => {
         });
 
         axios
-          .delete(baseURL + "/api/hrm_payroll/delete_hrm_payroll", {
+          .delete(baseURL + "/api/smart_report/delete_smart_report", {
             headers: { Authorization: `Bearer ${store.getters.token}` },
-            data: Tem != null ? [Tem.payroll_id] : 1,
+            data: Tem != null ? [Tem.smart_report_id] : 1,
           })
           .then((response) => {
             swal.close();
             if (response.data.err != "1") {
               swal.close();
-              toast.success("Xoá bảng lương thành công!");
+              toast.success("Xoá báo cáo thành công!");
               loadData(true);
             } else {
               swal.fire({
@@ -464,7 +392,6 @@ const delTem = (Tem) => {
       }
     });
 };
-
 //Xuất excel
 
 //Sort
@@ -492,7 +419,7 @@ const loadDataSQL = () => {
   datalists.value = [];
 
   let data = {
-    id: "payroll_id",
+    id: "smart_report_id",
     sqlS: filterTrangthai.value != null ? filterTrangthai.value : null,
     sqlO: options.value.sort,
     Search: options.value.SearchText,
@@ -504,58 +431,13 @@ const loadDataSQL = () => {
   };
   options.value.loading = true;
   axios
-    .post(baseURL + "/api/hrm_SQL/Filter_hrm_payroll", data, config)
+    .post(baseURL + "/api/hrm_ca_SQL/Filter_smart_report", data, config)
     .then((response) => {
       let dt = JSON.parse(response.data.data);
       let data = dt[0];
       if (data.length > 0) {
         data.forEach((element, i) => {
           element.STT = options.value.PageNo * options.value.PageSize + i + 1;
-
-          if (element.report_key) {
-            element.report_key_name = listTypeContractSave.value.find(
-              (x) => x.report_key == element.report_key
-            ).report_name;
-          }
-          if (element.listUsers) {
-            element.listUsers = JSON.parse(element.listUsers);
-
-            element.listUsers.forEach((item) => {
-              if (!item.position_name) {
-                item.position_name = "";
-              } else {
-                item.position_name =
-                  " </br> <span class='text-sm'>" +
-                  item.position_name +
-                  "</span>";
-              }
-              if (!item.department_name) {
-                item.department_name = "";
-              } else {
-                item.department_name =
-                  " </br> <span class='text-sm'>" +
-                  item.department_name +
-                  "</span>";
-              }
-            });
-          } else element.listUsers = [];
-
-          if (!element.position_name) {
-            element.position_name = "";
-          } else {
-            element.position_name =
-              " </br> <span class='text-sm'>" +
-              element.position_name +
-              "</span>";
-          }
-          if (!element.department_name) {
-            element.department_name = "";
-          } else {
-            element.department_name =
-              " </br> <span class='text-sm'>" +
-              element.department_name +
-              "</span>";
-          }
         });
 
         datalists.value = data;
@@ -641,20 +523,52 @@ const onFilter = (event) => {
   loadDataSQL();
 };
 //Checkbox
-const onCheckBox = (value, check) => {
+const onCheckBox = (value, check, checkIsmain) => {
   if (check) {
     let data = {
-      IntID: value.payroll_id,
-      TextID: value.payroll_id + "",
+      IntID: value.smart_report_id,
+      TextID: value.smart_report_id + "",
       IntTrangthai: 1,
       BitTrangthai: value.status,
     };
     axios
-      .put(baseURL + "/api/hrm_payroll/update_s_hrm_payroll", data, config)
+      .put(baseURL + "/api/smart_report/update_s_smart_report", data, config)
       .then((response) => {
         if (response.data.err != "1") {
           swal.close();
-          toast.success("Sửa trạng thái bảng lương thành công!");
+          toast.success("Sửa trạng thái báo cáo thành công!");
+          loadData(true);
+          closeDialog();
+        } else {
+          swal.fire({
+            title: "Error!",
+            text: response.data.ms,
+            icon: "error",
+            confirmButtonText: "OK",
+          });
+        }
+      })
+      .catch((error) => {
+        swal.close();
+        swal.fire({
+          title: "Error!",
+          text: "Có lỗi xảy ra, vui lòng kiểm tra lại!",
+          icon: "error",
+          confirmButtonText: "OK",
+        });
+      });
+  } else {
+    let data1 = {
+      IntID: value.smart_report_id,
+      TextID: value.smart_report_id + "",
+      BitMain: value.is_default,
+    };
+    axios
+      .put(baseURL + "/api/smart_report/Update_DefaultStamp", data1, config)
+      .then((response) => {
+        if (response.data.err != "1") {
+          swal.close();
+          toast.success("Sửa trạng thái báo cáo thành công!");
           loadData(true);
           closeDialog();
         } else {
@@ -681,12 +595,18 @@ const onCheckBox = (value, check) => {
 const deleteList = () => {
   let listId = new Array(selectedStamps.value.length);
   let checkD = false;
-
+  selectedStamps.value.forEach((item) => {
+    if (item.is_default) {
+      toast.error("Không được xóa báo cáo mặc định!");
+      checkD = true;
+      return;
+    }
+  });
   if (!checkD) {
     swal
       .fire({
         title: "Thông báo",
-        text: "Bạn có muốn xoá bảng lương này không!",
+        text: "Bạn có muốn xoá báo cáo này không!",
         icon: "warning",
         showCancelButton: true,
         confirmButtonColor: "#3085d6",
@@ -704,10 +624,10 @@ const deleteList = () => {
           });
 
           selectedStamps.value.forEach((item) => {
-            listId.push(item.payroll_id);
+            listId.push(item.smart_report_id);
           });
           axios
-            .delete(baseURL + "/api/hrm_payroll/delete_hrm_payroll", {
+            .delete(baseURL + "/api/smart_report/delete_smart_report", {
               headers: { Authorization: `Bearer ${store.getters.token}` },
               data: listId != null ? listId : 1,
             })
@@ -715,7 +635,7 @@ const deleteList = () => {
               swal.close();
               if (response.data.err != "1") {
                 swal.close();
-                toast.success("Xoá bảng lương thành công!");
+                toast.success("Xoá báo cáo thành công!");
                 checkDelList.value = false;
 
                 loadData(true);
@@ -743,7 +663,7 @@ const deleteList = () => {
       });
   }
 };
-
+const expandedRowGroups = ref([1, 2]);
 //Filter
 const trangThai = ref([
   { name: "Hiển thị", code: 1 },
@@ -757,7 +677,6 @@ const reFilterEmail = () => {
   isDynamicSQL.value = false;
   checkFilter.value = false;
   filterSQL.value = [];
-  options.value.list_profile_id = [];
   options.value.SearchText = null;
   op.value.hide();
   loadData(true);
@@ -765,32 +684,12 @@ const reFilterEmail = () => {
 const filterFileds = () => {
   filterSQL.value = [];
   checkFilter.value = true;
-
-  if (filterTrangthai.value) {
-    let filterS = {
-      filterconstraints: [
-        { value: filterTrangthai.value, matchMode: "equals" },
-      ],
-      filteroperator: "and",
-      key: "status",
-    };
-    filterSQL.value.push(filterS);
-  }
-
-  if (options.value.list_profile_id.length > 0) {
-    let filterS1 = {
-      filterconstraints: [
-        {
-          value: options.value.list_profile_id.toString(),
-          matchMode: "arrIntersec",
-        },
-      ],
-      filteroperator: "or",
-      key: "list_profile_id",
-    };
-
-    filterSQL.value.push(filterS1);
-  }
+  let filterS = {
+    filterconstraints: [{ value: filterTrangthai.value, matchMode: "equals" }],
+    filteroperator: "and",
+    key: "status",
+  };
+  filterSQL.value.push(filterS);
   loadDataSQL();
 };
 watch(selectedStamps, () => {
@@ -805,242 +704,95 @@ const toggle = (event) => {
   op.value.toggle(event);
 };
 
-const listTypeContractSave = ref([]);
-const listDeclarePaycheck = ref([]);
-const listDataUsers = ref([]);
-const initTuDien = () => {
-  listDataUsers.value = [];
-  axios
-    .post(
-      baseURL + "/api/hrm_ca_SQL/getData",
-      {
-        str: encr(
-          JSON.stringify({
-            proc: "hrm_profile_list_filter",
-            par: [
-              { par: "search", va: null },
-              { par: "user_id", va: store.getters.user.user_id },
-              { par: "work_position_id", va: null },
-              { par: "position_id", va: null },
-              { par: "department_id", va: null },
-              { par: "status", va: 1 },
-            ],
-          }),
-          SecretKey,
-          cryoptojs
-        ).toString(),
-      },
-      config
-    )
+const filesList = ref([]);
+let fileSize = [];
+const onUpFile = (file) => {
+  let formData = new FormData();
+  formData.append("fileupload", file);
+  axios({
+    method: "post",
+    url: baseURL + `/api/SRC/UpFile`,
+    data: formData,
+    headers: {
+      Authorization: `Bearer ${store.getters.token}`,
+    },
+  })
     .then((response) => {
-      let data = JSON.parse(response.data.data)[0];
-
-      data.forEach((element, i) => {
-        listDataUsers.value.push({
-          profile_user_name: element.profile_user_name,
-          code: element.profile_id,
-          avatar: element.avatar,
-          department_name: element.department_name,
-          department_id: element.department_id,
-          work_position_name: element.work_position_name,
-          position_name: element.position_name,
-          profile_code: element.profile_code,
-          organization_id: element.organization_id,
-        });
-      });
-    })
-    .catch((error) => {
-      console.log(error);
-
-      if (error && error.status === 401) {
-        swal.fire({
-          text: "Mã token đã hết hạn hoặc không hợp lệ, vui lòng đăng nhập lại!",
-          confirmButtonText: "OK",
-        });
-        store.commit("gologout");
+      if (response.data.err != "1") {
+        smart_report.value.report_template = response.data.htmls;
+        checkUploadFile.value = true;
+        checkDisabled.value = false;
       }
-    });
-
-  axios
-    .post(
-      baseURL + "/api/hrm_ca_SQL/getData",
-      {
-        str: encr(
-          JSON.stringify({
-            proc: "hrm_declare_paycheck_list",
-            par: [
-              { par: "pageno", va: options.value.PageNo },
-              { par: "pagesize", va: options.value.PageSize },
-              { par: "user_id", va: store.getters.user.user_id },
-              { par: "status", va: null },
-            ],
-          }),
-          SecretKey,
-          cryoptojs
-        ).toString(),
-      },
-      config
-    )
-    .then((response) => {
-      let data = JSON.parse(response.data.data)[0];
-      if (isFirst.value) isFirst.value = false;
-
-      data.forEach((element, i) => {
-        listDeclarePaycheck.value.push({
-          name: element.declare_paycheck_name,
-          code: element.declare_paycheck_id,
-        });
-      });
-
-      options.value.loading = false;
     })
-    .catch((error) => {
-      toast.error("Tải dữ liệu không thành công!");
-      options.value.loading = false;
-
-      if (error && error.status === 401) {
-        swal.fire({
-          text: "Mã token đã hết hạn hoặc không hợp lệ, vui lòng đăng nhập lại!",
-          confirmButtonText: "OK",
-        });
-        store.commit("gologout");
-      }
-    });
-
-  listTypeContract.value = [];
-  axios
-    .post(
-      baseURL + "/api/hrm_ca_SQL/getData",
-      {
-        str: encr(
-          JSON.stringify({
-            proc: "smartreport_list ",
-            par: [{ par: "user_id", va: store.getters.user.user_id }],
-          }),
-          SecretKey,
-          cryoptojs
-        ).toString(),
-      },
-      config
-    )
-    .then((response) => {
-      let data = JSON.parse(response.data.data)[0];
-      if (isFirst.value) isFirst.value = false;
-      var arrGroups = [];
-      data.forEach((element) => {
-        var strchk = arrGroups.find((x) => x == element.report_group);
-        if (strchk == null) {
-          arrGroups.push(element.report_group);
-        }
+    .catch(() => {
+      swal.fire({
+        title: "Thông báo",
+        text: "Có lỗi xảy ra, vui lòng kiểm tra lại!",
+        icon: "error",
+        confirmButtonText: "OK",
       });
+    });
+};
+const checkUploadFile = ref(false);
+const onUploadFile = (event) => {
+  checkDisabled.value = true;
+  checkUploadFile.value = false;
+  fileSize = [];
+  filesList.value = [];
 
-      listTypeContractSave.value = [...data];
-      arrGroups.forEach((item) => {
-        var ardf = {
-          label: item,
-          items: [],
-        };
-        data
-          .filter((x) => x.report_group == item)
-          .forEach((z) => {
-            ardf.items.push({ label: z.report_name, value: z.report_key });
+  var ms = false;
+
+  event.files.forEach((fi) => {
+    let formData = new FormData();
+    formData.append("fileupload", fi);
+    axios({
+      method: "post",
+      url: baseURL + `/api/chat/ScanFileUpload`,
+      data: formData,
+      headers: {
+        Authorization: `Bearer ${store.getters.token}`,
+      },
+    })
+      .then((response) => {
+        if (response.data.err != "1") {
+          if (fi.size > 100 * 1024 * 1024) {
+            ms = true;
+          } else {
+            onUpFile(fi);
+          }
+        } else {
+          filesList.value = filesList.value.filter((x) => x.name != fi.name);
+          swal.fire({
+            title: "Cảnh báo",
+            text: "File bị xóa do tồn tại mối đe dọa với hệ thống!",
+            icon: "warning",
+            confirmButtonText: "OK",
           });
-        listTypeContract.value.push(ardf);
-      });
-      loadData(true);
-      options.value.loading = false;
-    })
-    .catch((error) => {
-      toast.error("Tải dữ liệu không thành công!");
-      options.value.loading = false;
-    });
-};
-const listFilesS = ref([]);
-
-const displayDialogUser = ref(false);
-
-const selectedUser = ref();
-
-const showTreeUser = () => {
-  checkMultile.value = false;
-  selectedUser.value = [];
-  displayDialogUser.value = true;
-};
-
-const closeDialogUser = () => {
-  displayDialogUser.value = false;
-};
-
-const checkMultile = ref(false);
-
-const choiceUser = () => {
-  payroll.value.profile_id_fake = [];
-  if (checkMultile.value == false)
-    selectedUser.value.forEach((element) => {
-      payroll.value.profile_id_fake.push(element.profile_id);
-    });
-  closeDialogUser();
-};
-
-emitter.on("emitData", (obj) => {
-  switch (obj.type) {
-    case "submitModel":
-      if (obj.data) {
-        payroll.value.profile_id_fake = obj.data;
-        options.value.list_profile_id = obj.data;
-      }
-      break;
-    case "delItem":
-      if (obj.data) {
-        payroll.value.profile_id_fake = payroll.value.profile_id_fake.filter(
-          (x) => x.profile_id != obj.data.profile_id
-        );
-      }
-      break;
-
-    default:
-      break;
-  }
-});
-const onChangeUsersReceive=(  declare_paycheck_id)=>{
-  axios
-    .post(
-      baseURL + "/api/hrm_ca_SQL/getData",
-      {
-        str: encr(
-          JSON.stringify({
-            proc: "hrm_user_de_paycheck_get",
-            par: [
-              { par: "declare_paycheck_id", va: declare_paycheck_id } 
-             
-            ],
-          }),
-          SecretKey,
-          cryoptojs
-        ).toString(),
-      },
-      config
-    )
-    .then((response) => {
-      let data = JSON.parse(response.data.data)[0];
-      payroll.value.profile_id_fake=[];
-      data.forEach((element, i) => {
-        payroll.value.profile_id_fake.push({
-          profile_id: element.profile_id,
-            profile_user_name: element.profile_user_name,
-            avatar: element.avatar
+        }
+        if (ms) {
+          swal.fire({
+            icon: "warning",
+            type: "warning",
+            title: "Thông báo",
+            text: "Bạn chỉ được upload file có dung lượng tối đa 100MB!",
+          });
+        }
+      })
+      .catch(() => {
+        swal.fire({
+          title: "Thông báo",
+          text: "Có lỗi xảy ra, vui lòng kiểm tra lại!",
+          icon: "error",
+          confirmButtonText: "OK",
         });
       });
-    })
-    .catch((error) => {
-      console.log(error);
-
-      store.commit("gologout");
-    });
-}
+  });
+};
+const removeFile = (event) => {
+  filesList.value = filesList.value.filter((a) => a != event.file);
+};
 onMounted(() => {
-  initTuDien();
-
+  loadData(true);
   return {
     datalists,
     options,
@@ -1067,10 +819,10 @@ onMounted(() => {
       @sort="onSort($event)"
       @filter="onFilter($event)"
       v-model:filters="filters"
-      :filters="filters"
-      :scrollable="true"
       filterDisplay="menu"
       filterMode="lenient"
+      :filters="filters"
+      :scrollable="true"
       scrollHeight="flex"
       :showGridlines="true"
       columnResizeMode="fit"
@@ -1084,16 +836,22 @@ onMounted(() => {
       paginatorTemplate="FirstPageLink PrevPageLink PageLinks NextPageLink LastPageLink RowsPerPageDropdown"
       :rowsPerPageOptions="[20, 30, 50, 100, 200]"
       :paginator="true"
-      :row-hover="true"
-      dataKey="payroll_id"
+      dataKey="smart_report_id"
       responsiveLayout="scroll"
       v-model:selection="selectedStamps"
+      :row-hover="true"
       rowGroupMode="subheader"
-      groupRowsBy="declare_paycheck_name"
+      groupRowsBy="is_proc_type"
+      expandableRowGroups
+      v-model:expandedRowGroups="expandedRowGroups"
+      sortMode="single"
+      sortField="is_proc_type"
+      :sortOrder="1"
+      @rowgroup-expand="onRowGroupExpand($event)"
     >
       <template #header>
         <h3 class="module-title mt-0 ml-1 mb-2">
-          <i class="pi pi-book"></i> Danh sách bảng lương ({{
+          <i class="pi pi-bookmark-fill"></i> Danh sách báo cáo ({{
             options.totalRecords
           }})
         </h3>
@@ -1128,22 +886,17 @@ onMounted(() => {
                 class="p-0 m-0"
                 :showCloseIcon="false"
                 id="overlay_panel"
-                style="width: 400px"
+                style="width: 300px"
               >
                 <div class="grid formgrid m-0">
-                  <div class="col-12 md:col-12">
-                    <div class="py-2">Nhân sự nhận bảng lương</div>
-                    <DropdownUser
-                      :model="options.list_profile_id"
-                      :display="'chip'"
-                      :placeholder="'Chọn nhân sự'"
-                    />
-                  </div>
-                  <div class="field col-12 p-0">
-                    <div class="col-12 text-left py-2" style="text-align: left">
+                  <div class="flex field col-12 p-0">
+                    <div
+                      class="col-4 text-left pt-2 p-0"
+                      style="text-align: left"
+                    >
                       Trạng thái
                     </div>
-                    <div class="col-12">
+                    <div class="col-8">
                       <Dropdown
                         class="col-12 p-0 m-0"
                         v-model="filterTrangthai"
@@ -1184,7 +937,7 @@ onMounted(() => {
               class="mr-2 p-button-danger"
             />
             <Button
-              @click="openBasic('Thêm bảng lương')"
+              @click="openBasic('Thêm báo cáo')"
               label="Thêm mới"
               icon="pi pi-plus"
               class="mr-2"
@@ -1214,40 +967,48 @@ onMounted(() => {
         </Toolbar></template
       >
       <template #groupheader="slotProps">
-        <span class="ml-2 font-bold text-blue-500"
-          >{{ slotProps.data.declare_paycheck_name }} ({{
-            slotProps.data.totalRecordGroups
-          }})</span
+        <div
+          v-if="slotProps.data.is_proc == true"
+          class="flex align-items-center pl-3"
         >
-        <Button
-          style="padding: 5px"
-          @click="openBasicWRP(slotProps.data.declare_paycheck_id)"
-          icon="pi pi-plus-circle"
-     
-          class="ml-1 p-button-text p-button-rounded"
-        />
+          <div class="font-bold text-blue-500">Thủ tục</div>
+          <Button
+            style="padding: 5px"
+            @click="openBasicWRP(true)"
+            icon="pi pi-plus-circle"
+            class="ml-1 p-button-text p-button-rounded p-button-secondary"
+          />
+        </div>
+        <div v-else class="flex align-items-center pl-3">
+          <div class="font-bold text-blue-500">View</div>
+          <Button
+            style="padding: 5px"
+            @click="openBasicWRP(false)"
+            icon="pi pi-plus-circle"
+            class="ml-1 p-button-text p-button-rounded p-button-secondary"
+          />
+        </div>
       </template>
-
-      <Column
+      <!-- <Column
         class="align-items-center justify-content-center text-center"
-        headerStyle="text-align:center;max-width:70px;height:50px"
-        bodyStyle="text-align:center;max-width:70px"
+        headerStyle="text-align:center;max-width:50px;height:50px"
+        bodyStyle="text-align:center;max-width:50px"
         selectionMode="multiple"
         v-if="store.getters.user.is_super == true"
       >
-      </Column>
+      </Column> -->
 
       <Column
         field="STT"
         header="STT"
         class="align-items-center justify-content-center text-center"
-        headerStyle="text-align:center;max-width:70px;height:50px"
-        bodyStyle="text-align:center;max-width:70px"
+        headerStyle="text-align:center;max-width:50px;height:50px"
+        bodyStyle="text-align:center;max-width:50px"
       ></Column>
 
       <Column
-        field="payroll_name"
-        header="Tên bảng lương"
+        field="report_name"
+        header="Tên báo cáo"
         :sortable="true"
         headerStyle="text-align:left;height:50px"
         bodyStyle="text-align:left"
@@ -1260,162 +1021,29 @@ onMounted(() => {
             placeholder="Từ khoá"
           />
         </template>
-        <!-- <template #body="ddd">
-        <div>
-          {{ ddd.data }}
-        </div>
-      </template> -->
       </Column>
-      <Column
-        header="Tháng"
-        headerStyle="text-align:center;max-width:150px;height:50px"
-        bodyStyle="text-align:center;max-width:150px;overflow:hidden"
-        class="align-items-center justify-content-center text-center overflow-hidden"
-      >
-        <template #body="slotProps">
-          <div>
-            {{
-              moment(
-                new Date(
-                  new Date(slotProps.data.payroll_year).getFullYear(),
-                  new Date(slotProps.data.payroll_month).getMonth(),
-                  1
-                )
-              ).format("MM/YYYY")
-            }}
-          </div>
-        </template>
-      </Column>
-
-      <Column
-        header="Tổng lương (VNĐ)"
-        headerStyle="text-align:center;max-width:150px;height:50px"
-        bodyStyle="text-align:center;max-width:150px;overflow:hidden"
-        class="align-items-center justify-content-center text-center overflow-hidden"
-      >
-      </Column>
-      <Column
-        field="vacancy_name"
-        header="Nhân sự nhận"
-        headerStyle="text-align:center;max-width:250px;height:50px"
-        bodyStyle="text-align:center;max-width:250px;overflow:hidden"
-        class="align-items-center justify-content-center text-center overflow-hidden"
-      >
-        <template #body="data">
-          <div>
-            <AvatarGroup>
-              <Avatar
-                v-for="(item, index) in data.data.listUsers.slice(0, 4)"
-                v-bind:label="
-                  item.avatar
-                    ? ''
-                    : item.full_name.substring(
-                        item.full_name.lastIndexOf(' ') + 1,
-                        item.full_name.lastIndexOf(' ') + 2
-                      )
-                "
-                style="
-                  background-color: #2196f3;
-                  color: #fff;
-                  width: 3rem;
-                  height: 3rem;
-                  font-size: 1rem !important;
-                "
-                :key="index"
-                :style="
-                  item.avatar
-                    ? 'background-color: #2196f3'
-                    : 'background:' + bgColor[item.full_name.length % 7]
-                "
-                :image="basedomainURL + item.avatar"
-                class="text-avatar cursor-pointer"
-                size="xlarge"
-                shape="circle"
-                v-tooltip.top="{
-                  value:
-                    item.full_name + item.position_name + item.department_name,
-                  escape: true,
-                }"
-                @click="goProfile(item)"
-              />
-              <Avatar
-                v-if="data.data.listUsers.length > 4"
-                :label="(data.data.listUsers.length - 4).toString()"
-                shape="circle"
-                style="
-                  background-color: #2196f3;
-                  color: #fff;
-                  width: 2rem;
-                  height: 2rem;
-                  font-size: 1rem !important;
-                "
-              />
-            </AvatarGroup>
-          </div>
-        </template>
-      </Column>
-      <Column
-        field="sign_user"
-        header="Người ký"
-        headerStyle="text-align:center;max-width:250px;height:50px"
-        bodyStyle="text-align:center;max-width:250px;overflow:hidden"
-        class="align-items-center justify-content-center text-center overflow-hidden"
-      >
-      </Column>
-      <Column
-        header="Ngày ký"
-        headerStyle="text-align:center;max-width:120px;height:50px"
-        bodyStyle="text-align:center;max-width:120px;overflow:hidden"
-        class="align-items-center justify-content-center text-center overflow-hidden"
-      >
-        <template #body="slotProps">
-          <div>
-            {{ moment(slotProps.data.sign_date).format("DD/MM/YYYY") }}
-          </div>
-        </template>
-      </Column>
-      <!-- <Column
-        field="status"
-        header="Trạng thái"
-        headerStyle="text-align:center;max-width:150px;height:50px"
-        bodyStyle="text-align:center;max-width:150px"
-        class="align-items-center justify-content-center text-center"
-      >
-        <template #body="data">
-          <Checkbox
-            :disabled="
-              !(
-                store.state.user.is_super == true ||
-                store.state.user.user_id == data.data.created_by ||
-                (store.state.user.role_id == 'admin' &&
-                  store.state.user.organization_id == data.data.organization_id)
-              )
-            "
-            :binary="true"
-            v-model="data.data.status"
-            @click="onCheckBox(data.data, true, true)"
-          /> </template
-      ></Column> -->
 
       <Column
         header="Chức năng"
         class="align-items-center justify-content-center text-center"
-        headerStyle="text-align:center;max-width:150px;height:50px"
-        bodyStyle="text-align:center;max-width:150px"
+        headerStyle="text-align:center;max-width:120px;height:50px"
+        bodyStyle="text-align:center;max-width:120px"
       >
         <template #body="Tem">
-          <div>
+          <div
+            v-if="
+              store.state.user.is_super == true ||
+              store.state.user.user_id == Tem.data.created_by ||
+              (store.state.user.role_id == 'admin' &&
+                store.state.user.organization_id == Tem.data.organization_id)
+            "
+          >
             <Button
               @click="editTem(Tem.data)"
               class="p-button-rounded p-button-secondary p-button-outlined mx-1"
               type="button"
               icon="pi pi-pencil"
               v-tooltip.top="'Sửa'"
-              v-if="
-                store.state.user.is_super == true ||
-                store.state.user.user_id == Tem.data.created_by ||
-                store.state.user.is_admin
-              "
             ></Button>
             <Button
               class="p-button-rounded p-button-secondary p-button-outlined mx-1"
@@ -1423,12 +1051,6 @@ onMounted(() => {
               icon="pi pi-trash"
               @click="delTem(Tem.data)"
               v-tooltip.top="'Xóa'"
-              v-if="
-                store.state.user.is_super == true ||
-                store.state.user.user_id == Tem.data.created_by ||
-                (store.state.user.role_id == 'admin' &&
-                  store.state.user.organization_id == Tem.data.organization_id)
-              "
             ></Button>
           </div>
         </template>
@@ -1444,15 +1066,7 @@ onMounted(() => {
       </template>
     </DataTable>
   </div>
-  <tree_users_hrm
-    v-if="displayDialogUser === true"
-    :headerDialog="'Chọn nhân sự'"
-    :displayDialog="displayDialogUser"
-    :closeDialog="closeDialogUser"
-    :one="checkMultile"
-    :selected="selectedUser"
-    :choiceUser="choiceUser"
-  />
+
   <Dialog
     :header="headerDialog"
     v-model:visible="displayBasic"
@@ -1461,230 +1075,204 @@ onMounted(() => {
     :modal="true"
   >
     <form>
-      <div class="grid formgrid m-2 my-0">
-        <div class="field col-12 md:col-12">
-          <div class="col-3 text-left p-0 pb-2">
-            Mẫu bảng lương <span class="redsao">(*)</span>
-          </div>
-          <Dropdown
-            v-model="payroll.declare_paycheck_id"
-            :options="listDeclarePaycheck"
-            optionLabel="name"
-            optionValue="code"
-            class="col-12 ip36 px-2"
-            placeholder="Chọn mẫu phiếu lương"
-            panelClass="d-design-dropdown"
-            :filter="true"
-            :class="{
-              'p-invalid': payroll.declare_paycheck_id == null && submitted,
-            }"
-            @change="onChangeUsersReceive( payroll.declare_paycheck_id)"
-          />
-        </div>
-        <div
-          v-if="
-            (v$.payroll_name.$invalid && submitted) ||
-            v$.payroll_name.$pending.$response
-          "
-          style="display: flex"
-          class="field col-12 md:col-12 p-0"
-        >
-          <small class="col-12 p-error">
-            Mẫu bảng lương không được để trống!
-          </small>
-        </div>
-        <div class="col-12 field md:col-12 flex align-items-center">
-          <div class="col-6 md:col-6 p-0 align-items-center">
-            <div class="col-12 text-left p-0 pb-2">Tháng</div>
-
-            <div class="col-12 p-0">
-              <Calendar
-                v-model="payroll.payroll_month"
-                view="month"
-                dateFormat="mm"
-                class="w-full"
-                panelClass="d-calendar-design-m"
-                :showIcon="true"
-              >
-              </Calendar>
-            </div>
-          </div>
-          <div class="col-6 md:col-6 p-0 align-items-center pl-3">
-            <div class="col-12 text-left p-0 pb-2">Năm</div>
-            <div class="col-12 p-0">
-              <Calendar
-                v-model="payroll.payroll_year"
-                view="year"
-                dateFormat="yy"
-                class="w-full"
-                :showIcon="true"
-              >
-              </Calendar>
-            </div>
-          </div>
-        </div>
+      <div class="grid formgrid">
         <div class="field col-12 md:col-12">
           <div class="col-12 text-left p-0 pb-2">
-            Tên bảng lương <span class="redsao">(*)</span>
+            Tên báo cáo <span class="redsao">(*)</span>
           </div>
           <InputText
-            v-model="payroll.payroll_name"
+            v-model="smart_report.report_name"
             spellcheck="false"
             class="col-12 ip36 px-2"
             :class="{
-              'p-invalid': v$.payroll_name.$invalid && submitted,
+              'p-invalid': v$.report_name.$invalid && submitted,
             }"
           />
         </div>
         <div
-          v-if="
-            (v$.payroll_name.$invalid && submitted) ||
-            v$.payroll_name.$pending.$response
-          "
           style="display: flex"
-          class="field col-12 md:col-12 p-0"
+          class="field col-12 md:col-12"
+          v-if="
+            (v$.report_name.$invalid && submitted) ||
+            v$.report_name.$pending.$response
+          "
         >
-          <small class="col-9 p-error">
+          <div class="col-2 text-left"></div>
+          <small class="col-10 p-error">
             <span class="col-12 p-0">{{
-              v$.payroll_name.required.$message
-                .replace("Value", "Tên bảng lương")
+              v$.report_name.required.$message
+                .replace("Value", "Tên báo cáo")
                 .replace("is required", "không được để trống")
             }}</span>
           </small>
         </div>
+
+        <div class="col-12 field md:col-12 flex">
+          <div class="col-6 md:col-6 p-0 align-items-center pr-1">
+            <div class="col-12 text-left p-0 pb-2">Nhóm báo cáo</div>
+            <InputText
+              v-model="smart_report.report_group"
+              spellcheck="false"
+              class="col-12 ip36"
+            />
+          </div>
+          <div class="col-6 md:col-6 p-0 align-items-center pl-1">
+            <div class="col-12 text-left p-0 pb-2">STT</div>
+            <InputNumber
+              v-model="smart_report.is_order"
+              class="col-12 ip36 p-0"
+            />
+          </div>
+        </div>
         <div class="col-12 field md:col-12 flex align-items-center">
-          <div class="col-6 md:col-6 p-0 align-items-center">
-            <div class="col-12 text-left p-0 pb-2">Ngày ký</div>
-
-            <div class="col-12 p-0">
-              <Calendar
-                v-model="payroll.sign_date"
-                class="w-full"
-                :showIcon="true"
-                :showOnFocus="false"
-              >
-              </Calendar>
-            </div>
-          </div>
-          <div class="col-6 md:col-6 p-0 align-items-center pl-3">
-            <div class="col-12 text-left p-0 pb-2">Người ký</div>
-            <div class="col-12 p-0">
-              <Dropdown
-                v-model="payroll.sign_user"
-                :options="listDataUsers"
-                optionLabel="profile_user_name"
-                optionValue="profile_user_name"
-                class="w-full"
-                panelClass="d-design-dropdown"
-                :filter="true"
-                :editable="true"
-              >
-                <template #option="slotProps">
-                  <div v-if="slotProps.option" class="flex">
-                    <div class="format-center">
-                      <Avatar
-                        v-bind:label="
-                          slotProps.option.avatar
-                            ? ''
-                            : slotProps.option.profile_user_name.substring(0, 1)
-                        "
-                        v-bind:image="
-                          slotProps.option.avatar
-                            ? basedomainURL + slotProps.option.avatar
-                            : basedomainURL + '/Portals/Image/noimg.jpg'
-                        "
-                        style="
-                          color: #ffffff;
-                          width: 3rem;
-                          height: 3rem;
-                          font-size: 1.4rem !important;
-                        "
-                        :style="{
-                          background:
-                            bgColor[
-                              slotProps.option.profile_user_name.length % 7
-                            ],
-                        }"
-                        size="xlarge"
-                        shape="circle"
-                      />
-                    </div>
-                    <div class="format-center text-left ml-3">
-                      <div>
-                        <div class="mb-1 font-bold">
-                          {{ slotProps.option.profile_user_name }}
-                        </div>
-                        <div class="description">
-                          <div>
-                            <span v-if="slotProps.option.position_name">{{
-                              slotProps.option.position_name
-                            }}</span>
-                            <span v-else>{{
-                              slotProps.option.profile_code
-                            }}</span>
-
-                            <span v-if="slotProps.option.department_name">
-                              | {{ slotProps.option.department_name }}</span
-                            >
-                          </div>
-                        </div>
-                      </div>
-                    </div>
-                  </div>
-                  <span v-else> Chưa có dữ liệu </span>
-                </template>
-              </Dropdown>
-            </div>
-          </div>
-        </div>
-        <div class="field flex align-items-center col-12 md:col-12">
-          <div class="col-6 md:col-6 p-0 align-items-center flex">
-            <div class="p-0 flex align-items-center">Duyệt</div>
+          <div class="col-4 field md:col-4 p-0 flex align-items-center">
+            <div class="text-left p-0">Cho phép dùng chung</div>
             <InputSwitch
-              v-model="payroll.is_approved"
+              v-model="smart_report.is_public"
               class="w-4rem lck-checked ml-3"
             />
           </div>
-          <div class="col-6 md:col-6 p-0 align-items-center flex">
-            <div class="p-0 flex align-items-center pl-3">Trạng thái</div>
+          <div class="col-4 field md:col-4 p-0 flex align-items-center">
+            <div class="text-left p-0">Báo cáo dạng bảng (Excel)</div>
             <InputSwitch
-              v-model="payroll.status"
+              v-model="smart_report.is_table"
+              class="w-4rem lck-checked ml-3"
+            />
+          </div>
+          <div
+            class="col-4 field md:col-4 p-0 flex align-items-center format-center"
+          >
+            <div class="text-left p-0">Kích hoạt</div>
+            <InputSwitch
+              v-model="smart_report.status"
               class="w-4rem lck-checked ml-3"
             />
           </div>
         </div>
-
-        <div class="field align-items-center col-12 md:col-12">
-          <div class="col-12 p-0 flex align-items-center">
-            <div class="text-left p-0">
-              Danh sách nhân sự nhận bảng lương <span class="redsao">(*)</span>
-            </div>
-            <Button
-              v-tooltip.top="'Chọn nhân sự'"
-              @click="showTreeUser()"
-              icon="pi pi-user-plus"
-              class="p-button-text p-button-rounded"
+        <div class="col-12 field md:col-12 flex align-items-center">
+          <div class="col-4 field md:col-4 p-0 flex align-items-center">
+            <FileUpload
+              mode="basic"
+              name="demo[]"
+              url="./upload.php"
+              chooseLabel="Tải file mẫu"
+              :multiple="false"
+              accept=".doc,.docx,.xls,.xlsx"
+              :maxFileSize="1000000000"
+              :auto="true"
+              @select="onUploadFile"
+              @remove="removeFile"
+            />
+            <ProgressSpinner
+              style="width: 30px; height: 30px"
+              strokeWidth="8"
+              fill="var(--surface-ground)"
+              animationDuration=".5s"
+              aria-label="Custom ProgressSpinner"
+              v-if="checkDisabled && checkUploadFile == false"
+            />
+            <i
+              v-if="checkDisabled == false && checkUploadFile"
+              class="pi pi-check text-green-500 font-bold pl-3"
+              style="font-size: 1.5rem"
+            ></i>
+          </div>
+          <div class="col-4 field md:col-4 p-0 flex align-items-center">
+            <div class="text-left p-0">Xoá cấu hình</div>
+            <InputSwitch
+              v-model="smart_report.is_del_config"
+              class="w-4rem lck-checked ml-3"
             />
           </div>
-          <div class="col-12 p-0">
-            <DropdownUser
-              :model="payroll.profile_id_fake"
-              :display="'chip'"
-              :placeholder="'Chọn nhân sự'"
-              :class="{
-                'p-invalid': payroll.profile_id_fake == null && submitted,
-              }"
+          <div
+            class="col-4 field md:col-4 p-0 flex align-items-center format-center"
+          >
+            <div class="text-left p-0">Template</div>
+            <InputSwitch
+              v-model="smart_report.is_temp"
+              class="w-4rem lck-checked ml-3"
             />
           </div>
         </div>
-        <div
-          v-if="payroll.profile_id_fake == null && submitted"
-          style="display: flex"
-          class="field col-12 md:col-12 p-0"
-        >
-          <small class="col-12 p-error">
-            Danh sách nhân sự không được để trống!
-          </small>
+        <div class="col-12 field md:col-12 flex align-items-center">
+          <Panel toggleable class="w-full"  :collapsed="collapsed1">
+            <template #header>
+              <div class="flex align-items-center p-0 m-0 font-bold text-lg">
+                <button
+                  class="p-panel-header-icon p-link p-0 m-0"
+                  @click="toggle"
+                >
+                  <span class="pi pi-database font-bold text-lg"></span>
+                </button>
+                <div>Thông tin lấy dữ liệu</div>
+              </div>
+            </template>
+
+            <div class="col-12 field md:col-12 flex">
+              <div class="col-6 md:col-6 p-0 align-items-center pr-1">
+                <div class="col-12 text-left p-0 pb-2">Thủ tục lấy dữ liệu</div>
+                <InputText
+                  v-model="smart_report.report_group"
+                  spellcheck="false"
+                  class="col-12 ip36"
+                />
+              </div>
+              <div class="col-6 md:col-6 p-0 align-items-center pl-1">
+                <div class="col-12 text-left p-0 pb-2">Chọn nhân sự mẫu</div>
+                <InputNumber
+                  v-model="smart_report.is_order"
+                  class="col-12 ip36 p-0"
+                />
+              </div>
+            </div>
+            <div class="col-12 field md:col-12">
+              <div class="col-12 text-left p-0 pb-2">
+                Thủ tục lấy danh sách hiển thị khi tra cứu
+              </div>
+              <InputText
+                v-model="smart_report.report_group"
+                spellcheck="false"
+                class="col-12 ip36"
+              />
+            </div>
+          </Panel>
+        </div>
+        <div class="col-12 field md:col-12 flex align-items-center">
+          <Panel toggleable class="w-full" :collapsed="collapsed2">
+            <template #header>
+              <div class="flex align-items-center p-0 m-0 font-bold text-lg">
+                <button
+                  class="p-panel-header-icon p-link p-0 m-0"
+                  @click="toggle"
+                >
+                  <span class="pi pi-key font-bold text-lg"></span>
+                </button>
+                <div>Phân quyền truy cập báo cáo</div>
+              </div>
+            </template>
+            <div class="col-12 field md:col-12">
+              <div class="col-12 text-left p-0 pb-2 font-bold">
+                <i class="pi pi-user-plus pr-2" style="font-size: 1.1rem"></i>
+                Danh sách user được truy cập báo cáo
+              </div>
+              <InputText
+                v-model="smart_report.report_group"
+                spellcheck="false"
+                class="col-12 ip36"
+              />
+            </div>
+            <div class="col-12 field md:col-12">
+              <div class="col-12 text-left p-0 pb-2 text-red-500 font-bold">
+                <i class="pi pi-user-minus pr-2" style="font-size: 1.1rem"></i>
+                Danh sách user không được truy cập báo cáo
+              </div>
+              <InputText
+                v-model="smart_report.report_group"
+                spellcheck="false"
+                class="col-12 ip36"
+              />
+            </div>
+          </Panel>
         </div>
       </div>
     </form>
@@ -1701,6 +1289,7 @@ onMounted(() => {
         icon="pi pi-check"
         @click="saveData(!v$.$invalid)"
         autofocus
+        :disabled="checkDisabled"
       />
     </template>
   </Dialog>

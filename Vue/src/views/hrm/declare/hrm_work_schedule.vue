@@ -6,7 +6,7 @@ import { useVuelidate } from "@vuelidate/core";
 import { FilterMatchMode, FilterOperator } from "primevue/api";
 import { encr, checkURL } from "../../../util/function.js";
 import tree_users_hrm from "../component/tree_users_hrm.vue";
-import DropdownUser from "../component/DropdownUser.vue";
+import DropdownUser from "../component/DropdownUsers.vue";
 import moment from "moment";
 import { forEach } from "jszip";
 //Khai báo

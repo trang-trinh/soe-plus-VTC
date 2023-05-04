@@ -115,23 +115,53 @@ namespace API.Controllers
                     List<String> filePaths = new List<string>();
                     List<String> htmls = new List<string>();
                     //foreach (IFormFile ufile in Request.Form.Files)
-                    foreach (MultipartFileData ufile in provider.FileData)
+                    FileInfo fileInfo = null;
+                    MultipartFileData ffileData = null;
+                    foreach (MultipartFileData fileData in provider.FileData)
                     {
+
                         var html = "";
-                        var fileName = Path.GetFileName(ufile.Headers.ContentDisposition.FileName);
-                        var extype = Path.GetExtension(ufile.Headers.ContentDisposition.FileName);
+                        string fileName = "";
+                        if (string.IsNullOrEmpty(fileData.Headers.ContentDisposition.FileName))
+                        {
+                            fileName = Guid.NewGuid().ToString();
+                        }
+                        fileName = fileData.Headers.ContentDisposition.FileName;
+                        if (fileName.StartsWith("\"") && fileName.EndsWith("\""))
+                        {
+                            fileName = fileName.Trim('"');
+                        }
+                        if (fileName.Contains(@"/") || fileName.Contains(@"\"))
+                        {
+                            fileName = Path.GetFileName(fileName);
+                        }
+                       
+                       
+                        var extype = Path.GetExtension(fileName);
                         fileName = System.Guid.NewGuid().ToString() + extype;
                         bool isxls = fileName.ToLower().Contains(".xls");
-                        var filePath = Path.Combine(Directory.GetCurrentDirectory(), @"wwwroot/Portals/Upload", fileName);
+                        var filePath = Path.Combine(root, @"/Portals", fileName);
                         var filePathHTML = filePath + ".html";
 
-                        FileStream fs = File.OpenRead(ufile.LocalFileName);
-                        using (var fileStream = new FileStream(filePath, FileMode.Create))
+                        fileInfo = new FileInfo(filePath);
+ 
+                        ffileData = fileData;
+                        if (fileInfo != null)
                         {
-                            fs.CopyTo(fileStream);
-                            fileStream.Close();
-                            fs.Close();
+                            if (!Directory.Exists(fileInfo.Directory.FullName))
+                            {
+                                Directory.CreateDirectory(fileInfo.Directory.FullName);
+                            }
+                            File.Move(ffileData.LocalFileName, filePath);
+
                         }
+                        //FileStream fs = File.OpenRead(fileData.LocalFileName);
+                        //using (var fileStream = new FileStream(filePath, FileMode.Create))
+                        //{
+                        //    fs.CopyTo(fileStream);
+                        //    fileStream.Close();
+                        //    fs.Close();
+                        //}
                         if (isxls)
                         {
                             var workbook = new Workbook(filePath);
@@ -156,6 +186,7 @@ namespace API.Controllers
                             }
                         }
                         System.IO.File.Delete(filePathHTML);
+                        System.IO.File.Delete(filePath);
                         filePaths.Add(filePath.Substring(filePath.LastIndexOf("Portals")));
                         htmls.Add(html);
                     }

@@ -5,7 +5,7 @@ import { FilterMatchMode, FilterOperator } from "primevue/api";
 import { encr } from "../../../util/function.js";
 import moment from "moment";
 import dialogReward from "./component/dialog_reward.vue";
-import DropdownUser from "../component/DropdownUser.vue";
+import DropdownUser from "../component/DropdownUsers.vue";
 import router from "@/router";
 //Khai báo
 const emitter = inject("emitter");
