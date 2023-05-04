@@ -367,9 +367,11 @@ const caHRMTypeContract = () =>
   const caHRMDeclareShift = () => import("../views/hrm/declare/hrm_delare_shift.vue");
 
   const declarePaycheck = () => import("../views/hrm/declare/hrm_declare_paycheck.vue");
+ 
   const hrmPayroll = () => import("../views/hrm/payroll/hrm_payroll.vue");
+  const smartProc = () => import("../views/hrm/template/smartProc.vue");
+  const smartReport = () => import("../views/hrm/template/smartReport.vue");
 
-  
   const hrmHolidayDate = () => import("../views/hrm/declare/hrm_holiday_dates.vue");
   const hrmHeadbarCalendar = () => import("../views/hrm/declare/hrm_headbar_calendar.vue");
 const caHRMDecision = () => import("../views/hrm/category/caDecision.vue");
@@ -1767,7 +1769,16 @@ const router = createRouter({
       name: "hrmPayroll",
       component: hrmPayroll,
     },
-    
+    {
+      path: "/hrm/template/smart_report",
+      name: "hrmsmartReport",
+      component: smartReport,
+    },
+    {
+      path: "/hrm/template/smart_proc",
+      name: "hrmsmartProc",
+      component: smartProc,
+    },
     {
       path: "/hrm/hrm_shift",
       name: "caHRMDeclareShift",

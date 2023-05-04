@@ -7,6 +7,7 @@ import { FilterMatchMode, FilterOperator } from "primevue/api";
 import tree_users_hrm from "../component/tree_users_hrm.vue";
 import DropdownUser from "../component/DropdownUser.vue";
 import { encr, checkURL } from "../../../util/function.js";
+import moment from "moment";
 //Khai báo
 const emitter = inject("emitter");
 const cryoptojs = inject("cryptojs");
@@ -19,19 +20,19 @@ const config = {
 };
 const filters = ref({
   global: { value: null, matchMode: FilterMatchMode.CONTAINS },
-  declare_paycheck_name: {
+  payroll_name: {
     operator: FilterOperator.AND,
     constraints: [{ value: null, matchMode: FilterMatchMode.STARTS_WITH }],
   },
 });
 const rules = {
-  declare_paycheck_name: {
+  payroll_name: {
     required,
     $errors: [
       {
-        $property: "declare_paycheck_name",
+        $property: "payroll_name",
         $validator: "required",
-        $message: "Tên mẫu phiếu lương không được để trống!",
+        $message: "Tên bảng lương không được để trống!",
       },
     ],
   },
@@ -53,7 +54,7 @@ const loadCount = () => {
       {
         str: encr(
           JSON.stringify({
-            proc: "hrm_declare_paycheck_count",
+            proc: "hrm_payroll_count",
             par: [
               { par: "user_id", va: store.getters.user.user_id },
               { par: "status", va: null },
@@ -74,7 +75,7 @@ const loadCount = () => {
     })
     .catch((error) => {});
 };
-//Lấy dữ liệu declare_paycheck
+//Lấy dữ liệu payroll
 const loadData = (rf) => {
   if (rf) {
     if (isDynamicSQL.value) {
@@ -92,7 +93,7 @@ const loadData = (rf) => {
         {
           str: encr(
             JSON.stringify({
-              proc: "hrm_declare_paycheck_list",
+              proc: "hrm_payroll_list",
               par: [
                 { par: "pageno", va: options.value.PageNo },
                 { par: "pagesize", va: options.value.PageSize },
@@ -109,7 +110,7 @@ const loadData = (rf) => {
       .then((response) => {
         let data = JSON.parse(response.data.data)[0];
         if (isFirst.value) isFirst.value = false;
-         
+
         data.forEach((element, i) => {
           element.STT = options.value.PageNo * options.value.PageSize + i + 1;
 
@@ -122,43 +123,40 @@ const loadData = (rf) => {
             element.listUsers = JSON.parse(element.listUsers);
 
             element.listUsers.forEach((item) => {
-                if (!item.position_name) {
-                  item.position_name = "";
-                } else {
-                  item.position_name =
-                    " </br> <span class='text-sm'>" +
-                    item.position_name +
-                    "</span>";
-                }
-                if (!item.department_name) {
-                  item.department_name = "";
-                } else {
-                  item.department_name =
-                    " </br> <span class='text-sm'>" +
-                    item.department_name +
-                    "</span>";
-                }
-              });
-
-
-
-
-
-
-
-
+              if (!item.position_name) {
+                item.position_name = "";
+              } else {
+                item.position_name =
+                  " </br> <span class='text-sm'>" +
+                  item.position_name +
+                  "</span>";
+              }
+              if (!item.department_name) {
+                item.department_name = "";
+              } else {
+                item.department_name =
+                  " </br> <span class='text-sm'>" +
+                  item.department_name +
+                  "</span>";
+              }
+            });
           } else element.listUsers = [];
-
 
           if (!element.position_name) {
             element.position_name = "";
           } else {
-            element.position_name =  " </br> <span class='text-sm'>" + element.position_name+ "</span>";
+            element.position_name =
+              " </br> <span class='text-sm'>" +
+              element.position_name +
+              "</span>";
           }
           if (!element.department_name) {
             element.department_name = "";
           } else {
-            element.department_name = " </br> <span class='text-sm'>"  + element.department_name + "</span>";
+            element.department_name =
+              " </br> <span class='text-sm'>" +
+              element.department_name +
+              "</span>";
           }
         });
         datalists.value = data;
@@ -195,20 +193,19 @@ const onPage = (event) => {
   } else if (event.page > options.value.PageNo) {
     //Trang sau
 
-    options.value.id =
-      datalists.value[datalists.value.length - 1].declare_paycheck_id;
+    options.value.id = datalists.value[datalists.value.length - 1].payroll_id;
     options.value.IsNext = true;
   } else if (event.page < options.value.PageNo) {
     //Trang trước
-    options.value.id = datalists.value[0].declare_paycheck_id;
+    options.value.id = datalists.value[0].payroll_id;
     options.value.IsNext = false;
   }
   options.value.PageNo = event.page;
   loadData(true);
 };
 
-const declare_paycheck = ref({
-  declare_paycheck_name: "",
+const payroll = ref({
+  payroll_name: "",
   emote_file: "",
   status: true,
   is_order: 1,
@@ -216,7 +213,7 @@ const declare_paycheck = ref({
 
 const selectedStamps = ref();
 const submitted = ref(false);
-const v$ = useVuelidate(rules, declare_paycheck);
+const v$ = useVuelidate(rules, payroll);
 const isSaveTem = ref(false);
 const datalists = ref();
 const toast = useToast();
@@ -239,8 +236,8 @@ const displayBasic = ref(false);
 const listTypeContract = ref([]);
 const openBasic = (str) => {
   submitted.value = false;
-  declare_paycheck.value = {
-    declare_paycheck_name: "",
+  payroll.value = {
+    payroll_name: "",
     emote_file: "",
     status: true,
     is_order: sttStamp.value,
@@ -254,9 +251,30 @@ const openBasic = (str) => {
   displayBasic.value = true;
 };
 
+
+
+const openBasicWRP = (id) => {
+  submitted.value = false;
+  payroll.value = {
+    payroll_name: "",
+    emote_file: "",
+    status: true,
+    is_order: sttStamp.value,
+    organization_id: store.getters.user.organization_id,
+    is_system: store.getters.user.is_super ? true : false,
+    declare_paycheck_id:id
+  };
+  listFilesS.value = [];
+  checkIsmain.value = false;
+  isSaveTem.value = false;
+  headerDialog.value = 'Thêm mới bảng lương';
+  displayBasic.value = true;
+};
+
+
 const closeDialog = () => {
-  declare_paycheck.value = {
-    declare_paycheck_name: "",
+  payroll.value = {
+    payroll_name: "",
     emote_file: "",
     status: true,
     is_order: 1,
@@ -275,41 +293,34 @@ const saveData = (isFormValid) => {
     return;
   }
   if (
-    declare_paycheck.value.profile_id_fake == null ||
-    declare_paycheck.value.declare_paycheck_name == null
+    payroll.value.profile_id_fake == null ||
+    payroll.value.payroll_name == null ||
+    payroll.value.declare_paycheck_id == null
   ) {
     return;
   }
 
-  if (declare_paycheck.value.profile_id_fake) {
+  if (payroll.value.profile_id_fake) {
     var str = "";
-    declare_paycheck.value.list_profile_id = "";
-    declare_paycheck.value.profile_id_fake.forEach((element) => {
-      declare_paycheck.value.list_profile_id += str + element.profile_id;
+    payroll.value.list_profile_id = "";
+    payroll.value.profile_id_fake.forEach((element) => {
+      payroll.value.list_profile_id += str + element.profile_id;
       str = ",";
     });
   }
-   
-  if (declare_paycheck.value.declare_paycheck_name.length > 250) {
+  if (payroll.value.payroll_name.length > 250) {
     swal.fire({
       title: "Error!",
-      text: "Tên mẫu phiếu lương không được vượt quá 250 ký tự!",
+      text: "Tên bảng lương không được vượt quá 250 ký tự!",
       icon: "error",
       confirmButtonText: "OK",
     });
     return;
   }
   let formData = new FormData();
-  for (var i = 0; i < filesList.value.length; i++) {
-    let file = filesList.value[i];
-    formData.append("image", file);
-  }
 
   formData.append("hrm_files", JSON.stringify(listFilesS.value));
-  formData.append(
-    "hrm_declare_paycheck",
-    JSON.stringify(declare_paycheck.value)
-  );
+  formData.append("hrm_payroll", JSON.stringify(payroll.value));
   swal.fire({
     width: 110,
     didOpen: () => {
@@ -318,16 +329,11 @@ const saveData = (isFormValid) => {
   });
   if (!isSaveTem.value) {
     axios
-      .post(
-        baseURL + "/api/hrm_declare_paycheck/add_hrm_declare_paycheck",
-        formData,
-        config
-      )
+      .post(baseURL + "/api/hrm_payroll/add_hrm_payroll", formData, config)
       .then((response) => {
         if (response.data.err != "1") {
           swal.close();
-          toast.success("Thêm mẫu phiếu lương thành công!");
-          loadData(true);
+          toast.success("Thêm bảng lương thành công!");
 
           closeDialog();
         } else {
@@ -350,15 +356,11 @@ const saveData = (isFormValid) => {
       });
   } else {
     axios
-      .put(
-        baseURL + "/api/hrm_declare_paycheck/update_hrm_declare_paycheck",
-        formData,
-        config
-      )
+      .put(baseURL + "/api/hrm_payroll/update_hrm_payroll", formData, config)
       .then((response) => {
         if (response.data.err != "1") {
           swal.close();
-          toast.success("Sửa mẫu phiếu lương thành công!");
+          toast.success("Sửa bảng lương thành công!");
 
           closeDialog();
         } else {
@@ -385,18 +387,26 @@ const checkIsmain = ref(true);
 //Sửa bản ghi
 const editTem = (dataTem) => {
   submitted.value = false;
-  declare_paycheck.value = dataTem;
-  if (declare_paycheck.value.listUsers) {
-    declare_paycheck.value.profile_id_fake = [];
-    declare_paycheck.value.listUsers.forEach((element) => {
-      declare_paycheck.value.profile_id_fake.push({
+  payroll.value = dataTem;
+
+  if (payroll.value.listUsers) {
+    payroll.value.profile_id_fake = [];
+    payroll.value.listUsers.forEach((element) => {
+      payroll.value.profile_id_fake.push({
         profile_id: element.profile_id,
         profile_user_name: element.full_name,
         avatar: element.avatar,
       });
     });
-  } 
-  headerDialog.value = "Sửa mẫu phiếu lương";
+  }
+
+  if (payroll.value.payroll_month)
+    payroll.value.payroll_month = new Date(payroll.value.payroll_month);
+  if (payroll.value.payroll_year)
+    payroll.value.payroll_year = new Date(payroll.value.payroll_year);
+  if (payroll.value.sign_date)
+    payroll.value.sign_date = new Date(payroll.value.sign_date);
+  headerDialog.value = "Sửa bảng lương";
   isSaveTem.value = true;
   displayBasic.value = true;
 };
@@ -423,18 +433,15 @@ const delTem = (Tem) => {
         });
 
         axios
-          .delete(
-            baseURL + "/api/hrm_declare_paycheck/delete_hrm_declare_paycheck",
-            {
-              headers: { Authorization: `Bearer ${store.getters.token}` },
-              data: Tem != null ? [Tem.declare_paycheck_id] : 1,
-            }
-          )
+          .delete(baseURL + "/api/hrm_payroll/delete_hrm_payroll", {
+            headers: { Authorization: `Bearer ${store.getters.token}` },
+            data: Tem != null ? [Tem.payroll_id] : 1,
+          })
           .then((response) => {
             swal.close();
             if (response.data.err != "1") {
               swal.close();
-              toast.success("Xoá mẫu phiếu lương thành công!");
+              toast.success("Xoá bảng lương thành công!");
               loadData(true);
             } else {
               swal.fire({
@@ -460,9 +467,6 @@ const delTem = (Tem) => {
 
 //Xuất excel
 
-const deleteFileH = (value) => {
-  listFilesS.value = listFilesS.value.filter((x) => x.file_id != value.file_id);
-};
 //Sort
 const onSort = (event) => {
   options.value.PageNo = 0;
@@ -488,7 +492,7 @@ const loadDataSQL = () => {
   datalists.value = [];
 
   let data = {
-    id: "declare_paycheck_id",
+    id: "payroll_id",
     sqlS: filterTrangthai.value != null ? filterTrangthai.value : null,
     sqlO: options.value.sort,
     Search: options.value.SearchText,
@@ -500,7 +504,7 @@ const loadDataSQL = () => {
   };
   options.value.loading = true;
   axios
-    .post(baseURL + "/api/hrm_SQL/Filter_hrm_declare_paycheck", data, config)
+    .post(baseURL + "/api/hrm_SQL/Filter_hrm_payroll", data, config)
     .then((response) => {
       let dt = JSON.parse(response.data.data);
       let data = dt[0];
@@ -517,43 +521,40 @@ const loadDataSQL = () => {
             element.listUsers = JSON.parse(element.listUsers);
 
             element.listUsers.forEach((item) => {
-                if (!item.position_name) {
-                  item.position_name = "";
-                } else {
-                  item.position_name =
-                    " </br> <span class='text-sm'>" +
-                    item.position_name +
-                    "</span>";
-                }
-                if (!item.department_name) {
-                  item.department_name = "";
-                } else {
-                  item.department_name =
-                    " </br> <span class='text-sm'>" +
-                    item.department_name +
-                    "</span>";
-                }
-              });
-
-
-
-
-
-
-
-
+              if (!item.position_name) {
+                item.position_name = "";
+              } else {
+                item.position_name =
+                  " </br> <span class='text-sm'>" +
+                  item.position_name +
+                  "</span>";
+              }
+              if (!item.department_name) {
+                item.department_name = "";
+              } else {
+                item.department_name =
+                  " </br> <span class='text-sm'>" +
+                  item.department_name +
+                  "</span>";
+              }
+            });
           } else element.listUsers = [];
-
 
           if (!element.position_name) {
             element.position_name = "";
           } else {
-            element.position_name =  " </br> <span class='text-sm'>" + element.position_name+ "</span>";
+            element.position_name =
+              " </br> <span class='text-sm'>" +
+              element.position_name +
+              "</span>";
           }
           if (!element.department_name) {
             element.department_name = "";
           } else {
-            element.department_name = " </br> <span class='text-sm'>"  + element.department_name + "</span>";
+            element.department_name =
+              " </br> <span class='text-sm'>" +
+              element.department_name +
+              "</span>";
           }
         });
 
@@ -643,21 +644,17 @@ const onFilter = (event) => {
 const onCheckBox = (value, check) => {
   if (check) {
     let data = {
-      IntID: value.declare_paycheck_id,
-      TextID: value.declare_paycheck_id + "",
+      IntID: value.payroll_id,
+      TextID: value.payroll_id + "",
       IntTrangthai: 1,
       BitTrangthai: value.status,
     };
     axios
-      .put(
-        baseURL + "/api/hrm_declare_paycheck/update_s_hrm_declare_paycheck",
-        data,
-        config
-      )
+      .put(baseURL + "/api/hrm_payroll/update_s_hrm_payroll", data, config)
       .then((response) => {
         if (response.data.err != "1") {
           swal.close();
-          toast.success("Sửa trạng thái mẫu phiếu lương thành công!");
+          toast.success("Sửa trạng thái bảng lương thành công!");
           loadData(true);
           closeDialog();
         } else {
@@ -689,7 +686,7 @@ const deleteList = () => {
     swal
       .fire({
         title: "Thông báo",
-        text: "Bạn có muốn xoá mẫu phiếu lương này không!",
+        text: "Bạn có muốn xoá bảng lương này không!",
         icon: "warning",
         showCancelButton: true,
         confirmButtonColor: "#3085d6",
@@ -707,21 +704,18 @@ const deleteList = () => {
           });
 
           selectedStamps.value.forEach((item) => {
-            listId.push(item.declare_paycheck_id);
+            listId.push(item.payroll_id);
           });
           axios
-            .delete(
-              baseURL + "/api/hrm_declare_paycheck/delete_hrm_declare_paycheck",
-              {
-                headers: { Authorization: `Bearer ${store.getters.token}` },
-                data: listId != null ? listId : 1,
-              }
-            )
+            .delete(baseURL + "/api/hrm_payroll/delete_hrm_payroll", {
+              headers: { Authorization: `Bearer ${store.getters.token}` },
+              data: listId != null ? listId : 1,
+            })
             .then((response) => {
               swal.close();
               if (response.data.err != "1") {
                 swal.close();
-                toast.success("Xoá mẫu phiếu lương thành công!");
+                toast.success("Xoá bảng lương thành công!");
                 checkDelList.value = false;
 
                 loadData(true);
@@ -763,7 +757,7 @@ const reFilterEmail = () => {
   isDynamicSQL.value = false;
   checkFilter.value = false;
   filterSQL.value = [];
-  options.value.list_profile_id=[];
+  options.value.list_profile_id = [];
   options.value.SearchText = null;
   op.value.hide();
   loadData(true);
@@ -772,26 +766,30 @@ const filterFileds = () => {
   filterSQL.value = [];
   checkFilter.value = true;
 
+  if (filterTrangthai.value) {
+    let filterS = {
+      filterconstraints: [
+        { value: filterTrangthai.value, matchMode: "equals" },
+      ],
+      filteroperator: "and",
+      key: "status",
+    };
+    filterSQL.value.push(filterS);
+  }
 
-  if(filterTrangthai.value){
-  let filterS = {
-    filterconstraints: [{ value: filterTrangthai.value, matchMode: "equals" }],
-    filteroperator: "and",
-    key: "status",
-  };
-  filterSQL.value.push(filterS);
-}
-
-  
-  if (options.value.list_profile_id.length>0) {
+  if (options.value.list_profile_id.length > 0) {
     let filterS1 = {
-      filterconstraints: [ { value: options.value.list_profile_id.toString(), matchMode: "arrIntersec" }],
+      filterconstraints: [
+        {
+          value: options.value.list_profile_id.toString(),
+          matchMode: "arrIntersec",
+        },
+      ],
       filteroperator: "or",
       key: "list_profile_id",
     };
-     
-      filterSQL.value.push(filterS1);
-  
+
+    filterSQL.value.push(filterS1);
   }
   loadDataSQL();
 };
@@ -807,66 +805,108 @@ const toggle = (event) => {
   op.value.toggle(event);
 };
 
-const filesList = ref([]);
-let fileSize = [];
-const onUploadFile = (event) => {
-  fileSize = [];
-  filesList.value = [];
-
-  var ms = false;
-
-  event.files.forEach((fi) => {
-    let formData = new FormData();
-    formData.append("fileupload", fi);
-    axios({
-      method: "post",
-      url: baseURL + `/api/chat/ScanFileUpload`,
-      data: formData,
-      headers: {
-        Authorization: `Bearer ${store.getters.token}`,
+const listTypeContractSave = ref([]);
+const listDeclarePaycheck = ref([]);
+const listDataUsers = ref([]);
+const initTuDien = () => {
+  listDataUsers.value = [];
+  axios
+    .post(
+      baseURL + "/api/hrm_ca_SQL/getData",
+      {
+        str: encr(
+          JSON.stringify({
+            proc: "hrm_profile_list_filter",
+            par: [
+              { par: "search", va: null },
+              { par: "user_id", va: store.getters.user.user_id },
+              { par: "work_position_id", va: null },
+              { par: "position_id", va: null },
+              { par: "department_id", va: null },
+              { par: "status", va: 1 },
+            ],
+          }),
+          SecretKey,
+          cryoptojs
+        ).toString(),
       },
-    })
-      .then((response) => {
-        if (response.data.err != "1") {
-          if (fi.size > 100 * 1024 * 1024) {
-            ms = true;
-          } else {
-            filesList.value.push(fi);
-            fileSize.push(fi.size);
-          }
-        } else {
-          filesList.value = filesList.value.filter((x) => x.name != fi.name);
-          swal.fire({
-            title: "Cảnh báo",
-            text: "File bị xóa do tồn tại mối đe dọa với hệ thống!",
-            icon: "warning",
-            confirmButtonText: "OK",
-          });
-        }
-        if (ms) {
-          swal.fire({
-            icon: "warning",
-            type: "warning",
-            title: "Thông báo",
-            text: "Bạn chỉ được upload file có dung lượng tối đa 100MB!",
-          });
-        }
-      })
-      .catch(() => {
-        swal.fire({
-          title: "Thông báo",
-          text: "Có lỗi xảy ra, vui lòng kiểm tra lại!",
-          icon: "error",
-          confirmButtonText: "OK",
+      config
+    )
+    .then((response) => {
+      let data = JSON.parse(response.data.data)[0];
+
+      data.forEach((element, i) => {
+        listDataUsers.value.push({
+          profile_user_name: element.profile_user_name,
+          code: element.profile_id,
+          avatar: element.avatar,
+          department_name: element.department_name,
+          department_id: element.department_id,
+          work_position_name: element.work_position_name,
+          position_name: element.position_name,
+          profile_code: element.profile_code,
+          organization_id: element.organization_id,
         });
       });
-  });
-};
-const removeFile = (event) => {
-  filesList.value = filesList.value.filter((a) => a != event.file);
-};
-const listTypeContractSave = ref([]);
-const initTuDien = () => {
+    })
+    .catch((error) => {
+      console.log(error);
+
+      if (error && error.status === 401) {
+        swal.fire({
+          text: "Mã token đã hết hạn hoặc không hợp lệ, vui lòng đăng nhập lại!",
+          confirmButtonText: "OK",
+        });
+        store.commit("gologout");
+      }
+    });
+
+  axios
+    .post(
+      baseURL + "/api/hrm_ca_SQL/getData",
+      {
+        str: encr(
+          JSON.stringify({
+            proc: "hrm_declare_paycheck_list",
+            par: [
+              { par: "pageno", va: options.value.PageNo },
+              { par: "pagesize", va: options.value.PageSize },
+              { par: "user_id", va: store.getters.user.user_id },
+              { par: "status", va: null },
+            ],
+          }),
+          SecretKey,
+          cryoptojs
+        ).toString(),
+      },
+      config
+    )
+    .then((response) => {
+      let data = JSON.parse(response.data.data)[0];
+      if (isFirst.value) isFirst.value = false;
+
+      data.forEach((element, i) => {
+        listDeclarePaycheck.value.push({
+          name: element.declare_paycheck_name,
+          code: element.declare_paycheck_id,
+        });
+      });
+
+      options.value.loading = false;
+    })
+    .catch((error) => {
+      toast.error("Tải dữ liệu không thành công!");
+      options.value.loading = false;
+
+      if (error && error.status === 401) {
+        swal.fire({
+          text: "Mã token đã hết hạn hoặc không hợp lệ, vui lòng đăng nhập lại!",
+          confirmButtonText: "OK",
+        });
+        store.commit("gologout");
+      }
+    });
+
   listTypeContract.value = [];
   axios
     .post(
@@ -913,14 +953,6 @@ const initTuDien = () => {
     .catch((error) => {
       toast.error("Tải dữ liệu không thành công!");
       options.value.loading = false;
-
-      if (error && error.status === 401) {
-        swal.fire({
-          text: "Mã token đã hết hạn hoặc không hợp lệ, vui lòng đăng nhập lại!",
-          confirmButtonText: "OK",
-        });
-        store.commit("gologout");
-      }
     });
 };
 const listFilesS = ref([]);
@@ -942,26 +974,25 @@ const closeDialogUser = () => {
 const checkMultile = ref(false);
 
 const choiceUser = () => {
-  declare_paycheck.value.profile_id_fake = [];
+  payroll.value.profile_id_fake = [];
   if (checkMultile.value == false)
     selectedUser.value.forEach((element) => {
-      declare_paycheck.value.profile_id_fake.push(element.profile_id);
+      payroll.value.profile_id_fake.push(element.profile_id);
     });
   closeDialogUser();
 };
-const selectedDecS = ref();
 
 emitter.on("emitData", (obj) => {
   switch (obj.type) {
     case "submitModel":
-    if (obj.data) {
-        declare_paycheck.value.profile_id_fake = obj.data;
+      if (obj.data) {
+        payroll.value.profile_id_fake = obj.data;
         options.value.list_profile_id = obj.data;
       }
       break;
     case "delItem":
       if (obj.data) {
-        declare_paycheck.value.profile_id_fake = declare_paycheck.value.profile_id_fake.filter(
+        payroll.value.profile_id_fake = payroll.value.profile_id_fake.filter(
           (x) => x.profile_id != obj.data.profile_id
         );
       }
@@ -970,7 +1001,43 @@ emitter.on("emitData", (obj) => {
     default:
       break;
   }
-}); 
+});
+const onChangeUsersReceive=(  declare_paycheck_id)=>{
+  axios
+    .post(
+      baseURL + "/api/hrm_ca_SQL/getData",
+      {
+        str: encr(
+          JSON.stringify({
+            proc: "hrm_user_de_paycheck_get",
+            par: [
+              { par: "declare_paycheck_id", va: declare_paycheck_id } 
+             
+            ],
+          }),
+          SecretKey,
+          cryoptojs
+        ).toString(),
+      },
+      config
+    )
+    .then((response) => {
+      let data = JSON.parse(response.data.data)[0];
+      payroll.value.profile_id_fake=[];
+      data.forEach((element, i) => {
+        payroll.value.profile_id_fake.push({
+          profile_id: element.profile_id,
+            profile_user_name: element.profile_user_name,
+            avatar: element.avatar
+        });
+      });
+    })
+    .catch((error) => {
+      console.log(error);
+
+      store.commit("gologout");
+    });
+}
 onMounted(() => {
   initTuDien();
 
@@ -1018,13 +1085,15 @@ onMounted(() => {
       :rowsPerPageOptions="[20, 30, 50, 100, 200]"
       :paginator="true"
       :row-hover="true"
-      dataKey="declare_paycheck_id"
+      dataKey="payroll_id"
       responsiveLayout="scroll"
       v-model:selection="selectedStamps"
+      rowGroupMode="subheader"
+      groupRowsBy="declare_paycheck_name"
     >
       <template #header>
         <h3 class="module-title mt-0 ml-1 mb-2">
-          <i class="pi pi-book"></i> Danh sách mẫu phiếu lương ({{
+          <i class="pi pi-book"></i> Danh sách bảng lương ({{
             options.totalRecords
           }})
         </h3>
@@ -1059,21 +1128,19 @@ onMounted(() => {
                 class="p-0 m-0"
                 :showCloseIcon="false"
                 id="overlay_panel"
-                style="width:400px"
+                style="width: 400px"
               >
                 <div class="grid formgrid m-0">
                   <div class="col-12 md:col-12">
-                            <div class="py-2"  >Nhân sự nhận mẫu phiếu lương</div>
-                            <DropdownUser  :model="options.list_profile_id"
-                            
-                            :display="'chip'"
-                            :placeholder="'Chọn nhân sự'"/>
-                          </div>
-                  <div class="  field col-12 p-0">
-                    <div
-                      class="col-12 text-left py-2 "
-                      style="text-align: left"
-                    >
+                    <div class="py-2">Nhân sự nhận bảng lương</div>
+                    <DropdownUser
+                      :model="options.list_profile_id"
+                      :display="'chip'"
+                      :placeholder="'Chọn nhân sự'"
+                    />
+                  </div>
+                  <div class="field col-12 p-0">
+                    <div class="col-12 text-left py-2" style="text-align: left">
                       Trạng thái
                     </div>
                     <div class="col-12">
@@ -1117,7 +1184,7 @@ onMounted(() => {
               class="mr-2 p-button-danger"
             />
             <Button
-              @click="openBasic('Thêm mẫu phiếu lương')"
+              @click="openBasic('Thêm bảng lương')"
               label="Thêm mới"
               icon="pi pi-plus"
               class="mr-2"
@@ -1146,6 +1213,20 @@ onMounted(() => {
           </template>
         </Toolbar></template
       >
+      <template #groupheader="slotProps">
+        <span class="ml-2 font-bold text-blue-500"
+          >{{ slotProps.data.declare_paycheck_name }} ({{
+            slotProps.data.totalRecordGroups
+          }})</span
+        >
+        <Button
+          style="padding: 5px"
+          @click="openBasicWRP(slotProps.data.declare_paycheck_id)"
+          icon="pi pi-plus-circle"
+     
+          class="ml-1 p-button-text p-button-rounded"
+        />
+      </template>
 
       <Column
         class="align-items-center justify-content-center text-center"
@@ -1165,8 +1246,8 @@ onMounted(() => {
       ></Column>
 
       <Column
-        field="declare_paycheck_name"
-        header="Tên mẫu phiếu lương"
+        field="payroll_name"
+        header="Tên bảng lương"
         :sortable="true"
         headerStyle="text-align:left;height:50px"
         bodyStyle="text-align:left"
@@ -1179,16 +1260,49 @@ onMounted(() => {
             placeholder="Từ khoá"
           />
         </template>
+        <!-- <template #body="ddd">
+        <div>
+          {{ ddd.data }}
+        </div>
+      </template> -->
+      </Column>
+      <Column
+        header="Tháng"
+        headerStyle="text-align:center;max-width:150px;height:50px"
+        bodyStyle="text-align:center;max-width:150px;overflow:hidden"
+        class="align-items-center justify-content-center text-center overflow-hidden"
+      >
+        <template #body="slotProps">
+          <div>
+            {{
+              moment(
+                new Date(
+                  new Date(slotProps.data.payroll_year).getFullYear(),
+                  new Date(slotProps.data.payroll_month).getMonth(),
+                  1
+                )
+              ).format("MM/YYYY")
+            }}
+          </div>
+        </template>
+      </Column>
+
+      <Column
+        header="Tổng lương (VNĐ)"
+        headerStyle="text-align:center;max-width:150px;height:50px"
+        bodyStyle="text-align:center;max-width:150px;overflow:hidden"
+        class="align-items-center justify-content-center text-center overflow-hidden"
+      >
       </Column>
       <Column
         field="vacancy_name"
-        header="Nhân sự"
+        header="Nhân sự nhận"
         headerStyle="text-align:center;max-width:250px;height:50px"
         bodyStyle="text-align:center;max-width:250px;overflow:hidden"
         class="align-items-center justify-content-center text-center overflow-hidden"
       >
         <template #body="data">
-          <div >
+          <div>
             <AvatarGroup>
               <Avatar
                 v-for="(item, index) in data.data.listUsers.slice(0, 4)"
@@ -1238,18 +1352,29 @@ onMounted(() => {
               />
             </AvatarGroup>
           </div>
-          
         </template>
       </Column>
       <Column
-        field="report_key_name"
-        header="Mẫu phiếu lương"
-        headerStyle="text-align:center;max-width:300px;height:50px"
-        bodyStyle="text-align:center;max-width:300px;;max-height:60px"
-        class="align-items-center justify-content-center text-center"
+        field="sign_user"
+        header="Người ký"
+        headerStyle="text-align:center;max-width:250px;height:50px"
+        bodyStyle="text-align:center;max-width:250px;overflow:hidden"
+        class="align-items-center justify-content-center text-center overflow-hidden"
       >
       </Column>
       <Column
+        header="Ngày ký"
+        headerStyle="text-align:center;max-width:120px;height:50px"
+        bodyStyle="text-align:center;max-width:120px;overflow:hidden"
+        class="align-items-center justify-content-center text-center overflow-hidden"
+      >
+        <template #body="slotProps">
+          <div>
+            {{ moment(slotProps.data.sign_date).format("DD/MM/YYYY") }}
+          </div>
+        </template>
+      </Column>
+      <!-- <Column
         field="status"
         header="Trạng thái"
         headerStyle="text-align:center;max-width:150px;height:50px"
@@ -1270,7 +1395,7 @@ onMounted(() => {
             v-model="data.data.status"
             @click="onCheckBox(data.data, true, true)"
           /> </template
-      ></Column>
+      ></Column> -->
 
       <Column
         header="Chức năng"
@@ -1331,46 +1456,208 @@ onMounted(() => {
   <Dialog
     :header="headerDialog"
     v-model:visible="displayBasic"
-    :style="{ width: '35vw' }"
+    :style="{ width: '40vw' }"
     :closable="true"
     :modal="true"
   >
     <form>
-      <div class="grid formgrid m-2">
+      <div class="grid formgrid m-2 my-0">
         <div class="field col-12 md:col-12">
-          <label class="col-3 text-left p-0"
-            >Tên mẫu <span class="redsao">(*)</span></label
-          >
-          <InputText
-            v-model="declare_paycheck.declare_paycheck_name"
-            spellcheck="false"
-            class="col-9 ip36 px-2"
+          <div class="col-3 text-left p-0 pb-2">
+            Mẫu bảng lương <span class="redsao">(*)</span>
+          </div>
+          <Dropdown
+            v-model="payroll.declare_paycheck_id"
+            :options="listDeclarePaycheck"
+            optionLabel="name"
+            optionValue="code"
+            class="col-12 ip36 px-2"
+            placeholder="Chọn mẫu phiếu lương"
+            panelClass="d-design-dropdown"
+            :filter="true"
             :class="{
-              'p-invalid': v$.declare_paycheck_name.$invalid && submitted,
+              'p-invalid': payroll.declare_paycheck_id == null && submitted,
+            }"
+            @change="onChangeUsersReceive( payroll.declare_paycheck_id)"
+          />
+        </div>
+        <div
+          v-if="
+            (v$.payroll_name.$invalid && submitted) ||
+            v$.payroll_name.$pending.$response
+          "
+          style="display: flex"
+          class="field col-12 md:col-12 p-0"
+        >
+          <small class="col-12 p-error">
+            Mẫu bảng lương không được để trống!
+          </small>
+        </div>
+        <div class="col-12 field md:col-12 flex align-items-center">
+          <div class="col-6 md:col-6 p-0 align-items-center">
+            <div class="col-12 text-left p-0 pb-2">Tháng</div>
+
+            <div class="col-12 p-0">
+              <Calendar
+                v-model="payroll.payroll_month"
+                view="month"
+                dateFormat="mm"
+                class="w-full"
+                panelClass="d-calendar-design-m"
+                :showIcon="true"
+              >
+              </Calendar>
+            </div>
+          </div>
+          <div class="col-6 md:col-6 p-0 align-items-center pl-3">
+            <div class="col-12 text-left p-0 pb-2">Năm</div>
+            <div class="col-12 p-0">
+              <Calendar
+                v-model="payroll.payroll_year"
+                view="year"
+                dateFormat="yy"
+                class="w-full"
+                :showIcon="true"
+              >
+              </Calendar>
+            </div>
+          </div>
+        </div>
+        <div class="field col-12 md:col-12">
+          <div class="col-12 text-left p-0 pb-2">
+            Tên bảng lương <span class="redsao">(*)</span>
+          </div>
+          <InputText
+            v-model="payroll.payroll_name"
+            spellcheck="false"
+            class="col-12 ip36 px-2"
+            :class="{
+              'p-invalid': v$.payroll_name.$invalid && submitted,
             }"
           />
         </div>
-        <div   v-if="
-              (v$.declare_paycheck_name.$invalid && submitted) ||
-              v$.declare_paycheck_name.$pending.$response
-            " style="display: flex" class="field col-12 md:col-12">
-          <div class="col-3 text-left"></div>
-          <small
-          
-            class="col-9 p-error"
-          >
+        <div
+          v-if="
+            (v$.payroll_name.$invalid && submitted) ||
+            v$.payroll_name.$pending.$response
+          "
+          style="display: flex"
+          class="field col-12 md:col-12 p-0"
+        >
+          <small class="col-9 p-error">
             <span class="col-12 p-0">{{
-              v$.declare_paycheck_name.required.$message
-                .replace("Value", "Tên mẫu phiếu lương")
+              v$.payroll_name.required.$message
+                .replace("Value", "Tên bảng lương")
                 .replace("is required", "không được để trống")
             }}</span>
           </small>
         </div>
+        <div class="col-12 field md:col-12 flex align-items-center">
+          <div class="col-6 md:col-6 p-0 align-items-center">
+            <div class="col-12 text-left p-0 pb-2">Ngày ký</div>
 
+            <div class="col-12 p-0">
+              <Calendar
+                v-model="payroll.sign_date"
+                class="w-full"
+                :showIcon="true"
+                :showOnFocus="false"
+              >
+              </Calendar>
+            </div>
+          </div>
+          <div class="col-6 md:col-6 p-0 align-items-center pl-3">
+            <div class="col-12 text-left p-0 pb-2">Người ký</div>
+            <div class="col-12 p-0">
+              <Dropdown
+                v-model="payroll.sign_user"
+                :options="listDataUsers"
+                optionLabel="profile_user_name"
+                optionValue="profile_user_name"
+                class="w-full"
+                panelClass="d-design-dropdown"
+                :filter="true"
+                :editable="true"
+              >
+                <template #option="slotProps">
+                  <div v-if="slotProps.option" class="flex">
+                    <div class="format-center">
+                      <Avatar
+                        v-bind:label="
+                          slotProps.option.avatar
+                            ? ''
+                            : slotProps.option.profile_user_name.substring(0, 1)
+                        "
+                        v-bind:image="
+                          slotProps.option.avatar
+                            ? basedomainURL + slotProps.option.avatar
+                            : basedomainURL + '/Portals/Image/noimg.jpg'
+                        "
+                        style="
+                          color: #ffffff;
+                          width: 3rem;
+                          height: 3rem;
+                          font-size: 1.4rem !important;
+                        "
+                        :style="{
+                          background:
+                            bgColor[
+                              slotProps.option.profile_user_name.length % 7
+                            ],
+                        }"
+                        size="xlarge"
+                        shape="circle"
+                      />
+                    </div>
+                    <div class="format-center text-left ml-3">
+                      <div>
+                        <div class="mb-1 font-bold">
+                          {{ slotProps.option.profile_user_name }}
+                        </div>
+                        <div class="description">
+                          <div>
+                            <span v-if="slotProps.option.position_name">{{
+                              slotProps.option.position_name
+                            }}</span>
+                            <span v-else>{{
+                              slotProps.option.profile_code
+                            }}</span>
+
+                            <span v-if="slotProps.option.department_name">
+                              | {{ slotProps.option.department_name }}</span
+                            >
+                          </div>
+                        </div>
+                      </div>
+                    </div>
+                  </div>
+                  <span v-else> Chưa có dữ liệu </span>
+                </template>
+              </Dropdown>
+            </div>
+          </div>
+        </div>
         <div class="field flex align-items-center col-12 md:col-12">
-          <div class="col-3 p-0 flex align-items-center">
+          <div class="col-6 md:col-6 p-0 align-items-center flex">
+            <div class="p-0 flex align-items-center">Duyệt</div>
+            <InputSwitch
+              v-model="payroll.is_approved"
+              class="w-4rem lck-checked ml-3"
+            />
+          </div>
+          <div class="col-6 md:col-6 p-0 align-items-center flex">
+            <div class="p-0 flex align-items-center pl-3">Trạng thái</div>
+            <InputSwitch
+              v-model="payroll.status"
+              class="w-4rem lck-checked ml-3"
+            />
+          </div>
+        </div>
+
+        <div class="field align-items-center col-12 md:col-12">
+          <div class="col-12 p-0 flex align-items-center">
             <div class="text-left p-0">
-              Nhân sự <span class="redsao">(*)</span>
+              Danh sách nhân sự nhận bảng lương <span class="redsao">(*)</span>
             </div>
             <Button
               v-tooltip.top="'Chọn nhân sự'"
@@ -1379,50 +1666,25 @@ onMounted(() => {
               class="p-button-text p-button-rounded"
             />
           </div>
-          <div class="col-9 p-0">
+          <div class="col-12 p-0">
             <DropdownUser
-              :model="declare_paycheck.profile_id_fake"
+              :model="payroll.profile_id_fake"
               :display="'chip'"
               :placeholder="'Chọn nhân sự'"
               :class="{
-                'p-invalid':
-                  declare_paycheck.profile_id_fake == null && submitted,
+                'p-invalid': payroll.profile_id_fake == null && submitted,
               }"
             />
           </div>
         </div>
-
-        <div class="field col-12 md:col-12">
-          <label class="col-3 text-left p-0">Mẫu phiếu lương </label>
-          <Dropdown
-            :filter="true"
-            v-model="declare_paycheck.report_key"
-            :options="listTypeContract"
-            optionLabel="label"
-            optionValue="value"
-            optionGroupLabel="label"
-            optionGroupChildren="items"
-            class="col-9"
-            panelClass="d-design-dropdown"
-            placeholder="Chọn mẫu phiếu lương"
-          />
-        </div>
-        <div class="col-12 field md:col-12 flex">
-          <div class="field col-6 md:col-6 p-0 align-items-center flex">
-            <div class="col-6 text-left p-0">STT</div>
-            <InputNumber
-              v-model="declare_paycheck.is_order"
-              class="col-6 ip36 p-0"
-            />
-          </div>
-
-          <div class="field col-6 md:col-6 p-0 align-items-center flex">
-            <div class="col-6 text-center p-0">Trạng thái</div>
-            <InputSwitch
-              v-model="declare_paycheck.status"
-              class="w-4rem lck-checked"
-            />
-          </div>
+        <div
+          v-if="payroll.profile_id_fake == null && submitted"
+          style="display: flex"
+          class="field col-12 md:col-12 p-0"
+        >
+          <small class="col-12 p-error">
+            Danh sách nhân sự không được để trống!
+          </small>
         </div>
       </div>
     </form>
