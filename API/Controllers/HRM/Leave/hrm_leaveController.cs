@@ -505,55 +505,85 @@ namespace API.Controllers.Leave
                         List<hrm_leave_year> leaves = new List<hrm_leave_year>();
                         foreach (var item in datas)
                         {
-                            int? organization_id = null;
-                            var profile = db.hrm_profile.FirstOrDefault(x => x.profile_id == item.profile_id);
-                            if (profile != null)
+                            if (!string.IsNullOrEmpty(item.profile_id))
                             {
-                                organization_id = profile.organization_id;
-                            }
-                            var exists = await db.hrm_leave_year.FirstOrDefaultAsync(x => x.profile_id == item.profile_id);
-                            if (exists != null)
-                            {
-                                exists.leave = item.leave;
-                                if (exists.leave_limit == null)
+                                int? organization_id = null;
+                                var profile = db.hrm_profile.FirstOrDefault(x => x.profile_id == item.profile_id);
+                                if (profile != null)
                                 {
-                                    if (profile.recruitment_date != null)
+                                    organization_id = profile.organization_id;
+                                }
+                                var exists = await db.hrm_leave_year.FirstOrDefaultAsync(x => x.profile_id == item.profile_id);
+                                if (exists != null)
+                                {
+                                    exists.leave = item.leave;
+                                    if (exists.leave_limit == null || exists.leave_limit == 0)
                                     {
-                                        DateTime newDate = DateTime.Now;
-                                        var difference = newDate.Subtract((DateTime)profile.recruitment_date);
-                                        int age = (int)(difference.TotalDays / 365);
-                                        if (age > 1)
+                                        if (profile.recruitment_date != null)
                                         {
-                                            exists.leave_limit = item.leave;
+                                            DateTime newDate = DateTime.Now;
+                                            var difference = newDate.Subtract((DateTime)profile.recruitment_date);
+                                            int age = (int)(difference.TotalDays / 365);
+                                            if (age > 1)
+                                            {
+                                                exists.leave_limit = item.leave;
+                                            }
+                                            else
+                                            {
+                                                exists.leave_limit = item.leave - (int)(difference.Days / 30);
+                                            }
                                         }
                                         else
                                         {
-                                            exists.leave_limit = item.leave - (int)(difference.Days / 30);
+                                            exists.leave_limit = item.leave;
                                         }
                                     }
                                     else
                                     {
-                                        exists.leave_limit = item.leave;
+                                        exists.leave_limit = item.leave_limit;
                                     }
+                                    exists.modified_by = uid;
+                                    exists.modified_date = DateTime.Now;
+                                    exists.modified_ip = ip;
+                                    exists.modified_token_id = tid;
                                 }
-                                exists.leave_limit = item.leave_limit;
-                                exists.modified_by = uid;
-                                exists.modified_date = DateTime.Now;
-                                exists.modified_ip = ip;
-                                exists.modified_token_id = tid;
-                            }
-                            else
-                            {
-                                hrm_leave_year leave = new hrm_leave_year();
-                                leave.profile_id = item.profile_id;
-                                leave.leave = item.leave;
-                                leave.leave_limit = item.leave_limit;
-                                leave.organization_id = organization_id;
-                                leave.created_by = uid;
-                                leave.created_date = DateTime.Now;
-                                leave.created_ip = ip;
-                                leave.created_token_id = tid;
-                                leaves.Add(leave);
+                                else
+                                {
+                                    hrm_leave_year leave = new hrm_leave_year();
+                                    leave.profile_id = item.profile_id;
+                                    leave.leave = item.leave;
+                                    if (leave.leave_limit == null || leave.leave_limit == 0)
+                                    {
+                                        if (profile.recruitment_date != null)
+                                        {
+                                            DateTime newDate = DateTime.Now;
+                                            var difference = newDate.Subtract((DateTime)profile.recruitment_date);
+                                            int age = (int)(difference.TotalDays / 365);
+                                            if (age > 1)
+                                            {
+                                                leave.leave_limit = item.leave;
+                                            }
+                                            else
+                                            {
+                                                leave.leave_limit = item.leave - (int)(difference.Days / 30);
+                                            }
+                                        }
+                                        else
+                                        {
+                                            leave.leave_limit = item.leave;
+                                        }
+                                    }
+                                    else
+                                    {
+                                        leave.leave_limit = item.leave_limit;
+                                    }
+                                    leave.organization_id = organization_id;
+                                    leave.created_by = uid;
+                                    leave.created_date = DateTime.Now;
+                                    leave.created_ip = ip;
+                                    leave.created_token_id = tid;
+                                    leaves.Add(leave);
+                                }
                             }
                         }
                         if (leaves.Count > 0)
