@@ -1158,9 +1158,7 @@ const initTudien = () => {
 };
 
 onMounted(() => {
-  if (!checkURL(window.location.pathname, store.getters.listModule)) {
-    //router.back();
-  }
+ 
   initTudien();
   loadData(true);
 

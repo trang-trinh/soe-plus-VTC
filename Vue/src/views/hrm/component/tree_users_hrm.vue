@@ -210,6 +210,7 @@ const goOrganization = (organization) => {
 const renderTree = (data, id, name, title) => {
   let arrChils = [];
   let arrtreeChils = [];
+ 
   data
     .filter((x) => x.parent_id == null)
     .forEach((m, i) => {
@@ -229,26 +230,26 @@ const renderTree = (data, id, name, title) => {
       rechildren(om, m[id]);
       arrChils.push(om);
       //
-      om = { key: m[id], data: m[id], label: m[name] };
-      const retreechildren = (mm, pid) => {
-        let dts = data.filter((x) => x.parent_id == pid);
-        if (dts.length > 0) {
-          if (!mm.children) mm.children = [];
-          dts.forEach((em) => {
-            let om1 = { key: em[id], data: em[id], label: em[name] };
-            retreechildren(om1, em[id]);
-            mm.children.push(om1);
-          });
-        }
-      };
-      retreechildren(om, m[id]);
-      arrtreeChils.push(om);
+      // om = { key: m[id], data: m[id], label: m[name] };
+      // const retreechildren = (mm, pid) => {
+      //   let dts = data.filter((x) => x.parent_id == pid);
+      //   if (dts.length > 0) {
+      //     if (!mm.children) mm.children = [];
+      //     dts.forEach((em) => {
+      //       let om1 = { key: em[id], data: em[id], label: em[name] };
+      //       retreechildren(om1, em[id]);
+      //       mm.children.push(om1);
+      //     });
+      //   }
+      // };
+      // retreechildren(om, m[id]);
+      // arrtreeChils.push(om);
     });
-  arrtreeChils.unshift({
-    key: -1,
-    data: -1,
-    label: "-----Chọn " + title + "----",
-  });
+  // arrtreeChils.unshift({
+  //   key: -1,
+  //   data: -1,
+  //   label: "-----Chọn " + title + "----",
+  // });
   return { arrChils: arrChils, arrtreeChils: arrtreeChils };
 };
 const expandNode = (node) => {

@@ -58,7 +58,12 @@ const loadUserProfiles = () => {
       data.forEach((element, i) => {
         listDataUsers.value.push({
           profile_user_name: element.profile_user_name,
-          code: element.profile_id,
+          code: {
+            profile_id: element.profile_id,
+            profile_user_name: element.profile_user_name,
+            avatar: element.avatar,
+          },
+          profile_id: element.profile_id,
           avatar: element.avatar,
           department_name: element.department_name,
           department_id: element.department_id,
@@ -89,15 +94,17 @@ const props = defineProps({
   placeholder: String,
   class: String,
   display: String,
-  disabled:Boolean
+  disabled: Boolean,
 });
 const model = ref();
-const submitModel=()=>{
- 
-    emitter.emit("emitData", { type: "submitModel", data:   model.value });
+const submitModel = () => {
+  emitter.emit("emitData", { type: "submitModel", data: model.value });
+};
+const removeUser=(item)=>{
+  emitter.emit("emitData", { type: "delItem", data: item});
+  
+
 }
-
-
 onMounted(() => {
   model.value = props.model;
   loadUserProfiles();
@@ -106,10 +113,9 @@ onMounted(() => {
     model,
   };
 });
- onUpdated( ()=>{
-
+onUpdated(() => {
   model.value = props.model;
- })
+});
 </script>
 
 <template>
@@ -120,14 +126,52 @@ onMounted(() => {
     optionValue="code"
     :placeholder="props.placeholder"
     @change="submitModel"
-    panelClass="d-design-dropdown"
-    class="w-full p-0"
-    :class="props.class"
+   
+    class="w-full p-0 d-multi-design"
+ :class="props.class"
     :display="props.display"
     :filter="true"
     v-if="isShow"
     :disabled="props.disabled"
   >
+    <template #value="slotProps"> 
+      <div style="min-height: 2rem;"    >
+        <span
+          class=" mx-1  relative "
+          v-for="(item, index) in slotProps.value"
+          :key="index" style="vertical-align: top; "
+        >
+          <div class="  p-chip d-chip-design p-0 my-1">
+            <Avatar
+              v-bind:label="
+                item.avatar ? '' : item.profile_user_name.substring(0, 1)
+              "
+              v-bind:image="
+                item.avatar
+                  ? basedomainURL + item.avatar
+                  : basedomainURL + '/Portals/Image/noimg.jpg'
+              "
+              style="
+                color: #ffffff;
+                width: 2.5rem;
+                height: 2.5rem;
+                font-size: 1.4rem !important;
+              "
+              :style="{
+                background: bgColor[item.profile_user_name.length % 7],
+              }"
+              size="xlarge"
+              shape="circle"
+              class="p-0  "
+            />
+            <div class="p-chip-text px-1  ">{{ item.profile_user_name }}</div>
+            <div class="p-2 align-items-center format-center  " @click=" removeUser(item)">
+              <i class="pi pi-times-circle" ></i>
+            </div>
+          </div>
+        </span>
+      </div>
+    </template>
     <template #option="slotProps">
       <div v-if="slotProps.option" class="flex">
         <div class="format-center">

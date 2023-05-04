@@ -75,7 +75,7 @@ namespace API.Controllers.Request.Category
                         List<request_ca_form_team> from_teams = JsonConvert.DeserializeObject<List<request_ca_form_team>>(fdca_form_team);
 
                         bool super = claims.Where(p => p.Type == "super").FirstOrDefault()?.Value == "True";
-                        obj_data.organization_id = int.Parse(dvid);// super ? 0 : int.Parse(dvid);
+                        obj_data.organization_id = super ? 0 : int.Parse(dvid);
                         obj_data.request_form_id = helper.GenKey();
                         obj_data.created_by = uid;
                         obj_data.created_date = DateTime.Now;
@@ -290,15 +290,18 @@ namespace API.Controllers.Request.Category
 
                                 if (form_sign_users.Count > 0)
                                 {
+                                    var STT = 0;
                                     foreach (var fsu in form_sign_users)
                                     {
                                         fsu.request_form_sign_user_id = helper.GenKey();
                                         fsu.request_form_sign_id = fs.request_form_sign_id;
                                         fsu.created_by = uid;
+                                        fsu.STT = STT + 1;
                                         fsu.created_date = DateTime.Now;
                                         fsu.created_ip = ip;
                                         fsu.created_token_id = tid;
                                         listformsignusers.Add(fsu);
+                                        STT++;
                                     }
                                 }
                             }
@@ -332,9 +335,105 @@ namespace API.Controllers.Request.Category
                         if (helper.wlog)
                         {
                             request_log log = new request_log();
-                            log.title = "Thêm form " + obj_data.request_form_name;
+                            log.title = "Update form " + obj_data.request_form_name;
                             log.log_module = "request_ca_form";
-                            log.log_type = 0;
+                            log.log_type = 1;
+                            log.id_key = obj_data.request_form_id.ToString();
+                            log.created_date = DateTime.Now;
+                            log.created_by = uid;
+                            log.created_token_id = tid;
+                            log.created_ip = ip;
+                            db.request_log.Add(log);
+                            db.SaveChanges();
+
+                        }
+                        #endregion
+                        return Request.CreateResponse(HttpStatusCode.OK, new { err = "0" });
+                    });
+                    return await task;
+                }
+            }
+            catch (DbEntityValidationException e)
+            {
+                string contents = helper.getCatchError(e, null);
+                helper.saveLog(uid, name, JsonConvert.SerializeObject(new { data = fdca_form, contents }), domainurl + "request_ca_form/add_request_ca_form", ip, tid, "Lỗi khi thêm form", 0, "request_ca_form");
+                if (!helper.debug)
+                {
+                    contents = "";
+                }
+                Log.Error(contents);
+                return Request.CreateResponse(HttpStatusCode.OK, new { ms = contents, err = "1" });
+            }
+            catch (Exception e)
+            {
+                string contents = helper.ExceptionMessage(e);
+                helper.saveLog(uid, name, JsonConvert.SerializeObject(new { data = fdca_form, contents }), domainurl + "request_ca_form/add_request_ca_form", ip, tid, "Lỗi khi thêm form", 0, "request_ca_form");
+                if (!helper.debug)
+                {
+                    contents = "";
+                }
+                Log.Error(contents);
+                return Request.CreateResponse(HttpStatusCode.OK, new { ms = contents, err = "1" });
+            }
+        }
+        [HttpPost]
+        public async Task<HttpResponseMessage> update_status_request_ca_form()
+        {
+            var identity = User.Identity as ClaimsIdentity;
+            if (identity == null)
+            {
+                return Request.CreateResponse(HttpStatusCode.OK, new { ms = "Bạn không có quyền truy cập chức năng này!", err = "1" });
+            }
+            string fdca_form = "";
+            IEnumerable<Claim> claims = identity.Claims;
+            string ip = getipaddress();
+            string name = claims.Where(p => p.Type == "fname").FirstOrDefault()?.Value;
+            string tid = claims.Where(p => p.Type == "tid").FirstOrDefault()?.Value;
+            string dvid = claims.Where(p => p.Type == "dvid").FirstOrDefault()?.Value;
+            string uid = claims.Where(p => p.Type == "uid").FirstOrDefault()?.Value;
+
+            string domainurl = HttpContext.Current.Request.Url.Scheme + "://" + HttpContext.Current.Request.Url.Host + ":" + HttpContext.Current.Request.Url.Port + "/";
+
+            try
+            {
+                using (DBEntities db = new DBEntities())
+                {
+                    if (!Request.Content.IsMimeMultipartContent())
+                    {
+                        throw new HttpResponseException(HttpStatusCode.UnsupportedMediaType);
+                    }
+
+                    string root = HttpContext.Current.Server.MapPath("~/Portals");
+                    var provider = new MultipartFormDataStreamProvider(root);
+
+                    // Read the form data and return an async task.
+                    var task = Request.Content.ReadAsMultipartAsync(provider).
+                    ContinueWith<HttpResponseMessage>(t =>
+                    {
+                        if (t.IsFaulted || t.IsCanceled)
+                        {
+                            Request.CreateErrorResponse(HttpStatusCode.InternalServerError, t.Exception);
+                        }
+                        fdca_form = provider.FormData.GetValues("request_form").SingleOrDefault();
+                        request_ca_form obj_data = JsonConvert.DeserializeObject<request_ca_form>(fdca_form);
+
+                        bool super = claims.Where(p => p.Type == "super").FirstOrDefault()?.Value == "True";
+                        obj_data.status = !obj_data.status;
+                        obj_data.created_by = uid;
+                        obj_data.created_date = DateTime.Now;
+                        obj_data.created_ip = ip;
+                        obj_data.created_token_id = tid;
+                        db.Entry(obj_data).State = EntityState.Modified;
+
+                        db.SaveChanges();
+
+                        #region add request_log
+                        if (helper.wlog)
+                        {
+                            request_log log = new request_log();
+                            log.title = "Update trạng thái form " + obj_data.request_form_name;
+                            log.log_module = "request_ca_form";
+                            log.log_type = 1;
                             log.id_key = obj_data.request_form_id.ToString();
                             log.created_date = DateTime.Now;
                             log.created_by = uid;
@@ -694,6 +793,7 @@ namespace API.Controllers.Request.Category
 
                         bool super = claims.Where(p => p.Type == "super").FirstOrDefault()?.Value == "True";
 
+                        var STT = 0;
                         foreach (var fs in obj_datas)
                         {
                             var formd = db.request_ca_formd.Where(x => x.request_formd_id == fs.request_formd_id).ToList();
@@ -714,13 +814,16 @@ namespace API.Controllers.Request.Category
                                 formd_update.ten_truong = fs.ten_truong;
                                 formd_update.kieu_truong = fs.kieu_truong;
                                 formd_update.value_key = fs.value_key;
+                                formd_update.is_order = STT + 1;
                                 formd_update.lv = (fs.lv != null) ? fs.lv : 1;
                                 db.Entry(formd_update).State = EntityState.Modified;
                             }
                             else
                             {
+                                fs.is_order = STT + 1;
                                 db.request_ca_formd.Add(fs);
                             }
+                            STT++;
                         }
                         db.SaveChanges();
                         return Request.CreateResponse(HttpStatusCode.OK, new { err = "0" });
