@@ -2,6 +2,7 @@
 using Helper;
 using Newtonsoft.Json;
 using OfficeOpenXml;
+using OfficeOpenXml.FormulaParsing.Excel.Functions.DateTime;
 using System;
 using System.Collections.Generic;
 using System.Data.Entity;
@@ -514,6 +515,27 @@ namespace API.Controllers.Leave
                             if (exists != null)
                             {
                                 exists.leave = item.leave;
+                                if (exists.leave_limit == null)
+                                {
+                                    if (profile.recruitment_date != null)
+                                    {
+                                        DateTime newDate = DateTime.Now;
+                                        var difference = newDate.Subtract((DateTime)profile.recruitment_date);
+                                        int age = (int)(difference.TotalDays / 365);
+                                        if (age > 1)
+                                        {
+                                            exists.leave_limit = item.leave;
+                                        }
+                                        else
+                                        {
+                                            exists.leave_limit = item.leave - (int)(difference.Days / 30);
+                                        }
+                                    }
+                                    else
+                                    {
+                                        exists.leave_limit = item.leave;
+                                    }
+                                }
                                 exists.leave_limit = item.leave_limit;
                                 exists.modified_by = uid;
                                 exists.modified_date = DateTime.Now;
