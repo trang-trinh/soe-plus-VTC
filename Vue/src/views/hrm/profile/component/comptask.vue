@@ -3,6 +3,7 @@ import { onMounted, inject, ref } from "vue";
 import { useToast } from "vue-toastification";
 import { encr } from "../../../../util/function";
 import moment from "moment";
+import dialogassignment from "../../profile/component/dialogassignment.vue";
 
 const store = inject("store");
 const swal = inject("$swal");
@@ -37,11 +38,136 @@ const bgColor = ref([
   "#CCADD7",
 ]);
 const typestatus = ref([
-  { value: 0, title: "Chưa hiệu lực", bg_color: "#bbbbbb", text_color: "#fff" },
-  { value: 1, title: "Đang làm việc", bg_color: "#5fc57b", text_color: "#fff" },
-  { value: 2, title: "Đã làm việc", bg_color: "red", text_color: "#fff" },
-  { value: 3, title: "Đã làm việc", bg_color: "red", text_color: "#fff" },
+  { value: 0, title: "Đang làm việc", bg_color: "#5fc57b", text_color: "#fff" },
+  { value: 1, title: "Đã làm việc", bg_color: "red", text_color: "#fff" },
 ]);
+
+//Function
+const assignment = ref({});
+const isAdd = ref(false);
+const componentKey = ref({});
+const forceRerender = (type) => {
+  if (!componentKey.value[type]) {
+    componentKey.value[type] = 0;
+  }
+  componentKey.value[type] += 1;
+};
+const headerDialogAssignment = ref();
+const displayDialogAssignment = ref(false);
+const openAddDialogAssignment = (str) => {
+  isAdd.value = true;
+  headerDialogAssignment.value = str;
+  displayDialogAssignment.value = true;
+  forceRerender(0);
+};
+const closeDialogAssignment = () => {
+  displayDialogAssignment.value = false;
+  forceRerender(0);
+};
+const openEditAssignment = (item, str) => {
+  assignment.value = item;
+  isAdd.value = false;
+  headerDialogAssignment.value = str;
+  displayDialogAssignment.value = true;
+  forceRerender(0);
+};
+const deleteAssignment = (item) => {
+  if (item != null) {
+    swal
+      .fire({
+        title: "Thông báo",
+        text: "Bạn có muốn xoá công việc phân công này không!",
+        icon: "warning",
+        showCancelButton: true,
+        confirmButtonColor: "#3085d6",
+        cancelButtonColor: "#d33",
+        confirmButtonText: "Có",
+        cancelButtonText: "Không",
+      })
+      .then((result) => {
+        if (result.isConfirmed) {
+          options.value.loading = true;
+          swal.fire({
+            width: 110,
+            didOpen: () => {
+              swal.showLoading();
+            },
+          });
+          var ids = [];
+          if (item != null) {
+            ids = [item["assignment_id"]];
+          } else {
+          }
+          axios
+            .delete(baseURL + "/api/hrm_assignment/delete_assignment", {
+              headers: { Authorization: `Bearer ${store.getters.token}` },
+              data: ids,
+            })
+            .then((response) => {
+              if (response.data.err === "1" || response.data.err === "2") {
+                swal.close();
+                if (options.value.loading) options.value.loading = false;
+                swal.fire({
+                  title: "Thông báo!",
+                  text: response.data.ms,
+                  icon: "error",
+                  confirmButtonText: "OK",
+                });
+                return;
+              }
+              toast.success("Xoá thành công!");
+              initView2(true);
+              swal.close();
+              if (options.value.loading) options.value.loading = false;
+            })
+            .catch((error) => {
+              swal.close();
+              if (options.value.loading) options.value.loading = false;
+              if (error && error.status === 401) {
+                swal.fire({
+                  title: "Thông báo!",
+                  text: "Mã token đã hết hạn hoặc không hợp lệ, vui lòng đăng nhập lại!",
+                  icon: "error",
+                  confirmButtonText: "OK",
+                });
+                store.commit("gologout");
+                return;
+              } else {
+                swal.fire({
+                  title: "Thông báo!",
+                  text: "Có lỗi xảy ra, vui lòng kiểm tra lại!",
+                  icon: "error",
+                  confirmButtonText: "OK",
+                });
+                return;
+              }
+            });
+        }
+      });
+  }
+};
+
+const menuButMores = ref();
+const itemButMores = ref([
+  {
+    label: "Hiệu chỉnh",
+    icon: "pi pi-file",
+    command: (event) => {
+      openEditAssignment(assignment.value, "Cập nhật công việc phân công");
+    },
+  },
+  {
+    label: "Xoá",
+    icon: "pi pi-trash",
+    command: (event) => {
+      deleteAssignment(assignment.value);
+    },
+  },
+]);
+const toggleMores = (event, item) => {
+  assignment.value = item;
+  menuButMores.value.toggle(event);
+};
 
 //init
 const initDictionary2 = () => {
@@ -89,11 +215,8 @@ const initView2 = (rf) => {
       {
         str: encr(
           JSON.stringify({
-            proc: "hrm_profile_task_get",
-            par: [
-              { par: "user_id", va: store.getters.user.user_id },
-              { par: "profile_id", va: props.profile_id },
-            ],
+            proc: "hrm_profile_assignment_gets",
+            par: [{ par: "profile_id", va: props.profile_id }],
           }),
           SecretKey,
           cryoptojs
@@ -106,50 +229,19 @@ const initView2 = (rf) => {
       if (data != null) {
         var tbs = JSON.parse(data);
         if (tbs[0] != null && tbs[0].length > 0) {
-          task.value = tbs[0][0];
-          var idx = typestatus.value.findIndex(
-            (x) => x["value"] === task.value["status"]
-          );
-          if (idx != -1) {
-            task.value["status_name"] = typestatus.value[idx]["title"];
-            task.value["bg_color"] = typestatus.value[idx]["bg_color"];
-            task.value["text_color"] = typestatus.value[idx]["text_color"];
-          } else {
-            task.value["status_name"] = "Chưa xác định";
-            task.value["bg_color"] = "#bbbbbb";
-            task.value["text_color"] = "#fff";
-          }
-          if (task.value["start_date"] != null) {
-            task.value["start_date"] = moment(
-              new Date(task.value["start_date"])
-            ).format("DD/MM/YYYY");
-          }
-          if (task.value["end_date"] != null) {
-            task.value["end_date"] = moment(
-              new Date(task.value["end_date"])
-            ).format("DD/MM/YYYY");
-          }
-          if (task.value["sign_date"] != null) {
-            task.value["sign_date"] = moment(
-              new Date(task.value["sign_date"])
-            ).format("DD/MM/YYYY");
-          }
-
-          tbs[1].forEach((item) => {
+          tbs[0].forEach((item) => {
             if (item.managers != null) {
               item.managers = JSON.parse(item.managers);
             }
-            var idx = typestatus.value.findIndex(
-              (x) => x["value"] === item["status"]
-            );
-            if (idx != -1) {
-              item["status_name"] = typestatus.value[idx]["title"];
-              item["bg_color"] = typestatus.value[idx]["bg_color"];
-              item["text_color"] = typestatus.value[idx]["text_color"];
+
+            if (item.is_active) {
+              item["status_name"] = typestatus.value[0]["title"];
+              item["bg_color"] = typestatus.value[0]["bg_color"];
+              item["text_color"] = typestatus.value[0]["text_color"];
             } else {
-              item["status_name"] = "Chưa xác định";
-              item["bg_color"] = "#bbbbbb";
-              item["text_color"] = "#fff";
+              item["status_name"] = typestatus.value[1]["title"];
+              item["bg_color"] = typestatus.value[1]["bg_color"];
+              item["text_color"] = typestatus.value[1]["text_color"];
             }
             if (item["start_date"] != null) {
               item["start_date"] = moment(new Date(item["start_date"])).format(
@@ -167,9 +259,8 @@ const initView2 = (rf) => {
               );
             }
           });
-          tasks.value = tbs[1];
+          tasks.value = tbs[0];
         } else {
-          task.value = {};
           tasks.value = [];
         }
       }
@@ -204,10 +295,21 @@ onMounted(() => {
 });
 </script>
 <template>
+  <Toolbar class="outline-none surface-0 border-none">
+    <template #start> </template>
+    <template #end>
+      <Button
+        @click="openAddDialogAssignment('Thêm mới công việc')"
+        label="Thêm mới"
+        icon="pi pi-plus"
+        class="mr-2"
+      />
+    </template>
+  </Toolbar>
   <div
     class="d-lang-table my-3"
     :style="{
-      height: 'calc(100vh - 182px) !important',
+      height: 'calc(100vh - 237px) !important',
       overflowY: 'auto',
     }"
   >
@@ -226,32 +328,49 @@ onMounted(() => {
         <template #content="slotProps">
           <Card>
             <template #title>
-              <div class="w-full text-left">
-                <Button
-                  :label="slotProps.item.status_name"
-                  class="p-button-outlined"
-                  :style="{
-                    borderColor: slotProps.item.bg_color,
-                    // backgroundColor: slotProps.data.bg_color,
-                    color: slotProps.item.bg_color,
-                    borderRadius: '15px',
-                    padding: '0.3rem 0.75rem !important',
-                  }"
-                />
-              </div>
+              <Toolbar class="outline-none surface-0 border-none p-0">
+                <template #start>
+                  <div class="w-full text-left">
+                    <Button
+                      :label="slotProps.item.status_name"
+                      class="p-button-outlined"
+                      :style="{
+                        borderColor: slotProps.item.bg_color,
+                        // backgroundColor: slotProps.data.bg_color,
+                        color: slotProps.item.bg_color,
+                        borderRadius: '15px',
+                        padding: '0.3rem 0.75rem !important',
+                      }"
+                    />
+                  </div>
+                </template>
+                <template #end>
+                  <Button
+                    icon="pi pi-ellipsis-h"
+                    class="p-button-rounded p-button-text"
+                    @click="
+                      toggleMores($event, slotProps.item);
+                      $event.stopPropagation();
+                    "
+                    aria-haspopup="true"
+                    aria-controls="overlay_More"
+                    v-tooltip.top="'Tác vụ'"
+                  />
+                </template>
+              </Toolbar>
             </template>
             <template #subtitle>
               <div class="w-full text-left">
-                {{ slotProps.item.sign_date }}
+                {{ slotProps.item.start_date }}
               </div>
             </template>
             <template #content>
               <div class="w-full text-left">
                 <div class="mb-2">
-                  Chức danh: <b>{{ slotProps.item.work_position_name }}</b>
+                  Chức vụ: <b>{{ slotProps.item.position_name }}</b>
                 </div>
                 <div class="mb-2">
-                  Chức vụ: <b>{{ slotProps.item.position_name }}</b>
+                  Chức danh: <b>{{ slotProps.item.title_name }}</b>
                 </div>
                 <div class="mb-2">
                   Phòng ban: <b>{{ slotProps.item.department_name }}</b>
@@ -261,22 +380,18 @@ onMounted(() => {
                   <b>{{ slotProps.item.professional_work_name }}</b>
                 </div>
                 <div class="mb-2">
-                  Loại hợp đồng: <b>{{ slotProps.item.type_contract_name }}</b>
-                </div>
-                <div class="mb-2">
                   Loại nhân sự: <b>{{ slotProps.item.personel_groups_name }}</b>
                 </div>
                 <div
+                  v-if="
+                    slotProps.item.managers &&
+                    slotProps.item.managers.length > 0
+                  "
                   class="flex format-center justify-content-left"
                   :style="{ justifyContent: 'left' }"
                 >
                   <span class="mr-2">Người quản lý: </span>
-                  <AvatarGroup
-                    v-if="
-                      slotProps.item.managers &&
-                      slotProps.item.managers.length > 0
-                    "
-                  >
+                  <AvatarGroup>
                     <Avatar
                       v-for="(item, index) in slotProps.item.managers.slice(
                         0,
@@ -336,5 +451,25 @@ onMounted(() => {
       <div class="description">Hiện chưa có dữ liệu</div>
     </div>
   </div>
+
+  <!--Dialog-->
+  <dialogassignment
+    :key="componentKey['0']"
+    :headerDialog="headerDialogAssignment"
+    :displayDialog="displayDialogAssignment"
+    :closeDialog="closeDialogAssignment"
+    :isAdd="isAdd"
+    :profile_id="props.profile_id"
+    :assignment="assignment"
+    :initData="initView2"
+  />
+
+  <!--Menu-->
+  <Menu
+    id="overlay_More"
+    ref="menuButMores"
+    :model="itemButMores"
+    :popup="true"
+  />
 </template>
 <style scoped></style>
