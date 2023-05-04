@@ -312,7 +312,8 @@ const selectNode = (user, day) => {
     } else {
       var idx = selectedNodes.value.findIndex(
         (x) =>
-          x["profile_id"] === user["profile_id"] && x["workday"] === workday_string
+          x["profile_id"] === user["profile_id"] &&
+          x["workday"] === workday_string
       );
       if (idx != -1) {
         selectedNodes.value.splice(idx, 1);
@@ -1008,7 +1009,8 @@ onMounted(() => {
             @date-select="goYear(options.tempyear)"
             :showIcon="false"
             :manualInput="false"
-            inputId="yearpicker" :showOnFocus="false"
+            inputId="yearpicker"
+            :showOnFocus="false"
             view="year"
             dateFormat="'Năm' yy"
             placeholder="Chọn năm"
@@ -1431,7 +1433,8 @@ onMounted(() => {
   border-left-width: 0;
 }
 .table-custom {
-  border-collapse: collapse;
+  border-collapse: separate;
+  border-spacing: 0;
   width: 100%;
   table-layout: fixed;
 }
@@ -1597,7 +1600,7 @@ th.isHoliday {
   border-collapse: collapse;
   width: 100%;
   table-layout: fixed;
-  tr th{
+  tr th {
     background-color: #f8f9fa;
   }
 }
