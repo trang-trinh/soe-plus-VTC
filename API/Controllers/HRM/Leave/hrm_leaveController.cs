@@ -517,6 +517,7 @@ namespace API.Controllers.Leave
                                 if (exists != null)
                                 {
                                     exists.leave = item.leave;
+                                    exists.leave_limit = item.leave_limit;
                                     if (exists.leave_limit == null || exists.leave_limit == 0)
                                     {
                                         if (profile.recruitment_date != null)
@@ -538,10 +539,6 @@ namespace API.Controllers.Leave
                                             exists.leave_limit = item.leave;
                                         }
                                     }
-                                    else
-                                    {
-                                        exists.leave_limit = item.leave_limit;
-                                    }
                                     exists.modified_by = uid;
                                     exists.modified_date = DateTime.Now;
                                     exists.modified_ip = ip;
@@ -552,6 +549,7 @@ namespace API.Controllers.Leave
                                     hrm_leave_year leave = new hrm_leave_year();
                                     leave.profile_id = item.profile_id;
                                     leave.leave = item.leave;
+                                    leave.leave_limit = item.leave_limit;
                                     if (leave.leave_limit == null || leave.leave_limit == 0)
                                     {
                                         if (profile.recruitment_date != null)
@@ -572,10 +570,6 @@ namespace API.Controllers.Leave
                                         {
                                             leave.leave_limit = item.leave;
                                         }
-                                    }
-                                    else
-                                    {
-                                        leave.leave_limit = item.leave_limit;
                                     }
                                     leave.organization_id = organization_id;
                                     leave.created_by = uid;
