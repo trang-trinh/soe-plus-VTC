@@ -106,7 +106,7 @@ const passModuleToSidebar = () => {
         arr_params.forEach((item) => {
           let idx = root_path.lastIndexOf("/" + item);
           if (idx != -1) {
-            root_path = root_path.splice(0, idx);
+            root_path = root_path.slice(0, idx);
           }
         });
       }
