@@ -188,7 +188,7 @@ onMounted(() => {
 
 <template>
   <div class="main-layout true flex-grow-1 p-2 pb-0 pr-0">
-    <div class="overflow-auto" style="max-height: calc(100vh - 40px);">
+    <div class="overflow-auto" style="max-height: calc(100vh - 68px);">
       <table class="w-full" id="table-bc">
       <thead>
       <tr class="">
@@ -202,9 +202,9 @@ onMounted(() => {
     </thead>
     <tbody>
         <tr v-for="(item, index) in datalists" :key="index">
-          <td  class="text-left"
+          <td  class="text-left item-hover" @click="item.is_level==0?'':goDetailReport(item)" :class="item.is_level==0 ? '':'cursor-pointer'"
             >
-            <span :style="(item.module_id == 370 || item.module_id== 358)?'color:#f44336':''" :class="item.is_level==0 ? 'row-parent':'row-child'" @click="item.is_level==0?'':goDetailReport(item)">
+            <span :style="([370,358,361,362,371,374]).includes(item.module_id)?'color:green':''" :class="item.is_level==0 ? 'row-parent':'row-child'">
               {{ item.label_module }}
             </span>
           </td>
@@ -220,7 +220,9 @@ onMounted(() => {
 </template>
 
 <style scoped>
-
+  .item-hover:hover{
+    background-color: #f0f8ff  !important
+  }
   th, td{
     background: #fff;
     padding: 1rem;

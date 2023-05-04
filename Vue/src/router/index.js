@@ -365,6 +365,10 @@ const caHRMTitle = () => import("../views/hrm/category/caTitle.vue");
 const caHRMTypeContract = () =>
   import("../views/hrm/category/caTypeContract.vue");
   const caHRMDeclareShift = () => import("../views/hrm/declare/hrm_delare_shift.vue");
+
+  const declarePaycheck = () => import("../views/hrm/declare/hrm_declare_paycheck.vue");
+
+  
   const hrmHolidayDate = () => import("../views/hrm/declare/hrm_holiday_dates.vue");
   const hrmHeadbarCalendar = () => import("../views/hrm/declare/hrm_headbar_calendar.vue");
 const caHRMDecision = () => import("../views/hrm/category/caDecision.vue");
@@ -408,6 +412,10 @@ const HRM_Contact = () => import("../views/hrm/contact/Contact.vue");
 const HRM_Report = () => import("../views/hrm/report/ReportMain.vue");
 const HRM_ReportWorkers = () => import("../views/hrm/report/report_general/ReportWorkers.vue");
 const HRM_ReportProfileOrganization = () => import("../views/hrm/report/report_general/ProfileOrganization.vue");
+const HRM_ReportMemberQuit = () => import("../views/hrm/report/report_general/MemberQuit.vue");
+const HRM_ReportBeforeWorkingProcess = () => import("../views/hrm/report/report_general/BeforeWorkingProcess.vue");
+const HRM_ReportAcademicLevelMember = () => import("../views/hrm/report/report_general/AcademicLevelMember.vue");
+const HRM_ReportContractStatistical = () => import("../views/hrm/report/report_contract/StatisticalContract.vue");
 
 // Request
 const Request_Dashboard = () =>
@@ -1749,7 +1757,11 @@ const router = createRouter({
       name: "caHRMTitle",
       component: caHRMTitle,
     },
-
+    {
+      path: "/hrm/declare/declare_paycheck",
+      name: "caHRMDeclarePaycheck",
+      component: declarePaycheck,
+    },
     
     {
       path: "/hrm/hrm_shift",
@@ -1931,10 +1943,30 @@ const router = createRouter({
       name: "hrm_reportworkers",
       component: HRM_ReportWorkers,
     },
-        {
+    {
       path: "/hrm/hrm_report/profile_organization",
-      name: "hrm_profile_organization",
+      name: "hrm_report_profile_organization",
       component: HRM_ReportProfileOrganization ,
+    },
+    {
+      path: "/hrm/hrm_report/member_quit",
+      name: "hrm_report_member_quit",
+      component: HRM_ReportMemberQuit ,
+    },
+    {
+      path: "/hrm/hrm_report/before_working_process",
+      name: "hrm_report_before_working_process",
+      component: HRM_ReportBeforeWorkingProcess ,
+    },
+    {
+      path: "/hrm/hrm_report/academic_level_member",
+      name: "hrm_report_academic_level_member",
+      component: HRM_ReportAcademicLevelMember ,
+    },
+    {
+      path: "/hrm/hrm_report/contract_statistical",
+      name: "hrm_report_contract_statistical",
+      component: HRM_ReportContractStatistical ,
     },
     // Tài liệu
     {

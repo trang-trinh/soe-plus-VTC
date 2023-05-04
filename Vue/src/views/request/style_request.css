@@ -193,3 +193,73 @@ span.rqxoa, span.uutien2 {
     font-size: 12px;
     align-items: center;
 }
+.cv-request {
+    margin-left: 0.5rem;
+    font-weight: bold;
+    font-size: 1.2rem;
+    color: #888;
+}
+.datetime-request {
+    font-weight: bold;
+    text-align: center;
+}
+.scrollbox-content {
+    visibility: visible;
+    transition: visibility 0s 0.2s;
+}
+.scrollbox_delayed {
+    transition: visibility 0.2s;
+    visibility: hidden;
+}
+.scrollbox_delayed:hover {
+    transition: visibility 0s 0.2s;
+    visibility: visible;
+}
+.request-cdate {
+    font-size: 0.9rem;
+}
+.overdue-request {
+    border-left: 4px solid red;
+}
+.alert-request {
+    position: relative;
+    padding: 0.75rem 1.25rem;
+    margin-bottom: 1rem;
+    border: 1px solid transparent;
+    border-radius: 0.25rem;
+    width: 100%;
+    font-weight:bold;
+}
+.alert-info {
+    color: #00626e;
+    background-color: #ccf2f6;
+    border-color: #b8ecf3
+}
+.alert-success {
+    color: #285b2a;
+    background-color: #dbefdc;
+    border-color: #cde9ce
+}
+.alert-danger {
+    color: #7f231c;
+    background-color: #fdd9d7;
+    border-color: #fccac7
+}
+.alert-warning {
+    color: #857a1f;
+    background-color: #fffbd8;
+    border-color: #fff9c8
+}
+.span-deadline {
+    color: #fff;
+    background-color: orange;
+    padding: 3px 5px; 
+    font-size: 11px; 
+    border-radius: 5px;
+}
+.span-deadline:hover {
+    cursor: pointer;
+}
+.td-table-file {
+    border-bottom: 1px solid #eee;
+}

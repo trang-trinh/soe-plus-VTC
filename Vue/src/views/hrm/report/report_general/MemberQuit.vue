@@ -88,7 +88,7 @@ const loadData = () => {
             {
                 str: encr(
                     JSON.stringify({
-                        proc: "hrm_report_profile_organization_list1",
+                        proc: "hrm_report_member_quit",
                         par: [
                             { par: "search", va: options.value.SearchText },
                             { par: "user_id", va: store.getters.user.user_id },
@@ -113,6 +113,7 @@ const loadData = () => {
                     item.duration = moment.duration(endDate.diff(startDate));
                     item.diffyear = item.duration.years();
                     item.diffmonth = item.duration.months();
+                    item.cultural_level_name = item.cultural_level_name? item.cultural_level_name.replace('/','/ '):null;
                 });
                 data[0] = groupBy(data[0], 'department_id');
                     let arr = [];
@@ -128,7 +129,7 @@ const loadData = () => {
                           item.stt = count;
                           count++
                         })
-                        arr.push({ group_pb: pb, name_group_pb: data[0][pb][0].organization_name, list_ns: data[0][pb] });
+                        arr.push({ group_pb: pb, name_group_pb: data[0][pb][0].department_name, list_ns: data[0][pb] });
                     }
                 datalists.value = arr;
                 options.totalRecords = arr.length;
@@ -207,7 +208,7 @@ const initTudien = () => {
 };
 const exportExcel = () => {
   
-  let name = "BC.HS002";
+  let name = "BC.HS005";
   var htmltable1 = "";
   // htmltable1 = renderExcel_Ketqua();
   var tab_text = '<html xmlns:x="urn:schemas-microsoft-com:office:excel">';
@@ -226,10 +227,10 @@ const exportExcel = () => {
   tab_text =
     tab_text +
     '<style>.p-datatable-thead th {background:#7bb0d7 !important;height: 30px !important;} .cstd{font-family: Times New Roman;border:none!important; font-size: 12pt; font-weight: 700; text-align: center; vertical-align: center;color:#000000}.head2{font-family: Times New Roman;border:none!important; font-size: 12pt;font-weight:bold; text-align: left; vertical-align: left;}</style>'    
-  tab_text = tab_text+ "<table><td colspan='38' class='head2'>"+(department_name.value.toUpperCase() || store.getters.user.organization_name)+"</td></table>";
+  tab_text = tab_text+ "<table><td colspan='31' class='head2'>"+(department_name.value.toUpperCase() || store.getters.user.organization_name)+"</td></table>";
   // tab_text = tab_text+ "<table><td colspan='18' class='cstd' style='text-align: left; vertical-align: left;'>CÔNG TY/PHÒNG/TRUNG TÂM "+(store.getters.user.organization_name||".......")+"</td></table>";
   tab_text =
-      tab_text +'<table><td colspan="38" class="cstd" > BÁO CÁO TỔNG HỢP NHÂN SỰ</td >';
+      tab_text +'<table><td colspan="31" class="cstd" > DANH SÁCH THỐNG KÊ BÁO CÁO NHÂN SỰ NGHỈ VIỆC</td >';
   tab_text = tab_text + "</table>";
   //var exportTable = $('#' + id).clone();
   //exportTable.find('input').each(function (index, elem) { $(elem).remove(); });\
@@ -269,7 +270,9 @@ const exportExcel = () => {
     document.body.removeChild(elem);
   }
 };
-const activeRow = (row)=>{
+const valueClick = ref();
+const activeRow = (row, value)=>{
+  valueClick.value = value;
   datalists.value.forEach((item)=>{
     item.list_ns.forEach((item2)=>{
       item2.is_active = false;
@@ -455,126 +458,78 @@ onMounted(() => {
         </Toolbar>
     </div>
     <div style="overflow: scroll;max-height: calc(100vh - 124px);min-height: calc(100vh - 124px);background-color: #fff;">
-        <table cellspacing=0 id="table-bc" class="table table-condensed table-hover tbpad" style="table-layout: fixed;width: 100%;">
+        <table cellspacing=0 id="table-bc" class="table table-condensed table-hover tbpad" style="width: max-content;">
         <thead style="position: sticky; z-index: 6; top:0">
             <tr>
-                <th class="text-center sticky left-sticky1 left-1" width="50" rowspan="2" >STT</th>
-                <th class="text-center sticky left-sticky1 left-2" width="100" rowspan="2" >Mã nhân viên</th>
-                <th class="text-center sticky left-sticky1 left-3" width="150" rowspan="2">Họ và tên</th>
-                <th class="text-center " width="100" rowspan="2">Ngày sinh</th>
-                <th class="text-center " width="60" rowspan="2">Tuổi</th>
-                <th class="text-center " width="100" rowspan="2">Giới tính</th>
-                <th class="text-center " width="150" rowspan="2">Chức danh</th>
-                <th class="text-center " width="150" rowspan="2">Chức vụ</th>
-                <th class="text-center " width="100" rowspan="2">Loại LĐ</th>
-                <th class="text-center " width="250" rowspan="2">Quê quán</th>
-                <th class="text-center " width="100" rowspan="2">Tình trạng hôn nhân</th>
-                <th class="text-center " width="80" rowspan="2">Dân tộc</th>
-                <th class="text-center " width="80" rowspan="2">Tôn giáo</th>
-                <th class="text-center " width="80" rowspan="2">Đảng viên</th>
-                <th class="text-center " width="80" rowspan="2">Đoàn viên</th>
-                <th class="text-center " width="300" colspan="2">Thuộc diện chính sách</th>
-                <th class="text-center " width="300" colspan="2">Nơi đăng ký HKTT</th>
-                <th class="text-center " width="300" colspan="2">Nơi ở hiện nay</th>
-                <th class="text-center " width="150" rowspan="2">Liên hệ khẩn cấp</th>
-                <th class="text-center " width="150" rowspan="2">Thành phần gia đình</th>
-                <th class="text-center " width="300" colspan="3">Theo dõi CMND</th>
-                <th class="text-center " width="100" rowspan="2">Ngày vào đơn vị</th>
-                <th class="text-center " width="120" rowspan="2">Thâm niên công tác</th>
-                <th class="text-center " width="120" rowspan="2">Thâm niên phép tính năm</th>
-                <th class="text-center " width="500" colspan="5">Trình độ chuyên môn chính</th>
-                <th class="text-center " width="120" rowspan="2">Số di động</th>
-                <th class="text-center " width="120" rowspan="2">Email</th>
-                <th class="text-center " width="80" rowspan="2">Chiều cao</th>
-                <th class="text-center " width="80" rowspan="2">Cân nặng</th>
+              <th class="text-center"  colspan="28">THÔNG TIN NHÂN SỰ</th>
+              <th class="text-center"  colspan="3">THÔNG TIN, QUYẾT ĐỊNH, THỜI HẠN HỢP ĐỒNG LAO ĐỘNG</th>
             </tr>
             <tr>
-                <th class="text-center " width="100">Đã tham gia quân đội</th>
-                <th class="text-center " width="100">Con gia đình chính sách</th>
-                <th class="text-center " width="100">Số nhà, đường phố</th>
-                <th class="text-center " width="100">Xã/Phường, Quận/Huyện, Tỉnh/TP</th>
-                <th class="text-center " width="100">Số nhà, đường phố</th>
-                <th class="text-center " width="100">Xã/Phường, Quận/Huyện, Tỉnh/TP</th>
-                <th class="text-center " width="100">Số CMND</th>
-                <th class="text-center " width="100">Ngày cấp CMND</th>
-                <th class="text-center " width="100">Nơi cấp CMND</th>
-                <th class="text-center " width="100">Trình độ văn hóa</th>
-                <th class="text-center " width="100">Bằng cấp</th>
-                <th class="text-center " width="100">Chuyên ngành</th>
-                <th class="text-center " width="100">Trường tốt nghiệp</th>
-                <th class="text-center " width="100">Hình thức đào tạo</th>
+                <th class="text-center sticky left-sticky1 left-1" width="50">STT</th>
+                <th class="text-center sticky left-sticky1 left-2" width="150">Họ và tên</th>
+                <th class="text-center" width="100">Năm sinh</th>
+                <th class="text-center" width="100">Giới tính</th>
+                <th class="text-center" width="150">Số chứng thực</th>
+                <th class="text-center" width="150">Ngày chứng thực</th>
+                <th class="text-center" width="100">Nơi cấp chứng thực</th>
+                <th class="text-center" width="100">Loại nhân sự</th>
+                <th class="text-center" width="100">Chức vụ</th>
+                <th class="text-center" width="100">Chức danh</th>
+                <th class="text-center" width="150">Chức vụ kiêm nghiệm</th>
+                <th class="text-center" width="150">Công việc mô tả</th>
+                <th class="text-center" width="100">Di động</th>
+                <th class="text-center" width="100">Email</th>
+                <th class="text-center" width="200">Nơi ở hiện tại</th>
+                <th class="text-center" width="200">Hợp đồng lao động</th>
+                <th class="text-center" width="100">Số hợp đồng</th>
+                <th class="text-center" width="120">Ngày hết hạn hợp đồng</th>
+                <th class="text-center" width="120">Số ngày làm việc</th>
+                <th class="text-center" width="100">Trình độ học vấn</th>
+                <th class="text-center" width="100">Chuyên ngành</th>
+                <th class="text-center" width="150">Nơi đào tạo</th>
+                <th class="text-center" width="100">Mã số thuế</th>
+                <th class="text-center" width="100">Số sổ bảo hiểm</th>
+                <th class="text-center" width="150">Tháng đóng bảo hiểm</th>
+                <th class="text-center" width="150">Mức đóng bảo hiểm</th>
+                <th class="text-center" width="150">Nơi đóng BHXH</th>
+                <th class="text-center" width="150">Ký nhận</th>
+                <th class="text-center" width="120">Ngày vào công ty</th>
+                <th class="text-center" width="120">Ngày nghỉ việc</th>
+                <th class="text-center" width="150">Lý do nghỉ</th>
             </tr>
         </thead>
         <tbody v-for="(bc, index1) in datalists" :key="index1">
             <tr>
-                <td colspan="38" class="bg-group"><b>{{bc.name_group_pb}}</b></td>
+                <td colspan="38" class="bg-group left-sticky1 left-1"><b>{{bc.name_group_pb}}</b></td>
             </tr>
             <tr v-for="(dg, index2) in bc.list_ns" :key="index2" class="item-hover" @click="activeRow(dg)">
                 <td class="text-center bg-stt left-sticky1 left-1" :class="dg.is_active?'active-item':'bg-stt'">{{dg.stt}}</td>
-                <td align="left" class="bg-aliceblue left-sticky1 left-2">
-                   {{dg.profile_code}}
+                <td align="left" class="left-sticky1 left-2" @click="activeRow(dg)">
+                   {{dg.profile_user_name}}
                 </td>
-                <td align="left" class="bg-aliceblue left-sticky1 left-3">
-      
-                    {{dg.profile_user_name}}
+                <td align="center" @click="activeRow(dg)">      
+                    {{dg.birthday}}
                 </td>
-                <td align="center">
-                  <span v-if="dg.birthday"> {{ moment(new Date(dg.birthday)).format("DD/MM/YYYY ") }}</span>
+                <td align="center" >{{dg.gender}}</td>
+                <td align="center" >{{dg.identity_papers_code}}</td>
+                <td align="center" >{{dg.identity_date_issue}}</td>
+                <td align="center" >{{dg.identity_name_issue}}</td>
+                <td align="center" >{{dg.personel_groups_name}}</td>
+                <td align="center" >{{dg.position_name}}</td>
+                <td align="center" >{{dg.title_name}}</td>
+                <td align="center" ></td>
+                <td align="center" ></td>
+                <td align="center" >{{dg.phone}}</td>
+                <td align="center" >{{dg.email}}</td>
+                <td align="center" >
+                    {{ dg.place_permanent }} {{ dg.place_residence_name || dg.place_name }}
                 </td>
-                <td align="center">
-                    {{dg.age}}
+                <td align="center" >{{dg.type_contract_name}}</td>
+                <td align="center" >{{dg.contract_code}}</td>
+                <td align="center" >
+                  <span v-if="dg.contract_end_date"> {{ moment(new Date(dg.contract_end_date)).format("DD/MM/YYYY ") }}</span>
                 </td>
-                <td align="center">
-                    {{dg.gender}}
-                </td>
-                <td align="left">{{ dg.title_name }}</td>
-                <td align="left">
-                    {{dg.position_name}}
-                </td>
-                <td align="left">
-                    {{dg.personel_groups_name}}
-                </td>
-                <td align="left">
-                    {{dg.birthplace_origin_name}}
-                </td>
-                <td align="center">
-                    {{dg.marital_status==0?'Độc thân':dg.marital_status==1 ?'Kết hôn':dg.marital_status==2?'Ly hôn':''}}
-                </td>
-                <td align="center">
-                    {{dg.ethnic_name}}
-                </td>
-                <td align="center">
-                    {{dg.religion_name}}
-                </td>
-                <td align="center">
-                    {{dg.is_partisan?'X':''}}
-                </td>
-                <td align="center">
-                    {{dg.bevy_date?'X':''}}
-                </td>
-                <td align="center">
-                    {{dg.is_join_military?'X':''}}
-                </td>
-                <td align="left">{{dg.military_policy_family}}</td>
-                <td align="left">{{dg.place_register_permanent_first}}</td>
-                <td align="left">{{dg.place_register_permanent_name}}</td>
-                <td align="left">{{dg.place_permanent}}</td>
-                <td align="left">{{dg.place_residence_name || dg.name}}</td>
-                <td align="left">
-                  <span v-if="dg.relationship_name">{{ dg.relationship_name}}: </span>
-                  <span v-if="dg.involved_name">{{ dg.involved_name}} - </span>
-                  <span v-if="dg.involved_phone">{{ dg.involved_phone}} </span>
-                </td>
-                <td align="left">{{dg.family_member}}</td>
-                <td align="left">{{dg.identity_papers_code}}</td>
-                <td align="left">
-                  <span v-if="dg.identity_date_issue"> {{ moment(new Date(dg.identity_date_issue)).format("DD/MM/YYYY ") }}</span>
-                </td>
-                <td align="left">{{dg.name}}</td>
-                <td align="left">
-                  <span v-if="dg.start_date"> {{ moment(new Date(dg.start_date)).format("DD/MM/YYYY ") }}</span>
-                </td>
-                <td align="center">
+                <td align="center" >
                   <span v-if="dg.diffyear > 0">
                     {{ dg.diffyear }} năm
                   </span>
@@ -582,20 +537,27 @@ onMounted(() => {
                     {{ dg.diffmonth }} tháng
                   </span>
                 </td>
-                <td align="center">{{dg.countAllRecruitment}}</td>
-                <td align="left">{{dg.cultural_level_name}}</td>
-                <td align="left">{{dg.certificate_name}}</td>
-                <td align="left">{{dg.specialization_name}}</td>
-                <td align="left" width="150">{{dg.university_name}}</td>
-                <td align="left">{{dg.form_traning_name}}</td>
-                <td align="center">{{dg.phone}}</td>
-                <td align="center">{{dg.email}}</td>
-                <td align="center">{{dg.height}}</td>
-                <td align="center">{{dg.weight}}</td>
+                <td align="center" >{{dg.cultural_level_name}}</td>
+                <td align="center" >{{dg.specialization_name}}</td>
+                <td align="center" >{{dg.university_name}}</td>
+                <td align="center" >{{dg.tax_code}}</td>
+                <td align="center" >{{dg.insurance_code}}</td>
+                <td align="center" ></td>
+                <td align="center" ></td>
+                <td align="center" ></td>
+                <td align="center" ></td>
+                <td align="center" >
+                  <span v-if="dg.recruitment_date"> {{ moment(new Date(dg.recruitment_date)).format("DD/MM/YYYY ") }}</span>
+                </td>
+                <td align="center" >
+                  <span v-if="dg.start_date_quit"> {{ moment(new Date(dg.start_date_quit)).format("DD/MM/YYYY ") }}</span>
+                </td>
+                <td align="center" ></td>        
             </tr> 
       
           </tbody>
     </table>
+    
     </div>
     </div>
 </template>
@@ -657,15 +619,19 @@ onMounted(() => {
     table th, table td {
         border: 0.3px solid rgba(0,0,0,.3) !important;
     }
+    td.bg-group>b {
+    position: sticky;
+    left: 10px;
+}
 
 </style>
 <style scoped>
-#table-bc{
+/* #table-bc{
   max-height: calc(100vh - 110px);
   overflow-y: auto;
   overflow-x: scroll;
 
-}
+} */
 th,
 td {
     background: #fff;
@@ -684,10 +650,6 @@ td {
 
 .row-child:hover {
     color: #0078d4;
-}
-td.bg-group>b {
-    position: sticky;
-    left: 10px;
 }
 .toolbar-filter {
   border: unset;

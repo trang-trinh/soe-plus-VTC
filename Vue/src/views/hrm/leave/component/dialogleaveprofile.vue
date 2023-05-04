@@ -34,9 +34,7 @@ const model = ref({
 
 //Function
 const goYear = (date) => {
-  if (date && options.value.tempyear !== date.getFullYear()) {
-    options.value.tempyear = date.getFullYear();
-  }
+  initData(true);
 };
 
 const submitted = ref(false);
@@ -115,6 +113,7 @@ const initData = (ref) => {
       },
     });
   }
+  let year = new Date(model.value.tempyear).getFullYear();
   axios
     .post(
       baseURL + "/api/hrm/callProc",
@@ -122,7 +121,10 @@ const initData = (ref) => {
         str: encr(
           JSON.stringify({
             proc: "hrm_leave_profile_get",
-            par: [{ par: "profile_id", va: props.profile.profile_id }],
+            par: [
+              { par: "profile_id", va: props.profile.profile_id },
+              { par: "year", va: year },
+            ],
           }),
           SecretKey,
           cryoptojs
@@ -146,7 +148,7 @@ const initData = (ref) => {
             model.value = {
               profile_id: props.profile.profile_id,
               tempyear: new Date(
-                props.year,
+                year,
                 newdate.getMonth() + 1,
                 newdate.getDay()
               ),
@@ -162,6 +164,9 @@ const initData = (ref) => {
               month10: 0,
               month11: 0,
               month12: 0,
+              inventory: 0,
+              bonus: 0,
+              seniority: 0,
             };
           }
         }
@@ -232,10 +237,40 @@ onMounted(() => {
         </div>
         <div class="col-6 md:col-6">
           <div class="form-group">
+            <label>Phép tồn năm trước</label>
+            <InputNumber
+              v-model="model.inventory"
+              mode="decimal"
+              :minFractionDigits="0"
+              :maxFractionDigits="2"
+              showButtons
+              class="ip36"
+            />
+          </div>
+        </div>
+        <div class="col-6 md:col-6">
+          <div class="form-group">
+            <label>Phép thưởng</label>
+            <InputNumber
+              v-model="model.bonus"
+              mode="decimal"
+              :minFractionDigits="0"
+              :maxFractionDigits="2"
+              :min="0"
+              :max="100"
+              showButtons
+              class="ip36"
+            />
+          </div>
+        </div>
+        <div class="col-6 md:col-6">
+          <div class="form-group">
             <label>Tháng 1</label>
             <InputNumber
               v-model="model.month1"
-              inputId="minmax"
+              mode="decimal"
+              :minFractionDigits="0"
+              :maxFractionDigits="2"
               :min="0"
               :max="100"
               showButtons
@@ -248,7 +283,9 @@ onMounted(() => {
             <label>Tháng 2</label>
             <InputNumber
               v-model="model.month2"
-              inputId="minmax"
+              mode="decimal"
+              :minFractionDigits="0"
+              :maxFractionDigits="2"
               :min="0"
               :max="100"
               showButtons
@@ -261,7 +298,9 @@ onMounted(() => {
             <label>Tháng 3</label>
             <InputNumber
               v-model="model.month3"
-              inputId="minmax"
+              mode="decimal"
+              :minFractionDigits="0"
+              :maxFractionDigits="2"
               :min="0"
               :max="100"
               showButtons
@@ -274,7 +313,9 @@ onMounted(() => {
             <label>Tháng 4</label>
             <InputNumber
               v-model="model.month4"
-              inputId="minmax"
+              mode="decimal"
+              :minFractionDigits="0"
+              :maxFractionDigits="2"
               :min="0"
               :max="100"
               showButtons
@@ -287,7 +328,9 @@ onMounted(() => {
             <label>Tháng 5</label>
             <InputNumber
               v-model="model.month5"
-              inputId="minmax"
+              mode="decimal"
+              :minFractionDigits="0"
+              :maxFractionDigits="2"
               :min="0"
               :max="100"
               showButtons
@@ -300,7 +343,9 @@ onMounted(() => {
             <label>Tháng 6</label>
             <InputNumber
               v-model="model.month6"
-              inputId="minmax"
+              mode="decimal"
+              :minFractionDigits="0"
+              :maxFractionDigits="2"
               :min="0"
               :max="100"
               showButtons
@@ -313,7 +358,9 @@ onMounted(() => {
             <label>Tháng 7</label>
             <InputNumber
               v-model="model.month7"
-              inputId="minmax"
+              mode="decimal"
+              :minFractionDigits="0"
+              :maxFractionDigits="2"
               :min="0"
               :max="100"
               showButtons
@@ -326,7 +373,9 @@ onMounted(() => {
             <label>Tháng 8</label>
             <InputNumber
               v-model="model.month8"
-              inputId="minmax"
+              mode="decimal"
+              :minFractionDigits="0"
+              :maxFractionDigits="2"
               :min="0"
               :max="100"
               showButtons
@@ -339,7 +388,9 @@ onMounted(() => {
             <label>Tháng 9</label>
             <InputNumber
               v-model="model.month9"
-              inputId="minmax"
+              mode="decimal"
+              :minFractionDigits="0"
+              :maxFractionDigits="2"
               :min="0"
               :max="100"
               showButtons
@@ -352,7 +403,9 @@ onMounted(() => {
             <label>Tháng 10</label>
             <InputNumber
               v-model="model.month10"
-              inputId="minmax"
+              mode="decimal"
+              :minFractionDigits="0"
+              :maxFractionDigits="2"
               :min="0"
               :max="100"
               showButtons
@@ -365,7 +418,9 @@ onMounted(() => {
             <label>Tháng 11</label>
             <InputNumber
               v-model="model.month11"
-              inputId="minmax"
+              mode="decimal"
+              :minFractionDigits="0"
+              :maxFractionDigits="2"
               :min="0"
               :max="100"
               showButtons
@@ -378,7 +433,9 @@ onMounted(() => {
             <label>Tháng 12</label>
             <InputNumber
               v-model="model.month12"
-              inputId="minmax"
+              mode="decimal"
+              :minFractionDigits="0"
+              :maxFractionDigits="2"
               :min="0"
               :max="100"
               showButtons

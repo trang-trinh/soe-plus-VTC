@@ -5,6 +5,8 @@ import { useToast } from "vue-toastification";
 import moment from "moment";
 import { groupBy } from "lodash";
 import dialogleaveprofile from "./component/dialogleaveprofile.vue";
+import dialogtransferinventory from "./component/dialogtransferinventory.vue";
+import dialogconfigleaveyear from "./component/dialogconfigleaveyear.vue";
 
 const store = inject("store");
 const swal = inject("$swal");
@@ -17,6 +19,8 @@ const config = {
 const toast = useToast();
 const cryoptojs = inject("cryptojs");
 const basedomainURL = baseURL;
+const basefileURL = fileURL;
+const PASS_KEY = SecretKey;
 
 //Decalre
 const isFunction = ref(false);
@@ -157,6 +161,27 @@ const closeDialogLeaveProfile = () => {
 };
 
 //function export
+//Xuất excel
+const menuButs = ref();
+const itemButs = ref([
+  {
+    label: "Export dữ liệu ra Excel",
+    icon: "pi pi-file-excel",
+    command: (event) => {
+      exportExcel("table-leave");
+    },
+  },
+  {
+    label: "Import dữ liệu từ Excel",
+    icon: "pi pi-file-excel",
+    command: (event) => {
+      importExcel();
+    },
+  },
+]);
+const toggleExport = (event) => {
+  menuButs.value.toggle(event);
+};
 const exportExcel = () => {
   excel("table-leave", "bangphepnam" + options.value.year);
 };
@@ -207,6 +232,83 @@ const excel = (id, name) => {
   }
 };
 
+// Import excel
+const linkformimport = "/Portals/Mau Excel/Mẫu Excel Phép năm.xlsx";
+let files = [];
+const displayImport = ref(false);
+const importExcel = (type) => {
+  displayImport.value = true;
+};
+const removeFile = (event) => {
+  files = [];
+};
+const selectFile = (event) => {
+  event.files.forEach((element) => {
+    files.push(element);
+  });
+};
+const upload = () => {
+  displayImport.value = false;
+  let formData = new FormData();
+  for (var i = 0; i < files.length; i++) {
+    let file = files[i];
+    formData.append("files", file);
+  }
+  axios
+    .post(baseURL + "/api/hrm_leave/import_excel", formData, config)
+    .then((response) => {
+      toast.success("Nhập dữ liệu thành công");
+      initData(true);
+    })
+    .catch((error) => {
+      swal.close();
+      swal.fire({
+        title: "Thông báo!",
+        text: "Có lỗi xảy ra, vui lòng kiểm tra lại!",
+        icon: "error",
+        confirmButtonText: "OK",
+      });
+      return;
+    });
+};
+const downloadFile = (url) => {
+  const a = document.createElement("a");
+  a.href =
+    basedomainURL +
+    "/Viewer/DownloadFile?url=" +
+    encodeURIComponent(url) +
+    "&title=" +
+    encodeURIComponent("Mẫu Excel Phép năm.xlsx");
+  a.download = "Mẫu Excel Phép năm.xlsx";
+  //a.target = "_blank";
+  a.click();
+  a.remove();
+};
+
+const headerDialogTransferInventory = ref();
+const displayDialogTransferInventory = ref(false);
+const openDialogTransferInventory = (str) => {
+  headerDialogTransferInventory.value = str;
+  displayDialogTransferInventory.value = true;
+  forceRerender(1);
+};
+const closeDialogTransferInventory = () => {
+  displayDialogTransferInventory.value = false;
+  forceRerender(1);
+};
+
+const headerDialogConfigLearYear = ref();
+const displayDialogConfigLeaveYear = ref(false);
+const openDialogConfigLeaveYear = (str) => {
+  headerDialogConfigLearYear.value = str;
+  displayDialogConfigLeaveYear.value = true;
+  forceRerender(2);
+};
+const closeDialogConfigLeaveYear = () => {
+  displayDialogConfigLeaveYear.value = false;
+  forceRerender(2);
+};
+
 //init
 const initDictionary = () => {
   axios
@@ -218,7 +320,7 @@ const initDictionary = () => {
             proc: "hrm_leave_dictionary",
             par: [{ par: "user_id", va: store.getters.user.user_id }],
           }),
-          SecretKey,
+          PASS_KEY,
           cryoptojs
         ).toString(),
       },
@@ -314,38 +416,6 @@ const initData = (ref) => {
         let data = JSON.parse(response.data.data);
         if (data != null) {
           if (data[0] != null && data[0].length > 0) {
-            data[0].forEach((user, i) => {
-              user["STT"] = i + 1;
-              if (user["days"] != null) {
-                user["days"] = JSON.parse(user["days"]);
-                user["days"].forEach((day) => {
-                  day["workday"] = new Date(day["workday"]);
-                  day["workday_string"] = moment(day["workday"]).format(
-                    "DD/MM/YYYY"
-                  );
-                });
-              } else {
-                user["days"] = [];
-              }
-              user["list_days"] = JSON.parse(JSON.stringify(days.value));
-              user["list_days"].forEach((d) => {
-                d["status_name"] = "";
-                if (new Date(d["day"]).getTime() < new Date().getTime()) {
-                  d["status_name"] = "";
-                }
-                var filterDays = user["days"].filter(
-                  (x) => x["workday_string"] === d["day_string"]
-                );
-                filterDays.forEach((day) => {
-                  var idx = dictionarys.value[2].findIndex(
-                    (s) => s["symbol_id"] === parseInt(day["symbol_id"])
-                  );
-                  if (idx !== -1) {
-                    d["status_name"] = dictionarys.value[2][idx]["symbol_code"];
-                  }
-                });
-              });
-            });
             var group = groupBy(data[0], "department_id");
             for (var k in group) {
               let obj = {
@@ -355,6 +425,14 @@ const initData = (ref) => {
               };
               datas.value.push(obj);
             }
+            var count = 1;
+            datas.value.forEach((item) => {
+              if (item.users != null && item.users.length > 0) {
+                item.users.forEach((us) => {
+                  us.stt = count++;
+                });
+              }
+            });
           } else {
             datas.value = [];
           }
@@ -408,37 +486,41 @@ onMounted(() => {
       </template>
       <template #end>
         <Button
-          v-if="selectedNodes.length > 0"
-          @click="openUpdateDialog('Chọn loại chấm công')"
-          label="Chọn loại chấm công"
-          icon="pi pi-check"
+          @click="openDialogTransferInventory('Chuyển phép tồn')"
+          label="Chuyển phép tồn"
+          icon="pi pi-calendar"
           class="mr-2"
         />
         <Button
-          v-if="selectedNodes.length > 0"
-          :label="'Bỏ chọn (' + selectedNodes.length + ')'"
-          icon="pi pi-times"
-          class="mr-2 p-button-outlined p-button-danger"
-          @click="removeSelectedNodes()"
+          @click="openDialogConfigLeaveYear('Thiết lâp phép năm')"
+          label="Thiết lập phép năm"
+          icon="pi pi-cog"
+          class="mr-2"
         />
         <Button
-          v-if="selectedNodes.length > 0"
-          label="Xóa chấm công"
-          icon="pi pi-trash"
-          class="mr-2 p-button-outlined p-button-danger"
-          @click="deleteTimekeep()"
-        />
-        <Button
-          @click="exportExcel()"
-          class="mr-2 p-button-outlined p-button-secondary"
+          @click="toggleExport"
+          label="Tiện ích"
           icon="pi pi-file-excel"
-          label="Xuất Excel"
+          class="p-button-outlined p-button-secondary mr-2"
+          aria-haspopup="true"
+          aria-controls="overlay_Export"
+        >
+          <div>
+            <span class="mr-2">Tiện ích</span>
+            <span><i class="pi pi-chevron-down"></i></span>
+          </div>
+        </Button>
+        <Menu
+          :model="itemButs"
+          :popup="true"
+          id="overlay_Export"
+          ref="menuButs"
         />
         <Button
           @click="refresh()"
           class="p-button-outlined p-button-secondary"
           icon="pi pi-refresh"
-          label="Tải lại"
+          v-tooltip.top="'Tải lại'"
         />
       </template>
     </Toolbar>
@@ -622,38 +704,58 @@ onMounted(() => {
             </th>
             <th
               class="sticky text-center"
-              :style="{ top: '0', width: '100px' }"
+              :style="{ right: '540px', top: '0', width: '90px' }"
+            >
+              Phép năm
+            </th>
+            <th
+              class="sticky text-center"
+              :style="{ right: '450px', top: '0', width: '90px' }"
             >
               Phép tồn
             </th>
             <th
               class="sticky text-center"
-              :style="{ top: '0', width: '100px' }"
+              :style="{ right: '360px', top: '0', width: '90px' }"
             >
               Phép thưởng
             </th>
             <th
               class="sticky text-center"
-              :style="{ top: '0', width: '100px' }"
+              :style="{ right: '270px', top: '0', width: '90px' }"
             >
               Thâm niên
             </th>
             <th
               class="sticky text-center"
-              :style="{ top: '0', width: '100px', backgroundColor: '#F2FBE6' }"
+              :style="{
+                right: '180px',
+                top: '0',
+                width: '90px',
+                backgroundColor: '#F2FBE6',
+              }"
             >
               TỔNG SỐ
             </th>
             <th
               class="sticky text-center"
-              :style="{ top: '0', width: '100px', backgroundColor: '#EEFAF5' }"
+              :style="{
+                right: '90px',
+                top: '0',
+                width: '90px',
+                backgroundColor: '#EEFAF5',
+              }"
             >
               ĐÃ NGHỈ
             </th>
-
             <th
               class="sticky text-center"
-              :style="{ top: '0', width: '100px', backgroundColor: '#FDF2F0' }"
+              :style="{
+                right: '0',
+                top: '0',
+                width: '90px',
+                backgroundColor: '#FDF2F0',
+              }"
             >
               CÒN LẠI
             </th>
@@ -697,7 +799,7 @@ onMounted(() => {
                 textAlign: 'center',
               }"
             >
-              {{ user_key + 1 }}
+              {{ user.stt }}
             </td>
             <td
               class="sticky text-left"
@@ -720,8 +822,19 @@ onMounted(() => {
               <span> {{ user["month" + item.month] }}</span>
             </td>
             <td
-              class="text-center"
+              class="sticky text-center"
               :style="{
+                right: '540px',
+                width: '150px',
+                backgroundColor: '#fff',
+              }"
+            >
+              <span> {{ user.leaveYear }}</span>
+            </td>
+            <td
+              class="sticky text-center"
+              :style="{
+                right: '450px',
                 width: '150px',
                 backgroundColor: '#fff',
               }"
@@ -729,8 +842,9 @@ onMounted(() => {
               <span> {{ user.leaveInventory }}</span>
             </td>
             <td
-              class="text-center"
+              class="sticky text-center"
               :style="{
+                right: '360px',
                 width: '150px',
                 backgroundColor: '#fff',
               }"
@@ -738,8 +852,9 @@ onMounted(() => {
               <span> {{ user.leaveBonus }}</span>
             </td>
             <td
-              class="text-center"
+              class="sticky text-center"
               :style="{
+                right: '270px',
                 width: '150px',
                 backgroundColor: '#fff',
               }"
@@ -747,31 +862,37 @@ onMounted(() => {
               <span> {{ user.leaveSeniority }}</span>
             </td>
             <td
-              class="text-center"
+              class="sticky text-center"
               :style="{
+                right: '180px',
                 width: '150px',
                 backgroundColor: '#fff',
+                backgroundColor: '#F2FBE6',
               }"
             >
-              <span> </span>
+              <b>{{ user.total }}</b>
             </td>
             <td
-              class="text-center"
+              class="sticky text-center"
               :style="{
+                right: '90px',
                 width: '150px',
                 backgroundColor: '#fff',
+                backgroundColor: '#EEFAF5',
               }"
             >
-              <span> {{ user.leaveAll }}</span>
+              <b> {{ user.leaveAll }}</b>
             </td>
             <td
-              class="text-center"
+              class="sticky text-center"
               :style="{
+                right: '0',
                 width: '150px',
                 backgroundColor: '#fff',
+                backgroundColor: '#FDF2F0',
               }"
             >
-              <span> {{ user.leaveRemain }}</span>
+              <b> {{ user.leaveRemain }}</b>
             </td>
           </tr>
         </tbody>
@@ -866,6 +987,53 @@ onMounted(() => {
     :year="options.year"
     :initData="initData"
   />
+  <dialogtransferinventory
+    :key="componentKey['1']"
+    :headerDialog="headerDialogTransferInventory"
+    :displayDialog="displayDialogTransferInventory"
+    :closeDialog="closeDialogTransferInventory"
+    :organization_id="options.filter_organization_id"
+    :initData="initData"
+  />
+  <dialogconfigleaveyear
+    :key="componentKey['2']"
+    :headerDialog="headerDialogConfigLearYear"
+    :displayDialog="displayDialogConfigLeaveYear"
+    :closeDialog="closeDialogConfigLeaveYear"
+    :initData="initData"
+  />
+  <Dialog
+    header="Tải lên file Excel"
+    v-model:visible="displayImport"
+    :style="{ width: '40vw' }"
+    :closable="true"
+    :modal="true"
+  >
+    <h3>
+      <label>
+        <a @click="downloadFile(linkformimport)" class="hover2">Nhấn vào đây</a>
+        để tải xuống tệp mẫu.
+      </label>
+    </h3>
+    <form>
+      <FileUpload
+        accept=".xls,.xlsx"
+        @remove="removeFile"
+        @select="selectFile"
+        :multiple="false"
+        :show-upload-button="false"
+        choose-label="Chọn tệp"
+        cancel-label="Hủy"
+      >
+        <template #empty>
+          <p>Kéo và thả tệp vào đây để tải lên.</p>
+        </template>
+      </FileUpload>
+    </form>
+    <template #footer>
+      <Button label="Lưu" icon="pi pi-check" @click="upload" />
+    </template>
+  </Dialog>
 </template>
 <style scoped>
 .box-table {
@@ -1017,6 +1185,10 @@ th.isHoliday {
 }
 .hover {
   cursor: pointer;
+}
+.hover2:hover{
+  cursor: pointer;
+  color: #2196F3;
 }
 .hover:hover td {
   background-color: aliceblue !important;
