@@ -29,53 +29,44 @@ const loadUserProfiles = () => {
 
   axios
     .post(
-      baseURL + "/api/device_card/getData",
+      baseURL + "/api/hrm_ca_SQL/getData",
       {
         str: encr(
           JSON.stringify({
-            proc: "sys_users_list_dd",
+            proc: "hrm_profile_list_filter",
             par: [
               { par: "search", va: null },
               { par: "user_id", va: store.getters.user.user_id },
-              { par: "role_id", va: null },
-              {
-                par: "organization_id",
-                va: store.getters.user.organization_id,
-              },
-              { par: "department_id", va: null },
+              { par: "work_position_id", va: null },
               { par: "position_id", va: null },
-              { par: "pageno", va: 1 },
-              { par: "pagesize", va: 100000 },
-              { par: "isadmin", va: null },
-              { par: "status", va: null },
-              { par: "start_date", va: null },
-              { par: "end_date", va: null },
+              { par: "department_id", va: null },
+              { par: "status", va: 1 },
             ],
           }),
           SecretKey,
-          cryoptojs,
+          cryoptojs
         ).toString(),
       },
-      config,
+      config
     )
     .then((response) => {
       let data = JSON.parse(response.data.data)[0];
- 
+
       data.forEach((element, i) => {
         listDataUsers.value.push({
-          full_name: element.full_name,
+          profile_user_name: element.profile_user_name,
           code: {
-            user_id: element.user_id,
-            full_name: element.full_name,
+            profile_id: element.profile_id,
+            profile_user_name: element.profile_user_name,
             avatar: element.avatar,
           },
-          user_id: element.user_id,
+          profile_id: element.profile_id,
           avatar: element.avatar,
           department_name: element.department_name,
           department_id: element.department_id,
-          role_name: element.role_name,
+          work_position_name: element.work_position_name,
           position_name: element.position_name,
-          organization_name: element.organization_name,
+          profile_code: element.profile_code,
           organization_id: element.organization_id,
         });
       });
@@ -101,15 +92,13 @@ const props = defineProps({
   class: String,
   display: String,
   disabled: Boolean,
-  type:Intl
 });
 const model = ref();
 const submitModel = () => {
-     
-  emitter.emit("emitData", { type: "submitDropdownUsers", data: { data: model.value, type :props.type }});
+  emitter.emit("emitData", { type: "submitModel", data: model.value });
 };
 const removeUser=(item)=>{
-  emitter.emit("emitData", { type: "delDropdownUsers", data:{ data: item, type :props.type } });
+  emitter.emit("emitData", { type: "delItem", data: item});
   
 
 }
@@ -130,7 +119,7 @@ onUpdated(() => {
   <MultiSelect
     v-model="model"
     :options="listDataUsers"
-    optionLabel="full_name"
+    optionLabel="profile_user_name"
     optionValue="code"
     :placeholder="props.placeholder"
     @change="submitModel"
@@ -151,7 +140,7 @@ onUpdated(() => {
           <div class="  p-chip d-chip-design p-0 my-1">
             <Avatar
               v-bind:label="
-                item.avatar ? '' : item.full_name.substring(0, 1)
+                item.avatar ? '' : item.profile_user_name.substring(0, 1)
               "
               v-bind:image="
                 item.avatar
@@ -165,13 +154,13 @@ onUpdated(() => {
                 font-size: 1.4rem !important;
               "
               :style="{
-                background: bgColor[item.full_name.length % 7],
+                background: bgColor[item.profile_user_name.length % 7],
               }"
               size="xlarge"
               shape="circle"
               class="p-0  "
             />
-            <div class="p-chip-text px-1  ">{{ item.full_name }}</div>
+            <div class="p-chip-text px-1  ">{{ item.profile_user_name }}</div>
             <div class="p-2 align-items-center format-center p-multiselect-token-icon " @click=" removeUser(item)">
               <i class="pi pi-times-circle" ></i>
             </div>
@@ -186,7 +175,7 @@ onUpdated(() => {
             v-bind:label="
               slotProps.option.avatar
                 ? ''
-                : slotProps.option.full_name.substring(0, 1)
+                : slotProps.option.profile_user_name.substring(0, 1)
             "
             v-bind:image="
               slotProps.option.avatar
@@ -201,7 +190,7 @@ onUpdated(() => {
             "
             :style="{
               background:
-                bgColor[slotProps.option.full_name.length % 7],
+                bgColor[slotProps.option.profile_user_name.length % 7],
             }"
             size="xlarge"
             shape="circle"
@@ -210,19 +199,18 @@ onUpdated(() => {
         <div class="format-center text-left ml-3">
           <div>
             <div class="mb-1 font-bold">
-              {{ slotProps.option.full_name }}
+              {{ slotProps.option.profile_user_name }}
             </div>
             <div class="description">
               <div>
                 <span v-if="slotProps.option.position_name">{{
                   slotProps.option.position_name
                 }}</span>
-                <span v-else-if=" slotProps.option.role_name ">{{ slotProps.option.role_name }}</span>
+                <span v-else>{{ slotProps.option.profile_code }}</span>
 
                 <span v-if="slotProps.option.department_name">
                   | {{ slotProps.option.department_name }}</span
-                >      <span v-else-if=" slotProps.option.organization_name "> | {{ slotProps.option.organization_name }}</span>
-
+                >
               </div>
             </div>
           </div>

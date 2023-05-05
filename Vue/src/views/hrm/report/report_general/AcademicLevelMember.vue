@@ -268,13 +268,9 @@ const exportExcel = () => {
     document.body.removeChild(elem);
   }
 };
-const valueClick = ref();
-const activeRow = (row, value)=>{
-  valueClick.value = value;
+const activeRow = (row)=>{
   datalists.value.forEach((item)=>{
-    item.list_ns.forEach((item2)=>{
-      item2.is_active = false;
-    })
+      item.is_active = false;
   })
   row.is_active= true;
 }
@@ -355,7 +351,10 @@ onMounted(() => {
 
 <template>
     <div class="main-layout true flex-grow-1 p-2 pb-0 pr-0">
-        <div style="background-color: #fff; padding: 1rem;">
+        <div style="background-color: #fff; padding: 1rem;padding-left: 0;">
+          <h3 class="module-title module-title-hidden mt-0 ml-3 mb-2">
+            <i class="pi pi-chart-bar"></i> Báo cáo nhân sự theo trình độ học vấn
+          </h3>
         <Toolbar class="w-full custoolbar">
           <template #start>
             <Button
@@ -474,7 +473,7 @@ onMounted(() => {
           </template>
         </Toolbar>
     </div>
-    <div style="overflow: scroll;max-height: calc(100vh - 124px);min-height: calc(100vh - 124px);background-color: #fff;">
+    <div style="overflow: scroll;max-height: calc(100vh - 147px);min-height: calc(100vh - 147px);background-color: #fff;">
         <table cellspacing=0 id="table-bc" class="table table-condensed table-hover tbpad" style="width: max-content;">
         <thead style="position: sticky; z-index: 6; top:0">
             <tr>
@@ -499,7 +498,7 @@ onMounted(() => {
             </tr>
         </thead>
         <tbody v-for="(bc, index1) in datalists" :key="index1">
-            <tr v-for="(qt, index3) in bc.Congtac" :key="index3" class="item-hover" > 
+            <tr v-for="(qt, index3) in bc.Congtac" :key="index3" class="item-hover" @click="activeRow(bc)"> 
                 <td v-if="index3 ==0" :rowspan="bc.Congtac.length" class="text-center bg-stt left-sticky1 left-1" :class="bc.is_active?'active-item':'bg-stt'">{{index1+1}}</td>
                 <td v-if="index3 ==0"  :rowspan="bc.Congtac.length" align="left" class="left-sticky1 left-2">
                     {{bc.profile_code}}
