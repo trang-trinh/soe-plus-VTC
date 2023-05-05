@@ -263,3 +263,54 @@ span.rqxoa, span.uutien2 {
 .td-table-file {
     border-bottom: 1px solid #eee;
 }
+.position-absolute {
+	position: absolute !important;
+}
+.hoverMes {
+	display: none;
+}
+.row-comment:hover .hoverMes {
+	display: block !important;
+}
+.btn-func-cmt {
+    visibility: hidden;
+}
+.row-comment:hover .btn-func-cmt {
+    visibility: visible;
+}
+.r-file > ul > li {
+    list-style-type: none;
+    display: inline-block !important;
+    width: 160px;
+    text-align: center;
+    border: 1px solid #e5e5e5;
+    border-radius: 5px;
+    padding: 20px;
+    cursor: pointer;
+    margin: 5px;
+}
+.r-file > ul > li:hover {
+    background-color: #E5F3FF !important;
+}
+.r-file > ul > li .name-file {
+    font-size: 13px;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    display: block;
+    margin: 5px 0;
+    white-space: nowrap;
+}
+.css-icon {
+    font-size: 14px;
+    font-weight: bold;
+}
+.emote-md {
+    width: 30px;
+    height: 30px;
+}
+.emote-lg {
+	width: 35px;
+	height: 35px;
+	padding-right: 0;
+	padding-left: 0;
+}
