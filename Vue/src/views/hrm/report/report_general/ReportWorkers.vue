@@ -326,7 +326,10 @@ onMounted(() => {
 
 <template>
     <div class="main-layout true flex-grow-1 p-2 pb-0 pr-0">
-        <div style="background-color: #fff; padding: 1rem;">
+        <div style="background-color: #fff; padding: 1rem;padding-left: 0;">
+          <h3 class="module-title module-title-hidden mt-0 ml-3 mb-2">
+            <i class="pi pi-chart-bar"></i> Báo cáo danh sách lao động
+          </h3>
         <Toolbar class="w-full custoolbar">
           <template #start>
             <Button
@@ -489,7 +492,7 @@ onMounted(() => {
           </template>
         </Toolbar>
     </div>
-        <div style="overflow: scroll;max-height: calc(100vh - 124px);min-height: calc(100vh - 124px);background-color: #fff;">
+        <div style="overflow: scroll;max-height: calc(100vh - 147px);min-height: calc(100vh - 147px);background-color: #fff;">
         <table cellspacing=0 id="table-bc" class="table table-condensed table-hover tbpad" style="table-layout: fixed;width: 100%;">
         <thead style="position: sticky; z-index: 6; top:0">
             <tr>
