@@ -47,6 +47,8 @@ function CreateGuid() {
 }
 const model = ref({
   profile_id: props.profile_id,
+  is_active: true,
+  is_main: true,
 });
 
 //Function
