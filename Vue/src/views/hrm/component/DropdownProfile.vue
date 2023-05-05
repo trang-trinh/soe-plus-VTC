@@ -26,7 +26,7 @@ const listDataUsers = ref([]);
 const listDataUsersSave = ref([]);
 const loadUserProfiles = () => {
   listDataUsers.value = [];
-
+   
   axios
     .post(
       baseURL + "/api/hrm_ca_SQL/getData",
@@ -51,14 +51,14 @@ const loadUserProfiles = () => {
     )
     .then((response) => {
       let data = JSON.parse(response.data.data)[0];
-
+       
       data.forEach((element, i) => {
         listDataUsers.value.push({
           profile_user_name: element.profile_user_name,
           code: {
             profile_id: element.profile_id,
             profile_user_name: element.profile_user_name,
-            avatar: element.avatar,
+            avatar: element.avatar
           },
           profile_id: element.profile_id,
           avatar: element.avatar,
@@ -70,6 +70,16 @@ const loadUserProfiles = () => {
           organization_id: element.organization_id,
         });
       });
+      var models = listDataUsers.value.find((x) => x.profile_id == props.model);
+      if(models)
+      model.value = {
+        profile_id: models.profile_id,
+        profile_user_name: models.profile_user_name,
+        avatar: models.avatar,
+      };
+      else
+      model.value =null;
+
       listDataUsersSave.value = [...listDataUsers.value];
       isShow.value = true;
     })
@@ -87,7 +97,7 @@ const loadUserProfiles = () => {
 };
 const isShow = ref(false);
 const props = defineProps({
-  model: Object,
+  model: String,
   placeholder: String,
   class: String,
   display: String,
@@ -101,21 +111,19 @@ const removeUser = (item) => {
   emitter.emit("emitData", { type: "delItem", data: item });
 };
 onMounted(() => {
-  model.value = props.model;
+
   loadUserProfiles();
   return {
     loadUserProfiles,
     model,
   };
 });
-onUpdated(() => {
-  model.value = props.model;
-});
+ 
 </script>
 
 <template>
   <Dropdown
-  :options="listDataUsers"
+    :options="listDataUsers"
     :filter="true"
     :showClear="true"
     :editable="false"
@@ -126,40 +134,40 @@ onUpdated(() => {
     :placeholder="props.placeholder"
     @change="submitModel"
     :class="props.class"
- 
     v-if="isShow"
     :disabled="props.disabled"
   >
     <template #value="slotProps">
-      <div class=" m-0 p-0 h-full" v-if="slotProps.value">
-        <div class=" flex  align-items-center h-full">
-            <div class="format-center h-full">
-              <Avatar
-                v-bind:label="
-                  slotProps.value.avatar
-                    ? ''
-                    : (slotProps.value.profile_user_name ?? '').substring(0, 1)
-                "
-                v-bind:image="
-                  slotProps.value.avatar
-                    ? basedomainURL + slotProps.value.avatar
-                    : basedomainURL + '/Portals/Image/noimg.jpg'
-                "
-                :style="{
-                  background: bgColor[slotProps.value.is_order % 7],
-                  color: '#ffffff',
-                  width: '2rem',
-                  height: '2rem',
-                }"
-                class="mr-2 text-avatar"
-                size="xlarge"
-                shape="circle"
-              />
-            </div>
-            <div class="format-flex-center">
-              <span>{{ slotProps.value.profile_user_name }}</span>
-            </div>
+      <div class="m-0 p-0 h-full" v-if="slotProps.value">
+        <div class="flex align-items-center h-full">
+          <div class="format-center h-full">
+            <Avatar
+              v-bind:label="
+                slotProps.value.avatar
+                  ? ''
+                  : (slotProps.value.profile_user_name ?? '').substring(0, 1)
+              "
+              v-bind:image="
+                slotProps.value.avatar
+                  ? basedomainURL + slotProps.value.avatar
+                  : basedomainURL + '/Portals/Image/noimg.jpg'
+              "
+              :style="{
+                background:
+                  bgColor[slotProps.value.profile_user_name.length % 7],
+                color: '#ffffff',
+                width: '2rem',
+                height: '2rem',
+              }"
+              class="mr-2 text-avatar"
+              size="xlarge"
+              shape="circle"
+            />
           </div>
+          <div class="format-flex-center">
+            <span>{{ slotProps.value.profile_user_name }}</span>
+          </div>
+        </div>
       </div>
       <span v-else> {{ slotProps.placeholder }} </span>
     </template>
@@ -185,7 +193,8 @@ onUpdated(() => {
               font-size: 1.4rem !important;
             "
             :style="{
-              background: bgColor[slotProps.option.is_order % 7],
+              background:
+                bgColor[slotProps.option.profile_user_name.length % 7],
             }"
             class="text-avatar"
             size="xlarge"

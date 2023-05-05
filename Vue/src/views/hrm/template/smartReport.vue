@@ -108,9 +108,8 @@ const loadData = (rf) => {
           expandedRowGroups.value.push(element.report_group);
 
           if (element.report_group) {
-             
             if (
-              !liReportGroup.value.find((x) => x.name == element.report_group)  
+              !liReportGroup.value.find((x) => x.name == element.report_group)
             ) {
               liReportGroup.value.push({
                 name: element.report_group,
@@ -184,8 +183,8 @@ const smart_report = ref({
   emote_file: "",
   status: true,
   is_order: 1,
-  user_access: [],
-  user_denny: [],
+  user_access_fake: [],
+  user_deny_fake: [],
 });
 const collapsed1 = ref(true);
 const collapsed2 = ref(true);
@@ -222,10 +221,12 @@ const openBasic = (str) => {
     is_order: sttStamp.value,
     organization_id: store.getters.user.organization_id,
     is_system: store.getters.user.is_super ? true : false,
-    user_access: [],
-    user_denny: [],
+    user_access_fake: [],
+    user_deny_fake: [],
+    report_template: null,
   };
-
+  checkDisabled.value = false;
+  checkUploadFile.value = false;
   checkIsmain.value = false;
   isSaveTem.value = false;
   headerDialog.value = str;
@@ -235,13 +236,21 @@ const openBasicWRP = (wrt) => {
   submitted.value = false;
   smart_report.value = {
     report_name: "",
-
+    emote_file: "",
+    status: true,
     is_order: sttStamp.value,
     organization_id: store.getters.user.organization_id,
+    is_system: store.getters.user.is_super ? true : false,
+    user_access_fake: [],
+    user_deny_fake: [],
+    report_template: null,
+  
 
     report_group: wrt,
+ 
   };
-
+  checkDisabled.value = false;
+  checkUploadFile.value = false;
   checkIsmain.value = false;
   isSaveTem.value = false;
   headerDialog.value = "Thêm báo cáo";
@@ -279,10 +288,12 @@ const saveData = (isFormValid) => {
   }
   let formData = new FormData();
 
-  if (smart_report.value.user_access.length > 0)
-    smart_report.value.user_access = smart_report.value.user_access.toString();
-  if (smart_report.value.user_denny.length > 0)
-    smart_report.value.user_denny = smart_report.value.user_denny.toString();
+  if (smart_report.value.user_access_fake.length > 0)
+    smart_report.value.user_access = smart_report.value.user_access_fake.toString();
+  else smart_report.value.user_access = null;
+  if (smart_report.value.user_deny_fake.length > 0)
+    smart_report.value.user_deny = smart_report.value.user_deny_fake.toString();
+  else smart_report.value.user_deny = null;
   formData.append("smart_report", JSON.stringify(smart_report.value));
   swal.fire({
     width: 110,
@@ -349,19 +360,122 @@ const saveData = (isFormValid) => {
 };
 const checkIsmain = ref(true);
 //Sửa bản ghi
+
+
+const copyTem = (dataTem) => {
+   
+   axios
+     .post(
+       baseURL + "/api/HRM_SQL/getData",
+       {
+         str: encr(
+           JSON.stringify({
+             proc: "smart_report_get",
+             par: [{ par: "report_id", va: dataTem.report_id }],
+           }),
+           SecretKey,
+           cryoptojs
+         ).toString(),
+       },
+       config
+     )
+     .then((response) => {
+       let data = JSON.parse(response.data.data)[0][0];
+       if (isFirst.value) isFirst.value = false;
+       collapsed1.value=false;
+       collapsed2.value=false;
+       smart_report.value = data;
+       submitted.value = false;
+      
+       if(smart_report.value.report_template!=null   ){
+         checkUploadFile.value=true;
+         checkDisabled.value=false;
+       }
+         
+       if(data.user_access)
+       smart_report.value.user_access_fake=data.user_access.split(",");
+       else
+       smart_report.value.user_access_fake=[];
+       if(data.user_deny)
+       smart_report.value.user_deny_fake=data.user_deny.split(",");
+       else  smart_report.value.user_deny_fake=[];
+       smart_report.value.proc_get=Number(data.proc_get);
+       smart_report.value.proc_name=Number(data.proc_name);
+       smart_report.value.report_name=null;
+       headerDialog.value = "Thêm báo cáo";
+       isSaveTem.value = false;
+        
+       displayBasic.value = true;
+     })
+     .catch((error) => {
+       toast.error("Tải dữ liệu không thành công!");
+       options.value.loading = false;
+ 
+       if (error && error.status === 401) {
+         swal.fire({
+           text: "Mã token đã hết hạn hoặc không hợp lệ, vui lòng đăng nhập lại!",
+           confirmButtonText: "OK",
+         });
+         store.commit("gologout");
+       }
+     });
+ };
 const editTem = (dataTem) => {
-  submitted.value = false;
-  smart_report.value = dataTem;
-  if (smart_report.value.countryside)
-    smart_report.value.countryside_fake = smart_report.value.countryside;
-  if (smart_report.value.is_default) {
-    checkIsmain.value = false;
-  } else {
-    checkIsmain.value = true;
-  }
-  headerDialog.value = "Sửa báo cáo";
-  isSaveTem.value = true;
-  displayBasic.value = true;
+   
+  axios
+    .post(
+      baseURL + "/api/HRM_SQL/getData",
+      {
+        str: encr(
+          JSON.stringify({
+            proc: "smart_report_get",
+            par: [{ par: "report_id", va: dataTem.report_id }],
+          }),
+          SecretKey,
+          cryoptojs
+        ).toString(),
+      },
+      config
+    )
+    .then((response) => {
+      let data = JSON.parse(response.data.data)[0][0];
+      if (isFirst.value) isFirst.value = false;
+      collapsed1.value=false;
+      collapsed2.value=false;
+      smart_report.value = data;
+      submitted.value = false;
+     
+      if(smart_report.value.report_template!=null   ){
+        checkUploadFile.value=true;
+        checkDisabled.value=false;
+      }
+        
+      if(data.user_access)
+      smart_report.value.user_access_fake=data.user_access.split(",");
+      else
+      smart_report.value.user_access_fake=[];
+      if(data.user_deny)
+      smart_report.value.user_deny_fake=data.user_deny.split(",");
+      else  smart_report.value.user_deny_fake=[];
+      smart_report.value.proc_get=Number(data.proc_get);
+      smart_report.value.proc_name=Number(data.proc_name);
+      headerDialog.value = "Sửa báo cáo";
+      isSaveTem.value = true;
+       
+      displayBasic.value = true;
+    })
+    .catch((error) => {
+      toast.error("Tải dữ liệu không thành công!");
+      options.value.loading = false;
+
+      if (error && error.status === 401) {
+        swal.fire({
+          text: "Mã token đã hết hạn hoặc không hợp lệ, vui lòng đăng nhập lại!",
+          confirmButtonText: "OK",
+        });
+        store.commit("gologout");
+      }
+    });
 };
 //Xóa bản ghi
 const delTem = (Tem) => {
@@ -744,7 +858,8 @@ const onUpFile = (file) => {
   })
     .then((response) => {
       if (response.data.err != "1") {
-        smart_report.value.report_template = response.data.htmls;
+        debugger;
+        smart_report.value.report_template = response.data.htmls[0];
         checkUploadFile.value = true;
         checkDisabled.value = false;
       }
@@ -868,10 +983,10 @@ emitter.on("emitData", (obj) => {
   switch (obj.type) {
     case "submitDropdownUser":
       if (obj.data) {
-        smart_report.value.profile_id_fake = obj.data.code;
+  
         smart_report.value.profile_id = obj.data.profile_id;
       } else {
-        smart_report.value.profile_id_fake = null;
+   
         smart_report.value.profile_id = null;
       }
 
@@ -882,36 +997,28 @@ emitter.on("emitData", (obj) => {
         var str = "";
         if (obj.data.type == 1) {
           smart_report.value.user_access_fake = [];
-          smart_report.value.user_access = [];
-          str = "";
+        
+     
           obj.data.data.forEach((element) => {
-            smart_report.value.user_access_fake.push({
-              user_id: element.user_id,
-              full_name: element.full_name,
-              avatar: element.avatar,
-            });
-            smart_report.value.user_access.push(element.user_id);
+           
+            smart_report.value.user_access_fake.push(element.user_id);
           });
         } else {
-          smart_report.value.user_denny_fake = [];
-          smart_report.value.user_denny = [];
+          smart_report.value.user_deny_fake = [];
+ 
 
           obj.data.data.forEach((element) => {
-            smart_report.value.user_denny_fake.push({
-              user_id: element.user_id,
-              full_name: element.full_name,
-              avatar: element.avatar,
-            });
-            smart_report.value.user_denny.push(element.user_id);
+           
+            smart_report.value.user_deny_fake.push(element.user_id);
           });
         }
       } else {
         if (obj.data.type == 1) {
           smart_report.value.user_access_fake = null;
-          smart_report.value.user_access = null;
+   
         } else {
-          smart_report.value.user_denny_fake = null;
-          smart_report.value.user_denny = null;
+          smart_report.value.user_deny_fake = null;
+ 
         }
       }
 
@@ -919,21 +1026,15 @@ emitter.on("emitData", (obj) => {
     case "delDropdownUsers":
       if (obj.data) {
         if (obj.data.type == 1) {
+     
           smart_report.value.user_access_fake =
             smart_report.value.user_access_fake.filter(
-              (x) => x.user_id != obj.data.data.user_id
-            );
-          smart_report.value.user_access =
-            smart_report.value.user_access.filter(
               (x) => x != obj.data.data.user_id
             );
         } else {
-          smart_report.value.user_denny_fake =
-            smart_report.value.user_denny_fake.filter(
-              (x) => x.user_id != obj.data.data.user_id
-            );
+      
 
-          smart_report.value.user_denny = smart_report.value.user_denny.filter(
+          smart_report.value.user_deny_fake = smart_report.value.user_deny_fake.filter(
             (x) => x != obj.data.data.user_id
           );
         }
@@ -1166,14 +1267,107 @@ onMounted(() => {
           />
         </template>
       </Column>
-
       <Column
-        header="Chức năng"
+      :sortable="true"
+        header="Template"
         class="align-items-center justify-content-center text-center"
         headerStyle="text-align:center;max-width:120px;height:50px"
         bodyStyle="text-align:center;max-width:120px"
+      ><template #body="data">
+        <div
+              class="w-full flex"
+              v-if="data.data.is_temp"
+            >
+              <i
+                class="pi pi-check-square text-blue-500  w-full format-center"
+                style="font-size: 1.5rem"
+              ></i>
+            </div></template
+      ></Column>
+      <Column
+      :sortable="true"
+        header="Sử dụng"
+        class="align-items-center justify-content-center text-center"
+        headerStyle="text-align:center;max-width:120px;height:50px"
+        bodyStyle="text-align:center;max-width:120px"
+      ><template #body="data">
+        <div
+              class="w-full flex"
+              v-if="data.data.is_temp"
+            >
+              <i
+                class="pi pi-lock text-red-500  w-full format-center"
+                style="font-size: 1.5rem"
+              ></i>
+            </div> </template
+      ></Column>
+      <Column
+      :sortable="true"
+        header="Public"
+        class="align-items-center justify-content-center text-center"
+        headerStyle="text-align:center;max-width:120px;height:50px"
+        bodyStyle="text-align:center;max-width:120px"
+      ><template #body="data">
+        <div
+              class="w-full flex"
+              v-if="data.data.is_public"
+            >
+              <i
+                class="pi pi-check text-green-500 font-bold w-full format-center"
+                style="font-size: 1.5rem"
+              ></i>
+            </div></template
+      ></Column>
+      <Column         :sortable="true"
+        field="status"
+        header="Trạng thái"
+        headerStyle="text-align:center;max-width:120px;height:50px"
+        bodyStyle="text-align:center;max-width:120px"
+        class="align-items-center justify-content-center text-center"
+      >
+        <template #body="data">
+          <Checkbox
+            :disabled="
+              !(
+                store.state.user.is_super == true ||
+                store.state.user.user_id == data.data.created_by ||
+                (store.state.user.role_id == 'admin' &&
+                  store.state.user.organization_id == data.data.organization_id)
+              )
+            "
+            :binary="true"
+            v-model="data.data.status"
+            @click="onCheckBox(data.data, true, true)"
+          /> </template
+      ></Column>
+      <Column
+        header=" "
+        class="align-items-center justify-content-center text-center"
+        headerStyle="text-align:center;max-width:250px;height:50px"
+        bodyStyle="text-align:center;max-width:250px"
       >
         <template #body="Tem">
+          <Button
+    
+              class="p-button-rounded p-button-secondary p-button-outlined mx-1"
+              type="button"
+              icon="pi pi-cog"
+              v-tooltip.left="'Cấu hình báo cáo'"
+            ></Button>
+            <Button
+            @click="copyTem(Tem.data)"
+              class="p-button-rounded p-button-secondary p-button-outlined mx-1"
+              type="button"
+              icon="pi pi-copy"
+              v-tooltip.left="'Copy báo cáo'"
+            ></Button>
+            <Button
+              @click="editTem(Tem.data)"
+              class="p-button-rounded p-button-secondary p-button-outlined mx-1"
+              type="button"
+              icon="pi pi-eye"
+              v-tooltip.left="'Xem báo cáo'"
+            ></Button>
           <div
             v-if="
               store.state.user.is_super == true ||
@@ -1187,14 +1381,14 @@ onMounted(() => {
               class="p-button-rounded p-button-secondary p-button-outlined mx-1"
               type="button"
               icon="pi pi-pencil"
-              v-tooltip.top="'Sửa'"
+              v-tooltip.left="'Sửa'"
             ></Button>
             <Button
-              class="p-button-rounded p-button-secondary p-button-outlined mx-1"
+              class="p-button-rounded p-button-danger p-button-outlined mx-1"
               type="button"
               icon="pi pi-trash"
               @click="delTem(Tem.data)"
-              v-tooltip.top="'Xóa'"
+              v-tooltip.left="'Xóa'"
             ></Button>
           </div>
         </template>
@@ -1235,13 +1429,13 @@ onMounted(() => {
         </div>
         <div
           style="display: flex"
-          class="field col-12 md:col-12"
+          class="field col-12 p-0 md:col-12"
           v-if="
             (v$.report_name.$invalid && submitted) ||
             v$.report_name.$pending.$response
           "
         >
-          <div class="col-2 text-left"></div>
+          
           <small class="col-10 p-error">
             <span class="col-12 p-0">{{
               v$.report_name.required.$message
@@ -1320,11 +1514,15 @@ onMounted(() => {
               aria-label="Custom ProgressSpinner"
               v-if="checkDisabled && checkUploadFile == false"
             />
-            <i
+            <div
+              class="w-full flex"
               v-if="checkDisabled == false && checkUploadFile"
-              class="pi pi-check text-green-500 font-bold pl-3"
-              style="font-size: 1.5rem"
-            ></i>
+            >
+              <i
+                class="pi pi-check text-green-500 font-bold w-full format-center"
+                style="font-size: 1.5rem"
+              ></i>
+            </div>
           </div>
           <div class="col-4 field md:col-4 p-0 flex align-items-center">
             <div class="text-left p-0">Xoá cấu hình</div>
@@ -1365,13 +1563,14 @@ onMounted(() => {
                   v-model="smart_report.proc_name"
                   :options="listProcDropdown"
                   optionLabel="name"
+                  optionValue="code"
                   class="col-12 p-0"
                 />
               </div>
               <div class="col-6 md:col-6 p-0 align-items-center pl-1">
                 <div class="col-12 text-left p-0 pb-2">Chọn nhân sự mẫu</div>
                 <DropdownUser
-                  :model="smart_report.profile_id_fake"
+                  :model="smart_report.profile_id"
                   :placeholder="'Chọn nhân sự'"
                   :class="'w-full'"
                 />
@@ -1385,6 +1584,7 @@ onMounted(() => {
                 v-model="smart_report.proc_get"
                 :options="listProcDropdown"
                 optionLabel="name"
+                optionValue="code"
                 placeholder="Chọn thủ tục lấy dữ liệu"
                 class="col-12 p-0"
               />
@@ -1422,7 +1622,7 @@ onMounted(() => {
                 Danh sách user không được truy cập báo cáo
               </div>
               <DropdownUsers
-                :model="smart_report.user_denny_fake"
+                :model="smart_report.user_deny_fake"
                 :display="'chip'"
                 :placeholder="'Chọn user không được truy cập'"
                 :type="2"

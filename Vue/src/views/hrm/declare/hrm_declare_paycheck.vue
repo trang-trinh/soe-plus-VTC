@@ -5,7 +5,7 @@ import { required } from "@vuelidate/validators";
 import { useVuelidate } from "@vuelidate/core";
 import { FilterMatchMode, FilterOperator } from "primevue/api";
 import tree_users_hrm from "../component/tree_users_hrm.vue";
-import DropdownUser from "../component/DropdownUsers.vue";
+import DropdownUser from "../component/DropdownProfiles.vue";
 import { encr, checkURL } from "../../../util/function.js";
 //Khai báo
 const emitter = inject("emitter");

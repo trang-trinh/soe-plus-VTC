@@ -1,6 +1,6 @@
 <script setup>
 import { ref, inject, onMounted, watch, onUpdated } from "vue";
- 
+
 import { encr, checkURL } from "../../../util/function.js";
 import moment from "moment";
 const emitter = inject("emitter");
@@ -53,14 +53,14 @@ const loadUserProfiles = () => {
             ],
           }),
           SecretKey,
-          cryoptojs,
+          cryoptojs
         ).toString(),
       },
-      config,
+      config
     )
     .then((response) => {
       let data = JSON.parse(response.data.data)[0];
- 
+
       data.forEach((element, i) => {
         listDataUsers.value.push({
           full_name: element.full_name,
@@ -79,6 +79,18 @@ const loadUserProfiles = () => {
           organization_id: element.organization_id,
         });
       });
+      model.value = [];
+      props.model.forEach((element) => {
+        var models = listDataUsers.value.find((x) => x.user_id == element);
+        if (models)
+          model.value.push({
+            user_id: models.user_id,
+            full_name: models.full_name,
+            avatar: models.avatar,
+          });
+        else model.value = [];
+      });
+
       listDataUsersSave.value = [...listDataUsers.value];
       isShow.value = true;
     })
@@ -101,29 +113,42 @@ const props = defineProps({
   class: String,
   display: String,
   disabled: Boolean,
-  type:Intl
+  type: Intl,
 });
 const model = ref();
 const submitModel = () => {
-     
-  emitter.emit("emitData", { type: "submitDropdownUsers", data: { data: model.value, type :props.type }});
+  emitter.emit("emitData", {
+    type: "submitDropdownUsers",
+    data: { data: model.value, type: props.type },
+  });
 };
-const removeUser=(item)=>{
-  emitter.emit("emitData", { type: "delDropdownUsers", data:{ data: item, type :props.type } });
-  
-
-}
+const removeUser = (item) => {
+  model.value=model.value.filter(x=>x.user_id!=item.user_id);
+  emitter.emit("emitData", {
+    type: "submitDropdownUsers",
+    data: { data: model.value, type: props.type },
+  });
+};
 onMounted(() => {
-  model.value = props.model;
   loadUserProfiles();
   return {
     loadUserProfiles,
     model,
   };
 });
-onUpdated(() => {
-  model.value = props.model;
-});
+// onUpdated(() => {
+//   model.value = [];
+//   props.model.forEach((element) => {
+//     var models = listDataUsersSave.value.find((x) => x.user_id == element);
+//     if (models)
+//       model.value.push({
+//         user_id: models.user_id,
+//         full_name: models.full_name,
+//         avatar: models.avatar,
+//       });
+//     else model.value = [];
+//   });
+// });
 </script>
 
 <template>
@@ -141,18 +166,17 @@ onUpdated(() => {
     v-if="isShow"
     :disabled="props.disabled"
   >
-    <template #value="slotProps"> 
-      <div style="min-height: 2rem; ;cursor: default"    >
+    <template #value="slotProps">
+      <div style="min-height: 2rem; cursor: default">
         <span
-          class=" mx-1  relative  "
+          class="mx-1 relative"
           v-for="(item, index) in slotProps.value"
-          :key="index" style="vertical-align: top; "
+          :key="index"
+          style="vertical-align: top"
         >
-          <div class="  p-chip d-chip-design p-0 my-1">
+          <div class="p-chip d-chip-design p-0 my-1">
             <Avatar
-              v-bind:label="
-                item.avatar ? '' : item.full_name.substring(0, 1)
-              "
+              v-bind:label="item.avatar ? '' : item.full_name.substring(0, 1)"
               v-bind:image="
                 item.avatar
                   ? basedomainURL + item.avatar
@@ -169,11 +193,14 @@ onUpdated(() => {
               }"
               size="xlarge"
               shape="circle"
-              class="p-0  "
+              class="p-0"
             />
-            <div class="p-chip-text px-1  ">{{ item.full_name }}</div>
-            <div class="p-2 align-items-center format-center p-multiselect-token-icon " @click=" removeUser(item)">
-              <i class="pi pi-times-circle" ></i>
+            <div class="p-chip-text px-1">{{ item.full_name }}</div>
+            <div
+              class="p-2 align-items-center format-center p-multiselect-token-icon"
+              @click="removeUser(item)"
+            >
+              <i class="pi pi-times-circle"></i>
             </div>
           </div>
         </span>
@@ -200,8 +227,7 @@ onUpdated(() => {
               font-size: 1.4rem !important;
             "
             :style="{
-              background:
-                bgColor[slotProps.option.full_name.length % 7],
+              background: bgColor[slotProps.option.full_name.length % 7],
             }"
             size="xlarge"
             shape="circle"
@@ -217,12 +243,16 @@ onUpdated(() => {
                 <span v-if="slotProps.option.position_name">{{
                   slotProps.option.position_name
                 }}</span>
-                <span v-else-if=" slotProps.option.role_name ">{{ slotProps.option.role_name }}</span>
+                <span v-else-if="slotProps.option.role_name">{{
+                  slotProps.option.role_name
+                }}</span>
 
                 <span v-if="slotProps.option.department_name">
                   | {{ slotProps.option.department_name }}</span
-                >      <span v-else-if=" slotProps.option.organization_name "> | {{ slotProps.option.organization_name }}</span>
-
+                >
+                <span v-else-if="slotProps.option.organization_name">
+                  | {{ slotProps.option.organization_name }}</span
+                >
               </div>
             </div>
           </div>
