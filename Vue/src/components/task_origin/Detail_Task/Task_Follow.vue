@@ -819,14 +819,7 @@ onMounted(() => {
   }
 });
 const expandedRows = ref([]);
-const onRowExpand = (e) => {
-  let findIndex = e.data.task_follow_step.findIndex((x) => {
-    return x.status === 1;
-  });
-  if (findIndex >= 0) {
-    indexSelected.value = findIndex;
-  } else indexSelected.value = null;
-};
+
 const selectStep = (e, i) => {
   indexSelected.value = i;
 };
@@ -839,7 +832,6 @@ const selectStep = (e, i) => {
       scrollHeight="flex"
       dataKey="follow_id"
       v-model:expandedRows="expandedRows"
-      @row-expand="onRowExpand"
     >
       <Toolbar class="w-full custoolbar">
         <template #end>
