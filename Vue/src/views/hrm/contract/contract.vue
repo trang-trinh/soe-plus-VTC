@@ -1940,7 +1940,7 @@ onMounted(() => {
             }}</b>
           </template>
         </Column>
-        <Column
+        <!-- <Column
           field="department_name"
           header="Phòng ban"
           headerStyle="text-align:center;max-width:120px;height:50px"
@@ -1950,7 +1950,7 @@ onMounted(() => {
           <template #body="slotProps">
             {{ slotProps.data.department_name }}
           </template>
-        </Column>
+        </Column> -->
         <Column
           field="type_contract_name"
           header="Loại hợp đồng"
