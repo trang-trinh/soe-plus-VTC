@@ -743,14 +743,14 @@ const itemButPrints = ref([
       goPrint(14);
     },
   },
-  {
-    view: 15,
-    label: "Sổ lao động mẫu 145/2020/NĐ-CP",
-    icon: "fa-regular fa-file",
-    command: (event) => {
-      goPrint(15);
-    },
-  },
+  // {
+  //   view: 15,
+  //   label: "Sổ lao động mẫu 145/2020/NĐ-CP",
+  //   icon: "fa-regular fa-file",
+  //   command: (event) => {
+  //     goPrint(15);
+  //   },
+  // },
 ]);
 const togglePrints = (event) => {
   menuButPrints.value.toggle(event);
