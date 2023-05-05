@@ -80,7 +80,7 @@ namespace API.Controllers.HRM.Assignment
                         model.is_order = model.is_order ?? (db.hrm_contract.Count() + 1);
                         model.status = 0;
                         model.is_active = true;
-                        model.is_experiment = true;
+                        model.is_main = true;
                         model.created_by = uid;
                         model.created_date = DateTime.Now;
                         model.created_ip = ip;
@@ -93,7 +93,7 @@ namespace API.Controllers.HRM.Assignment
                             foreach(var item in olds)
                             {
                                 item.is_active = false;
-                                item.is_experiment = false;
+                                item.is_main = false;
                             }
                         }
                     }
