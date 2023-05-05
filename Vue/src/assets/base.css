@@ -1344,6 +1344,12 @@ display: none !important;
    overflow: unset !important; 
      text-overflow: unset !important;  
 }
+.d-dropdown-design .p-dropdown-label.p-inputtext{
+  padding: 0 !important;
+  align-items: center !important;
+    display: flex !important;
+    padding-left: 6px !important;
+}
 .theme-default .cv-header .cv-header-nav .previousYear,.previousPeriod,.currentPeriod,.nextPeriod,.nextYear{
   background: #ffffff;
   border: 1px solid #ced4da;
@@ -1395,4 +1401,14 @@ display: none !important;
 }
 .cv-wrapper .cv-week .cv-weekdays .cv-item.span7{
   width: calc((700% / 7) - 0.5em);
+}
+
+.justify-content-left{
+  justify-content: left !important;
+}
+.justify-content-center{
+  justify-content: center !important;
+}
+.justify-content-right{
+  justify-content: right !important;
 }

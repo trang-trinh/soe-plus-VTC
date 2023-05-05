@@ -174,12 +174,6 @@ namespace API.Controllers.HRM.SmartReport
                         }
                         fdsmart_report = provider.FormData.GetValues("smart_report").SingleOrDefault();
                         smart_report smart_report = JsonConvert.DeserializeObject<smart_report>(fdsmart_report);
-
-
-
-
-
-
                         smart_report.modified_by = uid;
                         smart_report.modified_date = DateTime.Now;
                         smart_report.modified_ip = ip;

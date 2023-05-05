@@ -5,8 +5,10 @@ import { required } from "@vuelidate/validators";
 import { useVuelidate } from "@vuelidate/core";
 import { FilterMatchMode, FilterOperator } from "primevue/api";
 import { encr, checkURL } from "../../../util/function.js";
+import DropdownUser from "../component/DropdownProfile.vue";
+import DropdownUsers from "../component/DropdownUsers.vue";
 //Khai báo
-
+const emitter = inject("emitter");
 const cryoptojs = inject("cryptojs");
 const axios = inject("axios");
 const store = inject("store");
@@ -99,16 +101,20 @@ const loadData = (rf) => {
       .then((response) => {
         let data = JSON.parse(response.data.data)[0];
         if (isFirst.value) isFirst.value = false;
-        options.value.totalRecordView = 0;
-        options.value.totalRecordProc = 0;
+
+        expandedRowGroups.value = [];
         data.forEach((element, i) => {
           element.STT = options.value.PageNo * options.value.PageSize + i + 1;
-          if (element.is_proc) {
-            element.is_proc_type = 1;
-            options.value.totalRecordProc++;
-          } else {
-            element.is_proc_type = 2;
-            options.value.totalRecordView++;
+          expandedRowGroups.value.push(element.report_group);
+
+          if (element.report_group) {
+            if (
+              !liReportGroup.value.find((x) => x.name == element.report_group)
+            ) {
+              liReportGroup.value.push({
+                name: element.report_group,
+              });
+            }
           }
         });
         datalists.value = data;
@@ -124,7 +130,6 @@ const loadData = (rf) => {
             text: "Mã token đã hết hạn hoặc không hợp lệ, vui lòng đăng nhập lại!",
             confirmButtonText: "OK",
           });
-          store.commit("gologout");
         }
       });
   }
@@ -159,15 +164,30 @@ const onPage = (event) => {
   options.value.PageNo = event.page;
   loadData(true);
 };
-
+const liReportGroup = ref([
+  {
+    name: "Bảng lương",
+  },
+  {
+    name: "Hợp đồng",
+  },
+  {
+    name: "Quyết định",
+  },
+  {
+    name: "Hồ sơ nhân sự",
+  },
+]);
 const smart_report = ref({
   report_name: "",
   emote_file: "",
   status: true,
   is_order: 1,
+  user_access_fake: [],
+  user_deny_fake: [],
 });
-const collapsed1=ref(true);
-const collapsed2=ref(true);
+const collapsed1 = ref(true);
+const collapsed2 = ref(true);
 const selectedStamps = ref();
 const submitted = ref(false);
 const v$ = useVuelidate(rules, smart_report);
@@ -201,24 +221,36 @@ const openBasic = (str) => {
     is_order: sttStamp.value,
     organization_id: store.getters.user.organization_id,
     is_system: store.getters.user.is_super ? true : false,
+    user_access_fake: [],
+    user_deny_fake: [],
+    report_template: null,
   };
-
+  checkDisabled.value = false;
+  checkUploadFile.value = false;
   checkIsmain.value = false;
   isSaveTem.value = false;
   headerDialog.value = str;
   displayBasic.value = true;
 };
-const openBasicWRP = (id) => {
+const openBasicWRP = (wrt) => {
   submitted.value = false;
   smart_report.value = {
     report_name: "",
-
+    emote_file: "",
+    status: true,
     is_order: sttStamp.value,
     organization_id: store.getters.user.organization_id,
+    is_system: store.getters.user.is_super ? true : false,
+    user_access_fake: [],
+    user_deny_fake: [],
+    report_template: null,
+  
 
-    is_proc: id,
+    report_group: wrt,
+ 
   };
-
+  checkDisabled.value = false;
+  checkUploadFile.value = false;
   checkIsmain.value = false;
   isSaveTem.value = false;
   headerDialog.value = "Thêm báo cáo";
@@ -256,8 +288,12 @@ const saveData = (isFormValid) => {
   }
   let formData = new FormData();
 
-  if (smart_report.value.countryside_fake)
-    smart_report.value.countryside = smart_report.value.countryside_fake;
+  if (smart_report.value.user_access_fake.length > 0)
+    smart_report.value.user_access = smart_report.value.user_access_fake.toString();
+  else smart_report.value.user_access = null;
+  if (smart_report.value.user_deny_fake.length > 0)
+    smart_report.value.user_deny = smart_report.value.user_deny_fake.toString();
+  else smart_report.value.user_deny = null;
   formData.append("smart_report", JSON.stringify(smart_report.value));
   swal.fire({
     width: 110,
@@ -324,19 +360,122 @@ const saveData = (isFormValid) => {
 };
 const checkIsmain = ref(true);
 //Sửa bản ghi
+
+
+const copyTem = (dataTem) => {
+   
+   axios
+     .post(
+       baseURL + "/api/HRM_SQL/getData",
+       {
+         str: encr(
+           JSON.stringify({
+             proc: "smart_report_get",
+             par: [{ par: "report_id", va: dataTem.report_id }],
+           }),
+           SecretKey,
+           cryoptojs
+         ).toString(),
+       },
+       config
+     )
+     .then((response) => {
+       let data = JSON.parse(response.data.data)[0][0];
+       if (isFirst.value) isFirst.value = false;
+       collapsed1.value=false;
+       collapsed2.value=false;
+       smart_report.value = data;
+       submitted.value = false;
+      
+       if(smart_report.value.report_template!=null   ){
+         checkUploadFile.value=true;
+         checkDisabled.value=false;
+       }
+         
+       if(data.user_access)
+       smart_report.value.user_access_fake=data.user_access.split(",");
+       else
+       smart_report.value.user_access_fake=[];
+       if(data.user_deny)
+       smart_report.value.user_deny_fake=data.user_deny.split(",");
+       else  smart_report.value.user_deny_fake=[];
+       smart_report.value.proc_get=Number(data.proc_get);
+       smart_report.value.proc_name=Number(data.proc_name);
+       smart_report.value.report_name=null;
+       headerDialog.value = "Thêm báo cáo";
+       isSaveTem.value = false;
+        
+       displayBasic.value = true;
+     })
+     .catch((error) => {
+       toast.error("Tải dữ liệu không thành công!");
+       options.value.loading = false;
+ 
+       if (error && error.status === 401) {
+         swal.fire({
+           text: "Mã token đã hết hạn hoặc không hợp lệ, vui lòng đăng nhập lại!",
+           confirmButtonText: "OK",
+         });
+         store.commit("gologout");
+       }
+     });
+ };
 const editTem = (dataTem) => {
-  submitted.value = false;
-  smart_report.value = dataTem;
-  if (smart_report.value.countryside)
-    smart_report.value.countryside_fake = smart_report.value.countryside;
-  if (smart_report.value.is_default) {
-    checkIsmain.value = false;
-  } else {
-    checkIsmain.value = true;
-  }
-  headerDialog.value = "Sửa báo cáo";
-  isSaveTem.value = true;
-  displayBasic.value = true;
+   
+  axios
+    .post(
+      baseURL + "/api/HRM_SQL/getData",
+      {
+        str: encr(
+          JSON.stringify({
+            proc: "smart_report_get",
+            par: [{ par: "report_id", va: dataTem.report_id }],
+          }),
+          SecretKey,
+          cryoptojs
+        ).toString(),
+      },
+      config
+    )
+    .then((response) => {
+      let data = JSON.parse(response.data.data)[0][0];
+      if (isFirst.value) isFirst.value = false;
+      collapsed1.value=false;
+      collapsed2.value=false;
+      smart_report.value = data;
+      submitted.value = false;
+     
+      if(smart_report.value.report_template!=null   ){
+        checkUploadFile.value=true;
+        checkDisabled.value=false;
+      }
+        
+      if(data.user_access)
+      smart_report.value.user_access_fake=data.user_access.split(",");
+      else
+      smart_report.value.user_access_fake=[];
+      if(data.user_deny)
+      smart_report.value.user_deny_fake=data.user_deny.split(",");
+      else  smart_report.value.user_deny_fake=[];
+      smart_report.value.proc_get=Number(data.proc_get);
+      smart_report.value.proc_name=Number(data.proc_name);
+      headerDialog.value = "Sửa báo cáo";
+      isSaveTem.value = true;
+       
+      displayBasic.value = true;
+    })
+    .catch((error) => {
+      toast.error("Tải dữ liệu không thành công!");
+      options.value.loading = false;
+
+      if (error && error.status === 401) {
+        swal.fire({
+          text: "Mã token đã hết hạn hoặc không hợp lệ, vui lòng đăng nhập lại!",
+          confirmButtonText: "OK",
+        });
+        store.commit("gologout");
+      }
+    });
 };
 //Xóa bản ghi
 const delTem = (Tem) => {
@@ -719,7 +858,8 @@ const onUpFile = (file) => {
   })
     .then((response) => {
       if (response.data.err != "1") {
-        smart_report.value.report_template = response.data.htmls;
+        debugger;
+        smart_report.value.report_template = response.data.htmls[0];
         checkUploadFile.value = true;
         checkDisabled.value = false;
       }
@@ -791,8 +931,123 @@ const onUploadFile = (event) => {
 const removeFile = (event) => {
   filesList.value = filesList.value.filter((a) => a != event.file);
 };
+const listProcDropdown = ref([]);
+const initTuDien = () => {
+  listProcDropdown.value = [];
+  axios
+    .post(
+      baseURL + "/api/hrm_ca_SQL/getData",
+      {
+        str: encr(
+          JSON.stringify({
+            proc: "smart_proc_list",
+            par: [
+              { par: "pageno", va: options.value.PageNo },
+              { par: "pagesize", va: options.value.PageSize },
+              { par: "user_id", va: store.getters.user.user_id },
+              { par: "status", va: null },
+            ],
+          }),
+          SecretKey,
+          cryoptojs
+        ).toString(),
+      },
+      config
+    )
+    .then((response) => {
+      let data = JSON.parse(response.data.data)[0];
+      if (isFirst.value) isFirst.value = false;
+
+      data.forEach((element, i) => {
+        listProcDropdown.value.push({
+          name: element.proc_name,
+          code: element.id,
+        });
+      });
+    })
+    .catch((error) => {
+      toast.error("Tải dữ liệu không thành công!");
+      options.value.loading = false;
+
+      if (error && error.status === 401) {
+        swal.fire({
+          text: "Mã token đã hết hạn hoặc không hợp lệ, vui lòng đăng nhập lại!",
+          confirmButtonText: "OK",
+        });
+        store.commit("gologout");
+      }
+    });
+};
+
+emitter.on("emitData", (obj) => {
+  switch (obj.type) {
+    case "submitDropdownUser":
+      if (obj.data) {
+  
+        smart_report.value.profile_id = obj.data.profile_id;
+      } else {
+   
+        smart_report.value.profile_id = null;
+      }
+
+      break;
+
+    case "submitDropdownUsers":
+      if (obj.data) {
+        var str = "";
+        if (obj.data.type == 1) {
+          smart_report.value.user_access_fake = [];
+        
+     
+          obj.data.data.forEach((element) => {
+           
+            smart_report.value.user_access_fake.push(element.user_id);
+          });
+        } else {
+          smart_report.value.user_deny_fake = [];
+ 
+
+          obj.data.data.forEach((element) => {
+           
+            smart_report.value.user_deny_fake.push(element.user_id);
+          });
+        }
+      } else {
+        if (obj.data.type == 1) {
+          smart_report.value.user_access_fake = null;
+   
+        } else {
+          smart_report.value.user_deny_fake = null;
+ 
+        }
+      }
+
+      break;
+    case "delDropdownUsers":
+      if (obj.data) {
+        if (obj.data.type == 1) {
+     
+          smart_report.value.user_access_fake =
+            smart_report.value.user_access_fake.filter(
+              (x) => x != obj.data.data.user_id
+            );
+        } else {
+      
+
+          smart_report.value.user_deny_fake = smart_report.value.user_deny_fake.filter(
+            (x) => x != obj.data.data.user_id
+          );
+        }
+      }
+      break;
+
+    default:
+      break;
+  }
+});
 onMounted(() => {
   loadData(true);
+  initTuDien();
   return {
     datalists,
     options,
@@ -841,11 +1096,11 @@ onMounted(() => {
       v-model:selection="selectedStamps"
       :row-hover="true"
       rowGroupMode="subheader"
-      groupRowsBy="is_proc_type"
+      groupRowsBy="report_group"
       expandableRowGroups
       v-model:expandedRowGroups="expandedRowGroups"
       sortMode="single"
-      sortField="is_proc_type"
+      sortField="report_group"
       :sortOrder="1"
       @rowgroup-expand="onRowGroupExpand($event)"
     >
@@ -967,23 +1222,13 @@ onMounted(() => {
         </Toolbar></template
       >
       <template #groupheader="slotProps">
-        <div
-          v-if="slotProps.data.is_proc == true"
-          class="flex align-items-center pl-3"
-        >
-          <div class="font-bold text-blue-500">Thủ tục</div>
+        <div class="flex align-items-center pl-3">
+          <div class="font-bold text-blue-500">
+            {{ slotProps.data.report_group }}
+          </div>
           <Button
             style="padding: 5px"
-            @click="openBasicWRP(true)"
-            icon="pi pi-plus-circle"
-            class="ml-1 p-button-text p-button-rounded p-button-secondary"
-          />
-        </div>
-        <div v-else class="flex align-items-center pl-3">
-          <div class="font-bold text-blue-500">View</div>
-          <Button
-            style="padding: 5px"
-            @click="openBasicWRP(false)"
+            @click="openBasicWRP(slotProps.data.report_group)"
             icon="pi pi-plus-circle"
             class="ml-1 p-button-text p-button-rounded p-button-secondary"
           />
@@ -1022,14 +1267,107 @@ onMounted(() => {
           />
         </template>
       </Column>
-
       <Column
-        header="Chức năng"
+      :sortable="true"
+        header="Template"
         class="align-items-center justify-content-center text-center"
         headerStyle="text-align:center;max-width:120px;height:50px"
         bodyStyle="text-align:center;max-width:120px"
+      ><template #body="data">
+        <div
+              class="w-full flex"
+              v-if="data.data.is_temp"
+            >
+              <i
+                class="pi pi-check-square text-blue-500  w-full format-center"
+                style="font-size: 1.5rem"
+              ></i>
+            </div></template
+      ></Column>
+      <Column
+      :sortable="true"
+        header="Sử dụng"
+        class="align-items-center justify-content-center text-center"
+        headerStyle="text-align:center;max-width:120px;height:50px"
+        bodyStyle="text-align:center;max-width:120px"
+      ><template #body="data">
+        <div
+              class="w-full flex"
+              v-if="data.data.is_temp"
+            >
+              <i
+                class="pi pi-lock text-red-500  w-full format-center"
+                style="font-size: 1.5rem"
+              ></i>
+            </div> </template
+      ></Column>
+      <Column
+      :sortable="true"
+        header="Public"
+        class="align-items-center justify-content-center text-center"
+        headerStyle="text-align:center;max-width:120px;height:50px"
+        bodyStyle="text-align:center;max-width:120px"
+      ><template #body="data">
+        <div
+              class="w-full flex"
+              v-if="data.data.is_public"
+            >
+              <i
+                class="pi pi-check text-green-500 font-bold w-full format-center"
+                style="font-size: 1.5rem"
+              ></i>
+            </div></template
+      ></Column>
+      <Column         :sortable="true"
+        field="status"
+        header="Trạng thái"
+        headerStyle="text-align:center;max-width:120px;height:50px"
+        bodyStyle="text-align:center;max-width:120px"
+        class="align-items-center justify-content-center text-center"
+      >
+        <template #body="data">
+          <Checkbox
+            :disabled="
+              !(
+                store.state.user.is_super == true ||
+                store.state.user.user_id == data.data.created_by ||
+                (store.state.user.role_id == 'admin' &&
+                  store.state.user.organization_id == data.data.organization_id)
+              )
+            "
+            :binary="true"
+            v-model="data.data.status"
+            @click="onCheckBox(data.data, true, true)"
+          /> </template
+      ></Column>
+      <Column
+        header=" "
+        class="align-items-center justify-content-center text-center"
+        headerStyle="text-align:center;max-width:250px;height:50px"
+        bodyStyle="text-align:center;max-width:250px"
       >
         <template #body="Tem">
+          <Button
+    
+              class="p-button-rounded p-button-secondary p-button-outlined mx-1"
+              type="button"
+              icon="pi pi-cog"
+              v-tooltip.left="'Cấu hình báo cáo'"
+            ></Button>
+            <Button
+            @click="copyTem(Tem.data)"
+              class="p-button-rounded p-button-secondary p-button-outlined mx-1"
+              type="button"
+              icon="pi pi-copy"
+              v-tooltip.left="'Copy báo cáo'"
+            ></Button>
+            <Button
+              @click="editTem(Tem.data)"
+              class="p-button-rounded p-button-secondary p-button-outlined mx-1"
+              type="button"
+              icon="pi pi-eye"
+              v-tooltip.left="'Xem báo cáo'"
+            ></Button>
           <div
             v-if="
               store.state.user.is_super == true ||
@@ -1043,14 +1381,14 @@ onMounted(() => {
               class="p-button-rounded p-button-secondary p-button-outlined mx-1"
               type="button"
               icon="pi pi-pencil"
-              v-tooltip.top="'Sửa'"
+              v-tooltip.left="'Sửa'"
             ></Button>
             <Button
-              class="p-button-rounded p-button-secondary p-button-outlined mx-1"
+              class="p-button-rounded p-button-danger p-button-outlined mx-1"
               type="button"
               icon="pi pi-trash"
               @click="delTem(Tem.data)"
-              v-tooltip.top="'Xóa'"
+              v-tooltip.left="'Xóa'"
             ></Button>
           </div>
         </template>
@@ -1091,13 +1429,13 @@ onMounted(() => {
         </div>
         <div
           style="display: flex"
-          class="field col-12 md:col-12"
+          class="field col-12 p-0 md:col-12"
           v-if="
             (v$.report_name.$invalid && submitted) ||
             v$.report_name.$pending.$response
           "
         >
-          <div class="col-2 text-left"></div>
+          
           <small class="col-10 p-error">
             <span class="col-12 p-0">{{
               v$.report_name.required.$message
@@ -1110,8 +1448,13 @@ onMounted(() => {
         <div class="col-12 field md:col-12 flex">
           <div class="col-6 md:col-6 p-0 align-items-center pr-1">
             <div class="col-12 text-left p-0 pb-2">Nhóm báo cáo</div>
-            <InputText
+
+            <Dropdown
               v-model="smart_report.report_group"
+              :editable="true"
+              :options="liReportGroup"
+              optionLabel="name"
+              optionValue="name"
               spellcheck="false"
               class="col-12 ip36"
             />
@@ -1171,11 +1514,15 @@ onMounted(() => {
               aria-label="Custom ProgressSpinner"
               v-if="checkDisabled && checkUploadFile == false"
             />
-            <i
+            <div
+              class="w-full flex"
               v-if="checkDisabled == false && checkUploadFile"
-              class="pi pi-check text-green-500 font-bold pl-3"
-              style="font-size: 1.5rem"
-            ></i>
+            >
+              <i
+                class="pi pi-check text-green-500 font-bold w-full format-center"
+                style="font-size: 1.5rem"
+              ></i>
+            </div>
           </div>
           <div class="col-4 field md:col-4 p-0 flex align-items-center">
             <div class="text-left p-0">Xoá cấu hình</div>
@@ -1195,7 +1542,7 @@ onMounted(() => {
           </div>
         </div>
         <div class="col-12 field md:col-12 flex align-items-center">
-          <Panel toggleable class="w-full"  :collapsed="collapsed1">
+          <Panel toggleable class="w-full" :collapsed="collapsed1">
             <template #header>
               <div class="flex align-items-center p-0 m-0 font-bold text-lg">
                 <button
@@ -1211,17 +1558,21 @@ onMounted(() => {
             <div class="col-12 field md:col-12 flex">
               <div class="col-6 md:col-6 p-0 align-items-center pr-1">
                 <div class="col-12 text-left p-0 pb-2">Thủ tục lấy dữ liệu</div>
-                <InputText
-                  v-model="smart_report.report_group"
-                  spellcheck="false"
-                  class="col-12 ip36"
+
+                <Dropdown
+                  v-model="smart_report.proc_name"
+                  :options="listProcDropdown"
+                  optionLabel="name"
+                  optionValue="code"
+                  class="col-12 p-0"
                 />
               </div>
               <div class="col-6 md:col-6 p-0 align-items-center pl-1">
                 <div class="col-12 text-left p-0 pb-2">Chọn nhân sự mẫu</div>
-                <InputNumber
-                  v-model="smart_report.is_order"
-                  class="col-12 ip36 p-0"
+                <DropdownUser
+                  :model="smart_report.profile_id"
+                  :placeholder="'Chọn nhân sự'"
+                  :class="'w-full'"
                 />
               </div>
             </div>
@@ -1229,10 +1580,13 @@ onMounted(() => {
               <div class="col-12 text-left p-0 pb-2">
                 Thủ tục lấy danh sách hiển thị khi tra cứu
               </div>
-              <InputText
-                v-model="smart_report.report_group"
-                spellcheck="false"
-                class="col-12 ip36"
+              <Dropdown
+                v-model="smart_report.proc_get"
+                :options="listProcDropdown"
+                optionLabel="name"
+                optionValue="code"
+                placeholder="Chọn thủ tục lấy dữ liệu"
+                class="col-12 p-0"
               />
             </div>
           </Panel>
@@ -1255,10 +1609,11 @@ onMounted(() => {
                 <i class="pi pi-user-plus pr-2" style="font-size: 1.1rem"></i>
                 Danh sách user được truy cập báo cáo
               </div>
-              <InputText
-                v-model="smart_report.report_group"
-                spellcheck="false"
-                class="col-12 ip36"
+              <DropdownUsers
+                :model="smart_report.user_access_fake"
+                :display="'chip'"
+                :placeholder="'Chọn user được truy cập'"
+                :type="1"
               />
             </div>
             <div class="col-12 field md:col-12">
@@ -1266,10 +1621,11 @@ onMounted(() => {
                 <i class="pi pi-user-minus pr-2" style="font-size: 1.1rem"></i>
                 Danh sách user không được truy cập báo cáo
               </div>
-              <InputText
-                v-model="smart_report.report_group"
-                spellcheck="false"
-                class="col-12 ip36"
+              <DropdownUsers
+                :model="smart_report.user_deny_fake"
+                :display="'chip'"
+                :placeholder="'Chọn user không được truy cập'"
+                :type="2"
               />
             </div>
           </Panel>
