@@ -793,7 +793,6 @@ const loadChildTaskOrigin = (type) => {
 const loadData = (rf) => {
   if (rf) {
     loadTaskMain();
-
     loadTaskCheckList();
     loadMember();
     loadComments();
@@ -1843,7 +1842,12 @@ const DelTask = (task) => {
               swal.close();
               toast.success("Xoá công việc thành công!");
               isShow.value = false;
-              hideall();
+              if (props.turn == 1) {
+                close();
+                loadChildTaskOrigin(0);
+              } else {
+                hideall();
+              }
             } else {
               swal.fire({
                 title: "Thông báo!",
@@ -5953,6 +5957,7 @@ const is_viewSecurityTask = ref(true);
           :member="members"
           :data="datalists"
           :isClose="isClose"
+          :openAddTask="addNewChildTaskOrigin"
         ></Task_FollowVue>
       </div>
       <div v-if="CongViecCon == true">
@@ -7964,7 +7969,7 @@ const is_viewSecurityTask = ref(true);
     v-model:visible="showDetail1"
     position="right"
     :style="{
-      width: width1 > 1800 ? ' 65vw' : '75vw',
+      width: width1 > 1800 ? 'calc(65vw - 5rem)' : 'calc(75vw - 5rem)',
       'min-height': '100vh !important',
     }"
     :showCloseIcon="false"

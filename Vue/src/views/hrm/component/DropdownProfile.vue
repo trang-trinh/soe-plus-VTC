@@ -1,11 +1,8 @@
 <script setup>
 import { ref, inject, onMounted, watch, onUpdated } from "vue";
-import { useToast } from "vue-toastification";
-import { required } from "@vuelidate/validators";
-import { useVuelidate } from "@vuelidate/core";
-import { FilterMatchMode, FilterOperator } from "primevue/api";
+
 import { encr, checkURL } from "../../../util/function.js";
-import moment from "moment";
+
 const emitter = inject("emitter");
 const cryoptojs = inject("cryptojs");
 const axios = inject("axios");
@@ -29,7 +26,7 @@ const listDataUsers = ref([]);
 const listDataUsersSave = ref([]);
 const loadUserProfiles = () => {
   listDataUsers.value = [];
-
+   
   axios
     .post(
       baseURL + "/api/hrm_ca_SQL/getData",
@@ -54,11 +51,16 @@ const loadUserProfiles = () => {
     )
     .then((response) => {
       let data = JSON.parse(response.data.data)[0];
-
+       
       data.forEach((element, i) => {
         listDataUsers.value.push({
           profile_user_name: element.profile_user_name,
-          code: element.profile_id,
+          code: {
+            profile_id: element.profile_id,
+            profile_user_name: element.profile_user_name,
+            avatar: element.avatar
+          },
+          profile_id: element.profile_id,
           avatar: element.avatar,
           department_name: element.department_name,
           department_id: element.department_id,
@@ -68,6 +70,16 @@ const loadUserProfiles = () => {
           organization_id: element.organization_id,
         });
       });
+      var models = listDataUsers.value.find((x) => x.profile_id == props.model);
+      if(models)
+      model.value = {
+        profile_id: models.profile_id,
+        profile_user_name: models.profile_user_name,
+        avatar: models.avatar,
+      };
+      else
+      model.value =null;
+
       listDataUsersSave.value = [...listDataUsers.value];
       isShow.value = true;
     })
@@ -85,49 +97,80 @@ const loadUserProfiles = () => {
 };
 const isShow = ref(false);
 const props = defineProps({
-  model: Object,
+  model: String,
   placeholder: String,
   class: String,
   display: String,
-  disabled:Boolean
+  disabled: Boolean,
 });
 const model = ref();
-const submitModel=()=>{
- 
-    emitter.emit("emitData", { type: "submitModel", data:   model.value });
-}
-
-
+const submitModel = () => {
+  emitter.emit("emitData", { type: "submitDropdownUser", data: model.value });
+};
+const removeUser = (item) => {
+  emitter.emit("emitData", { type: "delItem", data: item });
+};
 onMounted(() => {
-  model.value = props.model;
+
   loadUserProfiles();
   return {
     loadUserProfiles,
     model,
   };
 });
- onUpdated( ()=>{
-
-  model.value = props.model;
- })
+ 
 </script>
 
 <template>
-  <MultiSelect
-    v-model="model"
+  <Dropdown
     :options="listDataUsers"
+    :filter="true"
+    :showClear="true"
+    :editable="false"
     optionLabel="profile_user_name"
-    optionValue="code"
+    v-model="model"
+    class="ip36 d-dropdown-design"
+    style="height: auto; min-height: 36px"
     :placeholder="props.placeholder"
     @change="submitModel"
-    panelClass="d-design-dropdown"
-    class="w-full p-0"
     :class="props.class"
-    :display="props.display"
-    :filter="true"
     v-if="isShow"
     :disabled="props.disabled"
   >
+    <template #value="slotProps">
+      <div class="m-0 p-0 h-full" v-if="slotProps.value">
+        <div class="flex align-items-center h-full">
+          <div class="format-center h-full">
+            <Avatar
+              v-bind:label="
+                slotProps.value.avatar
+                  ? ''
+                  : (slotProps.value.profile_user_name ?? '').substring(0, 1)
+              "
+              v-bind:image="
+                slotProps.value.avatar
+                  ? basedomainURL + slotProps.value.avatar
+                  : basedomainURL + '/Portals/Image/noimg.jpg'
+              "
+              :style="{
+                background:
+                  bgColor[slotProps.value.profile_user_name.length % 7],
+                color: '#ffffff',
+                width: '2rem',
+                height: '2rem',
+              }"
+              class="mr-2 text-avatar"
+              size="xlarge"
+              shape="circle"
+            />
+          </div>
+          <div class="format-flex-center">
+            <span>{{ slotProps.value.profile_user_name }}</span>
+          </div>
+        </div>
+      </div>
+      <span v-else> {{ slotProps.placeholder }} </span>
+    </template>
     <template #option="slotProps">
       <div v-if="slotProps.option" class="flex">
         <div class="format-center">
@@ -143,6 +186,7 @@ onMounted(() => {
                 : basedomainURL + '/Portals/Image/noimg.jpg'
             "
             style="
+              background-color: #2196f3;
               color: #ffffff;
               width: 3rem;
               height: 3rem;
@@ -152,23 +196,20 @@ onMounted(() => {
               background:
                 bgColor[slotProps.option.profile_user_name.length % 7],
             }"
+            class="text-avatar"
             size="xlarge"
             shape="circle"
           />
         </div>
         <div class="format-center text-left ml-3">
           <div>
-            <div class="mb-1 font-bold">
+            <div class="mb-1">
               {{ slotProps.option.profile_user_name }}
             </div>
             <div class="description">
               <div>
-                <span v-if="slotProps.option.position_name">{{
-                  slotProps.option.position_name
-                }}</span>
-                <span v-else>{{ slotProps.option.profile_code }}</span>
-
-                <span v-if="slotProps.option.department_name">
+                <span>{{ slotProps.option.profile_code }}</span
+                ><span v-if="slotProps.option.department_name">
                   | {{ slotProps.option.department_name }}</span
                 >
               </div>
@@ -178,5 +219,5 @@ onMounted(() => {
       </div>
       <span v-else> Chưa có dữ liệu </span>
     </template>
-  </MultiSelect>
+  </Dropdown>
 </template>

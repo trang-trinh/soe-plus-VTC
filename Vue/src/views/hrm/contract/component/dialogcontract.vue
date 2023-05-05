@@ -554,7 +554,7 @@ onMounted(() => {
                 </div>
               </div>
             </div>
-            <div class="col-6 md:col-6">
+            <div class="col-12 md:col-12">
               <div class="form-group">
                 <label>Loại hợp đồng <span class="redsao">(*)</span></label>
                 <Dropdown
@@ -594,7 +594,7 @@ onMounted(() => {
                 </div>
               </div>
             </div>
-            <div class="col-6 md:col-6">
+            <div class="col-12 md:col-12">
               <div class="form-group">
                 <label>Số hợp đồng <span class="redsao">(*)</span></label>
                 <InputText
@@ -792,6 +792,20 @@ onMounted(() => {
             </div>
             <div class="col-12 md:col-12">
               <div class="form-group">
+                <label>Ghi chú</label>
+                <Textarea
+                  v-model="props.model.note"
+                  :autoResize="true"
+                  rows="5"
+                  cols="30"
+                  spellcheck="false"
+                  class="ip36"
+                  maxlength="500"
+                />
+              </div>
+            </div>
+            <!-- <div class="col-12 md:col-12">
+              <div class="form-group">
                 <h3 class="m-0">Thông tin phân công nhân sự</h3>
               </div>
             </div>
@@ -920,7 +934,6 @@ onMounted(() => {
                 </MultiSelect>
               </div>
             </div>
-
             <div class="col-12 md:col-12">
               <div class="form-group">
                 <label>Mô tả công việc </label>
@@ -1124,7 +1137,7 @@ onMounted(() => {
                   </template>
                 </Dropdown>
               </div>
-            </div>
+            </div> -->
 
             <!-- <div class="col-6 md:col-6">
           <div class="form-group">
@@ -1743,20 +1756,7 @@ onMounted(() => {
                 </div>
               </div>
             </div>
-            <div class="col-12 md:col-12">
-              <div class="form-group">
-                <label>Ghi chú</label>
-                <Textarea
-                  v-model="props.model.note"
-                  :autoResize="true"
-                  rows="5"
-                  cols="30"
-                  spellcheck="false"
-                  class="ip36"
-                  maxlength="500"
-                />
-              </div>
-            </div>
+            
           </div>
         </div>
       </div>

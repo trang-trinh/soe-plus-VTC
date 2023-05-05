@@ -21,13 +21,16 @@ const props = defineProps({
   displayDialog: Boolean,
   closeDialog: Function,
   organization_id: String,
+  year: Number,
   initData: Function,
 });
 const display = ref(props.displayDialog);
 
 //Declare
+const newdate = new Date();
 const options = ref({
   search: "",
+  tempyear: new Date(props.year, newdate.getMonth() + 1, newdate.getDay()),
 });
 const datas = ref([]);
 //filter
@@ -51,11 +54,19 @@ const saveModel = () => {
   datas.value.forEach((group) => {
     if (group.users && group.users.length > 0) {
       group.users.forEach((user) => {
-        let obj = { profile_id: user.profile_id, leave: user.leave, leave_limit: user.leave_limit };
+        let obj = {
+          profile_id: user.profile_id,
+          leave: user.leave,
+          leave_limit: user.leave_limit,
+        };
         data.push(obj);
       });
     }
   });
+  if (options.value.tempyear != null) {
+    options.value.year = new Date(options.value.tempyear).getFullYear();
+  }
+  formData.append("year", options.value.year);
   formData.append("data", JSON.stringify(data));
   axios
     .put(baseURL + "/api/hrm_leave/update_lave_year", formData, config)
@@ -213,7 +224,22 @@ onMounted(() => {
           />
         </span>
       </template>
-      <template #end> </template>
+      <template #end>
+        <div class="form-group m-0">
+          <Calendar
+            v-model="options.tempyear"
+            @date-select="goYear(options.tempyear)"
+            :showIcon="true"
+            :manualInput="false"
+            inputId="yearpicker"
+            :showOnFocus="false"
+            view="year"
+            dateFormat="'Năm' yy"
+            placeholder="Chọn năm"
+            class="ip36"
+          />
+        </div>
+      </template>
     </Toolbar>
     <table id="table-leave" class="table-custom">
       <thead class="thead-custom">

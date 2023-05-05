@@ -2,6 +2,7 @@
 using Helper;
 using Newtonsoft.Json;
 using OfficeOpenXml;
+using OfficeOpenXml.FormulaParsing.Excel.Functions.DateTime;
 using System;
 using System.Collections.Generic;
 using System.Data.Entity;
@@ -497,6 +498,7 @@ namespace API.Controllers.Leave
 
                     // Params
                     var user_now = await db.sys_users.AsNoTracking().FirstOrDefaultAsync(x => x.user_id == uid);
+                    int year = int.Parse(provider.FormData.GetValues("year").SingleOrDefault());
                     string en_data = provider.FormData.GetValues("data").SingleOrDefault();
                     List<temp> datas = JsonConvert.DeserializeObject<List<temp>>(en_data);
                     if (datas != null)
@@ -504,34 +506,105 @@ namespace API.Controllers.Leave
                         List<hrm_leave_year> leaves = new List<hrm_leave_year>();
                         foreach (var item in datas)
                         {
-                            int? organization_id = null;
-                            var profile = db.hrm_profile.FirstOrDefault(x => x.profile_id == item.profile_id);
-                            if (profile != null)
+                            if (!string.IsNullOrEmpty(item.profile_id))
                             {
-                                organization_id = profile.organization_id;
-                            }
-                            var exists = await db.hrm_leave_year.FirstOrDefaultAsync(x => x.profile_id == item.profile_id);
-                            if (exists != null)
-                            {
-                                exists.leave = item.leave;
-                                exists.leave_limit = item.leave_limit;
-                                exists.modified_by = uid;
-                                exists.modified_date = DateTime.Now;
-                                exists.modified_ip = ip;
-                                exists.modified_token_id = tid;
-                            }
-                            else
-                            {
-                                hrm_leave_year leave = new hrm_leave_year();
-                                leave.profile_id = item.profile_id;
-                                leave.leave = item.leave;
-                                leave.leave_limit = item.leave_limit;
-                                leave.organization_id = organization_id;
-                                leave.created_by = uid;
-                                leave.created_date = DateTime.Now;
-                                leave.created_ip = ip;
-                                leave.created_token_id = tid;
-                                leaves.Add(leave);
+                                int? organization_id = null;
+                                var profile = db.hrm_profile.FirstOrDefault(x => x.profile_id == item.profile_id);
+                                if (profile != null)
+                                {
+                                    organization_id = profile.organization_id;
+                                }
+                                double? leave_limit = null;
+                                var exists = await db.hrm_leave_year.FirstOrDefaultAsync(x => x.profile_id == item.profile_id);
+                                if (exists != null)
+                                {
+                                    exists.leave = item.leave;
+                                    exists.leave_limit = item.leave_limit;
+                                    if (exists.leave_limit == null || exists.leave_limit <= 0)
+                                    {
+                                        if (profile.recruitment_date != null)
+                                        {
+                                            DateTime newDate = DateTime.Now;
+                                            var difference = newDate.Subtract((DateTime)profile.recruitment_date);
+                                            int age = (int)(difference.TotalDays / 365);
+                                            if (age >= 1)
+                                            {
+                                                exists.leave_limit = item.leave;
+                                            }
+                                            else
+                                            {
+                                                exists.leave_limit = item.leave - (int)(difference.Days / 30);
+                                            }
+                                        }
+                                        else
+                                        {
+                                            exists.leave_limit = item.leave;
+                                        }
+                                    }
+                                    exists.modified_by = uid;
+                                    exists.modified_date = DateTime.Now;
+                                    exists.modified_ip = ip;
+                                    exists.modified_token_id = tid;
+                                    leave_limit = exists.leave_limit;
+                                }
+                                else
+                                {
+                                    hrm_leave_year leave = new hrm_leave_year();
+                                    leave.profile_id = item.profile_id;
+                                    leave.leave = item.leave;
+                                    leave.leave_limit = item.leave_limit;
+                                    if (leave.leave_limit == null || leave.leave_limit <= 0)
+                                    {
+                                        if (profile.recruitment_date != null)
+                                        {
+                                            DateTime newDate = DateTime.Now;
+                                            var difference = newDate.Subtract((DateTime)profile.recruitment_date);
+                                            int age = (int)(difference.TotalDays / 365);
+                                            if (age >= 1)
+                                            {
+                                                leave.leave_limit = item.leave;
+                                            }
+                                            else
+                                            {
+                                                leave.leave_limit = item.leave - (int)(difference.Days / 30);
+                                            }
+                                        }
+                                        else
+                                        {
+                                            leave.leave_limit = item.leave;
+                                        }
+                                    }
+                                    leave.organization_id = organization_id;
+                                    leave.created_by = uid;
+                                    leave.created_date = DateTime.Now;
+                                    leave.created_ip = ip;
+                                    leave.created_token_id = tid;
+                                    leaves.Add(leave);
+                                    leave_limit = leave.leave_limit;
+                                }
+
+                                var profile_leave = await db.hrm_leave_profile.FirstOrDefaultAsync(x => x.profile_id == item.profile_id && x.year == year);
+                                if (profile_leave != null)
+                                {
+                                    profile_leave.leave = leave_limit;
+                                    profile_leave.modified_by = uid;
+                                    profile_leave.modified_date = DateTime.Now;
+                                    profile_leave.modified_ip = ip;
+                                    profile_leave.modified_token_id = tid;
+                                }
+                                else
+                                {
+                                    hrm_leave_profile md = new hrm_leave_profile();
+                                    md.profile_id = item.profile_id;
+                                    md.year = year;
+                                    md.leave = leave_limit;
+                                    md.created_by = uid;
+                                    md.created_date = DateTime.Now;
+                                    md.created_ip = ip;
+                                    md.created_token_id = tid;
+                                    md.organization_id = profile.organization_id;
+                                    db.hrm_leave_profile.Add(md);
+                                }
                             }
                         }
                         if (leaves.Count > 0)

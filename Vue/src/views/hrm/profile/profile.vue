@@ -43,7 +43,7 @@ const options = ref({
   filterProfile_id: null,
   organizations: [],
   departments: [],
-  work_positions: [],
+  titles: [],
   professional_works: [],
   birthplace_id: null,
   genders: [],
@@ -164,7 +164,7 @@ const toggleFilter = (event) => {
 const resetFilter = () => {
   options.value.organizations = [];
   options.value.departments = [];
-  options.value.work_positions = [];
+  options.value.titles = [];
   options.value.professional_works = [];
   options.value.birthplaces = [];
   options.value.genders = [];
@@ -1198,13 +1198,13 @@ const initCountFilter = () => {
       .map((x) => x["department_id"])
       .join(",");
   }
-  var work_positions = null;
+  var titles = null;
   if (
-    options.value.work_positions != null &&
-    options.value.work_positions.length > 0
+    options.value.titles != null &&
+    options.value.titles.length > 0
   ) {
-    work_positions = options.value.work_positions
-      .map((x) => x["work_position_id"])
+    titles = options.value.titles
+      .map((x) => x["title_id"])
       .join(",");
   }
   var professional_works = null;
@@ -1248,7 +1248,7 @@ const initCountFilter = () => {
               { par: "search", va: options.value.search },
               { par: "organizations", va: organizations },
               { par: "departments", va: departments },
-              { par: "work_positions", va: work_positions },
+              { par: "work_positions", va: titles },
               { par: "professional_works", va: professional_works },
               { par: "birthplaces", va: birthplaces },
               { par: "genders", va: genders },
@@ -1373,13 +1373,13 @@ const initDataFilter = () => {
       .map((x) => x["department_id"])
       .join(",");
   }
-  var work_positions = null;
+  var titles = null;
   if (
-    options.value.work_positions != null &&
-    options.value.work_positions.length > 0
+    options.value.titles != null &&
+    options.value.titles.length > 0
   ) {
-    work_positions = options.value.work_positions
-      .map((x) => x["work_position_id"])
+    titles = options.value.titles
+      .map((x) => x["title_id"])
       .join(",");
   }
   var professional_works = null;
@@ -1423,7 +1423,7 @@ const initDataFilter = () => {
               { par: "tab", va: options.value.tab },
               { par: "organizations", va: organizations },
               { par: "departments", va: departments },
-              { par: "work_positions", va: work_positions },
+              { par: "work_positions", va: titles },
               { par: "professional_works", va: professional_works },
               { par: "birthplaces", va: birthplaces },
               { par: "genders", va: genders },
@@ -1891,15 +1891,15 @@ onMounted(() => {
                     </div>
                     <div class="col-12 md:col-12 p-0">
                       <div class="form-group">
-                        <label>Vị trí</label>
+                        <label>Chức danh</label>
                         <MultiSelect
-                          :options="dictionarys[22]"
+                          :options="dictionarys[28]"
                           :filter="true"
                           :showClear="true"
                           :editable="false"
-                          v-model="options.work_positions"
-                          optionLabel="work_position_name"
-                          placeholder="Chọn vị trí làm việc"
+                          v-model="options.titles"
+                          optionLabel="title_name"
+                          placeholder="Chọn chức danh"
                           class="w-full limit-width"
                           style="min-height: 36px"
                           panelClass="d-design-dropdown"
@@ -1920,7 +1920,7 @@ onMounted(() => {
                                   <div class="flex">
                                     <div>
                                       <span>{{
-                                        value.work_position_name
+                                        value.title_name
                                       }}</span>
                                     </div>
                                     <span
@@ -1929,7 +1929,7 @@ onMounted(() => {
                                       @click="
                                         removeFilter(
                                           index,
-                                          options.work_positions
+                                          options.titles
                                         );
                                         $event.stopPropagation();
                                       "
@@ -2540,7 +2540,7 @@ onMounted(() => {
                 <b>{{ slotProps.data.position_name }}</b>
               </div>
               <div class="mb-1">
-                <span>{{ slotProps.data.work_position_name }}</span>
+                <span>{{ slotProps.data.title_name }}</span>
               </div>
               <div class="mb-1">
                 <span>{{ slotProps.data.department_name }}</span>
@@ -2880,7 +2880,7 @@ onMounted(() => {
                       <b>{{ item.position_name }}</b>
                     </div>
                     <div class="mb-1">
-                      <span>{{ item.work_position_name }}</span>
+                      <span>{{ item.title_name }}</span>
                     </div>
                     <div class="mb-1">
                       <span>{{ item.department_name }}</span>

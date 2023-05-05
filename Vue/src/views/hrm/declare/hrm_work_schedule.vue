@@ -6,7 +6,7 @@ import { useVuelidate } from "@vuelidate/core";
 import { FilterMatchMode, FilterOperator } from "primevue/api";
 import { encr, checkURL } from "../../../util/function.js";
 import tree_users_hrm from "../component/tree_users_hrm.vue";
-import DropdownUser from "../component/DropdownUser.vue";
+import DropdownUser from "../component/DropdownProfiles.vue";
 import moment from "moment";
 import { forEach } from "jszip";
 //Khai báo
@@ -1707,16 +1707,7 @@ onMounted(() => {
               selectionMode="multiple"
               @date-select="onSelectedscheduleYears($event)"
             >
-              <template #date="slotProps">
-                <strong
-                  v-if="
-                    slotProps.date.year > 2020 && slotProps.date.year < 2023
-                  "
-                  style="text-decoration: line-through"
-                  >{{ slotProps.date.year }} sss</strong
-                >
-                <template v-else>{{ slotProps.date.year }}</template>
-              </template>
+              
             </Calendar>
           </div>
         </div>

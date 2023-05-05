@@ -106,14 +106,12 @@ const passModuleToSidebar = () => {
         arr_params.forEach((item) => {
           let idx = root_path.lastIndexOf("/" + item);
           if (idx != -1) {
-            root_path = root_path.splice(0, idx);
+            root_path = root_path.slice(0, idx);
           }
         });
       }
       let path_system = ["/options","/hrm/contact","/hrm/hrm_headbar_calendar"
-      ,"/hrm/hrm_report/hrm_report_workers","/hrm/hrm_report/profile_organization"
-      ,"/hrm/hrm_report/member_quit","/hrm/hrm_report/before_working_process","/hrm/hrm_report/academic_level_member"
-      ,"/hrm/hrm_report/contract_statistical"];
+    ];
       if (
         data[1].filter((x) => x.is_link == root_path).length == 0 &&
         !path_system.includes(root_path)

@@ -1324,13 +1324,31 @@ li.p-chips-token {
   height: 100%;
   padding: 0 !important;
 }
-
+.d-calendar-design-m .p-datepicker-header{
+display: none !important;
+}
 /* Style khai báo ngày nghỉ lễ */
 .theme-default .cv-header-day{
   font-weight: bold !important; 
 }
 .theme-default .cv-day-number{
  display: none;
+}
+.d-chip-design img{
+  margin-left: 0 !important;
+  margin-right: 0 !important ;
+}
+.d-multi-design .p-multiselect-label{
+  white-space: unset !important;
+  cursor: pointer !important; 
+   overflow: unset !important; 
+     text-overflow: unset !important;  
+}
+.d-dropdown-design .p-dropdown-label.p-inputtext{
+  padding: 0 !important;
+  align-items: center !important;
+    display: flex !important;
+    padding-left: 6px !important;
 }
 .theme-default .cv-header .cv-header-nav .previousYear,.previousPeriod,.currentPeriod,.nextPeriod,.nextYear{
   background: #ffffff;
@@ -1383,4 +1401,14 @@ li.p-chips-token {
 }
 .cv-wrapper .cv-week .cv-weekdays .cv-item.span7{
   width: calc((700% / 7) - 0.5em);
+}
+
+.justify-content-left{
+  justify-content: left !important;
+}
+.justify-content-center{
+  justify-content: center !important;
+}
+.justify-content-right{
+  justify-content: right !important;
 }
