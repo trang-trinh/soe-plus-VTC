@@ -1,5 +1,5 @@
 <script setup>
-import { ref, inject, onMounted, onBeforeMount } from "vue";
+import { ref, inject, onMounted, onBeforeMount, watch } from "vue";
 import { required } from "@vuelidate/validators";
 import { useToast } from "vue-toastification";
 import { encr } from "../../../util/function.js";
@@ -44,8 +44,9 @@ const props = defineProps({
   member: Array,
   data: Object,
   isClose: Boolean,
+  openAddTask: Function,
 });
-const listChildTask = ref([]);
+
 const DialogVisible = ref();
 const headerDialog = ref();
 const length = ref(false);
@@ -328,7 +329,6 @@ const expandAll = (e) => {
   if (dataFilter != null) {
     let add = [];
     if (dataFilter.task_follow_step.length > 0) {
-      console.log(dataFilter.task_follow_step);
       let findIndex = dataFilter.task_follow_step.findIndex((x) => {
         return x.status === 1;
       });
@@ -795,10 +795,8 @@ emitter.on("psb", (obj) => {
 onBeforeMount(() => {
   loadData();
 });
+
 onMounted(() => {
-  if (props.listChild != null) {
-    listChildTask.value = JSON.parse(JSON.stringify(props.listChild));
-  }
   let type = [];
   props.member.forEach((x) => {
     if (x.user_id == user.user_id) {
@@ -821,6 +819,17 @@ onMounted(() => {
   }
 });
 const expandedRows = ref([]);
+const onRowExpand = (e) => {
+  let findIndex = e.data.task_follow_step.findIndex((x) => {
+    return x.status === 1;
+  });
+  if (findIndex >= 0) {
+    indexSelected.value = findIndex;
+  } else indexSelected.value = null;
+};
+const selectStep = (e, i) => {
+  indexSelected.value = i;
+};
 </script>
 <template>
   <div class="h-custom">
@@ -830,6 +839,7 @@ const expandedRows = ref([]);
       scrollHeight="flex"
       dataKey="follow_id"
       v-model:expandedRows="expandedRows"
+      @row-expand="onRowExpand"
     >
       <Toolbar class="w-full custoolbar">
         <template #end>
@@ -998,7 +1008,7 @@ const expandedRows = ref([]);
           <div v-if="slotProps.data.task_follow_step.length > 0">
             <div class="multi-step numbered">
               <div class="buttonfunc">
-                <Button
+                <!-- <Button
                   class="mx-1"
                   icon="pi pi-plus"
                   v-tooltip="'Thêm bước'"
@@ -1008,9 +1018,9 @@ const expandedRows = ref([]);
                     props.isClose != true
                   "
                   @click="openStepDialog(slotProps.data)"
-                ></Button>
+                ></Button> -->
                 <Button
-                  class="mx-1"
+                  class="mx-1 p-button-outlined p-button-rounded"
                   icon="pi pi-pencil"
                   v-tooltip="'Sửa bước đang chọn'"
                   v-if="
@@ -1026,7 +1036,7 @@ const expandedRows = ref([]);
                   "
                 ></Button>
                 <Button
-                  class="mx-1 p-button-danger"
+                  class="mx-1 p-button-danger p-button-outlined p-button-raised p-button-rounded"
                   icon="pi pi-trash"
                   v-tooltip="'Xóa bước đang chọn'"
                   v-if="
@@ -1048,6 +1058,7 @@ const expandedRows = ref([]);
                   v-for="(item, index) in slotProps.data.task_follow_step"
                   :key="index"
                   :class="[{ current: index == indexSelected }]"
+                  @click="selectStep(item, index)"
                 >
                   <div
                     class="item-wrap flex align-items-center justify-content-center"
@@ -1451,11 +1462,11 @@ const expandedRows = ref([]);
       </div>
       <div class="col-12 flex">
         <div class="col-4 flex align-items-center">Chọn công việc</div>
-        <div class="col-8 p-0">
+        <div class="col-7 p-0">
           <MultiSelect
             :filter="true"
             v-model="listTask"
-            :options="listChildTask"
+            :options="props.listChild"
             placeholder="Chọn công việc"
             display="chip"
             optionLabel="task_name"
@@ -1625,6 +1636,15 @@ const expandedRows = ref([]);
               </div>
             </template>
           </MultiSelect>
+        </div>
+        <div class="col-1 py-0 flex justify-content-center">
+          <Button
+            icon="pi pi-plus"
+            class="p-button-raised"
+            v-tooltip="'Tạo công việc con'"
+            @click="openAddTask(props.data)"
+          >
+          </Button>
         </div>
       </div>
       <div>
@@ -1909,7 +1929,7 @@ $animation-time: 0.5s;
   flex-direction: row;
   justify-content: flex-start;
   list-style-type: none;
-  padding: 10px 10px 10px 10px;
+  padding: 10px 10px 0px 10px;
   overflow: auto;
   background: #efefef;
 
