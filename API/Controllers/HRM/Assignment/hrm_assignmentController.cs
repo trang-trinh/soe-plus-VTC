@@ -99,6 +99,21 @@ namespace API.Controllers.HRM.Assignment
                     }
                     else
                     {
+                        var olds = await db.hrm_profile_assignment.Where(x => x.profile_id == model.profile_id).ToListAsync();
+                        if (model.is_active == true)
+                        {
+                            foreach (var item in olds)
+                            {
+                                item.is_active = false;
+                            }
+                        }
+                        if (model.is_main == true)
+                        {
+                            foreach (var item in olds)
+                            {
+                                item.is_main = false;
+                            }
+                        }
                         model.modified_by = uid;
                         model.modified_date = DateTime.Now;
                         model.modified_ip = ip;
