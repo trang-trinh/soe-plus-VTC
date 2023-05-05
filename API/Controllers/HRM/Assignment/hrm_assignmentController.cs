@@ -77,7 +77,7 @@ namespace API.Controllers.HRM.Assignment
                     #region Model
                     if (isAdd)
                     {
-                        model.is_order = model.is_order ?? (db.hrm_contract.Count() + 1);
+                        model.is_order = model.is_order ?? (db.hrm_profile_assignment.Count() + 1);
                         model.status = 0;
                         model.is_active = true;
                         model.is_main = true;
