@@ -209,6 +209,7 @@ const payroll = ref({
   emote_file: "",
   status: true,
   is_order: 1,
+  profile_id_fake:[]
 });
 
 const selectedStamps = ref();
@@ -243,6 +244,7 @@ const openBasic = (str) => {
     is_order: sttStamp.value,
     organization_id: store.getters.user.organization_id,
     is_system: store.getters.user.is_super ? true : false,
+    profile_id_fake:[]
   };
   listFilesS.value = [];
   checkIsmain.value = false;
@@ -301,12 +303,9 @@ const saveData = (isFormValid) => {
   }
 
   if (payroll.value.profile_id_fake) {
-    var str = "";
-    payroll.value.list_profile_id = "";
-    payroll.value.profile_id_fake.forEach((element) => {
-      payroll.value.list_profile_id += str + element.profile_id;
-      str = ",";
-    });
+  
+    payroll.value.list_profile_id =  
+    payroll.value.profile_id_fake.toString();
   }
   if (payroll.value.payroll_name.length > 250) {
     swal.fire({
@@ -816,14 +815,11 @@ const initTuDien = () => {
       {
         str: encr(
           JSON.stringify({
-            proc: "hrm_profile_list_filter",
+            proc: "hrm_profile_list_all",
             par: [
-              { par: "search", va: null },
+ 
               { par: "user_id", va: store.getters.user.user_id },
-              { par: "work_position_id", va: null },
-              { par: "position_id", va: null },
-              { par: "department_id", va: null },
-              { par: "status", va: 1 },
+          
             ],
           }),
           SecretKey,
@@ -986,18 +982,20 @@ emitter.on("emitData", (obj) => {
   switch (obj.type) {
     case "submitModel":
       if (obj.data) {
-        payroll.value.profile_id_fake = obj.data;
-        options.value.list_profile_id = obj.data;
+        if (obj.data.type == 1) {
+          payroll.value.profile_id_fake = [];
+          obj.data.data.forEach((element) => {
+            payroll.value.profile_id_fake.push(element.profile_id);
+          });
+        } else {
+          options.value.list_profile_id = [];
+          obj.data.data.forEach((element) => {
+            options.value.list_profile_id.push(element.profile_id);
+          });
+        }
       }
       break;
-    case "delItem":
-      if (obj.data) {
-        payroll.value.profile_id_fake = payroll.value.profile_id_fake.filter(
-          (x) => x.profile_id != obj.data.profile_id
-        );
-      }
-      break;
-
+    
     default:
       break;
   }
@@ -1137,6 +1135,7 @@ onMounted(() => {
                       :model="options.list_profile_id"
                       :display="'chip'"
                       :placeholder="'Chọn nhân sự'"
+                      :type="2"
                     />
                   </div>
                   <div class="field col-12 p-0">
@@ -1674,6 +1673,7 @@ onMounted(() => {
               :class="{
                 'p-invalid': payroll.profile_id_fake == null && submitted,
               }"
+                    :type="1"
             />
           </div>
         </div>
