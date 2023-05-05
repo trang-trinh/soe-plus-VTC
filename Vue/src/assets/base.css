@@ -1402,3 +1402,13 @@ display: none !important;
 .cv-wrapper .cv-week .cv-weekdays .cv-item.span7{
   width: calc((700% / 7) - 0.5em);
 }
+
+.justify-content-left{
+  justify-content: left !important;
+}
+.justify-content-center{
+  justify-content: center !important;
+}
+.justify-content-right{
+  justify-content: right !important;
+}
