@@ -5,7 +5,7 @@ import { required } from "@vuelidate/validators";
 import { useVuelidate } from "@vuelidate/core";
 import { FilterMatchMode, FilterOperator } from "primevue/api";
 import tree_users_hrm from "../component/tree_users_hrm.vue";
-import DropdownUser from "../component/DropdownUsers.vue";
+import DropdownUser from "../component/DropdownProfiles.vue";
 import { encr, checkURL } from "../../../util/function.js";
 //Khai báo
 const emitter = inject("emitter");
@@ -109,7 +109,7 @@ const loadData = (rf) => {
       .then((response) => {
         let data = JSON.parse(response.data.data)[0];
         if (isFirst.value) isFirst.value = false;
-         
+
         data.forEach((element, i) => {
           element.STT = options.value.PageNo * options.value.PageSize + i + 1;
 
@@ -122,43 +122,40 @@ const loadData = (rf) => {
             element.listUsers = JSON.parse(element.listUsers);
 
             element.listUsers.forEach((item) => {
-                if (!item.position_name) {
-                  item.position_name = "";
-                } else {
-                  item.position_name =
-                    " </br> <span class='text-sm'>" +
-                    item.position_name +
-                    "</span>";
-                }
-                if (!item.department_name) {
-                  item.department_name = "";
-                } else {
-                  item.department_name =
-                    " </br> <span class='text-sm'>" +
-                    item.department_name +
-                    "</span>";
-                }
-              });
-
-
-
-
-
-
-
-
+              if (!item.position_name) {
+                item.position_name = "";
+              } else {
+                item.position_name =
+                  " </br> <span class='text-sm'>" +
+                  item.position_name +
+                  "</span>";
+              }
+              if (!item.department_name) {
+                item.department_name = "";
+              } else {
+                item.department_name =
+                  " </br> <span class='text-sm'>" +
+                  item.department_name +
+                  "</span>";
+              }
+            });
           } else element.listUsers = [];
-
 
           if (!element.position_name) {
             element.position_name = "";
           } else {
-            element.position_name =  " </br> <span class='text-sm'>" + element.position_name+ "</span>";
+            element.position_name =
+              " </br> <span class='text-sm'>" +
+              element.position_name +
+              "</span>";
           }
           if (!element.department_name) {
             element.department_name = "";
           } else {
-            element.department_name = " </br> <span class='text-sm'>"  + element.department_name + "</span>";
+            element.department_name =
+              " </br> <span class='text-sm'>" +
+              element.department_name +
+              "</span>";
           }
         });
         datalists.value = data;
@@ -212,6 +209,7 @@ const declare_paycheck = ref({
   emote_file: "",
   status: true,
   is_order: 1,
+  profile_id_fake: [],
 });
 
 const selectedStamps = ref();
@@ -246,6 +244,7 @@ const openBasic = (str) => {
     is_order: sttStamp.value,
     organization_id: store.getters.user.organization_id,
     is_system: store.getters.user.is_super ? true : false,
+    profile_id_fake: [],
   };
   listFilesS.value = [];
   checkIsmain.value = false;
@@ -282,14 +281,10 @@ const saveData = (isFormValid) => {
   }
 
   if (declare_paycheck.value.profile_id_fake) {
-    var str = "";
-    declare_paycheck.value.list_profile_id = "";
-    declare_paycheck.value.profile_id_fake.forEach((element) => {
-      declare_paycheck.value.list_profile_id += str + element.profile_id;
-      str = ",";
-    });
+    declare_paycheck.value.list_profile_id =
+      declare_paycheck.value.profile_id_fake.toString();
   }
-   
+
   if (declare_paycheck.value.declare_paycheck_name.length > 250) {
     swal.fire({
       title: "Error!",
@@ -316,6 +311,7 @@ const saveData = (isFormValid) => {
       swal.showLoading();
     },
   });
+
   if (!isSaveTem.value) {
     axios
       .post(
@@ -386,16 +382,13 @@ const checkIsmain = ref(true);
 const editTem = (dataTem) => {
   submitted.value = false;
   declare_paycheck.value = dataTem;
+
   if (declare_paycheck.value.listUsers) {
     declare_paycheck.value.profile_id_fake = [];
     declare_paycheck.value.listUsers.forEach((element) => {
-      declare_paycheck.value.profile_id_fake.push({
-        profile_id: element.profile_id,
-        profile_user_name: element.full_name,
-        avatar: element.avatar,
-      });
+      declare_paycheck.value.profile_id_fake.push(element.profile_id);
     });
-  } 
+  }
   headerDialog.value = "Sửa mẫu phiếu lương";
   isSaveTem.value = true;
   displayBasic.value = true;
@@ -517,43 +510,40 @@ const loadDataSQL = () => {
             element.listUsers = JSON.parse(element.listUsers);
 
             element.listUsers.forEach((item) => {
-                if (!item.position_name) {
-                  item.position_name = "";
-                } else {
-                  item.position_name =
-                    " </br> <span class='text-sm'>" +
-                    item.position_name +
-                    "</span>";
-                }
-                if (!item.department_name) {
-                  item.department_name = "";
-                } else {
-                  item.department_name =
-                    " </br> <span class='text-sm'>" +
-                    item.department_name +
-                    "</span>";
-                }
-              });
-
-
-
-
-
-
-
-
+              if (!item.position_name) {
+                item.position_name = "";
+              } else {
+                item.position_name =
+                  " </br> <span class='text-sm'>" +
+                  item.position_name +
+                  "</span>";
+              }
+              if (!item.department_name) {
+                item.department_name = "";
+              } else {
+                item.department_name =
+                  " </br> <span class='text-sm'>" +
+                  item.department_name +
+                  "</span>";
+              }
+            });
           } else element.listUsers = [];
-
 
           if (!element.position_name) {
             element.position_name = "";
           } else {
-            element.position_name =  " </br> <span class='text-sm'>" + element.position_name+ "</span>";
+            element.position_name =
+              " </br> <span class='text-sm'>" +
+              element.position_name +
+              "</span>";
           }
           if (!element.department_name) {
             element.department_name = "";
           } else {
-            element.department_name = " </br> <span class='text-sm'>"  + element.department_name + "</span>";
+            element.department_name =
+              " </br> <span class='text-sm'>" +
+              element.department_name +
+              "</span>";
           }
         });
 
@@ -763,7 +753,7 @@ const reFilterEmail = () => {
   isDynamicSQL.value = false;
   checkFilter.value = false;
   filterSQL.value = [];
-  options.value.list_profile_id=[];
+  options.value.list_profile_id = [];
   options.value.SearchText = null;
   op.value.hide();
   loadData(true);
@@ -772,26 +762,30 @@ const filterFileds = () => {
   filterSQL.value = [];
   checkFilter.value = true;
 
+  if (filterTrangthai.value) {
+    let filterS = {
+      filterconstraints: [
+        { value: filterTrangthai.value, matchMode: "equals" },
+      ],
+      filteroperator: "and",
+      key: "status",
+    };
+    filterSQL.value.push(filterS);
+  }
 
-  if(filterTrangthai.value){
-  let filterS = {
-    filterconstraints: [{ value: filterTrangthai.value, matchMode: "equals" }],
-    filteroperator: "and",
-    key: "status",
-  };
-  filterSQL.value.push(filterS);
-}
-
-  
-  if (options.value.list_profile_id.length>0) {
+  if (options.value.list_profile_id.length > 0) {
     let filterS1 = {
-      filterconstraints: [ { value: options.value.list_profile_id.toString(), matchMode: "arrIntersec" }],
+      filterconstraints: [
+        {
+          value: options.value.list_profile_id.toString(),
+          matchMode: "arrIntersec",
+        },
+      ],
       filteroperator: "or",
       key: "list_profile_id",
     };
-     
-      filterSQL.value.push(filterS1);
-  
+
+    filterSQL.value.push(filterS1);
   }
   loadDataSQL();
 };
@@ -947,30 +941,32 @@ const choiceUser = () => {
     selectedUser.value.forEach((element) => {
       declare_paycheck.value.profile_id_fake.push(element.profile_id);
     });
+
   closeDialogUser();
 };
-const selectedDecS = ref();
 
 emitter.on("emitData", (obj) => {
   switch (obj.type) {
     case "submitModel":
-    if (obj.data) {
-        declare_paycheck.value.profile_id_fake = obj.data;
-        options.value.list_profile_id = obj.data;
-      }
-      break;
-    case "delItem":
       if (obj.data) {
-        declare_paycheck.value.profile_id_fake = declare_paycheck.value.profile_id_fake.filter(
-          (x) => x.profile_id != obj.data.profile_id
-        );
+        if (obj.data.type == 1) {
+          declare_paycheck.value.profile_id_fake = [];
+          obj.data.data.forEach((element) => {
+            declare_paycheck.value.profile_id_fake.push(element.profile_id);
+          });
+        } else {
+          options.value.list_profile_id = [];
+          obj.data.data.forEach((element) => {
+            options.value.list_profile_id.push(element.profile_id);
+          });
+        }
       }
       break;
-
+    
     default:
       break;
   }
-}); 
+});
 onMounted(() => {
   initTuDien();
 
@@ -1059,21 +1055,20 @@ onMounted(() => {
                 class="p-0 m-0"
                 :showCloseIcon="false"
                 id="overlay_panel"
-                style="width:400px"
+                style="width: 400px"
               >
                 <div class="grid formgrid m-0">
                   <div class="col-12 md:col-12">
-                            <div class="py-2"  >Nhân sự nhận mẫu phiếu lương</div>
-                            <DropdownUser  :model="options.list_profile_id"
-                            
-                            :display="'chip'"
-                            :placeholder="'Chọn nhân sự'"/>
-                          </div>
-                  <div class="  field col-12 p-0">
-                    <div
-                      class="col-12 text-left py-2 "
-                      style="text-align: left"
-                    >
+                    <div class="py-2">Nhân sự nhận mẫu phiếu lương</div>
+                    <DropdownUser
+                      :model="options.list_profile_id"
+                      :type="2"
+                      :display="'chip'"
+                      :placeholder="'Chọn nhân sự'"
+                    />
+                  </div>
+                  <div class="field col-12 p-0">
+                    <div class="col-12 text-left py-2" style="text-align: left">
                       Trạng thái
                     </div>
                     <div class="col-12">
@@ -1188,7 +1183,7 @@ onMounted(() => {
         class="align-items-center justify-content-center text-center overflow-hidden"
       >
         <template #body="data">
-          <div >
+          <div>
             <AvatarGroup>
               <Avatar
                 v-for="(item, index) in data.data.listUsers.slice(0, 4)"
@@ -1238,7 +1233,6 @@ onMounted(() => {
               />
             </AvatarGroup>
           </div>
-          
         </template>
       </Column>
       <Column
@@ -1350,15 +1344,16 @@ onMounted(() => {
             }"
           />
         </div>
-        <div   v-if="
-              (v$.declare_paycheck_name.$invalid && submitted) ||
-              v$.declare_paycheck_name.$pending.$response
-            " style="display: flex" class="field col-12 md:col-12">
+        <div
+          v-if="
+            (v$.declare_paycheck_name.$invalid && submitted) ||
+            v$.declare_paycheck_name.$pending.$response
+          "
+          style="display: flex"
+          class="field col-12 md:col-12"
+        >
           <div class="col-3 text-left"></div>
-          <small
-          
-            class="col-9 p-error"
-          >
+          <small class="col-9 p-error">
             <span class="col-12 p-0">{{
               v$.declare_paycheck_name.required.$message
                 .replace("Value", "Tên mẫu phiếu lương")
@@ -1388,6 +1383,7 @@ onMounted(() => {
                 'p-invalid':
                   declare_paycheck.profile_id_fake == null && submitted,
               }"
+              :type="1"
             />
           </div>
         </div>

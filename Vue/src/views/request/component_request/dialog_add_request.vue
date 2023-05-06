@@ -13,7 +13,7 @@ const store = inject("store");
 const swal = inject("$swal");
 const cryoptojs = inject("cryptojs");
 const basedomainURL = baseURL;
-const baseUrlCheck = "http://localhost:8080/";
+const baseUrlCheck = baseURL;
 const config = {
 	headers: { Authorization: `Bearer ${store.getters.token}` },
 };
@@ -903,6 +903,12 @@ onMounted(() => {
                                                     v-model="request_data.Radio"/>
                                                 <label class="ml-2">{{ d.ten_truong }}</label>
                                             </div>
+                                        </div>
+                                        <div v-if="d.kieu_truong == 'select'">
+                                            <!-- <Dropdown
+                                                options=""
+                                            >
+                                            </Dropdown> -->
                                         </div>
                                         <div v-if="d.kieu_truong == 'date' || d.kieu_truong == 'datetime'">
                                             <Calendar

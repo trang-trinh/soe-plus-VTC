@@ -5,7 +5,7 @@ import { FilterMatchMode, FilterOperator } from "primevue/api";
 import { encr } from "../../../util/function.js";
 import moment from "moment";
 import dialogReward from "./component/dialog_reward.vue";
-import DropdownUser from "../component/DropdownUsers.vue";
+import DropdownUser from "../component/DropdownProfiles.vue";
 import router from "@/router";
 //Khai báo
 const emitter = inject("emitter");
@@ -1080,14 +1080,11 @@ const loadUserProfiles = () => {
       {
         str: encr(
           JSON.stringify({
-            proc: "hrm_profile_list_filter",
+            proc: "hrm_profile_list_all",
             par: [
-              { par: "search", va: null },
+           
               { par: "user_id", va: store.getters.user.user_id },
-              { par: "work_position_id", va: null },
-              { par: "position_id", va: null },
-              { par: "department_id", va: null },
-              { par: "status", va: 1 },
+         
             ],
           }),
           SecretKey,
@@ -1126,18 +1123,26 @@ const loadUserProfiles = () => {
       }
     });
 };
+
+
 emitter.on("emitData", (obj) => {
   switch (obj.type) {
     case "submitModel":
       if (obj.data) {
-        options.value.reward_name = obj.data;
+        if (obj.data.type == 2) {
+    
+          options.value.list_profile_id = [];
+          obj.data.data.forEach((element) => {
+            options.value.list_profile_id.push(element.profile_id);
+          });
+        }
       }
       break;
-
+    
     default:
       break;
   }
-});
+}); 
 onMounted(() => {
   loadUserProfiles();
   initTudien();
@@ -1223,6 +1228,7 @@ onMounted(() => {
                               :model="options.reward_name"
                               :display="'chip'"
                               :placeholder="'Chọn đối tượng khen thưởng'"
+                              :type="2"
                             />
                           </div>
                           <div class="col-12 md:col-12">

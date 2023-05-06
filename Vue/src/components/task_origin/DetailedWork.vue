@@ -5957,6 +5957,7 @@ const is_viewSecurityTask = ref(true);
           :member="members"
           :data="datalists"
           :isClose="isClose"
+          :openAddTask="addNewChildTaskOrigin"
         ></Task_FollowVue>
       </div>
       <div v-if="CongViecCon == true">

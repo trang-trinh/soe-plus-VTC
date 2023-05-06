@@ -2,6 +2,7 @@
 import { ref, inject, onMounted } from "vue";
 import { useToast } from "vue-toastification";
 import { encr } from "../../../util/function";
+import { VuemojiPicker } from "vuemoji-picker";
 import moment from "moment";
 import treeuser from "../../../components/user/treeuser.vue";
 
@@ -12,7 +13,7 @@ const swal = inject("$swal");
 const cryoptojs = inject("cryptojs");
 const emitter = inject("emitter");
 const basedomainURL = baseURL;
-const baseUrlCheck = "http://localhost:8080/";
+const baseUrlCheck = baseURL;
 const config = {
 	headers: { Authorization: `Bearer ${store.getters.token}` },
 };
@@ -122,7 +123,7 @@ const loadDetailRequest = () => {
                 }
                 else {                    
                     // temp fake
-                    is_viewSecurityRequest.value = true; // false;
+                    //is_viewSecurityRequest.value = true; // false;
                 }
                 
                 let today = new Date();
@@ -191,12 +192,6 @@ const listFiles = () => {
         if (response.data != null && response.data.data != null && response.data.err != '1') {
             var data = JSON.parse(response.data.data);
             LisFileAttachRQ.value = data[0];
-            // fake data
-            // LisFileAttachRQ.value = [
-            //     { file_name: 'nabila-miah-happy-birthday-gif10774342.gif', file_path: '/Portals/Gif/nabila-miah-happy-birthday-gif10774342.gif', file_type: 'gif', file_size: 135792, is_image: true, is_type: 0, created_date: new Date() },
-            //     { file_name: 'Mẫu Excel Phép năm.xlsx', file_path: '/Portals/Mau Excel/Mẫu Excel Phép năm.xlsx', file_type: 'xlsx', file_size: 895792, is_image: false, is_type: 0, created_date: new Date() },
-            // ];
-            // end fake
         }
     })
     .catch((error) => {
@@ -237,7 +232,21 @@ const listComments = () => {
     .then((response) => {
         if (response.data != null && response.data.data != null && response.data.err != '1') {
             var data = JSON.parse(response.data.data);
-            Comments.value = data[0];
+            if (data.length > 0 && data[0].length > 0) {
+                data[0].forEach((el, idx) => {
+                    if (el.files != null){
+                        el.files = JSON.parse(el.files);
+                    }						
+                    if (el.sticks != null){
+                        el.sticks = JSON.parse(el.sticks);
+                    }
+                    el.ParentComment = data[0].find(x => el.parent_id === x.request_comment_id);
+                });
+                Comments.value = data[0];
+            }
+            else {
+                Comments.value = [];
+            }
         }
     })
     .catch((error) => {
@@ -343,16 +352,16 @@ const itemButMores = ref([
     },
 ]);
 const getFuncRequest = () => {
-    if (detail_request.status_processing == 0) {
+    if (detail_request.value.status_processing == 0) {
         return itemButMores.filter(x => x.class == "" || x.class.includes("status-process-0"));
     }
-    else if (detail_request.status_processing == 1) {
+    else if (detail_request.value.status_processing == 1) {
         return itemButMores.filter(x => x.class == "" || x.class.includes("status-process-1"));
     }
-    else if (detail_request.status_processing == 4) {
+    else if (detail_request.value.status_processing == 4) {
         return itemButMores.filter(x => x.class == "" || x.class.includes("status-process-4"));
     }
-    if (detail_request.status_processing != 4) {
+    if (detail_request.value.status_processing != 4) {
         return itemButMores.filter(x => !x.class.includes("status-process-4"));
     }
     return itemButMores;
@@ -374,6 +383,9 @@ const showEmoji = (event, check) => {
         panelEmoij1.value.toggle(event);
     }
 };
+const Change = (event) => {
+  line = event.range.index ? event.range.index : null;
+};
 const handleEmojiClick = (event) => {  
     comment.value = comment.value.replace("<p>", "").replace("</p>", "");
     line1 = line ? line : comment.value.length;
@@ -391,6 +403,356 @@ const handleEmojiClick = (event) => {
 };
 const IsReply = ref(false);
 
+// emote with message
+const addEmote = (stick) => {
+	let data = { request_id: detail_request.value.request_id, request_comment_id: dataEmote.value.request_comment_id, stick_id: stick.emote_id  };
+	axios
+		.post(
+			baseUrlCheck + "/api/request_comment/Update_Stisk",
+			data,
+			config
+		)
+	.then((response) => {
+		if (response.data.err !== "1") {
+			panelEmote.value.toggle();
+			
+		}
+	})	
+	.catch((error) => {
+		swal.close();
+		if (error.status === 401) {
+			swal.fire({
+				text: "Mã token đã hết hạn hoặc không hợp lệ, vui lòng đăng nhập lại!",
+				confirmButtonText: "OK",
+			});
+		}
+	});
+};
+const displayStick = ref(false);
+const emote_message = ref([]);
+const tabStickActive = ref(0);
+const getStick = (msg) => {
+	axios
+    .post(
+	  	baseUrlCheck + "api/request/getData",
+		{ 
+			str: encr(JSON.stringify({
+					proc: "request_stick_by_comment",
+					par: [
+						{ par: "user_id", va: store.getters.user.user_id },
+						{ par: "request_comment_id", va: msg.request_comment_id },
+					],
+				}), SecretKey, cryoptojs
+			).toString()
+		},
+		config
+    )
+    .then((response) => {
+		let data = JSON.parse(response.data.data)[0];
+		emote_message.value = data;
+		emoteList.value.forEach((st, idx) => {
+			st.sticks = emote_message.value.filter(x => x.stick_id === st.emote_id);
+		});
+		displayStick.value = true;
+    })
+    .catch((error) => {
+		//toast.error("Tải dữ liệu không thành công!");
+		//console.log("Error list emotes.");
+		if (error && error.status === 401) {
+			swal.fire({
+				text: "Mã token đã hết hạn hoặc không hợp lệ, vui lòng đăng nhập lại!",
+				confirmButtonText: "OK",
+			});
+			store.commit("gologout");
+		}
+    });
+};
+const changeTabStick = (event) => {
+	tabStickActive.value = event.index;
+}
+// emote in chat
+const emoteList = ref([]);
+const loadEmote = () => {
+  axios
+    .post(
+	  	basedomainURL + "api/chat/GetDataProc",
+		{ 
+			str: encr(JSON.stringify({
+					proc: "chat_emote_list",
+					par: [
+						{ par: "user_id", va: store.getters.user.user_id },
+					],
+				}), SecretKey, cryoptojs
+			).toString()
+		},
+		config
+    )
+    .then((response) => {
+		let data = JSON.parse(response.data.data)[0];
+		emoteList.value = data;
+    })
+    .catch((error) => {
+		//toast.error("Tải dữ liệu không thành công!");
+		console.log("Error list emotes.");
+		if (error && error.status === 401) {
+			swal.fire({
+				text: "Mã token đã hết hạn hoặc không hợp lệ, vui lòng đăng nhập lại!",
+				confirmButtonText: "OK",
+			});
+			store.commit("gologout");
+		}
+    });
+};
+const panelEmote = ref();
+const dataEmote = ref({ request_comment_id: null, emote_id: null });
+const showEmote = (event, data) => {
+	panelEmote.value.toggle(event);
+	dataEmote.value.request_comment_id = data.request_comment_id;
+};
+const checkHover = ref();
+const onCheckHover = (item) => {
+  checkHover.value = item.emote_id;
+};
+const hideCheckHover = () => {
+  checkHover.value = null;
+};
+//Thêm bình luận
+const editCmt = ref(false);
+const sending = ref(false);
+const listIdFileEditComments_Del = ref([]);
+const Comment_ID_Edit = ref();
+const addComment = () => {
+    if (sending.value == true) {
+        return;
+    }
+    if (
+        (comment.value == "" ||
+        comment.value == null ||
+        comment.value == "<p><br></p>" ||
+        comment.value == "<body><p><br></p></body>") &&
+        FileAttach.value.length == 0
+    ) {
+        return;
+    } else {
+        let formData = new FormData();
+        let requestComment = {
+            content: "<body>" + comment.value + "</body>",
+            parent_id: ReplyID.value || null,
+            request_id: detail_request.value.request_id,
+            request_comment_id: editCmt.value == true ? Comment_ID_Edit.value : null,
+        };
+        if (FileAttach.value != null) {
+            for (var i = 0; i < FileAttach.value.length; i++) {
+                let file = FileAttach.value[i];
+                formData.append("url_file", file);
+            }
+        }
+        formData.append("comment", JSON.stringify(requestComment));
+        if (editCmt.value == true) {
+            formData.append("Del_file_ID", JSON.stringify(listIdFileEditComments_Del.value));
+        }
+        sending.value = true;
+        axios({
+            method: editCmt.value ? "put" : "post",
+            url:
+                baseUrlCheck +
+                `/api/request_comment/${ editCmt.value ? "updateComments" : "Add_Comment" }`,
+            data: formData,
+            headers: {
+                Authorization: `Bearer ${store.getters.token}`,
+            },
+        })
+        .then((response) => {
+            swal.close();
+            if (response.data.err != "1") {
+                toast.success(
+                    editCmt.value
+                    ? "Cập nhật bình luận đề xuất thành công!"
+                    : "Thêm mới bình luận đề xuất thành công!",
+                );
+                comment.value = "";
+                comment_zone_main.value.setHTML("<p>" + comment.value + "</p>");
+                filecoments = [];
+                FileAttach.value = [];
+                editCmt.value = false;
+                sending.value = false;
+                if (IsReply.value) {
+                    HuyReply();
+                }
+                listComments();
+                //GotoView("comment_final");
+            } else {
+                swal.fire({
+                    title: "Error!",
+                    text: response.data.ms,
+                    icon: "error",
+                    confirmButtonText: "OK",
+                });
+                sending.value = false;
+            }
+        })
+        .catch(() => {
+            swal.close();
+            swal.fire({
+            title: "Error!",
+            text: "Có lỗi xảy ra, vui lòng kiểm tra lại!",
+            icon: "error",
+            confirmButtonText: "OK",
+            });
+        });
+    }
+};
+
+const commentActive = ref();
+const EditComment = (co) => {
+	Comments.value.filter(x => x.IsEdit).forEach(function (r) {
+		r.IsEdit = false;
+	});
+	co.IsEdit = true;
+    if (co.FileAttach_Edit == null) {
+        co.FileAttach_Edit = [];
+    }
+	editCmt.value = true;
+	FileAttach.value = [];
+	co.Noidung_Edit = co.content;
+	//commentActive.value = JSON.parse(JSON.stringify(co));
+	comment.value = co.content;
+	funcCmtRequest.value.toggle();
+	if (co.parent_id != null) {
+		Comments.value.filter(x => x.IsReply).forEach((r, idx) => {
+			r.IsReply = false;
+		});
+		IsReply.value = true;
+		ReplyID.value = co.parent_id;
+		var replyMes = Comments.value.filter(x => x.request_comment_id == co.parent_id).length > 0 
+                        ? Comments.value.filter(x => x.request_comment_id == co.parent_id)[0]
+                        : null;
+		if (replyMes != null) {
+			replyMes.IsReply = true;
+		}
+		tinnhanreply.value = replyMes;
+	}
+	//goBottomChat();
+};
+const cancelEditComment = (u) => {
+    u.IsEdit = !(u.IsEdit || false);
+	editCmt.value = false;
+    comment.value = "";
+    FileAttach.value = [];
+    comment_zone_main.value.setHTML(comment.value);
+};
+
+const funcCmtRequest = ref();
+const cmtFuncClick = ref();
+const toogleFuncMes = (event, mes, idx) => {
+	funcCmtRequest.value.toggle(event);
+	cmtFuncClick.value = mes;
+	cmtFuncClick.value.indexList = idx;
+};
+const chooseFile = (id) => {
+	document.getElementById(id).value = "";
+  	document.getElementById(id).click();
+};
+const PutFileUpload = (event, type) => {
+	var ms = false;
+	var listFiles = [];
+	if (!type) {
+		listFiles = event.target.files;
+	}
+	else {
+		listFiles = event;
+	}
+	listFiles.forEach((fi, idx) => {
+		let formData = new FormData();
+		formData.append("fileupload", fi);
+		axios
+			({
+			method: 'post',
+			url: basedomainURL + `/api/chat/ScanFileUpload`,
+			data: formData,
+			headers: {
+				Authorization: `Bearer ${store.getters.token}`,
+			},
+		})
+		.then((response) => {
+			if (response.data.err != "1") {
+				//toast.success("File => Ok");
+				if (fi.size > 100 * 1024 * 1024) {
+					ms = true;
+				}
+				else {
+					fi.file_name = fi.name;
+					fi.file_size = fi.size;
+					fi.file_type = fi.name.substring(fi.name.lastIndexOf(".") + 1);
+					FileAttach.value.push(fi);
+				}
+			} else {
+				swal.fire({
+					title: "Cảnh báo",
+					text: "File bị xóa do tồn tại mối đe dọa với hệ thống!",
+					icon: "warning",
+					confirmButtonText: "OK",
+				});
+			}
+			if (ms) {
+				swal.fire({
+					icon: 'warning',
+					type: 'warning',
+					title: 'Thông báo',
+					text: 'Bạn chỉ được upload file có dung lượng tối đa 100MB!'
+				});
+			}
+			
+		})
+		.catch((error) => {
+			swal.fire({
+				title: "Thông báo",
+				text: "Có lỗi xảy ra, vui lòng kiểm tra lại!",
+				icon: "error",
+				confirmButtonText: "OK",
+			});
+		});
+	});
+};
+
+const FileAttach = ref([]);
+const tinnhanreply = ref({});
+const ReplyID = ref();
+const Reply = (co) => {
+    Comments.value.filter(x => x.IsReply).forEach((r, idx) => {
+		r.IsReply = false;
+	});
+    IsReply.value = true;
+	ReplyID.value = co.request_comment_id;
+	co.IsReply = true;
+	tinnhanreply.value = co;
+};
+const HuyReply = () => {
+	var co = Comments.value.find(x => x.request_comment_id === ReplyID.value);
+	IsReply.value = false;
+	ReplyID.value = null;
+	tinnhanreply.value = null;
+	co.IsReply = false;
+	FileAttach.value = [];
+};
+const removeFilesComment = (files, i) => {
+	files.splice(i, 1);
+};
+
+const tabLogActive = ref(0);
+const changeTabContent = (event) => {
+	tabLogActive.value = event.index;
+}
+
+const dataQT = ref([]);
+const listQT_Request = () => {
+
+};
+const dataLog = ref([]);
+const listLog = () => {
+
+};
+
 const hideall = () => {
     emitter.emit("SideBarRequest", false);
 };
@@ -406,6 +768,8 @@ const is_viewSecurityRequest = ref(true);
 onMounted(() => {
     if (props.id != null) {
         loadData(true);
+        listComments();
+        loadEmote();
     }
     else {
         hideall();
@@ -417,7 +781,7 @@ onMounted(() => {
     <div class="overflow-hidden h-full w-full col-12 p-0 m-0 flex"
         v-if="is_viewSecurityRequest == true"
     >
-        <div class="col-8 md:col-8 p-0 pl-2 pr-3 m-0" 
+        <div class="col-8 md:col-8 p-0 pl-2 pr-2 m-0" 
             style="border-right: 5px solid #ededed;" 
             v-if="detail_request != null"
         >
@@ -657,13 +1021,13 @@ onMounted(() => {
                         </a>
                     </div>
                 </div>
-                <div class="col-12 flex">
-                    <!-- coding... -->
+                <div class="col-12 flex" style="flex-direction: column;">
                     <div class="task-content scrollbox_delayed w-full" 
                         style="padding:0.75rem 0;overflow-y: auto;overflow-x:hidden;"
                         :style="detail_request.IsViewXL ? 'height: calc(100vh - 225px)' : 
+                                FileAttach.length > 0 ? 'height: calc(100vh - 440px)' : 
                                 !IsReply ? 'height: calc(100vh - 250px)' : 
-                                detail_request.IsComment ? 'height: calc(100vh - 315px)' : 'height: calc(100vh - 145px)'
+                                detail_request.IsComment ? 'height: calc(100vh - 330px)' : 'height: calc(100vh - 145px)'
                         "
                         id="request_message_panel"
                     >
@@ -673,7 +1037,7 @@ onMounted(() => {
                         >
                             <form id="frRequest">
                                 <div class="row">
-                                    <div class="col-3 p-0" v-if="col-detail_request.modified_date">
+                                    <div class="col-3 p-0" v-if="detail_request.modified_date">
                                         <div class="t-r">
                                             <div class="flex">
                                                 <span class="cv-spicon flex" style="align-items:center;">
@@ -703,7 +1067,7 @@ onMounted(() => {
                                             </span>
                                         </p>
                                     </div>
-                                    <div class="col-3 p-0" v-if="col-detail_request.deadline_date != null">
+                                    <div class="col-3 p-0" v-if="detail_request.deadline_date != null">
                                         <div class="t-r">
                                             <div class="flex">
                                                 <span class="cv-spicon flex" style="align-items:center;">
@@ -774,7 +1138,7 @@ onMounted(() => {
                                 
                                 <div class="row mt-2" 
                                     style="flex-direction:column;"
-                                    v-if="col-(detail_request.status_processing == 2 || detail_request.status_processing == 3)"
+                                    v-if="(detail_request.status_processing == 2 || detail_request.status_processing == 3)"
                                 >
                                     <div class="t-r">
                                         <div class="flex">
@@ -784,7 +1148,7 @@ onMounted(() => {
                                             <span class="cv-request">Đánh giá đề xuất</span>
                                         </div>
                                     </div>
-                                    <div class="flex p-3" v-if="col-detail_request.avatar_completed_all">
+                                    <div class="flex p-3" v-if="detail_request.avatar_completed_all">
                                         <div class="r-ava">
                                             <Avatar
                                                 v-bind:label="
@@ -817,7 +1181,7 @@ onMounted(() => {
                                             </div>
                                         </div>
                                     </div>
-                                    <div class="flex p-3" v-if="col-(detail_request.evaluated_score > 0)">
+                                    <div class="flex p-3" v-if="(detail_request.evaluated_score > 0)">
                                         <div class="r-ava">
                                             <Avatar
                                                 v-bind:label="
@@ -845,7 +1209,7 @@ onMounted(() => {
                                                     {{ detail_request.evaluated_date ? moment(new Date(detail_request.evaluated_date)).format("HH:mm DD/MM/yyyy") : '' }}
                                                 </span>
                                             </div>
-                                            <div class="mt-2" v-if="col-detail_request.status_processing == 3">
+                                            <div class="mt-2" v-if="detail_request.status_processing == 3">
                                                 <Rating class="star-rating-custom"
                                                     v-model="detail_request.evaluated_score"
                                                     v-tooltip.top="{ value: 'Ngày đánh giá: <br/>' + (detail_request.evaluated_date ? moment(new Date(detail_request.evaluated_date)).format('HH:mm DD/MM/yyyy') : ''), escape: true }"
@@ -855,7 +1219,7 @@ onMounted(() => {
                                                 />
                                             </div>
                                             <div class="mt-2" style="word-break: break-word;">
-                                                <div style="margin-bottom:0" v-html="evaluated_content || ''"></div>
+                                                <div style="margin-bottom:0" v-html="detail_request.evaluated_content || ''"></div>
                                             </div>
                                         </div>
                                     </div>
@@ -965,7 +1329,9 @@ onMounted(() => {
                                             <span class="flex ml-2"
                                                 v-if="detail_request.IsEdit" 
                                                 v-tooltip.top="'Thêm đề xuất liên quan'" 
-                                                @click="openRelate(detail_request,'srequest',1)">
+                                                @click="openRelate(detail_request,'srequest',1)"
+                                                style="cursor:pointer;"
+                                            >
                                                 <i class="pi pi-plus-circle"></i>
                                             </span>
                                         </div>
@@ -980,7 +1346,7 @@ onMounted(() => {
                                                     :class="r.status != 2 && r.is_overdue && r.Deadline && r.SoNgayHan <= 24 ? 'overdue-request' : ''"
                                                 >
                                                     <span style="word-break: break-all;">{{ r.request_code }}</span>
-                                                    <div class="mt-2" v-if="col-r.status_processing == 3">
+                                                    <div class="mt-2" v-if="r.status_processing == 3">
                                                         <Rating class="star-rating-custom"
                                                             v-model="r.evaluated_score"
                                                             v-tooltip.top="{ value: 'Ngày đánh giá: <br/>' + (r.evaluated_date ? moment(new Date(r.evaluated_date)).format('HH:mm DD/MM/yyyy') : ''), escape: true }"
@@ -1132,9 +1498,10 @@ onMounted(() => {
                                             </span>
                                             <span class="flex ml-2"
                                                 v-if="detail_request.IsEdit || detail_request.IsComment" 
-                                                style="margin:5px 5px" 
                                                 v-tooltip="'Thêm File đính kèm'"
-                                                 @click="openModalAddFileCV(detail_request)">
+                                                @click="openModalAddFileCV(detail_request)"
+                                                style="margin:5px; cursor:pointer;"
+                                            >
                                                  <i class="pi pi-plus-circle"></i>
                                             </span>
                                         </div>
@@ -1187,7 +1554,7 @@ onMounted(() => {
                                                                 />
                                                                 <Button class="p-button-text p-button-danger p-button-rounded ml-1"
                                                                     icon="pi pi-trash"
-                                                                    @click="Del_CommentFile(LisFileAttachRQ, $index, ffile)"
+                                                                    @click="Del_AttachFile(LisFileAttachRQ, $index, ffile)"
                                                                     v-if="detail_request.IsEdit"
                                                                 />
                                                             </div>
@@ -1220,9 +1587,9 @@ onMounted(() => {
                                     </div>
                                 </div>
                                 
-                                <div v-for="u in Comments">
-                                    <div class="row-comment">
-                                        <div class="r-ava">
+                                <div class="flex" v-for="u in Comments">
+                                    <div class="row-comment flex mt-3 mb-1" style="flex:1;">
+                                        <div class="r-ava flex pt-2">
                                             <Avatar
                                                 v-bind:label="
                                                     u.avatar
@@ -1242,14 +1609,16 @@ onMounted(() => {
                                                 class="border-radius"
                                             />
                                         </div>
-                                        <div class="r-cbox">
-                                            <div class="r-cname">
-                                                <span>{{ u.full_name }} </span>
-                                                <span class="r-cdate ml-1">
+                                        <div class="r-cbox ml-3 pt-2" style="flex:1;">
+                                            <div class="r-cname flex" style="justify-content: space-between;">
+                                                <span class="font-bold" style="flex: 1;">{{ u.full_name }} </span>
+                                                <span class="r-cdate ml-3">
                                                     {{ (u.created_date ? moment(new Date(u.created_date)).format('HH:mm DD/MM/yyyy') : '') }}
                                                 </span>
                                             </div>
-                                            <div class="r-cm" style="word-break: break-word;">
+                                            <div class="r-cm" style="word-break: break-word;"
+                                                v-if="u.content"
+                                            >
                                                 <div class="reply-chat show-reply"
                                                     style="padding: 10px;border-bottom: 0.5px solid #ccc;margin-bottom: 10px;"
                                                     v-if="u.ParentComment"
@@ -1260,7 +1629,7 @@ onMounted(() => {
                                                             <div style="display: inline-block; padding: 0px 10px 5px;" 
                                                                 class="bind-chat-html" 
                                                                 v-html="u.ParentComment.content"
-                                                                v-if="u.ParentComment.type_comment">
+                                                                v-if="u.ParentComment.type_comment == 0">
                                                             </div>
                                                             <div style="display: inline-block; padding: 0px 10px 5px;" class="bind-chat-html" v-else>
 																<Image v-if="u.ParentComment.type_comment == 1 && u.ParentComment.files.length > 0"
@@ -1291,148 +1660,162 @@ onMounted(() => {
                                                     </div>
                                                 </div>
                                                 <a :href="u.content" target="_blank" v-if="u.content.includes('http://') || u.content.includes('https://')">
-													<div v-html="u.content" style="display: inline-grid; text-align: -webkit-left; padding: 5px 10px; margin-bottom:0;word-break:break-word"></div>
+													<div v-html="u.content" style="display: inline-grid; text-align: -webkit-left; padding: 10px 10px 5px 0; margin-bottom:0;word-break:break-word"></div>
 												</a>
-												<div v-else v-html="u.content" style="display: inline-grid; text-align: -webkit-left; padding: 5px 10px; margin-bottom:0;word-break:break-word"></div>
+												<div v-else v-html="u.content" style="display: inline-grid; text-align: -webkit-left; padding: 10px 10px 5px 0; margin-bottom:0;word-break:break-word"></div>
+                                                <!-- <div>
+													<span class="r-cdate fw-400">
+														{{ u.created_date ? moment(new Date(u.created_date)).format("HH:mm DD/MM") : '' }}
+													</span>
+												</div> -->
                                             </div>
-                                            <!--
-                                            <div class="r-file" v-if="u.files.length>0" style="padding:0">
+                                            
+                                            <div class="r-file" v-if="u.type_comment != 0 && u.files != null && u.files.length>0" style="padding:0">
                                                 <ul>
                                                     <li v-for="f in u.files" class="border-none px-0 py-2">
-                                                        <div class="r-fbox">
-                                                            <a @click="$root.openFile(f.Tenfile,f.Duongdan)" v-if="f.IsImage!='1' && f.Dinhdang!='pdf'">
-                                                                <img width="32" onerror="this.style.display = 'none'" ng-src="{{$root.fileUrl+'/Content/file/'+f.Dinhdang+'.png'}}" v-if="f.IsImage!='1' && f.Dinhdang!='pdf'" />
-                                                            </a>
-                                                            <a ng-href="{{$root.fileUrl+f.Duongdan}}" v-if="f.IsImage=='1'" data-fancybox data-caption="{{f.Tenfile}}">
-                                                                <img width="32" ng-src="{{$root.fileUrl+f.Duongdan}}" />
-                                                            </a>
-                                                            <a ng-href="{{$root.fileUrl+f.Duongdan}}" v-if="f.Dinhdang=='pdf'" data-fancybox data-caption="{{f.Tenfile}}">
-                                                                <img width="32" ng-src="{{$root.fileUrl+'/Content/file/'+f.Dinhdang+'.png'}}" v-if="f.IsImage!='1'" />
-                                                            </a>
-                                                            <a @click="$root.openFile(f.Tenfile,f.Duongdan)" v-if="f.IsImage!='1' && f.Dinhdang!='pdf'" style="color:inherit">
-                                                                <b>{{f.Tenfile}}</b>
-                                                            </a>
-                                                            <a v-if="f.IsImage=='1'" ng-href="{{$root.fileUrl+f.Duongdan}}" data-fancybox data-caption="{{f.Tenfile}}" style="color:inherit">
-                                                                <b>{{f.Tenfile}}</b>
-                                                            </a>
-                                                            <span>{{f.Dungluong|bytes:"MB"}}</span>
-                                                            <div style="width:40px;position:absolute;top:-20px;right:-20px;" v-if="detail_request.IsEdit">
-                                                                <div class="btn-group" role="group">
-                                                                    <button type="button" title="Tùy chọn chức năng"
-                                                                            class="btn cur-p no-after dropdown-toggle" data-toggle="dropdown"
-                                                                            aria-haspopup="true" aria-expanded="false">
-                                                                        <i class="ti-more-alt"></i>
-                                                                    </button>
-                                                                    <ul class="dropdown-menu fsz-sm trf" aria-labelledby="btnGroupDrop1" style="width: max-content;">
-                                                                        <li> <a href="" @click="$root.openFile(f.Tenfile,f.Duongdan)" class="d-b td-n pY-10 pX-10 bgcH-grey-100"><i class="la la-download"></i> <span>Tải xuống</span></a></li>
-                                                                        <li role="separator" class="divider"></li>
-                                                                        <li v-if="detail_request.isdelcomment || u.NguoiTao==$root.login.u.NhanSu_ID"> <a href="" @click="Del_CommentFile(u.files,$index,f)" class="d-b td-n pY-10 pX-10 bgcH-grey-100 c-red-700"><i class="la la-trash-o"></i> <span>Xóa file này</span></a></li>
-                                                                    </ul>
-                                                                </div>
-                                                            </div>
+                                                        <div class="r-fbox image_file_chat">
+                                                            <a @click="showfile(f, u)" v-if="f.is_image!='1'">
+																<img width="32" v-bind:src="basedomainURL+'/Portals/Image/file/'+f.file_type+'.png'" v-if="f.is_image!='1'" />
+															</a>
+															<Image v-if="f.is_image=='1'"
+																class="flex"
+																:src="basedomainURL+f.file_path"
+																style="width: 100%; height: 100%; object-fit: contain;"
+																preview
+															/>
+															<a @click="showfile(f, u)" v-if="f.is_image!='1'" style="color:inherit">
+																<b>{{f.file_name}}</b>
+															</a>
+															<a class="viewimg" v-if="f.is_image=='1' || f.file_type=='pdf'" 
+																v-bind:href="basedomainURL+f.file_path" 
+																data-fancybox :data-caption="f.file_name" 
+																style="color:inherit">
+															</a>
+															<span v-if="f.is_image!='1'">{{formatByte(f.file_size)}}</span>                                                            
                                                         </div>
                                                     </li>
+                                                    <!-- <div class="pt-0 pb-3">
+														<span class="r-cdate fw-400">
+															{{ u.created_date ? moment(new Date(u.created_date)).format("HH:mm DD/MM") : '' }}
+														</span>
+													</div> -->
                                                 </ul>
                                             </div>
-                                            <div class="r-action pT-10">
-                                                <div v-if="!u.IsEdit">
-                                                    <ul v-if="u.countstisk>0" @click="getStick(u)">
-                                                        <li v-for="st in u.sticks track by st.Stick_File">
-                                                            <img ng-src="{{$root.fileUrl+st.Stick_File}}" />
-                                                        </li>
-                                                        <li v-if="u.countstisk - 3 > 0"><span> +{{u.countstisk - 3}}</span></li>
-                                                    </ul>
-                                                    <a v-if="u.NguoiTao !== $root.login.u.NhanSu_ID" @click="clickLike(u,1)">Thích</a>
-                                                    <a v-if="!congviec.isclosett" @click="u.IsReply?HuyReply():Reply(u)">{{u.IsReply?'Hủy':'Trả lời ('+u.CountReply.length+')'}}</a>
-                                                </div>
-                                                <div v-if="u.IsEdit">
-                                                    <a @click="u.IsEdit = !(u.IsEdit || false)">Hủy</a>
-                                                </div>
+                                            <div class="r-action pt-2">
+                                                <div class="flex" style="min-width: 100%;">
+													<div @click="getStick(u)" style="cursor:pointer" v-if="u.sticks && u.sticks.length > 0">
+														<ul class="p-0 mr-2 flex" style="box-shadow: none;list-style: none; margin: 0;">
+															<li class="flex" v-for="(st, idxSt) in u.sticks" :key="idxSt" style="border-radius: 50%;">
+																<img v-bind:src="basedomainURL+st.stick_file" style="width: 25px;" />
+															</li>
+															<li class="flex" v-if="u.countstick - 3 > 0" style="border-radius: 50%;">
+																<span class="flex pr-1" style="align-items: center;"> +{{u.countstick - 3}}</span>
+															</li>
+														</ul>
+													</div>
+													<div class="r-action" style="cursor:pointer" v-if="!u.IsEdit">
+														<ul class="p-0 flex" 
+                                                            style="background-color: transparent; box-shadow: none;list-style: none; margin: 0;">
+															<li class="flex">
+																<a v-if="u.created_by != store.getters.user.user_id" class="mr-1"
+																	@click="showEmote($event, u)">
+																	<span class="badge-2 fw-400 m-0" style="font-size: 12px;" v-tooltip.top="'Tương tác'">
+                                                                        <span class="flex" style="align-items:center;">
+                                                                            <i class="pi pi-thumbs-up"></i>
+                                                                            <span class="ml-2">Thích</span>
+                                                                        </span>
+																	</span>
+																</a>
+															</li>
+															<li class="ml-3 flex">
+																<a @click="u.IsReply ? HuyReply() : Reply(u)" 
+                                                                    style="margin-right: 5px;"
+                                                                    v-if="!detail_request.is_close"
+                                                                >
+																	<span class="badge-2 fw-400 m-0" style="font-size: 12px;" 
+                                                                        v-tooltip.top="u.IsReply?'Hủy':'Trả lời '"
+                                                                    >
+                                                                        <span class="flex" style="align-items:center;" v-if="u.IsReply">
+                                                                            <i class="pi pi-times" style="color:red;"></i>
+                                                                            <span class="ml-2">Huỷ</span>
+                                                                        </span>
+                                                                        <span class="flex" style="align-items:center;" v-else>
+                                                                            <i class="pi pi-reply"></i>
+                                                                            <span class="ml-2">Trả lời</span>
+                                                                        </span>
+																		<span style="vertical-align: super;" v-if="u.CountReply != null && u.CountReply.length > 0">
+																			{{((u.CountReply.length > 0) ? '('+u.CountReply.length+')' : '') }}
+																		</span>
+																	</span>
+																</a>
+															</li>
+														</ul>
+													</div>
+												</div>
                                             </div>
                                             <div v-if="u.IsEdit">
                                                 <div class="r-file" v-if="u.FileAttach_Edit.length>0">
-                                                    <h3 style="font-weight: bold;font-size: 16px;margin: 10px 0;border-top: 1px solid #f5f5f5;padding-top: 15px;color: #2196f3;">Danh sách file đã chọn</h3>
-                                                    <ul>
-                                                        <li v-for="f in u.FileAttach_Edit">
-                                                            <div class="r-fbox">
-                                                                <img width="32" ng-src="{{$root.fileUrl+'/Content/file/'+f.Dinhdang+'.png'}}" />
-                                                                <b>{{f.Tenfile}}</b>
-                                                                <span>{{f.Dungluong|bytes:"MB"}}</span>
-                                                                <div style="width:40px;position:absolute;top:-10px;right:-20px;">
-                                                                    <a @click="removeFilesComment_Edit(u.FileAttach_Edit,$index)"><i style="font-size:20px" class="la la-times-circle"></i></a>
+                                                    <h3 style="font-weight: bold;font-size: 16px;margin:0;border-top: 1px solid #f5f5f5;padding-top: 15px;color: #2196f3;">
+                                                        Danh sách file đã chọn
+                                                    </h3>
+                                                    <ul style="padding-left: 0; list-style: none;">
+                                                        <li class="py-2" v-for="f in u.FileAttach_Edit">
+                                                            <div class="r-fbox flex" style="justify-content: space-between;">
+                                                                <div class="flex" style="align-items: center;">
+                                                                    <img width="32" v-bind:src="basedomainURL+'/Portals/Image/file/'+f.file_type+'.png'" />
+                                                                    <span class="font-bold">{{f.file_name}}</span>
+                                                                </div>
+                                                                <div class="flex" style="align-items: center;">
+                                                                    <span>{{ formatByte(f.file_size) }}</span>
+                                                                    <div class="ml-3" style="width:40px;justify-content: center;">
+                                                                        <a @click="removeFilesComment_Edit(u.FileAttach_Edit,$index)">
+                                                                            <i style="font-size:20px;color: red;" class="pi pi-times-circle"></i>
+                                                                        </a>
+                                                                    </div>
                                                                 </div>
                                                             </div>
                                                         </li>
                                                     </ul>
                                                 </div>
-                                                <div class="msb-reply" style="margin: 10px 0;border: 1px solid #eee;border-radius: 20px;">
-                                                    <div style="height:75px; padding: 10px; padding-right: 200px; overflow: auto;" id="noiDungChat_Edit" ng-model="u.Noidung_Edit" contenteditable="true" my-enter="sendEditMS(u)" ng-keyup="completecm($event)" ng-mouseover="congviec.Focuscm=false" data-text="Nhập nội dung bình luận..."></div>
-                                                    <div class="showiconchat">
-                                                        <button data-toggle="dropdown" title="Gửi Sticker" style="right:150px;color:#777"><i class="las la-smile" style="font-size: 23px;"></i></button>
-                                                        <ul class="dropdown-menu dropdown-menuiconchat" role="menu" style="width:340px;top: -33px!important;right: 0;left: auto; bottom: inherit;margin:0;padding:0;border:0">
-                                                            <li>
-                                                                <div id="chhome" class="tab-pane fade in active show">
-                                                                    <ul class="emoji">
-                                                                        <li v-for="e in emojis|filter:{category:cart[emojiIndex].name}:true"><a @click="setEmoji_Edit(u,e,false)"><span ng-bind="e.emoji"></span></a></li>
-                                                                    </ul>
-                                                                    <div class="emoji-tabs">
-                                                                        <ul class="navbar-bottomleft">
-                                                                            <li v-for="c in cart"><a title="{{c.name}}" class="{{emojiIndex==$index}}" @click="setemojiIndex_Edit($index)" data-keepOpenOnClick><span ng-bind="c.emoji"></span></a></li>
-                                                                        </ul>
-                                                                    </div>
-                                                                </div>
-                                                            </li>
-                                                        </ul>
-                                                        <button style="right:100px;color:#777" @click="openImageChat_Edit()" title="Gửi ảnh">
-                                                            <i class="la la-image" style="font-size: 23px;"></i>
-                                                        </button>
-                                                        <input style="display:none" type="file" name="FileImagesChat_Edit" class="inputimgChats_Edit" accept=".png, .jpg, .jpeg, .gif" multiple="multiple" ngf-select="UploadFileChat_Edit(u,$files,1)" />
-                                                        <button style="right:50px;color:#777" @click="openFileChat_Edit('inputimgChats_Edit')" title="Gửi file đính kèm">
-                                                            <i class="la la-paperclip" style="font-size: 23px;"></i>
-                                                        </button>
-                                                        <input style="display:none" type="file" name="FileAttachChat_Edit" class="inputfileChat inputfileChatcm" multiple accept=".xlsx,.xls,image/*,.doc, .docx,.ppt, .pptx,.txt,.pdf" ngf-select="UploadFileChat_Edit(u,$files,2)" />
-                                                        <button @click="sendEditMS(u)"><i class="la la-paper-plane" style="font-size: 23px;"></i></button>
-                                                    </div>
-                                                </div>
-                                            </div>
-                                            -->
-                                        </div>
-                                        <!--
-                                        <div style="width:40px">
-                                            <div class="btn-group" role="group">
-                                                <button type="button" title="Tùy chọn chức năng"
-                                                        class="btn cur-p no-after dropdown-toggle" data-toggle="dropdown"
-                                                        aria-haspopup="true" aria-expanded="false">
-                                                    <i class="ti-more-alt"></i>
-                                                </button>
-                                                <ul class="dropdown-menu fsz-sm trf" aria-labelledby="btnGroupDrop1" style="width: max-content;">
-                                                    <li v-if="u.NguoiTao === $root.login.u.NhanSu_ID"> <a href="javascript:void(0);" @click="EditComment(u)" class="d-b td-n pY-10 pX-10 bgcH-grey-100"><i class="la la-edit"></i> <span>Chỉnh sửa thảo luận</span></a></li>
-                                                    <li> <a href="" @click="Reply(u)" class="d-b td-n pY-10 pX-10 bgcH-grey-100"><i class="la la-copy"></i> <span>Trả lời</span></a></li>
-                                                    <li v-if="detail_request.isdelcomment || u.NguoiTao==$root.login.u.NhanSu_ID" role="separator" class="divider"></li>
-                                                    <li v-if="detail_request.isdelcomment || u.NguoiTao==$root.login.u.NhanSu_ID"> <a href="" @click="Del_Comment(u,$index)" class="d-b td-n pY-10 pX-10 bgcH-grey-100 c-red-700"><i class="la la-trash-o"></i> <span>Xóa thảo luận</span></a></li>
-                                                </ul>
                                             </div>
                                         </div>
-                                        -->
+                                        
+                                        <div class="btn-func-cmt flex ml-2">
+                                            <div :id="'menu' + u.request_comment_id">
+                                                <Button
+                                                    class="p-button-rounded p-button-text p-button-plain p-0"
+                                                    icon="pi pi-ellipsis-h"
+                                                    @click="toogleFuncMes($event, u, index)"
+                                                    aria-haspopup="true"
+                                                    aria-controls="overlay_panelFuncMes"
+                                                />
+                                            </div>
+                                        </div>
                                     </div>
                                 </div>
-                                <!--
-                                <div class="r-file" v-if="FileAttach.length>0">
-                                    <h3 style="font-weight: bold;font-size: 16px;margin: 10px 0;border-top: 1px solid #f5f5f5;padding-top: 15px;color: #2196f3;">Danh sách file đã chọn</h3>
-                                    <ul>
-                                        <li v-for="f in FileAttach">
-                                            <div class="r-fbox">
-                                                <img width="32" ng-src="{{$root.fileUrl+'/Content/file/'+f.Dinhdang+'.png'}}" />
-                                                <span class="font-bold">{{ f.file_name }}</span>
-                                                <span>{{ formatByte(f.file_size) }}</span>
+                                
+                                <div class="r-file" 
+                                    style="position: absolute; bottom: 70px; background-color: #fff; width: 100%;" 
+                                    v-if="FileAttach.length > 0">
+                                    <h3 style="font-weight: bold;font-size: 16px;margin:0;border-top: 1px solid #f5f5f5;padding-top: 15px;color: #2196f3;">
+                                        Danh sách file đã chọn
+                                    </h3>
+                                    <ul class="my-2" style="padding-left: 0; list-style: none;">
+                                        <li v-for="(f, idx) in FileAttach" :key="idx">
+                                            <div class="r-fbox" style="position: relative;">
+                                                <img width="32" v-bind:src="basedomainURL+'/Portals/Image/file/'+f.file_type+'.png'" />
+                                                <div class="name-file font-bold py-2" style="word-break:break-all;">
+                                                    {{f.file_name}}
+                                                </div>
+                                                <div>{{ formatByte(f.file_size) }}</div>
                                                 <div style="width:40px;position:absolute;top:-10px;right:-20px;">
-                                                    <a @click="removeFilesComment(FileAttach,$index)"><i style="font-size:20px" class="la la-times-circle"></i></a>
+                                                    <a @click="removeFilesComment(FileAttach,idx)"><i style="font-size:20px" class="pi pi-times-circle"></i></a>
                                                 </div>
                                             </div>
                                         </li>
                                     </ul>
                                 </div>
-                            -->
+                            
                             </div>
                             
                         </div>
@@ -1442,7 +1825,7 @@ onMounted(() => {
                             >
                                 <div class="box-jobStask">
                                     <template v-for="(job, idxJob) in orderDatas(RQJobs, 'is_order')">
-                                        <div class="box-job" v-if="job.isCurrent == col-job.isCurrent == null">
+                                        <div class="box-job" v-if="job.isCurrent == job.isCurrent == null">
                                             <div class="job-headder">
                                                 <a style="padding:5px" data-toggle="collapse" data-target="#CollJob{{job.RequestJob_ID}}"><i class="la la-angle-down"></i></a>
                                                 <div class="job-ava" data-toggle="collapse" data-target="#CollJob{{job.RequestJob_ID}}">
@@ -1561,11 +1944,58 @@ onMounted(() => {
                                 </div>
                             </div>
                         </div>
+                    </div>                    
+                    <div class="flex" v-if="IsReply" style="">
+                        <div class="reply-chat show-reply" 
+                            style="padding:0;background-color: antiquewhite;border-radius: 10px;margin: 10px 0;width:100%;"
+                        >
+                            <div class="row">
+                                <div class="col-12 md:col-12 flex">
+                                    <div class="col-11 content-reply flex">
+                                        <font-awesome-icon icon="fa-solid fa-quote-right" style="font-size: 1rem; color: gray;" />
+                                        <div style="display: inline-block" class="bind-chat-html ml-2" 
+                                            v-html="tinnhanreply.content" 
+                                            v-if="tinnhanreply.type_comment == 0"
+                                        >
+                                        </div>
+                                        <div style="display: inline-block" class="bind-chat-html ml-2" v-else>
+                                            <Image v-if="tinnhanreply.type_comment == 1 && tinnhanreply.files.length > 0"
+                                                class="flex"
+                                                :src="basedomainURL + (tinnhanreply.files[0].file_path ||'/Portals/Image/noimg.jpg')"
+                                                style="height: 3rem; object-fit: contain;"
+                                            />
+                                            <div class="r-fbox image_file_chat flex" style="align-items: center;" v-else>
+                                                <img style="width:32px;" 
+                                                    v-bind:src="basedomainURL+'/Portals/Image/file/'+tinnhanreply.files[0].file_type+'.png'" 
+                                                    v-if="tinnhanreply.files.length > 0"
+                                                />
+                                                <a class="ml-2" style="color:#a9a69e; font-size: 0.9rem;" v-if="tinnhanreply.files.length > 0">
+                                                    <b>{{tinnhanreply.files[0].file_name}}</b>
+                                                </a>
+                                            </div>
+                                        </div>
+                                    </div>
+                                    <div class="col-1 close-reply text-right" v-if="editCmt != true">
+                                        <a @click="HuyReply()" style="cursor:pointer;"><i class="pi pi-times" style="color:red;"></i></a>
+                                    </div>
+                                </div>
+                                <div class="col-12 md:col-12 flex name-date-reply">
+                                    <span style="padding-left: 10px;color: #888;font-size: 12px;">
+                                        {{(tinnhanreply.last_name || tinnhanreply.full_name) + ', ' + 
+                                            (moment(new Date(tinnhanreply.created_date)).format("DD/MM/YYYY") == moment(new Date()).format("DD/MM/YYYY") 
+                                            ? ("Hôm nay lúc " + moment(new Date(tinnhanreply.created_date)).format("HH:mm"))
+                                            : moment(new Date(tinnhanreply.created_date)).format("HH:mm DD/MM/YYYY"))
+                                        }}
+                                    </span>
+                                </div>
+                            </div>
+
+                        </div>
                     </div>
                     <div
                         v-if="isClose == false"
                         class="absolute format-center col-12 p-0 m-0 flex bottom-0"
-                        style="border-radius: 0.25rem;border: 1px solid #b3b3b3;width:calc(100% - 1.5rem);"
+                        style="border-radius: 0.5rem;border: 1px solid #b3b3b3;width:calc(100% - 1.5rem);"
                     >
                         <div class="border-0 flex p-0 m-0" style="flex:1;">
                             <QuillEditor
@@ -1581,45 +2011,66 @@ onMounted(() => {
                             />
                         </div>
                         <div class="flex p-0 m-0">
-                            <div class="format-center flex col-12 p-0 m-0 h-full">
-                                <!-- v-clickoutside="onHideEmoji" -->
-
+                            <div class="format-center flex col-12 p-0 m-0 h-full"
+                                v-if="editCmt != true"
+                            >
                                 <Button
-                                class="p-button-text p-button-plain col-3 format-center w-3rem h-3rem"
-                                @click="showEmoji($event, 1)"
-                                v-tooltip="{ value: 'Biểu cảm' }"
+                                    class="p-button-text p-button-plain col-3 format-center w-3rem h-3rem"
+                                    @click="showEmoji($event, 1)"
+                                    v-tooltip.top="{ value: 'Biểu cảm' }"
                                 >
-                                <img
-                                    alt="logo"
-                                    src="/src/assets/image/smile.png"
-                                    width="20"
-                                    height="20"
-                                />
+                                    <img alt="logo"
+                                        src="/src/assets/image/smile.png"
+                                        width="20" height="20"
+                                    />
                                 </Button>
-
                                 <Button
-                                class="p-button-text p-button-plain col-3 w-3rem h-3rem"
-                                style="background-color: ; color: black"
-                                icon="pi pi-paperclip pt-1 pr-0 font-bold"
-                                @click="chonanh('anhcongviec')"
-                                v-tooltip="{ value: 'Đính kèm tệp' }"
+                                    class="p-button-text p-button-plain col-3 w-3rem h-3rem"
+                                    icon="pi pi-paperclip pt-1 pr-0 font-bold"
+                                    @click="chooseFile('file_to_request')"
+                                    v-tooltip="{ value: 'Đính kèm tệp' }"
                                 >
                                 </Button>
                                 <Button
-                                icon="pi pi-send pt-1 pr-0 font-bold"
-                                class="p-button-text p-button-plain col-3 w-3rem h-3rem"
-                                style="background-color: ; color: black"
-                                @click="addComment()"
-                                v-tooltip="{ value: 'Gửi bình luận' }"
+                                    icon="pi pi-send pt-1 pr-0 font-bold"
+                                    class="p-button-text p-button-plain col-3 w-3rem h-3rem"
+                                    @click="addComment()"
+                                    v-tooltip.top="{ value: 'Gửi bình luận' }"
                                 />
                                 <input
-                                class="hidden"
-                                id="anhcongviec"
-                                type="file"
-                                multiple="true"
-                                accept="*"
-                                @change="handleFileUploadReport"
+                                    class="hidden"
+                                    id="file_to_request"
+                                    type="file"
+                                    multiple="true"
+                                    accept="*"
+                                    @change="PutFileUpload"
                                 />
+                            </div>
+                            <div v-if="editCmt == true" class="showiconchat flex" style="width: 10rem;align-items: center;">
+                                <Button class="p-button-text p-button-plain col-3 format-center w-3rem h-3rem"
+                                    @click="showEmoji($event, 1)" 
+                                    v-tooltip.top="{ value: 'Biểu cảm' }" 
+                                >
+                                    <img alt="logo"
+                                        src="/src/assets/image/smile.png"
+                                        width="20" height="20"
+                                    />
+                                </Button>
+                                <Button 
+                                    class="p-button-text p-button-plain col-3 w-3rem h-3rem" 
+                                    icon="pi pi-send pt-1 pr-0 font-bold"
+                                    v-tooltip.top="{ value: 'Gửi bình luận' }"
+                                    :disabled="(comment == null || comment == '') && FileAttach.length == 0" 
+                                    @click="addComment(0)"
+                                >
+                                </Button>
+                                <Button 
+                                    class="p-button-text p-button-plain col-3 w-3rem h-3rem" 
+                                    v-tooltip.top="{ value: 'Hủy' }" 
+                                    @click="cancelEditComment(cmtFuncClick)"
+                                >
+                                    <i class="pi pi-times-circle" style="font-size: 1.5rem; color:red;"></i> 
+                                </Button>
                             </div>
                         </div>
                     </div>
@@ -1689,7 +2140,269 @@ onMounted(() => {
                 >
                     {{ detail_request.objStatus.text || "" }}
                 </span>
-                            
+                
+            </div>
+            <div class="row col-12 p-0">
+                <TabView class="w-full tab-log-request" lazy :active-index="tabLogActive" @tab-change="changeTabContent">
+                    <TabPanel>
+                        <template #header>
+                            <i class="pi pi-chart-line mr-2 css-icon"></i>
+                            <span>QT</span>
+                        </template>
+                        <div class="" v-if="true">
+                            <div v-for="(item, qtIndex) in dataQT"
+                                :class="{ 'is-close': item.is_close }"
+                                :key="qtIndex"
+                                class="bg-blue-200 mb-3"
+                            >
+                                <Panel :toggleable="true"
+                                    :collapsed="item.is_close"
+                                >
+                                    <template #header>
+                                        <div class="flex">
+                                            <h3 class="m-0 format-flex-center"
+                                                style="text-align: left"
+                                            >
+                                                {{ item.config_process_name }}
+                                            </h3>
+                                            <Tag v-if="item.type_send != 2"
+                                                class="ml-3 px-3 py-1"
+                                                :value="item.type_name"
+                                                :class="'type' + item.config_process_type"
+                                                style="font-size: 11px; min-width: max-content; color: #fff; 
+                                                    border-radius: 25px; height: max-content;"
+                                            ></Tag>
+                                            <Tag
+                                                v-if="item.is_close"
+                                                class="mx-3 px-3 py-1"
+                                                :value="'Đã hủy'"
+                                                :style="{ backgroundColor: 'red', color: '#fff' }"
+                                                style="font-size: 11px; min-width: max-content; height: max-content;"
+                                            ></Tag>
+                                        </div>
+                                    </template>
+                                    <div v-if="item.approves_groups.length > 0">
+                                        <div class=" mt-3"
+                                            v-for="(sign, sindex) in item.approves_groups"
+                                            :key="sindex"
+                                        >
+                                            <div class="p-2 flex"
+                                                style="background-color: antiquewhite; justify-content: space-between;"
+                                            >
+                                                <h3 class="m-0 format-flex-center">
+                                                    {{ sign.approved_group_name }} ({{ sign.hrm_process.length }} người)
+                                                </h3>
+                                                <Tag
+                                                    class="ml-3 px-3 py-1"
+                                                    :value="sign.type_name"
+                                                    :class="'type' + sign.approved_type"
+                                                    style="font-size: 11px; min-width: max-content; color: #fff; 
+                                                        border-radius: 25px; height: max-content;"
+                                                ></Tag>
+                                            </div>
+                                            <div v-if="sign.hrm_process.length > 0">
+                                                <div v-for="(signuser, uindex) in sign.hrm_process"
+                                                    :key="uindex"
+                                                    class="flex mt-3"
+                                                    :class="'is-sign' + signuser.is_approved + ' status-sign' + signuser.is_returned"
+                                                >
+                                                    <div class="signuser-image">
+                                                        <div class="group-sign">
+                                                            <div style="display: inline-block; position: relative; z-index: 1;"
+                                                            >
+                                                                <Avatar 
+                                                                    v-bind:label="signuser.avatar ? '' : signuser.last_name.substring(0, 1)"
+                                                                    v-bind:image="basedomainURL + signuser.avatar"
+                                                                    v-tooltip.top="signuser.full_name"
+                                                                    style="
+                                                                        background-color: #2196f3;
+                                                                        color: #ffffff;
+                                                                        width: 4rem;
+                                                                        height: 4rem;
+                                                                    "
+                                                                    :style="{ background: bgColor[sindex % 7] }"
+                                                                    class="text-avatar"
+                                                                    size="xlarge"
+                                                                    shape="circle"
+                                                                />
+                                                                <span class="is-sign">                                                                
+                                                                    <font-awesome-icon
+                                                                        v-if="signuser.is_approved === '1'"
+                                                                        icon="fa-solid fa-circle-check"
+                                                                        style="
+                                                                        font-size: 16px;
+                                                                        display: block;
+                                                                        color: #7abd1a;
+                                                                        "
+                                                                    />
+                                                                    <font-awesome-icon
+                                                                        v-if="signuser.is_returned === '1'"
+                                                                        icon="fa-solid fa-circle-stop"
+                                                                        style="
+                                                                        font-size: 16px;
+                                                                        display: block;
+                                                                        color: #ff8b4e;
+                                                                        "
+                                                                    />
+                                                                </span>
+                                                            </div>
+                                                        </div>
+                                                        <span class="sign-date"
+                                                            v-if="signuser.date_approved != null"
+                                                        >{{ signuser.date_approved }}
+                                                        </span>
+                                                    </div>
+                                                    <div class="signuser-detail"
+                                                        :class="{ 'signuser-last': uindex === sign.hrm_process.length - 1 }"
+                                                    >
+                                                        <div>
+                                                            <h3 class="m-0 mb-2">
+                                                                {{ signuser.full_name }}
+                                                            </h3>
+                                                            <div class="description">
+                                                                <div>{{ signuser.position_name }}</div>
+                                                                <div>{{ signuser.department_name }}</div>
+                                                            </div>
+                                                            <div class="mt-2"
+                                                                v-if="signuser.content != null"
+                                                            >
+                                                                <span v-if="sign.approved_type === 0">Trình duyệt: </span>
+                                                                <span v-else-if="signuser.is_approved === '1'">Chấp thuận: </span>
+                                                                <span v-else-if="signuser.is_returned === '1'">Trả lại: </span>
+                                                                <!-- <span v-if="signuser.is_type === 0 && signuser.is_sign == -3">Hủy lịch: </span> -->
+                                                                <span>{{ signuser.content }}</span>
+                                                            </div>
+                                                            <div v-if="signuser.files && signuser.files.length > 0"
+                                                                class="mt-2 description"
+                                                            >
+                                                                <a class="hover"
+                                                                    @click="goFile(signuser.files[0])"
+                                                                >
+                                                                    Tài liệu đính kèm
+                                                                    <i class="pi pi-paperclip"></i>
+                                                                </a>
+                                                            </div>
+                                                        </div>
+                                                    </div>
+                                                </div>
+                                            </div>
+                                            <div v-else
+                                                style="width: 100%; height: 100px"
+                                                class="format-flex-center"
+                                            >
+                                                <span class="description">Không có người duyệt</span>
+                                            </div>
+                                        </div>
+                                    </div>
+                                    <div v-else
+                                        style="width: 100%; height: 100px"
+                                        class="format-flex-center"
+                                    >
+                                        <span class="description">Không có nhóm duyệt</span>
+                                    </div>
+                                </Panel>
+                            </div>
+                        </div>
+                        <div class="align-items-center justify-content-center p-4 text-center" v-else>
+                            <img src="../../../assets/background/nodata.png" height="144" />
+                            <h3 class="m-1">Không có dữ liệu</h3>
+                        </div>
+                    </TabPanel>
+                    <TabPanel>
+                        <template #header>
+                            <i class="pi pi-clock mr-2 css-icon"></i>
+                            <span>Log</span>
+                        </template>
+                        <div class="" v-if="true">
+                            <div v-for="(item, logIndex) in dataLog"
+                                :class="{ 'is-close': item.is_close }"
+                                :key="logIndex"
+                                class="bg-blue-200 mb-3"
+                            >
+                                <Panel :toggleable="true"
+                                    :collapsed="item.is_close"
+                                >
+                                    <template #header>
+                                        <span>{{ 'Log 1' }}</span>
+                                    </template>
+                                    <div>
+
+                                    </div>
+                                </Panel>
+                            </div>
+                        </div>
+                        <div class="align-items-center justify-content-center p-4 text-center" v-else>
+                            <img src="../../../assets/background/nodata.png" height="144" />
+                            <h3 class="m-1">Không có dữ liệu</h3>
+                        </div>
+                    </TabPanel>
+                    <TabPanel>
+                        <template #header>
+                            <font-awesome-icon class="mr-2" icon="fa-solid fa-list-check" />
+                            <span>Công việc</span>
+                        </template>
+                        <div class="" v-if="true">
+                            <Accordion class="accordion-custom tab-law" 
+                                :activeIndex="0"
+                                :multiple="true"
+                            >
+                                <AccordionTab>
+                                    <template #header>
+                                        <font-awesome-icon class="mr-2" icon="fa-solid fa-list-check" />
+                                        <span>Công việc (0)</span>
+                                    </template>
+                                    <div>
+
+                                    </div>
+                                </AccordionTab>
+                                <AccordionTab>
+                                    <template #header>
+                                        <i class="pi pi-file mr-2 css-icon"></i>
+                                        <span>Văn bản (0)</span>
+                                    </template>
+                                    <div>
+                                        
+                                    </div>
+                                </AccordionTab>
+                                <AccordionTab>
+                                    <template #header>
+                                        <i class="pi pi-calendar mr-2 css-icon"></i>
+                                        <span>Lịch (0)</span>
+                                    </template>
+                                    <div>
+                                        
+                                    </div>
+                                </AccordionTab>
+                                <AccordionTab>
+                                    <template #header>
+                                        <i class="pi pi-paperclip mr-2 css-icon"></i>
+                                        <span>Danh sách tài liệu (0)</span>
+                                    </template>
+                                    <div>
+                                        
+                                    </div>
+                                </AccordionTab>
+                            </Accordion>
+                        </div>
+                        <div class="align-items-center justify-content-center p-4 text-center" v-else>
+                            <img src="../../../assets/background/nodata.png" height="144" />
+                            <h3 class="m-1">Không có dữ liệu</h3>
+                        </div>
+                    </TabPanel>
+                    <TabPanel>
+                        <template #header>
+                            <i class="pi pi-user mr-2 css-icon"></i>
+                            <span>Theo dõi</span>
+                        </template>
+                        <div class="" v-if="true">
+                        
+                        </div>
+                        <div class="align-items-center justify-content-center p-4 text-center" v-else>
+                            <img src="../../../assets/background/nodata.png" height="144" />
+                            <h3 class="m-1">Không có dữ liệu</h3>
+                        </div>
+                    </TabPanel>
+                </TabView>
             </div>
         </div>
     </div>
@@ -1717,8 +2430,93 @@ onMounted(() => {
         append-to="body"
         :show-close-icon="false"
         id="overlay_panelEmoij1"
+        style="z-index:10000;"
     >
         <VuemojiPicker @emojiClick="handleEmojiClick" />
+    </OverlayPanel>
+    <!-- panel menu comment -->
+    <OverlayPanel
+        ref="funcCmtRequest"
+        appendTo="body"
+        class="p-0 m-0 panelFuncMes"
+        :showCloseIcon="false"
+        id="overlay_panelFuncMes"
+        style="width: fit-content;z-index:10000;"
+    >
+        <div>
+            <ul class="ul-func-mes m-0" style="width: 10rem;">
+                <li class="px-2 py-2" v-if="(cmtFuncClick.IsMe && cmtFuncClick.type_comment == 0)">
+                    <a @click="EditComment(cmtFuncClick)" class="d-b td-n">
+                        <i class="pi pi-pencil"></i>
+                        <span class="ml-1"> Chỉnh sửa</span>
+                    </a>
+                </li>
+                <li class="px-2 py-2"> <a @click="Reply(cmtFuncClick)" class="d-b td-n">
+                    <i class="pi pi-reply"></i>
+                    <span class="ml-1"> Trả lời</span></a>
+                </li>
+                <li class="px-2 py-2" v-if="(cmtFuncClick.type_comment == 1 || cmtFuncClick.type_comment == 2 || cmtFuncClick.type_comment == 3 || cmtFuncClick.type_comment == 4)"> 
+                    <a @click="openFile(cmtFuncClick)" class="d-b td-n">
+                    <i class="pi pi-download"></i>
+                    <span class="ml-1"> Tải xuống</span></a>
+                </li>
+                <li v-if="cmtFuncClick.IsMe" role="separator" class="divider"></li>
+                <li class="px-2 py-2" v-if="(detail_request.isdelcomment || cmtFuncClick.IsMe)"> 
+                    <a @click="Del_Message(cmtFuncClick,cmtFuncClick.index)" class="d-b td-n" style="color:red;">
+                        <i class="pi pi-trash"></i> 
+                        <span class="ml-1"> Xóa</span>
+                    </a>
+                </li>
+            </ul>
+        </div>
+    </OverlayPanel>
+    <!-- panel list emote -->
+    <OverlayPanel
+        class="p-0 p-overlaypanel-setup"
+        ref="panelEmote"
+        appendTo="body"
+        :showCloseIcon="false"
+        id="overlay_panelEmote"
+        style="z-index:10000;"
+    >
+        <div class="flex p-0">
+            <div class="p-0 cursor-pointer format-center"
+                style="width: 40px; height: 40px"					
+                @mouseover="onCheckHover(item)"
+                @mouseleave="hideCheckHover()"
+                v-for="(item, index) in emoteList" :key="index"
+            >
+                <img v-tooltip.top="item.emote_name"
+                    :src="basedomainURL + item.emote_file"
+                    :alt="item.emote_file"
+                    @click="addEmote(item)"
+                    :class="checkHover == item.emote_id
+                        ? 'animate__animated  animate__pulse emote-lg'
+                        : 'emote-md'
+                    "
+                />
+            </div>
+        </div>
+    </OverlayPanel>
+    <!-- panel button download file -->
+    <OverlayPanel
+        ref="funcMesFiles"
+        appendTo="body"
+        class="p-0 m-0 panelFuncFiles"
+        :showCloseIcon="false"
+        id="overlay_panelFuncFiles"
+        style="width: fit-content;z-index:10000;"
+    >
+        <div>
+            <ul class="ul-func-mes m-0" style="width: 10rem; padding:0; list-style-type: none;">
+                <li class="px-2 py-2">
+                    <a @click="openFile(fileFuncClick,fileFuncClick.file_path)" class="d-b td-n">
+                        <i class="pi pi-download"></i>
+                        <span class="ml-1"> Tải xuống</span>
+                    </a>
+                </li>
+            </ul>
+        </div>
     </OverlayPanel>
 </template>
 <style scoped>
@@ -1750,6 +2548,27 @@ onMounted(() => {
             max-height: 32px; 
             max-width: 100%; 
             object-fit: contain;
+        }
+    }
+    ::v-deep(.tab-log-request) {
+        .p-tabview-nav-link:hover {
+            background-color: #f0f8ff !important;
+        }
+        .p-tabview-panels {
+            padding: 0.5rem 0;
+        }
+        .p-accordion-tab {
+            padding-bottom: 0.5rem;
+        }
+        .p-accordion-header {
+            border: 1px solid #efefef;
+            border-radius: 5px;
+        }
+        .p-accordion-header.p-highlight .p-accordion-header-link {
+            background-color: aliceblue;
+        }
+        .p-accordion-content {
+            border: none;
         }
     }
 </style>

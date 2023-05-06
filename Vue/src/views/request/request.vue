@@ -15,7 +15,7 @@ const swal = inject("$swal");
 const axios = inject("axios");
 const emitter = inject("emitter");
 const basedomainURL = baseURL;
-const baseUrlCheck = "http://localhost:8080/";
+//const baseUrlCheck = "http://localhost:8080/";
 const config = {
   headers: {
     Authorization: `Bearer ${store.getters.token}`,
