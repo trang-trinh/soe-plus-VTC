@@ -1542,6 +1542,9 @@ onMounted(() => {
                   :model="smart_report.profile_id"
                   :placeholder="'Chọn nhân sự'"
                   :class="'w-full p-0'"
+                  :editable="false"
+                  optionLabel="profile_user_name"
+                optionValue="code"
                 />
                 </div>
             
