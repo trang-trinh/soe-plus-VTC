@@ -122,8 +122,9 @@ onMounted(() => {
   };
 });
 onBeforeUpdate(() => {
- 
+  
   model.value = [];
+  if( listDataUsersSave.value.length>0)
       props.model.forEach((itemsa) => {
         var models = listDataUsersSave.value.find((x) => x.profile_id == itemsa);
         if (models)
@@ -134,6 +135,8 @@ onBeforeUpdate(() => {
           });
         else model.value = [];
       });
+      else
+      loadUserProfiles();
 
  
 });

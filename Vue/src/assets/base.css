@@ -899,6 +899,10 @@ li.p-chips-token {
 .d-design-inputnumber.p-inputnumber .p-inputtext {
   text-align: center !important;
 }
+.d-design-sidebar .p-sidebar-content{
+  height: 100%;
+  position: relative;
+}
 .module-button {
   margin-top: 0.4rem !important;
   margin-right: 1rem !important;
@@ -1343,6 +1347,13 @@ display: none !important;
   cursor: pointer !important; 
    overflow: unset !important; 
      text-overflow: unset !important;  
+}
+.d-tree-missheader .p-treetable-thead{
+  display: none !important;
+}
+
+.d-tree-missheader td{
+  border: unset !important;
 }
 .d-dropdown-design .p-dropdown-label.p-inputtext{
   padding: 0 !important;
