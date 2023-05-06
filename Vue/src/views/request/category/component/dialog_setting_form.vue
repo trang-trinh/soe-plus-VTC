@@ -25,7 +25,6 @@ const props = defineProps({
   displayDialog: Boolean,
   listSettingForms: Object,
   closeDialogSetting: Function,
-  listSettingForms: Object,
 });
 const cpnSettingForm = ref(0);
 const forceRerenderFormSetting = () => {
@@ -74,12 +73,12 @@ const listDropdownAlign = ref([
   { value: "center", text: "Giữa" },
 ])
 const listDropdownPermission = ref([
-  { value: "0", text: "Tất cả" },
-  { value: "1", text: "Người tạo nhập" },
-  { value: "2", text: "Người duyệt nhập" },
-  { value: "3", text: "Người xử lý nhập" },
-  { value: "4", text: "Người xử lý và người tạo" },
-  { value: "5", text: "Người xử lý vào người duyệt" },
+  { value: 0, text: "Tất cả" },
+  { value: 1, text: "Người tạo nhập" },
+  { value: 2, text: "Người duyệt nhập" },
+  { value: 3, text: "Người xử lý nhập" },
+  { value: 4, text: "Người xử lý và người tạo" },
+  { value: 5, text: "Người xử lý vào người duyệt" },
 ])
 const listTypeColumn = ref([
   { value: 'varchar', text: 'varchar', is_length: true },
@@ -90,6 +89,7 @@ const listTypeColumn = ref([
   { value: 'textarea', text: 'textarea', is_length: true },
   { value: 'checkbox', text: 'checkbox', is_length: false },
   { value: 'radio', text: 'radio', is_length: false },
+  { value: 'switch', text: 'switch', is_length: false },
   { value: 'date', text: 'date', is_length: false },
   { value: 'datetime', text: 'datetime', is_length: false },
   { value: 'time', text: 'time', is_length: false },
@@ -118,10 +118,11 @@ const listDataType = ref([
       { label: 'Ngày', value: 6 },
       { label: 'Giờ', value: 7 },
       { label: 'Nghỉ phép?', value: 8 },
+      { label: 'Loại nghỉ', value: 9 }, // Các loại nghỉ: FULL=cả ngày, AM=buổi sáng, PM: buổi chiều
     ]
   },
 ])
-const listSettingFormOf = ref([]);
+const listSettingFormOf = ref(props.listSettingForms);
 const addSettingFormTeams = () => {
   let arr_form_d = { request_formd_id: generateUUID(), request_form_id: props.id, ten_truong: null, kieu_truong: null, is_length: null, is_order: listSettingForms.value.length + 1, is_required: 0, is_label: false, is_parent_id: null, is_type: 0, selectedType: { label: 'Trường bình thường', value: 0 }, is_class: null, tudien_id: null, text_key: null, value_key: null, is_width: null, text_align: null, is_permission: null, lv: 1, is_edit: true };
   listSettingForms.value.push(arr_form_d);
@@ -203,7 +204,7 @@ const addChild = (model, idx) => {
   listSettingForms.value.splice(idx_cr + idx_countChild + 1, 0, arr_form_d);
 
   listSettingForms.value.forEach((e, i) => {
-    if (arr.length == 1) {
+    if (arr1.length == 1) {
       e.isDisableDown = true;
       e.isDisableUp = true;
     } else if (i == 0 && listSettingForms.value.length > 1) {
@@ -238,7 +239,7 @@ const saveDataFormD = () => {
     .then((response) => {
       if (response.data.err != "1") {
         swal.close();
-        toast.success("Cập nhật team sử dụng cho đề xuất thành công!");
+        toast.success("Cập nhật form đề xuất thành công!");
         props.closeDialogSetting();
       }
     })
@@ -289,6 +290,9 @@ const ChangeDropdown = (data, event) => {
 const editSettingFormD = (model) => {
   model.is_edit = !model.is_edit;
 }
+const Remove_FormSign = (arr, data, idxData) => {
+  arr.splice(idxData, 1);
+};
 onMounted(() => {
   //loadDataTeamUse(true);
   return {};
@@ -318,8 +322,8 @@ onMounted(() => {
             scrollDirection="both" scrollHeight="flex" :lazy="true" dataKey="request_formd_id" :rowHover="true"
             v-model:selection="selectedTeamDatas">
             <Column field="ten_truong" header="Trường"
-              headerStyle="text-align:center;width:30rem;height:50px;border-left:none;border-right:none;"
-              bodyStyle="text-align:center;height:50px;;width:30rem;border-left:none;border-right:none;position:relative"
+              headerStyle="text-align:center;width:25rem;height:50px;border-left:none;border-right:none;"
+              bodyStyle="text-align:center;height:50px;;width:25rem;border-left:none;border-right:none;position:relative"
               class="align-items-center justify-content-center text-center">>
               <template #body="data">
                 <div :style="'padding-left:' + (data.data.lv == 1 ? '0' : data.data.lv * 10) + 'px'" style="width: 100%;">
@@ -329,20 +333,20 @@ onMounted(() => {
               </template>
             </Column>
             <Column field="is_parent_id" header="Thuộc"
-              headerStyle="text-align:center;width:20rem;height:50px;border-left:none;border-right:none;"
-              bodyStyle="text-align:center;height:50px;;width:20rem;border-left:none;border-right:none;position:relative"
-              class="align-items-center justify-content-center text-center">
+              headerStyle="text-align:center;width:16rem;height:50px;border-left:none;border-right:none;"
+              bodyStyle="height:50px;;width:16rem;border-left:none;border-right:none;position:relative"
+              class="align-items-center justify-content-center">
               <template #body="data">
                 <Dropdown :options="listSettingFormOf" :disabled="!data.data.is_edit"
                   @Change="ChangeData(data.data, data.index)" style="" :filter="true" :showClear="true" :editable="false"
                   v-model="data.data.is_parent_id" optionLabel="ten_truong" optionValue="request_formd_id" placeholder=""
-                  class="col-12 ip36">
+                  class="col-12 ip36 dropdown-set-request">
                 </Dropdown>
               </template>
             </Column>
             <Column field="" header="Chức năng"
-              headerStyle="text-align:center;width:15rem;height:50px;border-left:none;border-right:none;"
-              bodyStyle="text-align:center;height:50px;;width:15rem;border-left:none;border-right:none;position:relative"
+              headerStyle="text-align:center;width:12rem;height:50px;border-left:none;border-right:none;"
+              bodyStyle="text-align:center;height:50px;;width:12rem;border-left:none;border-right:none;position:relative"
               class="align-items-center justify-content-center text-center">
               <template #body="data">
                 <span style="width: 100%;display: flex;align-items: center;justify-content: space-between;"
@@ -386,12 +390,12 @@ onMounted(() => {
               </template>
             </Column>
             <Column field="is_required" header="Required"
-              headerStyle="text-align:center;width:10rem;height:50px;border-left:none;border-right:none;"
-              bodyStyle="text-align:center;height:50px;;width:10rem;border-left:none;border-right:none;position:relative"
+              headerStyle="text-align:center;width:8rem;height:50px;border-left:none;border-right:none;"
+              bodyStyle="text-align:center;height:50px;;width:8rem;border-left:none;border-right:none;position:relative"
               class="align-items-center justify-content-center text-center">
               <template #body="data">
                 <span v-if="!data.data.is_label" class="required-hover" @click="ChangeRequired(data.data)"
-                  :style="(data.data.is_required ? 'color: red;' : '')" style="padding: 20px;">{{ data.data.is_required ?
+                  :style="(data.data.is_required ? 'color: red;' : '')" style="padding: 0 20px;">{{ data.data.is_required ?
                     "* REQUIRED" : "NOT REQUIRED" }}</span>
               </template>
             </Column>
@@ -402,13 +406,13 @@ onMounted(() => {
               <template #body="data">
                 <Dropdown :options="listTypeColumn" :disabled="!data.data.is_edit" style="" :filter="true"
                   :showClear="true" :editable="false" v-model="data.data.kieu_truong" optionLabel="text"
-                  optionValue="value" placeholder="" class="col-12 ip36">
+                  optionValue="value" placeholder="" class="col-12 ip36 dropdown-set-request">
                 </Dropdown>
               </template>
             </Column>
             <Column field="is_length" header="Length"
-              headerStyle="text-align:center;width:10rem;height:50px;border-left:none;border-right:none;"
-              bodyStyle="text-align:center;height:50px;;width:10rem;border-left:none;border-right:none;position:relative"
+              headerStyle="text-align:center;width:8rem;height:50px;border-left:none;border-right:none;"
+              bodyStyle="text-align:center;height:50px;;width:8rem;border-left:none;border-right:none;position:relative"
               class="align-items-center justify-content-center text-center">
               <template #body="data">
                 <InputText type="text" style="" :disabled="!data.data.is_edit" class="col-12 ip36" spellcheck="false"
@@ -416,8 +420,8 @@ onMounted(() => {
               </template>
             </Column>
             <Column field="is_width" header="Width"
-              headerStyle="text-align:center;width:10rem;height:50px;border-left:none;border-right:none;"
-              bodyStyle="text-align:center;height:50px;;width:10rem;border-left:none;border-right:none;position:relative"
+              headerStyle="text-align:center;width:8rem;height:50px;border-left:none;border-right:none;"
+              bodyStyle="text-align:center;height:50px;;width:8rem;border-left:none;border-right:none;position:relative"
               class="align-items-center justify-content-center text-center">
               <template #body="data">
                 <InputNumber v-if="!data.data.is_label" :disabled="!data.data.is_edit" style="" class="col-12 ip36"
@@ -425,35 +429,35 @@ onMounted(() => {
               </template>
             </Column>
             <Column field="text_align" header="Align"
-              headerStyle="text-align:center;width:10rem;height:50px;border-left:none;border-right:none;"
-              bodyStyle="text-align:center;height:50px;;width:10rem;border-left:none;border-right:none;position:relative"
+              headerStyle="text-align:center;width:8rem;height:50px;border-left:none;border-right:none;"
+              bodyStyle="text-align:center;height:50px;;width:8rem;border-left:none;border-right:none;position:relative"
               class="align-items-center justify-content-center text-center">
               <template #body="data">
                 <Dropdown v-if="!data.data.is_label" :disabled="!data.data.is_edit" :options="listDropdownAlign" style=""
                   :filter="true" :showClear="true" :editable="false" v-model="data.data.text_align" optionLabel="text"
-                  optionValue="value" placeholder="" class="col-12 ip36">
+                  optionValue="value" placeholder="" class="col-12 ip36 dropdown-set-request">
                 </Dropdown>
               </template>
             </Column>
             <Column field="is_class" header="Class"
-              headerStyle="text-align:center;width:10rem;height:50px;border-left:none;border-right:none;"
-              bodyStyle="text-align:center;height:50px;;width:10rem;border-left:none;border-right:none;position:relative"
+              headerStyle="text-align:center;width:9rem;height:50px;border-left:none;border-right:none;"
+              bodyStyle="text-align:center;height:50px;;width:9rem;border-left:none;border-right:none;position:relative"
               class="align-items-center justify-content-center text-center">
               <template #body="data">
                 <Dropdown v-if="!data.data.is_label" :disabled="!data.data.is_edit" :options="listDropdownClass" style=""
                   :filter="true" :showClear="true" :editable="false" v-model="data.data.is_class" optionLabel="text"
-                  optionValue="value" placeholder="" class="col-12 ip36">
+                  optionValue="value" placeholder="" class="col-12 ip36 dropdown-set-request">
                 </Dropdown>
               </template>
             </Column>
             <Column field="is_type" header="Type"
-              headerStyle="text-align:center;width:15rem;height:50px;border-left:none;border-right:none;"
-              bodyStyle="text-align:center;height:50px;;width:15rem;border-left:none;border-right:none;position:relative"
-              class="align-items-center justify-content-center text-center">
+              headerStyle="text-align:center;width:18rem;height:50px;border-left:none;border-right:none;"
+              bodyStyle="height:50px;;width:18rem;border-left:none;border-right:none;position:relative"
+              class="align-items-center justify-content-center">
               <template #body="data">
                 <Dropdown v-model="data.data.selectedType" :disabled="!data.data.is_edit"
-                  @change="ChangeDropdown(data.data, $event)" :options="listDataType" optionLabel="label"
-                  optionGroupLabel="label" optionGroupChildren="items" placeholder="" class="col-12 ip36">
+                  @change="ChangeDropdown(data.data, $event)" :options="listDataType" optionLabel="label" :showClear="true"
+                  optionGroupLabel="label" optionGroupChildren="items" placeholder="" class="col-12 ip36 dropdown-set-request">
                   <template #optiongroup="slotProps">
                     <div class="flex align-items-center">
                       <div>{{ slotProps.option.label }}</div>
@@ -463,13 +467,13 @@ onMounted(() => {
               </template>
             </Column>
             <Column field="is_permission" header="Quyền"
-              headerStyle="text-align:center;width:10rem;height:50px;border-left:none;border-right:none;"
-              bodyStyle="text-align:center;height:50px;;width:10rem;border-left:none;border-right:none;position:relative"
+              headerStyle="text-align:center;width:18rem;height:50px;border-left:none;border-right:none;"
+              bodyStyle="text-align:center;height:50px;;width:18rem;border-left:none;border-right:none;position:relative"
               class="align-items-center justify-content-center text-center">
               <template #body="data">
                 <Dropdown v-if="!data.data.is_label" :disabled="!data.data.is_edit" :options="listDropdownPermission"
                   style="" :filter="true" :showClear="true" :editable="false" v-model="data.data.is_permission"
-                  optionLabel="text" optionValue="value" placeholder="" class="col-12 ip36">
+                  optionLabel="text" optionValue="value" placeholder="" class="col-12 ip36 dropdown-set-request">
                 </Dropdown>
               </template>
             </Column>
@@ -511,5 +515,15 @@ onMounted(() => {
   .p-datatable-emptymessage {
     justify-content: center;
   }
+}
+::v-deep(.dropdown-set-request) {
+  .p-dropdown-label.p-inputtext {
+    padding: 0.5rem 1rem 0.5rem 0;
+  }
+}
+</style>
+<style>
+.dropdown-set-request {
+  padding-right: 0;
 }
 </style>
