@@ -41,6 +41,16 @@ const renderColorProgress = (value) => {
     }
     return "";
 };
+const groupBy = (xs, key) => {
+    return xs.reduce((rv, x) => {
+        (rv[x[key]] = rv[x[key]] || []).push(x);
+        return rv;
+    }, {});
+};
+function isValidDate(date) {
+    //return d instanceof Date && !isNaN(d);
+    return (new Date(date) !== "Invalid Date") && !isNaN(new Date(date))
+}
 const listStatusRequests = ref([
     { id: 0,  text: "Mới lập",    class: "rqlap" },
     { id: 1,  text: "Chờ duyệt",  class: "rqchoduyet" },
@@ -87,6 +97,8 @@ const loadData = (rf) => {
 const detail_request = ref();
 const TimeToDo = ref();
 const isClose = ref(false);
+const FormDS = ref([]);
+const Ftables = ref([]);
 const loadDetailRequest = () => {
     axios
     .post(
@@ -114,7 +126,7 @@ const loadDetailRequest = () => {
                 detail_request.value.objStatus = props.listStatusRequests.find(x => x.id == detail_request.value.status_processing);
                 detail_request.value.times_processing_max = detail_request.value.times_processing_max || 0;
                 // temp fake 1
-                //detail_request.value.IsViewXL = false; // r.IsViewXL;
+                detail_request.value.IsViewXL = false; // r.IsViewXL;
                 //detail_request.value.Tiendo = 20;
                 // end temp fake 1
 
@@ -150,6 +162,41 @@ const loadDetailRequest = () => {
                             displayTime +
                             " ngày</div>";
                 }
+                if (data[1] != null && data[1].length > 0) {
+                    FormDS.value = data[1].filter(x => x.is_order_row == null);
+                    var fd = data[1].filter(x => x.kieu_truong.toLowerCase() == "radio" && x.value_field.toLowerCase() == "true");
+                    if (fd != null && fd.length > 0) {
+                        fd.forEach((r) => {
+                            detail_request.value.Radio = r.request_formd_id;
+                            r.value_field = r.value_field == "true";
+                        });
+                    }
+                    var fd2 = data[1].filter(x => (x.kieu_truong.toLowerCase() == "checkbox" || x.kieu_truong.toLowerCase() == "switch") && x.value_field.toLowerCase() == "true");
+                    if (fd2 != null && fd2.length > 0) {
+                        fd2.forEach((r) => {
+                            r.value_field = r.value_field == "true";
+                        });
+                    }
+                    var fd3 = data[1].filter(x => (x.kieu_truong == "datetime" || x.kieu_truong == "date") && x.value_field != null && isValidDate(x.value_field));
+                    if (fd3 != null && fd3.length > 0) {
+                        fd3.forEach((r) => {
+                            r.value_field = new Date(r.value_field);
+                        });
+                    }
+                    let ftables = [];
+                    data[1].filter(x => x.is_type == 3).forEach((r) => {
+                        ftables.push([]);
+                        var groups = groupBy(data[1].filter(x => x.is_order_row != null && x.is_parent_id == r.request_formd_id), "is_order_row");
+                        for (var k in groups) {
+                            var fr = [];
+                            groups[k].forEach(function (rr) {
+                                fr.push({ ...rr });
+                            });
+                            ftables[ftables.length - 1].push(fr);
+                        }
+                        Ftables.value = ftables;
+                    });
+                }
             }
             else {
                 detail_request.value = null;
@@ -166,6 +213,9 @@ const loadDetailRequest = () => {
             store.commit("gologout");
         }
     });
+};
+const formDS_filter = (parentFilter) => {
+    return FormDS.value.filter(x => x.is_parent_id == parentFilter);
 };
 
 const LisFileAttachRQ = ref([]);
@@ -192,6 +242,12 @@ const listFiles = () => {
         if (response.data != null && response.data.data != null && response.data.err != '1') {
             var data = JSON.parse(response.data.data);
             LisFileAttachRQ.value = data[0];
+            // fake data
+            // LisFileAttachRQ.value = [
+            //     { file_name: 'nabila-miah-happy-birthday-gif10774342.gif', file_path: '/Portals/Gif/nabila-miah-happy-birthday-gif10774342.gif', file_type: 'gif', file_size: 135792, is_image: true, is_type: 0, created_date: new Date() },
+            //     { file_name: 'Mẫu Excel Phép năm.xlsx', file_path: '/Portals/Mau Excel/Mẫu Excel Phép năm.xlsx', file_type: 'xlsx', file_size: 895792, is_image: false, is_type: 0, created_date: new Date() },
+            // ];
+            // end fake
         }
     })
     .catch((error) => {
@@ -258,116 +314,6 @@ const listComments = () => {
             store.commit("gologout");
         }
     });
-};
-
-const RQJobs = ref([]);
-const RelateRequests = ref([]);
-const openRelate = (dataRelate, module, type) => {
-    
-};
-
-// 
-const openRecallRequest = (dataRequest, f) => {
-    
-};
-const viewXLDX = function (dex) {
-    dex.IsViewXL = !(dex.IsViewXL || false);
-    for (var i = 0; i < RQJobs.value.length; i++) {
-        RQJobs.value[i].isCurrent = null;
-    }
-    if (dex.IsViewXL === true) {
-        RQJobs.value = [];
-        listJob(dex);
-    }
-};
-const setCurrent = function (state) {
-    if (state.isCurrent == true) {
-        for (var i = 0; i < RQJobs.value.length; i++) {
-            RQJobs.value[i].isCurrent = null;
-        }
-    } else {
-        for (var i = 0; i < RQJobs.value.length; i++) {
-            RQJobs.value[i].isCurrent = false;
-        }
-        state.isCurrent = true;
-    }
-    detail_request.value.IsViewXL = true;
-};
-
-const listJob = (dex) => {
-
-};
-
-const downloadFile = (file) => {
-    var name = file.file_name || ("file_download" + file.file_type);
-    const a = document.createElement("a");
-    a.href = basedomainURL + '/Viewer/DownloadFile?url='+ encodeURIComponent(file.file_path) + '&title=' + encodeURIComponent(name);
-    a.download = name;
-    // a.target = "_blank";
-    a.click();
-    a.remove();
-}
-
-const menuButMores = ref();
-const itemButMores = ref([
-    {
-        label: "Thiết lập quy trình xử lý",
-        icon: "pi pi-cog",
-        class: "",
-        command: (event) => {
-            openFlow(detail_request);
-        },
-    },
-    {
-        label: "Chuyển bộ phận đề xuất xử lý",
-        icon: "pi pi-send",
-        class: "status-process-0",
-        command: (event) => {
-            openXLDX(detail_request, 1, 'Chuyển xử lý');
-        },
-    },
-    {
-        label: detail_request.created_by == store.getters.user.user_id ? 'Đánh giá đề xuất' : 'Gửi người lập đánh giá',
-        icon: "pi pi-user",
-        class: "status-process-1",
-        command: (event) => {
-            openXLDX(detail_request, 2, 'Gửi người lập đánh giá');
-        },
-    },
-    {
-        label: "Dừng xử lý",
-        icon: "pi pi-stop-circle",
-        class: "status-process-4",
-        command: (event) => {
-            openXLDX(detail_request, 4, 'Dừng xử lý');
-        },
-    },
-    {
-        label: "Xử lý tiếp",
-        icon: "pi pi-play",
-        class: "status-process-4",
-        command: (event) => {
-            openXLDX(detail_request, 1, 'Xử lý tiếp');
-        },
-    },
-]);
-const getFuncRequest = () => {
-    if (detail_request.value.status_processing == 0) {
-        return itemButMores.filter(x => x.class == "" || x.class.includes("status-process-0"));
-    }
-    else if (detail_request.value.status_processing == 1) {
-        return itemButMores.filter(x => x.class == "" || x.class.includes("status-process-1"));
-    }
-    else if (detail_request.value.status_processing == 4) {
-        return itemButMores.filter(x => x.class == "" || x.class.includes("status-process-4"));
-    }
-    if (detail_request.value.status_processing != 4) {
-        return itemButMores.filter(x => !x.class.includes("status-process-4"));
-    }
-    return itemButMores;
-};
-const toggleMores = (event, item) => {
-    menuButMores.value.toggle(event);
 };
 
 //Bình luận
@@ -475,7 +421,7 @@ const emoteList = ref([]);
 const loadEmote = () => {
   axios
     .post(
-	  	basedomainURL + "api/chat/GetDataProc",
+	  	basedomainURL + "api/request/getData",
 		{ 
 			str: encr(JSON.stringify({
 					proc: "chat_emote_list",
@@ -605,7 +551,7 @@ const addComment = () => {
 
 const commentActive = ref();
 const EditComment = (co) => {
-	Comments.value.filter(x => x.IsEdit).forEach(function (r) {
+	Comments.value.filter(x => x.IsEdit).forEach((r) => {
 		r.IsEdit = false;
 	});
 	co.IsEdit = true;
@@ -738,7 +684,320 @@ const HuyReply = () => {
 const removeFilesComment = (files, i) => {
 	files.splice(i, 1);
 };
+const Del_Comment = (msg, i) => {
 
+};
+
+// Function request
+const printRequest = () => {
+
+};
+const editRequest = () => {
+
+};
+const delRequest = (dataR, type) => {
+
+};
+const openRecallRequest = (dataRequest, f) => {
+    
+};
+// ---
+// Function xử lý request
+// Công việc
+const RQJobs = ref([]);
+const viewXLDX = (dex) => {
+    dex.IsViewXL = !(dex.IsViewXL || false);
+    for (var i = 0; i < RQJobs.value.length; i++) {
+        RQJobs.value[i].isCurrent = null;
+    }
+    if (dex.IsViewXL === true) {
+        RQJobs.value = [];
+        listJob(dex);
+    }
+};
+const setCurrent = (state) => {
+    if (state.isCurrent == true) {
+        for (var i = 0; i < RQJobs.value.length; i++) {
+            RQJobs.value[i].isCurrent = null;
+        }
+    } else {
+        for (var i = 0; i < RQJobs.value.length; i++) {
+            RQJobs.value[i].isCurrent = false;
+        }
+        state.isCurrent = true;
+    }
+    detail_request.value.IsViewXL = true;
+};
+
+const listJob = (dex) => {
+    axios
+        .post(
+            basedomainURL + "api/request/getData",
+            { 
+                str: encr(JSON.stringify({
+                        proc: "request_job_get",
+                        par: [
+                            { par: "request_id", va: detail_request.value.request_id },
+                            { par: "user_id", va: store.getters.user.user_id },
+                        ],
+                    }), SecretKey, cryoptojs
+                ).toString()
+            },
+            config
+        )
+        .then((response) => {
+            if (response.data.err != '1') {
+                var data = JSON.parse(res.data.data);
+                data[0].forEach((t) => {
+                    var ot = colorTT.find(x => x.id == t.status);
+                    if (ot) {
+                        t.TrangthaiTen = ot.text;
+                        t.TrangthaiColor = ot.color;
+                    }
+                    t.ListTasks = data[1].filter(x => x.request_job_id == t.request_job_id);
+                    t.ListTasks.forEach((r) => {
+                        if (r.Thanhviens) {
+                            r.Thanhviens = JSON.parse(r.Thanhviens);
+                        }
+                        if (r.Tags) {
+                            r.Tags = JSON.parse(r.Tags);
+                        }
+                        r.NgayHan = Math.abs(r.NgayHan);
+                        if (r.Thanhviens) {
+                            r.IsQL = r.Thanhviens.filter(x => x.user_id === store.getters.user.user_id && x.is_type === "2").length > 0;
+                            r.IsTH = r.Thanhviens.filter(x => x.user_id === store.getters.user.user_id && x.is_type === "1").length > 0;
+                            r.IsTD = r.Thanhviens.filter(x => x.user_id === store.getters.user.user_id && x.is_type === "0").length > 0;
+                            r.IsType = r.IsQL ? 2 : (r.IsTH ? 1 : 0);
+                        }
+                    });
+                });
+                RQJobs.value = data[0];
+            }
+        });
+};
+const MoveJob = (job, f) => {
+    let idx = RQJobs.value.findIndex(x => x.request_job_id == job.request_job_id);
+    var id = RQJobs.value[idx].request_job_id;
+    var dx = !f ? idx + 1 : idx - 1;
+    var STT = RQJobs.value[idx].is_order;
+    var tid = RQJobs.value[dx].request_job_id;
+    RQJobs.value[idx].is_order = RQJobs.value[dx].is_order;
+    RQJobs.value[dx].is_order = STT;
+    axios({
+        method: "post",
+        url: basedomainURL + "api/Request/Move_Job",
+        data: { id: id, tid: tid },
+        headers: {
+            Authorization: `Bearer ${store.getters.token}`,
+        },
+    }).then((response) => {
+        if (response.data.err != '1') {
+            toast.success("Đổi thứ tự nhiệm vụ thành công!.");
+        } else {
+            swal.fire({
+                icon: 'error',
+                type: 'error',
+                title: '',
+                text: 'Đổi thứ tự nhiệm vụ không thành công, vui lòng thử lại!'
+            });
+        }
+    });
+};
+const MoveJobTask = (jobTask, task, f) => {
+    let idx = jobTask.findIndex(x => x.request_job_task_id == task.request_job_task_id);
+    var id = jobTask[idx].request_job_task_id;
+    var dx = !f ? idx + 1 : idx - 1;
+    var STT = jobTask[idx].is_order;
+    var tid = jobTask[dx].request_job_task_id;
+    jobTask[idx].is_order = jobTask[dx].is_order;
+    jobTask[dx].is_order = STT;
+    axios({
+        method: "post",
+        url: basedomainURL + "api/Request/Move_Job_Task",
+        data: { id: id, tid: tid },
+        headers: {
+            Authorization: `Bearer ${store.getters.token}`,
+        },
+    }).then((response) => {
+        if (response.data.err != '1') {
+            toast.success("Đổi thứ tự công việc thành công!.");
+        } else {
+            swal.fire({
+                icon: 'error',
+                type: 'error',
+                title: '',
+                text: 'Đổi thứ tự công việc không thành công, vui lòng thử lại!'
+            });
+        }
+    });
+};
+const colorTT = ref([
+    { id: 0, text: "Chưa bắt đầu", color: "#aaa" },
+    { id: 1, text: "Đang làm", color: "#2196f3" },
+    { id: 2, text: "Hoàn thành", color: "#6dd230" },
+    { id: 3, text: "Chuyển tiếp", color: "#33c9dc" },
+    { id: 4, text: "Tạm dừng", color: "#fe4d97" },
+    { id: 5, text: "Không hoàn thành", color: "red" }
+]);
+// type: 1=Chuyển xử lý/Xử lý tiếp, 2=Đánh giá đề xuất/Gửi người lập đánh giá, 4=Dừng xử lý
+const openXLDX = (dataR, type, text) => {
+
+};
+const openFlow = (dataR) => {
+
+};
+
+// type: 1=Chấp thuận, -1=Từ chối, 2=Chuyển tiếp, 3=Đồng ý & chuyển tiếp, null=Gửi
+const OpenSendRequest = (dataR, text, type) => {
+
+};
+// Huỷ request
+const StopRequest = (dataR) => {
+
+};
+// Bỏ hủy request
+const BackRequest = (dataR) => {
+
+};
+// Gia hạn request
+const openModalDatelineRequest = (dataR) => {
+
+};
+
+const toggleMores = (event, item) => {
+    menuButMores.value.toggle(event);
+};
+const menuButMores = ref();
+const itemButMores = ref([
+    {
+        label: "Thiết lập quy trình xử lý",
+        icon: "pi pi-cog",
+        class: "",
+        command: (event) => {
+            openFlow(detail_request);
+        },
+    },
+    {
+        label: "Chuyển bộ phận đề xuất xử lý",
+        icon: "pi pi-send",
+        class: "status-process-0",
+        command: (event) => {
+            openXLDX(detail_request, 1, 'Chuyển xử lý');
+        },
+    },
+    {
+        label: detail_request.created_by == store.getters.user.user_id ? 'Đánh giá đề xuất' : 'Gửi người lập đánh giá',
+        icon: "pi pi-user",
+        class: "status-process-1",
+        command: (event) => {
+            openXLDX(detail_request, 2, 'Gửi người lập đánh giá');
+        },
+    },
+    {
+        label: "Dừng xử lý",
+        icon: "pi pi-stop-circle",
+        class: "status-process-4",
+        command: (event) => {
+            openXLDX(detail_request, 4, 'Dừng xử lý');
+        },
+    },
+    {
+        label: "Xử lý tiếp",
+        icon: "pi pi-play",
+        class: "status-process-4",
+        command: (event) => {
+            openXLDX(detail_request, 1, 'Xử lý tiếp');
+        },
+    },
+]);
+const getFuncRequest = () => {
+    if (detail_request.value.status_processing == 0) {
+        return itemButMores.filter(x => x.class == "" || x.class.includes("status-process-0"));
+    }
+    else if (detail_request.value.status_processing == 1) {
+        return itemButMores.filter(x => x.class == "" || x.class.includes("status-process-1"));
+    }
+    else if (detail_request.value.status_processing == 4) {
+        return itemButMores.filter(x => x.class == "" || x.class.includes("status-process-4"));
+    }
+    if (detail_request.value.status_processing != 4) {
+        return itemButMores.filter(x => !x.class.includes("status-process-4"));
+    }
+    return itemButMores;
+};
+
+// Đề xuất liên quan
+const RelateRequests = ref([]);
+// Danh sách đề xuất liên quan
+const openRelate = (dataRelate, module, type) => {
+    
+};
+// Chi tiết đề xuất liên quan đã chọn
+const openURLRQ = (r) => {
+
+};
+// Xóa đề xuất liên quan
+const Del_Relate = (text, id_relate, dataRelate) => {
+
+};
+
+// ---
+// Danh sách ký duyệt
+const showChartSign = (r) => {
+
+};
+// File đính kèm request
+const openModalAddFileCV = (dataR) => {
+
+};
+// Xóa file đính kèm
+const Del_AttachFile = (listFiles, fileDel) => {
+
+};
+
+// Download file
+const downloadFile = (file) => {
+    let name = "";
+    let pathFileDownload = "";
+    if (file.files != null && file.files.length > 0) {
+        name = file.files[0].file_name || ("file_download" + file.files[0].file_type);
+        pathFileDownload = file.files[0].file_path;
+    }
+    else {
+        pathFileDownload = file.file_path;
+		name = file.file_name || ("file_download." + file.file_type);
+    }    
+    const a = document.createElement("a");
+    a.href = basedomainURL + '/Viewer/DownloadFile?url='+ encodeURIComponent(pathFileDownload) + '&title=' + encodeURIComponent(name);
+    a.download = name;
+    // a.target = "_blank";
+    a.click();
+    a.remove();
+}
+// show file
+const displayModalIframeReq = ref(false);
+const fileShow = ref({
+	file_name: "",
+	file_path: "",
+});
+const typeShow = ref(2);
+const showfile = (file, cmt) => {
+    if (cmt == null || (cmt != null && cmt.type_comment != 3 && cmt.type_comment != 4)) {
+		fileShow.value.file_name = file.file_name;
+		typeShow.value = 2;	
+	}
+	else if (cmt != null && cmt.type_comment == 3) {
+		typeShow.value = 3;
+	}
+	else if (cmt != null && cmt.type_comment == 4) {
+		typeShow.value = 4;
+	}
+	fileShow.value.file_path = file.file_path;
+	fileShow.value.file_type = file.file_type;
+	displayModalIframeReq.value = true;
+};
+
+// Right sidebar
 const tabLogActive = ref(0);
 const changeTabContent = (event) => {
 	tabLogActive.value = event.index;
@@ -752,6 +1011,7 @@ const dataLog = ref([]);
 const listLog = () => {
 
 };
+// ---
 
 const hideall = () => {
     emitter.emit("SideBarRequest", false);
@@ -764,6 +1024,7 @@ const MaxMin = (m) => {
 const closeSildeBar = () => {
     emitter.emit("SideBarRequest", false);
 };
+
 const is_viewSecurityRequest = ref(true);
 onMounted(() => {
     if (props.id != null) {
@@ -939,7 +1200,7 @@ onMounted(() => {
                         <div class="wizard small ng-cloak" 
                             v-if="detail_request.status_processing == 2 && RQJobs.length > 1">
                             <template v-for="(state, idxJob) in RQJobs">
-                                <a v-tooltip.top="{ value: state.Job_Name }" 
+                                <a v-tooltip.top="{ value: state.job_name }" 
                                     @click="setCurrent(state)" 
                                     :class="(state.isCurrent ? 'current': '') + ' ' + ('job' + state.status)">
                                     <span>{{ idxJob + 1 }}</span>
@@ -1003,7 +1264,7 @@ onMounted(() => {
                             style="background-color:#6fbf73">
                         </Button>
                         <Button label="Xóa"
-                            @click="DelRequest(detail_request, 1)" 
+                            @click="delRequest(detail_request, 1)" 
                             class="p-button-danger">
                         </Button>
                     </div>
@@ -1037,7 +1298,7 @@ onMounted(() => {
                         >
                             <form id="frRequest">
                                 <div class="row">
-                                    <div class="col-3 p-0" v-if="detail_request.modified_date">
+                                    <div class="col-3 p-0" v-if="true || detail_request.modified_date">
                                         <div class="t-r">
                                             <div class="flex">
                                                 <span class="cv-spicon flex" style="align-items:center;">
@@ -1067,7 +1328,7 @@ onMounted(() => {
                                             </span>
                                         </p>
                                     </div>
-                                    <div class="col-3 p-0" v-if="detail_request.deadline_date != null">
+                                    <div class="col-3 p-0" v-if="true || detail_request.deadline_date != null">
                                         <div class="t-r">
                                             <div class="flex">
                                                 <span class="cv-spicon flex" style="align-items:center;">
@@ -1138,7 +1399,7 @@ onMounted(() => {
                                 
                                 <div class="row mt-2" 
                                     style="flex-direction:column;"
-                                    v-if="(detail_request.status_processing == 2 || detail_request.status_processing == 3)"
+                                    v-if="true || (detail_request.status_processing == 2 || detail_request.status_processing == 3)"
                                 >
                                     <div class="t-r">
                                         <div class="flex">
@@ -1148,7 +1409,7 @@ onMounted(() => {
                                             <span class="cv-request">Đánh giá đề xuất</span>
                                         </div>
                                     </div>
-                                    <div class="flex p-3" v-if="detail_request.avatar_completed_all">
+                                    <div class="flex p-3" v-if="true || detail_request.avatar_completed_all">
                                         <div class="r-ava">
                                             <Avatar
                                                 v-bind:label="
@@ -1181,7 +1442,7 @@ onMounted(() => {
                                             </div>
                                         </div>
                                     </div>
-                                    <div class="flex p-3" v-if="(detail_request.evaluated_score > 0)">
+                                    <div class="flex p-3" v-if="true || (detail_request.evaluated_score > 0)">
                                         <div class="r-ava">
                                             <Avatar
                                                 v-bind:label="
@@ -1209,7 +1470,7 @@ onMounted(() => {
                                                     {{ detail_request.evaluated_date ? moment(new Date(detail_request.evaluated_date)).format("HH:mm DD/MM/yyyy") : '' }}
                                                 </span>
                                             </div>
-                                            <div class="mt-2" v-if="detail_request.status_processing == 3">
+                                            <div class="mt-2" v-if="true || detail_request.status_processing == 3">
                                                 <Rating class="star-rating-custom"
                                                     v-model="detail_request.evaluated_score"
                                                     v-tooltip.top="{ value: 'Ngày đánh giá: <br/>' + (detail_request.evaluated_date ? moment(new Date(detail_request.evaluated_date)).format('HH:mm DD/MM/yyyy') : ''), escape: true }"
@@ -1224,101 +1485,273 @@ onMounted(() => {
                                         </div>
                                     </div>
                                 </div>
-                                <!--
-                                <div v-if="FormDS && FormDS.length>0">
-                                    <script type="text/ng-template" id="FormD.html">
-                                        <div v-if="d.IsType==3">
-                                            <div class="form-group" style="margin-top:15px" v-if="d.IsLabel">
-                                                <div class="form-group formlabel" style="margin-bottom:0"><label>{{d.TenTruong}} </label></div>
-                                                <table class="table table-bordered">
-                                                    <thead style="background-color:#eee">
-                                                        <tr>
-                                                            <th width={{th.IsWidth}} align="{{th.TextAlign}}" style="border:1px solid #ccc;{{renderStyle(th)}}" v-for="th in FormDS|filter:{IsParent_ID:d.FormD_ID}:true">{{th.TenTruong}}</th>
-                                                        </tr>
-                                                    </thead>
-                                                    <tbody ng-init="$pindex=$index;ths=(FormDS|filter:{IsParent_ID:d.FormD_ID}:true)">
-                                                        <tr v-for="r in Ftables[$pindex] track by $index">
-                                                            <td v-for="td in r track by $index" style="border:1px solid #ccc" ng-init="ths[$index].total=renderTotal(ths[$index],td);">
-                                                                <div ng-switch="td.KieuTruong" v-if="!td.IsLabel">
-                                                                    <div multiswitch-when="varchar|nvarchar|textarea|float|int|email" style="{{renderStyle(td)}}">
-                                                                        {{td.IsGiatri}}
-                                                                    </div>
-                                                                    <div multiswitch-when="checkbox">
-                                                                        <div class="checkbox checkbox-circle checkbox-info peers ai-c" style="margin-left:20px">
-                                                                            <input onclick="return false;" ng-checked="td.IsGiatri=='true'" type="checkbox" class="peer" />
-                                                                            <label></label>
-                                                                        </div>
-                                                                    </div>
-                                                                    <div multiswitch-when="radio">
-                                                                        <div class="radio radio-circle radio-info peers ai-c" style="margin-left:20px">
-                                                                            <input onclick="return false;" ng-checked="detail_request.Radio==td.FormD_ID" type="radio" class="peer" />
-                                                                            <label></label>
-                                                                        </div>
-                                                                    </div>
-                                                                    <div multiswitch-when="date" class="dropdown datetimeinput" style="{{renderStyle(td)}}">
-                                                                        <span ng-bind="td.IsGiatri.substring(0, 10)|date:'dd/MM/yyyy'"></span>
-                                                                    </div>
-                                                                    <div multiswitch-when="datetime" class="dropdown datetimeinput" style="{{renderStyle(td)}}">
-                                                                        <span ng-bind="td.IsGiatri|date:'HH:mm dd/MM/yyyy'"></span>
-                                                                    </div>
-                                                                    <div multiswitch-when="time" class="dropdown datetimeinput" style="{{renderStyle(td)}}">
-                                                                        <span ng-bind="td.IsGiatri|date:'HH:mm'"></span>
-                                                                    </div>
-                                                                </div>
-                                                            </td>
-                                                        </tr>
-                                                        <tr v-if="Ftables[$pindex].length>1" style="font-weight:bold;background-color: aliceblue;color: blue;">
-                                                            <td style="border:1px solid #ccc;{{renderStyle(td)}}" v-for="td in ths track by $index">
-                                                                <span v-if="td.total>0" ng-bind="td.total|number : 0"></span>
-                                                            </td>
-                                                        </tr>
-                                                    </tbody>
-                                                </table>
-                                            </div>
-                                        </div>
-                                        <div v-if="d.IsType!=3" class="formd {{d.IsClass}}">
-                                            <div class="form-group formlabel" style="margin-top:15px" v-if="d.IsLabel" ng-bind="d.TenTruong"></div>
-                                            <div class="form-group" v-if="!d.IsLabel">
-                                                <div v-if="d.KieuTruong!='checkbox' && d.KieuTruong!='radio'">
-                                                    <label class="fw-500" ng-bind="d.TenTruong"></label>
+                                
+                                <div class="row mt-2" v-if="FormDS && formDS_filter().length>0">
+                                    <div class="col-12 flex p-0" style="flex-wrap: wrap;">
+                                        <div class="formd pl-0"
+                                            :class="(!d.is_class ? 'pr-0': (d.is_class == 'col-12' ? (d.is_class + ' pr-0') : d.is_class)) + ' ' + (d.is_end_line ? 'pr-0' : '')"
+                                            v-for="(d, idxForm) in formDS_filter(null)"
+                                            :key="idxForm"
+                                        >
+                                            <div v-if="d.is_type != 3">
+                                                <div class="form-group formlabel" v-if="d.is_label">
+                                                    {{ d.ten_truong }}
                                                 </div>
-                                                <div ng-switch="d.KieuTruong">
-                                                    <div multiswitch-when="varchar|nvarchar|textarea|float|int|email">
-                                                        {{d.IsGiatri}}
+                                                <div class="form-group" v-else>
+                                                    <div class="form-group flex mb-0" 
+                                                        v-if="d.kieu_truong != 'checkbox' && d.kieu_truong != 'radio' && d.kieu_truong != 'switch' && d.is_type != 2"
+                                                    >
+                                                        <label>{{ d.ten_truong }}</label>
+                                                        <span v-if="d.is_required" class="redsao pl-1">(*)</span> 
                                                     </div>
-                                                    <div multiswitch-when="checkbox">
-                                                        <div class="checkbox checkbox-circle checkbox-info peers ai-c mB-15">
-                                                            <input onclick="return false;" ng-checked="d.IsGiatri=='true'" type="checkbox" class="peer" />
-                                                            <label ng-bind="d.TenTruong"></label>
+                                                    <div class="form-group flex mb-0" v-else>
+                                                        <label style="height: 1rem;"></label>
+                                                    </div>
+                                                    <div v-if="d.kieu_truong">
+                                                        <div v-if="d.kieu_truong == 'email'">
+                                                            <InputText :max="d.is_length" 
+                                                                type="email" 
+                                                                spellcheck="false" 
+                                                                v-model="d.value_field"
+                                                                class="form-control col-12 ip36 p-2"
+                                                                :class="{ 'p-invalid': d.is_required && !d.value_field && submitted, }"
+                                                            />
+                                                        </div>
+                                                        <div v-if="d.kieu_truong == 'varchar' || d.kieu_truong == 'nvarchar'">
+                                                            <InputText :max="d.is_length" 
+                                                                type="text" 
+                                                                spellcheck="false" 
+                                                                v-model="d.value_field"
+                                                                class="form-control col-12 ip36 p-2"
+                                                                :class="{ 'p-invalid': d.is_required && !d.value_field && submitted, }"
+                                                            />
+                                                        </div>
+                                                        <div v-if="d.kieu_truong == 'int' || d.kieu_truong == 'float'">
+                                                            <InputNumber
+                                                                spellcheck="false" 
+                                                                v-model="d.value_field" 
+                                                                class="form-control col-12 ip36 p-2"
+                                                                :class="{ 'p-invalid': d.is_required && !d.value_field && submitted, }"
+                                                            />
+                                                        </div>
+                                                        <div v-if="d.kieu_truong == 'textarea'">
+                                                            <Textarea :max="d.is_length" 
+                                                                spellcheck="false" 
+                                                                v-model="d.value_field" 
+                                                                class="form-control col-12 p-2"
+                                                                :class="{ 'p-invalid': d.is_required && !d.value_field && submitted, }"
+                                                                rows="2"
+                                                                autoResize
+                                                            />
+                                                        </div>
+                                                        <div v-if="d.kieu_truong == 'switch'">
+                                                            <div class="flex ip36 mb-0" 
+                                                                style="align-items: center; flex-direction: row;">
+                                                                <InputSwitch v-model="d.value_field" />
+                                                                <label class="ml-2">{{ d.ten_truong }}</label>
+                                                            </div>
+                                                        </div>
+                                                        <div v-if="d.kieu_truong == 'checkbox'">
+                                                            <div class="flex ip36 mb-0" 
+                                                                style="align-items: center; flex-direction: row;">
+                                                                <Checkbox v-model="d.value_field" :binary="true" />
+                                                                <!-- <label class="ml-2">{{ td.ten_truong }}</label> -->
+                                                            </div>
+                                                        </div>
+                                                        <div v-if="d.kieu_truong == 'radio'">
+                                                            <div class="flex ip36 mb-0" 
+                                                                style="align-items: center; flex-direction: row;">
+                                                                <RadioButton :value="d.request_formd_id" 
+                                                                    v-model="request_data.Radio"/>
+                                                                <label class="ml-2">{{ d.ten_truong }}</label>
+                                                            </div>
+                                                        </div>
+                                                        <div v-if="d.kieu_truong == 'select' && d.is_type == 9">
+                                                            <Dropdown
+                                                                :options="list_type_dayoff"
+                                                                v-model="d.value_field"
+                                                                optionLabel="name" 
+                                                                optionValue="code" 
+                                                                placeholder="-- Loại nghỉ --"
+                                                            >
+                                                            </Dropdown>
+                                                        </div>
+                                                        <div v-if="d.kieu_truong == 'date' || d.kieu_truong == 'datetime'">
+                                                            <Calendar
+                                                                :showIcon="true"
+                                                                class="form-control col-12 ip36 p-0"
+                                                                autocomplete="on"
+                                                                inputId="time24"
+                                                                v-model="d.value_field"
+                                                                placeholder="dd/mm/yyyy"
+                                                                :class="{ 'p-invalid': d.is_required && !d.value_field && submitted, }"
+                                                            />
+                                                        </div>
+                                                        <div v-if="d.kieu_truong == 'time'">
+                                                            <!-- <Input type="text" class="form-control" v-model="d.value_field" placeholder="HH:MM:SS" onkeypress="formatTime(this)" max="8" :required="d.is_required" /> -->
+                                                            <Calendar
+                                                                :showIcon="true"
+                                                                class="form-control col-12 ip36 p-0"
+                                                                autocomplete="on"
+                                                                inputId="time24"
+                                                                v-model="d.value_field"
+                                                                placeholder="HH:mm"
+                                                                timeOnly
+                                                                :class="{ 'p-invalid': d.is_required && !d.value_field && submitted, }"
+                                                            />
                                                         </div>
                                                     </div>
-                                                    <div multiswitch-when="radio">
-                                                        <div class="radio radio-circle radio-info peers ai-c mB-15" style="margin-left:7px">
-                                                            <input onclick="return false;" ng-checked="detail_request.Radio==d.FormD_ID" type="radio" class="peer" />
-                                                            <label ng-bind="d.TenTruong"></label>
-                                                        </div>
-                                                    </div>
-                                                    <div multiswitch-when="date" class="dropdown datetimeinput">
-                                                        <span ng-bind="d.IsGiatri.substring(0, 10)|date:'dd/MM/yyyy'"></span>
-                                                    </div>
-                                                    <div multiswitch-when="datetime" class="dropdown datetimeinput">
-                                                        <span ng-bind="d.IsGiatri|date:'HH:mm dd/MM/yyyy'"></span>
-                                                    </div>
-                                                    <div multiswitch-when="time" class="dropdown datetimeinput">
-                                                        <span ng-bind="d.IsGiatri|date:'HH:mm'"></span>
-                                                    </div>
+                                                </div>
+                                                <div v-if="formDS_filter(d.request_formd_id).length > 0">
+                                                    <div class="formd" 
+                                                        :class="dc.is_class || ''"
+                                                        v-for="(dc, idxChildForm) in formDS_filter(d.request_formd_id)"
+                                                        :key="idxChildForm" 
+                                                    ></div>
                                                 </div>
                                             </div>
-                                            <div class="formd">
-                                                <div v-for="d in FormDS|filter:{IsParent_ID:d.FormD_ID}:true" ng-include="'FormD.html'"></div>
+                                            <div v-if="d.is_type == 3">
+                                                <div class="form-group" v-if="d.is_label">
+                                                    <div class="form-group formlabel" 
+                                                        style="margin-bottom:0.25rem;display:flex;align-items: center;"
+                                                    >
+                                                        <label class="mb-0">{{ d.ten_truong }}</label>
+                                                        <div style="flex:1"></div>
+                                                        <!-- <Button v-if="request_data.IsEdit && request_data.is_general_request" 
+                                                            @click="openRelate(null,'srequest',0)"
+                                                        >
+                                                            <i class="pi pi-sliders-h"></i>
+                                                            <span class="pl-2">Tổng hợp đề xuất</span>
+                                                        </Button> -->
+                                                    </div>
+                                                    <table class="table table-bordered" style="border-spacing: 0;">
+                                                        <thead style="background-color:#eee">
+                                                            <tr>
+                                                                <template v-for="(dc, idxChildForm) in formDS_filter(d.request_formd_id)"
+                                                                    :key="idxChildForm">
+                                                                    <th class="th-table-render"
+                                                                        :width="dc.is_width != null && dc.is_width > 0 ? dc.is_width : renderWidth(dc.kieu_truong)"
+                                                                    >
+                                                                        {{dc.ten_truong}}
+                                                                    </th>
+                                                                </template>
+                                                                <!-- <th class="th-table-render" width="40"></th> -->
+                                                            </tr>
+                                                        </thead>
+                                                        <tbody>
+                                                            <tr v-for="(r, indexF) in Ftables[idxForm]" :key="indexF">
+                                                                <td class="td-table-render" v-for="td in r">
+                                                                    <div v-if="td.kieu_truong">
+                                                                        <div v-if="td.kieu_truong == 'email'">
+                                                                            <InputText :max="td.is_length" 
+                                                                                type="email" 
+                                                                                spellcheck="false" 
+                                                                                v-model="td.value_field"
+                                                                                class="form-control col-12 ip36 p-2"
+                                                                                disabled
+                                                                            />
+                                                                        </div>
+                                                                        <div v-if="td.kieu_truong == 'varchar' || td.kieu_truong == 'nvarchar'">
+                                                                            <InputText :max="td.is_length" 
+                                                                                type="text" 
+                                                                                spellcheck="false" 
+                                                                                v-model="td.value_field"
+                                                                                class="form-control col-12 ip36 p-2"
+                                                                                disabled
+                                                                            />
+                                                                        </div>
+                                                                        <div v-if="td.kieu_truong == 'int' || td.kieu_truong == 'float'">
+                                                                            <InputNumber
+                                                                                spellcheck="false" 
+                                                                                v-model="td.value_field" 
+                                                                                class="form-control col-12 ip36 p-2"
+                                                                                disabled
+                                                                            />
+                                                                        </div>
+                                                                        <div v-if="td.kieu_truong == 'textarea'">
+                                                                            <Textarea :max="td.is_length" 
+                                                                                spellcheck="false" 
+                                                                                v-model="td.value_field" 
+                                                                                class="form-control col-12 p-2"
+                                                                                disabled
+                                                                                rows="1"
+                                                                                autoResize
+                                                                            />
+                                                                        </div>
+                                                                        <div v-if="td.kieu_truong == 'switch'">
+                                                                            <div class="flex ip36 mb-0" 
+                                                                                style="align-items: center; flex-direction: row; justify-content: center;">
+                                                                                <InputSwitch v-model="td.value_field" disabled/>
+                                                                                <!-- <label class="ml-2">{{ td.ten_truong }}</label> -->
+                                                                            </div>
+                                                                        </div>
+                                                                        <div v-if="td.kieu_truong == 'checkbox'">
+                                                                            <div class="flex ip36 mb-0" 
+                                                                                style="align-items: center; flex-direction: row; justify-content: center;">
+                                                                                <Checkbox v-model="td.value_field" :binary="true" disabled/>
+                                                                                <!-- <label class="ml-2">{{ td.ten_truong }}</label> -->
+                                                                            </div>
+                                                                        </div>
+                                                                        <div v-if="td.kieu_truong == 'radio'">
+                                                                            <div class="flex ip36 mb-0" 
+                                                                                style="align-items: center; flex-direction: row; justify-content: center;">
+                                                                                <RadioButton :value="td.request_formd_id" 
+                                                                                    v-model="request_data.Radio" disabled/>
+                                                                                <!-- <label class="ml-2">{{ td.ten_truong }}</label> -->
+                                                                            </div>
+                                                                        </div>                                                        
+                                                                        <div v-if="td.kieu_truong == 'select' && td.is_type == 9">
+                                                                            <Dropdown class="w-full"
+                                                                                :options="list_type_dayoff"
+                                                                                v-model="td.value_field"
+                                                                                optionLabel="name" 
+                                                                                optionValue="code" 
+                                                                                :placeholder="'-- ' + td.ten_truong + ' --'"
+                                                                                style="border:none;"
+                                                                                disabled
+                                                                            >
+                                                                            </Dropdown>
+                                                                        </div>
+                                                                        <div v-if="td.kieu_truong == 'date' || td.kieu_truong == 'datetime'">
+                                                                            <Calendar
+                                                                                :showIcon="false"
+                                                                                class="form-control col-12 ip36 p-0 calendar-table"
+                                                                                autocomplete="on"
+                                                                                inputId="time24"
+                                                                                v-model="td.value_field"
+                                                                                placeholder="dd/mm/yyyy"
+                                                                                disabled
+                                                                            />
+                                                                        </div>
+                                                                        <div v-if="td.kieu_truong == 'time'">
+                                                                            <Calendar
+                                                                                :showIcon="false"
+                                                                                class="form-control col-12 ip36 p-0"
+                                                                                autocomplete="on"
+                                                                                inputId="time24"
+                                                                                v-model="td.value_field"
+                                                                                placeholder="HH:mm"
+                                                                                timeOnly
+                                                                                disabled
+                                                                            />
+                                                                        </div>
+                                                                    </div>
+                                                                </td>
+                                                                <!-- <td class="td-table-render" style="text-align:center">
+                                                                    <a v-if="Ftables[idxForm].length > 1" 
+                                                                        @click="removeRow(idxForm, indexF)">
+                                                                        <i class="pi pi-trash" style="color:red;cursor:pointer;"></i>
+                                                                    </a>
+                                                                </td> -->
+                                                            </tr>
+                                                        </tbody>
+                                                    </table>
+                                                </div>
                                             </div>
                                         </div>
-                                    </script>
-                                    <div class="formd-0" style="margin-top:10px">
-                                        <div v-for="d in FormDS|filter:{IsParent_ID:null}:true" ng-include="'FormD.html'"></div>
                                     </div>
                                 </div>
-                                -->
+                                
                                 <div class="row mt-2 mb-1">
                                     <div class="t-r">
                                         <div class="flex" style="align-items: center;">
@@ -1346,7 +1779,7 @@ onMounted(() => {
                                                     :class="r.status != 2 && r.is_overdue && r.Deadline && r.SoNgayHan <= 24 ? 'overdue-request' : ''"
                                                 >
                                                     <span style="word-break: break-all;">{{ r.request_code }}</span>
-                                                    <div class="mt-2" v-if="r.status_processing == 3">
+                                                    <div class="mt-2" v-if="true || r.status_processing == 3">
                                                         <Rating class="star-rating-custom"
                                                             v-model="r.evaluated_score"
                                                             v-tooltip.top="{ value: 'Ngày đánh giá: <br/>' + (r.evaluated_date ? moment(new Date(r.evaluated_date)).format('HH:mm DD/MM/yyyy') : ''), escape: true }"
@@ -1478,7 +1911,7 @@ onMounted(() => {
                                                 </td>
                                                 <td v-if="detail_request.IsEdit">
                                                     <span style="padding-top:10px;padding-right:5px" 
-                                                        @click="Del_Relate('Đề xuất',r.RequestRelate_ID,RelateRequests)">
+                                                        @click="Del_Relate('Đề xuất',r.request_relate_id, request_relate)">
                                                         <i class="pi pi-trash"></i>
                                                     </span>
                                                 </td>
@@ -1554,7 +1987,7 @@ onMounted(() => {
                                                                 />
                                                                 <Button class="p-button-text p-button-danger p-button-rounded ml-1"
                                                                     icon="pi pi-trash"
-                                                                    @click="Del_AttachFile(LisFileAttachRQ, $index, ffile)"
+                                                                    @click="Del_AttachFile(LisFileAttachRQ, ffile)"
                                                                     v-if="detail_request.IsEdit"
                                                                 />
                                                             </div>
@@ -1717,7 +2150,7 @@ onMounted(() => {
 														<ul class="p-0 flex" 
                                                             style="background-color: transparent; box-shadow: none;list-style: none; margin: 0;">
 															<li class="flex">
-																<a v-if="u.created_by != store.getters.user.user_id" class="mr-1"
+																<a v-if="true || u.created_by != store.getters.user.user_id" class="mr-1"
 																	@click="showEmote($event, u)">
 																	<span class="badge-2 fw-400 m-0" style="font-size: 12px;" v-tooltip.top="'Tương tác'">
                                                                         <span class="flex" style="align-items:center;">
@@ -1759,7 +2192,7 @@ onMounted(() => {
                                                         Danh sách file đã chọn
                                                     </h3>
                                                     <ul style="padding-left: 0; list-style: none;">
-                                                        <li class="py-2" v-for="f in u.FileAttach_Edit">
+                                                        <li class="py-2" v-for="(f, idxFile) in u.FileAttach_Edit">
                                                             <div class="r-fbox flex" style="justify-content: space-between;">
                                                                 <div class="flex" style="align-items: center;">
                                                                     <img width="32" v-bind:src="basedomainURL+'/Portals/Image/file/'+f.file_type+'.png'" />
@@ -1768,7 +2201,7 @@ onMounted(() => {
                                                                 <div class="flex" style="align-items: center;">
                                                                     <span>{{ formatByte(f.file_size) }}</span>
                                                                     <div class="ml-3" style="width:40px;justify-content: center;">
-                                                                        <a @click="removeFilesComment_Edit(u.FileAttach_Edit,$index)">
+                                                                        <a @click="removeFilesComment(u.FileAttach_Edit, idxFile)">
                                                                             <i style="font-size:20px;color: red;" class="pi pi-times-circle"></i>
                                                                         </a>
                                                                     </div>
@@ -1809,13 +2242,14 @@ onMounted(() => {
                                                 </div>
                                                 <div>{{ formatByte(f.file_size) }}</div>
                                                 <div style="width:40px;position:absolute;top:-10px;right:-20px;">
-                                                    <a @click="removeFilesComment(FileAttach,idx)"><i style="font-size:20px" class="pi pi-times-circle"></i></a>
+                                                    <a @click="removeFilesComment(FileAttach,idx)">
+                                                        <i style="font-size:20px" class="pi pi-times-circle"></i>
+                                                    </a>
                                                 </div>
                                             </div>
                                         </li>
                                     </ul>
-                                </div>
-                            
+                                </div>                            
                             </div>
                             
                         </div>
@@ -1825,10 +2259,12 @@ onMounted(() => {
                             >
                                 <div class="box-jobStask">
                                     <template v-for="(job, idxJob) in orderDatas(RQJobs, 'is_order')">
-                                        <div class="box-job" v-if="job.isCurrent == job.isCurrent == null">
+                                        <div class="box-job" v-if="job.isCurrent == true || job.isCurrent == null">
                                             <div class="job-headder">
-                                                <a style="padding:5px" data-toggle="collapse" data-target="#CollJob{{job.RequestJob_ID}}"><i class="la la-angle-down"></i></a>
-                                                <div class="job-ava" data-toggle="collapse" data-target="#CollJob{{job.RequestJob_ID}}">
+                                                <a style="padding:5px" data-toggle="collapse" data-target="#CollJob{{job.request_job_id}}">
+                                                    <i class="pi pi-angle-down"></i>
+                                                </a>
+                                                <div class="job-ava" data-toggle="collapse" data-target="#CollJob{{job.request_job_id}}">
                                                     <Avatar
                                                         v-bind:label="
                                                             job.avatar
@@ -1848,63 +2284,108 @@ onMounted(() => {
                                                         class="border-radius"
                                                     />
                                                 </div>
-                                                <div class="job-row" data-toggle="collapse" data-target="#CollJob{{job.RequestJob_ID}}">
-                                                    <b ng-bind="job.Job_Name"></b>
+                                                <div class="job-row" data-toggle="collapse" data-target="#CollJob{{job.request_job_id}}">
+                                                    <span class="font-bold">{{ job.job_name }}</span>
                                                     <div class="card-date text-left" style="font-size:12px;flex:1">
-                                                        <span ng-bind="job.Ngaybatdau|date:'HH:mm dd/MM/yyyy'"></span>
-                                                        <span class="">-</span>
-                                                        <span ng-bind="job.Ngayketthuc|date:'HH:mm dd/MM/yyyy'"></span>
+                                                        <span>
+                                                            {{ (job.start_date ? moment(new Date(job.start_date)).format('HH:mm DD/MM/yyyy') : '') }}
+                                                        </span>
+                                                        <span class="px-1">-</span>
+                                                        <span>
+                                                            {{ (job.end_date ? moment(new Date(job.end_date)).format('HH:mm DD/MM/yyyy') : '') }}
+                                                        </span>
                                                     </div>
                                                     <div class="duan-process-bg" style="flex:1;position:unset;font-size:11px;padding-top:8px;max-width:200px" v-if="job.Tiendo && job.Tiendo>0">
-                                                        <div class="progress" style="height:16px;margin-bottom:0;background-color: #aaa;">
-                                                            <div class="progress-bar" style="background-color:{{job.color}};max-width: {{job.Tiendo}}%" role="progressbar" aria-valuenow="{{job.Tiendo}}" aria-valuemin="0" aria-valuemax="100">
-                                                                <span ng-bind="(job.Tiendo||0)+'%'"></span>
-                                                            </div>
+                                                        <div class="" style="vertical-align:middle;height:16px;">
+                                                            <ProgressBar class="progress-bar-custom" 
+                                                                :class="renderColorProgress(job.Tiendo)"
+                                                                v-tooltip.top="{ value: (job.Tiendo + '%') }" 
+                                                                :value="(job.Tiendo || 0)"
+                                                                style="flex:1;"
+                                                            ></ProgressBar>
                                                         </div>
                                                     </div>
                                                 </div>
                                                 <div style="height:32px" class="btn-group">
-                                                    <button type="button" style="background-color:{{job.TrangthaiColor}};width:110px" class="btn btn-success dropdown-toggle dropdown-toggle-split {{(job.IsFun && job.Trangthai<2)?'':'no-after'}}" data-toggle="dropdown">
-                                                        <span ng-bind="job.TrangthaiTen"></span>
-                                                        <span v-if="job.IsFun && job.Trangthai<2" class="caret"></span>
+                                                    <button type="button" style="width:110px" 
+                                                        :style="{ background: job.TrangthaiColor }"
+                                                        class="btn btn-success dropdown-toggle dropdown-toggle-split"
+                                                        :class="job.IsFunc && job.status < 2 ? '' : 'no-after'" 
+                                                        data-toggle="dropdown">
+                                                        <span>{{ job.TrangthaiTen }}</span>
+                                                        <span v-if="job.IsFunc && job.status < 2" class="caret"></span>
                                                     </button>
-                                                    <div class="dropdown-menu" v-if="job.IsFun && job.Trangthai<2">
-                                                        <a @click="editJob(detail_request,job,2)" class="dropdown-item"><i class="la la-pencil"></i> Chỉnh sửa nhiệm vụ</a>
-                                                        <a @click="editJob(detail_request,job,3)" class="dropdown-item"><i class="la la-tasks"></i> Thêm nhanh công việc cho nhiệm vụ</a>
-                                                        <a @click="openModalAddCV(detail_request,job)" class="dropdown-item"><i class="la la-tasks"></i> Tạo công việc cho nhiệm vụ</a>
-                                                        <a v-if="$index!==RQJobs.length-1" @click="MoveJob($index,false)" class="dropdown-item"><i class="la la-angle-down"></i> Chuyển xuống dưới</a>
-                                                        <a v-if="$index!==0" @click="MoveJob($index,true)" class="dropdown-item"><i class="la la-angle-up"></i> Chuyển lên</a>
-                                                        <a @click="DelJob(job)" class="dropdown-item"><i class="la la-trash"></i> Xóa</a>
+                                                    <div class="dropdown-menu" v-if="job.IsFunc && job.status < 2">
+                                                        <a @click="editJob(detail_request,job,2)" class="dropdown-item">
+                                                            <i class="pi pi-pencil"></i> Chỉnh sửa nhiệm vụ
+                                                        </a>
+                                                        <a @click="editJob(detail_request,job,3)" class="dropdown-item">
+                                                            <font-awesome-icon class="mr-2" icon="fa-solid fa-list-check" /> Thêm nhanh công việc cho nhiệm vụ
+                                                        </a>
+                                                        <a @click="openModalAddCV(detail_request,job)" class="dropdown-item">
+                                                            <font-awesome-icon class="mr-2" icon="fa-solid fa-list-check" /> Tạo công việc cho nhiệm vụ
+                                                        </a>
+                                                        <a v-if="idxJob != RQJobs.length-1" @click="MoveJob(idxJob,false)" class="dropdown-item">
+                                                            <i class="pi pi-angle-down"></i> Chuyển xuống dưới
+                                                        </a>
+                                                        <a v-if="idxJob != 0" @click="MoveJob(idxJob,true)" class="dropdown-item">
+                                                            <i class="pi pi-angle-up"></i> Chuyển lên
+                                                        </a>
+                                                        <a @click="DelJob(job)" class="dropdown-item">
+                                                            <i class="pi pi-trash"></i> Xóa
+                                                        </a>
                                                     </div>
                                                 </div>
                                             </div>
-                                            <div class="box-task collapse show" id="CollJob{{job.RequestJob_ID}}">
-                                                <div class="job-task card" v-for="d in orderDatas(job.Congviecs, is_order)" select="select{{CongviecID==d.CongviecID}}">
+                                            <div class="box-task collapse show" id="CollJob{{job.request_job_id}}">
+                                                <div class="job-task card" 
+                                                    v-for="(d, taskIdx) in orderDatas(job.Congviecs, is_order)" 
+                                                    :select="'select' + CongviecID == d.CongviecID"
+                                                >
                                                     <div class="card-ten text-left" style="cursor:pointer;-webkit-line-clamp:unset;font-size:14px;flex:1">
                                                         <div style="display:flex">
                                                             <div style="flex:1" @click="goInfoCV(d)">
                                                                 {{d.CongviecTen}}
                                                             </div>
-                                                            <div style="height:32px" class="btn-group" v-if="job.IsFun">
-                                                                <a class="dropdown-toggle dropdown-toggle-split no-after" data-toggle="dropdown" style="padding:0"><i style="font-size:16px" class="las la-ellipsis-h"></i></a>
+                                                            <div style="height:32px" class="btn-group" v-if="job.IsFunc">
+                                                                <a class="dropdown-toggle dropdown-toggle-split no-after" data-toggle="dropdown" style="padding:0">
+                                                                    <i style="font-size:16px" class="pi pi-ellipsis-h"></i>
+                                                                </a>
                                                                 <div class="dropdown-menu">
-                                                                    <a @click="editJob(detail_request,job,4,d)" class="dropdown-item"><i class="la la-pencil"></i> Chỉnh sửa công việc</a>
-                                                                    <a v-if="$index!==job.Congviecs.length-1" @click="MoveJobTask(job,$index,false)" class="dropdown-item"><i class="la la-angle-down"></i> Chuyển xuống dưới</a>
-                                                                    <a v-if="$index!==0" @click="MoveJobTask(job,$index,true)" class="dropdown-item"><i class="la la-angle-up"></i> Chuyển lên trên</a>
-                                                                    <a @click="DelJobTask(job,d)" class="dropdown-item"><i class="la la-trash"></i> Xóa</a>
+                                                                    <a @click="editJob(detail_request,job,4,d)" class="dropdown-item">
+                                                                        <i class="pi pi-pencil"></i> Chỉnh sửa công việc
+                                                                    </a>
+                                                                    <a v-if="taskIdx != job.ListTasks.length-1" @click="MoveJobTask(job.ListTasks,d,false)" class="dropdown-item">
+                                                                        <i class="pi pi-angle-down"></i> Chuyển xuống dưới
+                                                                    </a>
+                                                                    <a v-if="taskIdx != 0" @click="MoveJobTask(job.ListTasks,d,true)" class="dropdown-item">
+                                                                        <i class="pi pi-angle-up"></i> Chuyển lên trên
+                                                                    </a>
+                                                                    <a @click="DelJobTask(job,d)" class="dropdown-item">
+                                                                        <i class="pi pi-trash"></i> Xóa
+                                                                    </a>
                                                                 </div>
                                                             </div>
                                                         </div>
                                                         <div style="display:flex;">
                                                             <div class="card-date text-left" style="font-size:12px;flex:1">
-                                                                <span ng-bind="d.NgayBatDau|date:'dd/MM/yyyy'"></span>
-                                                                <span ng-bind="d.NgayKetThuc|date:' - dd/MM/yyyy'"></span>
+                                                                <span>
+                                                                    {{ (d.start_date ? moment(new Date(d.start_date)).format('DD/MM/yyyy') : '') }}
+                                                                </span>
+                                                                <span>
+                                                                    {{ (d.end_date ? moment(new Date(d.end_date)).format('DD/MM/yyyy') : '') }}
+                                                                </span>
                                                             </div>
                                                             <div>
-                                                                <span v-if="d.giahan==0" style="color:#fff;border-radius:20px;padding:5px 10px;font-size:11px;width:100%;background-color:{{d.ttcolor}}">
-                                                                    {{d.TrangthaiTen}}
+                                                                <span v-if="d.giahan == 0" 
+                                                                    style="color:#fff;border-radius:20px;padding:5px 10px;font-size:11px;width:100%;"
+                                                                    :style="{ background: d.ttcolor }"
+                                                                >
+                                                                    {{ d.TrangthaiTen }}
                                                                 </span>
-                                                                <span v-if="d.giahan>0" style="color:#fff;border-radius:20px;padding:5px 10px;font-size:11px;width:100%;background-color:orange">
+                                                                <span v-if="d.giahan > 0" 
+                                                                    style="color:#fff;border-radius:20px;padding:5px 10px;font-size:11px;width:100%;background-color:orange"
+                                                                >
                                                                     Xin gia hạn
                                                                 </span>
                                                             </div>
@@ -1913,13 +2394,25 @@ onMounted(() => {
                                                     <div style="display:flex" @click="goInfoCV(d)">
                                                         <div class="card-users" style="text-align:left;">
                                                             <ul>
-                                                                <template v-for="u in limitData(d.Thanhviens,5)">
-                                                                    <li class="IsType{{u.IsType}}" 
-                                                                        v-tooltip.right="{ value: (u.full_name+'<br/>'+u.position_name+'<br/>'+u.department_name), escape: true }">
-                                                                        <img v-if="u.anhThumb && u.anhThumb!=='/Content/noavatar.jpg'" class="ava" ng-src="{{$root.fileUrl+(u.anhThumb||'/Content/noavatar.jpg')}}" on-error="/Content/noavatar.jpg" />
-                                                                        <div class="divav" style="display:{{!u.anhThumb || u.anhThumb==='/Content/noavatar.jpg'?'block':'none'}};background-color:{{$root.bgColor[$index%5]}};color:#fff!important;text-align:center;border-radius:50%;padding-top:3px;">
-                                                                            <span>{{u.ten.trim().substring(0,1)}}</span>
-                                                                        </div>
+                                                                <template v-for="(u, uIdx) in limitData(d.Thanhviens,5)">
+                                                                    <li :class="'IsType' + u.IsType.toString()" 
+                                                                        v-tooltip.right="{ value: (u.full_name+'<br/>'+u.position_name+'<br/>'+u.department_name), escape: true }"
+                                                                    >
+                                                                        <Avatar 
+                                                                            v-bind:label="u.avatar ? '' : u.last_name.substring(0, 1)"
+                                                                            v-bind:image="basedomainURL + u.avatar"
+                                                                            v-tooltip.top="u.full_name"
+                                                                            style="
+                                                                                background-color: #2196f3;
+                                                                                color: #ffffff;
+                                                                                width: 3rem;
+                                                                                height: 3rem;
+                                                                            "
+                                                                            :style="{ background: bgColor[uIdx % 7] }"
+                                                                            class="text-avatar"
+                                                                            size="xlarge"
+                                                                            shape="circle"
+                                                                        />
                                                                     </li>
                                                                 </template>
                                                                 <li v-if="d.Thanhviens.length > 5" class="IsType1">
@@ -1930,10 +2423,13 @@ onMounted(() => {
                                                             </ul>
                                                         </div>
                                                         <div class="duan-process-bg" style="flex:1;position:unset;font-size:11px;padding-top:12px;margin:0 10px">
-                                                            <div class="progress" style="height:16px;margin-bottom:0" v-if="d.Tiendo && d.Tiendo>0">
-                                                                <div class="progress-bar" style="background-color:{{d.color}};max-width: {{d.Tiendo}}%" role="progressbar" aria-valuenow="{{d.Tiendo}}" aria-valuemin="0" aria-valuemax="100">
-                                                                    <span ng-bind="(d.Tiendo||0)+'%'"></span>
-                                                                </div>
+                                                            <div class="" style="vertical-align:middle;" v-if="r.Tiendo && r.Tiendo > 0">
+                                                                <ProgressBar class="progress-bar-custom" 
+                                                                    :class="renderColorProgress(d.Tiendo)"
+                                                                    v-tooltip.top="{ value: (d.Tiendo + '%') }" 
+                                                                    :value="(d.Tiendo || 0)"
+                                                                    style="flex:1;"
+                                                                ></ProgressBar>
                                                             </div>
                                                         </div>
                                                     </div>
@@ -1976,7 +2472,9 @@ onMounted(() => {
                                         </div>
                                     </div>
                                     <div class="col-1 close-reply text-right" v-if="editCmt != true">
-                                        <a @click="HuyReply()" style="cursor:pointer;"><i class="pi pi-times" style="color:red;"></i></a>
+                                        <a @click="HuyReply()" style="cursor:pointer;">
+                                            <i class="pi pi-times" style="color:red;"></i>
+                                        </a>
                                     </div>
                                 </div>
                                 <div class="col-12 md:col-12 flex name-date-reply">
@@ -2217,8 +2715,8 @@ onMounted(() => {
                                                                     style="
                                                                         background-color: #2196f3;
                                                                         color: #ffffff;
-                                                                        width: 4rem;
-                                                                        height: 4rem;
+                                                                        width: 3rem;
+                                                                        height: 3rem;
                                                                     "
                                                                     :style="{ background: bgColor[sindex % 7] }"
                                                                     class="text-avatar"
@@ -2276,7 +2774,7 @@ onMounted(() => {
                                                                 class="mt-2 description"
                                                             >
                                                                 <a class="hover"
-                                                                    @click="goFile(signuser.files[0])"
+                                                                    @click="showFile(signuser.files[0])"
                                                                 >
                                                                     Tài liệu đính kèm
                                                                     <i class="pi pi-paperclip"></i>
@@ -2445,7 +2943,7 @@ onMounted(() => {
     >
         <div>
             <ul class="ul-func-mes m-0" style="width: 10rem;">
-                <li class="px-2 py-2" v-if="(cmtFuncClick.IsMe && cmtFuncClick.type_comment == 0)">
+                <li class="px-2 py-2" v-if="true || (cmtFuncClick.IsMe && cmtFuncClick.type_comment == 0)">
                     <a @click="EditComment(cmtFuncClick)" class="d-b td-n">
                         <i class="pi pi-pencil"></i>
                         <span class="ml-1"> Chỉnh sửa</span>
@@ -2455,14 +2953,14 @@ onMounted(() => {
                     <i class="pi pi-reply"></i>
                     <span class="ml-1"> Trả lời</span></a>
                 </li>
-                <li class="px-2 py-2" v-if="(cmtFuncClick.type_comment == 1 || cmtFuncClick.type_comment == 2 || cmtFuncClick.type_comment == 3 || cmtFuncClick.type_comment == 4)"> 
-                    <a @click="openFile(cmtFuncClick)" class="d-b td-n">
+                <li class="px-2 py-2" v-if="true || (cmtFuncClick.type_comment == 1 || cmtFuncClick.type_comment == 2 || cmtFuncClick.type_comment == 3 || cmtFuncClick.type_comment == 4)"> 
+                    <a @click="downloadFile(cmtFuncClick)" class="d-b td-n">
                     <i class="pi pi-download"></i>
                     <span class="ml-1"> Tải xuống</span></a>
                 </li>
-                <li v-if="cmtFuncClick.IsMe" role="separator" class="divider"></li>
-                <li class="px-2 py-2" v-if="(detail_request.isdelcomment || cmtFuncClick.IsMe)"> 
-                    <a @click="Del_Message(cmtFuncClick,cmtFuncClick.index)" class="d-b td-n" style="color:red;">
+                <li v-if="true || cmtFuncClick.IsMe" role="separator" class="divider"></li>
+                <li class="px-2 py-2" v-if="true || (detail_request.isdelcomment || cmtFuncClick.IsMe)"> 
+                    <a @click="Del_Comment(cmtFuncClick,cmtFuncClick.index)" class="d-b td-n" style="color:red;">
                         <i class="pi pi-trash"></i> 
                         <span class="ml-1"> Xóa</span>
                     </a>
@@ -2510,7 +3008,7 @@ onMounted(() => {
         <div>
             <ul class="ul-func-mes m-0" style="width: 10rem; padding:0; list-style-type: none;">
                 <li class="px-2 py-2">
-                    <a @click="openFile(fileFuncClick,fileFuncClick.file_path)" class="d-b td-n">
+                    <a @click="downloadFile(fileFuncClick)" class="d-b td-n">
                         <i class="pi pi-download"></i>
                         <span class="ml-1"> Tải xuống</span>
                     </a>
@@ -2518,6 +3016,20 @@ onMounted(() => {
             </ul>
         </div>
     </OverlayPanel>
+    <!-- view file -->
+    <Sidebar v-model:visible="displayModalIframeReq" 
+        position="full" style="z-index:1001;">
+        <iframe style="height: calc(100vh - 3.3rem)" 
+            :src="basedomainURL + '/Viewer?title=' + fileShow.file_name + '&url=' + fileShow.file_path" 
+            class="w-full" v-if="typeShow == 2">
+        </iframe>
+        <video autoplay muted controls style="width: -webkit-fill-available; height: -webkit-fill-available;" v-if="typeShow == 3">
+            <source :src="basedomainURL + fileShow.file_path" >
+        </video>
+        <audio autoplay controls style="width:50%;" v-if="typeShow == 4">
+            <source :src="basedomainURL + fileShow.file_path">
+        </audio>
+    </Sidebar>
 </template>
 <style scoped>
     @import url(../style_request.css);
