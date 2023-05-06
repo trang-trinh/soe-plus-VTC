@@ -33,14 +33,11 @@ const loadUserProfiles = () => {
       {
         str: encr(
           JSON.stringify({
-            proc: "hrm_profile_list_filter",
+            proc: "hrm_profile_list_all",
             par: [
-              { par: "search", va: null },
+          
               { par: "user_id", va: store.getters.user.user_id },
-              { par: "work_position_id", va: null },
-              { par: "position_id", va: null },
-              { par: "department_id", va: null },
-              { par: "status", va: 1 },
+       
             ],
           }),
           SecretKey,
@@ -129,7 +126,7 @@ onMounted(() => {
     :editable="false"
     optionLabel="profile_user_name"
     v-model="model"
-    class="ip36 d-dropdown-design"
+    class="  d-dropdown-design"
     style="height: auto; min-height: 36px"
     :placeholder="props.placeholder"
     @change="submitModel"
