@@ -904,6 +904,12 @@ onMounted(() => {
                                                 <label class="ml-2">{{ d.ten_truong }}</label>
                                             </div>
                                         </div>
+                                        <div v-if="d.kieu_truong == 'select'">
+                                            <!-- <Dropdown
+                                                options=""
+                                            >
+                                            </Dropdown> -->
+                                        </div>
                                         <div v-if="d.kieu_truong == 'date' || d.kieu_truong == 'datetime'">
                                             <Calendar
                                                 :showIcon="true"

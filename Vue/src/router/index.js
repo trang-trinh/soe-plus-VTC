@@ -271,6 +271,7 @@ const HrmTool2 = () => import("../views/hrm/profile/tool/DocTempView.vue");
 const HrmIframe = () => import("../views/hrm/profile/tool/iframedoc.vue");
 const Hrm_Info = () => import("../views/hrm/Hrm_Info.vue");
 const HrmProfile = () => import("../views/hrm/profile/profile.vue");
+const HrmMyProfile = () => import("../views/hrm/myprofile/myprofile.vue");
 const HrmProfileInfo = () =>
   import("../views/hrm/profile/component/profileinfo.vue");
 const HrmContract = () => import("../views/hrm/contract/contract.vue");
@@ -1590,6 +1591,11 @@ const router = createRouter({
       path: "/hrm/profile",
       name: "profile",
       component: HrmProfile,
+    },
+    {
+      path: "/hrm/myprofile",
+      name: "myprofile",
+      component: HrmMyProfile,
     },
     {
       path: "/hrm/profile/:id",
