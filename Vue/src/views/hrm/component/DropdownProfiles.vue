@@ -1,6 +1,6 @@
 <script setup>
-import { ref, inject, onMounted, watch, onUpdated } from "vue";
- 
+import { ref, inject, onMounted, onBeforeUpdate, onUpdated } from "vue";
+
 import { encr, checkURL } from "../../../util/function.js";
 import moment from "moment";
 const emitter = inject("emitter");
@@ -33,15 +33,8 @@ const loadUserProfiles = () => {
       {
         str: encr(
           JSON.stringify({
-            proc: "hrm_profile_list_filter",
-            par: [
-              { par: "search", va: null },
-              { par: "user_id", va: store.getters.user.user_id },
-              { par: "work_position_id", va: null },
-              { par: "position_id", va: null },
-              { par: "department_id", va: null },
-              { par: "status", va: 1 },
-            ],
+            proc: "hrm_profile_list_all",
+            par: [{ par: "user_id", va: store.getters.user.user_id }],
           }),
           SecretKey,
           cryoptojs
@@ -70,6 +63,19 @@ const loadUserProfiles = () => {
           organization_id: element.organization_id,
         });
       });
+
+      model.value = [];
+      props.model.forEach((itemsa) => {
+        var models = listDataUsers.value.find((x) => x.profile_id == itemsa);
+        if (models)
+          model.value.push({
+            profile_id: models.profile_id,
+            profile_user_name: models.profile_user_name,
+            avatar: models.avatar,
+          });
+        else model.value = [];
+      });
+
       listDataUsersSave.value = [...listDataUsers.value];
       isShow.value = true;
     })
@@ -92,26 +98,47 @@ const props = defineProps({
   class: String,
   display: String,
   disabled: Boolean,
+  type: Intl,
 });
 const model = ref();
 const submitModel = () => {
-  emitter.emit("emitData", { type: "submitModel", data: model.value });
+  emitter.emit("emitData", {
+    type: "submitModel",
+    data: { data: model.value, type: props.type },
+  });
 };
-const removeUser=(item)=>{
-  emitter.emit("emitData", { type: "delItem", data: item});
-  
-
-}
+const removeUser = (item) => {
+  model.value = model.value.filter((x) => x.profile_id != item.profile_id);
+  emitter.emit("emitData", {
+    type: "submitModel",
+    data: { data: model.value, type: props.type },
+  });
+};
 onMounted(() => {
-  model.value = props.model;
   loadUserProfiles();
   return {
     loadUserProfiles,
     model,
   };
 });
-onUpdated(() => {
-  model.value = props.model;
+onBeforeUpdate(() => {
+  
+  model.value = [];
+  if( listDataUsersSave.value.length>0)
+      props.model.forEach((itemsa) => {
+        var models = listDataUsersSave.value.find((x) => x.profile_id == itemsa);
+        if (models)
+          model.value.push({
+            profile_id: models.profile_id,
+            profile_user_name: models.profile_user_name,
+            avatar: models.avatar,
+          });
+        else model.value = [];
+      });
+      else
+      loadUserProfiles();
+
+ 
 });
 </script>
 
@@ -130,14 +157,15 @@ onUpdated(() => {
     v-if="isShow"
     :disabled="props.disabled"
   >
-    <template #value="slotProps"> 
-      <div style="min-height: 2rem; ;cursor: default"    >
+    <template #value="slotProps">
+      <div style="min-height: 1.5rem; cursor: default">
         <span
-          class=" mx-1  relative  "
+          class="mx-1 relative"
           v-for="(item, index) in slotProps.value"
-          :key="index" style="vertical-align: top; "
+          :key="index"
+          style="vertical-align: top"
         >
-          <div class="  p-chip d-chip-design p-0 my-1">
+          <div class="p-chip d-chip-design p-0 my-1">
             <Avatar
               v-bind:label="
                 item.avatar ? '' : item.profile_user_name.substring(0, 1)
@@ -158,11 +186,14 @@ onUpdated(() => {
               }"
               size="xlarge"
               shape="circle"
-              class="p-0  "
+              class="p-0"
             />
-            <div class="p-chip-text px-1  ">{{ item.profile_user_name }}</div>
-            <div class="p-2 align-items-center format-center p-multiselect-token-icon " @click=" removeUser(item)">
-              <i class="pi pi-times-circle" ></i>
+            <div class="p-chip-text px-1">{{ item.profile_user_name }}</div>
+            <div
+              class="p-2 align-items-center format-center p-multiselect-token-icon"
+              @click="removeUser(item)"
+            >
+              <i class="pi pi-times-circle"></i>
             </div>
           </div>
         </span>

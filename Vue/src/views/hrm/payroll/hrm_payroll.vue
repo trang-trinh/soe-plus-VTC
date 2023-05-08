@@ -5,7 +5,8 @@ import { required } from "@vuelidate/validators";
 import { useVuelidate } from "@vuelidate/core";
 import { FilterMatchMode, FilterOperator } from "primevue/api";
 import tree_users_hrm from "../component/tree_users_hrm.vue";
-import DropdownUser from "../component/DropdownUsers.vue";
+import DropdownProfile from "../component/DropdownProfile.vue";
+import DropdownUser from "../component/DropdownProfiles.vue";
 import { encr, checkURL } from "../../../util/function.js";
 import moment from "moment";
 //Khai báo
@@ -209,6 +210,7 @@ const payroll = ref({
   emote_file: "",
   status: true,
   is_order: 1,
+  profile_id_fake:[]
 });
 
 const selectedStamps = ref();
@@ -243,6 +245,7 @@ const openBasic = (str) => {
     is_order: sttStamp.value,
     organization_id: store.getters.user.organization_id,
     is_system: store.getters.user.is_super ? true : false,
+    profile_id_fake:[]
   };
   listFilesS.value = [];
   checkIsmain.value = false;
@@ -301,12 +304,9 @@ const saveData = (isFormValid) => {
   }
 
   if (payroll.value.profile_id_fake) {
-    var str = "";
-    payroll.value.list_profile_id = "";
-    payroll.value.profile_id_fake.forEach((element) => {
-      payroll.value.list_profile_id += str + element.profile_id;
-      str = ",";
-    });
+  
+    payroll.value.list_profile_id =  
+    payroll.value.profile_id_fake.toString();
   }
   if (payroll.value.payroll_name.length > 250) {
     swal.fire({
@@ -392,11 +392,7 @@ const editTem = (dataTem) => {
   if (payroll.value.listUsers) {
     payroll.value.profile_id_fake = [];
     payroll.value.listUsers.forEach((element) => {
-      payroll.value.profile_id_fake.push({
-        profile_id: element.profile_id,
-        profile_user_name: element.full_name,
-        avatar: element.avatar,
-      });
+      payroll.value.profile_id_fake.push(element.profile_id );
     });
   }
 
@@ -807,60 +803,9 @@ const toggle = (event) => {
 
 const listTypeContractSave = ref([]);
 const listDeclarePaycheck = ref([]);
-const listDataUsers = ref([]);
+ 
 const initTuDien = () => {
-  listDataUsers.value = [];
-  axios
-    .post(
-      baseURL + "/api/hrm_ca_SQL/getData",
-      {
-        str: encr(
-          JSON.stringify({
-            proc: "hrm_profile_list_filter",
-            par: [
-              { par: "search", va: null },
-              { par: "user_id", va: store.getters.user.user_id },
-              { par: "work_position_id", va: null },
-              { par: "position_id", va: null },
-              { par: "department_id", va: null },
-              { par: "status", va: 1 },
-            ],
-          }),
-          SecretKey,
-          cryoptojs
-        ).toString(),
-      },
-      config
-    )
-    .then((response) => {
-      let data = JSON.parse(response.data.data)[0];
-
-      data.forEach((element, i) => {
-        listDataUsers.value.push({
-          profile_user_name: element.profile_user_name,
-          code: element.profile_id,
-          avatar: element.avatar,
-          department_name: element.department_name,
-          department_id: element.department_id,
-          work_position_name: element.work_position_name,
-          position_name: element.position_name,
-          profile_code: element.profile_code,
-          organization_id: element.organization_id,
-        });
-      });
-    })
-    .catch((error) => {
-      console.log(error);
-
-      if (error && error.status === 401) {
-        swal.fire({
-          text: "Mã token đã hết hạn hoặc không hợp lệ, vui lòng đăng nhập lại!",
-          confirmButtonText: "OK",
-        });
-        store.commit("gologout");
-      }
-    });
-
+   
   axios
     .post(
       baseURL + "/api/hrm_ca_SQL/getData",
@@ -984,20 +929,28 @@ const choiceUser = () => {
 
 emitter.on("emitData", (obj) => {
   switch (obj.type) {
+    case "submitDropdownUser":
+      if (obj.data) {
+        payroll.value.sign_user = obj.data.profile_id;
+      } else {
+        payroll.value.sign_user = null;
+      }
+      break;
     case "submitModel":
       if (obj.data) {
-        payroll.value.profile_id_fake = obj.data;
-        options.value.list_profile_id = obj.data;
+        if (obj.data.type == 1) {
+          payroll.value.profile_id_fake = [];
+          obj.data.data.forEach((element) => {
+            payroll.value.profile_id_fake.push(element.profile_id);
+          });
+        } else {
+          options.value.list_profile_id = [];
+          obj.data.data.forEach((element) => {
+            options.value.list_profile_id.push(element.profile_id);
+          });
+        }
       }
       break;
-    case "delItem":
-      if (obj.data) {
-        payroll.value.profile_id_fake = payroll.value.profile_id_fake.filter(
-          (x) => x.profile_id != obj.data.profile_id
-        );
-      }
-      break;
-
     default:
       break;
   }
@@ -1038,6 +991,8 @@ const onChangeUsersReceive=(  declare_paycheck_id)=>{
       store.commit("gologout");
     });
 }
+
+  
 onMounted(() => {
   initTuDien();
 
@@ -1137,6 +1092,7 @@ onMounted(() => {
                       :model="options.list_profile_id"
                       :display="'chip'"
                       :placeholder="'Chọn nhân sự'"
+                      :type="2"
                     />
                   </div>
                   <div class="field col-12 p-0">
@@ -1569,71 +1525,16 @@ onMounted(() => {
           <div class="col-6 md:col-6 p-0 align-items-center pl-3">
             <div class="col-12 text-left p-0 pb-2">Người ký</div>
             <div class="col-12 p-0">
-              <Dropdown
-                v-model="payroll.sign_user"
-                :options="listDataUsers"
-                optionLabel="profile_user_name"
+            
+              <DropdownProfile
+              :model="payroll.sign_user"
+                 
+                  :class="'w-full p-0'"
+                  :editable="true"
+                  optionLabel="profile_user_name"
                 optionValue="profile_user_name"
-                class="w-full"
-                panelClass="d-design-dropdown"
-                :filter="true"
-                :editable="true"
-              >
-                <template #option="slotProps">
-                  <div v-if="slotProps.option" class="flex">
-                    <div class="format-center">
-                      <Avatar
-                        v-bind:label="
-                          slotProps.option.avatar
-                            ? ''
-                            : slotProps.option.profile_user_name.substring(0, 1)
-                        "
-                        v-bind:image="
-                          slotProps.option.avatar
-                            ? basedomainURL + slotProps.option.avatar
-                            : basedomainURL + '/Portals/Image/noimg.jpg'
-                        "
-                        style="
-                          color: #ffffff;
-                          width: 3rem;
-                          height: 3rem;
-                          font-size: 1.4rem !important;
-                        "
-                        :style="{
-                          background:
-                            bgColor[
-                              slotProps.option.profile_user_name.length % 7
-                            ],
-                        }"
-                        size="xlarge"
-                        shape="circle"
-                      />
-                    </div>
-                    <div class="format-center text-left ml-3">
-                      <div>
-                        <div class="mb-1 font-bold">
-                          {{ slotProps.option.profile_user_name }}
-                        </div>
-                        <div class="description">
-                          <div>
-                            <span v-if="slotProps.option.position_name">{{
-                              slotProps.option.position_name
-                            }}</span>
-                            <span v-else>{{
-                              slotProps.option.profile_code
-                            }}</span>
-
-                            <span v-if="slotProps.option.department_name">
-                              | {{ slotProps.option.department_name }}</span
-                            >
-                          </div>
-                        </div>
-                      </div>
-                    </div>
-                  </div>
-                  <span v-else> Chưa có dữ liệu </span>
-                </template>
-              </Dropdown>
+              />
+               
             </div>
           </div>
         </div>
@@ -1674,6 +1575,7 @@ onMounted(() => {
               :class="{
                 'p-invalid': payroll.profile_id_fake == null && submitted,
               }"
+                    :type="1"
             />
           </div>
         </div>

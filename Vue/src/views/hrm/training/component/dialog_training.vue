@@ -4,13 +4,42 @@ import { useToast } from "vue-toastification";
 import { required } from "@vuelidate/validators";
 import { useVuelidate } from "@vuelidate/core";
 import { encr, autoFillDate } from "../../../../util/function.js";
-import moment from "moment";
+import DropdownProfiles from "../../component/DropdownProfiles.vue";
 const cryoptojs = inject("cryptojs");
 
 const store = inject("store");
 const swal = inject("$swal");
 const axios = inject("axios");
 const emitter = inject("emitter");
+
+emitter.on("emitData", (obj) => {
+  switch (obj.type) {
+    case "submitDropdownUser":
+      // if (obj.data) {
+      //   payroll.value.sign_user = obj.data.profile_id;
+      // } else {
+      //   payroll.value.sign_user = null;
+      // }
+      break;
+    case "submitModel":
+      if (obj.data) {
+        if (obj.data.type == 1) {
+          training_emps.value.user_verify_fake = [];
+          obj.data.data.forEach((element) => {
+            training_emps.value.user_verify_fake.push(element.profile_id);
+          });
+        } else {
+          training_emps.value.user_follows_fake = [];
+          obj.data.data.forEach((element) => {
+            training_emps.value.user_follows_fake.push(element.profile_id);
+          });
+        }
+      }
+      break;
+    default:
+      break;
+  }
+});
 const isDynamicSQL = ref(false);
 const basedomainURL = baseURL;
 const config = {
@@ -111,10 +140,12 @@ const loadData = () => {
             training_emps.value.registration_deadline = new Date(
               training_emps.value.registration_deadline
             );
+            
           training_emps.value.user_verify_fake =
             training_emps.value.user_verify.split(",");
           training_emps.value.user_follows_fake =
             training_emps.value.user_follows.split(",");
+             debugger
         }
         training_emps.value.organization_training_fake = {};
         training_emps.value.organization_training_fake[
@@ -644,14 +675,11 @@ const loadUserProfiles = () => {
       {
         str: encr(
           JSON.stringify({
-            proc: "hrm_profile_list_filter",
+            proc: "hrm_profile_list_all",
             par: [
-              { par: "search", va: null },
+            
               { par: "user_id", va: store.getters.user.user_id },
-              { par: "work_position_id", va: null },
-              { par: "position_id", va: null },
-              { par: "department_id", va: null },
-              { par: "status", va: 1 },
+         
             ],
           }),
           SecretKey,
@@ -1092,7 +1120,17 @@ onMounted(() => {
               Người phụ trách <span class="redsao pl-1"> (*)</span>
             </div>
             <div style="width: calc(100% - 10rem)">
-              <MultiSelect
+              <DropdownProfiles
+              :model="training_emps.user_verify_fake"
+              :display="'chip'"
+              :placeholder="'-------- Chọn người phụ trách --------'"
+              :class="{
+                  'p-invalid':
+                    training_emps.user_verify_fake == null && submitted,
+                }"
+              :type="1"
+            />
+              <!-- <MultiSelect
                 v-model="training_emps.user_verify_fake"
                 :options="listMultileUsers"
                 optionLabel="profile_user_name"
@@ -1161,13 +1199,20 @@ onMounted(() => {
                   </div>
                   <span v-else> Chưa có dữ liệu </span>
                 </template>
-              </MultiSelect>
+              </MultiSelect> -->
             </div>
           </div>
           <div class="col-6 p-0 flex text-left align-items-center">
             <div class="w-10rem pl-3">Người theo dõi</div>
             <div style="width: calc(100% - 10rem)">
-              <MultiSelect
+              <DropdownProfiles
+              :model="training_emps.user_follows_fake"
+              :display="'chip'"
+              :placeholder="'-------- Chọn người theo dõi --------'"
+           
+              :type="2"
+            />
+              <!-- <MultiSelect
                 v-model="training_emps.user_follows_fake"
                 :options="listMultileUsers"
                 optionLabel="profile_user_name"
@@ -1232,7 +1277,7 @@ onMounted(() => {
                   </div>
                   <span v-else> Chưa có dữ liệu </span>
                 </template>
-              </MultiSelect>
+              </MultiSelect> -->
             </div>
           </div>
         </div>

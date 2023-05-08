@@ -129,9 +129,7 @@ const loadData = (rf) => {
   }
 };
 const onRowGroupExpand = (event) => {
-   
-   console.log(event,
-   expandedRowGroups.value);
+ 
 };
 //Phân trang dữ liệu
 const onPage = (event) => {
@@ -150,11 +148,11 @@ const onPage = (event) => {
     //Trang sau
 
     options.value.id =
-      datalists.value[datalists.value.length - 1].smart_proc_id;
+      datalists.value[datalists.value.length - 1].id;
     options.value.IsNext = true;
   } else if (event.page < options.value.PageNo) {
     //Trang trước
-    options.value.id = datalists.value[0].smart_proc_id;
+    options.value.id = datalists.value[0].id;
     options.value.IsNext = false;
   }
   options.value.PageNo = event.page;
@@ -272,7 +270,7 @@ const saveData = (isFormValid) => {
         if (response.data.err != "1") {
           swal.close();
           toast.success("Thêm nguồn dữ liệu thành công!");
-          loadData(true);
+       
 
           closeDialog();
         } else {
@@ -363,7 +361,7 @@ const delTem = (Tem) => {
         axios
           .delete(baseURL + "/api/smart_proc/delete_smart_proc", {
             headers: { Authorization: `Bearer ${store.getters.token}` },
-            data: Tem != null ? [Tem.smart_proc_id] : 1,
+            data: Tem != null ? [Tem.id] : 1,
           })
           .then((response) => {
             swal.close();
@@ -419,7 +417,7 @@ const loadDataSQL = () => {
   datalists.value = [];
 
   let data = {
-    id: "smart_proc_id",
+    id: "id DESC",
     sqlS: filterTrangthai.value != null ? filterTrangthai.value : null,
     sqlO: options.value.sort,
     Search: options.value.SearchText,
@@ -431,13 +429,21 @@ const loadDataSQL = () => {
   };
   options.value.loading = true;
   axios
-    .post(baseURL + "/api/hrm_ca_SQL/Filter_smart_proc", data, config)
+    .post(baseURL + "/api/HRM_SQL/Filter_smart_proc", data, config)
     .then((response) => {
       let dt = JSON.parse(response.data.data);
       let data = dt[0];
       if (data.length > 0) {
+        options.value.totalRecordView=0;
+        options.value.totalRecordProc=0
         data.forEach((element, i) => {
           element.STT = options.value.PageNo * options.value.PageSize + i + 1;
+          if (element.is_proc){
+            element.is_proc_type=1; options.value.totalRecordProc++;
+          }
+          else{
+            element.is_proc_type=2; options.value.totalRecordView++;
+          }  
         });
 
         datalists.value = data;
@@ -526,8 +532,8 @@ const onFilter = (event) => {
 const onCheckBox = (value, check, checkIsmain) => {
   if (check) {
     let data = {
-      IntID: value.smart_proc_id,
-      TextID: value.smart_proc_id + "",
+      IntID: value.id,
+      TextID: value.id + "",
       IntTrangthai: 1,
       BitTrangthai: value.status,
     };
@@ -537,7 +543,7 @@ const onCheckBox = (value, check, checkIsmain) => {
         if (response.data.err != "1") {
           swal.close();
           toast.success("Sửa trạng thái nguồn dữ liệu thành công!");
-          loadData(true);
+          
           closeDialog();
         } else {
           swal.fire({
@@ -559,8 +565,8 @@ const onCheckBox = (value, check, checkIsmain) => {
       });
   } else {
     let data1 = {
-      IntID: value.smart_proc_id,
-      TextID: value.smart_proc_id + "",
+      IntID: value.id,
+      TextID: value.id + "",
       BitMain: value.is_default,
     };
     axios
@@ -569,7 +575,7 @@ const onCheckBox = (value, check, checkIsmain) => {
         if (response.data.err != "1") {
           swal.close();
           toast.success("Sửa trạng thái nguồn dữ liệu thành công!");
-          loadData(true);
+           
           closeDialog();
         } else {
           swal.fire({
@@ -624,7 +630,7 @@ const deleteList = () => {
           });
 
           selectedStamps.value.forEach((item) => {
-            listId.push(item.smart_proc_id);
+            listId.push(item.id);
           });
           axios
             .delete(baseURL + "/api/smart_proc/delete_smart_proc", {
@@ -665,11 +671,7 @@ const deleteList = () => {
 };
 const expandedRowGroups = ref([1,2]);
 //Filter
-const trangThai = ref([
-  { name: "Hiển thị", code: 1 },
-  { name: "Không hiển thị", code: 0 },
-]);
-
+ 
 const filterTrangthai = ref();
 
 const reFilterEmail = () => {
@@ -749,7 +751,7 @@ onMounted(() => {
       paginatorTemplate="FirstPageLink PrevPageLink PageLinks NextPageLink LastPageLink RowsPerPageDropdown"
       :rowsPerPageOptions="[20, 30, 50, 100, 200]"
       :paginator="true"
-      dataKey="smart_proc_id"
+      dataKey="id"
       responsiveLayout="scroll"
       v-model:selection="selectedStamps"
       :row-hover="true"
@@ -777,7 +779,7 @@ onMounted(() => {
                 spellcheck="false"
                 placeholder="Tìm kiếm"
               />
-              <Button
+              <!-- <Button
                 type="button"
                 class="ml-2"
                 icon="pi pi-filter"
@@ -835,7 +837,7 @@ onMounted(() => {
                     </Toolbar>
                   </div>
                 </div>
-              </OverlayPanel>
+              </OverlayPanel> -->
             </span>
           </template>
 
@@ -903,14 +905,7 @@ onMounted(() => {
         />
         </div>
       </template>
-      <!-- <Column
-        class="align-items-center justify-content-center text-center"
-        headerStyle="text-align:center;max-width:50px;height:50px"
-        bodyStyle="text-align:center;max-width:50px"
-        selectionMode="multiple"
-        v-if="store.getters.user.is_super == true"
-      >
-      </Column> -->
+ 
 
       <Column
         field="STT"

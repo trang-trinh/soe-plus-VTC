@@ -63,7 +63,7 @@ namespace API.Controllers.Request
                     }
                     string root = HttpContext.Current.Server.MapPath("~/");
                     var provider = new MultipartFormDataStreamProvider(root + "/Portals");
-                    string jwtcookie = HttpContext.Current.Request.Cookies != null && HttpContext.Current.Request.Cookies["jwt"] != null ? HttpContext.Current.Request.Cookies["jwt"].Value : null;
+                    //string jwtcookie = HttpContext.Current.Request.Cookies != null && HttpContext.Current.Request.Cookies["jwt"] != null ? HttpContext.Current.Request.Cookies["jwt"].Value : null;
                     var task = Request.Content.ReadAsMultipartAsync(provider).
                     ContinueWith<HttpResponseMessage>(t =>
                     {
@@ -221,9 +221,9 @@ namespace API.Controllers.Request
                                         pathEdit_1 += "/" + Path.GetFileName(itemEdit);
                                     }
                                 }
-                                //File.Move(ffileData.LocalFileName, root + pathEdit_1);
-                                //listPathFileUp.Add(ffileData.LocalFileName);
-                                helper.UploadFileToDestination(jwtcookie, root, ffileData, pathEdit_1, 360, 360);
+                                File.Move(ffileData.LocalFileName, root + pathEdit_1);
+                                listPathFileUp.Add(ffileData.LocalFileName);
+                                //helper.UploadFileToDestination(jwtcookie, root, ffileData, pathEdit_1, 360, 360);
 
                                 var Portals = ConfigurationManager.AppSettings["Portals"];
                                 sys_file_mapping fm = new sys_file_mapping();
@@ -276,7 +276,19 @@ namespace API.Controllers.Request
                         {
                             db.request_master_file.AddRange(listFileRequest);
                         }
+
                         db.SaveChanges();
+
+                        if (listPathFileUp.Count > 0)
+                        {
+                            foreach (var path in listPathFileUp)
+                            {
+                                if (System.IO.File.Exists(path))
+                                {
+                                    System.IO.File.Delete(path);
+                                }
+                            }
+                        }
                         return Request.CreateResponse(HttpStatusCode.OK, new { err = "0" });
                     });
                     return await task;
@@ -337,7 +349,7 @@ namespace API.Controllers.Request
                     }
                     string root = HttpContext.Current.Server.MapPath("~/");
                     var provider = new MultipartFormDataStreamProvider(root + "/Portals");
-                    string jwtcookie = HttpContext.Current.Request.Cookies != null && HttpContext.Current.Request.Cookies["jwt"] != null ? HttpContext.Current.Request.Cookies["jwt"].Value : null;
+                    //string jwtcookie = HttpContext.Current.Request.Cookies != null && HttpContext.Current.Request.Cookies["jwt"] != null ? HttpContext.Current.Request.Cookies["jwt"].Value : null;
                     var task = Request.Content.ReadAsMultipartAsync(provider).
                     ContinueWith<HttpResponseMessage>(t =>
                     {
@@ -493,9 +505,9 @@ namespace API.Controllers.Request
                                         pathEdit_1 += "/" + Path.GetFileName(itemEdit);
                                     }
                                 }
-                                //File.Move(ffileData.LocalFileName, root + pathEdit_1);
-                                //listPathFileUp.Add(ffileData.LocalFileName);
-                                helper.UploadFileToDestination(jwtcookie, root, ffileData, pathEdit_1, 360, 360);
+                                File.Move(ffileData.LocalFileName, root + pathEdit_1);
+                                listPathFileUp.Add(ffileData.LocalFileName);
+                                //helper.UploadFileToDestination(jwtcookie, root, ffileData, pathEdit_1, 360, 360);
 
                                 var Portals = ConfigurationManager.AppSettings["Portals"];
                                 sys_file_mapping fm = new sys_file_mapping();
@@ -561,7 +573,19 @@ namespace API.Controllers.Request
                         {
                             db.request_master_file.AddRange(listFileRequest);
                         }
+
                         db.SaveChanges();
+
+                        if (listPathFileUp.Count > 0)
+                        {
+                            foreach (var path in listPathFileUp)
+                            {
+                                if (System.IO.File.Exists(path))
+                                {
+                                    System.IO.File.Delete(path);
+                                }
+                            }
+                        }
                         return Request.CreateResponse(HttpStatusCode.OK, new { err = "0" });
                     });
                     return await task;
