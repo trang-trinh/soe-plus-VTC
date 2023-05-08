@@ -44,6 +44,28 @@ const typestatus = ref([
 const profile = ref({});
 const skills = ref([]);
 
+//Function
+function urlify(string) {
+  var urlRegex = string.match(
+    /((((ftp|https?):\/\/)|(w{3}\.))[\-\w@:%_\+.~#?,&\/\/=]+)/g
+  );
+  if (urlRegex) {
+    urlRegex.forEach(function (url) {
+      string = string.replace(
+        url,
+        '<a target="_blank" href="' + url + '">' + url + "</a>"
+      );
+    });
+  }
+  return string.replace("(", "<br/>(");
+}
+const trustAsHtml = (html) => {
+  if (!html) {
+    return "";
+  }
+  return urlify(html).replace(/\n/g, "<br/>");
+};
+
 //init
 const initView2 = (ref) => {
   if (ref) {
@@ -392,16 +414,20 @@ onMounted(() => {
                 <div class="col-12 md:col-12">
                   <div class="form-group">
                     <label class="m-0">
-                      <span>Khen thưởng: </span>
-                      <span>{{ profile.military_reward }}</span>
+                      <span>Khen thưởng: <br /></span>
+                      <span
+                        v-html="trustAsHtml(profile.military_reward)"
+                      ></span>
                     </label>
                   </div>
                 </div>
                 <div class="col-12 md:col-12">
                   <div class="form-group m-0">
                     <label class="m-0">
-                      <span>Kỷ luật: </span>
-                      <span v-html="profile.military_discipline"></span>
+                      <span>Kỷ luật: <br /></span>
+                      <span
+                        v-html="trustAsHtml(profile.military_discipline)"
+                      ></span>
                     </label>
                   </div>
                 </div>

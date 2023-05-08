@@ -4612,7 +4612,10 @@ const onPage = (event) => {
                 </template>
                 <template #end> </template>
               </Toolbar>
-              <div class="d-lang-table-1 p-2">
+              <div
+                class="d-lang-table-1 p-2"
+                :style="{ height: 'calc(100vh - 202px) !important' }"
+              >
                 <DataTable
                   @page="onPage($event)"
                   @rowSelect="selectRow10"
@@ -4692,7 +4695,7 @@ const onPage = (event) => {
                       style="
                         display: flex;
                         width: 100%;
-                        height: calc(100vh - 291px);
+                        height: calc(100vh - 326px);
                         background-color: #fff;
                       "
                     >
@@ -5297,7 +5300,7 @@ const onPage = (event) => {
     :view="true"
   />
   <dialogfile
-    :key="componentKey['2']"
+    :key="componentKey['3']"
     :headerDialog="headerDialogFile"
     :displayDialog="displayDialogFile"
     :file="options.file"
