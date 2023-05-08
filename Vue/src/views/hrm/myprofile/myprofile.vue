@@ -6,8 +6,13 @@ import moment from "moment";
 import comview1 from "./component/comview1.vue";
 import comview2 from "./component/comview2.vue";
 import comview3 from "./component/comview3.vue";
+import comview4 from "./component/comview4.vue";
 import comview6 from "./component/comview6.vue";
+import comview7 from "./component/comview7.vue";
+import comview8 from "./component/comview8.vue";
+import comview9 from "./component/comview9.vue";
 import comview10 from "./component/comview10.vue";
+import comview11 from "./component/comview11.vue";
 
 const router = inject("router");
 const store = inject("store");
@@ -41,6 +46,7 @@ const tabs = ref([
   { id: 3, title: "Hợp đồng", icon: "", total: 0 },
   { id: 4, title: "Chấm công", icon: "", total: 0 },
   { id: 5, title: "Phiếu lương", icon: "", total: 0 },
+  { id: 11, title: "Bảo hiểm", icon: "", total: 0 },
   { id: 6, title: "Phép năm", icon: "", total: 0 },
   { id: 7, title: "Đào tạo", icon: "", total: 0 },
   { id: 8, title: "Quyết định", icon: "", total: 0 },
@@ -261,11 +267,16 @@ onMounted(() => {
         maxHeight: 'calc(100vh - 220px)',
       }"
     >
-      <comview1 v-if="options.tab === 1" />
-      <comview2 v-if="options.tab === 2" />
-      <comview3 v-if="options.tab === 3" />
-      <comview6 v-if="options.tab === 6" />
-      <comview10 v-if="options.tab === 10" />
+      <comview1 v-if="options.tab === 1 && profile.profile_id != null" :profile_id="profile.profile_id" />
+      <comview2 v-if="options.tab === 2 && profile.profile_id != null" :profile_id="profile.profile_id" />
+      <comview3 v-if="options.tab === 3 && profile.profile_id != null" :profile_id="profile.profile_id" />
+      <comview4 v-if="options.tab === 4 && profile.profile_id != null" :profile_id="profile.profile_id" />
+      <comview6 v-if="options.tab === 6 && profile.profile_id != null" :profile_id="profile.profile_id" />
+      <comview7 v-if="options.tab === 7 && profile.profile_id != null" :profile_id="profile.profile_id" />
+      <comview8 v-if="options.tab === 8 && profile.profile_id != null" :profile_id="profile.profile_id" />
+      <comview9 v-if="options.tab === 9 && profile.profile_id != null" :profile_id="profile.profile_id" />
+      <comview10 v-if="options.tab === 10 && profile.profile_id != null" :profile_id="profile.profile_id" />
+      <comview11 v-if="options.tab === 11 && profile.profile_id != null" :profile_id="profile.profile_id" />
     </div>
   </div>
 </template>

@@ -1,5 +1,5 @@
 <script setup>
-import { onMounted, ref, inject } from "vue";
+import { onMounted, ref, inject, nextTick } from "vue";
 import { encr } from "../../../../util/function";
 import { useToast } from "vue-toastification";
 import moment from "moment";
@@ -21,7 +21,7 @@ const basedomainURL = baseURL;
 
 //Get arguments
 const props = defineProps({
-  tab: Number,
+  profile_id: String,
 });
 
 //Declare
@@ -109,7 +109,7 @@ const closeDialogFile = () => {
   displayDialogFile.value = false;
   forceRerender(0);
 };
-const selectRow6 = (event) => {
+const selectRow10 = (event) => {
   if (event && event.data) {
     options.value.file = event.data;
     openViewDialogFile(event.data["file_name"]);
@@ -147,7 +147,7 @@ const initView10 = (rf) => {
           JSON.stringify({
             proc: "hrm_myprofile_get_10",
             par: [
-              { par: "user_id", va: store.getters.user.user_id },
+              { par: "profile_id", va: props.profile_id },
               { par: "search", va: options.value.search },
               { par: "pageNo", va: options.value.pageNo },
               { par: "pageSize", va: options.value.pageSize },
@@ -218,7 +218,9 @@ const initView10 = (rf) => {
     });
 };
 onMounted(() => {
+  nextTick(() => {
     initView10(true);
+  });
 });
 //page
 const onPage = (event) => {
@@ -411,7 +413,7 @@ const onPage = (event) => {
     <div class="d-lang-table">
       <DataTable
         @page="onPage($event)"
-        @rowSelect="selectRow6"
+        @rowSelect="selectRow10"
         :value="files"
         :paginator="true"
         :rows="options.pageSize"
@@ -515,9 +517,9 @@ const onPage = (event) => {
 <style scoped>
 @import url(../../contract/component/stylehrm.css);
 .d-lang-table {
-    height: calc(100vh - 275px);
-    overflow-y: auto;
-    background-color: #fff;
+  height: calc(100vh - 275px);
+  overflow-y: auto;
+  background-color: #fff;
 }
 .box-info .card {
   border: none;

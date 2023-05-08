@@ -1,5 +1,5 @@
 <script setup>
-import { onMounted, ref, inject } from "vue";
+import { onMounted, ref, inject, nextTick } from "vue";
 import { encr } from "../../../../util/function";
 import { useToast } from "vue-toastification";
 import moment from "moment";
@@ -20,7 +20,7 @@ const basedomainURL = baseURL;
 
 //Get arguments
 const props = defineProps({
-  tab: Number,
+  profile_id: String,
 });
 
 //Declare
@@ -66,8 +66,8 @@ const initView1 = (ref) => {
       {
         str: encr(
           JSON.stringify({
-            proc: "hrm_myprofile_get",
-            par: [{ par: "user_id", va: store.getters.user.user_id }],
+            proc: "hrm_myprofile_get_1",
+            par: [{ par: "profile_id", va: props.profile_id }],
           }),
           SecretKey,
           cryoptojs
@@ -161,7 +161,9 @@ const initView1 = (ref) => {
     });
 };
 onMounted(() => {
-  initView1(true);
+  nextTick(() => {
+    initView1(true);
+  });
 });
 </script>
 <template>
@@ -660,8 +662,8 @@ onMounted(() => {
                       >
                         <div>
                           Từ: <b>{{ slotProps.item.start_date_string }}</b>
-                          <span v-if="slotProps.item.end_date_string"
-                            > Đến: <b>{{ slotProps.item.end_date_string }}</b>
+                          <span v-if="slotProps.item.end_date_string">
+                            Đến: <b>{{ slotProps.item.end_date_string }}</b>
                           </span>
                         </div>
                       </Button>
@@ -786,8 +788,8 @@ onMounted(() => {
                       >
                         <div>
                           Từ: <b>{{ slotProps.item.start_date_string }}</b>
-                          <span v-if="slotProps.item.end_date_string"
-                            > Đến: <b>{{ slotProps.item.end_date_string }}</b>
+                          <span v-if="slotProps.item.end_date_string">
+                            Đến: <b>{{ slotProps.item.end_date_string }}</b>
                           </span>
                         </div>
                       </Button>

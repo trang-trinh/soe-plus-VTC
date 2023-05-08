@@ -1,5 +1,5 @@
 <script setup>
-import { onMounted, ref, inject } from "vue";
+import { onMounted, ref, inject, nextTick } from "vue";
 import { encr } from "../../../../util/function";
 import { useToast } from "vue-toastification";
 import moment from "moment";
@@ -21,7 +21,7 @@ const basedomainURL = baseURL;
 
 //Get arguments
 const props = defineProps({
-  tab: Number,
+  profile_id: String,
 });
 
 //Declare
@@ -214,7 +214,7 @@ const initView3 = (ref) => {
         str: encr(
           JSON.stringify({
             proc: "hrm_myprofile_get_3",
-            par: [{ par: "user_id", va: store.getters.user.user_id }],
+            par: [{ par: "profile_id", va: props.profile_id }],
           }),
           SecretKey,
           cryoptojs
@@ -307,8 +307,18 @@ const initView3 = (ref) => {
     });
 };
 onMounted(() => {
-  initView3(true);
+  nextTick(() => {
+    initView3(true);
+  });
 });
+//page
+const onPage = (event) => {
+  if (event.rows != options.value.pageSize) {
+    options.value.pageSize = event.rows;
+  }
+  options.value.pageNo = event.page + 1;
+  initView3(true);
+};
 </script>
 <template>
   <div class="surface-100">

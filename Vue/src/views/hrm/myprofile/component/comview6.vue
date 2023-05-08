@@ -1,5 +1,5 @@
 <script setup>
-import { onMounted, inject, ref, watch } from "vue";
+import { onMounted, inject, ref, watch, nextTick } from "vue";
 import { encr } from "../../../../util/function";
 import { useToast } from "vue-toastification";
 import moment from "moment";
@@ -18,6 +18,11 @@ const cryoptojs = inject("cryptojs");
 const basedomainURL = baseURL;
 const basefileURL = fileURL;
 const PASS_KEY = SecretKey;
+
+//Get arguments
+const props = defineProps({
+  profile_id: String,
+});
 
 //Decalre
 const isFunction = ref(false);
@@ -74,7 +79,7 @@ const initView6 = (ref) => {
         str: encr(
           JSON.stringify({
             proc: "hrm_myprofile_get_6",
-            par: [{ par: "user_id", va: store.getters.user.user_id }],
+            par: [{ par: "profile_id", va: props.profile_id }],
           }),
           SecretKey,
           cryoptojs
@@ -121,7 +126,9 @@ const initView6 = (ref) => {
     });
 };
 onMounted(() => {
-  initView6(true);
+  nextTick(() => {
+    initView6(true);
+  });
 });
 </script>
 <template>
