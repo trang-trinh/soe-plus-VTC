@@ -154,11 +154,11 @@ const onPage = (event) => {
     //Trang sau
 
     options.value.id =
-      datalists.value[datalists.value.length - 1].smart_report_id;
+      datalists.value[datalists.value.length - 1].report_id;
     options.value.IsNext = true;
   } else if (event.page < options.value.PageNo) {
     //Trang trước
-    options.value.id = datalists.value[0].smart_report_id;
+    options.value.id = datalists.value[0].report_id;
     options.value.IsNext = false;
   }
   options.value.PageNo = event.page;
@@ -244,10 +244,8 @@ const openBasicWRP = (wrt) => {
     user_access_fake: [],
     user_deny_fake: [],
     report_template: null,
-  
 
     report_group: wrt,
- 
   };
   checkDisabled.value = false;
   checkUploadFile.value = false;
@@ -289,7 +287,8 @@ const saveData = (isFormValid) => {
   let formData = new FormData();
 
   if (smart_report.value.user_access_fake.length > 0)
-    smart_report.value.user_access = smart_report.value.user_access_fake.toString();
+    smart_report.value.user_access =
+      smart_report.value.user_access_fake.toString();
   else smart_report.value.user_access = null;
   if (smart_report.value.user_deny_fake.length > 0)
     smart_report.value.user_deny = smart_report.value.user_deny_fake.toString();
@@ -361,67 +360,7 @@ const saveData = (isFormValid) => {
 const checkIsmain = ref(true);
 //Sửa bản ghi
 
-
 const copyTem = (dataTem) => {
-   
-   axios
-     .post(
-       baseURL + "/api/HRM_SQL/getData",
-       {
-         str: encr(
-           JSON.stringify({
-             proc: "smart_report_get",
-             par: [{ par: "report_id", va: dataTem.report_id }],
-           }),
-           SecretKey,
-           cryoptojs
-         ).toString(),
-       },
-       config
-     )
-     .then((response) => {
-       let data = JSON.parse(response.data.data)[0][0];
-       if (isFirst.value) isFirst.value = false;
-       collapsed1.value=false;
-       collapsed2.value=false;
-       smart_report.value = data;
-       submitted.value = false;
-      
-       if(smart_report.value.report_template!=null   ){
-         checkUploadFile.value=true;
-         checkDisabled.value=false;
-       }
-         
-       if(data.user_access)
-       smart_report.value.user_access_fake=data.user_access.split(",");
-       else
-       smart_report.value.user_access_fake=[];
-       if(data.user_deny)
-       smart_report.value.user_deny_fake=data.user_deny.split(",");
-       else  smart_report.value.user_deny_fake=[];
-       smart_report.value.proc_get=Number(data.proc_get);
-       smart_report.value.proc_name=Number(data.proc_name);
-       smart_report.value.report_name=null;
-       headerDialog.value = "Thêm báo cáo";
-       isSaveTem.value = false;
-        
-       displayBasic.value = true;
-     })
-     .catch((error) => {
-       toast.error("Tải dữ liệu không thành công!");
-       options.value.loading = false;
- 
-       if (error && error.status === 401) {
-         swal.fire({
-           text: "Mã token đã hết hạn hoặc không hợp lệ, vui lòng đăng nhập lại!",
-           confirmButtonText: "OK",
-         });
-         store.commit("gologout");
-       }
-     });
- };
-const editTem = (dataTem) => {
-   
   axios
     .post(
       baseURL + "/api/HRM_SQL/getData",
@@ -440,28 +379,83 @@ const editTem = (dataTem) => {
     .then((response) => {
       let data = JSON.parse(response.data.data)[0][0];
       if (isFirst.value) isFirst.value = false;
-      collapsed1.value=false;
-      collapsed2.value=false;
+      collapsed1.value = false;
+      collapsed2.value = false;
       smart_report.value = data;
       submitted.value = false;
-     
-      if(smart_report.value.report_template!=null   ){
-        checkUploadFile.value=true;
-        checkDisabled.value=false;
+
+      if (smart_report.value.report_template != null) {
+        checkUploadFile.value = true;
+        checkDisabled.value = false;
       }
-        
-      if(data.user_access)
-      smart_report.value.user_access_fake=data.user_access.split(",");
-      else
-      smart_report.value.user_access_fake=[];
-      if(data.user_deny)
-      smart_report.value.user_deny_fake=data.user_deny.split(",");
-      else  smart_report.value.user_deny_fake=[];
-      smart_report.value.proc_get=Number(data.proc_get);
-      smart_report.value.proc_name=Number(data.proc_name);
+
+      if (data.user_access)
+        smart_report.value.user_access_fake = data.user_access.split(",");
+      else smart_report.value.user_access_fake = [];
+      if (data.user_deny)
+        smart_report.value.user_deny_fake = data.user_deny.split(",");
+      else smart_report.value.user_deny_fake = [];
+      smart_report.value.proc_get = Number(data.proc_get);
+      smart_report.value.proc_name = Number(data.proc_name);
+      smart_report.value.report_name = null;
+      headerDialog.value = "Thêm báo cáo";
+      isSaveTem.value = false;
+
+      displayBasic.value = true;
+    })
+    .catch((error) => {
+      toast.error("Tải dữ liệu không thành công!");
+      options.value.loading = false;
+
+      if (error && error.status === 401) {
+        swal.fire({
+          text: "Mã token đã hết hạn hoặc không hợp lệ, vui lòng đăng nhập lại!",
+          confirmButtonText: "OK",
+        });
+        store.commit("gologout");
+      }
+    });
+};
+const editTem = (dataTem) => {
+  axios
+    .post(
+      baseURL + "/api/HRM_SQL/getData",
+      {
+        str: encr(
+          JSON.stringify({
+            proc: "smart_report_get",
+            par: [{ par: "report_id", va: dataTem.report_id }],
+          }),
+          SecretKey,
+          cryoptojs
+        ).toString(),
+      },
+      config
+    )
+    .then((response) => {
+      let data = JSON.parse(response.data.data)[0][0];
+      if (isFirst.value) isFirst.value = false;
+      collapsed1.value = false;
+      collapsed2.value = false;
+      smart_report.value = data;
+      submitted.value = false;
+
+      if (smart_report.value.report_template != null) {
+        checkUploadFile.value = true;
+        checkDisabled.value = false;
+      }
+
+      if (data.user_access)
+        smart_report.value.user_access_fake = data.user_access.split(",");
+      else smart_report.value.user_access_fake = [];
+      if (data.user_deny)
+        smart_report.value.user_deny_fake = data.user_deny.split(",");
+      else smart_report.value.user_deny_fake = [];
+      smart_report.value.proc_get = Number(data.proc_get);
+      smart_report.value.proc_name = Number(data.proc_name);
       headerDialog.value = "Sửa báo cáo";
       isSaveTem.value = true;
-       
+
       displayBasic.value = true;
     })
     .catch((error) => {
@@ -502,7 +496,7 @@ const delTem = (Tem) => {
         axios
           .delete(baseURL + "/api/smart_report/delete_smart_report", {
             headers: { Authorization: `Bearer ${store.getters.token}` },
-            data: Tem != null ? [Tem.smart_report_id] : 1,
+            data: Tem != null ? [Tem.report_id] : 1,
           })
           .then((response) => {
             swal.close();
@@ -558,7 +552,7 @@ const loadDataSQL = () => {
   datalists.value = [];
 
   let data = {
-    id: "smart_report_id",
+    id: "report_id DESC",
     sqlS: filterTrangthai.value != null ? filterTrangthai.value : null,
     sqlO: options.value.sort,
     Search: options.value.SearchText,
@@ -570,7 +564,7 @@ const loadDataSQL = () => {
   };
   options.value.loading = true;
   axios
-    .post(baseURL + "/api/hrm_ca_SQL/Filter_smart_report", data, config)
+    .post(baseURL + "/api/HRM_SQL/Filter_smart_report", data, config)
     .then((response) => {
       let dt = JSON.parse(response.data.data);
       let data = dt[0];
@@ -665,8 +659,8 @@ const onFilter = (event) => {
 const onCheckBox = (value, check, checkIsmain) => {
   if (check) {
     let data = {
-      IntID: value.smart_report_id,
-      TextID: value.smart_report_id + "",
+      IntID: value.report_id,
+      TextID: value.report_id + "",
       IntTrangthai: 1,
       BitTrangthai: value.status,
     };
@@ -698,8 +692,8 @@ const onCheckBox = (value, check, checkIsmain) => {
       });
   } else {
     let data1 = {
-      IntID: value.smart_report_id,
-      TextID: value.smart_report_id + "",
+      IntID: value.report_id,
+      TextID: value.report_id + "",
       BitMain: value.is_default,
     };
     axios
@@ -763,7 +757,7 @@ const deleteList = () => {
           });
 
           selectedStamps.value.forEach((item) => {
-            listId.push(item.smart_report_id);
+            listId.push(item.report_id);
           });
           axios
             .delete(baseURL + "/api/smart_report/delete_smart_report", {
@@ -844,7 +838,7 @@ const toggle = (event) => {
 };
 
 const filesList = ref([]);
-let fileSize = [];
+ 
 const onUpFile = (file) => {
   let formData = new FormData();
   formData.append("fileupload", file);
@@ -858,7 +852,7 @@ const onUpFile = (file) => {
   })
     .then((response) => {
       if (response.data.err != "1") {
-        debugger;
+        
         smart_report.value.report_template = response.data.htmls[0];
         checkUploadFile.value = true;
         checkDisabled.value = false;
@@ -877,7 +871,7 @@ const checkUploadFile = ref(false);
 const onUploadFile = (event) => {
   checkDisabled.value = true;
   checkUploadFile.value = false;
-  fileSize = [];
+ 
   filesList.value = [];
 
   var ms = false;
@@ -983,10 +977,8 @@ emitter.on("emitData", (obj) => {
   switch (obj.type) {
     case "submitDropdownUser":
       if (obj.data) {
-  
         smart_report.value.profile_id = obj.data.profile_id;
       } else {
-   
         smart_report.value.profile_id = null;
       }
 
@@ -994,31 +986,25 @@ emitter.on("emitData", (obj) => {
 
     case "submitDropdownUsers":
       if (obj.data) {
-        var str = "";
+       
         if (obj.data.type == 1) {
           smart_report.value.user_access_fake = [];
-        
-     
+
           obj.data.data.forEach((element) => {
-           
             smart_report.value.user_access_fake.push(element.user_id);
           });
         } else {
           smart_report.value.user_deny_fake = [];
- 
 
           obj.data.data.forEach((element) => {
-           
             smart_report.value.user_deny_fake.push(element.user_id);
           });
         }
       } else {
         if (obj.data.type == 1) {
           smart_report.value.user_access_fake = null;
-   
         } else {
           smart_report.value.user_deny_fake = null;
- 
         }
       }
 
@@ -1026,17 +1012,15 @@ emitter.on("emitData", (obj) => {
     case "delDropdownUsers":
       if (obj.data) {
         if (obj.data.type == 1) {
-     
           smart_report.value.user_access_fake =
             smart_report.value.user_access_fake.filter(
               (x) => x != obj.data.data.user_id
             );
         } else {
-      
-
-          smart_report.value.user_deny_fake = smart_report.value.user_deny_fake.filter(
-            (x) => x != obj.data.data.user_id
-          );
+          smart_report.value.user_deny_fake =
+            smart_report.value.user_deny_fake.filter(
+              (x) => x != obj.data.data.user_id
+            );
         }
       }
       break;
@@ -1091,7 +1075,7 @@ onMounted(() => {
       paginatorTemplate="FirstPageLink PrevPageLink PageLinks NextPageLink LastPageLink RowsPerPageDropdown"
       :rowsPerPageOptions="[20, 30, 50, 100, 200]"
       :paginator="true"
-      dataKey="smart_report_id"
+      dataKey="report_id"
       responsiveLayout="scroll"
       v-model:selection="selectedStamps"
       :row-hover="true"
@@ -1268,57 +1252,47 @@ onMounted(() => {
         </template>
       </Column>
       <Column
-      :sortable="true"
+     
         header="Template"
         class="align-items-center justify-content-center text-center"
         headerStyle="text-align:center;max-width:120px;height:50px"
         bodyStyle="text-align:center;max-width:120px"
-      ><template #body="data">
-        <div
-              class="w-full flex"
-              v-if="data.data.is_temp"
-            >
-              <i
-                class="pi pi-check-square text-blue-500  w-full format-center"
-                style="font-size: 1.5rem"
-              ></i>
-            </div></template
+        ><template #body="data">
+          <div class="w-full flex" v-if="data.data.is_temp">
+            <i
+              class="pi pi-check-square text-blue-500 w-full format-center"
+              style="font-size: 1.5rem"
+            ></i></div></template
       ></Column>
       <Column
-      :sortable="true"
+      
         header="Sử dụng"
         class="align-items-center justify-content-center text-center"
         headerStyle="text-align:center;max-width:120px;height:50px"
         bodyStyle="text-align:center;max-width:120px"
-      ><template #body="data">
-        <div
-              class="w-full flex"
-              v-if="data.data.is_temp"
-            >
-              <i
-                class="pi pi-lock text-red-500  w-full format-center"
-                style="font-size: 1.5rem"
-              ></i>
-            </div> </template
+        ><template #body="data">
+          <div class="w-full flex" v-if="data.data.is_temp">
+            <i
+              class="pi pi-lock text-red-500 w-full format-center"
+              style="font-size: 1.5rem"
+            ></i>
+          </div> </template
       ></Column>
       <Column
-      :sortable="true"
+ 
         header="Public"
         class="align-items-center justify-content-center text-center"
         headerStyle="text-align:center;max-width:120px;height:50px"
         bodyStyle="text-align:center;max-width:120px"
-      ><template #body="data">
-        <div
-              class="w-full flex"
-              v-if="data.data.is_public"
-            >
-              <i
-                class="pi pi-check text-green-500 font-bold w-full format-center"
-                style="font-size: 1.5rem"
-              ></i>
-            </div></template
+        ><template #body="data">
+          <div class="w-full flex" v-if="data.data.is_public">
+            <i
+              class="pi pi-check text-green-500 font-bold w-full format-center"
+              style="font-size: 1.5rem"
+            ></i></div></template
       ></Column>
-      <Column         :sortable="true"
+      <Column
+       
         field="status"
         header="Trạng thái"
         headerStyle="text-align:center;max-width:120px;height:50px"
@@ -1348,26 +1322,25 @@ onMounted(() => {
       >
         <template #body="Tem">
           <Button
-    
-              class="p-button-rounded p-button-secondary p-button-outlined mx-1"
-              type="button"
-              icon="pi pi-cog"
-              v-tooltip.left="'Cấu hình báo cáo'"
-            ></Button>
-            <Button
+            class="p-button-rounded p-button-secondary p-button-outlined mx-1"
+            type="button"
+            icon="pi pi-cog"
+            v-tooltip.left="'Cấu hình báo cáo'"
+          ></Button>
+          <Button
             @click="copyTem(Tem.data)"
-              class="p-button-rounded p-button-secondary p-button-outlined mx-1"
-              type="button"
-              icon="pi pi-copy"
-              v-tooltip.left="'Copy báo cáo'"
-            ></Button>
-            <Button
-              @click="editTem(Tem.data)"
-              class="p-button-rounded p-button-secondary p-button-outlined mx-1"
-              type="button"
-              icon="pi pi-eye"
-              v-tooltip.left="'Xem báo cáo'"
-            ></Button>
+            class="p-button-rounded p-button-secondary p-button-outlined mx-1"
+            type="button"
+            icon="pi pi-copy"
+            v-tooltip.left="'Copy báo cáo'"
+          ></Button>
+          <Button
+            @click="editTem(Tem.data)"
+            class="p-button-rounded p-button-secondary p-button-outlined mx-1"
+            type="button"
+            icon="pi pi-eye"
+            v-tooltip.left="'Xem báo cáo'"
+          ></Button>
           <div
             v-if="
               store.state.user.is_super == true ||
@@ -1435,7 +1408,6 @@ onMounted(() => {
             v$.report_name.$pending.$response
           "
         >
-          
           <small class="col-10 p-error">
             <span class="col-12 p-0">{{
               v$.report_name.required.$message
@@ -1468,32 +1440,24 @@ onMounted(() => {
           </div>
         </div>
         <div class="col-12 field md:col-12 flex align-items-center">
-          <div class="col-4 field md:col-4 p-0 flex align-items-center">
+          <div class="col-6 field md:col-6 p-0 flex align-items-center">
             <div class="text-left p-0">Cho phép dùng chung</div>
             <InputSwitch
               v-model="smart_report.is_public"
               class="w-4rem lck-checked ml-3"
             />
           </div>
-          <div class="col-4 field md:col-4 p-0 flex align-items-center">
+          <div class="col-6 field md:col-6 p-0 flex align-items-center pl-1">
             <div class="text-left p-0">Báo cáo dạng bảng (Excel)</div>
             <InputSwitch
               v-model="smart_report.is_table"
               class="w-4rem lck-checked ml-3"
             />
           </div>
-          <div
-            class="col-4 field md:col-4 p-0 flex align-items-center format-center"
-          >
-            <div class="text-left p-0">Kích hoạt</div>
-            <InputSwitch
-              v-model="smart_report.status"
-              class="w-4rem lck-checked ml-3"
-            />
-          </div>
+       
         </div>
         <div class="col-12 field md:col-12 flex align-items-center">
-          <div class="col-4 field md:col-4 p-0 flex align-items-center">
+          <div class="col-6 field md:col-6 p-0 flex align-items-center">
             <FileUpload
               mode="basic"
               name="demo[]"
@@ -1524,15 +1488,17 @@ onMounted(() => {
               ></i>
             </div>
           </div>
-          <div class="col-4 field md:col-4 p-0 flex align-items-center">
-            <div class="text-left p-0">Xoá cấu hình</div>
+          <div
+            class="col-3 field md:col-3 p-0 flex align-items-center pl-1"
+          >
+            <div class="text-left p-0">Kích hoạt</div>
             <InputSwitch
-              v-model="smart_report.is_del_config"
+              v-model="smart_report.status"
               class="w-4rem lck-checked ml-3"
             />
           </div>
           <div
-            class="col-4 field md:col-4 p-0 flex align-items-center format-center"
+            class="col-3 field md:col-3 p-0 flex align-items-center  "
           >
             <div class="text-left p-0">Template</div>
             <InputSwitch
@@ -1558,22 +1524,30 @@ onMounted(() => {
             <div class="col-12 field md:col-12 flex">
               <div class="col-6 md:col-6 p-0 align-items-center pr-1">
                 <div class="col-12 text-left p-0 pb-2">Thủ tục lấy dữ liệu</div>
-
+                <div class="col-12 p-0  h-full ">
                 <Dropdown
                   v-model="smart_report.proc_name"
                   :options="listProcDropdown"
                   optionLabel="name"
                   optionValue="code"
-                  class="col-12 p-0"
+                  class="w-full p-0"
+                  style="height: auto; min-height: 36px"
                 />
+                </div>
               </div>
               <div class="col-6 md:col-6 p-0 align-items-center pl-1">
                 <div class="col-12 text-left p-0 pb-2">Chọn nhân sự mẫu</div>
-                <DropdownUser
+                <div class="col-12 p-0">
+                  <DropdownUser
                   :model="smart_report.profile_id"
                   :placeholder="'Chọn nhân sự'"
-                  :class="'w-full'"
+                  :class="'w-full p-0'"
+                  :editable="false"
+                  optionLabel="profile_user_name"
+                optionValue="code"
                 />
+                </div>
+            
               </div>
             </div>
             <div class="col-12 field md:col-12">
@@ -1633,6 +1607,14 @@ onMounted(() => {
       </div>
     </form>
     <template #footer>
+      <Button
+      v-if="isSaveTem==true"
+        label="Xóa cấu hình"
+        icon="pi pi-cog"
+        @click="closeDialog"
+        class="p-button-outlined p-button-danger"
+      />
+
       <Button
         label="Hủy"
         icon="pi pi-times"

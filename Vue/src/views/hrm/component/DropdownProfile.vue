@@ -1,5 +1,5 @@
 <script setup>
-import { ref, inject, onMounted, watch, onUpdated } from "vue";
+import { ref, inject, onMounted, onBeforeUpdate, onUpdated } from "vue";
 
 import { encr, checkURL } from "../../../util/function.js";
 
@@ -33,14 +33,11 @@ const loadUserProfiles = () => {
       {
         str: encr(
           JSON.stringify({
-            proc: "hrm_profile_list_filter",
+            proc: "hrm_profile_list_all",
             par: [
-              { par: "search", va: null },
+          
               { par: "user_id", va: store.getters.user.user_id },
-              { par: "work_position_id", va: null },
-              { par: "position_id", va: null },
-              { par: "department_id", va: null },
-              { par: "status", va: 1 },
+       
             ],
           }),
           SecretKey,
@@ -102,10 +99,15 @@ const props = defineProps({
   class: String,
   display: String,
   disabled: Boolean,
+  editable:Boolean,
+  optionLabel:String,
+  optionValue:String,
+  style:String
 });
 const model = ref();
 const submitModel = () => {
   emitter.emit("emitData", { type: "submitDropdownUser", data: model.value });
+  
 };
 const removeUser = (item) => {
   emitter.emit("emitData", { type: "delItem", data: item });
@@ -119,17 +121,41 @@ onMounted(() => {
   };
 });
  
+onBeforeUpdate(() => {
+
+ 
+  if( listDataUsersSave.value.length>0)
+  {
+        var models = listDataUsersSave.value.find((x) => x.profile_id == props.model);
+        if (models)
+          model.value={
+            profile_id: models.profile_id,
+            profile_user_name: models.profile_user_name,
+            avatar: models.avatar,
+          };
+        else model.value = null;
+      }
+        else
+      loadUserProfiles();
+    
+
+
+
+});
 </script>
 
 <template>
+ 
   <Dropdown
     :options="listDataUsers"
     :filter="true"
     :showClear="true"
-    :editable="false"
-    optionLabel="profile_user_name"
+    :editable="props.editable"
+    :optionLabel="props.optionLabel"
+    :optionValue="props.optionValue"
+    :style="props.style"
     v-model="model"
-    class="ip36 d-dropdown-design"
+    class="  d-dropdown-design"
     style="height: auto; min-height: 36px"
     :placeholder="props.placeholder"
     @change="submitModel"

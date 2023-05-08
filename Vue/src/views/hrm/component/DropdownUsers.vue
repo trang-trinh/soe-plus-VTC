@@ -167,7 +167,7 @@ onMounted(() => {
     :disabled="props.disabled"
   >
     <template #value="slotProps">
-      <div style="min-height: 2rem; cursor: default">
+      <div style="min-height: 1.5rem; cursor: default">
         <span
           class="mx-1 relative"
           v-for="(item, index) in slotProps.value"

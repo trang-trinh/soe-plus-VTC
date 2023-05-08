@@ -600,40 +600,42 @@ onMounted(() => {
 							team sử dụng</span>
 					</div>
 				</div>
-				<div class="col-12 field md:col-12 flex p-0" style="margin-bottom: 10px;">
-					<div class="field col-6 md:col-6 p-0 align-items-center flex" style="position: relative;">
-						<div class="col-6 text-left p-0" style="align-items:center;">
+				<div class="col-12 field md:col-12 flex p-0">
+					<div class="col-6 md:col-6 p-0 align-items-center flex">
+						<InputSwitch class="mr-3"
+							v-model="request_form.is_notify_manage" />
+						<div class="text-left p-0" style="align-items:center;">
 							Thông báo quản lý
 						</div>
-						<InputSwitch class="col-6" style="position: absolute; top: 0px; left: 200px"
-							v-model="request_form.is_notify_manage" />
 					</div>
-					<div class="field col-6 md:col-6 p-0 align-items-center flex" style="position: relative;">
-						<div class="col-6 text-left p-0">Tất cả các Team sử dụng</div>
-						<InputSwitch class="col-6" style="position: absolute; top: 0px; left: 200px"
+					<div class="col-6 md:col-6 p-0 align-items-center flex">
+						<InputSwitch class="mr-3"
 							v-model="request_form.is_use_all" />
+						<div class="text-left p-0">Tất cả các Team sử dụng</div>
 					</div>
 				</div>
-				<div class="col-12 field md:col-12 flex p-0" style="margin-bottom: 10px;">
-					<div class="field col-6 md:col-6 p-0 align-items-center flex" style="position: relative;">
-						<div class="col-6 text-left p-0" style="align-items:center;">
+				<div class="col-12 field md:col-12 flex p-0">
+					<div class="col-6 md:col-6 p-0 align-items-center flex">
+						<InputSwitch class="mr-3"
+							v-model="request_form.status" />
+						<div class="text-left p-0" style="align-items:center;">
 							Trạng thái
 						</div>
-						<InputSwitch class="col-6" style="position: absolute; top: 0px; left: 200px"
-							v-model="request_form.status" />
 					</div>
-					<div class="field col-6 md:col-6 p-0 align-items-center flex" style="position: relative;">
-						<div class="col-6 text-left p-0">Người lập đánh giá</div>
-						<InputSwitch class="col-6" style="position: absolute; top: 0px; left: 200px"
+					<div class="col-6 md:col-6 p-0 align-items-center flex">
+						<InputSwitch class="mr-3"
 							v-model="request_form.is_review" />
+						<div class="text-left p-0">Người lập đánh giá</div>
 					</div>
 				</div>
-				<div class="col-12 field md:col-12 flex p-0" style="margin-bottom: 0px;position: relative;">
-					<div class="col-6 text-left p-0" style="align-items:center;">
-						Bảo mật (<i>Chỉ người tạo, người duyệt thấy đề xuất</i>)
+				<div class="col-12 md:col-12 flex p-0">
+					<div class="col-12 md:col-12 p-0 align-items-center flex">
+						<InputSwitch class="mr-3"
+							v-model="request_form.is_private" />
+						<div class="text-left p-0" style="align-items:center;">
+							Bảo mật (<i>Chỉ người tạo, người duyệt thấy đề xuất</i>)
+						</div>
 					</div>
-					<InputSwitch class="col-6" style="position: absolute; top: -5px; left: 300px"
-						v-model="request_form.is_private" />
 				</div>
 			</div>
 		</form>

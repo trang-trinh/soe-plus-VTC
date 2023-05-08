@@ -440,7 +440,8 @@ const listDataType = ref([
 		items: [
 			{ label: 'Ngày', value: 6 },
 			{ label: 'Giờ', value: 7 },
-			{ label: 'Nghỉ phép?', value: 8 },
+			{ label: 'Nghỉ phép?', value: 8 },,
+      		{ label: 'Loại nghỉ', value: 9 }, // Các loại nghỉ: FULL=cả ngày, AM=buổi sáng, PM: buổi chiều
 		]
 	},
 ])
@@ -713,6 +714,7 @@ onMounted(() => {
 				class="align-items-center justify-content-center text-center">
 				<template #body="data">
 					<i class="pi pi-cog" style="font-size:1.5rem;cursor:pointer;" @click="openModalSetting(data.data)"
+						:style="data.data.IsSetup_FormD ? 'color: #2196f3;' : ''"
 						v-tooltip.top="'Thiết lập form'"></i>
 				</template>
 			</Column>

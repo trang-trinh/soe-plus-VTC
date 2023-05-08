@@ -8,7 +8,7 @@ import { encr, checkURL } from "../../../util/function.js";
 import tree_users_hrm from "../component/tree_users_hrm.vue";
 import DropdownUser from "../component/DropdownProfiles.vue";
 import moment from "moment";
-import { forEach } from "jszip";
+ 
 //Khai báo
 
 const cryoptojs = inject("cryptojs");
@@ -171,6 +171,7 @@ const work_schedule = ref({
   emote_file: "",
   status: true,
   is_order: 1,
+  profile_id_fake:[]
 });
 
 const selectedStamps = ref();
@@ -204,7 +205,8 @@ const openBasic = (str) => {
     is_order: sttStamp.value,
     organization_id: store.getters.user.organization_id,
     is_system: store.getters.user.is_super ? true : false,
-    profile_id_fake: null,
+ 
+    profile_id_fake:[]
   };
   options.value.profile_id = null;
   checkIsmain.value = false;
@@ -1031,11 +1033,20 @@ emitter.on("emitData", (obj) => {
   switch (obj.type) {
     case "submitModel":
       if (obj.data) {
-        work_schedule.value.profile_id_fake = obj.data;
-        options.value.profile_id = obj.data;
+        if (obj.data.type == 1) {
+          work_schedule.value.profile_id_fake = [];
+          obj.data.data.forEach((element) => {
+            work_schedule.value.profile_id_fake.push(element.profile_id);
+          });
+        } else {
+          options.value.list_profile_id = [];
+          obj.data.data.forEach((element) => {
+            options.value.list_profile_id.push(element.profile_id);
+          });
+        }
       }
       break;
-
+    
     default:
       break;
   }
@@ -1150,8 +1161,8 @@ onMounted(() => {
                     <DropdownUser
                       :model="options.profile_id"
                       :display="'chip'"
-                      :placeholder="'Chọn nhân sự'"
-                    />
+                      :placeholder="'Chọn nhân sự'"    :type="2"
+                    /> 
                   </div>
                 </div>
                 <div class="flex field col-12 p-0">
@@ -1668,7 +1679,7 @@ onMounted(() => {
               :disabled="isSaveTem"
               :class="{
                 'p-invalid': work_schedule.profile_id_fake == null && submitted,
-              }"
+              }"    :type="1"
             />
           </div>
         </div>

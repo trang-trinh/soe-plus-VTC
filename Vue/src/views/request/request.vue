@@ -15,7 +15,7 @@ const swal = inject("$swal");
 const axios = inject("axios");
 const emitter = inject("emitter");
 const basedomainURL = baseURL;
-const baseUrlCheck = "http://localhost:8080/";
+//const baseUrlCheck = "http://localhost:8080/";
 const config = {
   headers: {
     Authorization: `Bearer ${store.getters.token}`,
@@ -434,6 +434,7 @@ const request_data = ref({
     priority_level: 0,
     type_process: 1,
     is_evaluate: true,
+    IsEdit: true,
 });
 const headerAddDialog = ref();
 const displayAddRequest = ref(false);
@@ -446,6 +447,7 @@ const closeDialog = () => {
         type_process: 1,
         is_evaluate: true,
         request_team_id: dictionarys.value[2].length > 0 ? dictionarys.value[2][0].request_team_id : null,
+        IsEdit: true,
     };
     displayAddRequest.value = false;
 };
@@ -469,6 +471,7 @@ const openAddDialog = (title) => {
         type_process: 1,
         is_evaluate: true,
         request_team_id: dictionarys.value[2].length > 0 ? dictionarys.value[2][0].request_team_id : null,
+        IsEdit: true,
     };
     listFilesRequest.value = [];
     listUserApproved.value = [];

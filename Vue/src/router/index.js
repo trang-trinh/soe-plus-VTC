@@ -271,6 +271,7 @@ const HrmTool2 = () => import("../views/hrm/profile/tool/DocTempView.vue");
 const HrmIframe = () => import("../views/hrm/profile/tool/iframedoc.vue");
 const Hrm_Info = () => import("../views/hrm/Hrm_Info.vue");
 const HrmProfile = () => import("../views/hrm/profile/profile.vue");
+const HrmMyProfile = () => import("../views/hrm/myprofile/myprofile.vue");
 const HrmProfileInfo = () =>
   import("../views/hrm/profile/component/profileinfo.vue");
 const HrmContract = () => import("../views/hrm/contract/contract.vue");
@@ -411,6 +412,8 @@ const HRM_Reward = () => import("../views/hrm/reward/rewardTitle.vue");
 const HRM_ConfigUser = () => import("../views/hrm/config/ConfigHRM.vue");
 const HRM_ConfigEmail = () => import("../views/hrm/config/ConfigEmail.vue");
 const HRM_Contact = () => import("../views/hrm/contact/Contact.vue");
+const HRM_structure = () => import("../views/hrm/structure/hrm_structure.vue");
+
 //hrm report
 const HRM_Report = () => import("../views/hrm/report/ReportMain.vue");
 const HRM_ReportWorkers = () => import("../views/hrm/report/report_general/ReportWorkers.vue");
@@ -1590,6 +1593,11 @@ const router = createRouter({
       component: HrmProfile,
     },
     {
+      path: "/hrm/myprofile",
+      name: "myprofile",
+      component: HrmMyProfile,
+    },
+    {
       path: "/hrm/profile/:id",
       name: "profileinfo",
       component: HrmProfileInfo,
@@ -1947,6 +1955,11 @@ const router = createRouter({
       path: "/hrm/contact",
       name: "hrm_contact",
       component: HRM_Contact,
+    },
+    {
+      path: "/hrm/hrm_structure",
+      name: "hrm_structure",
+      component: HRM_structure,
     },
     // hrm report
     {
