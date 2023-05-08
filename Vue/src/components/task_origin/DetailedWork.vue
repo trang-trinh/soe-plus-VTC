@@ -71,9 +71,12 @@ const ExpireTimeTask = ref();
 const TimeToDo = ref();
 //
 const props = defineProps({
+  keys: Intl,
   isShow: Boolean,
   id: String,
   turn: Intl,
+  close: Function,
+  closeDetail: Function,
 });
 //Tải dữ liệu
 const addLog = (log) => {
@@ -1796,13 +1799,7 @@ const show = (ch) => {
   showDetail1.value = true;
   selectedTaskID.value = ch.task_id;
 };
-emitter.on("SideBar1", (obj) => {
-  showDetail1.value = obj;
-  showDetail1.value = false;
-  selectedTaskID.value = null;
-});
 const close = () => {
-  emitter.emit("SideBar1", false);
   showDetail1.value = false;
 };
 
@@ -1842,7 +1839,7 @@ const DelTask = (task) => {
               swal.close();
               toast.success("Xoá công việc thành công!");
               isShow.value = false;
-              if (props.turn == 1) {
+              if (props.turn >= 1) {
                 close();
                 loadChildTaskOrigin(0);
               } else {
@@ -1948,7 +1945,6 @@ const EditTask = (task) => {
     )
     .then((response) => {
       let data = JSON.parse(response.data.data);
-      debugger;
       if (data.length > 0) {
         data[0].forEach((element, i) => {
           element.Thanhviens = element.Thanhviens
@@ -3406,219 +3402,532 @@ const choiceTreeUser = () => {
 const is_viewSecurityTask = ref(true);
 </script>
 <template>
-  <div
-    class="overflow-hidden h-full w-full col-md-12 p-0 m-0 flex"
-    v-if="is_viewSecurityTask == true"
+  <Sidebar
+    v-if="props.isShow == true"
+    v-model:visible="props.isShow"
+    :position="PositionSideBar"
+    :style="
+      PositionSideBar == 'full'
+        ? {}
+        : {
+            width:
+              props.turn > 0
+                ? width1 > 1800
+                  ? 'calc(65vw - ' + props.turn * 2 + 'rem)'
+                  : 'calc(75vw - ' + props.turn * 2 + 'rem)'
+                : width1 > 1800
+                ? 'calc(65vw)'
+                : 'calc(75vw)',
+            'min-height': '100vh !important',
+          }
+    "
+    :showCloseIcon="false"
+    :modal="props.turn > 0 ? true : fasle"
+    @hide="props.turn > 0 ? props.close : props.closeDetail"
   >
-    <div class="col-9 p-0 m-0">
-      <div
-        class="row col-12 flex w-full justify-content-center px-0 mx-0 format-center"
-      >
-        <div class="col-1 p-0 m-0 flex">
-          <Button
-            v-if="props.turn == 0"
-            icon="pi pi-times"
-            class="p-button-rounded p-button-text"
-            v-tooltip="{ value: 'Đóng' }"
-            @click="closeSildeBar()"
-          />
-          <!-- <Button
-            icon="pi pi-window-maximize"
-            class="p-button-rounded p-button-text"
-            v-tooltip="{ value: 'Phóng to' }"
-            @click="MaxMin('full')"
-            v-if="PositionSideBar == 'right'"
-          /> -->
-
-          <Button
-            icon="pi pi-window-minimize"
-            class="p-button-rounded p-button-text"
-            v-tooltip="{ value: 'Thu nhỏ' }"
-            @click="MaxMin('right')"
-            v-if="PositionSideBar == 'full'"
-          />
-          <Button
-            v-if="props.turn == 1"
-            icon="pi pi-times"
-            class="p-button-rounded p-button-text"
-            @click="close()"
-            v-tooltip="{ value: 'Quay lại công việc trước' }"
-          />
-        </div>
-        <div class="col-11 p-0 m-0 flex pr-55">
-          <div class="col-3 p-0 m-0 format-center pt-1">
-            <Button
-              class="p-button-success py-0 w-full"
-              style="
-                font-weight: 500;
-                background-color: #59d05d !important;
-                font-size: 1rem !important;
-                box-shadow: 0px 1px 15px 1px rgb(69 65 78 / 8%);
-              "
-              @click="GotoView('Checklist')"
-            >
-              <i class="pi pi-list px-0"></i>
-              <Badge
-                class="px-1"
-                size="large"
-                style="background-color: #59d05d !important; color: white"
-              >
-                {{ countChecklists }}
-              </Badge>
-              <span class="px-2"> Checklist </span>
-            </Button>
-          </div>
-          <div class="col-3 p-0 m-0 format-center pt-1">
-            <Button
-              class="p-button-success py-0 w-full"
-              style="
-                font-weight: 500;
-                background-color: #fbad4c !important;
-                font-size: 1rem !important;
-                box-shadow: 0px 1px 15px 1px rgb(69 65 78 / 8%);
-              "
-              @click="GotoView('members')"
-            >
-              <i class="pi pi-user px-0"></i>
-              <Badge
-                class="px-1"
-                size="large"
-                style="background-color: #fbad4c !important; color: white"
-              >
-                {{ countMembers }}
-              </Badge>
-              <span class="px-2"> Tham Gia </span>
-            </Button>
-          </div>
-          <div class="col-3 p-0 m-0 format-center pt-1">
-            <Button
-              class="p-button-success py-0 w-full"
-              style="
-                font-weight: 500;
-                background-color: #ff646d !important;
-                font-size: 1rem !important;
-                box-shadow: 0px 1px 15px 1px rgb(69 65 78 / 8%);
-              "
-              @click="GotoView('comments')"
-            >
-              <i class="pi pi-comments px-0"></i>
-              <Badge
-                class="px-1"
-                size="large"
-                style="background-color: #ff646d !important; color: white"
-              >
-                {{ countComments }}
-              </Badge>
-              <span class="px-2"> Bình luận </span>
-            </Button>
-          </div>
-          <div class="col-3 p-0 m-0 format-center pt-1">
-            <Button
-              class="p-button-success py-0 w-full"
-              style="
-                font-weight: 500;
-                background-color: #1d62f0 !important;
-                font-size: 1rem !important;
-                box-shadow: 0px 1px 15px 1px rgb(69 65 78 / 8%);
-              "
-              @click="GotoView('file')"
-            >
-              <i class="pi pi-file px-0"></i>
-              <Badge
-                class="px-1"
-                size="large"
-                style="background-color: #1d62f0 !important; color: white"
-              >
-                {{ countAllFile }}
-              </Badge>
-              <span class="px-2"> Tài liệu </span>
-            </Button>
-          </div>
-        </div>
-      </div>
-      <div
-        v-if="ThongTinChung == true"
-        class="flex flex-wrap align-items-center justify-content-center"
-      >
+    <div
+      class="overflow-hidden h-full w-full col-md-12 p-0 m-0 flex"
+      v-if="is_viewSecurityTask == true"
+    >
+      <div class="col-9 p-0 m-0">
         <div
-          class="relative"
-          style="width: 100%; height: calc(100vh - 5rem)"
+          class="row col-12 flex w-full justify-content-center px-0 mx-0 format-center"
         >
-          <ScrollPanel
-            class="thongtinchungscroll"
-            style="width: 100%; height: calc(100% - 6.5rem)"
-          >
-            <div
-              id="thongtinchung "
-              style="margin-top: 12px"
-            >
-              <div class="row col-12 font-bold text-xl pb-1">
-                <i class="pi pi-check-square pr-2"></i>
-                <span>
-                  {{ datalists.task_name }}
-                </span>
-              </div>
-              <div
-                class="row col-12"
-                style="font-size: 1.15rem !important"
-              >
-                <div class="flex row col-12 m-0 pt-1 pb-1">
-                  <div class="col-8 py-0 m-0 pl-3">
-                    Tạo bởi:
-                    <span
-                      style="
-                        color: #2196f3;
-                        font-weight: 700;
-                        margin-left: 5px;
-                        margin-right: 5px;
-                      "
-                    >
-                      {{ datalists.creator }}</span
-                    >-
-                    {{
-                      moment(new Date(datalists.created_date)).format(
-                        "HH:mm DD/MM",
-                      )
-                    }}
-                  </div>
+          <div class="col-1 p-0 m-0 flex">
+            <Button
+              v-if="props.turn == 0"
+              icon="pi pi-times"
+              class="p-button-rounded p-button-text"
+              v-tooltip="{ value: 'Đóng' }"
+              @click="props.closeDetail"
+            />
+            <Button
+              icon="pi pi-window-maximize"
+              class="p-button-rounded p-button-text"
+              v-tooltip="{ value: 'Phóng to' }"
+              @click="MaxMin('full')"
+              v-if="PositionSideBar == 'right'"
+            />
 
-                  <div
-                    class="col-4 py-0 m-0"
-                    v-if="datalists.weights"
-                  >
-                    Trọng số:
-                    <span v-html="datalists.weights"></span>
-                  </div>
+            <Button
+              icon="pi pi-window-minimize"
+              class="p-button-rounded p-button-text"
+              v-tooltip="{ value: 'Thu nhỏ' }"
+              @click="MaxMin('right')"
+              v-if="PositionSideBar == 'full'"
+            />
+            <Button
+              v-if="props.turn > 0"
+              icon="pi pi-times"
+              class="p-button-rounded p-button-text"
+              @click="props.close"
+              v-tooltip="{ value: 'Quay lại công việc trước' }"
+            />
+          </div>
+          <div class="col-11 p-0 m-0 flex pr-55">
+            <div class="col-3 p-0 m-0 format-center pt-1">
+              <Button
+                class="p-button-success py-0 w-full"
+                style="
+                  font-weight: 500;
+                  background-color: #59d05d !important;
+                  font-size: 1rem !important;
+                  box-shadow: 0px 1px 15px 1px rgb(69 65 78 / 8%);
+                "
+                @click="GotoView('Checklist')"
+              >
+                <i class="pi pi-list px-0"></i>
+                <Badge
+                  class="px-1"
+                  size="large"
+                  style="background-color: #59d05d !important; color: white"
+                >
+                  {{ countChecklists }}
+                </Badge>
+                <span class="px-2"> Checklist </span>
+              </Button>
+            </div>
+            <div class="col-3 p-0 m-0 format-center pt-1">
+              <Button
+                class="p-button-success py-0 w-full"
+                style="
+                  font-weight: 500;
+                  background-color: #fbad4c !important;
+                  font-size: 1rem !important;
+                  box-shadow: 0px 1px 15px 1px rgb(69 65 78 / 8%);
+                "
+                @click="GotoView('members')"
+              >
+                <i class="pi pi-user px-0"></i>
+                <Badge
+                  class="px-1"
+                  size="large"
+                  style="background-color: #fbad4c !important; color: white"
+                >
+                  {{ countMembers }}
+                </Badge>
+                <span class="px-2"> Tham Gia </span>
+              </Button>
+            </div>
+            <div class="col-3 p-0 m-0 format-center pt-1">
+              <Button
+                class="p-button-success py-0 w-full"
+                style="
+                  font-weight: 500;
+                  background-color: #ff646d !important;
+                  font-size: 1rem !important;
+                  box-shadow: 0px 1px 15px 1px rgb(69 65 78 / 8%);
+                "
+                @click="GotoView('comments')"
+              >
+                <i class="pi pi-comments px-0"></i>
+                <Badge
+                  class="px-1"
+                  size="large"
+                  style="background-color: #ff646d !important; color: white"
+                >
+                  {{ countComments }}
+                </Badge>
+                <span class="px-2"> Bình luận </span>
+              </Button>
+            </div>
+            <div class="col-3 p-0 m-0 format-center pt-1">
+              <Button
+                class="p-button-success py-0 w-full"
+                style="
+                  font-weight: 500;
+                  background-color: #1d62f0 !important;
+                  font-size: 1rem !important;
+                  box-shadow: 0px 1px 15px 1px rgb(69 65 78 / 8%);
+                "
+                @click="GotoView('file')"
+              >
+                <i class="pi pi-file px-0"></i>
+                <Badge
+                  class="px-1"
+                  size="large"
+                  style="background-color: #1d62f0 !important; color: white"
+                >
+                  {{ countAllFile }}
+                </Badge>
+                <span class="px-2"> Tài liệu </span>
+              </Button>
+            </div>
+          </div>
+        </div>
+        <div
+          v-if="ThongTinChung == true"
+          class="flex flex-wrap align-items-center justify-content-center"
+        >
+          <div
+            class="relative"
+            style="width: 100%; height: calc(100vh - 5rem)"
+          >
+            <ScrollPanel
+              class="thongtinchungscroll"
+              style="width: 100%; height: calc(100% - 6.5rem)"
+            >
+              <div
+                id="thongtinchung "
+                style="margin-top: 12px"
+              >
+                <div class="row col-12 font-bold text-xl pb-1">
+                  <i class="pi pi-check-square pr-2"></i>
+                  <span>
+                    {{ datalists.task_name }}
+                  </span>
                 </div>
-                <div class="flex row col-12 m-0 pt-2">
-                  <div class="col-8 py-0 m-0 pl-3">
-                    <span v-if="datalists.project_name">
-                      Thuộc dự án:
+                <div
+                  class="row col-12"
+                  style="font-size: 1.15rem !important"
+                >
+                  <div class="flex row col-12 m-0 pt-1 pb-1">
+                    <div class="col-8 py-0 m-0 pl-3">
+                      Tạo bởi:
                       <span
                         style="
-                          font-style: italic;
-                          font-weight: lighter;
+                          color: #2196f3;
+                          font-weight: 700;
                           margin-left: 5px;
                           margin-right: 5px;
                         "
                       >
-                        {{ datalists.project_name }}
-                      </span></span
+                        {{ datalists.creator }}</span
+                      >-
+                      {{
+                        moment(new Date(datalists.created_date)).format(
+                          "HH:mm DD/MM",
+                        )
+                      }}
+                    </div>
+
+                    <div
+                      class="col-4 py-0 m-0"
+                      v-if="datalists.weights"
                     >
+                      Trọng số:
+                      <span v-html="datalists.weights"></span>
+                    </div>
                   </div>
-                  <div class="col-4 py-0 m-0">
-                    Tiến độ công việc:<span
-                      style="
-                        font-weight: 700;
-                        margin-left: 5px;
-                        margin-right: 5px;
-                      "
-                      >{{ datalists.progress }}%</span
-                    >
+                  <div class="flex row col-12 m-0 pt-2">
+                    <div class="col-8 py-0 m-0 pl-3">
+                      <span v-if="datalists.project_name">
+                        Thuộc dự án:
+                        <span
+                          style="
+                            font-style: italic;
+                            font-weight: lighter;
+                            margin-left: 5px;
+                            margin-right: 5px;
+                          "
+                        >
+                          {{ datalists.project_name }}
+                        </span></span
+                      >
+                    </div>
+                    <div class="col-4 py-0 m-0">
+                      Tiến độ công việc:<span
+                        style="
+                          font-weight: 700;
+                          margin-left: 5px;
+                          margin-right: 5px;
+                        "
+                        >{{ datalists.progress }}%</span
+                      >
+                    </div>
                   </div>
                 </div>
-              </div>
-              <div id="members">
+                <div id="members">
+                  <div class="row col-12">
+                    <div
+                      class="flex row col-12 p-0 m-0"
+                      style="font-weight: 600; color: #888; font-size: 1.15rem"
+                    >
+                      <div
+                        class="col-6 p-0 m-0"
+                        v-if="ngv > 0"
+                      >
+                        <div class="row col-12">
+                          <div class="col-12 p-0 m-0">
+                            <i class="pi pi-user pr-2"></i>
+                            <span>Người giao việc</span>
+                          </div>
+                        </div>
+                        <div class="row col-12 p-0 m-0">
+                          <div
+                            class="flex col-12 p-0 m-0 pl-5"
+                            style="flex-wrap: wrap"
+                          >
+                            <div
+                              class="flex p-0 m-0"
+                              v-for="(m, index) in members"
+                              :key="m"
+                            >
+                              <Avatar
+                                v-if="m.is_type == 0"
+                                v-tooltip.right="{
+                                  value: m.tooltip,
+                                  escape: true,
+                                }"
+                                v-bind:label="
+                                  m.avt
+                                    ? ''
+                                    : m.full_name
+                                        .split(' ')
+                                        .at(-1)
+                                        .substring(0, 1)
+                                "
+                                v-bind:image="basedomainURL + m.avt"
+                                style="color: #ffffff; cursor: pointer"
+                                :style="{
+                                  background: bgColor[index % 7],
+                                  border: '2px solid' + bgColor[index % 7],
+                                }"
+                                class="flex p-0 m-0"
+                                size="normal"
+                                shape="circle"
+                              />
+                            </div>
+                          </div>
+                        </div>
+                      </div>
+                      <div
+                        class="col-6 p-0 m-0"
+                        v-if="ntd > 0"
+                      >
+                        <div class="row col-12">
+                          <div class="col-12 p-0 m-0">
+                            <i class="pi pi-user pr-2"></i>
+                            <span>Người theo dõi</span>
+                          </div>
+                        </div>
+                        <div class="row col-12 p-0 m-0">
+                          <div
+                            class="flex col-12 p-0 m-0 pl-5"
+                            style="flex-wrap: wrap"
+                          >
+                            <AvatarGroup>
+                              <div
+                                class="flex p-0 m-0"
+                                v-for="(m, index) in members"
+                                :key="m"
+                              >
+                                <Avatar
+                                  @error="
+                                    $event.target.src =
+                                      basedomainURL +
+                                      '/Portals/Image/nouser1.png'
+                                  "
+                                  v-if="m.is_type == 3 && m.STTTD < 4"
+                                  v-tooltip.right="{
+                                    value: m.tooltip,
+                                    escape: true,
+                                  }"
+                                  v-bind:label="
+                                    m.avt
+                                      ? ''
+                                      : m.full_name
+                                          .split(' ')
+                                          .at(-1)
+                                          .substring(0, 1)
+                                  "
+                                  v-bind:image="basedomainURL + m.avt"
+                                  style="color: #ffffff; cursor: pointer"
+                                  :style="{
+                                    background: bgColor[index % 7],
+                                    border: '2px solid' + bgColor[index % 7],
+                                  }"
+                                  class="flex p-0 m-0"
+                                  size="normal"
+                                  shape="circle"
+                                />
+                              </div>
+                              <Avatar
+                                @error="
+                                  $event.target.src =
+                                    basedomainURL + '/Portals/Image/nouser1.png'
+                                "
+                                v-if="ntd > 4"
+                                v-tooltip.right="{
+                                  value:
+                                    'và ' + (ntd - 4) + ' người khác tham gia',
+                                }"
+                                :label="'+' + (ntd - 4)"
+                                style="color: #ffffff; cursor: pointer"
+                                :style="{
+                                  background: bgColor[ntd % 7],
+                                  border: '2px solid' + bgColor[ntd % 7],
+                                }"
+                                class="flex p-0 m-0"
+                                size="normal"
+                                shape="circle"
+                                @click="GoToMemberView(4)"
+                              />
+                            </AvatarGroup>
+                          </div>
+                        </div>
+                      </div>
+                    </div>
+                    <div
+                      class="flex row col-12 p-0 m-0"
+                      style="font-weight: 600; color: #888; font-size: 1.15rem"
+                    >
+                      <div
+                        class="col-6 p-0 m-0 pt-1"
+                        v-if="nth > 0"
+                      >
+                        <div class="row col-12">
+                          <div class="col-12 p-0 m-0">
+                            <i class="pi pi-user-edit pr-2"></i>
+                            <span>Người xử lý chính</span>
+                          </div>
+                        </div>
+                        <div class="row col-12 p-0 m-0">
+                          <div
+                            class="flex col-12 p-0 m-0 pl-5"
+                            style="flex-wrap: wrap"
+                          >
+                            <AvatarGroup>
+                              <div
+                                class="flex p-0 m-0"
+                                v-for="(m, index) in members"
+                                :key="m"
+                              >
+                                <Avatar
+                                  @error="
+                                    $event.target.src =
+                                      basedomainURL +
+                                      '/Portals/Image/nouser1.png'
+                                  "
+                                  v-if="m.is_type == 1 && m.STTTH < 4"
+                                  v-tooltip.right="{
+                                    value: m.tooltip,
+                                    escape: true,
+                                    index: 190000,
+                                  }"
+                                  v-bind:label="
+                                    m.avt
+                                      ? ''
+                                      : m.full_name
+                                          .split(' ')
+                                          .at(-1)
+                                          .substring(0, 1)
+                                  "
+                                  v-bind:image="basedomainURL + m.avt"
+                                  style="color: #ffffff; cursor: pointer"
+                                  :style="{
+                                    background: bgColor[index % 7],
+                                    border: '2px solid' + bgColor[index % 7],
+                                  }"
+                                  class="flex p-0 m-0"
+                                  size="normal"
+                                  shape="circle"
+                                />
+                              </div>
+                              <Avatar
+                                @error="
+                                  $event.target.src =
+                                    basedomainURL + '/Portals/Image/nouser1.png'
+                                "
+                                v-if="nth > 4"
+                                v-tooltip.right="{
+                                  value:
+                                    'và ' + (nth - 4) + ' người khác tham gia',
+                                }"
+                                :label="'+' + (nth - 4)"
+                                style="color: #ffffff; cursor: pointer"
+                                :style="{
+                                  background: bgColor[nth % 7],
+                                  border: '2px solid' + bgColor[nth % 7],
+                                }"
+                                class="flex p-0 m-0"
+                                size="normal"
+                                shape="circle"
+                                @click="GoToMemberView(2)"
+                              />
+                            </AvatarGroup>
+                          </div>
+                        </div>
+                      </div>
+                      <div
+                        class="col-6 p-0 m-0 pt-1"
+                        v-if="ndth > 0"
+                      >
+                        <div class="row col-12">
+                          <div class="col-12 p-0 m-0">
+                            <i class="pi pi-user-edit pr-2"></i>
+                            <span>Người đồng xử lý</span>
+                          </div>
+                        </div>
+                        <div class="row col-12 p-0 m-0">
+                          <div
+                            class="flex col-12 p-0 m-0 pl-5"
+                            style="flex-wrap: wrap"
+                          >
+                            <AvatarGroup>
+                              <div
+                                class="flex p-0 m-0"
+                                v-for="(m, index) in members"
+                                :key="m"
+                              >
+                                <Avatar
+                                  @error="
+                                    $event.target.src =
+                                      basedomainURL +
+                                      '/Portals/Image/nouser1.png'
+                                  "
+                                  v-if="m.is_type == 2 && m.STTDTH < 4"
+                                  v-tooltip.right="{
+                                    value: m.tooltip,
+                                    escape: true,
+                                  }"
+                                  v-bind:label="
+                                    m.avt
+                                      ? ''
+                                      : m.full_name
+                                          .split(' ')
+                                          .at(-1)
+                                          .substring(0, 1)
+                                  "
+                                  v-bind:image="basedomainURL + m.avt"
+                                  style="color: #ffffff; cursor: pointer"
+                                  :style="{
+                                    background: bgColor[index % 7],
+                                    border: '2px solid' + bgColor[index % 7],
+                                  }"
+                                  class="flex p-0 m-0"
+                                  size="normal"
+                                  shape="circle"
+                                />
+                              </div>
+                              <Avatar
+                                @error="
+                                  $event.target.src =
+                                    basedomainURL + '/Portals/Image/nouser1.png'
+                                "
+                                v-if="ndth > 4"
+                                v-tooltip.right="{
+                                  value:
+                                    'và ' + (ndth - 4) + ' người khác tham gia',
+                                }"
+                                :label="'+' + (ndth - 4)"
+                                style="color: #ffffff; cursor: pointer"
+                                :style="{
+                                  background: bgColor[ndth % 7],
+                                  border: '2px solid' + bgColor[ndth % 7],
+                                }"
+                                class="flex p-0 m-0"
+                                size="normal"
+                                shape="circle"
+                                @click="GoToMemberView(3)"
+                              />
+                            </AvatarGroup>
+                          </div>
+                        </div>
+                      </div>
+                    </div>
+                  </div>
+                </div>
                 <div class="row col-12">
                   <div
                     class="flex row col-12 p-0 m-0"
@@ -3626,1147 +3935,2144 @@ const is_viewSecurityTask = ref(true);
                   >
                     <div
                       class="col-6 p-0 m-0"
-                      v-if="ngv > 0"
+                      v-if="datalists.start_date"
                     >
-                      <div class="row col-12">
-                        <div class="col-12 p-0 m-0">
-                          <i class="pi pi-user pr-2"></i>
-                          <span>Người giao việc</span>
-                        </div>
+                      <div class="col-12">
+                        <i class="pi pi-calendar pr-2"></i>
+                        <span>Ngày bắt đầu (Dự kiến)</span>
                       </div>
-                      <div class="row col-12 p-0 m-0">
-                        <div
-                          class="flex col-12 p-0 m-0 pl-5"
-                          style="flex-wrap: wrap"
-                        >
-                          <div
-                            class="flex p-0 m-0"
-                            v-for="(m, index) in members"
-                            :key="m"
-                          >
-                            <Avatar
-                              v-if="m.is_type == 0"
-                              v-tooltip.right="{
-                                value: m.tooltip,
-                                escape: true,
-                              }"
-                              v-bind:label="
-                                m.avt
-                                  ? ''
-                                  : m.full_name
-                                      .split(' ')
-                                      .at(-1)
-                                      .substring(0, 1)
-                              "
-                              v-bind:image="basedomainURL + m.avt"
-                              style="color: #ffffff; cursor: pointer"
-                              :style="{
-                                background: bgColor[index % 7],
-                                border: '2px solid' + bgColor[index % 7],
-                              }"
-                              class="flex p-0 m-0"
-                              size="normal"
-                              shape="circle"
-                            />
-                          </div>
-                        </div>
+                      <div
+                        class="col-12 flex p-0 m-0 pl-5 font-bold"
+                        style="color: #72777a"
+                      >
+                        {{
+                          moment(new Date(datalists.start_date)).format(
+                            "DD/MM/YYYY HH:mm",
+                          )
+                        }}
                       </div>
                     </div>
                     <div
                       class="col-6 p-0 m-0"
-                      v-if="ntd > 0"
+                      v-if="datalists.end_date"
                     >
-                      <div class="row col-12">
-                        <div class="col-12 p-0 m-0">
-                          <i class="pi pi-user pr-2"></i>
-                          <span>Người theo dõi</span>
-                        </div>
+                      <div class="col-12">
+                        <i class="pi pi-calendar-times pr-2"></i>
+                        <span>Ngày kết thúc (Dự kiến)</span>
                       </div>
-                      <div class="row col-12 p-0 m-0">
-                        <div
-                          class="flex col-12 p-0 m-0 pl-5"
-                          style="flex-wrap: wrap"
-                        >
-                          <AvatarGroup>
-                            <div
-                              class="flex p-0 m-0"
-                              v-for="(m, index) in members"
-                              :key="m"
-                            >
-                              <Avatar
-                                @error="
-                                  $event.target.src =
-                                    basedomainURL + '/Portals/Image/nouser1.png'
-                                "
-                                v-if="m.is_type == 3 && m.STTTD < 4"
-                                v-tooltip.right="{
-                                  value: m.tooltip,
-                                  escape: true,
-                                }"
-                                v-bind:label="
-                                  m.avt
-                                    ? ''
-                                    : m.full_name
-                                        .split(' ')
-                                        .at(-1)
-                                        .substring(0, 1)
-                                "
-                                v-bind:image="basedomainURL + m.avt"
-                                style="color: #ffffff; cursor: pointer"
-                                :style="{
-                                  background: bgColor[index % 7],
-                                  border: '2px solid' + bgColor[index % 7],
-                                }"
-                                class="flex p-0 m-0"
-                                size="normal"
-                                shape="circle"
-                              />
-                            </div>
-                            <Avatar
-                              @error="
-                                $event.target.src =
-                                  basedomainURL + '/Portals/Image/nouser1.png'
-                              "
-                              v-if="ntd > 4"
-                              v-tooltip.right="{
-                                value:
-                                  'và ' + (ntd - 4) + ' người khác tham gia',
-                              }"
-                              :label="'+' + (ntd - 4)"
-                              style="color: #ffffff; cursor: pointer"
-                              :style="{
-                                background: bgColor[ntd % 7],
-                                border: '2px solid' + bgColor[ntd % 7],
-                              }"
-                              class="flex p-0 m-0"
-                              size="normal"
-                              shape="circle"
-                              @click="GoToMemberView(4)"
-                            />
-                          </AvatarGroup>
-                        </div>
+                      <div
+                        class="col-12 flex p-0 m-0 pl-5"
+                        style="color: #2196f3"
+                      >
+                        {{
+                          moment(new Date(datalists.end_date)).format(
+                            "DD/MM/YYYY HH:mm",
+                          )
+                        }}
                       </div>
                     </div>
                   </div>
                   <div
                     class="flex row col-12 p-0 m-0"
                     style="font-weight: 600; color: #888; font-size: 1.15rem"
+                    v-if="datalists.start_real_date || datalists.end_real_date"
                   >
                     <div
-                      class="col-6 p-0 m-0 pt-1"
-                      v-if="nth > 0"
+                      class="col-6 p-0 m-0"
+                      v-if="datalists.start_real_date"
                     >
-                      <div class="row col-12">
-                        <div class="col-12 p-0 m-0">
-                          <i class="pi pi-user-edit pr-2"></i>
-                          <span>Người xử lý chính</span>
-                        </div>
+                      <div class="col-12">
+                        <i class="pi pi-clock pr-2"></i>
+                        <span>Ngày bắt đầu</span>
                       </div>
-                      <div class="row col-12 p-0 m-0">
-                        <div
-                          class="flex col-12 p-0 m-0 pl-5"
-                          style="flex-wrap: wrap"
-                        >
-                          <AvatarGroup>
-                            <div
-                              class="flex p-0 m-0"
-                              v-for="(m, index) in members"
-                              :key="m"
-                            >
-                              <Avatar
-                                @error="
-                                  $event.target.src =
-                                    basedomainURL + '/Portals/Image/nouser1.png'
-                                "
-                                v-if="m.is_type == 1 && m.STTTH < 4"
-                                v-tooltip.right="{
-                                  value: m.tooltip,
-                                  escape: true,
-                                  index: 190000,
-                                }"
-                                v-bind:label="
-                                  m.avt
-                                    ? ''
-                                    : m.full_name
-                                        .split(' ')
-                                        .at(-1)
-                                        .substring(0, 1)
-                                "
-                                v-bind:image="basedomainURL + m.avt"
-                                style="color: #ffffff; cursor: pointer"
-                                :style="{
-                                  background: bgColor[index % 7],
-                                  border: '2px solid' + bgColor[index % 7],
-                                }"
-                                class="flex p-0 m-0"
-                                size="normal"
-                                shape="circle"
-                              />
-                            </div>
-                            <Avatar
-                              @error="
-                                $event.target.src =
-                                  basedomainURL + '/Portals/Image/nouser1.png'
-                              "
-                              v-if="nth > 4"
-                              v-tooltip.right="{
-                                value:
-                                  'và ' + (nth - 4) + ' người khác tham gia',
-                              }"
-                              :label="'+' + (nth - 4)"
-                              style="color: #ffffff; cursor: pointer"
-                              :style="{
-                                background: bgColor[nth % 7],
-                                border: '2px solid' + bgColor[nth % 7],
-                              }"
-                              class="flex p-0 m-0"
-                              size="normal"
-                              shape="circle"
-                              @click="GoToMemberView(2)"
-                            />
-                          </AvatarGroup>
-                        </div>
+                      <div class="col-12 flex p-0 m-0 pl-5">
+                        {{
+                          moment(new Date(datalists.start_real_date)).format(
+                            "DD/MM/YYYY",
+                          )
+                        }}
                       </div>
                     </div>
                     <div
-                      class="col-6 p-0 m-0 pt-1"
-                      v-if="ndth > 0"
+                      class="col-6 p-0 m-0"
+                      v-if="datalists.end_real_date"
                     >
-                      <div class="row col-12">
-                        <div class="col-12 p-0 m-0">
-                          <i class="pi pi-user-edit pr-2"></i>
-                          <span>Người đồng xử lý</span>
-                        </div>
+                      <div class="col-12">
+                        <i class="pi pi-check-circle pr-2"></i>
+                        <span>Ngày kết thúc</span>
                       </div>
-                      <div class="row col-12 p-0 m-0">
-                        <div
-                          class="flex col-12 p-0 m-0 pl-5"
-                          style="flex-wrap: wrap"
-                        >
-                          <AvatarGroup>
-                            <div
-                              class="flex p-0 m-0"
-                              v-for="(m, index) in members"
-                              :key="m"
-                            >
-                              <Avatar
-                                @error="
-                                  $event.target.src =
-                                    basedomainURL + '/Portals/Image/nouser1.png'
-                                "
-                                v-if="m.is_type == 2 && m.STTDTH < 4"
-                                v-tooltip.right="{
-                                  value: m.tooltip,
-                                  escape: true,
-                                }"
-                                v-bind:label="
-                                  m.avt
-                                    ? ''
-                                    : m.full_name
-                                        .split(' ')
-                                        .at(-1)
-                                        .substring(0, 1)
-                                "
-                                v-bind:image="basedomainURL + m.avt"
-                                style="color: #ffffff; cursor: pointer"
-                                :style="{
-                                  background: bgColor[index % 7],
-                                  border: '2px solid' + bgColor[index % 7],
-                                }"
-                                class="flex p-0 m-0"
-                                size="normal"
-                                shape="circle"
-                              />
-                            </div>
-                            <Avatar
-                              @error="
-                                $event.target.src =
-                                  basedomainURL + '/Portals/Image/nouser1.png'
-                              "
-                              v-if="ndth > 4"
-                              v-tooltip.right="{
-                                value:
-                                  'và ' + (ndth - 4) + ' người khác tham gia',
-                              }"
-                              :label="'+' + (ndth - 4)"
-                              style="color: #ffffff; cursor: pointer"
-                              :style="{
-                                background: bgColor[ndth % 7],
-                                border: '2px solid' + bgColor[ndth % 7],
-                              }"
-                              class="flex p-0 m-0"
-                              size="normal"
-                              shape="circle"
-                              @click="GoToMemberView(3)"
-                            />
-                          </AvatarGroup>
-                        </div>
+                      <div
+                        class="col-12 flex p-0 m-0 pl-5"
+                        style="color: #2196f3"
+                      >
+                        {{
+                          moment(new Date(datalists.end_real_date)).format(
+                            "DD/MM/YYYY",
+                          )
+                        }}
                       </div>
                     </div>
                   </div>
                 </div>
-              </div>
-              <div class="row col-12">
                 <div
-                  class="flex row col-12 p-0 m-0"
-                  style="font-weight: 600; color: #888; font-size: 1.15rem"
+                  class="row col-12"
+                  v-if="datalists.description"
                 >
                   <div
-                    class="col-6 p-0 m-0"
-                    v-if="datalists.start_date"
+                    class="col-12 p-0 m-0"
+                    style="font-weight: 600; color: #888; font-size: 1.15rem"
                   >
                     <div class="col-12">
-                      <i class="pi pi-calendar pr-2"></i>
-                      <span>Ngày bắt đầu (Dự kiến)</span>
-                    </div>
-                    <div
-                      class="col-12 flex p-0 m-0 pl-5 font-bold"
-                      style="color: #72777a"
-                    >
-                      {{
-                        moment(new Date(datalists.start_date)).format(
-                          "DD/MM/YYYY HH:mm",
-                        )
-                      }}
+                      <i class="pi pi-info-circle pr-2"></i>
+                      <span>Mô tả </span>
                     </div>
                   </div>
-                  <div
-                    class="col-6 p-0 m-0"
-                    v-if="datalists.end_date"
-                  >
-                    <div class="col-12">
-                      <i class="pi pi-calendar-times pr-2"></i>
-                      <span>Ngày kết thúc (Dự kiến)</span>
-                    </div>
-                    <div
-                      class="col-12 flex p-0 m-0 pl-5"
-                      style="color: #2196f3"
-                    >
-                      {{
-                        moment(new Date(datalists.end_date)).format(
-                          "DD/MM/YYYY HH:mm",
-                        )
-                      }}
+                  <div class="col-12 p-0 m-0">
+                    <div class="col-12 p-0 m-0">
+                      <div
+                        class="p-0 m-0 pl-5"
+                        style="line-height: 1.5"
+                        v-for="(m, index) in datalists.description"
+                        :key="index"
+                      >
+                        <span v-if="datalists.description.length > 1 && m != ''"
+                          >- </span
+                        >{{ m }}
+                      </div>
                     </div>
                   </div>
                 </div>
                 <div
-                  class="flex row col-12 p-0 m-0"
-                  style="font-weight: 600; color: #888; font-size: 1.15rem"
-                  v-if="datalists.start_real_date || datalists.end_real_date"
+                  class="row col-12 p-0"
+                  v-if="datalists.target"
                 >
                   <div
-                    class="col-6 p-0 m-0"
-                    v-if="datalists.start_real_date"
+                    class="col-12"
+                    style="font-weight: 600; color: #888; font-size: 1.15rem"
                   >
                     <div class="col-12">
-                      <i class="pi pi-clock pr-2"></i>
-                      <span>Ngày bắt đầu</span>
-                    </div>
-                    <div class="col-12 flex p-0 m-0 pl-5">
-                      {{
-                        moment(new Date(datalists.start_real_date)).format(
-                          "DD/MM/YYYY",
-                        )
-                      }}
+                      <i class="pi pi-info-circle pr-2"></i>
+                      <span>Mục tiêu</span>
                     </div>
                   </div>
+
+                  <div class="col-12 p-0 m-0">
+                    <div class="col-12 p-0 m-0">
+                      <div
+                        class="p-0 m-0 pl-5"
+                        style="line-height: 1.5"
+                        v-for="(m, index) in datalists.target"
+                        :key="index"
+                      >
+                        <span v-if="datalists.target.length > 1 && m != ''"
+                          >- </span
+                        >{{ m }}
+                      </div>
+                    </div>
+                  </div>
+                </div>
+                <div
+                  class="row col-12"
+                  v-if="datalists.difficult"
+                >
                   <div
-                    class="col-6 p-0 m-0"
-                    v-if="datalists.end_real_date"
+                    class="col-12 p-0 m-0"
+                    style="font-weight: 600; color: #888; font-size: 1.15rem"
+                  >
+                    <div class="col-12">
+                      <i class="pi pi-info-circle pr-2"></i>
+                      <span>Khó khăn vướng mắc</span>
+                    </div>
+                  </div>
+                  <div class="col-12 p-0 m-0">
+                    <div class="col-12 p-0 m-0">
+                      <div
+                        class="p-0 m-0 pl-5"
+                        style="line-height: 1.5"
+                        v-for="(m, index) in datalists.difficult"
+                        :key="index"
+                      >
+                        <span v-if="datalists.difficult.length > 1 && m != ''"
+                          >- </span
+                        >{{ m }}
+                      </div>
+                    </div>
+                  </div>
+                </div>
+                <div
+                  class="row col-12"
+                  v-if="datalists.request"
+                >
+                  <div
+                    class="col-12 p-0 m-0"
+                    style="font-weight: 600; color: #888; font-size: 1.15rem"
+                  >
+                    <div class="col-12">
+                      <i class="pi pi-info-circle pr-2"></i>
+                      <span>Đề xuất</span>
+                    </div>
+                  </div>
+                  <div class="col-12 p-0 m-0">
+                    <div class="col-12 p-0 m-0">
+                      <div
+                        class="p-0 m-0 pl-5"
+                        style="line-height: 1.5"
+                        v-for="(m, index) in datalists.request"
+                        :key="index"
+                      >
+                        <span v-if="datalists.request.length > 1 && m != ''"
+                          >- </span
+                        >{{ m }}
+                      </div>
+                    </div>
+                  </div>
+                </div>
+                <div
+                  class="row col-12"
+                  v-if="datalists.result"
+                >
+                  <div
+                    class="col-12 p-0 m-0"
+                    style="font-weight: 600; color: #888; font-size: 1.15rem"
                   >
                     <div class="col-12">
                       <i class="pi pi-check-circle pr-2"></i>
-                      <span>Ngày kết thúc</span>
-                    </div>
-                    <div
-                      class="col-12 flex p-0 m-0 pl-5"
-                      style="color: #2196f3"
-                    >
-                      {{
-                        moment(new Date(datalists.end_real_date)).format(
-                          "DD/MM/YYYY",
-                        )
-                      }}
+                      <span>Kết quả đạt được</span>
                     </div>
                   </div>
-                </div>
-              </div>
-              <div
-                class="row col-12"
-                v-if="datalists.description"
-              >
-                <div
-                  class="col-12 p-0 m-0"
-                  style="font-weight: 600; color: #888; font-size: 1.15rem"
-                >
-                  <div class="col-12">
-                    <i class="pi pi-info-circle pr-2"></i>
-                    <span>Mô tả </span>
-                  </div>
-                </div>
-                <div class="col-12 p-0 m-0">
                   <div class="col-12 p-0 m-0">
-                    <div
-                      class="p-0 m-0 pl-5"
-                      style="line-height: 1.5"
-                      v-for="(m, index) in datalists.description"
-                      :key="index"
-                    >
-                      <span v-if="datalists.description.length > 1 && m != ''"
-                        >- </span
-                      >{{ m }}
+                    <div class="col-12 p-0 m-0">
+                      <div
+                        class="p-0 m-0 pl-5"
+                        style="line-height: 1.5"
+                        v-for="(m, index) in datalists.result"
+                        :key="index"
+                      >
+                        <span v-if="datalists.result.length > 1 && m != ''"
+                          >- </span
+                        >{{ m }}
+                      </div>
                     </div>
                   </div>
                 </div>
-              </div>
-              <div
-                class="row col-12 p-0"
-                v-if="datalists.target"
-              >
-                <div
-                  class="col-12"
-                  style="font-weight: 600; color: #888; font-size: 1.15rem"
-                >
-                  <div class="col-12">
-                    <i class="pi pi-info-circle pr-2"></i>
-                    <span>Mục tiêu</span>
-                  </div>
-                </div>
-
-                <div class="col-12 p-0 m-0">
-                  <div class="col-12 p-0 m-0">
-                    <div
-                      class="p-0 m-0 pl-5"
-                      style="line-height: 1.5"
-                      v-for="(m, index) in datalists.target"
-                      :key="index"
-                    >
-                      <span v-if="datalists.target.length > 1 && m != ''"
-                        >- </span
-                      >{{ m }}
-                    </div>
-                  </div>
-                </div>
-              </div>
-              <div
-                class="row col-12"
-                v-if="datalists.difficult"
-              >
-                <div
-                  class="col-12 p-0 m-0"
-                  style="font-weight: 600; color: #888; font-size: 1.15rem"
-                >
-                  <div class="col-12">
-                    <i class="pi pi-info-circle pr-2"></i>
-                    <span>Khó khăn vướng mắc</span>
-                  </div>
-                </div>
-                <div class="col-12 p-0 m-0">
-                  <div class="col-12 p-0 m-0">
-                    <div
-                      class="p-0 m-0 pl-5"
-                      style="line-height: 1.5"
-                      v-for="(m, index) in datalists.difficult"
-                      :key="index"
-                    >
-                      <span v-if="datalists.difficult.length > 1 && m != ''"
-                        >- </span
-                      >{{ m }}
-                    </div>
-                  </div>
-                </div>
-              </div>
-              <div
-                class="row col-12"
-                v-if="datalists.request"
-              >
-                <div
-                  class="col-12 p-0 m-0"
-                  style="font-weight: 600; color: #888; font-size: 1.15rem"
-                >
-                  <div class="col-12">
-                    <i class="pi pi-info-circle pr-2"></i>
-                    <span>Đề xuất</span>
-                  </div>
-                </div>
-                <div class="col-12 p-0 m-0">
-                  <div class="col-12 p-0 m-0">
-                    <div
-                      class="p-0 m-0 pl-5"
-                      style="line-height: 1.5"
-                      v-for="(m, index) in datalists.request"
-                      :key="index"
-                    >
-                      <span v-if="datalists.request.length > 1 && m != ''"
-                        >- </span
-                      >{{ m }}
-                    </div>
-                  </div>
-                </div>
-              </div>
-              <div
-                class="row col-12"
-                v-if="datalists.result"
-              >
-                <div
-                  class="col-12 p-0 m-0"
-                  style="font-weight: 600; color: #888; font-size: 1.15rem"
-                >
-                  <div class="col-12">
-                    <i class="pi pi-check-circle pr-2"></i>
-                    <span>Kết quả đạt được</span>
-                  </div>
-                </div>
-                <div class="col-12 p-0 m-0">
-                  <div class="col-12 p-0 m-0">
-                    <div
-                      class="p-0 m-0 pl-5"
-                      style="line-height: 1.5"
-                      v-for="(m, index) in datalists.result"
-                      :key="index"
-                    >
-                      <span v-if="datalists.result.length > 1 && m != ''"
-                        >- </span
-                      >{{ m }}
-                    </div>
-                  </div>
-                </div>
-              </div>
-              <div class="row col-12">
-                <div
-                  class="col-12 p-0 m-0"
-                  style="font-weight: 600; color: #888; font-size: 1.15rem"
-                >
-                  <div class="col-12">
-                    <i
-                      class="pi pi-percentage pr-2"
-                      style="font-size: 0.9rem !important"
-                    ></i>
-                    <span>Tiến độ</span>
-                  </div>
-                </div>
-                <div class="col-12 p-0 m-0">
-                  <div class="col-12 p-0 m-0">
-                    <div class="p-0 m-0 pl-5">
-                      <ProgressBar
-                        :value="
-                          datalists.progress != null ? datalists.progress : 0
-                        "
-                        :show-value="true"
-                      />
-                    </div>
-                  </div>
-                </div>
-              </div>
-              <div class="row col-12">
-                <div
-                  class="flex col-12 p-0 m-0"
-                  style="font-weight: 600; color: #888; font-size: 1.15rem"
-                >
-                  <div class="col-4">
-                    <i
-                      class="pi pi-list pr-2"
-                      style="font-size: 0.9rem !important"
-                    ></i>
-                    <span>
-                      Checklist
-                      <Button
-                        v-if="isClose == false"
-                        icon="pi pi-plus-circle"
-                        class="p-button-secondary p-button-text p-0 m-0"
-                        v-tooltip.top="{ value: 'Thêm Checklist' }"
-                        @click="addCheckList()"
-                      />
-                    </span>
-                  </div>
+                <div class="row col-12">
                   <div
-                    class="col-8 format-right"
-                    style="font-weight: normal !important; font-size: 1rem"
+                    class="col-12 p-0 m-0"
+                    style="font-weight: 600; color: #888; font-size: 1.15rem"
                   >
-                    <span>
-                      <span
-                        style="color: black"
-                        class="checklist-hover"
-                        @click="OpenViewTaskChecklists(0)"
-                        >Tất cả ({{ countChecklists }})
-                      </span>
-                      <span> | </span>
-                      <span
-                        style="color: #6dd230"
-                        class="checklist-hover"
-                        @click="OpenViewTaskChecklists(1)"
-                        >Đã check ({{ countChecked }})
-                      </span>
-                      <span> | </span>
-                      <span
-                        style="color: #ffa500"
-                        class="checklist-hover"
-                        @click="OpenViewTaskChecklists(2)"
-                      >
-                        Chưa check ({{ countUnChecked }})
-                      </span>
-                      <span> | </span>
-                      <span
-                        style="color: #ff0000"
-                        class="checklist-hover"
-                        @click="OpenViewTaskChecklists(3)"
-                      >
-                        Quá hạn ({{ ExpireTimeTask }})</span
-                      >
-                    </span>
+                    <div class="col-12">
+                      <i
+                        class="pi pi-percentage pr-2"
+                        style="font-size: 0.9rem !important"
+                      ></i>
+                      <span>Tiến độ</span>
+                    </div>
                   </div>
-                </div>
-
-                <div
-                  class="col-12 p-0 m-0"
-                  id="Checklist"
-                >
-                  <div v-if="listCheckList != null">
-                    <div
-                      class="col-12"
-                      v-for="c in listCheckList"
-                      :key="c"
-                    >
-                      <div
-                        class="col-12 font-bold p-0 m-0 pl-4 text-left checklist-gr-hv-p"
-                      >
-                        <div
-                          class="p-0 m-0 p-1"
-                          v-tooltip="{ value: c.description }"
-                        >
-                          {{ c.checklist_name }} ({{ c.totalRecords }})
-                        </div>
-                        <div
-                          class="p-0 m-0 font-bold checklist-gr-hv-c"
-                          v-if="isClose == false"
-                        >
-                          <Button
-                            icon="pi pi-pencil"
-                            class="p-button-secondary p-button-text format-center p-0 m-0 btn-c-hover"
-                            style="width: 1.5rem"
-                            v-tooltip.top="{ value: 'Sửa Checklist' }"
-                            @click="editCheckList(c)"
-                          />
-                          <Button
-                            icon="pi pi-trash"
-                            class="p-button-secondary p-button-text format-center p-0 m-0 p-danger-hover"
-                            style="width: 1.5rem"
-                            v-tooltip.top="{ value: 'Xóa Checklist' }"
-                            @click="deleteCheckList(c.checklist_id)"
-                          />
-                        </div>
-                      </div>
-                      <div
-                        class="col-12 p-0 m-0 pl-3 p-hover py-2"
-                        v-for="(t, index) in c.task"
-                        :key="t"
-                      >
-                        <div class="col-12 p-0 m-0 pl-3">
-                          <div
-                            class="flex col-12 p-0 m-0"
-                            v-if="t.task_id != Task.task_id"
-                            :class="
-                              t.is_check == true
-                                ? 'checked-p'
-                                : t.thoigianquahan > 0
-                                ? 'expTime'
-                                : ''
-                            "
-                          >
-                            <div class="col-10 p-0 m-0 format-center font-bold">
-                              <div class="col-1 p-0 m-0">
-                                {{ t.STT }}
-                              </div>
-                              <div
-                                class="col-1 p-0 m-0"
-                                v-if="isClose == false"
-                              >
-                                <Checkbox
-                                  :binary="true"
-                                  v-model="t.is_check"
-                                  @click="onCheckboxTask(t)"
-                                />
-                              </div>
-                              <div
-                                class="col-1 p-0 m-0"
-                                v-else
-                              >
-                                <Checkbox
-                                  :binary="true"
-                                  v-model="t.is_check"
-                                  disabled="true"
-                                />
-                              </div>
-                              <div class="col-10 p-0 m-0 format-default">
-                                <div class="col-12 p-0 m-0 flex">
-                                  <div class="col-8 py-0 m-0 format-left">
-                                    <span
-                                      v-tooltip="'Ưu tiên'"
-                                      v-if="t.is_prioritize"
-                                      style="margin-right: 5px"
-                                    >
-                                      <i
-                                        style="color: orange"
-                                        class="pi pi-star-fill"
-                                      ></i>
-                                    </span>
-                                    <span
-                                      class="text-left text-black"
-                                      style="line-height: 1.75"
-                                      v-html="t.task_names"
-                                    ></span>
-                                  </div>
-                                  <div
-                                    class="format-center col-2 p-0 m-0 font-bold"
-                                    style="align-items: center"
-                                  >
-                                    <span v-if="t.end_date"
-                                      >{{
-                                        moment(new Date(t.end_date)).format(
-                                          "DD/MM/YYYY",
-                                        )
-                                      }}
-                                    </span>
-                                  </div>
-                                  <div class="format-center col-2 p-0 m-0">
-                                    <Avatar
-                                      @error="
-                                        $event.target.src =
-                                          basedomainURL +
-                                          '/Portals/Image/nouser1.png'
-                                      "
-                                      v-tooltip.right="{
-                                        value: t.creator_tooltip,
-                                        escape: true,
-                                      }"
-                                      v-bind:label="
-                                        t.creator_avt
-                                          ? ''
-                                          : t.creator_full_name
-                                              .split(' ')
-                                              .at(-1)
-                                              .substring(0, 1)
-                                      "
-                                      v-bind:image="
-                                        basedomainURL + t.creator_avt
-                                      "
-                                      style="color: ; cursor: pointer"
-                                      :style="{
-                                        background: bgColor[index % 7],
-                                        border:
-                                          '1px solid' + bgColor[index % 7],
-                                      }"
-                                      class=""
-                                      size=""
-                                      shape="circle"
-                                    />
-                                    <Avatar
-                                      @error="
-                                        $event.target.src =
-                                          basedomainURL +
-                                          '/Portals/Image/nouser1.png'
-                                      "
-                                      v-if="t.close_by != null"
-                                      v-tooltip.right="{
-                                        value: t.actor_tooltip,
-                                        escape: true,
-                                      }"
-                                      v-bind:label="
-                                        t.avt
-                                          ? ''
-                                          : t.actor_full_name
-                                              .split(' ')
-                                              .at(-1)
-                                              .substring(0, 1)
-                                      "
-                                      v-bind:image="basedomainURL + t.avt"
-                                      style="color: ; cursor: pointer"
-                                      :style="{
-                                        background: bgColor[index % 7],
-                                        border:
-                                          '1px solid' + bgColor[index % 7],
-                                      }"
-                                      class=""
-                                      size=""
-                                      shape="circle"
-                                    />
-                                  </div>
-                                </div>
-                              </div>
-                            </div>
-                            <div
-                              class="col-2 p-0 pr-1 m-0 format-center c-hover"
-                              v-if="isClose == false"
-                            >
-                              <Button
-                                icon="pi pi-copy"
-                                class="p-button-secondary p-button-text px-0 m-0 btn-c-hover"
-                                style="color: black; font-size: 0.5rem"
-                                @click="copyToClipboard(t.task_name)"
-                                v-tooltip.top="{
-                                  value: 'Sao chép vào bộ nhớ tạm',
-                                }"
-                                :style="
-                                  t.is_check == true
-                                    ? 'color:#6DD230;text-decoration: unset !important'
-                                    : ''
-                                "
-                              />
-                              <Button
-                                icon="pi pi-clock"
-                                class="p-button-secondary p-button-text px-0 m-0 btn-c-hover"
-                                style="color: black; font-size: 0.5rem"
-                                v-tooltip.top="{
-                                  value: 'Cập nhật hạn xử lý',
-                                }"
-                                @click="editTime(t)"
-                                :style="
-                                  t.is_check == true
-                                    ? 'color:#6DD230;text-decoration: unset !important'
-                                    : ''
-                                "
-                                v-if="
-                                  t.is_check == false &&
-                                  (t.created_by == store.state.user.user_id ||
-                                    memberType == 0 ||
-                                    memberType1 == 0 ||
-                                    memberType2 == 0 ||
-                                    memberType3 == 0)
-                                "
-                              />
-                              <Button
-                                icon="pi pi-pencil"
-                                class="p-button-secondary p-button-text px-0 m-0 btn-c-hover"
-                                style="color: black; font-size: 0.5rem"
-                                :style="
-                                  t.is_check == true
-                                    ? 'color:#6DD230;text-decoration: unset !important'
-                                    : ''
-                                "
-                                v-if="
-                                  t.is_check == false &&
-                                  (t.created_by == store.state.user.user_id ||
-                                    memberType == 0 ||
-                                    memberType1 == 0 ||
-                                    memberType2 == 0 ||
-                                    memberType3 == 0)
-                                "
-                                v-tooltip.top="{ value: 'Sửa thông tin' }"
-                                @click="editTaskCheckListFunc(t)"
-                              />
-                              <Button
-                                icon="pi pi-trash"
-                                class="p-button-secondary p-button-text px-0 m-0 btn-c-hover"
-                                style="color: black; font-size: 0.5rem"
-                                :style="
-                                  t.is_check == true
-                                    ? 'color:#6DD230;text-decoration: unset !important'
-                                    : ''
-                                "
-                                v-tooltip.top="{
-                                  value: 'Xóa công việc checklist',
-                                }"
-                                v-if="
-                                  t.created_by == store.state.user.user_id ||
-                                  memberType == 0 ||
-                                  memberType1 == 0 ||
-                                  memberType2 == 0 ||
-                                  memberType3 == 0
-                                "
-                                @click="deteleTaskCheckList(t)"
-                              />
-                            </div>
-                          </div>
-                          <div
-                            class="col-12 p-0 m-0 pl-3"
-                            v-if="
-                              editTaskCheckListText == true &&
-                              t.task_id == Task.task_id
-                            "
-                          >
-                            <div
-                              class="col-12 p-0 m-0 pl-3 format-center font-bold"
-                            >
-                              <div class="flex col-12 p-0 m-0 format-center">
-                                <div class="col-10 p-0 m-0 format-center">
-                                  <div class="col-1 p-0 m-0">
-                                    {{ Task.STT }}
-                                  </div>
-                                  <div class="col-1">
-                                    <Checkbox
-                                      :binary="true"
-                                      v-model="Task.is_check"
-                                    />
-                                  </div>
-                                  <div class="col-10 p-0 m-0 format-default">
-                                    <Textarea
-                                      rows="1"
-                                      :autoResize="true"
-                                      v-model="Task.task_name"
-                                      spellcheck="false"
-                                      class="w-full"
-                                      :class="{
-                                        'p-invalid':
-                                          v1$.task_name.$invalid &&
-                                          submittedTaskCheckList,
-                                      }"
-                                      placeholder="Nhập tên công việc..."
-                                      @keydown.enter.exact.prevent="
-                                        saveTaskCheckList(!v1$.$invalid)
-                                      "
-                                    />
-                                  </div>
-                                </div>
-
-                                <div class="col-2 p-0 m-0 format-center">
-                                  <Button
-                                    icon="pi pi-trash"
-                                    class="p-button-secondary p-button-text p-button-danger p-danger-hover"
-                                    style="font-size: 0.5rem"
-                                    v-tooltip.top="{
-                                      value: 'Xóa công việc checklist',
-                                    }"
-                                    v-if="
-                                      t.created_by ==
-                                        store.state.user.user_id ||
-                                      memberType == 0 ||
-                                      memberType1 == 0 ||
-                                      memberType2 == 0 ||
-                                      memberType3 == 0
-                                    "
-                                    @click="deteleTaskCheckList(t)"
-                                  />
-                                  <Button
-                                    icon="pi pi-times"
-                                    class="p-button-secondary p-button-text p-button-danger p-danger-hover"
-                                    style="font-size: 0.5rem"
-                                    v-tooltip.top="{
-                                      value: 'Hủy',
-                                    }"
-                                    @click="cancel('')"
-                                  />
-                                </div>
-                                <div class="col-1 p-0 m-0 format-center"></div>
-                              </div>
-                            </div>
-                            <div class="col-12 p-0 m-0 pl-3 format-center">
-                              <div class="flex col-12 p-0 m-0 format-center">
-                                <div class="col-10 p-0 m-0 format-center">
-                                  <div class="col-2 p-0 m-0"></div>
-                                  <div class="col-10 p-0 m-0 format-default">
-                                    <div
-                                      class="format-default col-12 px-0 p-0 m-0"
-                                      v-if="
-                                        submittedTaskCheckList == true &&
-                                        v1$.task_name.$invalid
-                                      "
-                                      style="
-                                        text-align: left !important;
-                                        font-size: medium;
-                                      "
-                                    >
-                                      <small
-                                        v-if="
-                                          (v1$.task_name.$invalid &&
-                                            submittedTaskCheckList) ||
-                                          v1$.task_name.$pending.$response
-                                        "
-                                        class="col-12 p-error p-0 m-0"
-                                      >
-                                        <span class="col-12 p-0">{{
-                                          v1$.task_name.required.$message
-                                            .replace(
-                                              "Value",
-                                              "Tên công việc checklist",
-                                            )
-                                            .replace(
-                                              "is required",
-                                              "không được để trống",
-                                            )
-                                        }}</span>
-                                      </small>
-                                    </div>
-                                  </div>
-                                </div>
-
-                                <div class="col-2 p-0 m-0 format-center"></div>
-                              </div>
-                            </div>
-                          </div>
-                        </div>
-                      </div>
-                      <div class="col-12 font-bold p-0 m-0 pl-3">
-                        <div
-                          class="col-12 p-0 m-0 pl-3 format-center"
-                          v-if="
-                            addNewTaskCheckList == true &&
-                            Task.checklist_id == c.checklist_id
+                  <div class="col-12 p-0 m-0">
+                    <div class="col-12 p-0 m-0">
+                      <div class="p-0 m-0 pl-5">
+                        <ProgressBar
+                          :value="
+                            datalists.progress != null ? datalists.progress : 0
                           "
-                        >
-                          <div class="flex col-12 p-0 m-0 format-center">
-                            <div class="col-10 p-0 m-0 format-center">
-                              <div class="col-1 p-0 m-0">
-                                {{ Task.STT }}
-                              </div>
-                              <div class="col-1">
-                                <Checkbox
-                                  :binary="true"
-                                  v-model="Task.is_check"
-                                />
-                              </div>
-                              <div class="col-10 p-0 m-0 format-default">
-                                <Textarea
-                                  rows="1"
-                                  :autoResize="true"
-                                  v-model="Task.task_name"
-                                  spellcheck="false"
-                                  class="w-full"
-                                  :class="{
-                                    'p-invalid':
-                                      v1$.task_name.$invalid &&
-                                      submittedTaskCheckList,
-                                  }"
-                                  placeholder="Nhập tên công việc..."
-                                  @keydown.enter.exact.prevent="
-                                    saveTaskCheckList(!v1$.$invalid)
-                                  "
-                                />
-                              </div>
-                            </div>
-
-                            <div class="col-1 p-0 m-0 format-center">
-                              <Button
-                                icon="pi pi-times"
-                                class="p-button-secondary p-button-text p-button-danger p-danger-hover"
-                                style="font-size: 0.5rem"
-                                @click="cancel('add')"
-                              />
-                            </div>
-                            <div class="col-1 p-0 m-0 format-center"></div>
-                          </div>
-                        </div>
-                        <div
-                          class="col-12 p-0 m-0 pl-3 format-center"
-                          v-if="
-                            addNewTaskCheckList == true &&
-                            Task.checklist_id == c.checklist_id
-                          "
-                        >
-                          <div class="flex col-12 p-0 m-0 format-center">
-                            <div class="col-10 p-0 m-0 format-center">
-                              <div class="col-2 p-0 m-0"></div>
-                              <div class="col-10 p-0 m-0 format-default">
-                                <div
-                                  class="format-default col-12 px-0 p-0 m-0"
-                                  v-if="
-                                    submittedTaskCheckList == true &&
-                                    v1$.task_name.$invalid
-                                  "
-                                  style="
-                                    text-align: left !important;
-                                    font-size: medium;
-                                  "
-                                >
-                                  <small
-                                    v-if="
-                                      (v1$.task_name.$invalid &&
-                                        submittedTaskCheckList) ||
-                                      v1$.task_name.$pending.$response
-                                    "
-                                    class="col-12 p-error p-0 m-0"
-                                  >
-                                    <span class="col-12 p-0">{{
-                                      v1$.task_name.required.$message
-                                        .replace(
-                                          "Value",
-                                          "Tên công việc checklist",
-                                        )
-                                        .replace(
-                                          "is required",
-                                          "không được để trống",
-                                        )
-                                    }}</span>
-                                  </small>
-                                </div>
-                              </div>
-                            </div>
-
-                            <div class="col-2 p-0 m-0 format-center"></div>
-                          </div>
-                        </div>
-                        <Button
-                          icon="pi pi-plus-circle"
-                          class="p-button-secondary p-button-text"
-                          @click="addTaskCheckList(c)"
-                          label="Thêm công việc checklist"
+                          :show-value="true"
                         />
                       </div>
                     </div>
                   </div>
                 </div>
-              </div>
-              <div class="row col-12">
-                <div
-                  class="flex col-12 p-0 m-0"
-                  style="font-weight: 600; color: #888; font-size: 1.15rem"
-                >
-                  <div class="col-4">
-                    <i
-                      class="pi pi-tags pr-2"
-                      style="font-size: 0.9rem !important"
-                    >
-                    </i>
-                    <span>Công việc con</span>
-                    <span>
-                      <Button
-                        icon="pi pi-plus-circle"
-                        class="p-button-secondary p-button-text p-0 m-0"
-                        @click="addNewChildTaskOrigin(datalists)"
-                        v-if="isClose == false"
-                      />
-                    </span>
-                  </div>
+                <div class="row col-12">
                   <div
-                    class="col-8 format-right"
-                    style="font-weight: normal !important; font-size: 1rem"
+                    class="flex col-12 p-0 m-0"
+                    style="font-weight: 600; color: #888; font-size: 1.15rem"
                   >
-                    <span>
-                      <span
-                        style="color: black"
-                        class="checklist-hover"
-                        @click="loadChildTaskOrigin(0)"
-                        >Tất cả ({{ AllChild }})
+                    <div class="col-4">
+                      <i
+                        class="pi pi-list pr-2"
+                        style="font-size: 0.9rem !important"
+                      ></i>
+                      <span>
+                        Checklist
+                        <Button
+                          v-if="isClose == false"
+                          icon="pi pi-plus-circle"
+                          class="p-button-secondary p-button-text p-0 m-0"
+                          v-tooltip.top="{ value: 'Thêm Checklist' }"
+                          @click="addCheckList()"
+                        />
                       </span>
-                      <span> | </span>
-                      <span
-                        style="color: ff0000"
-                        class="checklist-hover"
-                        @click="loadChildTaskOrigin(1)"
-                        >Chưa bắt đầu ({{ NotStartedChild }})
+                    </div>
+                    <div
+                      class="col-8 format-right"
+                      style="font-weight: normal !important; font-size: 1rem"
+                    >
+                      <span>
+                        <span
+                          style="color: black"
+                          class="checklist-hover"
+                          @click="OpenViewTaskChecklists(0)"
+                          >Tất cả ({{ countChecklists }})
+                        </span>
+                        <span> | </span>
+                        <span
+                          style="color: #6dd230"
+                          class="checklist-hover"
+                          @click="OpenViewTaskChecklists(1)"
+                          >Đã check ({{ countChecked }})
+                        </span>
+                        <span> | </span>
+                        <span
+                          style="color: #ffa500"
+                          class="checklist-hover"
+                          @click="OpenViewTaskChecklists(2)"
+                        >
+                          Chưa check ({{ countUnChecked }})
+                        </span>
+                        <span> | </span>
+                        <span
+                          style="color: #ff0000"
+                          class="checklist-hover"
+                          @click="OpenViewTaskChecklists(3)"
+                        >
+                          Quá hạn ({{ ExpireTimeTask }})</span
+                        >
                       </span>
-                      <span> | </span>
-                      <span
-                        style="color: #2196f3"
-                        class="checklist-hover"
-                        @click="loadChildTaskOrigin(2)"
+                    </div>
+                  </div>
+
+                  <div
+                    class="col-12 p-0 m-0"
+                    id="Checklist"
+                  >
+                    <div v-if="listCheckList != null">
+                      <div
+                        class="col-12"
+                        v-for="c in listCheckList"
+                        :key="c"
                       >
-                        Đang thực hiện ({{ DoingChild }})
+                        <div
+                          class="col-12 font-bold p-0 m-0 pl-4 text-left checklist-gr-hv-p"
+                        >
+                          <div
+                            class="p-0 m-0 p-1"
+                            v-tooltip="{ value: c.description }"
+                          >
+                            {{ c.checklist_name }} ({{ c.totalRecords }})
+                          </div>
+                          <div
+                            class="p-0 m-0 font-bold checklist-gr-hv-c"
+                            v-if="isClose == false"
+                          >
+                            <Button
+                              icon="pi pi-pencil"
+                              class="p-button-secondary p-button-text format-center p-0 m-0 btn-c-hover"
+                              style="width: 1.5rem"
+                              v-tooltip.top="{ value: 'Sửa Checklist' }"
+                              @click="editCheckList(c)"
+                            />
+                            <Button
+                              icon="pi pi-trash"
+                              class="p-button-secondary p-button-text format-center p-0 m-0 p-danger-hover"
+                              style="width: 1.5rem"
+                              v-tooltip.top="{ value: 'Xóa Checklist' }"
+                              @click="deleteCheckList(c.checklist_id)"
+                            />
+                          </div>
+                        </div>
+                        <div
+                          class="col-12 p-0 m-0 pl-3 p-hover py-2"
+                          v-for="(t, index) in c.task"
+                          :key="t"
+                        >
+                          <div class="col-12 p-0 m-0 pl-3">
+                            <div
+                              class="flex col-12 p-0 m-0"
+                              v-if="t.task_id != Task.task_id"
+                              :class="
+                                t.is_check == true
+                                  ? 'checked-p'
+                                  : t.thoigianquahan > 0
+                                  ? 'expTime'
+                                  : ''
+                              "
+                            >
+                              <div
+                                class="col-10 p-0 m-0 format-center font-bold"
+                              >
+                                <div class="col-1 p-0 m-0">
+                                  {{ t.STT }}
+                                </div>
+                                <div
+                                  class="col-1 p-0 m-0"
+                                  v-if="isClose == false"
+                                >
+                                  <Checkbox
+                                    :binary="true"
+                                    v-model="t.is_check"
+                                    @click="onCheckboxTask(t)"
+                                  />
+                                </div>
+                                <div
+                                  class="col-1 p-0 m-0"
+                                  v-else
+                                >
+                                  <Checkbox
+                                    :binary="true"
+                                    v-model="t.is_check"
+                                    disabled="true"
+                                  />
+                                </div>
+                                <div class="col-10 p-0 m-0 format-default">
+                                  <div class="col-12 p-0 m-0 flex">
+                                    <div class="col-8 py-0 m-0 format-left">
+                                      <span
+                                        v-tooltip="'Ưu tiên'"
+                                        v-if="t.is_prioritize"
+                                        style="margin-right: 5px"
+                                      >
+                                        <i
+                                          style="color: orange"
+                                          class="pi pi-star-fill"
+                                        ></i>
+                                      </span>
+                                      <span
+                                        class="text-left text-black"
+                                        style="line-height: 1.75"
+                                        v-html="t.task_names"
+                                      ></span>
+                                    </div>
+                                    <div
+                                      class="format-center col-2 p-0 m-0 font-bold"
+                                      style="align-items: center"
+                                    >
+                                      <span v-if="t.end_date"
+                                        >{{
+                                          moment(new Date(t.end_date)).format(
+                                            "DD/MM/YYYY",
+                                          )
+                                        }}
+                                      </span>
+                                    </div>
+                                    <div class="format-center col-2 p-0 m-0">
+                                      <Avatar
+                                        @error="
+                                          $event.target.src =
+                                            basedomainURL +
+                                            '/Portals/Image/nouser1.png'
+                                        "
+                                        v-tooltip.right="{
+                                          value: t.creator_tooltip,
+                                          escape: true,
+                                        }"
+                                        v-bind:label="
+                                          t.creator_avt
+                                            ? ''
+                                            : t.creator_full_name
+                                                .split(' ')
+                                                .at(-1)
+                                                .substring(0, 1)
+                                        "
+                                        v-bind:image="
+                                          basedomainURL + t.creator_avt
+                                        "
+                                        style="color: ; cursor: pointer"
+                                        :style="{
+                                          background: bgColor[index % 7],
+                                          border:
+                                            '1px solid' + bgColor[index % 7],
+                                        }"
+                                        class=""
+                                        size=""
+                                        shape="circle"
+                                      />
+                                      <Avatar
+                                        @error="
+                                          $event.target.src =
+                                            basedomainURL +
+                                            '/Portals/Image/nouser1.png'
+                                        "
+                                        v-if="t.close_by != null"
+                                        v-tooltip.right="{
+                                          value: t.actor_tooltip,
+                                          escape: true,
+                                        }"
+                                        v-bind:label="
+                                          t.avt
+                                            ? ''
+                                            : t.actor_full_name
+                                                .split(' ')
+                                                .at(-1)
+                                                .substring(0, 1)
+                                        "
+                                        v-bind:image="basedomainURL + t.avt"
+                                        style="color: ; cursor: pointer"
+                                        :style="{
+                                          background: bgColor[index % 7],
+                                          border:
+                                            '1px solid' + bgColor[index % 7],
+                                        }"
+                                        class=""
+                                        size=""
+                                        shape="circle"
+                                      />
+                                    </div>
+                                  </div>
+                                </div>
+                              </div>
+                              <div
+                                class="col-2 p-0 pr-1 m-0 format-center c-hover"
+                                v-if="isClose == false"
+                              >
+                                <Button
+                                  icon="pi pi-copy"
+                                  class="p-button-secondary p-button-text px-0 m-0 btn-c-hover"
+                                  style="color: black; font-size: 0.5rem"
+                                  @click="copyToClipboard(t.task_name)"
+                                  v-tooltip.top="{
+                                    value: 'Sao chép vào bộ nhớ tạm',
+                                  }"
+                                  :style="
+                                    t.is_check == true
+                                      ? 'color:#6DD230;text-decoration: unset !important'
+                                      : ''
+                                  "
+                                />
+                                <Button
+                                  icon="pi pi-clock"
+                                  class="p-button-secondary p-button-text px-0 m-0 btn-c-hover"
+                                  style="color: black; font-size: 0.5rem"
+                                  v-tooltip.top="{
+                                    value: 'Cập nhật hạn xử lý',
+                                  }"
+                                  @click="editTime(t)"
+                                  :style="
+                                    t.is_check == true
+                                      ? 'color:#6DD230;text-decoration: unset !important'
+                                      : ''
+                                  "
+                                  v-if="
+                                    t.is_check == false &&
+                                    (t.created_by == store.state.user.user_id ||
+                                      memberType == 0 ||
+                                      memberType1 == 0 ||
+                                      memberType2 == 0 ||
+                                      memberType3 == 0)
+                                  "
+                                />
+                                <Button
+                                  icon="pi pi-pencil"
+                                  class="p-button-secondary p-button-text px-0 m-0 btn-c-hover"
+                                  style="color: black; font-size: 0.5rem"
+                                  :style="
+                                    t.is_check == true
+                                      ? 'color:#6DD230;text-decoration: unset !important'
+                                      : ''
+                                  "
+                                  v-if="
+                                    t.is_check == false &&
+                                    (t.created_by == store.state.user.user_id ||
+                                      memberType == 0 ||
+                                      memberType1 == 0 ||
+                                      memberType2 == 0 ||
+                                      memberType3 == 0)
+                                  "
+                                  v-tooltip.top="{ value: 'Sửa thông tin' }"
+                                  @click="editTaskCheckListFunc(t)"
+                                />
+                                <Button
+                                  icon="pi pi-trash"
+                                  class="p-button-secondary p-button-text px-0 m-0 btn-c-hover"
+                                  style="color: black; font-size: 0.5rem"
+                                  :style="
+                                    t.is_check == true
+                                      ? 'color:#6DD230;text-decoration: unset !important'
+                                      : ''
+                                  "
+                                  v-tooltip.top="{
+                                    value: 'Xóa công việc checklist',
+                                  }"
+                                  v-if="
+                                    t.created_by == store.state.user.user_id ||
+                                    memberType == 0 ||
+                                    memberType1 == 0 ||
+                                    memberType2 == 0 ||
+                                    memberType3 == 0
+                                  "
+                                  @click="deteleTaskCheckList(t)"
+                                />
+                              </div>
+                            </div>
+                            <div
+                              class="col-12 p-0 m-0 pl-3"
+                              v-if="
+                                editTaskCheckListText == true &&
+                                t.task_id == Task.task_id
+                              "
+                            >
+                              <div
+                                class="col-12 p-0 m-0 pl-3 format-center font-bold"
+                              >
+                                <div class="flex col-12 p-0 m-0 format-center">
+                                  <div class="col-10 p-0 m-0 format-center">
+                                    <div class="col-1 p-0 m-0">
+                                      {{ Task.STT }}
+                                    </div>
+                                    <div class="col-1">
+                                      <Checkbox
+                                        :binary="true"
+                                        v-model="Task.is_check"
+                                      />
+                                    </div>
+                                    <div class="col-10 p-0 m-0 format-default">
+                                      <Textarea
+                                        rows="1"
+                                        :autoResize="true"
+                                        v-model="Task.task_name"
+                                        spellcheck="false"
+                                        class="w-full"
+                                        :class="{
+                                          'p-invalid':
+                                            v1$.task_name.$invalid &&
+                                            submittedTaskCheckList,
+                                        }"
+                                        placeholder="Nhập tên công việc..."
+                                        @keydown.enter.exact.prevent="
+                                          saveTaskCheckList(!v1$.$invalid)
+                                        "
+                                      />
+                                    </div>
+                                  </div>
+
+                                  <div class="col-2 p-0 m-0 format-center">
+                                    <Button
+                                      icon="pi pi-trash"
+                                      class="p-button-secondary p-button-text p-button-danger p-danger-hover"
+                                      style="font-size: 0.5rem"
+                                      v-tooltip.top="{
+                                        value: 'Xóa công việc checklist',
+                                      }"
+                                      v-if="
+                                        t.created_by ==
+                                          store.state.user.user_id ||
+                                        memberType == 0 ||
+                                        memberType1 == 0 ||
+                                        memberType2 == 0 ||
+                                        memberType3 == 0
+                                      "
+                                      @click="deteleTaskCheckList(t)"
+                                    />
+                                    <Button
+                                      icon="pi pi-times"
+                                      class="p-button-secondary p-button-text p-button-danger p-danger-hover"
+                                      style="font-size: 0.5rem"
+                                      v-tooltip.top="{
+                                        value: 'Hủy',
+                                      }"
+                                      @click="cancel('')"
+                                    />
+                                  </div>
+                                  <div
+                                    class="col-1 p-0 m-0 format-center"
+                                  ></div>
+                                </div>
+                              </div>
+                              <div class="col-12 p-0 m-0 pl-3 format-center">
+                                <div class="flex col-12 p-0 m-0 format-center">
+                                  <div class="col-10 p-0 m-0 format-center">
+                                    <div class="col-2 p-0 m-0"></div>
+                                    <div class="col-10 p-0 m-0 format-default">
+                                      <div
+                                        class="format-default col-12 px-0 p-0 m-0"
+                                        v-if="
+                                          submittedTaskCheckList == true &&
+                                          v1$.task_name.$invalid
+                                        "
+                                        style="
+                                          text-align: left !important;
+                                          font-size: medium;
+                                        "
+                                      >
+                                        <small
+                                          v-if="
+                                            (v1$.task_name.$invalid &&
+                                              submittedTaskCheckList) ||
+                                            v1$.task_name.$pending.$response
+                                          "
+                                          class="col-12 p-error p-0 m-0"
+                                        >
+                                          <span class="col-12 p-0">{{
+                                            v1$.task_name.required.$message
+                                              .replace(
+                                                "Value",
+                                                "Tên công việc checklist",
+                                              )
+                                              .replace(
+                                                "is required",
+                                                "không được để trống",
+                                              )
+                                          }}</span>
+                                        </small>
+                                      </div>
+                                    </div>
+                                  </div>
+
+                                  <div
+                                    class="col-2 p-0 m-0 format-center"
+                                  ></div>
+                                </div>
+                              </div>
+                            </div>
+                          </div>
+                        </div>
+                        <div class="col-12 font-bold p-0 m-0 pl-3">
+                          <div
+                            class="col-12 p-0 m-0 pl-3 format-center"
+                            v-if="
+                              addNewTaskCheckList == true &&
+                              Task.checklist_id == c.checklist_id
+                            "
+                          >
+                            <div class="flex col-12 p-0 m-0 format-center">
+                              <div class="col-10 p-0 m-0 format-center">
+                                <div class="col-1 p-0 m-0">
+                                  {{ Task.STT }}
+                                </div>
+                                <div class="col-1">
+                                  <Checkbox
+                                    :binary="true"
+                                    v-model="Task.is_check"
+                                  />
+                                </div>
+                                <div class="col-10 p-0 m-0 format-default">
+                                  <Textarea
+                                    rows="1"
+                                    :autoResize="true"
+                                    v-model="Task.task_name"
+                                    spellcheck="false"
+                                    class="w-full"
+                                    :class="{
+                                      'p-invalid':
+                                        v1$.task_name.$invalid &&
+                                        submittedTaskCheckList,
+                                    }"
+                                    placeholder="Nhập tên công việc..."
+                                    @keydown.enter.exact.prevent="
+                                      saveTaskCheckList(!v1$.$invalid)
+                                    "
+                                  />
+                                </div>
+                              </div>
+
+                              <div class="col-1 p-0 m-0 format-center">
+                                <Button
+                                  icon="pi pi-times"
+                                  class="p-button-secondary p-button-text p-button-danger p-danger-hover"
+                                  style="font-size: 0.5rem"
+                                  @click="cancel('add')"
+                                />
+                              </div>
+                              <div class="col-1 p-0 m-0 format-center"></div>
+                            </div>
+                          </div>
+                          <div
+                            class="col-12 p-0 m-0 pl-3 format-center"
+                            v-if="
+                              addNewTaskCheckList == true &&
+                              Task.checklist_id == c.checklist_id
+                            "
+                          >
+                            <div class="flex col-12 p-0 m-0 format-center">
+                              <div class="col-10 p-0 m-0 format-center">
+                                <div class="col-2 p-0 m-0"></div>
+                                <div class="col-10 p-0 m-0 format-default">
+                                  <div
+                                    class="format-default col-12 px-0 p-0 m-0"
+                                    v-if="
+                                      submittedTaskCheckList == true &&
+                                      v1$.task_name.$invalid
+                                    "
+                                    style="
+                                      text-align: left !important;
+                                      font-size: medium;
+                                    "
+                                  >
+                                    <small
+                                      v-if="
+                                        (v1$.task_name.$invalid &&
+                                          submittedTaskCheckList) ||
+                                        v1$.task_name.$pending.$response
+                                      "
+                                      class="col-12 p-error p-0 m-0"
+                                    >
+                                      <span class="col-12 p-0">{{
+                                        v1$.task_name.required.$message
+                                          .replace(
+                                            "Value",
+                                            "Tên công việc checklist",
+                                          )
+                                          .replace(
+                                            "is required",
+                                            "không được để trống",
+                                          )
+                                      }}</span>
+                                    </small>
+                                  </div>
+                                </div>
+                              </div>
+
+                              <div class="col-2 p-0 m-0 format-center"></div>
+                            </div>
+                          </div>
+                          <Button
+                            icon="pi pi-plus-circle"
+                            class="p-button-secondary p-button-text"
+                            @click="addTaskCheckList(c)"
+                            label="Thêm công việc checklist"
+                          />
+                        </div>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+                <div class="row col-12">
+                  <div
+                    class="flex col-12 p-0 m-0"
+                    style="font-weight: 600; color: #888; font-size: 1.15rem"
+                  >
+                    <div class="col-4">
+                      <i
+                        class="pi pi-tags pr-2"
+                        style="font-size: 0.9rem !important"
+                      >
+                      </i>
+                      <span>Công việc con</span>
+                      <span>
+                        <Button
+                          icon="pi pi-plus-circle"
+                          class="p-button-secondary p-button-text p-0 m-0"
+                          @click="addNewChildTaskOrigin(datalists)"
+                          v-if="isClose == false"
+                        />
                       </span>
-                      <span> | </span>
-                      <span
-                        style="color: #6dd230"
-                        class="checklist-hover"
-                        @click="loadChildTaskOrigin(3)"
-                      >
-                        Hoàn thành ({{ FinishedChild }})</span
-                      >
-                    </span>
+                    </div>
+                    <div
+                      class="col-8 format-right"
+                      style="font-weight: normal !important; font-size: 1rem"
+                    >
+                      <span>
+                        <span
+                          style="color: black"
+                          class="checklist-hover"
+                          @click="loadChildTaskOrigin(0)"
+                          >Tất cả ({{ AllChild }})
+                        </span>
+                        <span> | </span>
+                        <span
+                          style="color: ff0000"
+                          class="checklist-hover"
+                          @click="loadChildTaskOrigin(1)"
+                          >Chưa bắt đầu ({{ NotStartedChild }})
+                        </span>
+                        <span> | </span>
+                        <span
+                          style="color: #2196f3"
+                          class="checklist-hover"
+                          @click="loadChildTaskOrigin(2)"
+                        >
+                          Đang thực hiện ({{ DoingChild }})
+                        </span>
+                        <span> | </span>
+                        <span
+                          style="color: #6dd230"
+                          class="checklist-hover"
+                          @click="loadChildTaskOrigin(3)"
+                        >
+                          Hoàn thành ({{ FinishedChild }})</span
+                        >
+                      </span>
+                    </div>
+                  </div>
+
+                  <div
+                    class="col-12 p-0 m-0 pt-1 pb-1 pl-6 child-task-hover"
+                    v-for="(ch, index) in ListChildTask"
+                    :key="index"
+                  >
+                    <div
+                      class="row col-12 flex p-0 m-0"
+                      @click="show(ch)"
+                    >
+                      <div class="col-7 p-0 m-0">
+                        <span class="font-bold text-xl">
+                          {{ ch.task_name }}
+                        </span>
+                        <br />
+                        <span>
+                          {{
+                            moment(new Date(ch.start_date)).format("DD/MM/YYYY")
+                          }}
+                        </span>
+                        -
+                        <span v-if="ch.is_deadline == true">
+                          {{
+                            moment(new Date(ch.end_date)).format("DD/MM/YYYY")
+                          }}
+                        </span>
+                      </div>
+                      <div class="col-4 p-0 m-0 format-center">
+                        <AvatarGroup>
+                          <div
+                            v-for="(user, index) in ch.users"
+                            :key="index"
+                          >
+                            <Avatar
+                              @error="
+                                $event.target.src =
+                                  basedomainURL + '/Portals/Image/nouser1.png'
+                              "
+                              v-if="user.is_type == 0 && user.STTGV == 0"
+                              v-tooltip.right="{
+                                value: user.tooltip,
+                                escape: true,
+                              }"
+                              v-bind:label="
+                                user.avt
+                                  ? ''
+                                  : user.full_name
+                                      .split(' ')
+                                      .at(-1)
+                                      .substring(0, 1)
+                              "
+                              v-bind:image="basedomainURL + user.avt"
+                              style="color: #ffffff; cursor: pointer"
+                              :style="{
+                                background: bgColor[index % 7],
+                                border: '2px solid' + bgColor[index % 10],
+                              }"
+                              class=""
+                              size="normal"
+                              shape="circle"
+                            />
+                            <Avatar
+                              @error="
+                                $event.target.src =
+                                  basedomainURL + '/Portals/Image/nouser1.png'
+                              "
+                              v-if="user.is_type == 1 && user.STTTH == 0"
+                              v-tooltip.right="{
+                                value: user.tooltip,
+                                escape: true,
+                              }"
+                              v-bind:label="
+                                user.avt
+                                  ? ''
+                                  : user.full_name
+                                      .split(' ')
+                                      .at(-1)
+                                      .substring(0, 1)
+                              "
+                              v-bind:image="basedomainURL + user.avt"
+                              style="color: #ffffff; cursor: pointer"
+                              :style="{
+                                background: bgColor[index % 7],
+                                border: '2px solid' + bgColor[index % 10],
+                              }"
+                              class=""
+                              size="normal"
+                              shape="circle"
+                            />
+                            <Avatar
+                              @error="
+                                $event.target.src =
+                                  basedomainURL + '/Portals/Image/nouser1.png'
+                              "
+                              v-if="user.is_type == 2 && user.STTDTH == 0"
+                              v-tooltip.right="{
+                                value: user.tooltip,
+                                escape: true,
+                              }"
+                              v-bind:label="
+                                user.avt
+                                  ? ''
+                                  : user.full_name
+                                      .split(' ')
+                                      .at(-1)
+                                      .substring(0, 1)
+                              "
+                              v-bind:image="basedomainURL + user.avt"
+                              style="color: #ffffff; cursor: pointer"
+                              :style="{
+                                background: bgColor[index % 7],
+                                border: '2px solid' + bgColor[index % 10],
+                              }"
+                              class=""
+                              size="normal"
+                              shape="circle"
+                            />
+                            <Avatar
+                              @error="
+                                $event.target.src =
+                                  basedomainURL + '/Portals/Image/nouser1.png'
+                              "
+                              v-if="user.is_type == 3 && user.STTTD == 0"
+                              v-tooltip.right="{
+                                value: user.tooltip,
+                                escape: true,
+                              }"
+                              v-bind:label="
+                                user.avt
+                                  ? ''
+                                  : user.full_name
+                                      .split(' ')
+                                      .at(-1)
+                                      .substring(0, 1)
+                              "
+                              v-bind:image="basedomainURL + user.avt"
+                              style="color: #ffffff; cursor: pointer"
+                              :style="{
+                                background: bgColor[index % 7],
+                                border: '2px solid' + bgColor[index % 10],
+                              }"
+                              class=""
+                              size="normal"
+                              shape="circle"
+                            />
+                          </div>
+                          <Avatar
+                            @error="
+                              $event.target.src =
+                                basedomainURL + '/Portals/Image/nouser1.png'
+                            "
+                            v-if="ch.users.length > 4"
+                            v-tooltip.right="{
+                              value:
+                                'và ' +
+                                (ch.users.length - 4) +
+                                ' người khác tham gia',
+                            }"
+                            :label="'+' + (ch.users.length - 4)"
+                            style="
+                              color: #ffffff;
+                              cursor: pointer;
+                              font-size: 1rem;
+                            "
+                            :style="{
+                              background: bgColor[index % 7],
+                              border: '2px solid' + bgColor[index % 10],
+                            }"
+                            class=""
+                            size="normal"
+                            shape="circle"
+                          ></Avatar>
+                        </AvatarGroup>
+                      </div>
+                      <div class="col-1 p-0 m-0 format-center">
+                        {{ ch.progress }}%
+                      </div>
+                    </div>
                   </div>
                 </div>
 
                 <div
-                  class="col-12 p-0 m-0 pt-1 pb-1 pl-6 child-task-hover"
+                  class="row col-12"
+                  id="file"
+                >
+                  <div
+                    class="col-12 p-0 m-0"
+                    style="font-weight: 600; color: #888; font-size: 1.15rem"
+                  >
+                    <div class="col-12">
+                      <i
+                        class="pi pi-file pr-2"
+                        style="font-size: 0.9rem !important"
+                      >
+                      </i>
+                      <span
+                        >Tài liệu công việc ({{ countFiles }})
+                        <Button
+                          icon="pi pi-plus-circle"
+                          class="p-button-secondary p-button-text p-0 m-0"
+                          v-tooltip.top="{ value: 'Thêm tệp tài liệu' }"
+                          @click="OpenFileDialog()"
+                          v-if="isClose == false"
+                        />
+                      </span>
+                    </div>
+                  </div>
+                  <div
+                    class="col-12 p-0 m-0"
+                    v-if="countFiles > 0"
+                  >
+                    <div
+                      v-for="(slotProps, index) in listFile"
+                      :key="index"
+                      class="col-12 p-0 m-0 pl-5 flex file-hover"
+                      v-on:dblclick="ViewFileInfo(slotProps)"
+                      v-tooltip.top="{
+                        value: 'Nháy chuột 2 lần để xem chi tiết',
+                      }"
+                    >
+                      <div class="col-4 format-left">
+                        <div
+                          class=""
+                          v-if="slotProps.is_image == 1"
+                        >
+                          <Image
+                            :src="basedomainURL + slotProps.file_path"
+                            :alt="slotProps.file_name"
+                            width="24"
+                            preview
+                            style="
+                              max-width: 24px;
+                              white-space: nowrap;
+                              overflow: hidden;
+                              text-overflow: ellipsis;
+                            "
+                          />
+                        </div>
+                        <div
+                          class=""
+                          v-else
+                        >
+                          <img
+                            :src="
+                              basedomainURL +
+                              '/Portals/Image/file/' +
+                              slotProps.file_name.substring(
+                                slotProps.file_name.lastIndexOf('.') + 1,
+                              ) +
+                              '.png'
+                            "
+                            style="width: 24px; object-fit: contain"
+                            :alt="' '"
+                            class="pt-1"
+                          />
+                        </div>
+                        <div
+                          class="format-left"
+                          style="
+                            max-width: 30rem;
+                            white-space: nowrap;
+                            overflow: hidden;
+                            text-overflow: ellipsis;
+                          "
+                        >
+                          <span
+                            class="pl-2 w-full"
+                            v-tooltip.top="{ value: slotProps.file_name }"
+                          >
+                            {{ " " + slotProps.file_name }}
+                          </span>
+                        </div>
+                      </div>
+
+                      <div class="col-2 format-center">
+                        {{ slotProps.filesize_display }}
+                      </div>
+                      <div class="col-3 format-center">
+                        {{
+                          moment(new Date(slotProps.created_date)).format(
+                            "HH:mm DD/MM/YYYY",
+                          )
+                        }}
+                      </div>
+                      <div class="col-1 format-center">
+                        <Avatar
+                          @error="
+                            $event.target.src =
+                              basedomainURL + '/Portals/Image/nouser1.png'
+                          "
+                          v-tooltip.right="{
+                            value: slotProps.creator_tooltip,
+                            escape: true,
+                          }"
+                          v-bind:label="
+                            slotProps.creator.avt
+                              ? ''
+                              : slotProps.creator.full_name
+                                  .split(' ')
+                                  .at(-1)
+                                  .substring(0, 1)
+                          "
+                          v-bind:image="basedomainURL + slotProps.creator.avt"
+                          style="color: #ffffff; cursor: pointer"
+                          :style="{
+                            background:
+                              bgColor[Math.floor(Math.random() * 10) % 7],
+                            border:
+                              '2px solid' + bgColor[(Math.random() * 11) % 7],
+                          }"
+                          class="p-0 m-0"
+                          size="small"
+                          shape="circle"
+                        />
+                      </div>
+                      <div class="flex col-2 format-default ml-3">
+                        <a
+                          download
+                          style="text-decoration: none"
+                          class="a-hover format-center"
+                        >
+                          <Button
+                            icon="pi pi-download "
+                            class="p-button-text p-button-secondary p-button-hover"
+                            v-tooltip="{ value: 'Tải tệp xuống' }"
+                            @click="download(slotProps)"
+                          >
+                          </Button
+                        ></a>
+
+                        <a
+                          v-if="isClose == false"
+                          style="text-decoration: none"
+                          class="a-hover format-center"
+                        >
+                          <Button
+                            icon="pi pi-trash"
+                            class="p-button-text p-button-secondary p-button-hover"
+                            @click="DelFile(slotProps)"
+                            v-tooltip="{ value: 'Xóa' }"
+                            v-if="
+                              store.state.user.user_id == slotProps.created_by
+                            "
+                        /></a>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+                <div class="row col-12">
+                  <div
+                    class="col-12 p-0 m-0"
+                    style="font-weight: 600; color: #888; font-size: 1.15rem"
+                  >
+                    <div class="col-12">
+                      <i
+                        class="pi pi-link pr-2"
+                        style="font-size: 0.9rem !important"
+                      >
+                      </i>
+                      <span
+                        >Văn bản liên quan (từ Văn bản) ({{ countDocMaster }})
+                        <Button
+                          icon="pi pi-plus-circle"
+                          class="p-button-secondary p-button-text p-0 m-0"
+                          v-tooltip.top="{
+                            value: 'Gắn văn bản liên quan từ S.Doc',
+                          }"
+                          v-if="isClose == false"
+                          @click="OpenLinkDocToTask()"
+                      /></span>
+                    </div>
+                  </div>
+
+                  <div
+                    class="col-12 w-full"
+                    v-if="countDocMaster > 0"
+                  >
+                    <div
+                      v-for="(slotProps, index) in ListDocMaster"
+                      :key="index"
+                      class="col-12 p-0 m-0 pl-5 flex file-hover"
+                      v-on:dblclick="ViewFileInfo(slotProps)"
+                      v-tooltip.top="{
+                        value: 'Nháy chuột 2 lần để xem nhanh văn bản',
+                      }"
+                    >
+                      <div class="col-4 format-left">
+                        <div class="">
+                          <img
+                            :src="
+                              basedomainURL +
+                                '/Portals/Image/file/' +
+                                slotProps.file_type +
+                                '.png' ??
+                              slotProps.file_name.substring(
+                                slotProps.file_name.lastIndexOf('.') + 1,
+                              ) + '.png'
+                            "
+                            style="width: 24px; object-fit: contain"
+                            :alt="' '"
+                            class="pt-1"
+                          />
+                        </div>
+                        <div
+                          class="format-left"
+                          style="
+                            max-width: 30rem;
+                            white-space: nowrap;
+                            overflow: hidden;
+                            text-overflow: ellipsis;
+                          "
+                        >
+                          <span
+                            class="pl-2 w-full"
+                            v-tooltip.top="{ value: slotProps.file_name }"
+                          >
+                            {{ " " + slotProps.file_name }}
+                          </span>
+                        </div>
+                      </div>
+
+                      <div class="col-2 format-center">
+                        {{ slotProps.filesize_display }}
+                      </div>
+                      <div class="col-3 format-center">
+                        {{
+                          moment(new Date(slotProps.created_date)).format(
+                            "HH:mm DD/MM/YYYY",
+                          )
+                        }}
+                      </div>
+                      <div class="col-1 format-center">
+                        <Avatar
+                          @error="
+                            $event.target.src =
+                              basedomainURL + '/Portals/Image/nouser1.png'
+                          "
+                          v-tooltip.right="{
+                            value: slotProps.creator_tooltip,
+                            escape: true,
+                          }"
+                          v-bind:label="
+                            slotProps.avt
+                              ? ''
+                              : slotProps.full_name
+                                  .split(' ')
+                                  .at(-1)
+                                  .substring(0, 1)
+                          "
+                          v-bind:image="basedomainURL + slotProps.avt"
+                          style="color: #ffffff; cursor: pointer"
+                          :style="{
+                            background:
+                              bgColor[Math.floor(Math.random() * 10) % 7],
+                            border:
+                              '2px solid' + bgColor[(Math.random() * 11) % 7],
+                          }"
+                          class="p-0 m-0"
+                          size="small"
+                          shape="circle"
+                        />
+                      </div>
+                      <div class="flex col-2 format-default ml-3">
+                        <a
+                          download
+                          style="text-decoration: none"
+                          class="a-hover format-center"
+                        >
+                          <Button
+                            icon="pi pi-download "
+                            class="p-button-text p-button-secondary p-button-hover"
+                            v-tooltip="{ value: 'Tải tệp xuống' }"
+                            @click="download(slotProps)"
+                          >
+                          </Button
+                        ></a>
+                        <a
+                          v-if="isClose == false"
+                          style="text-decoration: none"
+                          class="a-hover format-center"
+                        >
+                          <Button
+                            icon="pi pi-trash"
+                            class="p-button-text p-button-secondary p-button-hover"
+                            @click="DelLink(slotProps)"
+                            v-tooltip="{ value: 'Xóa liên kết' }"
+                            v-if="
+                              store.state.user.user_id == slotProps.created_by
+                            "
+                        /></a>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+                <div
+                  class="row col-12"
+                  id="comments"
+                >
+                  <div
+                    class="col-12 p-0 m-0"
+                    style="font-weight: 600; color: #888; font-size: 1.15rem"
+                  >
+                    <div class="col-12">
+                      <i
+                        class="pi pi-comments pr-2"
+                        style="font-size: 0.9rem !important"
+                      >
+                      </i>
+                      <span>Bình luận công việc ({{ countComments }})</span>
+                    </div>
+                  </div>
+
+                  <div
+                    class="col-12 w-full"
+                    v-if="listComments != null"
+                  >
+                    <div
+                      class="row col-12 pl-4 w-full cmt-hover relative"
+                      v-for="(cmt, index) in listComments"
+                      :key="index"
+                      :id="
+                        index == listComments.length - 1
+                          ? 'comment_final'
+                          : 'comment_' + index
+                      "
+                      ref="index"
+                    >
+                      <div
+                        class="right-0 absolute delete-button-hover"
+                        v-if="user.user_id == cmt.created_by"
+                      >
+                        <Button
+                          icon="pi pi-pencil"
+                          class="p-button-raised2 p-button-text"
+                          @click="EditComment(cmt)"
+                        />
+                        <Button
+                          icon=" pi pi-trash"
+                          class="p-button-raised2 p-button-text"
+                          @click="DelComment(cmt.comment_id)"
+                        />
+                      </div>
+                      <div class="col-12 p-0 m-0 pb-2">
+                        <!-- delete-button-hover -->
+                        <div class="col-12 flex">
+                          <div class="format-center">
+                            <Avatar
+                              @error="
+                                $event.target.src =
+                                  basedomainURL + '/Portals/Image/nouser1.png'
+                              "
+                              v-tooltip="{
+                                value: cmt.tooltip,
+                                escape: true,
+                              }"
+                              v-bind:label="
+                                cmt.avatar
+                                  ? ''
+                                  : cmt.full_name
+                                      .split(' ')
+                                      .at(-1)
+                                      .substring(0, 1)
+                              "
+                              v-bind:image="basedomainURL + cmt.avatar"
+                              style="color: #ffffff; cursor: pointer"
+                              :style="{
+                                background: bgColor[index % 7],
+                                border: '1px solid' + bgColor[index % 10],
+                              }"
+                              class="myTextAvatar p-0 m-0"
+                              size="small"
+                              shape="circle"
+                            />
+                          </div>
+                          <div class="col-10 format-left">
+                            <span
+                              style="
+                                font-weight: 700;
+                                font-size: 16px;
+                                color: #385898;
+                              "
+                              >{{ cmt.full_name }}</span
+                            >
+                            <span class="ml-2">
+                              {{
+                                moment(new Date(cmt.created_date)).format(
+                                  "HH:mm DD/MM/YYYY",
+                                )
+                              }}
+                            </span>
+                          </div>
+                        </div>
+
+                        <div
+                          class="row col-12 p-0 m-0 flex"
+                          v-if="
+                            (cmt.contents != null &&
+                              cmt.contents != '<body><p><br></p></body>' &&
+                              cmt.contents != '<body></body>') ||
+                            cmt.children != null
+                          "
+                        >
+                          <div class="col-1"></div>
+                          <div
+                            class="pl-4 p-0 m-0 pr-4 bg-cmt-color border-1 border-round border-blue-100"
+                            :class="cmt.parent != null ? 'w-full' : ''"
+                          >
+                            <div
+                              class="w-full pl-4 p-0 m-0 pr-4 bg-reply border-bottom-comment"
+                              v-if="cmt.parent != null"
+                            >
+                              <div class="col-12 p-0 m-0">
+                                <!-- delete-button-hover -->
+                                <div class="col-12 flex p-0 m-0">
+                                  <div class="format-center">
+                                    <Avatar
+                                      @error="
+                                        $event.target.src =
+                                          basedomainURL +
+                                          '/Portals/Image/nouser1.png'
+                                      "
+                                      v-tooltip="{
+                                        value: cmt.parent.tooltip,
+                                        escape: true,
+                                      }"
+                                      v-bind:label="
+                                        cmt.parent.avatar
+                                          ? ''
+                                          : cmt.parent.full_name
+                                              .split(' ')
+                                              .at(-1)
+                                              .substring(0, 1)
+                                      "
+                                      v-bind:image="
+                                        basedomainURL + cmt.parent.avatar
+                                      "
+                                      style="color: #ffffff; cursor: pointer"
+                                      :style="{
+                                        background: bgColor[index % 7],
+                                        border:
+                                          '1px solid' + bgColor[index % 10],
+                                      }"
+                                      class="myTextAvatar p-0 m-0"
+                                      size="small"
+                                      shape="circle"
+                                    />
+                                  </div>
+                                  <div class="col-10 format-left p-0 m-0">
+                                    <span
+                                      class="ml-2"
+                                      style="
+                                        font-weight: 700;
+                                        font-size: 16px;
+                                        color: #385898;
+                                      "
+                                      >{{ cmt.parent.full_name }}</span
+                                    >
+                                    <span class="ml-2">
+                                      {{
+                                        moment(
+                                          new Date(cmt.parent.created_date),
+                                        ).format("HH:mm DD/MM/YYYY")
+                                      }}
+                                    </span>
+                                  </div>
+                                </div>
+                                <div
+                                  class="row col-12 flex p-0 m-0"
+                                  v-if="
+                                    cmt.parent.contents != null &&
+                                    cmt.parent.contents != '<body></body>'
+                                  "
+                                >
+                                  <div
+                                    class="col-1 p-0 m-0 text-3xl right-0"
+                                  ></div>
+
+                                  <div
+                                    class="pl-4 p-0 m-0 pr-4 flex"
+                                    style="
+                                      white-space: nowrap;
+                                      overflow: hidden;
+                                      display: -webkit-box;
+                                      -webkit-line-clamp: 3;
+                                      -webkit-box-orient: vertical;
+                                      text-overflow: ellipsis;
+                                    "
+                                  >
+                                    <font-awesome-icon
+                                      icon="fa-solid fa-quote-left"
+                                    /><span v-html="cmt.parent.contents"></span
+                                    ><font-awesome-icon
+                                      icon="fa-solid fa-quote-right"
+                                    />
+                                  </div>
+                                  <div class="col-1 p-0 m-0"></div>
+                                </div>
+                              </div>
+                            </div>
+                            <div
+                              class="pl-4 p-0 m-0 pr-4"
+                              v-html="cmt.contents"
+                            ></div>
+                          </div>
+
+                          <div class="col-1"></div>
+                        </div>
+                        <div
+                          class="row col-12 flex p-0 m-0 pt-2"
+                          v-if="cmt.files != null"
+                        >
+                          <div class="col-1"></div>
+                          <div
+                            class="col-10 p-0 m-0 bg-white-100 border-1 border-round border-blue-100"
+                          >
+                            <div class="col-12 flex flex-wrap">
+                              <div
+                                v-for="(slotProps, index) in cmt.files"
+                                :key="index"
+                                class="col-3 py-0 mb-2 h-full relative div-menu-file-hover"
+                                v-on:dblclick="ViewFileInfo(slotProps)"
+                                v-tooltip.top="{
+                                  value: 'Nháy chuột 2 lần để xem chi tiết',
+                                }"
+                              >
+                                <div
+                                  class="absolute right-0 top-0 div-menu-file"
+                                >
+                                  <Button
+                                    icon="pi pi-ellipsis-h"
+                                    class="p-button-hover-file-menu p-button-text"
+                                    v-tooltip="{ value: '' }"
+                                    @click="
+                                      toggle_panel_file(
+                                        $event,
+                                        slotProps,
+                                        cmt.created_by,
+                                      )
+                                    "
+                                    aria-haspopup="true"
+                                    aria-controls="overlay_panel"
+                                  />
+                                </div>
+                                <div
+                                  class="col-12 p-0 m-0 py-2 format-default file-hover file-comments"
+                                  style="height: 8rem"
+                                >
+                                  <div class="col-12 p-0 m-0">
+                                    <Image
+                                      :src="basedomainURL + slotProps.file_path"
+                                      :alt="slotProps.file_name"
+                                      preview
+                                      :imageStyle="'max-width: 50px; max-height: 50px; margin-top:5px'"
+                                      v-if="slotProps.is_image == 1"
+                                      style="
+                                        white-space: nowrap;
+                                        overflow: hidden;
+                                        text-overflow: ellipsis;
+                                      "
+                                    />
+                                    <img
+                                      v-else
+                                      :src="
+                                        basedomainURL +
+                                        '/Portals/Image/file/' +
+                                        slotProps.file_type +
+                                        '.png'
+                                          ? basedomainURL +
+                                            '/Portals/Image/file/' +
+                                            slotProps.file_type +
+                                            '.png'
+                                          : basedomainURL +
+                                            '/Portals/Image/file/iconga.png'
+                                      "
+                                      style="
+                                        width: 50px;
+                                        height: 50px;
+                                        object-fit: contain;
+                                        margintop: 5px;
+                                      "
+                                      :alt="slotProps.file_name"
+                                    />
+                                    <div
+                                      class="col-12 py-2 px-3 format-center file-comments-hover"
+                                      style="
+                                        overflow: hidden;
+                                        text-overflow: ellipsis;
+                                        display: block;
+                                        white-space: nowrap;
+                                      "
+                                    >
+                                      <span
+                                        class=""
+                                        v-tooltip.top="{
+                                          value: slotProps.file_name,
+                                        }"
+                                      >
+                                        {{ " " + slotProps.file_name }}
+                                      </span>
+                                    </div>
+                                    <div class="col-12 p-0 m-0 format-center">
+                                      {{ slotProps.file_size }}
+                                    </div>
+                                  </div>
+                                </div>
+                              </div>
+                            </div>
+                          </div>
+                          <div class="col-1"></div>
+                        </div>
+                        <div
+                          class="row col-12 flex p-0 m-0 pt-1"
+                          v-if="isClose == false"
+                        >
+                          <div class="col-1"></div>
+                          <div class="col-3 p-0 m-0 format-left">
+                            <Button
+                              label="Trả lời"
+                              icon="pi pi-reply"
+                              class="p-button-text reply"
+                              @click="ReplyComment(cmt)"
+                            />
+                          </div>
+                        </div>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+                <div
+                  class="sticky bottom-0 left-0 w-full bg-white"
+                  :class="
+                    reply == true
+                      ? listFileComment.length > 0
+                        ? listFileComment.length > 6
+                          ? 'h-27rem'
+                          : 'h-19rem'
+                        : 'h-9rem'
+                      : listFileComment.length > 0
+                      ? listFileComment.length > 6
+                        ? 'h-18rem'
+                        : 'h-9rem'
+                      : 'h-9rem'
+                  "
+                  v-if="listFileComment.length > 0 || reply == true"
+                >
+                  <div class="absolute col-12 h-full bottom-0 p-0 m-0">
+                    <div>
+                      <div
+                        class="col-12 m-0 p-0 w-full px-6 relative"
+                        v-if="
+                          editComment == true ||
+                          reply == true ||
+                          (editComment == true && reply == true) ||
+                          listFileComment.length > 0
+                        "
+                      >
+                        <div class="left-0 col-12 h-full absolute">
+                          <Button
+                            icon="pi pi-times-circle"
+                            class="p-0 m-0 p-button-rounded p-button-danger p-button-text p-button-plain absolute top-0 right-0 p-button-hover"
+                            style="top: 0 !important; right: 0 !important"
+                            @click="closeReplyOrEditCmt()"
+                            v-tooltip="{ value: 'Hủy' }"
+                          >
+                          </Button>
+                        </div>
+                      </div>
+                      <div
+                        class="col-12 m-0 p-0 w-full px-6"
+                        v-if="replyCmtValue != null"
+                      >
+                        <div
+                          class="row col-12 p-0 m-0 px-3 pt-1 w-full cmt-reply"
+                          v-for="(cmt, index) in replyCmtValue"
+                          :key="index"
+                        >
+                          <div class="col-12 p-0 m-0 pb-2">
+                            <div class="col-12 flex p-0 m-0 pt-1">
+                              <div class="format-center">
+                                <Avatar
+                                  @error="
+                                    $event.target.src =
+                                      basedomainURL +
+                                      '/Portals/Image/nouser1.png'
+                                  "
+                                  v-tooltip="{
+                                    value: cmt.tooltip,
+                                    escape: true,
+                                  }"
+                                  v-bind:label="
+                                    cmt.avatar
+                                      ? ''
+                                      : cmt.full_name
+                                          .split(' ')
+                                          .at(-1)
+                                          .substring(0, 1)
+                                  "
+                                  v-bind:image="basedomainURL + cmt.avatar"
+                                  style="color: #ffffff; cursor: pointer"
+                                  :style="{
+                                    background: bgColor[index % 7],
+                                    border: '1px solid' + bgColor[index % 10],
+                                  }"
+                                  class="myTextAvatar p-0 m-0"
+                                  size="small"
+                                  shape="circle"
+                                />
+                              </div>
+                              <div class="pl-2 col-10 format-left">
+                                <span
+                                  style="
+                                    font-weight: 700;
+                                    font-size: 16px;
+                                    color: #385898;
+                                  "
+                                  >{{ cmt.full_name }}</span
+                                >
+                                <span class="ml-2">
+                                  {{
+                                    moment(new Date(cmt.created_date)).format(
+                                      "HH:mm DD/MM/YYYY",
+                                    )
+                                  }}
+                                </span>
+                              </div>
+                            </div>
+                            <div
+                              class="row col-12 flex p-0 m-0"
+                              v-if="
+                                cmt.contents != null &&
+                                cmt.contents != '<body><p><br></p></body>'
+                              "
+                            >
+                              <div class="col-1"></div>
+                              <div
+                                class="col pl-4 p-0 m-0 pr-4 bg-cmt-color border-1 border-round border-blue-100"
+                                :style="{
+                                  height: height1 < 1000 ? '6rem' : '6rem',
+                                }"
+                                style="
+                                  white-space: nowrap;
+                                  overflow: hidden;
+                                  display: -webkit-box;
+                                  -webkit-line-clamp: 2;
+                                  -webkit-box-orient: vertical;
+                                  text-overflow: ellipsis;
+                                  line-height: 1;
+                                  font-size: 15px;
+                                "
+                                v-html="cmt.contents"
+                              ></div>
+                              <div class="col-1"></div>
+                            </div>
+                            <div
+                              class="row col-12 flex p-0 m-0"
+                              v-else
+                            >
+                              <div class="col-1"></div>
+                              <div
+                                class="col pl-4 p-0 m-0 pr-4 bg-cmt-color border-1 border-round border-blue-100 format-center text-black text-4xl"
+                                :style="{
+                                  height: height1 < 1000 ? '6rem' : '6rem',
+                                }"
+                              >
+                                <i class="pi pi-link text-black text-4xl m-2" />
+                                Tệp đính kèm
+                              </div>
+                              <div class="col-1"></div>
+                            </div>
+                          </div>
+                        </div>
+                      </div>
+                      <div
+                        class="col-12 p-0 m-0 font-bold pl-2 bg-white"
+                        style="
+                          font-weight: bold;
+                          font-size: 16px;
+                          margin: 10px 0;
+                          border-top: 1px solid #f5f5f5;
+                          padding-top: 15px;
+                          color: #2196f3;
+                        "
+                        v-if="listFileComment.length > 0"
+                      >
+                        Tệp đính kèm
+                      </div>
+                      <div
+                        class="col-12 m-0 flex format-center bg-white"
+                        v-if="listFileComment.length > 0"
+                        style="
+                          max-width: 70vw;
+                          height: auto;
+                          display: flex;
+                          flex-wrap: wrap;
+                        "
+                      >
+                        <div
+                          v-for="(item, index) in listFileComment"
+                          :key="index"
+                          class="col-2 relative format-center p-1"
+                          style=""
+                        >
+                          <div
+                            class="col-2 p-0 m-0 anh format-center file-hover"
+                          >
+                            <Button
+                              @click="
+                                delImgComment(
+                                  item.data ? item.data : item,
+                                  index,
+                                )
+                              "
+                              icon="pi pi-times-circle"
+                              class="p-button-rounded p-button-danger p-button-text p-button-plain absolute top-0 right-0 pr-0 mr-0 p-button-hover"
+                              v-tooltip="{ value: 'Xóa tệp' }"
+                            ></Button>
+
+                            <div
+                              class=""
+                              v-if="item.checkimg == true"
+                            >
+                              <img
+                                :src="item.src"
+                                :alt="' '"
+                                style="
+                                  max-width: 80px;
+                                  max-height: 50px;
+                                  object-fit: contain;
+                                  margin-top: 5px;
+                                "
+                                class="pt-1"
+                              />
+                              <div
+                                class="p-1"
+                                style="
+                                  width: 95px;
+                                  font-size: 13px;
+                                  overflow: hidden;
+                                  text-overflow: ellipsis;
+                                  display: block;
+                                  font-weight: 500;
+                                  white-space: nowrap;
+                                "
+                              >
+                                {{ item.data.name }}
+                                <br />
+                                {{ item.size }}
+                              </div>
+                            </div>
+                            <div
+                              class=""
+                              v-else
+                            >
+                              <img
+                                :src="
+                                  basedomainURL +
+                                  '/Portals/Image/file/' +
+                                  item.src.substring(
+                                    item.src.lastIndexOf('.') + 1,
+                                  ) +
+                                  '.png'
+                                "
+                                style="
+                                  max-width: 80px;
+                                  max-height: 50px;
+                                  object-fit: contain;
+                                  margin-top: 5px;
+                                "
+                                :alt="' '"
+                                class="pt-1"
+                              />
+                              <div
+                                class="p-1"
+                                style="
+                                  width: 95px;
+                                  font-size: 13px;
+                                  overflow: hidden;
+                                  text-overflow: ellipsis;
+                                  display: block;
+                                  font-weight: 500;
+                                  white-space: nowrap;
+                                "
+                              >
+                                {{ item.src }}
+                                <br />
+                                {{ item.size }}
+                              </div>
+                            </div>
+                          </div>
+                        </div>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+              </div>
+            </ScrollPanel>
+            <div
+              v-if="isClose == false"
+              class="absolute border-1 format-center col-12 p-0 m-0 border-round-xs border-600 flex bottom-0"
+              style="border-radius: 5px"
+            >
+              <div class="border-0 col-9 p-0 m-0">
+                <QuillEditor
+                  ref="comment_zone_main"
+                  placeholder="Nhập nội dung bình luận..."
+                  contentType="html"
+                  :content="comment"
+                  v-model:content="comment"
+                  theme="bubble"
+                  @selectionChange="Change($event)"
+                  style="height: 5rem"
+                  @keydown.enter.exact.prevent="addComment()"
+                />
+              </div>
+              <div class="col-3 p-0 m-0">
+                <div class="format-center flex col-12 p-0 m-0 h-full">
+                  <!-- v-clickoutside="onHideEmoji" -->
+
+                  <Button
+                    class="p-button-text p-button-plain col-3 format-center w-3rem h-3rem"
+                    @click="showEmoji($event, 1)"
+                    v-tooltip="{ value: 'Biểu cảm' }"
+                  >
+                    <img
+                      alt="logo"
+                      src="/src/assets/image/smile.png"
+                      width="20"
+                      height="20"
+                    />
+                  </Button>
+
+                  <Button
+                    class="p-button-text p-button-plain col-3 w-3rem h-3rem"
+                    style="background-color: ; color: black"
+                    icon="pi pi-paperclip pt-1 pr-0 font-bold"
+                    @click="chonanh('anhcongviec')"
+                    v-tooltip="{ value: 'Đính kèm tệp' }"
+                  >
+                  </Button>
+                  <Button
+                    icon="pi pi-send pt-1 pr-0 font-bold"
+                    class="p-button-text p-button-plain col-3 w-3rem h-3rem"
+                    style="background-color: ; color: black"
+                    @click="addComment()"
+                    v-tooltip="{ value: 'Gửi bình luận' }"
+                  />
+                  <input
+                    class="hidden"
+                    id="anhcongviec"
+                    type="file"
+                    multiple="true"
+                    accept="*"
+                    @change="handleFileUploadReport"
+                  />
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <reviewTaskVue
+          v-if="DanhGiaCongViec == true"
+          :id="props.id"
+          :task_name="datalists.task_name"
+          :member="members"
+          :data="datalists"
+          :isClose="isClose"
+        >
+        </reviewTaskVue>
+
+        <div v-if="GiaHanXuLy == true">
+          <taskExtendsVue
+            :id="props.id"
+            :data="datalists"
+            :member="members"
+            :isClose="isClose"
+          ></taskExtendsVue>
+        </div>
+        <div v-if="QuanLyThanhVien == true">
+          <membersVue
+            :id="props.id"
+            :isType="is_Type"
+            :isClose="isClose"
+          ></membersVue>
+        </div>
+        <div v-if="QuanLyTaiLieu == true">
+          <taskFileVue
+            :id="props.id"
+            :psb="PositionSideBar"
+            :isClose="isClose"
+          ></taskFileVue>
+        </div>
+        <div v-if="NguoiDaXem == true">
+          <viewedMemberVue :id="props.id"></viewedMemberVue>
+        </div>
+        <div v-if="QuyTrinh == true">
+          <Task_FollowVue
+            :componentKey="componentKey"
+            :id="props.id"
+            :pj_id="datalists.project_id"
+            :listChild="ListChildTask"
+            :member="members"
+            :data="datalists"
+            :isClose="isClose"
+            :openAddTask="addNewChildTaskOrigin"
+          ></Task_FollowVue>
+        </div>
+        <div v-if="CongViecCon == true">
+          <div class="row col-12">
+            <div class="col-12 p-0 m-0">
+              <div class="row col-12 p-0 m-0 font-bold text-xl">
+                <!-- <i class="pi pi-check-square pr-2"></i> -->
+                <div style="float: right">
+                  <ul
+                    id="task-child"
+                    style="display: flex; padding: 0px"
+                  >
+                    <li
+                      v-if="isClose == false"
+                      @click="addLinkTaskOrigin(datalists)"
+                      style="
+                        list-style: none;
+                        margin-right: 20px;
+                        color: #0d89ec;
+                      "
+                    >
+                      <a style="display: flex; font-size: 12px"
+                        ><i
+                          style="margin-right: 5px"
+                          class="p-custom pi pi-link"
+                        ></i>
+                        Liên kết công việc con</a
+                      >
+                    </li>
+                    <li
+                      v-if="isClose == false"
+                      @click="addNewChildTaskOrigin(datalists)"
+                      style="
+                        list-style: none;
+                        margin-right: 20px;
+                        color: #0d89ec;
+                      "
+                    >
+                      <a style="display: flex; font-size: 12px"
+                        ><i
+                          style="margin-right: 5px"
+                          class="p-custom pi pi-plus-circle"
+                        ></i>
+                        Tạo công việc con</a
+                      >
+                    </li>
+                  </ul>
+                </div>
+              </div>
+            </div>
+            <div
+              class="col-12 p-0 m-0"
+              style="height: 100%; overflow-y: auto"
+            >
+              <div
+                v-if="ListChildTask && ListChildTask.length == 0"
+                style="
+                  text-align: center;
+                  display: flex;
+                  flex-direction: column;
+                  align-items: center;
+                "
+                class="row col-12 p-0 m-0 pt-1 pb-1 pl-5"
+              >
+                <img
+                  style="width: 500px"
+                  v-bind:src="basedomainURL + '/Portals/Image/noproject.png'"
+                />
+                <span
+                  style="font-size: 20px; font-weight: bold; margin-top: 25px"
+                  >Hiện chưa có công việc con nào</span
+                >
+              </div>
+              <div v-if="ListChildTask && ListChildTask.length > 0">
+                <div
+                  class="row col-12 p-0 m-0 pt-1 pb-1 pl-5 child-task-hover"
                   v-for="(ch, index) in ListChildTask"
                   :key="index"
                 >
@@ -4800,7 +6106,7 @@ const is_viewSecurityTask = ref(true);
                               $event.target.src =
                                 basedomainURL + '/Portals/Image/nouser1.png'
                             "
-                            v-if="user.is_type == 0 && user.STTGV == 0"
+                            v-if="user.is_type == 0"
                             v-tooltip.right="{
                               value: user.tooltip,
                               escape: true,
@@ -4828,7 +6134,7 @@ const is_viewSecurityTask = ref(true);
                               $event.target.src =
                                 basedomainURL + '/Portals/Image/nouser1.png'
                             "
-                            v-if="user.is_type == 1 && user.STTTH == 0"
+                            v-if="user.is_type == 1"
                             v-tooltip.right="{
                               value: user.tooltip,
                               escape: true,
@@ -4856,7 +6162,7 @@ const is_viewSecurityTask = ref(true);
                               $event.target.src =
                                 basedomainURL + '/Portals/Image/nouser1.png'
                             "
-                            v-if="user.is_type == 2 && user.STTDTH == 0"
+                            v-if="user.is_type == 2"
                             v-tooltip.right="{
                               value: user.tooltip,
                               escape: true,
@@ -4884,7 +6190,7 @@ const is_viewSecurityTask = ref(true);
                               $event.target.src =
                                 basedomainURL + '/Portals/Image/nouser1.png'
                             "
-                            v-if="user.is_type == 3 && user.STTTD == 0"
+                            v-if="user.is_type == 3"
                             v-tooltip.right="{
                               value: user.tooltip,
                               escape: true,
@@ -4920,7 +6226,7 @@ const is_viewSecurityTask = ref(true);
                               (ch.users.length - 4) +
                               ' người khác tham gia',
                           }"
-                          :label="'+' + (ch.users.length - 4)"
+                          :label="'+' + (ch.users.length - 1)"
                           style="
                             color: #ffffff;
                             cursor: pointer;
@@ -4942,1698 +6248,459 @@ const is_viewSecurityTask = ref(true);
                   </div>
                 </div>
               </div>
-
-              <div
-                class="row col-12"
-                id="file"
-              >
-                <div
-                  class="col-12 p-0 m-0"
-                  style="font-weight: 600; color: #888; font-size: 1.15rem"
-                >
-                  <div class="col-12">
-                    <i
-                      class="pi pi-file pr-2"
-                      style="font-size: 0.9rem !important"
-                    >
-                    </i>
-                    <span
-                      >Tài liệu công việc ({{ countFiles }})
-                      <Button
-                        icon="pi pi-plus-circle"
-                        class="p-button-secondary p-button-text p-0 m-0"
-                        v-tooltip.top="{ value: 'Thêm tệp tài liệu' }"
-                        @click="OpenFileDialog()"
-                        v-if="isClose == false"
-                      />
-                    </span>
-                  </div>
-                </div>
-                <div
-                  class="col-12 p-0 m-0"
-                  v-if="countFiles > 0"
-                >
-                  <div
-                    v-for="(slotProps, index) in listFile"
-                    :key="index"
-                    class="col-12 p-0 m-0 pl-5 flex file-hover"
-                    v-on:dblclick="ViewFileInfo(slotProps)"
-                    v-tooltip.top="{
-                      value: 'Nháy chuột 2 lần để xem chi tiết',
-                    }"
-                  >
-                    <div class="col-4 format-left">
-                      <div
-                        class=""
-                        v-if="slotProps.is_image == 1"
-                      >
-                        <Image
-                          :src="basedomainURL + slotProps.file_path"
-                          :alt="slotProps.file_name"
-                          width="24"
-                          preview
-                          style="
-                            max-width: 24px;
-                            white-space: nowrap;
-                            overflow: hidden;
-                            text-overflow: ellipsis;
-                          "
-                        />
-                      </div>
-                      <div
-                        class=""
-                        v-else
-                      >
-                        <img
-                          :src="
-                            basedomainURL +
-                            '/Portals/Image/file/' +
-                            slotProps.file_name.substring(
-                              slotProps.file_name.lastIndexOf('.') + 1,
-                            ) +
-                            '.png'
-                          "
-                          style="width: 24px; object-fit: contain"
-                          :alt="' '"
-                          class="pt-1"
-                        />
-                      </div>
-                      <div
-                        class="format-left"
-                        style="
-                          max-width: 30rem;
-                          white-space: nowrap;
-                          overflow: hidden;
-                          text-overflow: ellipsis;
-                        "
-                      >
-                        <span
-                          class="pl-2 w-full"
-                          v-tooltip.top="{ value: slotProps.file_name }"
-                        >
-                          {{ " " + slotProps.file_name }}
-                        </span>
-                      </div>
-                    </div>
-
-                    <div class="col-2 format-center">
-                      {{ slotProps.filesize_display }}
-                    </div>
-                    <div class="col-3 format-center">
-                      {{
-                        moment(new Date(slotProps.created_date)).format(
-                          "HH:mm DD/MM/YYYY",
-                        )
-                      }}
-                    </div>
-                    <div class="col-1 format-center">
-                      <Avatar
-                        @error="
-                          $event.target.src =
-                            basedomainURL + '/Portals/Image/nouser1.png'
-                        "
-                        v-tooltip.right="{
-                          value: slotProps.creator_tooltip,
-                          escape: true,
-                        }"
-                        v-bind:label="
-                          slotProps.creator.avt
-                            ? ''
-                            : slotProps.creator.full_name
-                                .split(' ')
-                                .at(-1)
-                                .substring(0, 1)
-                        "
-                        v-bind:image="basedomainURL + slotProps.creator.avt"
-                        style="color: #ffffff; cursor: pointer"
-                        :style="{
-                          background:
-                            bgColor[Math.floor(Math.random() * 10) % 7],
-                          border:
-                            '2px solid' + bgColor[(Math.random() * 11) % 7],
-                        }"
-                        class="p-0 m-0"
-                        size="small"
-                        shape="circle"
-                      />
-                    </div>
-                    <div class="flex col-2 format-default ml-3">
-                      <a
-                        download
-                        style="text-decoration: none"
-                        class="a-hover format-center"
-                      >
-                        <Button
-                          icon="pi pi-download "
-                          class="p-button-text p-button-secondary p-button-hover"
-                          v-tooltip="{ value: 'Tải tệp xuống' }"
-                          @click="download(slotProps)"
-                        >
-                        </Button
-                      ></a>
-
-                      <a
-                        v-if="isClose == false"
-                        style="text-decoration: none"
-                        class="a-hover format-center"
-                      >
-                        <Button
-                          icon="pi pi-trash"
-                          class="p-button-text p-button-secondary p-button-hover"
-                          @click="DelFile(slotProps)"
-                          v-tooltip="{ value: 'Xóa' }"
-                          v-if="
-                            store.state.user.user_id == slotProps.created_by
-                          "
-                      /></a>
-                    </div>
-                  </div>
-                </div>
-              </div>
-              <div class="row col-12">
-                <div
-                  class="col-12 p-0 m-0"
-                  style="font-weight: 600; color: #888; font-size: 1.15rem"
-                >
-                  <div class="col-12">
-                    <i
-                      class="pi pi-link pr-2"
-                      style="font-size: 0.9rem !important"
-                    >
-                    </i>
-                    <span
-                      >Văn bản liên quan (từ Văn bản) ({{ countDocMaster }})
-                      <Button
-                        icon="pi pi-plus-circle"
-                        class="p-button-secondary p-button-text p-0 m-0"
-                        v-tooltip.top="{
-                          value: 'Gắn văn bản liên quan từ S.Doc',
-                        }"
-                        v-if="isClose == false"
-                        @click="OpenLinkDocToTask()"
-                    /></span>
-                  </div>
-                </div>
-
-                <div
-                  class="col-12 w-full"
-                  v-if="countDocMaster > 0"
-                >
-                  <div
-                    v-for="(slotProps, index) in ListDocMaster"
-                    :key="index"
-                    class="col-12 p-0 m-0 pl-5 flex file-hover"
-                    v-on:dblclick="ViewFileInfo(slotProps)"
-                    v-tooltip.top="{
-                      value: 'Nháy chuột 2 lần để xem nhanh văn bản',
-                    }"
-                  >
-                    <div class="col-4 format-left">
-                      <div class="">
-                        <img
-                          :src="
-                            basedomainURL +
-                              '/Portals/Image/file/' +
-                              slotProps.file_type +
-                              '.png' ??
-                            slotProps.file_name.substring(
-                              slotProps.file_name.lastIndexOf('.') + 1,
-                            ) + '.png'
-                          "
-                          style="width: 24px; object-fit: contain"
-                          :alt="' '"
-                          class="pt-1"
-                        />
-                      </div>
-                      <div
-                        class="format-left"
-                        style="
-                          max-width: 30rem;
-                          white-space: nowrap;
-                          overflow: hidden;
-                          text-overflow: ellipsis;
-                        "
-                      >
-                        <span
-                          class="pl-2 w-full"
-                          v-tooltip.top="{ value: slotProps.file_name }"
-                        >
-                          {{ " " + slotProps.file_name }}
-                        </span>
-                      </div>
-                    </div>
-
-                    <div class="col-2 format-center">
-                      {{ slotProps.filesize_display }}
-                    </div>
-                    <div class="col-3 format-center">
-                      {{
-                        moment(new Date(slotProps.created_date)).format(
-                          "HH:mm DD/MM/YYYY",
-                        )
-                      }}
-                    </div>
-                    <div class="col-1 format-center">
-                      <Avatar
-                        @error="
-                          $event.target.src =
-                            basedomainURL + '/Portals/Image/nouser1.png'
-                        "
-                        v-tooltip.right="{
-                          value: slotProps.creator_tooltip,
-                          escape: true,
-                        }"
-                        v-bind:label="
-                          slotProps.avt
-                            ? ''
-                            : slotProps.full_name
-                                .split(' ')
-                                .at(-1)
-                                .substring(0, 1)
-                        "
-                        v-bind:image="basedomainURL + slotProps.avt"
-                        style="color: #ffffff; cursor: pointer"
-                        :style="{
-                          background:
-                            bgColor[Math.floor(Math.random() * 10) % 7],
-                          border:
-                            '2px solid' + bgColor[(Math.random() * 11) % 7],
-                        }"
-                        class="p-0 m-0"
-                        size="small"
-                        shape="circle"
-                      />
-                    </div>
-                    <div class="flex col-2 format-default ml-3">
-                      <a
-                        download
-                        style="text-decoration: none"
-                        class="a-hover format-center"
-                      >
-                        <Button
-                          icon="pi pi-download "
-                          class="p-button-text p-button-secondary p-button-hover"
-                          v-tooltip="{ value: 'Tải tệp xuống' }"
-                          @click="download(slotProps)"
-                        >
-                        </Button
-                      ></a>
-                      <a
-                        v-if="isClose == false"
-                        style="text-decoration: none"
-                        class="a-hover format-center"
-                      >
-                        <Button
-                          icon="pi pi-trash"
-                          class="p-button-text p-button-secondary p-button-hover"
-                          @click="DelLink(slotProps)"
-                          v-tooltip="{ value: 'Xóa liên kết' }"
-                          v-if="
-                            store.state.user.user_id == slotProps.created_by
-                          "
-                      /></a>
-                    </div>
-                  </div>
-                </div>
-              </div>
-              <div
-                class="row col-12"
-                id="comments"
-              >
-                <div
-                  class="col-12 p-0 m-0"
-                  style="font-weight: 600; color: #888; font-size: 1.15rem"
-                >
-                  <div class="col-12">
-                    <i
-                      class="pi pi-comments pr-2"
-                      style="font-size: 0.9rem !important"
-                    >
-                    </i>
-                    <span>Bình luận công việc ({{ countComments }})</span>
-                  </div>
-                </div>
-
-                <div
-                  class="col-12 w-full"
-                  v-if="listComments != null"
-                >
-                  <div
-                    class="row col-12 pl-4 w-full cmt-hover relative"
-                    v-for="(cmt, index) in listComments"
-                    :key="index"
-                    :id="
-                      index == listComments.length - 1
-                        ? 'comment_final'
-                        : 'comment_' + index
-                    "
-                    ref="index"
-                  >
-                    <div
-                      class="right-0 absolute delete-button-hover"
-                      v-if="user.user_id == cmt.created_by"
-                    >
-                      <Button
-                        icon="pi pi-pencil"
-                        class="p-button-raised2 p-button-text"
-                        @click="EditComment(cmt)"
-                      />
-                      <Button
-                        icon=" pi pi-trash"
-                        class="p-button-raised2 p-button-text"
-                        @click="DelComment(cmt.comment_id)"
-                      />
-                    </div>
-                    <div class="col-12 p-0 m-0 pb-2">
-                      <!-- delete-button-hover -->
-                      <div class="col-12 flex">
-                        <div class="format-center">
-                          <Avatar
-                            @error="
-                              $event.target.src =
-                                basedomainURL + '/Portals/Image/nouser1.png'
-                            "
-                            v-tooltip="{
-                              value: cmt.tooltip,
-                              escape: true,
-                            }"
-                            v-bind:label="
-                              cmt.avatar
-                                ? ''
-                                : cmt.full_name
-                                    .split(' ')
-                                    .at(-1)
-                                    .substring(0, 1)
-                            "
-                            v-bind:image="basedomainURL + cmt.avatar"
-                            style="color: #ffffff; cursor: pointer"
-                            :style="{
-                              background: bgColor[index % 7],
-                              border: '1px solid' + bgColor[index % 10],
-                            }"
-                            class="myTextAvatar p-0 m-0"
-                            size="small"
-                            shape="circle"
-                          />
-                        </div>
-                        <div class="col-10 format-left">
-                          <span
-                            style="
-                              font-weight: 700;
-                              font-size: 16px;
-                              color: #385898;
-                            "
-                            >{{ cmt.full_name }}</span
-                          >
-                          <span class="ml-2">
-                            {{
-                              moment(new Date(cmt.created_date)).format(
-                                "HH:mm DD/MM/YYYY",
-                              )
-                            }}
-                          </span>
-                        </div>
-                      </div>
-
-                      <div
-                        class="row col-12 p-0 m-0 flex"
-                        v-if="
-                          (cmt.contents != null &&
-                            cmt.contents != '<body><p><br></p></body>' &&
-                            cmt.contents != '<body></body>') ||
-                          cmt.children != null
-                        "
-                      >
-                        <div class="col-1"></div>
-                        <div
-                          class="pl-4 p-0 m-0 pr-4 bg-cmt-color border-1 border-round border-blue-100"
-                          :class="cmt.parent != null ? 'w-full' : ''"
-                        >
-                          <div
-                            class="w-full pl-4 p-0 m-0 pr-4 bg-reply border-bottom-comment"
-                            v-if="cmt.parent != null"
-                          >
-                            <div class="col-12 p-0 m-0">
-                              <!-- delete-button-hover -->
-                              <div class="col-12 flex p-0 m-0">
-                                <div class="format-center">
-                                  <Avatar
-                                    @error="
-                                      $event.target.src =
-                                        basedomainURL +
-                                        '/Portals/Image/nouser1.png'
-                                    "
-                                    v-tooltip="{
-                                      value: cmt.parent.tooltip,
-                                      escape: true,
-                                    }"
-                                    v-bind:label="
-                                      cmt.parent.avatar
-                                        ? ''
-                                        : cmt.parent.full_name
-                                            .split(' ')
-                                            .at(-1)
-                                            .substring(0, 1)
-                                    "
-                                    v-bind:image="
-                                      basedomainURL + cmt.parent.avatar
-                                    "
-                                    style="color: #ffffff; cursor: pointer"
-                                    :style="{
-                                      background: bgColor[index % 7],
-                                      border: '1px solid' + bgColor[index % 10],
-                                    }"
-                                    class="myTextAvatar p-0 m-0"
-                                    size="small"
-                                    shape="circle"
-                                  />
-                                </div>
-                                <div class="col-10 format-left p-0 m-0">
-                                  <span
-                                    class="ml-2"
-                                    style="
-                                      font-weight: 700;
-                                      font-size: 16px;
-                                      color: #385898;
-                                    "
-                                    >{{ cmt.parent.full_name }}</span
-                                  >
-                                  <span class="ml-2">
-                                    {{
-                                      moment(
-                                        new Date(cmt.parent.created_date),
-                                      ).format("HH:mm DD/MM/YYYY")
-                                    }}
-                                  </span>
-                                </div>
-                              </div>
-                              <div
-                                class="row col-12 flex p-0 m-0"
-                                v-if="
-                                  cmt.parent.contents != null &&
-                                  cmt.parent.contents != '<body></body>'
-                                "
-                              >
-                                <div
-                                  class="col-1 p-0 m-0 text-3xl right-0"
-                                ></div>
-
-                                <div
-                                  class="pl-4 p-0 m-0 pr-4 flex"
-                                  style="
-                                    white-space: nowrap;
-                                    overflow: hidden;
-                                    display: -webkit-box;
-                                    -webkit-line-clamp: 3;
-                                    -webkit-box-orient: vertical;
-                                    text-overflow: ellipsis;
-                                  "
-                                >
-                                  <font-awesome-icon
-                                    icon="fa-solid fa-quote-left"
-                                  /><span v-html="cmt.parent.contents"></span
-                                  ><font-awesome-icon
-                                    icon="fa-solid fa-quote-right"
-                                  />
-                                </div>
-                                <div class="col-1 p-0 m-0"></div>
-                              </div>
-                            </div>
-                          </div>
-                          <div
-                            class="pl-4 p-0 m-0 pr-4"
-                            v-html="cmt.contents"
-                          ></div>
-                        </div>
-
-                        <div class="col-1"></div>
-                      </div>
-                      <div
-                        class="row col-12 flex p-0 m-0 pt-2"
-                        v-if="cmt.files != null"
-                      >
-                        <div class="col-1"></div>
-                        <div
-                          class="col-10 p-0 m-0 bg-white-100 border-1 border-round border-blue-100"
-                        >
-                          <div class="col-12 flex flex-wrap">
-                            <div
-                              v-for="(slotProps, index) in cmt.files"
-                              :key="index"
-                              class="col-3 py-0 mb-2 h-full relative div-menu-file-hover"
-                              v-on:dblclick="ViewFileInfo(slotProps)"
-                              v-tooltip.top="{
-                                value: 'Nháy chuột 2 lần để xem chi tiết',
-                              }"
-                            >
-                              <div class="absolute right-0 top-0 div-menu-file">
-                                <Button
-                                  icon="pi pi-ellipsis-h"
-                                  class="p-button-hover-file-menu p-button-text"
-                                  v-tooltip="{ value: '' }"
-                                  @click="
-                                    toggle_panel_file(
-                                      $event,
-                                      slotProps,
-                                      cmt.created_by,
-                                    )
-                                  "
-                                  aria-haspopup="true"
-                                  aria-controls="overlay_panel"
-                                />
-                              </div>
-                              <div
-                                class="col-12 p-0 m-0 py-2 format-default file-hover file-comments"
-                                style="height: 8rem"
-                              >
-                                <div class="col-12 p-0 m-0">
-                                  <Image
-                                    :src="basedomainURL + slotProps.file_path"
-                                    :alt="slotProps.file_name"
-                                    preview
-                                    :imageStyle="'max-width: 50px; max-height: 50px; margin-top:5px'"
-                                    v-if="slotProps.is_image == 1"
-                                    style="
-                                      white-space: nowrap;
-                                      overflow: hidden;
-                                      text-overflow: ellipsis;
-                                    "
-                                  />
-                                  <img
-                                    v-else
-                                    :src="
-                                      basedomainURL +
-                                      '/Portals/Image/file/' +
-                                      slotProps.file_type +
-                                      '.png'
-                                        ? basedomainURL +
-                                          '/Portals/Image/file/' +
-                                          slotProps.file_type +
-                                          '.png'
-                                        : basedomainURL +
-                                          '/Portals/Image/file/iconga.png'
-                                    "
-                                    style="
-                                      width: 50px;
-                                      height: 50px;
-                                      object-fit: contain;
-                                      margintop: 5px;
-                                    "
-                                    :alt="slotProps.file_name"
-                                  />
-                                  <div
-                                    class="col-12 py-2 px-3 format-center file-comments-hover"
-                                    style="
-                                      overflow: hidden;
-                                      text-overflow: ellipsis;
-                                      display: block;
-                                      white-space: nowrap;
-                                    "
-                                  >
-                                    <span
-                                      class=""
-                                      v-tooltip.top="{
-                                        value: slotProps.file_name,
-                                      }"
-                                    >
-                                      {{ " " + slotProps.file_name }}
-                                    </span>
-                                  </div>
-                                  <div class="col-12 p-0 m-0 format-center">
-                                    {{ slotProps.file_size }}
-                                  </div>
-                                </div>
-                              </div>
-                            </div>
-                          </div>
-                        </div>
-                        <div class="col-1"></div>
-                      </div>
-                      <div
-                        class="row col-12 flex p-0 m-0 pt-1"
-                        v-if="isClose == false"
-                      >
-                        <div class="col-1"></div>
-                        <div class="col-3 p-0 m-0 format-left">
-                          <Button
-                            label="Trả lời"
-                            icon="pi pi-reply"
-                            class="p-button-text reply"
-                            @click="ReplyComment(cmt)"
-                          />
-                        </div>
-                      </div>
-                    </div>
-                  </div>
-                </div>
-              </div>
-              <div
-                class="sticky bottom-0 left-0 w-full bg-white"
-                :class="
-                  reply == true
-                    ? listFileComment.length > 0
-                      ? listFileComment.length > 6
-                        ? 'h-27rem'
-                        : 'h-19rem'
-                      : 'h-9rem'
-                    : listFileComment.length > 0
-                    ? listFileComment.length > 6
-                      ? 'h-18rem'
-                      : 'h-9rem'
-                    : 'h-9rem'
-                "
-                v-if="listFileComment.length > 0 || reply == true"
-              >
-                <div class="absolute col-12 h-full bottom-0 p-0 m-0">
-                  <div>
-                    <div
-                      class="col-12 m-0 p-0 w-full px-6 relative"
-                      v-if="
-                        editComment == true ||
-                        reply == true ||
-                        (editComment == true && reply == true) ||
-                        listFileComment.length > 0
-                      "
-                    >
-                      <div class="left-0 col-12 h-full absolute">
-                        <Button
-                          icon="pi pi-times-circle"
-                          class="p-0 m-0 p-button-rounded p-button-danger p-button-text p-button-plain absolute top-0 right-0 p-button-hover"
-                          style="top: 0 !important; right: 0 !important"
-                          @click="closeReplyOrEditCmt()"
-                          v-tooltip="{ value: 'Hủy' }"
-                        >
-                        </Button>
-                      </div>
-                    </div>
-                    <div
-                      class="col-12 m-0 p-0 w-full px-6"
-                      v-if="replyCmtValue != null"
-                    >
-                      <div
-                        class="row col-12 p-0 m-0 px-3 pt-1 w-full cmt-reply"
-                        v-for="(cmt, index) in replyCmtValue"
-                        :key="index"
-                      >
-                        <div class="col-12 p-0 m-0 pb-2">
-                          <div class="col-12 flex p-0 m-0 pt-1">
-                            <div class="format-center">
-                              <Avatar
-                                @error="
-                                  $event.target.src =
-                                    basedomainURL + '/Portals/Image/nouser1.png'
-                                "
-                                v-tooltip="{
-                                  value: cmt.tooltip,
-                                  escape: true,
-                                }"
-                                v-bind:label="
-                                  cmt.avatar
-                                    ? ''
-                                    : cmt.full_name
-                                        .split(' ')
-                                        .at(-1)
-                                        .substring(0, 1)
-                                "
-                                v-bind:image="basedomainURL + cmt.avatar"
-                                style="color: #ffffff; cursor: pointer"
-                                :style="{
-                                  background: bgColor[index % 7],
-                                  border: '1px solid' + bgColor[index % 10],
-                                }"
-                                class="myTextAvatar p-0 m-0"
-                                size="small"
-                                shape="circle"
-                              />
-                            </div>
-                            <div class="pl-2 col-10 format-left">
-                              <span
-                                style="
-                                  font-weight: 700;
-                                  font-size: 16px;
-                                  color: #385898;
-                                "
-                                >{{ cmt.full_name }}</span
-                              >
-                              <span class="ml-2">
-                                {{
-                                  moment(new Date(cmt.created_date)).format(
-                                    "HH:mm DD/MM/YYYY",
-                                  )
-                                }}
-                              </span>
-                            </div>
-                          </div>
-                          <div
-                            class="row col-12 flex p-0 m-0"
-                            v-if="
-                              cmt.contents != null &&
-                              cmt.contents != '<body><p><br></p></body>'
-                            "
-                          >
-                            <div class="col-1"></div>
-                            <div
-                              class="col pl-4 p-0 m-0 pr-4 bg-cmt-color border-1 border-round border-blue-100"
-                              :style="{
-                                height: height1 < 1000 ? '6rem' : '6rem',
-                              }"
-                              style="
-                                white-space: nowrap;
-                                overflow: hidden;
-                                display: -webkit-box;
-                                -webkit-line-clamp: 2;
-                                -webkit-box-orient: vertical;
-                                text-overflow: ellipsis;
-                                line-height: 1;
-                                font-size: 15px;
-                              "
-                              v-html="cmt.contents"
-                            ></div>
-                            <div class="col-1"></div>
-                          </div>
-                          <div
-                            class="row col-12 flex p-0 m-0"
-                            v-else
-                          >
-                            <div class="col-1"></div>
-                            <div
-                              class="col pl-4 p-0 m-0 pr-4 bg-cmt-color border-1 border-round border-blue-100 format-center text-black text-4xl"
-                              :style="{
-                                height: height1 < 1000 ? '6rem' : '6rem',
-                              }"
-                            >
-                              <i class="pi pi-link text-black text-4xl m-2" />
-                              Tệp đính kèm
-                            </div>
-                            <div class="col-1"></div>
-                          </div>
-                        </div>
-                      </div>
-                    </div>
-                    <div
-                      class="col-12 p-0 m-0 font-bold pl-2 bg-white"
-                      style="
-                        font-weight: bold;
-                        font-size: 16px;
-                        margin: 10px 0;
-                        border-top: 1px solid #f5f5f5;
-                        padding-top: 15px;
-                        color: #2196f3;
-                      "
-                      v-if="listFileComment.length > 0"
-                    >
-                      Tệp đính kèm
-                    </div>
-                    <div
-                      class="col-12 m-0 flex format-center bg-white"
-                      v-if="listFileComment.length > 0"
-                      style="
-                        max-width: 70vw;
-                        height: auto;
-                        display: flex;
-                        flex-wrap: wrap;
-                      "
-                    >
-                      <div
-                        v-for="(item, index) in listFileComment"
-                        :key="index"
-                        class="col-2 relative format-center p-1"
-                        style=""
-                      >
-                        <div class="col-2 p-0 m-0 anh format-center file-hover">
-                          <Button
-                            @click="
-                              delImgComment(item.data ? item.data : item, index)
-                            "
-                            icon="pi pi-times-circle"
-                            class="p-button-rounded p-button-danger p-button-text p-button-plain absolute top-0 right-0 pr-0 mr-0 p-button-hover"
-                            v-tooltip="{ value: 'Xóa tệp' }"
-                          ></Button>
-
-                          <div
-                            class=""
-                            v-if="item.checkimg == true"
-                          >
-                            <img
-                              :src="item.src"
-                              :alt="' '"
-                              style="
-                                max-width: 80px;
-                                max-height: 50px;
-                                object-fit: contain;
-                                margin-top: 5px;
-                              "
-                              class="pt-1"
-                            />
-                            <div
-                              class="p-1"
-                              style="
-                                width: 95px;
-                                font-size: 13px;
-                                overflow: hidden;
-                                text-overflow: ellipsis;
-                                display: block;
-                                font-weight: 500;
-                                white-space: nowrap;
-                              "
-                            >
-                              {{ item.data.name }}
-                              <br />
-                              {{ item.size }}
-                            </div>
-                          </div>
-                          <div
-                            class=""
-                            v-else
-                          >
-                            <img
-                              :src="
-                                basedomainURL +
-                                '/Portals/Image/file/' +
-                                item.src.substring(
-                                  item.src.lastIndexOf('.') + 1,
-                                ) +
-                                '.png'
-                              "
-                              style="
-                                max-width: 80px;
-                                max-height: 50px;
-                                object-fit: contain;
-                                margin-top: 5px;
-                              "
-                              :alt="' '"
-                              class="pt-1"
-                            />
-                            <div
-                              class="p-1"
-                              style="
-                                width: 95px;
-                                font-size: 13px;
-                                overflow: hidden;
-                                text-overflow: ellipsis;
-                                display: block;
-                                font-weight: 500;
-                                white-space: nowrap;
-                              "
-                            >
-                              {{ item.src }}
-                              <br />
-                              {{ item.size }}
-                            </div>
-                          </div>
-                        </div>
-                      </div>
-                    </div>
-                  </div>
-                </div>
-              </div>
-            </div>
-          </ScrollPanel>
-          <div
-            v-if="isClose == false"
-            class="absolute border-1 format-center col-12 p-0 m-0 border-round-xs border-600 flex bottom-0"
-            style="border-radius: 5px"
-          >
-            <div class="border-0 col-9 p-0 m-0">
-              <QuillEditor
-                ref="comment_zone_main"
-                placeholder="Nhập nội dung bình luận..."
-                contentType="html"
-                :content="comment"
-                v-model:content="comment"
-                theme="bubble"
-                @selectionChange="Change($event)"
-                style="height: 5rem"
-                @keydown.enter.exact.prevent="addComment()"
-              />
-            </div>
-            <div class="col-3 p-0 m-0">
-              <div class="format-center flex col-12 p-0 m-0 h-full">
-                <!-- v-clickoutside="onHideEmoji" -->
-
-                <Button
-                  class="p-button-text p-button-plain col-3 format-center w-3rem h-3rem"
-                  @click="showEmoji($event, 1)"
-                  v-tooltip="{ value: 'Biểu cảm' }"
-                >
-                  <img
-                    alt="logo"
-                    src="/src/assets/image/smile.png"
-                    width="20"
-                    height="20"
-                  />
-                </Button>
-
-                <Button
-                  class="p-button-text p-button-plain col-3 w-3rem h-3rem"
-                  style="background-color: ; color: black"
-                  icon="pi pi-paperclip pt-1 pr-0 font-bold"
-                  @click="chonanh('anhcongviec')"
-                  v-tooltip="{ value: 'Đính kèm tệp' }"
-                >
-                </Button>
-                <Button
-                  icon="pi pi-send pt-1 pr-0 font-bold"
-                  class="p-button-text p-button-plain col-3 w-3rem h-3rem"
-                  style="background-color: ; color: black"
-                  @click="addComment()"
-                  v-tooltip="{ value: 'Gửi bình luận' }"
-                />
-                <input
-                  class="hidden"
-                  id="anhcongviec"
-                  type="file"
-                  multiple="true"
-                  accept="*"
-                  @change="handleFileUploadReport"
-                />
-              </div>
             </div>
           </div>
         </div>
+        <!-- Hoạt động -->
+        <div v-if="HoatDong == true">
+          <taskActiveVue
+            :id="props.id"
+            :psb="PositionSideBar"
+          ></taskActiveVue>
+        </div>
       </div>
 
-      <reviewTaskVue
-        v-if="DanhGiaCongViec == true"
-        :id="props.id"
-        :task_name="datalists.task_name"
-        :member="members"
-        :data="datalists"
-        :isClose="isClose"
-      >
-      </reviewTaskVue>
-
-      <div v-if="GiaHanXuLy == true">
-        <taskExtendsVue
-          :id="props.id"
-          :data="datalists"
-          :member="members"
-          :isClose="isClose"
-        ></taskExtendsVue>
-      </div>
-      <div v-if="QuanLyThanhVien == true">
-        <membersVue
-          :id="props.id"
-          :isType="is_Type"
-          :isClose="isClose"
-        ></membersVue>
-      </div>
-      <div v-if="QuanLyTaiLieu == true">
-        <taskFileVue
-          :id="props.id"
-          :psb="PositionSideBar"
-          :isClose="isClose"
-        ></taskFileVue>
-      </div>
-      <div v-if="NguoiDaXem == true">
-        <viewedMemberVue :id="props.id"></viewedMemberVue>
-      </div>
-      <div v-if="QuyTrinh == true">
-        <Task_FollowVue
-          :componentKey="componentKey"
-          :id="props.id"
-          :pj_id="datalists.project_id"
-          :listChild="ListChildTask"
-          :member="members"
-          :data="datalists"
-          :isClose="isClose"
-          :openAddTask="addNewChildTaskOrigin"
-        ></Task_FollowVue>
-      </div>
-      <div v-if="CongViecCon == true">
-        <div class="row col-12">
-          <div class="col-12 p-0 m-0">
-            <div class="row col-12 p-0 m-0 font-bold text-xl">
-              <!-- <i class="pi pi-check-square pr-2"></i> -->
-              <div style="float: right">
-                <ul
-                  id="task-child"
-                  style="display: flex; padding: 0px"
-                >
-                  <li
-                    v-if="isClose == false"
-                    @click="addLinkTaskOrigin(datalists)"
-                    style="list-style: none; margin-right: 20px; color: #0d89ec"
-                  >
-                    <a style="display: flex; font-size: 12px"
-                      ><i
-                        style="margin-right: 5px"
-                        class="p-custom pi pi-link"
-                      ></i>
-                      Liên kết công việc con</a
-                    >
-                  </li>
-                  <li
-                    v-if="isClose == false"
-                    @click="addNewChildTaskOrigin(datalists)"
-                    style="list-style: none; margin-right: 20px; color: #0d89ec"
-                  >
-                    <a style="display: flex; font-size: 12px"
-                      ><i
-                        style="margin-right: 5px"
-                        class="p-custom pi pi-plus-circle"
-                      ></i>
-                      Tạo công việc con</a
-                    >
-                  </li>
-                </ul>
-              </div>
-            </div>
-          </div>
-          <div
-            class="col-12 p-0 m-0"
-            style="height: 100%; overflow-y: auto"
-          >
-            <div
-              v-if="ListChildTask && ListChildTask.length == 0"
-              style="
-                text-align: center;
-                display: flex;
-                flex-direction: column;
-                align-items: center;
-              "
-              class="row col-12 p-0 m-0 pt-1 pb-1 pl-5"
-            >
-              <img
-                style="width: 500px"
-                v-bind:src="basedomainURL + '/Portals/Image/noproject.png'"
-              />
-              <span style="font-size: 20px; font-weight: bold; margin-top: 25px"
-                >Hiện chưa có công việc con nào</span
-              >
-            </div>
-            <div v-if="ListChildTask && ListChildTask.length > 0">
+      <div class="col-3 p-0 m-0">
+        <div class="row flex col-12 p-0 m-0">
+          <div :class="'col-12 format-right p-0 m-0 pt-2'">
+            <AvatarGroup>
               <div
-                class="row col-12 p-0 m-0 pt-1 pb-1 pl-5 child-task-hover"
-                v-for="(ch, index) in ListChildTask"
+                v-for="(user, index) in members"
                 :key="index"
               >
-                <div
-                  class="row col-12 flex p-0 m-0"
-                  @click="show(ch)"
-                >
-                  <div class="col-7 p-0 m-0">
-                    <span class="font-bold text-xl">
-                      {{ ch.task_name }}
-                    </span>
-                    <br />
-                    <span>
-                      {{ moment(new Date(ch.start_date)).format("DD/MM/YYYY") }}
-                    </span>
-                    -
-                    <span v-if="ch.is_deadline == true">
-                      {{ moment(new Date(ch.end_date)).format("DD/MM/YYYY") }}
-                    </span>
-                  </div>
-                  <div class="col-4 p-0 m-0 format-center">
-                    <AvatarGroup>
-                      <div
-                        v-for="(user, index) in ch.users"
-                        :key="index"
-                      >
-                        <Avatar
-                          @error="
-                            $event.target.src =
-                              basedomainURL + '/Portals/Image/nouser1.png'
-                          "
-                          v-if="user.is_type == 0"
-                          v-tooltip.right="{
-                            value: user.tooltip,
-                            escape: true,
-                          }"
-                          v-bind:label="
-                            user.avt
-                              ? ''
-                              : user.full_name.split(' ').at(-1).substring(0, 1)
-                          "
-                          v-bind:image="basedomainURL + user.avt"
-                          style="color: #ffffff; cursor: pointer"
-                          :style="{
-                            background: bgColor[index % 7],
-                            border: '2px solid' + bgColor[index % 10],
-                          }"
-                          class=""
-                          size="normal"
-                          shape="circle"
-                        />
-                        <Avatar
-                          @error="
-                            $event.target.src =
-                              basedomainURL + '/Portals/Image/nouser1.png'
-                          "
-                          v-if="user.is_type == 1"
-                          v-tooltip.right="{
-                            value: user.tooltip,
-                            escape: true,
-                          }"
-                          v-bind:label="
-                            user.avt
-                              ? ''
-                              : user.full_name.split(' ').at(-1).substring(0, 1)
-                          "
-                          v-bind:image="basedomainURL + user.avt"
-                          style="color: #ffffff; cursor: pointer"
-                          :style="{
-                            background: bgColor[index % 7],
-                            border: '2px solid' + bgColor[index % 10],
-                          }"
-                          class=""
-                          size="normal"
-                          shape="circle"
-                        />
-                        <Avatar
-                          @error="
-                            $event.target.src =
-                              basedomainURL + '/Portals/Image/nouser1.png'
-                          "
-                          v-if="user.is_type == 2"
-                          v-tooltip.right="{
-                            value: user.tooltip,
-                            escape: true,
-                          }"
-                          v-bind:label="
-                            user.avt
-                              ? ''
-                              : user.full_name.split(' ').at(-1).substring(0, 1)
-                          "
-                          v-bind:image="basedomainURL + user.avt"
-                          style="color: #ffffff; cursor: pointer"
-                          :style="{
-                            background: bgColor[index % 7],
-                            border: '2px solid' + bgColor[index % 10],
-                          }"
-                          class=""
-                          size="normal"
-                          shape="circle"
-                        />
-                        <Avatar
-                          @error="
-                            $event.target.src =
-                              basedomainURL + '/Portals/Image/nouser1.png'
-                          "
-                          v-if="user.is_type == 3"
-                          v-tooltip.right="{
-                            value: user.tooltip,
-                            escape: true,
-                          }"
-                          v-bind:label="
-                            user.avt
-                              ? ''
-                              : user.full_name.split(' ').at(-1).substring(0, 1)
-                          "
-                          v-bind:image="basedomainURL + user.avt"
-                          style="color: #ffffff; cursor: pointer"
-                          :style="{
-                            background: bgColor[index % 7],
-                            border: '2px solid' + bgColor[index % 10],
-                          }"
-                          class=""
-                          size="normal"
-                          shape="circle"
-                        />
-                      </div>
-                      <Avatar
-                        @error="
-                          $event.target.src =
-                            basedomainURL + '/Portals/Image/nouser1.png'
-                        "
-                        v-if="ch.users.length > 4"
-                        v-tooltip.right="{
-                          value:
-                            'và ' +
-                            (ch.users.length - 4) +
-                            ' người khác tham gia',
-                        }"
-                        :label="'+' + (ch.users.length - 1)"
-                        style="color: #ffffff; cursor: pointer; font-size: 1rem"
-                        :style="{
-                          background: bgColor[index % 7],
-                          border: '2px solid' + bgColor[index % 10],
-                        }"
-                        class=""
-                        size="normal"
-                        shape="circle"
-                      ></Avatar>
-                    </AvatarGroup>
-                  </div>
-                  <div class="col-1 p-0 m-0 format-center">
-                    {{ ch.progress }}%
-                  </div>
-                </div>
+                <Avatar
+                  @error="
+                    $event.target.src =
+                      basedomainURL + '/Portals/Image/nouser1.png'
+                  "
+                  v-if="user.is_type == 0 && user.STTGV == 0"
+                  v-tooltip.left="{
+                    value: user.tooltip,
+                    escape: true,
+                  }"
+                  v-bind:label="
+                    user.avt
+                      ? ''
+                      : user.full_name.split(' ').at(-1).substring(0, 1)
+                  "
+                  v-bind:image="basedomainURL + user.avt"
+                  style="color: #ffffff; cursor: pointer"
+                  :style="{
+                    background: bgColor[index % 7],
+                    border: '2px solid' + bgColor[index % 10],
+                  }"
+                  class=""
+                  size="large"
+                  shape="circle"
+                />
+                <Avatar
+                  @error="
+                    $event.target.src =
+                      basedomainURL + '/Portals/Image/nouser1.png'
+                  "
+                  v-if="user.is_type == 1 && user.STTTH == 0"
+                  v-tooltip.left="{
+                    value: user.tooltip,
+                    escape: true,
+                  }"
+                  v-bind:label="
+                    user.avt
+                      ? ''
+                      : user.full_name.split(' ').at(-1).substring(0, 1)
+                  "
+                  v-bind:image="basedomainURL + user.avt"
+                  style="color: #ffffff; cursor: pointer"
+                  :style="{
+                    background: bgColor[index % 7],
+                    border: '2px solid' + bgColor[index % 10],
+                  }"
+                  class=""
+                  size="large"
+                  shape="circle"
+                />
+                <Avatar
+                  @error="
+                    $event.target.src =
+                      basedomainURL + '/Portals/Image/nouser1.png'
+                  "
+                  v-if="user.is_type == 2 && user.STTDTH == 0"
+                  v-tooltip.left="{
+                    value: user.tooltip,
+                    escape: true,
+                  }"
+                  v-bind:label="
+                    user.avt
+                      ? ''
+                      : user.full_name.split(' ').at(-1).substring(0, 1)
+                  "
+                  v-bind:image="basedomainURL + user.avt"
+                  style="color: #ffffff; cursor: pointer"
+                  :style="{
+                    background: bgColor[index % 7],
+                    border: '2px solid' + bgColor[index % 10],
+                  }"
+                  class=""
+                  size="large"
+                  shape="circle"
+                />
+                <Avatar
+                  @error="
+                    $event.target.src =
+                      basedomainURL + '/Portals/Image/nouser1.png'
+                  "
+                  v-if="user.is_type == 3 && user.STTTD == 0"
+                  v-tooltip.left="{
+                    value: user.tooltip,
+                    escape: true,
+                  }"
+                  v-bind:label="
+                    user.avt
+                      ? ''
+                      : user.full_name.split(' ').at(-1).substring(0, 1)
+                  "
+                  v-bind:image="basedomainURL + user.avt"
+                  style="color: #ffffff; cursor: pointer"
+                  :style="{
+                    background: bgColor[index % 7],
+                    border: '2px solid' + bgColor[index % 10],
+                  }"
+                  class=""
+                  size="large"
+                  shape="circle"
+                />
               </div>
-            </div>
+              <Avatar
+                @error="
+                  $event.target.src =
+                    basedomainURL + '/Portals/Image/nouser1.png'
+                "
+                v-if="countAllMember > 4"
+                v-tooltip.left="{
+                  value: 'và ' + (members.length - 4) + ' người khác tham gia',
+                }"
+                :label="'+' + (members.length - 4)"
+                style="color: #ffffff; cursor: pointer; font-size: 1rem"
+                :style="{
+                  background: bgColor[4 % 20],
+                  border: '2px solid' + bgColor[5 % 10],
+                }"
+                class=""
+                size="large"
+                shape="circle"
+                @click="GoToMemberView(1)"
+              ></Avatar>
+            </AvatarGroup>
           </div>
         </div>
-      </div>
-      <!-- Hoạt động -->
-      <div v-if="HoatDong == true">
-        <taskActiveVue
-          :id="props.id"
-          :psb="PositionSideBar"
-        ></taskActiveVue>
-      </div>
-    </div>
 
-    <div class="col-3 p-0 m-0">
-      <div class="row flex col-12 p-0 m-0">
-        <div :class="'col-12 format-right p-0 m-0 pt-2'">
-          <AvatarGroup>
-            <div
-              v-for="(user, index) in members"
-              :key="index"
-            >
-              <Avatar
-                @error="
-                  $event.target.src =
-                    basedomainURL + '/Portals/Image/nouser1.png'
-                "
-                v-if="user.is_type == 0 && user.STTGV == 0"
-                v-tooltip.left="{
-                  value: user.tooltip,
-                  escape: true,
-                }"
-                v-bind:label="
-                  user.avt
-                    ? ''
-                    : user.full_name.split(' ').at(-1).substring(0, 1)
-                "
-                v-bind:image="basedomainURL + user.avt"
-                style="color: #ffffff; cursor: pointer"
-                :style="{
-                  background: bgColor[index % 7],
-                  border: '2px solid' + bgColor[index % 10],
-                }"
-                class=""
-                size="large"
-                shape="circle"
-              />
-              <Avatar
-                @error="
-                  $event.target.src =
-                    basedomainURL + '/Portals/Image/nouser1.png'
-                "
-                v-if="user.is_type == 1 && user.STTTH == 0"
-                v-tooltip.left="{
-                  value: user.tooltip,
-                  escape: true,
-                }"
-                v-bind:label="
-                  user.avt
-                    ? ''
-                    : user.full_name.split(' ').at(-1).substring(0, 1)
-                "
-                v-bind:image="basedomainURL + user.avt"
-                style="color: #ffffff; cursor: pointer"
-                :style="{
-                  background: bgColor[index % 7],
-                  border: '2px solid' + bgColor[index % 10],
-                }"
-                class=""
-                size="large"
-                shape="circle"
-              />
-              <Avatar
-                @error="
-                  $event.target.src =
-                    basedomainURL + '/Portals/Image/nouser1.png'
-                "
-                v-if="user.is_type == 2 && user.STTDTH == 0"
-                v-tooltip.left="{
-                  value: user.tooltip,
-                  escape: true,
-                }"
-                v-bind:label="
-                  user.avt
-                    ? ''
-                    : user.full_name.split(' ').at(-1).substring(0, 1)
-                "
-                v-bind:image="basedomainURL + user.avt"
-                style="color: #ffffff; cursor: pointer"
-                :style="{
-                  background: bgColor[index % 7],
-                  border: '2px solid' + bgColor[index % 10],
-                }"
-                class=""
-                size="large"
-                shape="circle"
-              />
-              <Avatar
-                @error="
-                  $event.target.src =
-                    basedomainURL + '/Portals/Image/nouser1.png'
-                "
-                v-if="user.is_type == 3 && user.STTTD == 0"
-                v-tooltip.left="{
-                  value: user.tooltip,
-                  escape: true,
-                }"
-                v-bind:label="
-                  user.avt
-                    ? ''
-                    : user.full_name.split(' ').at(-1).substring(0, 1)
-                "
-                v-bind:image="basedomainURL + user.avt"
-                style="color: #ffffff; cursor: pointer"
-                :style="{
-                  background: bgColor[index % 7],
-                  border: '2px solid' + bgColor[index % 10],
-                }"
-                class=""
-                size="large"
-                shape="circle"
-              />
-            </div>
-            <Avatar
-              @error="
-                $event.target.src = basedomainURL + '/Portals/Image/nouser1.png'
-              "
-              v-if="countAllMember > 4"
-              v-tooltip.left="{
-                value: 'và ' + (members.length - 4) + ' người khác tham gia',
-              }"
-              :label="'+' + (members.length - 4)"
-              style="color: #ffffff; cursor: pointer; font-size: 1rem"
-              :style="{
-                background: bgColor[4 % 20],
-                border: '2px solid' + bgColor[5 % 10],
-              }"
-              class=""
-              size="large"
-              shape="circle"
-              @click="GoToMemberView(1)"
-            ></Avatar>
-          </AvatarGroup>
+        <div class="row col-12 flex">
+          <div
+            v-if="datalists.is_deadline == true && datalists.status == 1"
+            class="col-12 p-button-warning format-center font-bold py-3 my-1 text-xl border-round flex"
+            style="background-color: #fffbd8; color: #857a1f"
+          >
+            <i
+              class="pi pi-clock pr-2"
+              v-if="TimeToDo != 'Chưa bắt đầu'"
+            /><span
+              class="flex"
+              v-html="TimeToDo"
+            ></span>
+          </div>
         </div>
-      </div>
-
-      <div class="row col-12 flex">
-        <div
-          v-if="datalists.is_deadline == true && datalists.status == 1"
-          class="col-12 p-button-warning format-center font-bold py-3 my-1 text-xl border-round flex"
-          style="background-color: #fffbd8; color: #857a1f"
-        >
-          <i
-            class="pi pi-clock pr-2"
-            v-if="TimeToDo != 'Chưa bắt đầu'"
-          /><span
-            class="flex"
-            v-html="TimeToDo"
-          ></span>
-        </div>
-      </div>
-      <ScrollPanel
-        style="width: 100%; height: 86vh"
-        class="custombar2 pl-2"
-      >
-        <div
-          class="row col-12 p-0 m-0 py-2 my-1 pl-2"
-          v-if="
-            store.state.user.user_id == datalists.created_by ||
-            memberType == 0 ||
-            memberType1 == 0 ||
-            memberType2 == 0 ||
-            memberType3 == 0
-          "
+        <ScrollPanel
+          style="width: 100%; height: 86vh"
+          class="custombar2 pl-2"
         >
           <div
-            class="col-12 p-0 m-0"
-            style=""
-          >
-            <Button
-              icon=" pi pi-caret-down"
-              iconPos="right"
-              :label="'Công việc: ' + datalists.statuss"
-              class="font-bold w-full py-3 text-left"
-              aria-haspopup="true"
-              aria-controls="overlay_menu"
-              @click="toggle"
-              type="button"
-              :style="{ 'background-color': datalists.bgColor }"
-            />
-            <Menu
-              id="overlay_menu"
-              ref="menu"
-              :model="items"
-              :popup="true"
-            >
-              <template #item="{ item }">
-                <div
-                  class="menu-hover text-xl w-full p-2"
-                  @click="ChangeStatusTask(item.code)"
-                >
-                  <span>
-                    <i
-                      class="pi pi-circle"
-                      style="
-                        border: 1px hidden #ffffff;
-                        border-radius: 50%;
-                        color: #ffffff;
-                        border-style: hidden;
-                      "
-                      :style="{ background: item.color }"
-                    />
-                    {{ item.label }}
-                  </span>
-                </div>
-              </template>
-            </Menu>
-          </div>
-        </div>
-        <div class="row col-12 p-0 m-0 py-2 my-1 pl-1">
-          <div
-            class="col-12 p-0 m-0"
-            style=""
-          >
-            <Button
-              icon="p-custom pi pi-info-circle"
-              label="Thông tin chung"
-              class="p-button-raised p-button-text w-full py-3 text-left"
-              @click="Switch('1')"
-              :class="ThongTinChung == true ? 'activated' : ''"
-            />
-          </div>
-        </div>
-
-        <div
-          class="row col-12 p-0 m-0 py-2 my-1 pl-1"
-          v-if="
-            isClose == false &&
-            (store.state.user.user_id == datalists.created_by ||
+            class="row col-12 p-0 m-0 py-2 my-1 pl-2"
+            v-if="
+              store.state.user.user_id == datalists.created_by ||
               memberType == 0 ||
               memberType1 == 0 ||
               memberType2 == 0 ||
-              memberType3 == 0)
-          "
-        >
-          <div
-            class="col-12 p-0 m-0"
-            style=""
+              memberType3 == 0
+            "
           >
-            <Button
-              icon="p-custom pi pi-pencil"
-              label="Chỉnh sửa công việc"
-              class="p-button-raised p-button-text w-full py-3 text-left"
-              @click="EditTask(datalists)"
-            />
-          </div>
-        </div>
-        <div class="row col-12 p-0 m-0 py-2 my-1 pl-1">
-          <div
-            class="col-12 p-0 m-0"
-            style="position: relative"
-          >
-            <Button
-              class="p-button-raised p-button-text w-full py-3 text-left"
-              @click="Switch('2')"
-              :class="DanhGiaCongViec == true ? 'activated' : ''"
+            <div
+              class="col-12 p-0 m-0"
+              style=""
             >
-              <font-awesome-icon
-                icon="fa-solid fa-clipboard-check"
-                class="p-custom"
-                style="padding-right: 0.75rem"
+              <Button
+                icon=" pi pi-caret-down"
+                iconPos="right"
+                :label="'Công việc: ' + datalists.statuss"
+                class="font-bold w-full py-3 text-left"
+                aria-haspopup="true"
+                aria-controls="overlay_menu"
+                @click="toggle"
+                type="button"
+                :style="{ 'background-color': datalists.bgColor }"
+              />
+              <Menu
+                id="overlay_menu"
+                ref="menu"
+                :model="items"
+                :popup="true"
+              >
+                <template #item="{ item }">
+                  <div
+                    class="menu-hover text-xl w-full p-2"
+                    @click="ChangeStatusTask(item.code)"
+                  >
+                    <span>
+                      <i
+                        class="pi pi-circle"
+                        style="
+                          border: 1px hidden #ffffff;
+                          border-radius: 50%;
+                          color: #ffffff;
+                          border-style: hidden;
+                        "
+                        :style="{ background: item.color }"
+                      />
+                      {{ item.label }}
+                    </span>
+                  </div>
+                </template>
+              </Menu>
+            </div>
+          </div>
+          <div class="row col-12 p-0 m-0 py-2 my-1 pl-1">
+            <div
+              class="col-12 p-0 m-0"
+              style=""
+            >
+              <Button
+                icon="p-custom pi pi-info-circle"
+                label="Thông tin chung"
+                class="p-button-raised p-button-text w-full py-3 text-left"
+                @click="Switch('1')"
+                :class="ThongTinChung == true ? 'activated' : ''"
+              />
+            </div>
+          </div>
+
+          <div
+            class="row col-12 p-0 m-0 py-2 my-1 pl-1"
+            v-if="
+              isClose == false &&
+              (store.state.user.user_id == datalists.created_by ||
+                memberType == 0 ||
+                memberType1 == 0 ||
+                memberType2 == 0 ||
+                memberType3 == 0)
+            "
+          >
+            <div
+              class="col-12 p-0 m-0"
+              style=""
+            >
+              <Button
+                icon="p-custom pi pi-pencil"
+                label="Chỉnh sửa công việc"
+                class="p-button-raised p-button-text w-full py-3 text-left"
+                @click="EditTask(datalists)"
+              />
+            </div>
+          </div>
+          <div class="row col-12 p-0 m-0 py-2 my-1 pl-1">
+            <div
+              class="col-12 p-0 m-0"
+              style="position: relative"
+            >
+              <Button
+                class="p-button-raised p-button-text w-full py-3 text-left"
+                @click="Switch('2')"
+                :class="DanhGiaCongViec == true ? 'activated' : ''"
+              >
+                <font-awesome-icon
+                  icon="fa-solid fa-clipboard-check"
+                  class="p-custom"
+                  style="padding-right: 0.75rem"
+                />
+                <span
+                  v-if="
+                    memberType == 0 ||
+                    memberType1 == 0 ||
+                    memberType2 == 0 ||
+                    memberType3 == 0
+                  "
+                >
+                  Đánh giá công việc
+                </span>
+                <span v-else> Báo cáo công việc </span>
+              </Button>
+              <span
+                v-if="newReport > 0"
+                style="
+                  position: absolute;
+                  top: 0px;
+                  right: 0px;
+                  height: 25px;
+                  width: 25px;
+                  background-color: red;
+                  color: #fff;
+                  border-radius: 50%;
+                  text-align: center;
+                  padding-top: 5px;
+                  font-size: 11px;
+                  font-weight: bold;
+                "
+                >{{ newReport }}</span
+              >
+            </div>
+          </div>
+
+          <div
+            class="row col-12 p-0 m-0 py-2 my-1 pl-1"
+            v-if="datalists.is_deadline == true"
+          >
+            <div
+              class="col-12 p-0 m-0"
+              style="position: relative"
+            >
+              <Button
+                class="p-button-raised p-button-text w-full py-3 text-left"
+                @click="Switch('3')"
+                :class="GiaHanXuLy == true ? 'activated' : ''"
+              >
+                <font-awesome-icon
+                  icon="fa-solid fa-user-clock"
+                  class="p-custom"
+                  style="padding-right: 0.75rem"
+                />
+                Gia hạn xử lý
+              </Button>
+              <span
+                v-if="countExtend > 0"
+                style="
+                  position: absolute;
+                  top: 0px;
+                  right: 0px;
+                  height: 25px;
+                  width: 25px;
+                  background-color: red;
+                  color: #fff;
+                  border-radius: 50%;
+                  text-align: center;
+                  padding-top: 5px;
+                  font-size: 11px;
+                  font-weight: bold;
+                "
+                >{{ countExtend }}</span
+              >
+            </div>
+          </div>
+          <div class="row col-12 p-0 m-0 py-2 my-1 pl-1">
+            <div
+              class="col-12 p-0 m-0"
+              style="position: relative"
+            >
+              <Button
+                icon="p-custom pi pi-list"
+                label="Công việc con"
+                class="p-button-raised p-button-text w-full py-3 text-left"
+                @click="Switch('4')"
+                :class="CongViecCon == true ? 'activated' : ''"
               />
               <span
-                v-if="
-                  memberType == 0 ||
-                  memberType1 == 0 ||
-                  memberType2 == 0 ||
-                  memberType3 == 0
+                v-if="ListChildTask && ListChildTask.length > 0"
+                style="
+                  position: absolute;
+                  top: 0px;
+                  right: 0px;
+                  height: 25px;
+                  width: 25px;
+                  background-color: red;
+                  color: #fff;
+                  border-radius: 50%;
+                  text-align: center;
+                  padding-top: 5px;
+                  font-size: 11px;
+                  font-weight: bold;
                 "
+                >{{ ListChildTask.length }}</span
               >
-                Đánh giá công việc
-              </span>
-              <span v-else> Báo cáo công việc </span>
-            </Button>
-            <span
-              v-if="newReport > 0"
-              style="
-                position: absolute;
-                top: 0px;
-                right: 0px;
-                height: 25px;
-                width: 25px;
-                background-color: red;
-                color: #fff;
-                border-radius: 50%;
-                text-align: center;
-                padding-top: 5px;
-                font-size: 11px;
-                font-weight: bold;
-              "
-              >{{ newReport }}</span
-            >
+            </div>
           </div>
-        </div>
-
-        <div
-          class="row col-12 p-0 m-0 py-2 my-1 pl-1"
-          v-if="datalists.is_deadline == true"
-        >
-          <div
-            class="col-12 p-0 m-0"
-            style="position: relative"
-          >
-            <Button
-              class="p-button-raised p-button-text w-full py-3 text-left"
-              @click="Switch('3')"
-              :class="GiaHanXuLy == true ? 'activated' : ''"
+          <div class="row col-12 p-0 m-0 py-2 my-1 pl-1">
+            <div
+              class="col-12 p-0 m-0"
+              style="position: relative"
             >
-              <font-awesome-icon
-                icon="fa-solid fa-user-clock"
-                class="p-custom"
-                style="padding-right: 0.75rem"
+              <Button
+                icon="p-custom pi  pi-sync"
+                label="Thiết lập quy trình"
+                class="p-button-raised p-button-text w-full py-3 text-left"
+                @click="Switch('11')"
+                :class="QuyTrinh == true ? 'activated' : ''"
               />
-              Gia hạn xử lý
-            </Button>
-            <span
-              v-if="countExtend > 0"
-              style="
-                position: absolute;
-                top: 0px;
-                right: 0px;
-                height: 25px;
-                width: 25px;
-                background-color: red;
-                color: #fff;
-                border-radius: 50%;
-                text-align: center;
-                padding-top: 5px;
-                font-size: 11px;
-                font-weight: bold;
-              "
-              >{{ countExtend }}</span
+            </div>
+          </div>
+          <div class="row col-12 p-0 m-0 py-2 my-1 pl-1">
+            <div
+              class="col-12 p-0 m-0"
+              style=""
             >
-          </div>
-        </div>
-        <div class="row col-12 p-0 m-0 py-2 my-1 pl-1">
-          <div
-            class="col-12 p-0 m-0"
-            style="position: relative"
-          >
-            <Button
-              icon="p-custom pi pi-list"
-              label="Công việc con"
-              class="p-button-raised p-button-text w-full py-3 text-left"
-              @click="Switch('4')"
-              :class="CongViecCon == true ? 'activated' : ''"
-            />
-            <span
-              v-if="ListChildTask && ListChildTask.length > 0"
-              style="
-                position: absolute;
-                top: 0px;
-                right: 0px;
-                height: 25px;
-                width: 25px;
-                background-color: red;
-                color: #fff;
-                border-radius: 50%;
-                text-align: center;
-                padding-top: 5px;
-                font-size: 11px;
-                font-weight: bold;
-              "
-              >{{ ListChildTask.length }}</span
-            >
-          </div>
-        </div>
-        <div class="row col-12 p-0 m-0 py-2 my-1 pl-1">
-          <div
-            class="col-12 p-0 m-0"
-            style="position: relative"
-          >
-            <Button
-              icon="p-custom pi  pi-sync"
-              label="Thiết lập quy trình"
-              class="p-button-raised p-button-text w-full py-3 text-left"
-              @click="Switch('11')"
-              :class="QuyTrinh == true ? 'activated' : ''"
-            />
-          </div>
-        </div>
-        <div class="row col-12 p-0 m-0 py-2 my-1 pl-1">
-          <div
-            class="col-12 p-0 m-0"
-            style=""
-          >
-            <Button
-              icon="p-custom pi pi-users"
-              label="Quản lý thành viên"
-              class="p-button-raised p-button-text w-full py-3 text-left"
-              @click="Switch('5')"
-              :class="QuanLyThanhVien == true ? 'activated' : ''"
-            />
-          </div>
-        </div>
-
-        <div class="row col-12 p-0 m-0 py-2 my-1 pl-1">
-          <div
-            class="col-12 p-0 m-0"
-            style=""
-          >
-            <Button
-              icon="p-custom pi pi-folder"
-              label="Quản lý tài liệu"
-              class="p-button-raised p-button-text w-full py-3 text-left"
-              @click="Switch('6')"
-              :class="QuanLyTaiLieu == true ? 'activated' : ''"
-            />
-          </div>
-        </div>
-        <div class="row col-12 p-0 m-0 py-2 my-1 pl-1">
-          <div
-            class="col-12 p-0 m-0"
-            style=""
-          >
-            <Button
-              icon="p-custom pi pi-history"
-              label="Hoạt động"
-              class="p-button-raised p-button-text w-full py-3 text-left"
-              @click="Switch('7')"
-              :class="HoatDong == true ? 'activated' : ''"
-            />
-          </div>
-        </div>
-        <div class="row col-12 p-0 m-0 py-2 my-1 pl-1">
-          <div
-            class="col-12 p-0 m-0"
-            style=""
-          >
-            <Button
-              class="p-button-raised p-button-text w-full py-3 text-left"
-              @click="Switch('8')"
-              :class="NguoiDaXem == true ? 'activated' : ''"
-            >
-              <font-awesome-icon
-                icon="fa-solid fa-user-check"
-                class="p-custom"
-                style="padding-right: 0.75rem"
+              <Button
+                icon="p-custom pi pi-users"
+                label="Quản lý thành viên"
+                class="p-button-raised p-button-text w-full py-3 text-left"
+                @click="Switch('5')"
+                :class="QuanLyThanhVien == true ? 'activated' : ''"
               />
-              Người đã xem
-            </Button>
+            </div>
           </div>
-        </div>
-        <!-- <div class="row col-12 p-0 m-0 py-2 my-1 pl-1">
+
+          <div class="row col-12 p-0 m-0 py-2 my-1 pl-1">
+            <div
+              class="col-12 p-0 m-0"
+              style=""
+            >
+              <Button
+                icon="p-custom pi pi-folder"
+                label="Quản lý tài liệu"
+                class="p-button-raised p-button-text w-full py-3 text-left"
+                @click="Switch('6')"
+                :class="QuanLyTaiLieu == true ? 'activated' : ''"
+              />
+            </div>
+          </div>
+          <div class="row col-12 p-0 m-0 py-2 my-1 pl-1">
+            <div
+              class="col-12 p-0 m-0"
+              style=""
+            >
+              <Button
+                icon="p-custom pi pi-history"
+                label="Hoạt động"
+                class="p-button-raised p-button-text w-full py-3 text-left"
+                @click="Switch('7')"
+                :class="HoatDong == true ? 'activated' : ''"
+              />
+            </div>
+          </div>
+          <div class="row col-12 p-0 m-0 py-2 my-1 pl-1">
+            <div
+              class="col-12 p-0 m-0"
+              style=""
+            >
+              <Button
+                class="p-button-raised p-button-text w-full py-3 text-left"
+                @click="Switch('8')"
+                :class="NguoiDaXem == true ? 'activated' : ''"
+              >
+                <font-awesome-icon
+                  icon="fa-solid fa-user-check"
+                  class="p-custom"
+                  style="padding-right: 0.75rem"
+                />
+                Người đã xem
+              </Button>
+            </div>
+          </div>
+          <!-- <div class="row col-12 p-0 m-0 py-2 my-1 pl-1">
               <div class="col-12 p-0 m-0" style="">
                 <Button
                   icon="p-custom pi pi-tags"
@@ -6653,7 +6720,7 @@ const is_viewSecurityTask = ref(true);
                 />
               </div>
             </div> -->
-        <!-- <div class="row col-12 p-0 m-0 py-2 my-1 pl-1">
+          <!-- <div class="row col-12 p-0 m-0 py-2 my-1 pl-1">
               <div class="col-12 p-0 m-0" style="">
                 <Button
                   icon="p-custom pi pi-chart-line"
@@ -6664,74 +6731,75 @@ const is_viewSecurityTask = ref(true);
                 />
               </div>
             </div> -->
-        <div
-          class="row col-12 p-0 m-0 py-2 my-1 pl-1"
-          v-if="
-            datalists.status != 3 &&
-            isClose == false &&
-            (store.state.user.user_id == datalists.created_by ||
+          <div
+            class="row col-12 p-0 m-0 py-2 my-1 pl-1"
+            v-if="
+              datalists.status != 3 &&
+              isClose == false &&
+              (store.state.user.user_id == datalists.created_by ||
+                memberType == 0 ||
+                memberType1 == 0 ||
+                memberType2 == 0 ||
+                memberType3 == 0)
+            "
+          >
+            <div
+              class="col-12 p-0 m-0"
+              style=""
+            >
+              <Button
+                icon="p-custom pi pi-lock"
+                label="Đóng công việc"
+                class="p-button-raised p-button-text w-full py-3 text-left"
+                @click="ChangeStatusTask(3)"
+              />
+            </div>
+          </div>
+          <div
+            class="row col-12 p-0 m-0 py-2 my-1 pl-1"
+            v-if="
+              store.state.user.user_id == datalists.created_by ||
               memberType == 0 ||
               memberType1 == 0 ||
               memberType2 == 0 ||
-              memberType3 == 0)
-          "
-        >
-          <div
-            class="col-12 p-0 m-0"
-            style=""
+              memberType3 == 0
+            "
           >
-            <Button
-              icon="p-custom pi pi-lock"
-              label="Đóng công việc"
-              class="p-button-raised p-button-text w-full py-3 text-left"
-              @click="ChangeStatusTask(3)"
-            />
+            <div
+              class="col-12 p-0 m-0"
+              style=""
+            >
+              <Button
+                icon="p-custom pi pi-trash"
+                label="Xóa công việc"
+                class="p-button-raised p-button-text p-button-danger w-full py-3 text-left p-danger-hover"
+                style="color: red !important; background: #f5f5f5"
+                @click="DelTask(datalists)"
+              />
+            </div>
           </div>
-        </div>
-        <div
-          class="row col-12 p-0 m-0 py-2 my-1 pl-1"
-          v-if="
-            store.state.user.user_id == datalists.created_by ||
-            memberType == 0 ||
-            memberType1 == 0 ||
-            memberType2 == 0 ||
-            memberType3 == 0
-          "
-        >
-          <div
-            class="col-12 p-0 m-0"
-            style=""
-          >
-            <Button
-              icon="p-custom pi pi-trash"
-              label="Xóa công việc"
-              class="p-button-raised p-button-text p-button-danger w-full py-3 text-left p-danger-hover"
-              style="color: red !important; background: #f5f5f5"
-              @click="DelTask(datalists)"
-            />
-          </div>
-        </div>
-      </ScrollPanel>
+        </ScrollPanel>
+      </div>
     </div>
-  </div>
-  <div
-    class="overflow-hidden w-full"
-    style="
-      display: grid;
-      align-content: center;
-      justify-content: center;
-      align-items: center;
-      justify-items: center;
-      height: 98vh;
-    "
-    v-else
-  >
-    <img
-      src="../../assets/background/nodata.png"
-      height="300"
-    />
-    <h2 class="m-1">Công việc bảo mật, đã bị xóa hoặc không tồn tại.</h2>
-  </div>
+    <div
+      class="overflow-hidden w-full"
+      style="
+        display: grid;
+        align-content: center;
+        justify-content: center;
+        align-items: center;
+        justify-items: center;
+        height: 98vh;
+      "
+      v-else
+    >
+      <img
+        src="../../assets/background/nodata.png"
+        height="300"
+      />
+      <h2 class="m-1">Công việc bảo mật, đã bị xóa hoặc không tồn tại.</h2>
+    </div>
+  </Sidebar>
   <!-- //OverlayPanel -->
   <OverlayPanel
     class="p-0"
@@ -7965,23 +8033,17 @@ const is_viewSecurityTask = ref(true);
     :header="LinkDoc"
     :main="datalists.parent_id != null ? true : false"
   ></DocLinkTaskVue>
-  <Sidebar
-    v-model:visible="showDetail1"
-    position="right"
-    :style="{
-      width: width1 > 1800 ? 'calc(65vw - 5rem)' : 'calc(75vw - 5rem)',
-      'min-height': '100vh !important',
-    }"
-    :showCloseIcon="false"
+
+  <DetailedChild
+    :keys="componentKey"
+    :isShow="showDetail1"
+    :id="selectedTaskID"
+    :turn="props.turn + 1"
+    :close="close"
+    v-if="showDetail1 == true"
   >
-    <DetailedChild
-      :key="componentKey"
-      :isShow="showDetail1"
-      :id="selectedTaskID"
-      :turn="1"
-    >
-    </DetailedChild>
-  </Sidebar>
+  </DetailedChild>
+
   <treeuser
     v-if="displayDialogUser === true"
     :headerDialog="headerDialogUser"
@@ -8366,385 +8428,7 @@ const is_viewSecurityTask = ref(true);
     </template>
   </Dialog>
 </template>
-<style scoped>
-.task_list {
-  overflow-y: hidden !important;
-}
 
-.task_list .p-datatable-tbody {
-  overflow-y: auto !important;
-}
-
-.anh {
-  width: 8rem;
-  height: 7rem;
-  border: 1px solid #f5f5f5;
-  border-radius: 5px;
-}
-
-.p-badge.p-badge-lg {
-  font-size: 1rem !important;
-  min-width: 0rem !important;
-}
-
-.p-avatar {
-  border: 1px solid;
-}
-
-.p-avatar-text {
-  font-size: 1rem !important;
-}
-
-.format-center {
-  display: flex;
-  justify-content: center;
-  align-items: center;
-  vertical-align: middle;
-  text-align: center;
-}
-
-.format-right {
-  display: flex;
-  justify-content: flex-end;
-  align-items: center;
-  vertical-align: middle;
-  text-align: center;
-}
-
-.format-left {
-  display: flex;
-  justify-content: flex-start;
-  align-items: center;
-  vertical-align: middle;
-  text-align: center;
-}
-</style>
-<style scoped>
-.c-hover {
-  display: none;
-  text-decoration: none !important;
-}
-
-.checklist-gr-hv-c {
-  display: none !important;
-}
-
-/*hover checkbox */
-
-.myTextAvatar .p-avatar-text {
-  font-size: 2rem !important;
-}
-</style>
 <style lang="scss" scoped>
-.p-button.p-button-raised {
-  box-shadow: none;
-  color: #72777a;
-  background-color: #f5f5f5;
-  font-size: 14px !important;
-  font-weight: 600;
-}
-
-.child-task-hover:hover {
-  background-color: var(--blue-100) !important;
-}
-
-.p-hover:hover {
-  background-color: var(--blue-100) !important;
-}
-
-.p-hover:hover .c-hover {
-  background-color: var(--blue-100);
-  cursor: pointer;
-  display: flex;
-}
-
-.checklist-gr-hv-p:hover {
-  cursor: pointer;
-  display: flex !important;
-}
-
-.checklist-gr-hv-p:hover .checklist-gr-hv-c {
-  cursor: pointer;
-  display: flex !important;
-}
-
-::v-deep(.product-grid-item) {
-  margin: 0.5rem;
-  border: 1px solid var(--surface-border);
-
-  .product-grid-item-top,
-  .product-grid-item-bottom {
-    display: flex;
-    align-items: center;
-    justify-content: space-between;
-  }
-
-  img {
-    box-shadow: 0 3px 6px rgba(0, 0, 0, 0.16), 0 3px 6px rgba(0, 0, 0, 0.23);
-    margin: 0rem 0;
-  }
-
-  .product-grid-item-content {
-    text-align: center;
-  }
-
-  .product-price {
-    font-size: 1.5rem;
-    font-weight: 600;
-  }
-}
-
-//new
-.p-button {
-  margin-right: 0.5rem;
-}
-
-.p-buttonset {
-  .p-button {
-    margin-right: 0;
-  }
-}
-
-.sizes {
-  .button {
-    margin-bottom: 0.5rem;
-    display: block;
-
-    &:last-child {
-      margin-bottom: 0;
-    }
-  }
-}
-
-@media screen and (max-width: 640px) {
-  .p-button {
-    margin-bottom: 0.5rem;
-
-    &:not(.p-button-icon-only) {
-      display: flex;
-      width: 100%;
-    }
-  }
-
-  .p-buttonset {
-    .p-button {
-      margin-bottom: 0;
-    }
-  }
-}
-
-.checked-p {
-  color: #6dd230;
-  text-decoration: line-through;
-  text-decoration-color: #6dd230;
-}
-
-.expTime {
-  color: #ff0000;
-}
-
-.p-checkbox .p-checkbox-box.p-highlight {
-  background: #6dd230;
-  border: #6dd230;
-}
-</style>
-<!-- style của ScrollPanel -->
-<style lang="scss" scoped>
-::v-deep(.p-progressbar) {
-  &.working {
-    .p-progressbar-value {
-      border: 0 none;
-      margin: 0;
-      background: #f44336;
-    }
-  }
-
-  &.worked {
-    .p-progressbar-value {
-      border: 0 none;
-      margin: 0;
-      background: #6dd230;
-    }
-  }
-}
-
-::v-deep(.p-scrollpanel) {
-  &.custombar2 {
-    .p-scrollpanel-bar-y {
-      width: 3px;
-    }
-
-    .p-scrollpanel-wrapper {
-      border-right: 1px solid var(--surface-ground);
-    }
-
-    .p-scrollpanel-bar {
-      background-color: var(--primary-color);
-      opacity: 1;
-      transition: background-color 0.2s;
-
-      &:hover {
-        background-color: #007ad9;
-      }
-    }
-  }
-}
-
-.text-xl {
-  font-size: 14px;
-}
-
-.activated {
-  background: #f5f5f5 !important;
-  color: #2196f3 !important;
-  border-color: transparent;
-}
-
-.contents {
-  text-align: justify;
-  color: #333;
-  font-size: 14px;
-  width: fit-content;
-  padding: 1rem 1rem;
-  background-color: #f5f5f5;
-  border-radius: 20px;
-  margin-left: 4rem;
-}
-
-.text-dark {
-  color: #000000;
-}
-
-.contents2 {
-  list-style-type: none;
-  display: inline-block;
-  width: 10rem;
-  text-align: center;
-  border: 1px solid #eee;
-  border-radius: 5px;
-  cursor: pointer;
-}
-
-::v-deep(.p-treeselect-items-wrapper) {
-  max-height: 200px !important;
-  min-width: calc(100vw - 1100px) !important;
-  max-width: calc(100vw - 1100px) !important;
-}
-
-#task-child li:hover {
-  cursor: pointer;
-}
-
-.file-hover:hover {
-  background-color: #d8edff;
-}
-
-.menu-hover:hover {
-  background-color: #d8edff;
-}
-
-a {
-  text-decoration: none;
-}
-
-.p-button-hover:hover {
-  color: #0025f8 !important;
-  background: #ffffff !important;
-}
-
-.delete-button-hover {
-  display: none;
-}
-
-.cmt-hover:hover .delete-button-hover {
-  display: block !important;
-}
-
-.cmt-hover:hover {
-  background-color: #f5f5f5;
-}
-
-.p-button.p-button-raised2 {
-  box-shadow: none;
-  color: black;
-  background-color: #ffffff;
-  font-size: 14px !important;
-  font-weight: 600;
-}
-
-.file-comments {
-  list-style-type: none;
-  display: inline-block;
-  text-align: center;
-  border: 1px solid #eee;
-  border-radius: 5px;
-  cursor: pointer;
-  background: #ffffff;
-}
-
-.file-comments-hover:hover {
-  color: #0025f8 !important;
-}
-
-.reply {
-  background-color: #fff5f5;
-  padding-top: 0.25rem;
-  padding-bottom: 0.25rem;
-}
-
-.reply:hover {
-  background-color: #ffffff !important;
-}
-
-.p-button-hover-file:hover {
-  color: #0025f8 !important;
-  background: #f5f5f5 !important;
-}
-
-.p-button-hover-file-menu:hover {
-  color: #ffffff !important;
-  background-color: #5eb4fa !important;
-}
-
-.cmt-reply {
-  background-color: #ffe9e9;
-  border: 1px solid #ffe9e9;
-  border-radius: 10px;
-}
-
-.border-bottom-comment {
-  border-bottom: 1px solid black !important;
-}
-
-.bg-cmt-color {
-  background-color: #ffffff !important;
-}
-
-.checklist-hover:hover {
-  background-color: #dbf4fd !important;
-  cursor: pointer;
-}
-
-.thongtinchungscroll .p-scrollpanel-content {
-  height: calc(100% - 6.5rem);
-}
-
-.btn-c-hover:hover {
-  color: #0025f8 !important;
-  background: #f5f5f5 !important;
-}
-
-.p-danger-hover:hover {
-  color: #ff0000 !important;
-  background: #ffe9e9 !important;
-}
-
-.bg-reply {
-  background: #ffe9e9 !important;
-  border: 1px radius #ffe9e9;
-  border-radius: 5px;
-}
-.p-avatar {
-  font-size: inherit !important;
-}
+@import "../task_origin/style.scss";
 </style>

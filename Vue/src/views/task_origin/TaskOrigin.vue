@@ -1179,7 +1179,6 @@ const endProgress = () => {
   clearInterval(interval.value);
   interval.value = null;
 };
-const vla = ref();
 
 onBeforeUnmount(() => {
   endProgress();
@@ -2222,15 +2221,12 @@ const onNodeSelect = (id) => {
   showDetail.value = true;
   selectedTaskID.value = id.data.task_id;
 };
-emitter.on("SideBar", (obj) => {
+const closeDetail = () => {
   showDetail.value = false;
   selectedTaskID.value = null;
   loadData(false, opition.value.type_view);
-});
-const PositionSideBar = ref("right");
-emitter.on("psb", (obj) => {
-  PositionSideBar.value = obj;
-});
+};
+
 const onRowUnselect = (id) => {};
 
 const displayDialogUser = ref(false);
@@ -5333,28 +5329,15 @@ const ChangeShowListCVGroup = (model) => {
       </div>
     </div>
     <!-- end -->
-    <Sidebar
-      v-model:visible="showDetail"
-      :position="PositionSideBar"
-      :style="{
-        width:
-          PositionSideBar == 'right'
-            ? width1 > 1800
-              ? '65vw'
-              : '75vw'
-            : '100vw',
-        'min-height': '100vh !important',
-      }"
-      :showCloseIcon="false"
-      @hide="hideall()"
+
+    <DetailedWork
+      :isShow="showDetail"
+      :id="selectedTaskID"
+      :turn="0"
+      :closeDetail="closeDetail"
+      v-if="showDetail == true"
     >
-      <DetailedWork
-        :isShow="showDetail"
-        :id="selectedTaskID"
-        :turn="0"
-      >
-      </DetailedWork
-    ></Sidebar>
+    </DetailedWork>
   </div>
   <Dialog
     :header="headerAddTask"
