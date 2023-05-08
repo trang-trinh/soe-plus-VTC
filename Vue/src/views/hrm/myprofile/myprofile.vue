@@ -5,6 +5,9 @@ import { useToast } from "vue-toastification";
 import moment from "moment";
 import comview1 from "./component/comview1.vue";
 import comview2 from "./component/comview2.vue";
+import comview3 from "./component/comview3.vue";
+import comview6 from "./component/comview6.vue";
+import comview10 from "./component/comview10.vue";
 
 const router = inject("router");
 const store = inject("store");
@@ -38,6 +41,11 @@ const tabs = ref([
   { id: 3, title: "Hợp đồng", icon: "", total: 0 },
   { id: 4, title: "Chấm công", icon: "", total: 0 },
   { id: 5, title: "Phiếu lương", icon: "", total: 0 },
+  { id: 6, title: "Phép năm", icon: "", total: 0 },
+  { id: 7, title: "Đào tạo", icon: "", total: 0 },
+  { id: 8, title: "Quyết định", icon: "", total: 0 },
+  { id: 9, title: "Khen thưởng/Kỷ luật", icon: "", total: 0 },
+  { id: 10, title: "Tài liệu", icon: "", total: 0 },
 ]);
 const bgColor = ref([
   "#F8E69A",
@@ -255,6 +263,9 @@ onMounted(() => {
     >
       <comview1 v-if="options.tab === 1" />
       <comview2 v-if="options.tab === 2" />
+      <comview3 v-if="options.tab === 3" />
+      <comview6 v-if="options.tab === 6" />
+      <comview10 v-if="options.tab === 10" />
     </div>
   </div>
 </template>
