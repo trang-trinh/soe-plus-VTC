@@ -306,7 +306,7 @@ onMounted(() => {
         "
       >
         <div>
-          <img src="../../../assets/background/nodata.png" height="144" />
+          <img src="../../../../assets/background/nodata.png" height="144" />
           <h3 class="m-1">Không có dữ liệu</h3>
         </div>
       </div>
