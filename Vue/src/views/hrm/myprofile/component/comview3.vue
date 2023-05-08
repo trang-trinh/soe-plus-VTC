@@ -334,8 +334,8 @@ onMounted(() => {
         <Column
           field="contract_code"
           header="Mã HĐ"
-          headerStyle="text-align:center;max-width:80px;height:50px"
-          bodyStyle="text-align:center;max-width:80px;"
+          headerStyle="text-align:center;max-width:100px;height:50px"
+          bodyStyle="text-align:center;max-width:100px;"
           class="align-items-center justify-content-center text-center"
         />
         <Column
@@ -350,8 +350,8 @@ onMounted(() => {
         <Column
           field="type_contract_name"
           header="Loại hợp đồng"
-          headerStyle="text-align:center;max-width:120px;height:50px"
-          bodyStyle="text-align:center;max-width:120px;"
+          headerStyle="text-align:center;max-width:150px;height:50px"
+          bodyStyle="text-align:center;max-width:150px;"
           class="align-items-center justify-content-center text-center"
         >
           <template #body="slotProps">
