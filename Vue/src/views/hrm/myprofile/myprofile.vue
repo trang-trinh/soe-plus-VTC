@@ -237,6 +237,7 @@ onMounted(() => {
       <template #end>
         <Button
           @click="refresh()"
+          class="p-button-warning"
           icon="pi pi-pencil"
           label="Cập nhật thông tin"
         />
