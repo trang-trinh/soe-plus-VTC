@@ -531,7 +531,62 @@ const addDonvi = () => {
       });
     });
 };
+const delOrgHistory = (Tem) => {
+  swal
+    .fire({
+      title: "Thông báo",
+      text: "Bạn có muốn xoá bản ghi này không!",
+      icon: "warning",
+      showCancelButton: true,
+      confirmButtonColor: "#3085d6",
+      cancelButtonColor: "#d33",
+      confirmButtonText: "Có",
+      cancelButtonText: "Không",
+    })
+    .then((result) => {
+      if (result.isConfirmed) {
+        swal.fire({
+          width: 110,
+          didOpen: () => {
+            swal.showLoading();
+          },
+        });
 
+        axios
+          .delete(
+            baseURL +
+              "/api/sys_organization_history/delete_sys_organization_history",
+            {
+              headers: { Authorization: `Bearer ${store.getters.token}` },
+              data: Tem != null ? [Tem.organization_history_id] : 1,
+            }
+          )
+          .then((response) => {
+            swal.close();
+            if (response.data.err != "1") {
+              swal.close();
+              toast.success("Xoá bản ghi thành công!");
+            } else {
+              swal.fire({
+                title: "Error!",
+                text: response.data.ms,
+                icon: "error",
+                confirmButtonText: "OK",
+              });
+            }
+          })
+          .catch((error) => {
+            swal.close();
+            if (error.status === 401) {
+              swal.fire({
+                text: "Mã token đã hết hạn hoặc không hợp lệ, vui lòng đăng nhập lại!",
+                confirmButtonText: "OK",
+              });
+            }
+          });
+      }
+    });
+};
 // xóa đơn vị
 const delDonvi = (md) => {
   swal
@@ -994,20 +1049,83 @@ const headerOrgHistory = ref("");
 
 const onAddOrgHistory = (data) => {
   org_history.value = data;
-  isSaveOrgHistory.value=true;
+  isView.value = false;
+
+  isSaveOrgHistory.value = true;
   headerOrgHistory.value = "Thêm lịch sử thay đổi";
   displayOrgHistory.value = true;
 };
+const checkAddOrd = ref(false);
+const isEditOrgHistory = () => {
+  checkAddOrd.value = true;
+  isSaveOrgHistory.value = false;
+  isView.value = false;
+};
+const editOrgHistory = (data) => {
+  axios
+    .post(
+      baseURL + "/api/HRM_SQL/GetData",
+      {
+        str: encr(
+          JSON.stringify({
+            proc: "sys_organization_history_get",
+            par: [
+              {
+                par: "organization_history_id",
+                va: data.organization_history_id,
+              },
+            ],
+          }),
+          SecretKey,
+          cryoptojs
+        ).toString(),
+      },
+      config
+    )
+    .then((response) => {
+      swal.close();
+      let data = JSON.parse(response.data.data);
+      if (data.length > 0) {
+        org_history.value = data[0][0];
+        if (org_history.value.foundation_date)
+          org_history.value.foundation_date = new Date(
+            org_history.value.foundation_date
+          );
+        if (org_history.value.dissolution_date)
+          org_history.value.dissolution_date = new Date(
+            org_history.value.dissolution_date
+          );
+        if (org_history.value.decision_date)
+          org_history.value.decision_date = new Date(
+            org_history.value.decision_date
+          );
+        listFilesS.value = data[1];
+        checkAddOrd.value = false;
+        isView.value = true;
+        isSaveOrgHistory.value = false;
 
-  
- const isSaveOrgHistory=ref(false);
+        headerOrgHistory.value = "Chi tiết lịch sử thay đổi";
+        displayOrgHistory.value = true;
+      }
+    })
+    .catch((error) => {
+      if (error.status === 401) {
+        swal.fire({
+          text: "Mã token đã hết hạn hoặc không hợp lệ, vui lòng đăng nhập lại!",
+          confirmButtonText: "OK",
+        });
+      }
+    });
+};
+const isView = ref(false);
+
+const isSaveOrgHistory = ref(false);
 const saveOrgHistory = () => {
   submitted.value = true;
   if (org_history.value.decision_number == null) {
     return;
   }
 
-  
   let formData = new FormData();
   formData.append("model", JSON.stringify(org_history.value));
   swal.fire({
@@ -1016,79 +1134,90 @@ const saveOrgHistory = () => {
       swal.showLoading();
     },
   });
- 
 
-for (var i = 0; i < filesList.value.length; i++) {
-  let file = filesList.value[i];
-  formData.append("image", file);
-}
+  for (var i = 0; i < filesList.value.length; i++) {
+    let file = filesList.value[i];
+    formData.append("image", file);
+  }
 
-formData.append("sys_organization_history", JSON.stringify(org_history.value));
-formData.append("hrm_files", JSON.stringify(listFilesS.value));
-swal.fire({
-  width: 110,
-  didOpen: () => {
-    swal.showLoading();
-  },
-});
-if (isSaveOrgHistory.value==true) {
-  axios
-    .post(baseURL + "/api/sys_organization_history/add_sys_organization_history", formData, config)
-    .then((response) => {
-      if (response.data.err != "1") {
+  formData.append(
+    "sys_organization_history",
+    JSON.stringify(org_history.value)
+  );
+  formData.append("hrm_files", JSON.stringify(listFilesS.value));
+  swal.fire({
+    width: 110,
+    didOpen: () => {
+      swal.showLoading();
+    },
+  });
+  if (isSaveOrgHistory.value == true) {
+    axios
+      .post(
+        baseURL + "/api/sys_organization_history/add_sys_organization_history",
+        formData,
+        config
+      )
+      .then((response) => {
+        if (response.data.err != "1") {
+          swal.close();
+          toast.success("Thêm lịch sử đơn vị thành công!");
+
+          displayOrgHistory.value = false;
+        } else {
+          swal.fire({
+            title: "Error!",
+            text: response.data.ms,
+            icon: "error",
+            confirmButtonText: "OK",
+          });
+        }
+      })
+      .catch((error) => {
         swal.close();
-        toast.success("Thêm lịch sử đơn vị thành công!");
-
-        displayOrgHistory.value=false;
-      } else {
         swal.fire({
           title: "Error!",
-          text: response.data.ms,
+          text: "Có lỗi xảy ra, vui lòng kiểm tra lại!",
           icon: "error",
           confirmButtonText: "OK",
         });
-      }
-    })
-    .catch((error) => {
-      swal.close();
-      swal.fire({
-        title: "Error!",
-        text: "Có lỗi xảy ra, vui lòng kiểm tra lại!",
-        icon: "error",
-        confirmButtonText: "OK",
       });
-    });
-} else {
-  axios
-    .put(baseURL + "/api/sys_organization_history/update_sys_organization_history", formData, config)
-    .then((response) => {
-      if (response.data.err != "1") {
-        swal.close();
-        toast.success("Sửa lịch sử đơn vị thành công!");
+  } else {
+    axios
+      .put(
+        baseURL +
+          "/api/sys_organization_history/update_sys_organization_history",
+        formData,
+        config
+      )
+      .then((response) => {
+        if (response.data.err != "1") {
+          swal.close();
+          toast.success("Sửa lịch sử đơn vị thành công!");
 
-        displayOrgHistory.value=false;
-      } else {
+          displayOrgHistory.value = false;
+        } else {
+          swal.fire({
+            title: "Error!",
+            text: response.data.ms,
+            icon: "error",
+            confirmButtonText: "OK",
+          });
+        }
+      })
+      .catch((error) => {
+        swal.close();
         swal.fire({
           title: "Error!",
-          text: response.data.ms,
+          text: "Có lỗi xảy ra, vui lòng kiểm tra lại!",
           icon: "error",
           confirmButtonText: "OK",
         });
-      }
-    })
-    .catch((error) => {
-      swal.close();
-      swal.fire({
-        title: "Error!",
-        text: "Có lỗi xảy ra, vui lòng kiểm tra lại!",
-        icon: "error",
-        confirmButtonText: "OK",
       });
-    });
-}
+  }
 };
 const closeOrgHistory = () => {
-  org_history.value={};
+  org_history.value = {};
   displayOrgHistory.value = false;
 };
 
@@ -1174,7 +1303,7 @@ onMounted(() => {
         </template>
       </Column>
 
-      <Column
+      <!-- <Column
         header="Chức năng"
         headerClass="text-center"
         class="align-items-center justify-content-center text-center"
@@ -1207,7 +1336,7 @@ onMounted(() => {
             @click="delDonvi(md.node.data)"
           ></Button>
         </template>
-      </Column>
+      </Column> -->
       <template #empty>
         <div
           class="m-auto align-items-center justify-content-center p-4 text-center"
@@ -1775,7 +1904,15 @@ onMounted(() => {
           <div class="col-6 md:col-6">
             <h3>3. Lịch sử thay đổi</h3>
           </div>
-          <div class="col-6 md:col-6 text-right">
+          <div
+            class="col-6 md:col-6 text-right"
+            v-if="
+              store.state.user.is_super == true ||
+              store.state.user.user_id == donvi.created_by ||
+              (store.state.user.role_id == 'admin' &&
+                store.state.user.organization_id == donvi.organization_id)
+            "
+          >
             <Button
               label="Thêm mới lịch sử"
               icon="pi pi-plus"
@@ -1821,22 +1958,22 @@ onMounted(() => {
                 bodyStyle="text-align:center; "
                 headerClass="align-items-center justify-content-center text-center overflow-hidden"
               >
-              
               </Column>
               <Column
-         
                 header="Thời gian hoạt động"
                 headerStyle="text-align:center;max-width:350px;height:50px"
                 bodyStyle="text-align:center;max-width:350px"
                 class="align-items-center justify-content-center text-center overflow-hidden"
               >
                 <template #body="data">
-                  <div >
+                  <div>
                     {{
                       moment(new Date(data.data.foundation_date)).format(
                         "DD/MM/YYYY"
                       )
-                    }} - {{
+                    }}
+                    -
+                    {{
                       moment(new Date(data.data.dissolution_date)).format(
                         "DD/MM/YYYY"
                       )
@@ -1862,15 +1999,13 @@ onMounted(() => {
                 </template>
               </Column>
 
-              
-
               <Column
                 header=" "
                 headerStyle="text-align:center;max-width:50px;height:50px"
                 bodyStyle="text-align:center;max-width:50px"
                 class="align-items-center justify-content-center text-center overflow-hidden"
               >
-                <template #body="data">
+                <template #body="Tem">
                   <div
                     v-if="
                       store.state.user.is_super == true ||
@@ -1881,9 +2016,10 @@ onMounted(() => {
                     "
                   >
                     <Button
-                      :v-tooltip.left="'Xóa lịch sử'"
-                      icon="pi pi-trash"
-                      class="p-button-rounded p-button-danger p-button-outlined"
+                      :v-tooltip.left="'Xem lịch sử'"
+                      icon="pi pi-eye"
+                      class="p-button-rounded p-button-outlined"
+                      @click="editOrgHistory(Tem.data)"
                     />
                   </div>
                 </template>
@@ -1956,6 +2092,7 @@ onMounted(() => {
                     org_history.decision_number == '') &&
                   submitted,
               }"
+              :disabled="isView"
             />
           </div>
           <div class="col-6 p-0 flex align-items-center">
@@ -1965,6 +2102,7 @@ onMounted(() => {
               id="icon"
               v-model="org_history.decision_date"
               :showIcon="true"
+              :disabled="isView"
             />
           </div>
         </div>
@@ -1976,6 +2114,7 @@ onMounted(() => {
             class="ip36"
             style="width: calc(100% - 10rem)"
             v-model="org_history.content"
+            :disabled="isView"
           />
         </div>
         <div class="col-12 field flex align-items-center">
@@ -1989,6 +2128,7 @@ onMounted(() => {
             class="ip36"
             style="width: calc(100% - 10rem)"
             v-model="org_history.organization_name"
+            :disabled="isView"
           />
         </div>
 
@@ -2000,6 +2140,7 @@ onMounted(() => {
               class="ip36"
               style="width: calc(100% - 10rem)"
               v-model="org_history.organization_name_en"
+              :disabled="isView"
             />
           </div>
           <div class="col-6 p-0 flex align-items-center">
@@ -2009,6 +2150,7 @@ onMounted(() => {
               class="ip36"
               style="width: calc(100% - 10rem)"
               v-model="org_history.short_name"
+              :disabled="isView"
             />
           </div>
         </div>
@@ -2021,6 +2163,7 @@ onMounted(() => {
               id="icon"
               v-model="org_history.foundation_date"
               :showIcon="true"
+              :disabled="isView"
             />
           </div>
           <div class="col-6 p-0 flex align-items-center">
@@ -2031,6 +2174,7 @@ onMounted(() => {
               id="icon"
               v-model="org_history.dissolution_date"
               :showIcon="true"
+              :disabled="isView"
             />
           </div>
         </div>
@@ -2042,6 +2186,7 @@ onMounted(() => {
               class="ip36"
               style="width: calc(100% - 10rem)"
               v-model="org_history.representative"
+              :disabled="isView"
             />
           </div>
           <div class="col-6 p-0 flex align-items-center">
@@ -2051,6 +2196,7 @@ onMounted(() => {
               class="ip36"
               style="width: calc(100% - 10rem)"
               v-model="org_history.business_code"
+              :disabled="isView"
             />
           </div>
         </div>
@@ -2062,6 +2208,7 @@ onMounted(() => {
               class="ip36"
               style="width: calc(100% - 10rem)"
               v-model="org_history.address"
+              :disabled="isView"
             />
           </div>
           <div class="col-6 p-0 flex align-items-center">
@@ -2071,6 +2218,7 @@ onMounted(() => {
               class="ip36"
               style="width: calc(100% - 10rem)"
               v-model="org_history.phone"
+              :disabled="isView"
             />
           </div>
         </div>
@@ -2083,6 +2231,7 @@ onMounted(() => {
               class="ip36"
               style="width: calc(100% - 10rem)"
               v-model="org_history.address_registration"
+              :disabled="isView"
             />
           </div>
           <div class="col-6 p-0 flex align-items-center">
@@ -2092,6 +2241,7 @@ onMounted(() => {
               class="ip36"
               style="width: calc(100% - 10rem)"
               v-model="org_history.is_url"
+              :disabled="isView"
             />
           </div>
         </div>
@@ -2104,6 +2254,7 @@ onMounted(() => {
               class="ip36"
               style="width: calc(100% - 10rem)"
               v-model="org_history.mail"
+              :disabled="isView"
             />
           </div>
           <div class="col-6 p-0 flex align-items-center">
@@ -2113,6 +2264,7 @@ onMounted(() => {
               class="ip36"
               style="width: calc(100% - 10rem)"
               v-model="org_history.fax"
+              :disabled="isView"
             />
           </div>
         </div>
@@ -2124,10 +2276,16 @@ onMounted(() => {
             class="ip36"
             style="width: calc(100% - 10rem)"
             v-model="org_history.feature"
+            :disabled="isView"
           />
         </div>
-        <div class="col-12 field  text-lg font-bold">File đính kèm</div>
-        <div class="w-full col-12 field  ">
+        <div
+          class="col-12 field text-lg font-bold"
+          v-if="(listFilesS.length > 0 && isView) || !isView"
+        >
+          File đính kèm
+        </div>
+        <div class="w-full col-12 field">
           <FileUpload
             chooseLabel="Chọn File"
             :showUploadButton="false"
@@ -2137,6 +2295,7 @@ onMounted(() => {
             @select="onUploadFile"
             @remove="removeFile"
             :invalidFileSizeMessage="'{0}: Dung lượng File không được lớn hơn {1}'"
+            v-if="!isView"
           >
             <template #empty>
               <p class="p-0 m-0 text-500">Kéo thả hoặc chọn File.</p>
@@ -2253,13 +2412,46 @@ onMounted(() => {
       </div>
     </form>
     <template #footer>
-      <Button
-        label="Huỷ"
-        icon="pi pi-times"
-        @click="closeOrgHistory"
-        class="p-button-raised p-button-secondary"
-      />
-      <Button label="Lưu" icon="pi pi-save" @click="saveOrgHistory()" />
+      <Toolbar class="custoolbar">
+        <template #start>
+          <div
+            v-if="
+              store.state.user.is_super == true ||
+              store.state.user.user_id == org_history.created_by ||
+              (store.state.user.role_id == 'admin' &&
+                store.state.user.organization_id ==
+                  org_history.organization_id &&
+                isSaveOrgHistory == false &&
+                !checkAddOrd)
+            "
+          >
+            <Button
+              label="Xóa"
+              class="p-button-raised p-button-danger"
+              icon="pi pi-trash"
+              @click="delOrgHistory(org_history)"
+            />
+            <Button
+              label="Sửa"
+              class="p-button-raised"
+              icon="pi pi-cog"
+              @click="isEditOrgHistory()"
+            />
+          </div>
+        </template>
+        <template #end>
+          <div>
+            <Button
+              label="Huỷ"
+              icon="pi pi-times"
+              @click="closeOrgHistory"
+              class="p-button-raised p-button-secondary"
+            />
+
+            <Button label="Lưu" icon="pi pi-save" @click="saveOrgHistory()" />
+          </div>
+        </template>
+      </Toolbar>
     </template>
   </Dialog>
   <Dialog
@@ -2362,6 +2554,7 @@ onMounted(() => {
             :maxFileSize="524288000"
             @select="onUploadFile"
             @remove="removeFile"
+            accept=".doc,.docx,.xlst,.xls"
             :invalidFileSizeMessage="'{0}: Dung lượng File không được lớn hơn {1}'"
           >
             <template #empty>
