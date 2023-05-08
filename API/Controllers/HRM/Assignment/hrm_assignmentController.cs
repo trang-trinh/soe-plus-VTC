@@ -99,7 +99,13 @@ namespace API.Controllers.HRM.Assignment
                     }
                     else
                     {
-                        var olds = await db.hrm_profile_assignment.Where(x => x.profile_id == model.profile_id).ToListAsync();
+                        model.modified_by = uid;
+                        model.modified_date = DateTime.Now;
+                        model.modified_ip = ip;
+                        model.modified_token_id = tid;
+                        db.Entry(model).State = EntityState.Modified;
+
+                        var olds = await db.hrm_profile_assignment.Where(x => x.profile_id == model.profile_id && x.assignment_id != model.assignment_id).ToListAsync();
                         if (model.is_active == true)
                         {
                             foreach (var item in olds)
@@ -114,11 +120,6 @@ namespace API.Controllers.HRM.Assignment
                                 item.is_main = false;
                             }
                         }
-                        model.modified_by = uid;
-                        model.modified_date = DateTime.Now;
-                        model.modified_ip = ip;
-                        model.modified_token_id = tid;
-                        db.Entry(model).State = EntityState.Modified;
                     }
                     #endregion
                     await db.SaveChangesAsync();

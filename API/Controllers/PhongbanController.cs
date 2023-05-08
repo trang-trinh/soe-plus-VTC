@@ -153,6 +153,28 @@ namespace Controllers
                         else model.is_level = parent.is_level + 1;
                         db.sys_organization.Add(model);
                         db.SaveChanges();
+                        #region add sys_organization_log
+                        if (helper.wlog)
+                        {
+
+                            sys_organization_log log = new sys_organization_log();
+                            if (model.organization_type == 0)
+                                log.content = "Thêm mới đơn vị " + model.organization_name;
+                            else
+                                log.content = "Thêm mới phòng ban " + model.organization_name;
+
+                            log.type = 0;
+                            log.organization_id = model.organization_id;
+                            log.created_date = DateTime.Now;
+                            log.created_by = uid;
+                            log.created_token_id = tid;
+                            log.created_ip = ip;
+                            db.sys_organization_log.Add(log);
+                            db.SaveChanges();
+
+
+                        }
+                        #endregion
                         //Add ảnh
                         if (fileInfo != null)
                         {
@@ -290,10 +312,33 @@ namespace Controllers
                         model.modified_date = DateTime.Now;
                         model.modified_ip = ip;
                         var parent = db.sys_organization.FirstOrDefault(x => x.organization_id == model.parent_id);
-                        if (parent == null && parent.is_level == null) model.is_level = 0;
+                        if (parent == null) model.is_level = 0;
                         else model.is_level = parent.is_level + 1;
                         db.Entry(model).State = EntityState.Modified;
                         db.SaveChanges();
+
+                        #region add sys_organization_log
+                        if (helper.wlog)
+                        {
+
+                            sys_organization_log log = new sys_organization_log();
+                            if (model.organization_type == 0)
+                                log.content = "Cập nhật đơn vị " + model.organization_name;
+                            else
+                                log.content = "Cập nhật phòng ban " + model.organization_name;
+
+                            log.type = 1;
+                            log.organization_id = model.organization_id;
+                            log.created_date = DateTime.Now;
+                            log.created_by = uid;
+                            log.created_token_id = tid;
+                            log.created_ip = ip;
+                            db.sys_organization_log.Add(log);
+                            db.SaveChanges();
+
+
+                        }
+                        #endregion
                         //Add ảnh
                         if (fileInfo != null)
                         {
@@ -369,6 +414,28 @@ namespace Controllers
                             else
                             {
                                 del.Add(da);
+                                #region add sys_organization_log
+                                if (helper.wlog)
+                                {
+
+                                    sys_organization_log log = new sys_organization_log();
+                                    if (da.organization_type == 0)
+                                        log.content = "Xóa đơn vị " + da.organization_name;
+                                    else
+                                        log.content = "Xóa phòng ban " + da.organization_name;
+
+                                    log.type = 2;
+                                    log.organization_id = da.organization_id;
+                                    log.created_date = DateTime.Now;
+                                    log.created_by = uid;
+                                    log.created_token_id = tid;
+                                    log.created_ip = ip;
+                                    db.sys_organization_log.Add(log);
+                                    db.SaveChanges();
+
+
+                                }
+                                #endregion
                                 if (!string.IsNullOrWhiteSpace(da.logo))
                                     paths.Add(HttpContext.Current.Server.MapPath("~/") + da.logo);
                                 if (!string.IsNullOrWhiteSpace(da.background_image))
@@ -449,8 +516,8 @@ namespace Controllers
                         for (int i = 0; i < das.Count; i++)
                         {
                             var da = das[i];
-                      
-                                da.status = tts[i];
+
+                            da.status = tts[i];
                         }
                         await db.SaveChangesAsync();
                     }
@@ -797,6 +864,99 @@ namespace Controllers
 
         }
         #endregion
+        [HttpDelete]
+        public async Task<HttpResponseMessage> delete_organization_log([System.Web.Mvc.Bind(Include = "")][FromBody] List<int> id)
+        {
+            var identity = User.Identity as ClaimsIdentity;
+            if (identity == null)
+            {
+                return Request.CreateResponse(HttpStatusCode.OK, new { ms = "Bạn không có quyền truy cập chức năng này!", err = "1" });
+            }
+            IEnumerable<Claim> claims = identity.Claims;
+
+            try
+            {
+                string ip = getipaddress();
+                string name = claims.Where(p => p.Type == "fname").FirstOrDefault()?.Value;
+                string tid = claims.Where(p => p.Type == "tid").FirstOrDefault()?.Value;
+                string uid = claims.Where(p => p.Type == "uid").FirstOrDefault()?.Value;
+                bool ad = claims.Where(p => p.Type == "ad").FirstOrDefault()?.Value == "True";
+                string dvid = claims.Where(p => p.Type == "dvid").FirstOrDefault()?.Value;
+                string domainurl = HttpContext.Current.Request.Url.Scheme + "://" + HttpContext.Current.Request.Url.Host + ":" + HttpContext.Current.Request.Url.Port + "/";
+                try
+                {
+                    using (DBEntities db = new DBEntities())
+                    {
+                        var das = await db.sys_organization_log.Where(a => id.Contains(a.organization_log_id)).ToListAsync();
+                        List<string> paths = new List<string>();
+                        if (das != null)
+                        {
+                            List<sys_organization_log> del = new List<sys_organization_log>();
+                            foreach (var da in das)
+                            {
+                                del.Add(da);
+
+                                #region add hrm_log
+                                if (helper.wlog)
+                                {
+
+                                    hrm_log log = new hrm_log();
+                                    log.title = "Xóa Log phòng ban " + da.organization_log_id;
+
+                                    log.log_module = "ca_classroom";
+                                    log.log_type = 2;
+                                    log.id_key = da.organization_log_id.ToString();
+                                    log.created_date = DateTime.Now;
+                                    log.created_by = uid;
+                                    log.created_token_id = tid;
+                                    log.created_ip = ip;
+                                    db.hrm_log.Add(log);
+                                    db.SaveChanges();
+
+                                }
+                                #endregion
+                            }
+                            if (del.Count == 0)
+                            {
+                                return Request.CreateResponse(HttpStatusCode.OK, new { err = "1", ms = "Bạn không có quyền xóa dữ liệu." });
+                            }
+                            db.sys_organization_log.RemoveRange(del);
+                        }
+                        await db.SaveChangesAsync();
+
+                        return Request.CreateResponse(HttpStatusCode.OK, new { err = "0" });
+                    }
+                }
+                catch (DbEntityValidationException e)
+                {
+                    string contents = helper.getCatchError(e, null);
+                    helper.saveLog(uid, name, JsonConvert.SerializeObject(new { data = id, contents }), domainurl + "Phongban/delete_organization_log", ip, tid, "Lỗi khi xoá Log phòng ban", 0, "Phongban");
+                    if (!helper.debug)
+                    {
+                        contents = "";
+                    }
+                    Log.Error(contents);
+                    return Request.CreateResponse(HttpStatusCode.OK, new { ms = contents, err = "1" });
+                }
+                catch (Exception e)
+                {
+                    string contents = helper.ExceptionMessage(e);
+                    helper.saveLog(uid, name, JsonConvert.SerializeObject(new { data = id, contents }), domainurl + "Phongban/delete_organization_log", ip, tid, "Lỗi khi xoá Log phòng ban", 0, "Phongban");
+                    if (!helper.debug)
+                    {
+                        contents = "";
+                    }
+                    Log.Error(contents);
+                    return Request.CreateResponse(HttpStatusCode.OK, new { ms = contents, err = "1" });
+                }
+
+            }
+            catch (Exception)
+            {
+                return Request.CreateResponse(HttpStatusCode.BadRequest);
+            }
+        }
+
 
     }
 }
