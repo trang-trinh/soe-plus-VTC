@@ -139,7 +139,7 @@ const onNodeSelect = (node) => {
       swal.showLoading();
     },
   });
- 
+
   axios
     .post(
       baseURL + "/api/Phongban/GetDataProc",
@@ -147,7 +147,7 @@ const onNodeSelect = (node) => {
         str: encr(
           JSON.stringify({
             proc: "sys_organization_get",
-            par: [{ par: "organization_id", va:node.data.organization_id }],
+            par: [{ par: "organization_id", va: node.data.organization_id }],
           }),
           SecretKey,
           cryoptojs
@@ -160,7 +160,10 @@ const onNodeSelect = (node) => {
       let data = JSON.parse(response.data.data);
       if (data.length > 0) {
         donvi.value = data[0][0];
-        debugger
+        if (donvi.value.foundation_date)
+          donvi.value.foundation_date = new Date(donvi.value.foundation_date);
+        if (donvi.value.dissolution_date)
+          donvi.value.dissolution_date = new Date(donvi.value.dissolution_date);
         selectCapcha.value = {};
         selectCapcha.value[donvi.value.parent_id || "-1"] = true;
         selectDiadanh.value = {};
@@ -168,7 +171,7 @@ const onNodeSelect = (node) => {
       }
 
       initReward(node.data.organization_id);
-  visibleRight.value = true;
+      visibleRight.value = true;
     })
     .catch((error) => {
       if (error.status === 401) {
@@ -178,7 +181,6 @@ const onNodeSelect = (node) => {
         });
       }
     });
-
 };
 const onNodeUnselect = (node) => {
   selectedNodes.value = null;
@@ -408,6 +410,11 @@ const editDonvi = (md) => {
       let data = JSON.parse(response.data.data);
       if (data.length > 0) {
         donvi.value = data[0][0];
+        if (donvi.value.foundation_date)
+          donvi.value.foundation_date = new Date(donvi.value.foundation_date);
+        if (donvi.value.dissolution_date)
+          donvi.value.dissolution_date = new Date(donvi.value.dissolution_date);
+
         selectCapcha.value = {};
         selectCapcha.value[donvi.value.parent_id || "-1"] = true;
         selectDiadanh.value = {};
@@ -649,15 +656,15 @@ const exportDonvi = (method) => {
 
 const displayStructure = ref(false);
 const headerStructure = ref("Sáp nhập");
-const checkStructure=ref(false);
+const checkStructure = ref(false);
 const onShowStructure = () => {
-  headerStructure.value="Sáp nhập";
-  checkStructure.value=true;
+  headerStructure.value = "Sáp nhập";
+  checkStructure.value = true;
   displayStructure.value = true;
 };
-const onDissolution  = () => {
-  headerStructure.value="Giải thể";
-  checkStructure.value=false;
+const onDissolution = () => {
+  headerStructure.value = "Giải thể";
+  checkStructure.value = false;
   displayStructure.value = true;
 };
 watch(layout, () => {
@@ -790,6 +797,9 @@ function Expanded(dv) {
     });
   }
 }
+
+const org_history = ref({});
+
 const visibleRight = ref(false);
 const onHideSidebar = () => {
   selectedKey.value = null;
@@ -797,7 +807,6 @@ const onHideSidebar = () => {
 };
 const closeSidebar = () => {
   visibleRight.value = false;
- 
 };
 
 const listRewards = ref([]);
@@ -822,14 +831,19 @@ const initReward = (organization_id) => {
     )
     .then((response) => {
       let data = JSON.parse(response.data.data)[0];
+      let data1 = JSON.parse(response.data.data)[1];
+
       if (isFirst.value) isFirst.value = false;
 
       data.forEach((element, i) => {
         element.STT = options.value.PageNo * options.value.PageSize + i + 1;
       });
-
       listRewards.value = data;
 
+      listOrgLog.value = data1;
+      data1.forEach((element, i) => {
+        element.STT = options.value.PageNo * options.value.PageSize + i + 1;
+      });
       options.value.loading = false;
     })
     .catch((error) => {
@@ -838,7 +852,7 @@ const initReward = (organization_id) => {
       options.value.loading = false;
     });
 };
-
+const listOrgLog = ref([]);
 const filesList = ref([]);
 let fileSize = [];
 const onUploadFile = (event) => {
@@ -901,7 +915,7 @@ const closeStructure = () => {
   displayStructure.value = false;
 };
 const listFilesS = ref([]);
-const saveOrganization=(isFormValid)=>{
+const saveOrganization = (isFormValid) => {
   submitted.value = true;
   if (!isFormValid) {
     return;
@@ -941,10 +955,8 @@ const saveOrganization=(isFormValid)=>{
     },
   });
   axios({
-    method:"put",
-    url:
-      baseURL +
-      `/api/Phongban/Update_Donvi`,
+    method: "put",
+    url: baseURL + `/api/Phongban/Update_Donvi`,
     data: formData,
     headers: {
       Authorization: `Bearer ${store.getters.token}`,
@@ -958,7 +970,6 @@ const saveOrganization=(isFormValid)=>{
           : toast.success("Cập nhật phòng ban thành công!");
         if (layout.value == "list") loadDonvi();
         else initTreeDV();
-         
       } else {
         swal.fire({
           title: "Thông báo!",
@@ -977,7 +988,110 @@ const saveOrganization=(isFormValid)=>{
         confirmButtonText: "OK",
       });
     });
+};
+const displayOrgHistory = ref(false);
+const headerOrgHistory = ref("");
+
+const onAddOrgHistory = (data) => {
+  org_history.value = data;
+  isSaveOrgHistory.value=true;
+  headerOrgHistory.value = "Thêm lịch sử thay đổi";
+  displayOrgHistory.value = true;
+};
+
+  
+ const isSaveOrgHistory=ref(false);
+const saveOrgHistory = () => {
+  submitted.value = true;
+  if (org_history.value.decision_number == null) {
+    return;
+  }
+
+  
+  let formData = new FormData();
+  formData.append("model", JSON.stringify(org_history.value));
+  swal.fire({
+    width: 110,
+    didOpen: () => {
+      swal.showLoading();
+    },
+  });
+ 
+
+for (var i = 0; i < filesList.value.length; i++) {
+  let file = filesList.value[i];
+  formData.append("image", file);
 }
+
+formData.append("sys_organization_history", JSON.stringify(org_history.value));
+formData.append("hrm_files", JSON.stringify(listFilesS.value));
+swal.fire({
+  width: 110,
+  didOpen: () => {
+    swal.showLoading();
+  },
+});
+if (isSaveOrgHistory.value==true) {
+  axios
+    .post(baseURL + "/api/sys_organization_history/add_sys_organization_history", formData, config)
+    .then((response) => {
+      if (response.data.err != "1") {
+        swal.close();
+        toast.success("Thêm lịch sử đơn vị thành công!");
+
+        displayOrgHistory.value=false;
+      } else {
+        swal.fire({
+          title: "Error!",
+          text: response.data.ms,
+          icon: "error",
+          confirmButtonText: "OK",
+        });
+      }
+    })
+    .catch((error) => {
+      swal.close();
+      swal.fire({
+        title: "Error!",
+        text: "Có lỗi xảy ra, vui lòng kiểm tra lại!",
+        icon: "error",
+        confirmButtonText: "OK",
+      });
+    });
+} else {
+  axios
+    .put(baseURL + "/api/sys_organization_history/update_sys_organization_history", formData, config)
+    .then((response) => {
+      if (response.data.err != "1") {
+        swal.close();
+        toast.success("Sửa lịch sử đơn vị thành công!");
+
+        displayOrgHistory.value=false;
+      } else {
+        swal.fire({
+          title: "Error!",
+          text: response.data.ms,
+          icon: "error",
+          confirmButtonText: "OK",
+        });
+      }
+    })
+    .catch((error) => {
+      swal.close();
+      swal.fire({
+        title: "Error!",
+        text: "Có lỗi xảy ra, vui lòng kiểm tra lại!",
+        icon: "error",
+        confirmButtonText: "OK",
+      });
+    });
+}
+};
+const closeOrgHistory = () => {
+  org_history.value={};
+  displayOrgHistory.value = false;
+};
+
 onMounted(() => {
   //init
   loadDonvi(true);
@@ -1008,7 +1122,7 @@ onMounted(() => {
       <template #header>
         <h3 class="module-title module-title-hidden mt-0 ml-1 mb-2">
           <i class="pi pi-sitemap"></i>
-          Cơ cấu tổ chức 
+          Cơ cấu tổ chức
         </h3>
         <Toolbar class="w-full custoolbar">
           <template #start>
@@ -1030,8 +1144,8 @@ onMounted(() => {
               class="font-bold w-9rem mr-2"
               @click="onShowStructure"
             />
-            <Button 
-            @click="onDissolution"
+            <Button
+              @click="onDissolution"
               icon="pi pi-stop-circle"
               label="Giải thể"
               class="p-button-outlined font-bold p-button-danger w-9rem mr-2"
@@ -1345,7 +1459,7 @@ onMounted(() => {
     v-model:visible="visibleRight"
     position="right"
     @hide="onHideSidebar"
-    style="width: 50%"
+    style="width: 66%"
     :showCloseIcon="false"
     class="d-design-sidebar"
   >
@@ -1425,20 +1539,6 @@ onMounted(() => {
             >
           </div>
         </small>
-        <!-- <div class="field col-12 md:col-12">
-          <label class="col-2 text-left">Cấp quản lý</label>
-          <TreeSelect
-            @change="onChangeParent"
-            class="col-10"
-            v-model="selectCapcha"
-            :options="treedonvis"
-            :showClear="true"
-            placeholder=""
-            optionLabel="data.organization_name"
-            optionValue="data.organization_id"
-          >
-          </TreeSelect>
-        </div> -->
         <div class="field col-12 md:col-12 flex">
           <div class="col-6 p-0 flex align-items-center">
             <label class="w-10rem text-left">Tên tiếng Anh</label>
@@ -1573,22 +1673,11 @@ onMounted(() => {
             v-model="donvi.feature"
           />
         </div>
-        <!-- <div class="field col-12 md:col-12 flex">
-          <div class="col-6   p-0 flex align-items-center">
-          <div class="w-10rem  text-left">STT</div>
-          <InputNumber class=" ip36 p-0" v-model="donvi.is_order"    style="width: calc(100% - 10rem)" />
-
-          </div>
-          <div class="col-6   p-0 flex align-items-center">
-          <label class="w-10rem text-left pl-3">Trạng thái</label>
-          <InputSwitch v-model="donvi.status"  class="w-4rem lck-checked"    />
-          </div>
-        </div> -->
 
         <div class="col-12 md:col-12">
           <h3>2. Thông tin khen thưởng</h3>
         </div>
-        <div class="col-12 md:col-12">
+        <div class="col-12 md:col-12 field">
           <div class="d-lang-table">
             <DataTable
               filterDisplay="menu"
@@ -1647,8 +1736,8 @@ onMounted(() => {
               <Column
                 field="start_date"
                 header="Ngày quyết định"
-                headerStyle="text-align:center;max-width:100px;height:50px"
-                bodyStyle="text-align:center;max-width:100px"
+                headerStyle="text-align:center;max-width:150px;height:50px"
+                bodyStyle="text-align:center;max-width:150px"
                 class="align-items-center justify-content-center text-center overflow-hidden"
               >
                 <template #body="data">
@@ -1662,7 +1751,6 @@ onMounted(() => {
                 </template>
               </Column>
               <Column
-                
                 header=" "
                 headerStyle="text-align:center;max-width:50px;height:50px"
                 bodyStyle="text-align:center;max-width:50px"
@@ -1670,16 +1758,30 @@ onMounted(() => {
               >
                 <template #body="data">
                   <div v-if="data.data.file_path">
-                    <a  download :href="basedomainURL + data.data.file_path">
-                    <Button :v-tooltip.top="'Tệp đính kèm'" icon="pi pi-paperclip" class="p-button-rounded p-button-outlined"  />
-                  </a>  </div>
+                    <a download :href="basedomainURL + data.data.file_path">
+                      <Button
+                        :v-tooltip.top="'Tệp đính kèm'"
+                        icon="pi pi-paperclip"
+                        class="p-button-rounded p-button-outlined"
+                      />
+                    </a>
+                  </div>
                 </template>
               </Column>
             </DataTable>
           </div>
         </div>
-        <div class="col-12 md:col-12">
-          <h3>3. Lịch sử thay đổi</h3>
+        <div class="col-12 md:col-12 p-0 field flex align-items-center">
+          <div class="col-6 md:col-6">
+            <h3>3. Lịch sử thay đổi</h3>
+          </div>
+          <div class="col-6 md:col-6 text-right">
+            <Button
+              label="Thêm mới lịch sử"
+              icon="pi pi-plus"
+              @click="onAddOrgHistory(donvi)"
+            />
+          </div>
         </div>
         <div class="col-12 field md:col-12">
           <div class="d-lang-table">
@@ -1691,8 +1793,8 @@ onMounted(() => {
               :showGridlines="true"
               columnResizeMode="fit"
               :reorderableColumns="true"
-              :value="listRewards"
-              dataKey="reward_id"
+              :value="listOrgLog"
+              dataKey="organization_log_id"
               responsiveLayout="scroll"
               :row-hover="true"
             >
@@ -1705,37 +1807,86 @@ onMounted(() => {
               >
               </Column>
               <Column
-                field="reward_number"
-                header="Ngày áp thay đổi"
-                headerStyle="text-align:center ;height:50px"
-                bodyStyle="text-align:center "
+                field="decision_number"
+                header="Số quyết định"
+                headerStyle="text-align:center;max-width:120px;height:50px"
+                bodyStyle="text-align:center;max-width:120px"
                 class="align-items-center justify-content-center text-center overflow-hidden"
               >
+              </Column>
+              <Column
+                field="content"
+                header="Nội dung"
+                headerStyle="text-align:center; height:50px"
+                bodyStyle="text-align:center; "
+                headerClass="align-items-center justify-content-center text-center overflow-hidden"
+              >
+              
+              </Column>
+              <Column
+         
+                header="Thời gian hoạt động"
+                headerStyle="text-align:center;max-width:350px;height:50px"
+                bodyStyle="text-align:center;max-width:350px"
+                class="align-items-center justify-content-center text-center overflow-hidden"
+              >
+                <template #body="data">
+                  <div >
+                    {{
+                      moment(new Date(data.data.foundation_date)).format(
+                        "DD/MM/YYYY"
+                      )
+                    }} - {{
+                      moment(new Date(data.data.dissolution_date)).format(
+                        "DD/MM/YYYY"
+                      )
+                    }}
+                  </div>
+                </template>
+              </Column>
+              <Column
+                field="decision_date"
+                header="Ngày quyết định"
+                headerStyle="text-align:center ;max-width:150px;height:50px"
+                bodyStyle="text-align:center;max-width:150px; "
+                headerClass="align-items-center justify-content-center text-center overflow-hidden"
+              >
+                <template #body="data">
+                  <div v-if="data.data.created_date">
+                    {{
+                      moment(new Date(data.data.created_date)).format(
+                        "HH:mm DD/MM/YYYY"
+                      )
+                    }}
+                  </div>
+                </template>
               </Column>
 
+              
+
               <Column
-                field="reward_content"
-                header="Loại biến động"
-                headerStyle="text-align:left;height:50px"
-                headerClass="align-items-center justify-content-center text-center overflow-hidden"
-                bodyStyle="text-align:left"
-              >
-              </Column>
-              <Column
-                field="reward_level_name"
-                header="Thay đổi"
-                headerStyle="text-align:center; height:50px"
-                bodyStyle="text-align:center; "
-                class="align-items-center justify-content-center text-center overflow-hidden"
-              >
-              </Column>
-              <Column
-                field="reward_title_name"
                 header=" "
-                headerStyle="text-align:center; height:50px"
-                bodyStyle="text-align:center; "
+                headerStyle="text-align:center;max-width:50px;height:50px"
+                bodyStyle="text-align:center;max-width:50px"
                 class="align-items-center justify-content-center text-center overflow-hidden"
               >
+                <template #body="data">
+                  <div
+                    v-if="
+                      store.state.user.is_super == true ||
+                      store.state.user.user_id == Tem.data.created_by ||
+                      (store.state.user.role_id == 'admin' &&
+                        store.state.user.organization_id ==
+                          Tem.data.organization_id)
+                    "
+                  >
+                    <Button
+                      :v-tooltip.left="'Xóa lịch sử'"
+                      icon="pi pi-trash"
+                      class="p-button-rounded p-button-danger p-button-outlined"
+                    />
+                  </div>
+                </template>
               </Column>
               <!-- <Column
                 field="start_date"
@@ -1758,7 +1909,7 @@ onMounted(() => {
           </div>
         </div>
       </div>
-      <div style="position: absolute; bottom: 0; right: 0;" class="p-3">
+      <div style="position: absolute; bottom: 0; right: 0" class="p-3">
         <Toolbar class="custoolbar">
           <template #end>
             <Button
@@ -1777,6 +1928,340 @@ onMounted(() => {
       </div>
     </form>
   </Sidebar>
+
+  <Dialog
+    :header="headerOrgHistory"
+    v-model:visible="displayOrgHistory"
+    :style="{ width: '55vw' }"
+    :maximizable="true"
+    :autoZIndex="true"
+    :modal="true"
+  >
+    <form>
+      <div class="grid formgrid m-2 mt-0">
+        <div class="col-12 field flex align-items-center">
+          <div class="col-6 p-0 flex align-items-center">
+            <label class="w-10rem text-left"
+              >Số quyết định <span class="redsao pl-1"> (*)</span></label
+            >
+            <InputText
+              spellcheck="false"
+              class="ip36"
+              style="width: calc(100% - 10rem)"
+              v-model="org_history.decision_number"
+              :style="{ backgroundColor: '#FEF9E7', fontWeight: 'bold' }"
+              :class="{
+                'p-invalid':
+                  (org_history.decision_number == null ||
+                    org_history.decision_number == '') &&
+                  submitted,
+              }"
+            />
+          </div>
+          <div class="col-6 p-0 flex align-items-center">
+            <label class="w-10rem text-left pl-3">Ngày quyết định</label>
+            <Calendar
+              style="width: calc(100% - 10rem)"
+              id="icon"
+              v-model="org_history.decision_date"
+              :showIcon="true"
+            />
+          </div>
+        </div>
+        <div class="col-12 field flex align-items-center">
+          <label class="w-10rem text-left">Nội dung</label>
+          <Textarea
+            :autoResize="true"
+            rows="2"
+            class="ip36"
+            style="width: calc(100% - 10rem)"
+            v-model="org_history.content"
+          />
+        </div>
+        <div class="col-12 field flex align-items-center">
+          <label class="w-10rem text-left"
+            >Tên{{
+              org_history.organization_type == 1 ? " phòng ban " : " đơn vị "
+            }}</label
+          >
+          <InputText
+            spellcheck="false"
+            class="ip36"
+            style="width: calc(100% - 10rem)"
+            v-model="org_history.organization_name"
+          />
+        </div>
+
+        <div class="field col-12 md:col-12 flex">
+          <div class="col-6 p-0 flex align-items-center">
+            <label class="w-10rem text-left">Tên tiếng Anh</label>
+            <InputText
+              spellcheck="false"
+              class="ip36"
+              style="width: calc(100% - 10rem)"
+              v-model="org_history.organization_name_en"
+            />
+          </div>
+          <div class="col-6 p-0 flex align-items-center">
+            <label class="w-10rem pl-3 text-left">Tên viết tắt</label>
+            <InputText
+              spellcheck="false"
+              class="ip36"
+              style="width: calc(100% - 10rem)"
+              v-model="org_history.short_name"
+            />
+          </div>
+        </div>
+        <div class="field col-12 md:col-12 flex">
+          <div class="col-6 p-0 flex align-items-center">
+            <label class="w-10rem text-left">Thời gian hoạt động</label>
+
+            <Calendar
+              style="width: calc(100% - 10rem)"
+              id="icon"
+              v-model="org_history.foundation_date"
+              :showIcon="true"
+            />
+          </div>
+          <div class="col-6 p-0 flex align-items-center">
+            <label class="w-10rem text-left pl-3">Đến</label>
+
+            <Calendar
+              style="width: calc(100% - 10rem)"
+              id="icon"
+              v-model="org_history.dissolution_date"
+              :showIcon="true"
+            />
+          </div>
+        </div>
+        <div class="field col-12 md:col-12 flex">
+          <div class="col-6 p-0 flex align-items-center">
+            <label class="w-10rem text-left">Người đại diện</label>
+            <InputText
+              spellcheck="false"
+              class="ip36"
+              style="width: calc(100% - 10rem)"
+              v-model="org_history.representative"
+            />
+          </div>
+          <div class="col-6 p-0 flex align-items-center">
+            <label class="w-10rem pl-3 text-left">Mã doanh nghiệp</label>
+            <InputText
+              spellcheck="false"
+              class="ip36"
+              style="width: calc(100% - 10rem)"
+              v-model="org_history.business_code"
+            />
+          </div>
+        </div>
+        <div class="field col-12 md:col-12 flex">
+          <div class="col-6 p-0 flex align-items-center">
+            <label class="w-10rem text-left">Địa điểm làm việc</label>
+            <InputText
+              spellcheck="false"
+              class="ip36"
+              style="width: calc(100% - 10rem)"
+              v-model="org_history.address"
+            />
+          </div>
+          <div class="col-6 p-0 flex align-items-center">
+            <label class="w-10rem pl-3 text-left">Điện thoại</label>
+            <InputText
+              spellcheck="false"
+              class="ip36"
+              style="width: calc(100% - 10rem)"
+              v-model="org_history.phone"
+            />
+          </div>
+        </div>
+        <div class="field col-12 md:col-12 flex align-items-center">
+          <div class="col-6 p-0 flex align-items-center">
+            <div class="w-10rem text-left">Địa điểm ĐKKD</div>
+            <Textarea
+              :autoResize="true"
+              rows="1"
+              class="ip36"
+              style="width: calc(100% - 10rem)"
+              v-model="org_history.address_registration"
+            />
+          </div>
+          <div class="col-6 p-0 flex align-items-center">
+            <div class="w-10rem text-left pl-3">Website</div>
+            <InputText
+              spellcheck="false"
+              class="ip36"
+              style="width: calc(100% - 10rem)"
+              v-model="org_history.is_url"
+            />
+          </div>
+        </div>
+
+        <div class="field col-12 md:col-12 flex">
+          <div class="col-6 p-0 flex align-items-center">
+            <label class="w-10rem text-left">Email</label>
+            <InputText
+              spellcheck="false"
+              class="ip36"
+              style="width: calc(100% - 10rem)"
+              v-model="org_history.mail"
+            />
+          </div>
+          <div class="col-6 p-0 flex align-items-center">
+            <label class="w-10rem pl-3 text-left">Fax</label>
+            <InputText
+              spellcheck="false"
+              class="ip36"
+              style="width: calc(100% - 10rem)"
+              v-model="org_history.fax"
+            />
+          </div>
+        </div>
+        <div class="col-12 flex align-items-center field">
+          <div class="w-10rem text-left">Chức năng nhiệm vụ</div>
+          <Textarea
+            :autoResize="true"
+            rows="1"
+            class="ip36"
+            style="width: calc(100% - 10rem)"
+            v-model="org_history.feature"
+          />
+        </div>
+        <div class="col-12 field  text-lg font-bold">File đính kèm</div>
+        <div class="w-full col-12 field  ">
+          <FileUpload
+            chooseLabel="Chọn File"
+            :showUploadButton="false"
+            :showCancelButton="false"
+            :multiple="false"
+            :maxFileSize="524288000"
+            @select="onUploadFile"
+            @remove="removeFile"
+            :invalidFileSizeMessage="'{0}: Dung lượng File không được lớn hơn {1}'"
+          >
+            <template #empty>
+              <p class="p-0 m-0 text-500">Kéo thả hoặc chọn File.</p>
+            </template>
+          </FileUpload>
+
+          <div class="col-12 p-0" v-if="listFilesS.length > 0">
+            <DataTable
+              :value="listFilesS"
+              filterDisplay="menu"
+              filterMode="lenient"
+              scrollHeight="flex"
+              :showGridlines="true"
+              :paginator="false"
+              :row-hover="true"
+              columnResizeMode="fit"
+            >
+              <Column field="code" header="  File đính kèm">
+                <template #body="item">
+                  <div
+                    class="p-0 d-style-hover"
+                    style="width: 100%; border-radius: 10px"
+                  >
+                    <div class="w-full flex align-items-center">
+                      <div class="flex w-full text-900">
+                        <div
+                          v-if="item.data.is_image"
+                          class="align-items-center flex"
+                        >
+                          <Image
+                            :src="basedomainURL + item.data.file_path"
+                            alt=""
+                            width="70"
+                            height="50"
+                            style="
+                              object-fit: contain;
+                              border: 1px solid #ccc;
+                              width: 70px;
+                              height: 50px;
+                            "
+                            preview
+                            class="pr-2"
+                          />
+                          <div class="ml-2" style="word-break: break-all">
+                            {{ item.data.file_name }}
+                          </div>
+                        </div>
+                        <div v-else>
+                          <a
+                            :href="basedomainURL + item.data.file_path"
+                            download
+                            class="w-full no-underline cursor-pointer text-900"
+                          >
+                            <div class="align-items-center flex">
+                              <div>
+                                <img
+                                  :src="
+                                    basedomainURL +
+                                    '/Portals/Image/file/' +
+                                    item.data.file_path.substring(
+                                      item.data.file_path.lastIndexOf('.') + 1
+                                    ) +
+                                    '.png'
+                                  "
+                                  style="
+                                    width: 70px;
+                                    height: 50px;
+                                    object-fit: contain;
+                                  "
+                                  alt=""
+                                />
+                              </div>
+                              <div class="ml-2" style="word-break: break-all">
+                                <div class="ml-2" style="word-break: break-all">
+                                  <div style="word-break: break-all">
+                                    {{ item.data.file_name }}
+                                  </div>
+                                  <div
+                                    v-if="store.getters.user.is_super"
+                                    style="
+                                      word-break: break-all;
+                                      font-size: 11px;
+                                      font-style: italic;
+                                    "
+                                  >
+                                    {{ item.data.organization_name }}
+                                  </div>
+                                </div>
+                              </div>
+                            </div>
+                          </a>
+                        </div>
+                      </div>
+                      <div
+                        class="w-3rem align-items-center d-style-hover-1"
+                        v-if="
+                          store.getters.user.organization_id ==
+                          item.data.organization_id
+                        "
+                      >
+                        <Button
+                          icon="pi pi-times"
+                          class="p-button-rounded bg-red-300 border-none"
+                          @click="deleteFileH(item.data)"
+                        />
+                      </div>
+                    </div>
+                  </div>
+                </template>
+              </Column>
+            </DataTable>
+          </div>
+        </div>
+      </div>
+    </form>
+    <template #footer>
+      <Button
+        label="Huỷ"
+        icon="pi pi-times"
+        @click="closeOrgHistory"
+        class="p-button-raised p-button-secondary"
+      />
+      <Button label="Lưu" icon="pi pi-save" @click="saveOrgHistory()" />
+    </template>
+  </Dialog>
   <Dialog
     :header="headerStructure"
     v-model:visible="displayStructure"
@@ -1790,7 +2275,9 @@ onMounted(() => {
         <div class="col-12 field p-0 text-lg font-bold">Thông tin chung</div>
         <div class="field p-0 col-12 md:col-12 flex">
           <div class="col-6 p-0 flex align-items-center">
-            <label class="w-10rem text-left">Số quyết định</label>
+            <label class="w-10rem text-left"
+              >Số quyết định <span class="redsao pl-1"> (*)</span></label
+            >
             <InputText
               spellcheck="false"
               class="ip36"
@@ -1800,7 +2287,9 @@ onMounted(() => {
             />
           </div>
           <div class="col-6 p-0 flex align-items-center">
-            <label class="w-10rem pl-3 text-left">Ngày {{ checkStructure?"sáp nhập":"giải thể" }}</label>
+            <label class="w-10rem pl-3 text-left"
+              >Ngày {{ checkStructure ? "sáp nhập" : "giải thể" }}</label
+            >
             <Calendar
               @blur="autoFillDate(department_merger, 'merger_date')"
               id="merger_date"
@@ -1814,15 +2303,22 @@ onMounted(() => {
           </div>
         </div>
         <div class="col-12 field p-0 flex align-items-center">
-          <label class="w-10rem text-left">Đơn vị {{ checkStructure?"sáp nhập":"giải thể" }}</label>
+          <label class="w-10rem text-left"
+            >Đơn vị {{ checkStructure ? "sáp nhập" : "giải thể" }}</label
+          >
           <TreeSelect
             v-model="department_merger.current_department"
             :options="listTreeSelect"
-            :placeholder=" checkStructure?'Chọn đơn vị sáp nhập':'Chọn đơn vị giải thể'"
+            :placeholder="
+              checkStructure ? 'Chọn đơn vị sáp nhập' : 'Chọn đơn vị giải thể'
+            "
             style="width: calc(100% - 10rem)"
           />
         </div>
-        <div class="col-12 field p-0 flex align-items-center" v-if="checkStructure">
+        <div
+          class="col-12 field p-0 flex align-items-center"
+          v-if="checkStructure"
+        >
           <label class="w-10rem text-left">Đơn vị nhận</label>
           <TreeSelect
             v-model="department_merger.receive_department"
@@ -2162,7 +2658,7 @@ onMounted(() => {
           <Calendar
             class="col-4 ip36 p-0"
             id="icon"
-            foundation_date
+            v-model="donvi.foundation_date"
             :showIcon="true"
           />
         </div>

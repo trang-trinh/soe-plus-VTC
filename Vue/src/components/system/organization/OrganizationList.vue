@@ -1428,7 +1428,8 @@ onMounted(() => {
           <Calendar
           class="col-4 ip36 p-0"
           id="icon"
-          foundation_date
+             v-model="donvi.foundation_date"
+          
           :showIcon="true"
           />
         </div>
