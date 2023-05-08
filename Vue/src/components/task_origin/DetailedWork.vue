@@ -3425,7 +3425,7 @@ const CloseVisible = () => {
           }
     "
     :showCloseIcon="false"
-    :modal="props.turn > 0 ? true : false"
+    :modal="props.turn == 0 ? true : false"
     ><div
       v-if="isLoading == true"
       class="flex relative top-50 aligns-items-center justify-content-center"
