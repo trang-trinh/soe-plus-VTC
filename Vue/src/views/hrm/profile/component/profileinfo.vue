@@ -14,6 +14,7 @@ import comptask from "../../profile/component/comptask.vue";
 import comptimekeep from "../component/comptimekeep.vue";
 import diloginsurance from "../../profile/component/diloginsurance.vue";
 import comreward from "../../profile/component/comreward.vue";
+import leaveyear from "../../myprofile/component/comview6.vue";
 import moment from "moment";
 
 const route = useRoute();
@@ -4223,7 +4224,9 @@ const onPage = (event) => {
                 </div>
               </div>
             </div>
-            <div v-show="options.view === 7" class="f-full">Phép năm</div>
+            <div v-show="options.view === 7" class="f-full h-leaveyear">
+              <leaveyear />
+            </div>
             <div v-show="options.view === 8" class="f-full">
               <div class="d-lang-table-1 p-2">
                 <DataTable
@@ -5438,5 +5441,12 @@ const onPage = (event) => {
     padding-top: 0;
     padding-bottom: 0;
   }
+}
+::v-deep(.h-leaveyear){
+  .box-table {
+    height: calc(100vh - 165px) !important;
+    background-color: #fff;
+    overflow: auto;
+}
 }
 </style>

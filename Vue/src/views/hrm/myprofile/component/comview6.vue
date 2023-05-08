@@ -125,7 +125,7 @@ onMounted(() => {
 });
 </script>
 <template>
-  <div class="surface-100" style="overflow: hidden">
+  <div class="surface-100" :style="{ overflow: 'hidden', display: 'grid' }">
     <div class="box-table gridline-custom scrollable-both-custom">
       <table id="table-leave" class="table-custom">
         <thead class="thead-custom">
