@@ -13,6 +13,7 @@ using System.Security.Claims;
 using System.Threading.Tasks;
 using System.Web;
 using System.Web.Http;
+using Newtonsoft.Json.Linq;
 
 namespace API.Controllers.Hrm
 {
@@ -374,5 +375,78 @@ namespace API.Controllers.Hrm
             }
         }
 
+        [HttpPut]
+        public async Task<HttpResponseMessage> update_status_decision([System.Web.Mvc.Bind(Include = "id,status,content,date")][FromBody] JObject data)
+        {
+            var identity = User.Identity as ClaimsIdentity;
+            IEnumerable<Claim> claims = identity.Claims;
+            try
+            {
+                if (identity == null)
+                {
+                    return Request.CreateResponse(HttpStatusCode.OK, new { ms = "Bạn không có quyền truy cập chức năng này!", err = "1" });
+                }
+            }
+            catch
+            {
+                return Request.CreateResponse(HttpStatusCode.OK, new { ms = "Bạn không có quyền truy cập chức năng này!", err = "1" });
+            }
+            try
+            {
+                string id = data["id"].ToObject<string>();
+                int? status = data["status"]?.ToObject<int?>();
+                string content = data["content"].ToObject<string>();
+                DateTime? date = data["date"]?.ToObject<DateTime?>();
+
+                string ip = getipaddress();
+                string name = claims.Where(p => p.Type == "fname").FirstOrDefault()?.Value;
+                string tid = claims.Where(p => p.Type == "tid").FirstOrDefault()?.Value;
+                string uid = claims.Where(p => p.Type == "uid").FirstOrDefault()?.Value;
+                bool ad = claims.Where(p => p.Type == "ad").FirstOrDefault()?.Value == "True";
+                string domainurl = HttpContext.Current.Request.Url.Scheme + "://" + HttpContext.Current.Request.Url.Host + ":" + HttpContext.Current.Request.Url.Port + "/";
+                try
+                {
+                    using (DBEntities db = new DBEntities())
+                    {
+                        var model = await db.hrm_decision.FindAsync(id);
+                        if (model != null)
+                        {
+                            model.status = status;
+                            model.modified_by = uid;
+                            model.modified_date = DateTime.Now;
+                            model.modified_ip = ip;
+                            model.modified_token_id = tid;
+                        }
+                        await db.SaveChangesAsync();
+                        return Request.CreateResponse(HttpStatusCode.OK, new { err = "0" });
+                    }
+                }
+                catch (DbEntityValidationException e)
+                {
+                    string contents = helper.getCatchError(e, null);
+                    helper.saveLog(uid, name, JsonConvert.SerializeObject(new { data = contents, contents }), domainurl + "hrm_decision/update_status_decision", ip, tid, "Lỗi khi cập nhật trạng thái", 0, "hrm_decision");
+                    if (!helper.debug)
+                    {
+                        contents = "";
+                    }
+                    return Request.CreateResponse(HttpStatusCode.OK, new { ms = contents, err = "1" });
+                }
+                catch (Exception e)
+                {
+                    string contents = helper.ExceptionMessage(e);
+                    helper.saveLog(uid, name, JsonConvert.SerializeObject(new { data = contents, contents }), domainurl + "hrm_decision/update_status_decision", ip, tid, "Lỗi khi cập nhật trạng thái", 0, "hrm_decision");
+                    if (!helper.debug)
+                    {
+                        contents = "";
+                    }
+                    return Request.CreateResponse(HttpStatusCode.OK, new { ms = contents, err = "1" });
+                }
+
+            }
+            catch (Exception)
+            {
+                return Request.CreateResponse(HttpStatusCode.BadRequest);
+            }
+        }
     }
 }
