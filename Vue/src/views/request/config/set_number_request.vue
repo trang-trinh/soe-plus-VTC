@@ -6,10 +6,10 @@ import { useVuelidate } from "@vuelidate/core";
 import { FilterMatchMode, FilterOperator } from "primevue/api";
 import { encr, checkURL } from "../../../util/function.js";
 //import moment from "moment";
-import dialogAddFormRequest from "../category/component/dialog_add_form_request.vue";
-import dialogShowFormTeam from "../category/component/dialog_show_form_team.vue";
-import dialogSettingForm from "../category/component/dialog_setting_form.vue";
-import procedureDetail from "../category/component/procedure_detail.vue";
+// import dialogAddFormRequest from "../category/component/dialog_add_form_request.vue";
+// import dialogShowFormTeam from "../category/component/dialog_show_form_team.vue";
+// import dialogSettingForm from "../category/component/dialog_setting_form.vue";
+// import procedureDetail from "../category/component/procedure_detail.vue";
 //Khai báo
 
 const cryoptojs = inject("cryptojs");

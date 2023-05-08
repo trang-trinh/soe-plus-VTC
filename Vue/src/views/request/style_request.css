@@ -314,3 +314,19 @@ span.rqxoa, span.uutien2 {
 	padding-right: 0;
 	padding-left: 0;
 }
+.th-table-render {
+    padding: 0.75rem 0.5rem;
+    border: 1px solid #ccc;
+    border-left: none;
+}
+.th-table-render:first-child {
+    border-left: 1px solid #ccc;
+}
+.td-table-render {
+    border: 1px solid #ccc;
+    border-top: none;
+    border-left: none;
+}
+.td-table-render:first-child {
+    border-left: 1px solid #ccc;
+}

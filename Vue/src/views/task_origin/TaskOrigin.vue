@@ -16,6 +16,7 @@ const componentKey = ref(0);
 const forceRerender = () => {
   componentKey.value += 1;
 };
+const expandedKeys = ref([]);
 const width1 = ref(window.screen.availWidth);
 document.onkeydown = fkey;
 document.onkeypress = fkey;
@@ -1179,7 +1180,6 @@ const endProgress = () => {
   clearInterval(interval.value);
   interval.value = null;
 };
-const vla = ref();
 
 onBeforeUnmount(() => {
   endProgress();
@@ -2222,15 +2222,12 @@ const onNodeSelect = (id) => {
   showDetail.value = true;
   selectedTaskID.value = id.data.task_id;
 };
-emitter.on("SideBar", (obj) => {
+const closeDetail = () => {
   showDetail.value = false;
   selectedTaskID.value = null;
   loadData(false, opition.value.type_view);
-});
-const PositionSideBar = ref("right");
-emitter.on("psb", (obj) => {
-  PositionSideBar.value = obj;
-});
+};
+
 const onRowUnselect = (id) => {};
 
 const displayDialogUser = ref(false);
@@ -3234,7 +3231,10 @@ const ChangeShowListCVGroup = (model) => {
         (opition.type_group_view == 1 || opition.type_group_view == 2)
       "
     >
-      <div v-for="l in listTask">
+      <div
+        v-for="(l, index) in listTask"
+        :key="index"
+      >
         <div
           class="task-tree-lable"
           @click="ChangeShowListCVGroup(l)"
@@ -3262,7 +3262,6 @@ const ChangeShowListCVGroup = (model) => {
           sortMode="single"
           ref="dt"
           @nodeSelect="onNodeSelect"
-          @nodeUnselect="onNodeUnselect"
           :value="l.CVGroup"
           :paginator="false"
           :rows="opition.PageSize"
@@ -3690,7 +3689,6 @@ const ChangeShowListCVGroup = (model) => {
       sortMode="single"
       ref="dt"
       @nodeSelect="onNodeSelect"
-      @nodeUnselect="onNodeUnselect"
       :value="listTask"
       :paginator="false"
       :rows="opition.PageSize"
@@ -4123,7 +4121,8 @@ const ChangeShowListCVGroup = (model) => {
       <div
         v-if="listTask.length > 0"
         class="md:col-md-3"
-        v-for="item in listTask"
+        v-for="(item, index) in listTask"
+        :key="index"
         style="width: 320px; height: 100%; margin: 0px 10px"
       >
         <span
@@ -4435,7 +4434,8 @@ const ChangeShowListCVGroup = (model) => {
             </div>
             <Card
               v-if="opition.type_group_view == null"
-              v-for="cv in item.CVGroup"
+              v-for="(cv, index) in item.CVGroup"
+              :key="index"
               style="width: 320px; margin-bottom: 2em"
             >
               <template #title>
@@ -4773,7 +4773,8 @@ const ChangeShowListCVGroup = (model) => {
                   Kết thúc
                 </th>
                 <th
-                  v-for="m in Grands"
+                  v-for="(m, index) in Grands"
+                  :key="index"
                   class="p-3"
                   align="center"
                   :width="m.Dates.length * 40"
@@ -4795,7 +4796,8 @@ const ChangeShowListCVGroup = (model) => {
                       : 'background-color:' + g.bg + ';',
                     'color:' + g.color)
                   "
-                  v-for="g in GrandsDate"
+                  v-for="(g, index) in GrandsDate"
+                  :key="index"
                 >
                   {{ g.DayName }}
                 </th>
@@ -4811,7 +4813,9 @@ const ChangeShowListCVGroup = (model) => {
                       : 'background-color:' + g.bg + ';',
                     'color:' + g.color)
                   "
-                  v-for="g in GrandsDate"
+                  v-for="(g, index) in GrandsDate"
+                  ,
+                  :key="index"
                 >
                   {{ g.DayN }}
                 </th>
@@ -4819,7 +4823,8 @@ const ChangeShowListCVGroup = (model) => {
             </thead>
             <tbody>
               <tr
-                v-for="l in listTask"
+                v-for="(l, index) in listTask"
+                :key="index"
                 @click="onRowSelect(l)"
               >
                 <td
@@ -4936,7 +4941,8 @@ const ChangeShowListCVGroup = (model) => {
                       : 'background-color:' + g.bg + ';',
                     'color:' + g.color)
                   "
-                  v-for="g in l.dateArray"
+                  v-for="(g, index) in l.dateArray"
+                  :key="index"
                 >
                   <div
                     v-if="g.Name"
@@ -5099,7 +5105,8 @@ const ChangeShowListCVGroup = (model) => {
                   </div>
                 </th>
                 <th
-                  v-for="m in Grands"
+                  v-for="(m, index) in Grands"
+                  :key="index"
                   class="p-3"
                   align="center"
                   :width="m.Dates.length * 40"
@@ -5120,7 +5127,8 @@ const ChangeShowListCVGroup = (model) => {
                       : 'background-color:' + g.bg + ';',
                     'color:' + g.color)
                   "
-                  v-for="g in GrandsDate"
+                  v-for="(g, index) in GrandsDate"
+                  :key="index"
                 >
                   {{ g.DayName }}
                 </th>
@@ -5136,14 +5144,18 @@ const ChangeShowListCVGroup = (model) => {
                       : 'background-color:' + g.bg + ';',
                     'color:' + g.color)
                   "
-                  v-for="g in GrandsDate"
+                  v-for="(g, index) in GrandsDate"
+                  :key="index"
                 >
                   {{ g.DayN }}
                 </th>
               </tr>
             </thead>
             <tbody>
-              <tr v-for="(l, index) in listTask">
+              <tr
+                v-for="(l, index) in listTask"
+                :key="index"
+              >
                 <td
                   class="fixcol left-0 p-3"
                   style="
@@ -5288,7 +5300,8 @@ const ChangeShowListCVGroup = (model) => {
                       : 'background-color:' + g.bg + ';',
                     'color:' + g.color)
                   "
-                  v-for="g in l.dateArray"
+                  v-for="(g, index) in l.dateArray"
+                  :key="index"
                 >
                   <div
                     v-if="g.Name"
@@ -5333,28 +5346,14 @@ const ChangeShowListCVGroup = (model) => {
       </div>
     </div>
     <!-- end -->
-    <Sidebar
-      v-model:visible="showDetail"
-      :position="PositionSideBar"
-      :style="{
-        width:
-          PositionSideBar == 'right'
-            ? width1 > 1800
-              ? '65vw'
-              : '75vw'
-            : '100vw',
-        'min-height': '100vh !important',
-      }"
-      :showCloseIcon="false"
-      @hide="hideall()"
+
+    <DetailedWork
+      v-if="showDetail === true"
+      :id="selectedTaskID"
+      :turn="0"
+      :closeDetail="closeDetail"
     >
-      <DetailedWork
-        :isShow="showDetail"
-        :id="selectedTaskID"
-        :turn="0"
-      >
-      </DetailedWork
-    ></Sidebar>
+    </DetailedWork>
   </div>
   <Dialog
     :header="headerAddTask"
