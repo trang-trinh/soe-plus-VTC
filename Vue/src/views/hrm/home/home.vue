@@ -109,13 +109,38 @@ const lightOptions = ref({
     },
   },
 });
+const addToArray = (temp, array, id, lv, od) => {
+  var filter = array.filter((x) => x.parent_id === id);
+  filter = filter.sort((a, b) => {
+    return b[od] - a[od];
+  });
+  if (filter.length > 0) {
+    var sp = "";
+    for (var i = 0; i < lv; i++) {
+      sp += "---";
+    }
+    lv++;
+    filter.forEach((item) => {
+      item.lv = lv;
+      item.close = true;
+      if (!item.ids) {
+        item.ids = "";
+        item.ids += "," + item.organization_id;
+      }
+      if (!item.newname) item.newname = sp + item.organization_name;
+      temp.push(item);
+      addToArray(temp, array, item.organization_id, lv);
+    });
+  }
+};
 
 //Declare
 const options = ref({
   loading: true,
-  filter_organization_id: null,
+  filter_organization_id: -1,
 });
 const organizations = ref([]);
+const dictionarys = ref([]);
 const bgColor = ref([
   "#FF6633",
   "#AFDFCF",
@@ -263,9 +288,20 @@ const renderAcademic = (chart, data) => {
     chart.datasets[0].hoverBackgroundColor = colors.value;
   }, 100);
 };
+const changeOrganization = () => {
+  initAcademicLevel(true);
+};
 
 //init
-const initAcademicLevel = () => {
+const initAcademicLevel = (ref) => {
+  if (ref) {
+    swal.fire({
+      width: 110,
+      didOpen: () => {
+        swal.showLoading();
+      },
+    });
+  }
   academics.value = [];
   axios
     .post(
@@ -309,6 +345,7 @@ const initAcademicLevel = () => {
           }
         }
       }
+      swal.close();
       if (options.value.loading) options.value.loading = false;
     })
     .catch((error) => {
@@ -334,7 +371,15 @@ const initAcademicLevel = () => {
       }
     });
 };
-const initGender = () => {
+const initGender = (ref) => {
+  if (ref) {
+    swal.fire({
+      width: 110,
+      didOpen: () => {
+        swal.showLoading();
+      },
+    });
+  }
   yearOlds.value = [];
   axios
     .post(
@@ -384,6 +429,7 @@ const initGender = () => {
           }
         }
       }
+      swal.close();
       if (options.value.loading) options.value.loading = false;
     })
     .catch((error) => {
@@ -409,7 +455,15 @@ const initGender = () => {
       }
     });
 };
-const initOrganization = () => {
+const initOrganization = (ref) => {
+  if (ref) {
+    swal.fire({
+      width: 110,
+      didOpen: () => {
+        swal.showLoading();
+      },
+    });
+  }
   axios
     .post(
       baseURL + "/api/hrm/callProc",
@@ -449,6 +503,7 @@ const initOrganization = () => {
           }
         }
       }
+      swal.close();
       if (options.value.loading) options.value.loading = false;
     })
     .catch((error) => {
@@ -474,7 +529,15 @@ const initOrganization = () => {
       }
     });
 };
-const initNote = () => {
+const initNote = (ref) => {
+  if (ref) {
+    swal.fire({
+      width: 110,
+      didOpen: () => {
+        swal.showLoading();
+      },
+    });
+  }
   axios
     .post(
       baseURL + "/api/hrm/callProc",
@@ -525,6 +588,7 @@ const initNote = () => {
           }
         }
       }
+      swal.close();
       if (options.value.loading) options.value.loading = false;
     })
     .catch((error) => {
@@ -550,11 +614,63 @@ const initNote = () => {
       }
     });
 };
+const initDictionary = (ref) => {
+  if (ref) {
+    swal.fire({
+      width: 110,
+      didOpen: () => {
+        swal.showLoading();
+      },
+    });
+  }
+  axios
+    .post(
+      baseURL + "/api/hrm/callProc",
+      {
+        str: encr(
+          JSON.stringify({
+            proc: "hrm_home_dictionary",
+            par: [{ par: "user_id", va: store.getters.user.user_id }],
+          }),
+          SecretKey,
+          cryoptojs
+        ).toString(),
+      },
+      config
+    )
+    .then((response) => {
+      if (response != null && response.data != null) {
+        var data = response.data.data;
+        if (data != null) {
+          let tbs = JSON.parse(data);
+          if (tbs[0] != null && tbs[0].length > 0) {
+            var temp1 = [];
+            addToArray(temp1, tbs[0], null, 0, "is_order");
+            tbs[0] = temp1;
+          }
+          tbs[0].unshift({ organization_id: -1, newname: "Tất cả" });
+          dictionarys.value = tbs;
+        }
+      }
+      swal.close();
+      if (options.value.loading) options.value.loading = false;
+    })
+    .catch((error) => {
+      swal.fire({
+        title: "Thông báo!",
+        text: "Có lỗi xảy ra, vui lòng kiểm tra lại!",
+        icon: "error",
+        confirmButtonText: "OK",
+      });
+      return;
+    });
+};
 onMounted(() => {
   initOrganization();
   initAcademicLevel();
   initGender();
   initNote();
+  initDictionary();
 });
 </script>
 <template>
@@ -590,8 +706,38 @@ onMounted(() => {
       </div>
       <div class="col-8 md:col-8">
         <div class="card m-1">
-          <div class="card-header" style="cursor: pointer">
-            <span>Trình độ học vấn</span>
+          <div
+            class="card-header"
+            :style="{ cursor: 'pointer', padding: '4px 4px 4px 1rem' }"
+          >
+            <Toolbar class="outline-none surface-0 border-none p-0">
+              <template #start
+                ><span :style="{ fontSize: '15px', fontWeight: 'bold' }"
+                  >Trình độ học vấn</span
+                ></template
+              >
+              <template #end>
+                <div class="form-group m-0">
+                  <Dropdown
+                    :options="dictionarys[0]"
+                    :filter="true"
+                    :showClear="true"
+                    :editable="false"
+                    v-model="options.filter_organization_id"
+                    @change="changeOrganization()"
+                    optionLabel="newname"
+                    optionValue="organization_id"
+                    placeholder="Chọn đơn vị"
+                    class="ip36"
+                    :style="{
+                      whiteSpace: 'nowrap',
+                      overflow: 'hidden',
+                      textOverflow: 'ellipsis',
+                    }"
+                  />
+                </div>
+              </template>
+            </Toolbar>
           </div>
           <div class="card-body carousel-hidden-p-link" style="height: 415px">
             <div
@@ -1118,6 +1264,20 @@ span.online {
   }
   .p-datatable-thead .justify-content-right .p-column-header-content {
     justify-content: right !important;
+  }
+}
+::v-deep(.form-group) {
+  .p-multiselect .p-multiselect-label,
+  .p-dropdown .p-dropdown-label {
+    height: 100%;
+    display: flex;
+    align-items: center;
+  }
+  .p-chip img {
+    margin: 0;
+  }
+  .p-avatar-text {
+    font-size: 1rem;
   }
 }
 ::v-deep(.border-none) {
