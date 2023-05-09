@@ -17,8 +17,8 @@ import Task_FollowVue from "./Detail_Task/Task_Follow.vue";
 import TaskCheckListDetailVue from "./Detail_Task/TaskCheckListDetail.vue";
 import { encr } from "../../util/function.js";
 import moment from "moment";
-import DocLinkTaskVue from "./Detail_Task/DocTask.vue";
-import treeuser from "../../components/user/treeuser.vue";
+import DocLinkTaskVue from "./Detail_Task/DocTask.vue";`
+import treeuser from "../../components/user/treeuser.vue";`
 
 const cryoptojs = inject("cryptojs");
 const options = ref({});
