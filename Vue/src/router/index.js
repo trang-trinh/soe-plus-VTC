@@ -262,6 +262,7 @@ const TaskPersonCreateReport = () =>
   import("../views/tasks/task_report_person/createReport.vue");
 const TaskPersonConfig = () =>
   import("../views/tasks/config/TaskPersonConfig.vue");
+const memberPoint = () => import("../views/tasks/config/MemberPointConfig.vue");
 //hrm
 // const Interview = () =>
 //     import ("../views/hrm/category/Interview.vue");
@@ -285,8 +286,10 @@ const Hrm_campaign = () => import("../views/hrm/recruitment/hrm_campaign.vue");
 const Hrm_proposal = () => import("../views/hrm/recruitment/hrm_proposal.vue");
 
 const Hrm_paycheck = () => import("../views/hrm/declare/hrm_paycheck.vue");
-const hrm_ConfigWorkLocation = () => import("../views/hrm/declare/hrm_config_work_location.vue");
-const HRMWorkScheDule = () => import("../views/hrm/declare/hrm_work_schedule.vue");
+const hrm_ConfigWorkLocation = () =>
+  import("../views/hrm/declare/hrm_config_work_location.vue");
+const HRMWorkScheDule = () =>
+  import("../views/hrm/declare/hrm_work_schedule.vue");
 const Hrm_paycheck_form = () =>
   import("../views/hrm/declare/hrm_paycheck_form.vue");
 const Hrm_rec_calendar = () =>
@@ -365,16 +368,20 @@ const caHRMSpecialization = () =>
 const caHRMTitle = () => import("../views/hrm/category/caTitle.vue");
 const caHRMTypeContract = () =>
   import("../views/hrm/category/caTypeContract.vue");
-  const caHRMDeclareShift = () => import("../views/hrm/declare/hrm_delare_shift.vue");
+const caHRMDeclareShift = () =>
+  import("../views/hrm/declare/hrm_delare_shift.vue");
 
-  const declarePaycheck = () => import("../views/hrm/declare/hrm_declare_paycheck.vue");
- 
-  const hrmPayroll = () => import("../views/hrm/payroll/hrm_payroll.vue");
-  const smartProc = () => import("../views/hrm/template/smartProc.vue");
-  const smartReport = () => import("../views/hrm/template/smartReport.vue");
+const declarePaycheck = () =>
+  import("../views/hrm/declare/hrm_declare_paycheck.vue");
 
-  const hrmHolidayDate = () => import("../views/hrm/declare/hrm_holiday_dates.vue");
-  const hrmHeadbarCalendar = () => import("../views/hrm/declare/hrm_headbar_calendar.vue");
+const hrmPayroll = () => import("../views/hrm/payroll/hrm_payroll.vue");
+const smartProc = () => import("../views/hrm/template/smartProc.vue");
+const smartReport = () => import("../views/hrm/template/smartReport.vue");
+
+const hrmHolidayDate = () =>
+  import("../views/hrm/declare/hrm_holiday_dates.vue");
+const hrmHeadbarCalendar = () =>
+  import("../views/hrm/declare/hrm_headbar_calendar.vue");
 const caHRMDecision = () => import("../views/hrm/category/caDecision.vue");
 const caHRMVacancy = () => import("../views/hrm/category/caVacancy.vue");
 const caHRMWage = () => import("../views/hrm/category/caWage.vue");
@@ -395,11 +402,9 @@ const caDiscipline = () => import("../views/hrm/category/caDiscipline.vue");
 const caReason = () => import("../views/hrm/category/caReason.vue");
 const caDisciplineLevel = () =>
   import("../views/hrm/category/caDisciplineLevel.vue");
-  const caAllowance = () =>
-  import("../views/hrm/category/caAllowance.vue");
-  const caWageGroups = () =>
-  import("../views/hrm/category/caWageGroups.vue");
-  const caCivilServantRank = () =>
+const caAllowance = () => import("../views/hrm/category/caAllowance.vue");
+const caWageGroups = () => import("../views/hrm/category/caWageGroups.vue");
+const caCivilServantRank = () =>
   import("../views/hrm/category/caCivilServantRank.vue");
 const caTags = () => import("../views/hrm/category/caTags.vue");
 const caSoefSalary = () => import("../views/hrm/category/caCoefSalary.vue");
@@ -416,12 +421,18 @@ const HRM_structure = () => import("../views/hrm/structure/hrm_structure.vue");
 
 //hrm report
 const HRM_Report = () => import("../views/hrm/report/ReportMain.vue");
-const HRM_ReportWorkers = () => import("../views/hrm/report/report_general/ReportWorkers.vue");
-const HRM_ReportProfileOrganization = () => import("../views/hrm/report/report_general/ProfileOrganization.vue");
-const HRM_ReportMemberQuit = () => import("../views/hrm/report/report_general/MemberQuit.vue");
-const HRM_ReportBeforeWorkingProcess = () => import("../views/hrm/report/report_general/BeforeWorkingProcess.vue");
-const HRM_ReportAcademicLevelMember = () => import("../views/hrm/report/report_general/AcademicLevelMember.vue");
-const HRM_ReportContractStatistical = () => import("../views/hrm/report/report_contract/StatisticalContract.vue");
+const HRM_ReportWorkers = () =>
+  import("../views/hrm/report/report_general/ReportWorkers.vue");
+const HRM_ReportProfileOrganization = () =>
+  import("../views/hrm/report/report_general/ProfileOrganization.vue");
+const HRM_ReportMemberQuit = () =>
+  import("../views/hrm/report/report_general/MemberQuit.vue");
+const HRM_ReportBeforeWorkingProcess = () =>
+  import("../views/hrm/report/report_general/BeforeWorkingProcess.vue");
+const HRM_ReportAcademicLevelMember = () =>
+  import("../views/hrm/report/report_general/AcademicLevelMember.vue");
+const HRM_ReportContractStatistical = () =>
+  import("../views/hrm/report/report_contract/StatisticalContract.vue");
 
 // Request
 const Request_Dashboard = () =>
@@ -439,8 +450,10 @@ const Request_Config_Auth_Sign = () =>
 const Request_Config_Number = () =>
   import("../views/request/config/set_number_request.vue");
 // Report Request
-const Report_Request_Statistical = () => import("../views/request/report/report_statiscal.vue");
-const Report_Request_personal = () => import("../views/request/report/report_personal.vue");
+const Report_Request_Statistical = () =>
+  import("../views/request/report/report_statiscal.vue");
+const Report_Request_personal = () =>
+  import("../views/request/report/report_personal.vue");
 // Backup file
 const BackupFile = () => import("../views/backup/backup_schedule.vue");
 const BackupHistory = () => import("../views/backup/backup_history.vue");
@@ -1464,6 +1477,11 @@ const router = createRouter({
       component: TaskPersonConfig,
     },
     {
+      path: "/tasks/config/point",
+      name: "memberPoint",
+      component: memberPoint,
+    },
+    {
       path: "/task/total_reports",
       name: "totalReport",
       component: totalReport,
@@ -1775,7 +1793,8 @@ const router = createRouter({
       path: "/hrm/declare/declare_paycheck",
       name: "caHRMDeclarePaycheck",
       component: declarePaycheck,
-    },    {
+    },
+    {
       path: "/hrm/payroll/hrm_payroll",
       name: "hrmPayroll",
       component: hrmPayroll,
@@ -1794,14 +1813,13 @@ const router = createRouter({
       path: "/hrm/hrm_shift",
       name: "caHRMDeclareShift",
       component: caHRMDeclareShift,
-    }, {
+    },
+    {
       path: "/hrm/declare/holiday_dates",
       name: "hrmHolidayDate",
       component: hrmHolidayDate,
     },
 
-
-    
     {
       path: "/hrm/category/ca_decision",
       name: "caHRMDecision",
@@ -1854,7 +1872,7 @@ const router = createRouter({
       name: "hrmHeadbarCalendar",
       component: hrmHeadbarCalendar,
     },
-    
+
     {
       path: "/hrm/category/ca_receipt",
       name: "caHRMReceipt",
@@ -1978,27 +1996,27 @@ const router = createRouter({
     {
       path: "/hrm/hrm_report/profile_organization",
       name: "hrm_report_profile_organization",
-      component: HRM_ReportProfileOrganization ,
+      component: HRM_ReportProfileOrganization,
     },
     {
       path: "/hrm/hrm_report/member_quit",
       name: "hrm_report_member_quit",
-      component: HRM_ReportMemberQuit ,
+      component: HRM_ReportMemberQuit,
     },
     {
       path: "/hrm/hrm_report/before_working_process",
       name: "hrm_report_before_working_process",
-      component: HRM_ReportBeforeWorkingProcess ,
+      component: HRM_ReportBeforeWorkingProcess,
     },
     {
       path: "/hrm/hrm_report/academic_level_member",
       name: "hrm_report_academic_level_member",
-      component: HRM_ReportAcademicLevelMember ,
+      component: HRM_ReportAcademicLevelMember,
     },
     {
       path: "/hrm/hrm_report/contract_statistical",
       name: "hrm_report_contract_statistical",
-      component: HRM_ReportContractStatistical ,
+      component: HRM_ReportContractStatistical,
     },
     // Tài liệu
     {
@@ -2051,7 +2069,8 @@ const router = createRouter({
       path: "/hrm/configworklocation",
       name: "hrm_ConfigWorkLocation",
       component: hrm_ConfigWorkLocation,
-    },   {
+    },
+    {
       path: "/hrm/work_schedule",
       name: "HRMWorkScheDule",
       component: HRMWorkScheDule,
