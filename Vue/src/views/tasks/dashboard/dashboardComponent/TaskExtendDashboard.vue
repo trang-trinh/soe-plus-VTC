@@ -117,7 +117,6 @@ watch(selectedTasks, () => {
     checkDelList.value = true;
   }
 });
-const PositionSideBar = ref("right");
 
 const showDetail = ref(false);
 const selectedTaskID = ref();
@@ -126,13 +125,11 @@ const onNodeSelect = (id) => {
   showDetail.value = true;
   selectedTaskID.value = id.task_id;
 };
-emitter.on("SideBar", (obj) => {
+const closeDetail = () => {
   showDetail.value = false;
+  selectedTaskID.value = null;
   loadData();
-});
-emitter.on("psb", (obj) => {
-  PositionSideBar.value = obj;
-});
+};
 watch(showDetail, () => {
   if (showDetail.value == false) {
     loadData();
@@ -524,27 +521,13 @@ onMounted(() => {
       </template>
     </DataTable>
   </div>
-  <Sidebar
-    v-model:visible="showDetail"
-    :position="PositionSideBar"
-    :style="{
-      width:
-        PositionSideBar == 'right'
-          ? width1 > 1800
-            ? ' 65vw'
-            : '75vw'
-          : '100vw',
-      'min-height': '100vh !important',
-    }"
-    :showCloseIcon="false"
+  <DetailedWork
+    v-if="showDetail === true"
+    :id="selectedTaskID"
+    :turn="0"
+    :closeDetail="closeDetail"
   >
-    <DetailedWork
-      :isShow="showDetail"
-      :id="selectedTaskID"
-      :turn="0"
-    >
-    </DetailedWork
-  ></Sidebar>
+  </DetailedWork>
   <Dialog
     :visible="DialogVisible"
     :header="'Đánh giá công việc'"

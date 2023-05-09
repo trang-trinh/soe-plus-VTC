@@ -1317,6 +1317,14 @@ li.p-chips-token {
 .d-style-hover:hover .d-style-hover-1 {
   display: block;
 }
+.d-design-orgchart .org-tree-node-label{
+min-width: 450px !important; 
+}
+.d-design-orgchart .org-tree-node-label .org-tree-node-label-inner{
+  box-shadow: 0 1px 5px rgba(0,0,0,.25) !important;
+  padding: 0 !important;
+  }
+ 
 /*Style chung cho min-w-Xrem*/
 
 /* Style quan */

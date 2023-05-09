@@ -50,7 +50,7 @@ const discussProject = ref({
   end_date: null,
   is_order: null,
   members: [],
-})
+});
 const v3$ = useVuelidate(rules_discuss, discussProject);
 
 const opition = ref({
@@ -118,16 +118,14 @@ const loadData = () => {
       let data = JSON.parse(response.data.data);
       data[0].forEach(function (t, i) {
         t.STT = i + 1;
-        t.Thanhviens = t.Thanhviens
-          ? JSON.parse(t.Thanhviens)
-          : [];
+        t.Thanhviens = t.Thanhviens ? JSON.parse(t.Thanhviens) : [];
         t.ThanhvienShows = [];
         if (t.Thanhviens.length > 3) {
           t.ThanhvienShows = t.Thanhviens.slice(0, 3);
         } else {
           t.ThanhvienShows = [...t.Thanhviens];
         }
-      })
+      });
       listProjectMainDiscuss.value = data[0];
       opition.value.totalRecords = data[0].length;
       listDropdownMembers.value = data[1].map((x) => ({
@@ -154,8 +152,7 @@ const loadData = () => {
         store.commit("gologout");
       }
     });
-}
-
+};
 
 const listComments = ref([]);
 const loadDiscuss = () => {
@@ -166,7 +163,9 @@ const loadDiscuss = () => {
         str: encr(
           JSON.stringify({
             proc: "discuss_get_list",
-            par: [{ par: "discuss_project_id", va: selectedDiscussProjectID.value }],
+            par: [
+              { par: "discuss_project_id", va: selectedDiscussProjectID.value },
+            ],
           }),
           SecretKey,
           cryoptojs,
@@ -200,13 +199,6 @@ const loadDiscuss = () => {
     })
     .catch((error) => {
       // toast.error("Tải dữ liệu không thành công!" + error);
-      options.value.loading = false;
-      addLog({
-        title: "Lỗi Console loadData",
-        controller: "DetailedWork.vue",
-        logcontent: error.message,
-        loai: 2,
-      });
       if (error && error.status === 401) {
         swal.fire({
           text: "Mã token đã hết hạn hoặc không hợp lệ, vui lòng đăng nhập lại!",
@@ -226,7 +218,7 @@ const DelReplyComment = () => {
   comment.value = "";
   listSendFile.value = [];
   comment_zone_main.value.setHTML("<p>" + comment.value + "</p>");
-}
+};
 const ReplyComment = (cmt) => {
   reply.value = true;
   editComment.value = false;
@@ -240,9 +232,9 @@ const ReplyComment = (cmt) => {
   comt.contents =
     comt.contents != null && comt.contents != "<body><p><br></p></body>"
       ? comt.contents.replace(
-        'style="width:100%;max-width:30vw;object-fit:contain">',
-        'style="width:100%;max-width:5vw;object-fit:contain">',
-      )
+          'style="width:100%;max-width:30vw;object-fit:contain">',
+          'style="width:100%;max-width:5vw;object-fit:contain">',
+        )
       : null;
   replyCmtValue.value.push(comt);
   comment_zone_main.value.setHTML("<p>" + comment.value + "</p>");
@@ -286,7 +278,7 @@ const addDiscuss = (str) => {
   issaveDiscuss.value = false;
   headerAddDiscuss.value = str;
   displayDiscuss.value = true;
-}
+};
 
 const DelDiscuss = (model) => {
   swal
@@ -342,7 +334,7 @@ const DelDiscuss = (model) => {
           });
       }
     });
-}
+};
 
 const editDiscuss = (model) => {
   isAddDiscuss.value = false;
@@ -382,7 +374,7 @@ const editDiscuss = (model) => {
       if (discussProject.value.Thanhviens.length > 0) {
         discussProject.value.Thanhviens.forEach(function (t) {
           discussProject.value.members.push(t.user_id);
-        })
+        });
       }
     })
     .catch((error) => {
@@ -402,15 +394,19 @@ const editDiscuss = (model) => {
         store.commit("gologout");
       }
     });
-}
+};
 
 const saveDiscussProjectMain = (isFormValid) => {
   submitted.value = true;
   if (!isFormValid) {
     return;
   }
-  discussProject.value.start_date = discussProject.value.start_date ? new Date(discussProject.value.start_date) : null;
-  discussProject.value.end_date = discussProject.value.end_date ? new Date(discussProject.value.end_date) : null;
+  discussProject.value.start_date = discussProject.value.start_date
+    ? new Date(discussProject.value.start_date)
+    : null;
+  discussProject.value.end_date = discussProject.value.end_date
+    ? new Date(discussProject.value.end_date)
+    : null;
   let formData = new FormData();
   if (discussProject.value.members.length > 0) {
     discussProject.value.members.forEach((t) => {
@@ -429,7 +425,10 @@ const saveDiscussProjectMain = (isFormValid) => {
   axios
     .post(
       baseURL +
-      "/api/ProjectMain/" + (isAddDiscuss.value ? 'Add_DiscussProjectMain' : 'Update_DiscussProjectMain'),
+        "/api/ProjectMain/" +
+        (isAddDiscuss.value
+          ? "Add_DiscussProjectMain"
+          : "Update_DiscussProjectMain"),
       formData,
       config,
     )
@@ -451,13 +450,13 @@ const saveDiscussProjectMain = (isFormValid) => {
     .catch((error) => {
       swal.close();
       swal.fire({
-        title: 'Error!',
+        title: "Error!",
         text: "Có lỗi xảy ra, vui lòng kiểm tra lại!",
         icon: "error",
         confirmButtonText: "OK",
       });
     });
-}
+};
 
 const listFileComment = ref([]);
 const ID_Comment = ref();
@@ -486,7 +485,10 @@ const addComment = () => {
       }
     }
     formData.append("discuss", JSON.stringify(bugComment));
-    formData.append("discuss_project_id", JSON.stringify(selectedDiscussProjectID.value));
+    formData.append(
+      "discuss_project_id",
+      JSON.stringify(selectedDiscussProjectID.value),
+    );
     formData.append(
       "is_reply",
       JSON.stringify(reply.value == true ? true : false),
@@ -512,7 +514,8 @@ const addComment = () => {
       method: editComment.value ? "put" : "post",
       url:
         baseURL +
-        `/api/ProjectMain/${editComment.value ? "updateComments" : "add_Comments"
+        `/api/ProjectMain/${
+          editComment.value ? "updateComments" : "add_Comments"
         }`,
       data: formData,
       headers: {
@@ -563,7 +566,6 @@ const chonanh = (id) => {
   document.getElementById(id).click();
 };
 
-
 const Change = (event) => {
   line = event.range.index ? event.range.index : null;
 };
@@ -574,7 +576,7 @@ const onRowSelect = (id) => {
   loadDiscuss();
 };
 
-const onRowUnselect = (id) => { };
+const onRowUnselect = (id) => {};
 
 const formatSize = (bytes) => {
   if (bytes === 0) {
@@ -834,7 +836,7 @@ const DelComment = (model) => {
           });
       }
     });
-}
+};
 
 onMounted(() => {
   selectedDiscussProjectID.value = null;
@@ -846,66 +848,137 @@ onMounted(() => {
   <div class="tab-project-content h-full w-full col-md-12 p-0 m-0 flex">
     <div class="p-0 m-0 tab-project-content-left col-6">
       <div class="row">
-        <div class="col-12" style="border-bottom: 1px solid #aaa; font-weight: 600;padding: 10px;">
-          <Button label="Tạo thảo luận" icon="pi pi-plus" class="mr-2" @click="addDiscuss('Thêm mới thảo luận')" />
+        <div
+          class="col-12"
+          style="border-bottom: 1px solid #aaa; font-weight: 600; padding: 10px"
+        >
+          <Button
+            label="Tạo thảo luận"
+            icon="pi pi-plus"
+            class="mr-2"
+            @click="addDiscuss('Thêm mới thảo luận')"
+          />
         </div>
         <div class="col-12">
-          <DataTable id="projectmain-thaoluan" v-model:first="first" :rowHover="true" :value="listProjectMainDiscuss"
-            :paginator="true" :rows="opition.PageSize"
+          <DataTable
+            id="projectmain-thaoluan"
+            v-model:first="first"
+            :rowHover="true"
+            :value="listProjectMainDiscuss"
+            :paginator="true"
+            :rows="opition.PageSize"
             paginatorTemplate="FirstPageLink PrevPageLink PageLinks NextPageLink LastPageLink RowsPerPageDropdown"
-            :rowsPerPageOptions="[1, 20, 30, 50, 100, 200]" :scrollable="true" scrollHeight="flex"
-            :totalRecords="opition.totalRecords" :row-hover="true" dataKey="discuss_project_id"
-            v-model:selection="selectedProjectMains" @page="onPage($event)" @sort="onSort($event)"
-            @filter="onFilter($event)" :lazy="true" selectionMode="single" @rowSelect="onRowSelect($event.data)"
-            @rowUnselect="onRowUnselect($event.data)">
-            <Column field="STT" header="STT" class="align-items-center justify-content-center text-center font-bold"
-              headerStyle="text-align:center;max-width:4rem" bodyStyle="text-align:center;max-width:4rem">
+            :rowsPerPageOptions="[1, 20, 30, 50, 100, 200]"
+            :scrollable="true"
+            scrollHeight="flex"
+            :totalRecords="opition.totalRecords"
+            :row-hover="true"
+            dataKey="discuss_project_id"
+            v-model:selection="selectedProjectMains"
+            @page="onPage($event)"
+            @sort="onSort($event)"
+            @filter="onFilter($event)"
+            :lazy="true"
+            selectionMode="single"
+            @rowSelect="onRowSelect($event.data)"
+            @rowUnselect="onRowUnselect($event.data)"
+          >
+            <Column
+              field="STT"
+              header="STT"
+              class="align-items-center justify-content-center text-center font-bold"
+              headerStyle="text-align:center;max-width:4rem"
+              bodyStyle="text-align:center;max-width:4rem"
+            >
             </Column>
-            <Column field="" header="Người tạo" class="align-items-center justify-content-center text-center"
-              headerStyle="text-align:center;max-width:100px" bodyStyle="text-align:center;max-width:100px">
+            <Column
+              field=""
+              header="Người tạo"
+              class="align-items-center justify-content-center text-center"
+              headerStyle="text-align:center;max-width:100px"
+              bodyStyle="text-align:center;max-width:100px"
+            >
               <template #body="md">
-                <Avatar @error="$event.target.src = basedomainURL + '/Portals/Image/nouser1.png'" v-tooltip.bottom="{
-                  value:
-                    md.data.full_name +
-                    '<br/>' +
-                    (md.data.tenChucVu || '') +
-                    '<br/>' +
-                    (md.data.tenToChuc || ''),
-                  escape: true,
-                }" v-bind:label="
-  md.data.avatar ? '' : (md.data.last_name ?? '').substring(0, 1)
-" v-bind:image="basedomainURL + md.data.avatar" style="
-                                                                                background-color: #2196f3;
-                                                                                color: #ffffff;
-                                                                                width: 32px;
-                                                                                height: 32px;
-                                                                                font-size: 15px !important;
-                                                                                margin-left: -10px;
-                                                                            " :style="{
-                                                                              background: bgColor[md.data.STT % 7] + '!important',
-                                                                            }" class="cursor-pointer" size="xlarge"
-                  shape="circle" />
+                <Avatar
+                  @error="
+                    $event.target.src =
+                      basedomainURL + '/Portals/Image/nouser1.png'
+                  "
+                  v-tooltip.bottom="{
+                    value:
+                      md.data.full_name +
+                      '<br/>' +
+                      (md.data.tenChucVu || '') +
+                      '<br/>' +
+                      (md.data.tenToChuc || ''),
+                    escape: true,
+                  }"
+                  v-bind:label="
+                    md.data.avatar
+                      ? ''
+                      : (md.data.last_name ?? '').substring(0, 1)
+                  "
+                  v-bind:image="basedomainURL + md.data.avatar"
+                  style="
+                    background-color: #2196f3;
+                    color: #ffffff;
+                    width: 32px;
+                    height: 32px;
+                    font-size: 15px !important;
+                    margin-left: -10px;
+                  "
+                  :style="{
+                    background: bgColor[md.data.STT % 7] + '!important',
+                  }"
+                  class="cursor-pointer"
+                  size="xlarge"
+                  shape="circle"
+                />
               </template>
             </Column>
-            <Column field="discuss_project_content" header="Nội dung thảo luận"
+            <Column
+              field="discuss_project_content"
+              header="Nội dung thảo luận"
               class="align-items-left justify-content-left text-left"
               headerStyle="text-align:left;max-width:auto;display: flex;align-items: left !important;"
-              bodyStyle="text-align:left;max-width:auto">
-
+              bodyStyle="text-align:left;max-width:auto"
+            >
             </Column>
-            <Column field="" header="" class="align-items-center justify-content-center text-center"
-              headerStyle="text-align:center;max-width:100px" bodyStyle="text-align:center;max-width:100px;">
+            <Column
+              field=""
+              header=""
+              class="align-items-center justify-content-center text-center"
+              headerStyle="text-align:center;max-width:100px"
+              bodyStyle="text-align:center;max-width:100px;"
+            >
               <template #body="data">
                 <div v-if="data.data.is_public == true">
                   <span
-                    style="border: #2196f3;background-color: #2196f3;color: #ffffff;padding: 5px;border-radius: 5px;">is
-                    public</span>
+                    style="
+                      border: #2196f3;
+                      background-color: #2196f3;
+                      color: #ffffff;
+                      padding: 5px;
+                      border-radius: 5px;
+                    "
+                    >is public</span
+                  >
                 </div>
-                <div v-if="data.data.is_public == false" style="display: flex; justify-content: center;">
+                <div
+                  v-if="data.data.is_public == false"
+                  style="display: flex; justify-content: center"
+                >
                   <AvatarGroup>
-                    <div v-for="(value, index) in data.data.ThanhvienShows" :key="index">
+                    <div
+                      v-for="(value, index) in data.data.ThanhvienShows"
+                      :key="index"
+                    >
                       <div>
-                        <Avatar @error="$event.target.src = basedomainURL + '/Portals/Image/nouser1.png'"
+                        <Avatar
+                          @error="
+                            $event.target.src =
+                              basedomainURL + '/Portals/Image/nouser1.png'
+                          "
                           v-tooltip.bottom="{
                             value:
                               value.fullName +
@@ -914,69 +987,109 @@ onMounted(() => {
                               '<br/>' +
                               (value.tenToChuc || ''),
                             escape: true,
-                          }" v-bind:label="
-  value.avatar ? '' : (value.ten ?? '').substring(0, 1)
-" v-bind:image="basedomainURL + value.avatar" style="
-                                                                                background-color: #2196f3;
-                                                                                color: #ffffff;
-                                                                                width: 32px;
-                                                                                height: 32px;
-                                                                                font-size: 15px !important;
-                                                                                margin-left: -10px;
-                                                                            " :style="{
-                                                                              background: bgColor[index % 7] + '!important',
-                                                                            }" class="cursor-pointer" size="xlarge"
-                          shape="circle" />
+                          }"
+                          v-bind:label="
+                            value.avatar
+                              ? ''
+                              : (value.ten ?? '').substring(0, 1)
+                          "
+                          v-bind:image="basedomainURL + value.avatar"
+                          style="
+                            background-color: #2196f3;
+                            color: #ffffff;
+                            width: 32px;
+                            height: 32px;
+                            font-size: 15px !important;
+                            margin-left: -10px;
+                          "
+                          :style="{
+                            background: bgColor[index % 7] + '!important',
+                          }"
+                          class="cursor-pointer"
+                          size="xlarge"
+                          shape="circle"
+                        />
                       </div>
                     </div>
-                    <Avatar @error="$event.target.src = basedomainURL + '/Portals/Image/nouser1.png'" v-if="
-                      data.data.Thanhviens.length - data.data.ThanhvienShows.length >
-                      0
-                    " :label="
-  '+' +
-  (data.data.Thanhviens.length -
-    data.data.ThanhvienShows.length) +
-  ''
-" class="cursor-pointer" shape="circle" style="
-                                                                            background-color: #e9e9e9 !important;
-                                                                            color: #98a9bc;
-                                                                            font-size: 14px !important;
-                                                                            width: 32px;
-                                                                            margin-left: -10px;
-                                                                            height: 32px;
-                                                                        " />
+                    <Avatar
+                      @error="
+                        $event.target.src =
+                          basedomainURL + '/Portals/Image/nouser1.png'
+                      "
+                      v-if="
+                        data.data.Thanhviens.length -
+                          data.data.ThanhvienShows.length >
+                        0
+                      "
+                      :label="
+                        '+' +
+                        (data.data.Thanhviens.length -
+                          data.data.ThanhvienShows.length) +
+                        ''
+                      "
+                      class="cursor-pointer"
+                      shape="circle"
+                      style="
+                        background-color: #e9e9e9 !important;
+                        color: #98a9bc;
+                        font-size: 14px !important;
+                        width: 32px;
+                        margin-left: -10px;
+                        height: 32px;
+                      "
+                    />
                   </AvatarGroup>
                 </div>
               </template>
             </Column>
-            <Column class="align-items-center justify-content-center text-center"
+            <Column
+              class="align-items-center justify-content-center text-center"
               headerStyle="text-align:center;min-height:3.125rem;max-width:100px;"
-              bodyStyle="text-align:center;max-width:100px;">
+              bodyStyle="text-align:center;max-width:100px;"
+            >
               <template #body="data">
-                <div v-if="
-                  store.state.user.is_super == true ||
-                  store.state.user.user_id == data.data.created_by ||
-                  data.data.isEdit == true ||
-                  (store.state.user.role_id == 'admin' &&
-                    store.state.user.organization_id == data.data.organization_id)
-                ">
-                  <Button @click="editDiscuss(data.data)"
-                    class="p-button-rounded p-button-secondary p-button-outlined mx-1" type="button" icon="pi pi-pencil"
-                    v-tooltip="'Sửa'"></Button>
-                  <Button @click="DelDiscuss(data.data)"
-                    class="p-button-rounded p-button-secondary p-button-outlined mx-1" type="button" icon="pi pi-trash"
-                    v-tooltip="'Xóa'"></Button>
+                <div
+                  v-if="
+                    store.state.user.is_super == true ||
+                    store.state.user.user_id == data.data.created_by ||
+                    data.data.isEdit == true ||
+                    (store.state.user.role_id == 'admin' &&
+                      store.state.user.organization_id ==
+                        data.data.organization_id)
+                  "
+                >
+                  <Button
+                    @click="editDiscuss(data.data)"
+                    class="p-button-rounded p-button-secondary p-button-outlined mx-1"
+                    type="button"
+                    icon="pi pi-pencil"
+                    v-tooltip="'Sửa'"
+                  ></Button>
+                  <Button
+                    @click="DelDiscuss(data.data)"
+                    class="p-button-rounded p-button-secondary p-button-outlined mx-1"
+                    type="button"
+                    icon="pi pi-trash"
+                    v-tooltip="'Xóa'"
+                  ></Button>
                 </div>
               </template>
             </Column>
             <template #empty>
-              <div class="align-items-center justify-content-center p-4 text-center m-auto" style="
-                                                                  min-height: calc(100vh - 215px);
-                                                                  max-height: calc(100vh - 215px);
-                                                                  display: flex;
-                                                                  flex-direction: column;
-                                                              " v-if="listProjectMainDiscuss != null">
-                <img src="../../assets/background/nodata.png" height="144" />
+              <div
+                class="align-items-center justify-content-center p-4 text-center m-auto"
+                style="
+                  min-height: calc(100vh - 215px);
+                  max-height: calc(100vh - 215px);
+                  display: flex;
+                  flex-direction: column;
+                "
+                v-if="listProjectMainDiscuss != null"
+              >
+                <img
+                  src="../../assets/background/nodata.png"
+                  height="144"
+                />
                 <h3 class="m-1">Không có dữ liệu</h3>
               </div>
             </template>
@@ -984,56 +1097,108 @@ onMounted(() => {
         </div>
       </div>
     </div>
-    <div class="col-6 p-0 m-0 tab-project-content-right" style="position: relative;">
-      <div v-if="selectedDiscussProjectID" class="row" style="font-size: 13px;height: 85%;width: 98%;">
-        <div class="row col-12" id="comments">
-          <div class="col-12 p-0 m-0" style="font-weight: 600; color: #888; font-size: 1.15rem">
+    <div
+      class="col-6 p-0 m-0 tab-project-content-right"
+      style="position: relative"
+    >
+      <div
+        v-if="selectedDiscussProjectID"
+        class="row"
+        style="font-size: 13px; height: 85%; width: 98%"
+      >
+        <div
+          class="row col-12"
+          id="comments"
+        >
+          <div
+            class="col-12 p-0 m-0"
+            style="font-weight: 600; color: #888; font-size: 1.15rem"
+          >
             <div class="col-12">
-              <i class="pi pi-comments pr-2" style="font-size: 0.9rem !important">
+              <i
+                class="pi pi-comments pr-2"
+                style="font-size: 0.9rem !important"
+              >
               </i>
-              <span>Thảo luận về nội dung: ({{ selectedDiscussProjectContent }})</span>
+              <span
+                >Thảo luận về nội dung: ({{
+                  selectedDiscussProjectContent
+                }})</span
+              >
             </div>
           </div>
 
-          <div class="col-12 w-full scroll-outer"
-            style="overflow: hidden auto;max-height: calc(100vh - 190px); min-height: calc(100vh - 190px);"
-            v-if="listComments != null">
-            <div class="row col-12 pl-4 w-full cmt-hover relative scroll-inner discuss-element"
-              style="padding-left: 0px !important;" v-for="(cmt, index) in listComments" :key="index" :id="
+          <div
+            class="col-12 w-full scroll-outer"
+            style="
+              overflow: hidden auto;
+              max-height: calc(100vh - 190px);
+              min-height: calc(100vh - 190px);
+            "
+            v-if="listComments != null"
+          >
+            <div
+              class="row col-12 pl-4 w-full cmt-hover relative scroll-inner discuss-element"
+              style="padding-left: 0px !important"
+              v-for="(cmt, index) in listComments"
+              :key="index"
+              :id="
                 index == listComments.length - 1
                   ? 'comment_final'
                   : 'comment_' + index
-              " ref="index">
-              <div class="right-0 absolute delete-button-hover" style="display: none;"
-                v-if="store.state.user.user_id == cmt.created_by">
-                <Button icon="pi pi-pencil" class="p-button-raised2 p-button-text" @click="EditComment(cmt)" />
-                <Button icon=" pi pi-trash" class="p-button-raised2 p-button-text" @click="DelComment(cmt.discuss_id)" />
+              "
+              ref="index"
+            >
+              <div
+                class="right-0 absolute delete-button-hover"
+                style="display: none"
+                v-if="store.state.user.user_id == cmt.created_by"
+              >
+                <Button
+                  icon="pi pi-pencil"
+                  class="p-button-raised2 p-button-text"
+                  @click="EditComment(cmt)"
+                />
+                <Button
+                  icon=" pi pi-trash"
+                  class="p-button-raised2 p-button-text"
+                  @click="DelComment(cmt.discuss_id)"
+                />
               </div>
               <div class="col-12 p-0 m-0 pb-2">
                 <!-- delete-button-hover -->
                 <div class="col-12 flex">
                   <div class="format-center">
-                    <Avatar @error="$event.target.src = basedomainURL + '/Portals/Image/nouser1.png'" v-tooltip="{
-                      value: cmt.tooltip,
-                      escape: true,
-                    }" v-bind:label="
-  cmt.avatar
-    ? ''
-    : cmt.full_name
-      .split(' ')
-      .at(-1)
-      .substring(0, 1)
-" v-bind:image="basedomainURL + cmt.avatar" style="color: #ffffff; cursor: pointer" :style="{
-  background: bgColor[index % 7],
-  border: '1px solid' + bgColor[index % 10],
-}" class="myTextAvatar p-0 m-0" size="small" shape="circle" />
+                    <Avatar
+                      @error="
+                        $event.target.src =
+                          basedomainURL + '/Portals/Image/nouser1.png'
+                      "
+                      v-tooltip="{
+                        value: cmt.tooltip,
+                        escape: true,
+                      }"
+                      v-bind:label="
+                        cmt.avatar
+                          ? ''
+                          : cmt.full_name.split(' ').at(-1).substring(0, 1)
+                      "
+                      v-bind:image="basedomainURL + cmt.avatar"
+                      style="color: #ffffff; cursor: pointer"
+                      :style="{
+                        background: bgColor[index % 7],
+                        border: '1px solid' + bgColor[index % 10],
+                      }"
+                      class="myTextAvatar p-0 m-0"
+                      size="small"
+                      shape="circle"
+                    />
                   </div>
                   <div class="col-10 format-left">
-                    <span style="
-                                      font-weight: 700;
-                                      font-size: 16px;
-                                      color: #385898;
-                                    ">{{ cmt.full_name }}</span>
+                    <span
+                      style="font-weight: 700; font-size: 16px; color: #385898"
+                      >{{ cmt.full_name }}</span
+                    >
                     <span class="ml-2">
                       {{
                         moment(new Date(cmt.created_date)).format(
@@ -1044,44 +1209,67 @@ onMounted(() => {
                   </div>
                 </div>
 
-                <div class="row col-12 p-0 m-0 flex" v-if="
-                  (cmt.contents != null &&
-                    cmt.contents != '<body><p><br></p></body>' &&
-                    cmt.contents != '<body></body>') ||
-                  cmt.children != null
-                ">
+                <div
+                  class="row col-12 p-0 m-0 flex"
+                  v-if="
+                    (cmt.contents != null &&
+                      cmt.contents != '<body><p><br></p></body>' &&
+                      cmt.contents != '<body></body>') ||
+                    cmt.children != null
+                  "
+                >
                   <div class="col-1"></div>
-                  <div class="pl-4 p-0 m-0 pr-4 bg-cmt-color border-1 border-round border-blue-100"
-                    :class="cmt.parent != null ? 'w-full' : ''">
-                    <div class="w-full pl-4 p-0 m-0 pr-4 bg-reply border-bottom-comment"
-                      style="padding-top: 5px !important;" v-if="cmt.parent != null">
+                  <div
+                    class="pl-4 p-0 m-0 pr-4 bg-cmt-color border-1 border-round border-blue-100"
+                    :class="cmt.parent != null ? 'w-full' : ''"
+                  >
+                    <div
+                      class="w-full pl-4 p-0 m-0 pr-4 bg-reply border-bottom-comment"
+                      style="padding-top: 5px !important"
+                      v-if="cmt.parent != null"
+                    >
                       <div class="col-12 p-0 m-0">
                         <!-- delete-button-hover -->
                         <div class="col-12 flex p-0 m-0">
                           <div class="format-center">
-                            <Avatar @error="$event.target.src = basedomainURL + '/Portals/Image/nouser1.png'" v-tooltip="{
-                              value: cmt.parent.tooltip,
-                              escape: true,
-                            }" v-bind:label="
-  cmt.parent.avatar
-    ? ''
-    : cmt.parent.full_name
-      .split(' ')
-      .at(-1)
-      .substring(0, 1)
-" v-bind:image="
-  basedomainURL + cmt.parent.avatar
-" style="color: #ffffff; cursor: pointer" :style="{
-  background: bgColor[index % 7],
-  border: '1px solid' + bgColor[index % 10],
-}" class="myTextAvatar p-0 m-0" size="small" shape="circle" />
+                            <Avatar
+                              @error="
+                                $event.target.src =
+                                  basedomainURL + '/Portals/Image/nouser1.png'
+                              "
+                              v-tooltip="{
+                                value: cmt.parent.tooltip,
+                                escape: true,
+                              }"
+                              v-bind:label="
+                                cmt.parent.avatar
+                                  ? ''
+                                  : cmt.parent.full_name
+                                      .split(' ')
+                                      .at(-1)
+                                      .substring(0, 1)
+                              "
+                              v-bind:image="basedomainURL + cmt.parent.avatar"
+                              style="color: #ffffff; cursor: pointer"
+                              :style="{
+                                background: bgColor[index % 7],
+                                border: '1px solid' + bgColor[index % 10],
+                              }"
+                              class="myTextAvatar p-0 m-0"
+                              size="small"
+                              shape="circle"
+                            />
                           </div>
                           <div class="col-10 format-left p-0 m-0">
-                            <span class="ml-2" style="
-                                              font-weight: 700;
-                                              font-size: 16px;
-                                              color: #385898;
-                                            ">{{ cmt.parent.full_name }}</span>
+                            <span
+                              class="ml-2"
+                              style="
+                                font-weight: 700;
+                                font-size: 16px;
+                                color: #385898;
+                              "
+                              >{{ cmt.parent.full_name }}</span
+                            >
                             <span class="ml-2">
                               {{
                                 moment(
@@ -1091,86 +1279,140 @@ onMounted(() => {
                             </span>
                           </div>
                         </div>
-                        <div class="row col-12 flex p-0 m-0" v-if="
-                          cmt.parent.contents != null &&
-                          cmt.parent.contents != '<body></body>'
-                        ">
+                        <div
+                          class="row col-12 flex p-0 m-0"
+                          v-if="
+                            cmt.parent.contents != null &&
+                            cmt.parent.contents != '<body></body>'
+                          "
+                        >
                           <div class="col-1 p-0 m-0 text-3xl right-0"></div>
 
-                          <div class="pl-4 p-0 m-0 pr-4 flex" style="
-                                            white-space: nowrap;
-                                            overflow: hidden;
-                                            display: -webkit-box;
-                                            -webkit-line-clamp: 3;
-                                            -webkit-box-orient: vertical;
-                                            text-overflow: ellipsis;
-                                          ">
-                            <font-awesome-icon icon="fa-solid fa-quote-left" /><span
-                              v-html="cmt.parent.contents"></span><font-awesome-icon icon="fa-solid fa-quote-right" />
+                          <div
+                            class="pl-4 p-0 m-0 pr-4 flex"
+                            style="
+                              white-space: nowrap;
+                              overflow: hidden;
+                              display: -webkit-box;
+                              -webkit-line-clamp: 3;
+                              -webkit-box-orient: vertical;
+                              text-overflow: ellipsis;
+                            "
+                          >
+                            <font-awesome-icon
+                              icon="fa-solid fa-quote-left"
+                            /><span v-html="cmt.parent.contents"></span
+                            ><font-awesome-icon
+                              icon="fa-solid fa-quote-right"
+                            />
                           </div>
                           <div class="col-1 p-0 m-0"></div>
                         </div>
                       </div>
                     </div>
-                    <div class="pl-4 p-0 m-0 pr-4" v-html="cmt.contents"></div>
+                    <div
+                      class="pl-4 p-0 m-0 pr-4"
+                      v-html="cmt.contents"
+                    ></div>
                   </div>
 
                   <div class="col-1"></div>
                 </div>
-                <div class="row col-12 flex p-0 m-0 pt-2" v-if="cmt.files != null">
+                <div
+                  class="row col-12 flex p-0 m-0 pt-2"
+                  v-if="cmt.files != null"
+                >
                   <div class="col-1"></div>
-                  <div class="col-10 p-0 m-0 bg-white-100 border-1 border-round border-blue-100">
+                  <div
+                    class="col-10 p-0 m-0 bg-white-100 border-1 border-round border-blue-100"
+                  >
                     <div class="col-12 flex flex-wrap">
-                      <div v-for="(slotProps, index) in cmt.files" :key="index"
+                      <div
+                        v-for="(slotProps, index) in cmt.files"
+                        :key="index"
                         class="col-4 py-0 mb-0 h-full relative div-menu-file-hover"
-                        v-on:dblclick="ViewFileInfo(slotProps)" v-tooltip.top="{
+                        v-on:dblclick="ViewFileInfo(slotProps)"
+                        v-tooltip.top="{
                           value: 'Nháy chuột 2 lần để xem chi tiết',
-                        }">
+                        }"
+                      >
                         <div class="absolute right-0 top-0 div-menu-file">
-                          <Button icon="pi pi-ellipsis-h" class="p-button-hover-file-menu p-button-text"
-                            v-tooltip="{ value: '' }" @click="
+                          <Button
+                            icon="pi pi-ellipsis-h"
+                            class="p-button-hover-file-menu p-button-text"
+                            v-tooltip="{ value: '' }"
+                            @click="
                               toggle_panel_file(
                                 $event,
                                 slotProps,
                                 cmt.created_by,
                               )
-                            " aria-haspopup="true" aria-controls="overlay_panel" />
+                            "
+                            aria-haspopup="true"
+                            aria-controls="overlay_panel"
+                          />
                         </div>
-                        <div class="col-12 p-0 m-0 py-2 format-default file-hover file-comments" style="height: 8rem">
-                          <div class="col-12 p-0 m-0" style="display: flex;flex-direction: column;align-items: center;">
-                            <Image :src="basedomainURL + slotProps.file_path" :alt="slotProps.file_name" preview
+                        <div
+                          class="col-12 p-0 m-0 py-2 format-default file-hover file-comments"
+                          style="height: 8rem"
+                        >
+                          <div
+                            class="col-12 p-0 m-0"
+                            style="
+                              display: flex;
+                              flex-direction: column;
+                              align-items: center;
+                            "
+                          >
+                            <Image
+                              :src="basedomainURL + slotProps.file_path"
+                              :alt="slotProps.file_name"
+                              preview
                               :imageStyle="'max-width: 50px; max-height: 50px; margin-top:5px'"
-                              v-if="slotProps.is_image == 1" style="
-                                              white-space: nowrap;
-                                              overflow: hidden;
-                                              text-overflow: ellipsis;
-                                            " />
-                            <img v-else :src="
-                              basedomainURL +
+                              v-if="slotProps.is_image == 1"
+                              style="
+                                white-space: nowrap;
+                                overflow: hidden;
+                                text-overflow: ellipsis;
+                              "
+                            />
+                            <img
+                              v-else
+                              :src="
+                                basedomainURL +
                                 '/Portals/Image/file/' +
                                 slotProps.file_type +
                                 '.png'
-                                ? basedomainURL +
-                                '/Portals/Image/file/' +
-                                slotProps.file_type +
-                                '.png'
-                                : basedomainURL +
-                                '/Portals/Image/file/iconga.png'
-                            " style="
-                                              width: 50px;
-                                              height: 50px;
-                                              object-fit: contain;
-                                              margintop: 5px;
-                                            " :alt="slotProps.file_name" />
-                            <div class="col-12 py-2 px-3 format-center file-comments-hover" style="
-                                              overflow: hidden;
-                                              text-overflow: ellipsis;
-                                              display: block;
-                                              white-space: nowrap;
-                                            ">
-                              <span class="" v-tooltip.top="{
-                                value: slotProps.file_name,
-                              }">
+                                  ? basedomainURL +
+                                    '/Portals/Image/file/' +
+                                    slotProps.file_type +
+                                    '.png'
+                                  : basedomainURL +
+                                    '/Portals/Image/file/iconga.png'
+                              "
+                              style="
+                                width: 50px;
+                                height: 50px;
+                                object-fit: contain;
+                                margintop: 5px;
+                              "
+                              :alt="slotProps.file_name"
+                            />
+                            <div
+                              class="col-12 py-2 px-3 format-center file-comments-hover"
+                              style="
+                                overflow: hidden;
+                                text-overflow: ellipsis;
+                                display: block;
+                                white-space: nowrap;
+                              "
+                            >
+                              <span
+                                class=""
+                                v-tooltip.top="{
+                                  value: slotProps.file_name,
+                                }"
+                              >
                                 {{ " " + slotProps.file_name }}
                               </span>
                             </div>
@@ -1187,7 +1429,12 @@ onMounted(() => {
                 <div class="row col-12 flex p-0 m-0 pt-1">
                   <div class="col-1"></div>
                   <div class="col-3 p-0 m-0 format-left">
-                    <Button label="Trả lời" icon="pi pi-reply" class="p-button-text reply" @click="ReplyComment(cmt)" />
+                    <Button
+                      label="Trả lời"
+                      icon="pi pi-reply"
+                      class="p-button-text reply"
+                      @click="ReplyComment(cmt)"
+                    />
                   </div>
                 </div>
               </div>
@@ -1195,95 +1442,169 @@ onMounted(() => {
           </div>
         </div>
       </div>
-      <div class="row" style="padding: 15px; font-size: 13px;height: 15%;">
-        <div class="grid formgrid m-2" style="position: relative;">
-          <div v-if="selectedDiscussProjectID"
+      <div
+        class="row"
+        style="padding: 15px; font-size: 13px; height: 15%"
+      >
+        <div
+          class="grid formgrid m-2"
+          style="position: relative"
+        >
+          <div
+            v-if="selectedDiscussProjectID"
             class="field col-12 md:col-12 absolute border-1 format-center col-12 p-0 m-0 border-round-xs border-600"
-            style="border-radius: 5px">
+            style="border-radius: 5px"
+          >
             <div class="border-0 col-9 p-0 m-0">
-              <QuillEditor ref="comment_zone_main" placeholder="Nhập nội dung thảo luận..." contentType="html"
-                :content="comment" v-model:content="comment" theme="bubble" @selectionChange="Change($event)"
-                style="height: 5rem" @keydown.enter.exact.prevent="addComment()" />
+              <QuillEditor
+                ref="comment_zone_main"
+                placeholder="Nhập nội dung thảo luận..."
+                contentType="html"
+                :content="comment"
+                v-model:content="comment"
+                theme="bubble"
+                @selectionChange="Change($event)"
+                style="height: 5rem"
+                @keydown.enter.exact.prevent="addComment()"
+              />
             </div>
             <div class="col-3 p-0 m-0">
               <div class="format-center flex col-12 p-0 m-0 h-full">
                 <!-- v-clickoutside="onHideEmoji" -->
 
-                <Button class="p-button-text p-button-plain col-3 format-center w-3rem h-3rem"
-                  @click="showEmoji($event, 1)" v-tooltip="{ value: 'Biểu cảm' }">
-                  <img alt="logo" src="/src/assets/image/smile.png" width="20" height="20" />
+                <Button
+                  class="p-button-text p-button-plain col-3 format-center w-3rem h-3rem"
+                  @click="showEmoji($event, 1)"
+                  v-tooltip="{ value: 'Biểu cảm' }"
+                >
+                  <img
+                    alt="logo"
+                    src="/src/assets/image/smile.png"
+                    width="20"
+                    height="20"
+                  />
                 </Button>
 
-                <Button class="p-button-text p-button-plain col-3 w-3rem h-3rem" style="background-color: ; color: black"
-                  icon="pi pi-paperclip pt-1 pr-0 font-bold" @click="chonanh('filediscuss')"
-                  v-tooltip="{ value: 'Đính kèm tệp' }">
+                <Button
+                  class="p-button-text p-button-plain col-3 w-3rem h-3rem"
+                  style="background-color: ; color: black"
+                  icon="pi pi-paperclip pt-1 pr-0 font-bold"
+                  @click="chonanh('filediscuss')"
+                  v-tooltip="{ value: 'Đính kèm tệp' }"
+                >
                 </Button>
-                <Button icon="pi pi-send pt-1 pr-0 font-bold" class="p-button-text p-button-plain col-3 w-3rem h-3rem"
-                  style="background-color: ; color: black" @click="addComment()" v-tooltip="{ value: 'Gửi bình luận' }" />
-                <input class="hidden" id="filediscuss" type="file" multiple="true" accept="*"
-                  @change="handleFileUploadReport" />
+                <Button
+                  icon="pi pi-send pt-1 pr-0 font-bold"
+                  class="p-button-text p-button-plain col-3 w-3rem h-3rem"
+                  style="background-color: ; color: black"
+                  @click="addComment()"
+                  v-tooltip="{ value: 'Gửi bình luận' }"
+                />
+                <input
+                  class="hidden"
+                  id="filediscuss"
+                  type="file"
+                  multiple="true"
+                  accept="*"
+                  @change="handleFileUploadReport"
+                />
               </div>
             </div>
           </div>
         </div>
       </div>
 
-      <div class="row discuss-file-send" v-if="listFileComment.length > 0"
-        style="position: absolute; bottom: 100px;width: 100%;display: flex;">
-        <div class="col-12" style="background-color: #f5f5f5">
-          <div class="row" style="display: flex;">
-            <div v-for="(item, index) in listFileComment" :key="index" class="col-2 relative format-center p-1" style="">
+      <div
+        class="row discuss-file-send"
+        v-if="listFileComment.length > 0"
+        style="position: absolute; bottom: 100px; width: 100%; display: flex"
+      >
+        <div
+          class="col-12"
+          style="background-color: #f5f5f5"
+        >
+          <div
+            class="row"
+            style="display: flex"
+          >
+            <div
+              v-for="(item, index) in listFileComment"
+              :key="index"
+              class="col-2 relative format-center p-1"
+              style=""
+            >
               <div class="col-2 p-0 m-0 anh format-center file-hover">
-                <Button @click="
-                  delImgComment(item.data ? item.data : item, index)
-                " icon="pi pi-times-circle"
+                <Button
+                  @click="delImgComment(item.data ? item.data : item, index)"
+                  icon="pi pi-times-circle"
                   class="p-button-rounded p-button-danger p-button-text p-button-plain absolute top-0 right-0 pr-0 mr-0 p-button-hover"
-                  v-tooltip="{ value: 'Xóa tệp' }"></Button>
+                  v-tooltip="{ value: 'Xóa tệp' }"
+                ></Button>
 
-                <div class="" v-if="item.checkimg == true">
-                  <img :src="item.src" :alt="' '" style="
-                                      max-width: 80px;
-                                      max-height: 50px;
-                                      object-fit: contain;
-                                      margin-top: 5px;
-                                    " class="pt-1" />
-                  <div class="p-1" style="
-                                      width: 95px;
-                                      font-size: 13px;
-                                      overflow: hidden;
-                                      text-overflow: ellipsis;
-                                      display: block;
-                                      font-weight: 500;
-                                      white-space: nowrap;
-                                    ">
+                <div
+                  class=""
+                  v-if="item.checkimg == true"
+                >
+                  <img
+                    :src="item.src"
+                    :alt="' '"
+                    style="
+                      max-width: 80px;
+                      max-height: 50px;
+                      object-fit: contain;
+                      margin-top: 5px;
+                    "
+                    class="pt-1"
+                  />
+                  <div
+                    class="p-1"
+                    style="
+                      width: 95px;
+                      font-size: 13px;
+                      overflow: hidden;
+                      text-overflow: ellipsis;
+                      display: block;
+                      font-weight: 500;
+                      white-space: nowrap;
+                    "
+                  >
                     {{ item.data.name }}
                     <br />
                     {{ item.size }}
                   </div>
                 </div>
-                <div class="" v-else>
-                  <img :src="
-                    basedomainURL +
-                    '/Portals/Image/file/' +
-                    item.src.substring(
-                      item.src.lastIndexOf('.') + 1,
-                    ) +
-                    '.png'
-                  " style="
-                                      max-width: 80px;
-                                      max-height: 50px;
-                                      object-fit: contain;
-                                      margin-top: 5px;
-                                    " :alt="' '" class="pt-1" />
-                  <div class="p-1" style="
-                                      width: 95px;
-                                      font-size: 13px;
-                                      overflow: hidden;
-                                      text-overflow: ellipsis;
-                                      display: block;
-                                      font-weight: 500;
-                                      white-space: nowrap;
-                                    ">
+                <div
+                  class=""
+                  v-else
+                >
+                  <img
+                    :src="
+                      basedomainURL +
+                      '/Portals/Image/file/' +
+                      item.src.substring(item.src.lastIndexOf('.') + 1) +
+                      '.png'
+                    "
+                    style="
+                      max-width: 80px;
+                      max-height: 50px;
+                      object-fit: contain;
+                      margin-top: 5px;
+                    "
+                    :alt="' '"
+                    class="pt-1"
+                  />
+                  <div
+                    class="p-1"
+                    style="
+                      width: 95px;
+                      font-size: 13px;
+                      overflow: hidden;
+                      text-overflow: ellipsis;
+                      display: block;
+                      font-weight: 500;
+                      white-space: nowrap;
+                    "
+                  >
                     {{ item.src }}
                     <br />
                     {{ item.size }}
@@ -1295,39 +1616,66 @@ onMounted(() => {
         </div>
       </div>
 
-      <div class="row discuss-repley-content" v-if="replyCmtValue"
-        style="position: absolute; bottom: 100px; background-color: #f5f5f5;width: 100%;">
+      <div
+        class="row discuss-repley-content"
+        v-if="replyCmtValue"
+        style="
+          position: absolute;
+          bottom: 100px;
+          background-color: #f5f5f5;
+          width: 100%;
+        "
+      >
         <div class="col-12 w-full scroll-outer">
-          <div class="row col-12 pl-4 w-full cmt-hover relative scroll-inner discuss-element"
-            style="padding-left: 0px !important;" ref="index">
+          <div
+            class="row col-12 pl-4 w-full cmt-hover relative scroll-inner discuss-element"
+            style="padding-left: 0px !important"
+            ref="index"
+          >
             <div class="right-0 absolute delete-button-hover">
-              <Button icon=" pi pi-times" class="p-button-raised2 p-button-text" @click="DelReplyComment()" />
+              <Button
+                icon=" pi pi-times"
+                class="p-button-raised2 p-button-text"
+                @click="DelReplyComment()"
+              />
             </div>
             <div class="col-12 p-0 m-0 pb-2">
               <!-- delete-button-hover -->
               <div class="col-12 flex">
                 <div class="format-center">
-                  <Avatar @error="$event.target.src = basedomainURL + '/Portals/Image/nouser1.png'" v-tooltip="{
-                    value: replyCmtValue[0].tooltip,
-                    escape: true,
-                  }" v-bind:label="
-  replyCmtValue[0].avatar
-    ? ''
-    : replyCmtValue[0].full_name
-      .split(' ')
-      .at(-1)
-      .substring(0, 1)
-" v-bind:image="basedomainURL + replyCmtValue[0].avatar" style="color: #ffffff; cursor: pointer" :style="{
-  background: bgColor[1],
-  border: '1px solid' + bgColor[1],
-}" class="myTextAvatar p-0 m-0" size="small" shape="circle" />
+                  <Avatar
+                    @error="
+                      $event.target.src =
+                        basedomainURL + '/Portals/Image/nouser1.png'
+                    "
+                    v-tooltip="{
+                      value: replyCmtValue[0].tooltip,
+                      escape: true,
+                    }"
+                    v-bind:label="
+                      replyCmtValue[0].avatar
+                        ? ''
+                        : replyCmtValue[0].full_name
+                            .split(' ')
+                            .at(-1)
+                            .substring(0, 1)
+                    "
+                    v-bind:image="basedomainURL + replyCmtValue[0].avatar"
+                    style="color: #ffffff; cursor: pointer"
+                    :style="{
+                      background: bgColor[1],
+                      border: '1px solid' + bgColor[1],
+                    }"
+                    class="myTextAvatar p-0 m-0"
+                    size="small"
+                    shape="circle"
+                  />
                 </div>
                 <div class="col-10 format-left">
-                  <span style="
-                                      font-weight: 700;
-                                      font-size: 16px;
-                                      color: #385898;
-                                    ">{{ replyCmtValue[0].full_name }}</span>
+                  <span
+                    style="font-weight: 700; font-size: 16px; color: #385898"
+                    >{{ replyCmtValue[0].full_name }}</span
+                  >
                   <span class="ml-2">
                     {{
                       moment(new Date(replyCmtValue[0].created_date)).format(
@@ -1338,44 +1686,69 @@ onMounted(() => {
                 </div>
               </div>
 
-              <div class="row col-12 p-0 m-0 flex" v-if="
-                (replyCmtValue[0].contents != null &&
-                  replyCmtValue[0].contents != '<body><p><br></p></body>' &&
-                  replyCmtValue[0].contents != '<body></body>') ||
-                replyCmtValue[0].children != null
-              ">
+              <div
+                class="row col-12 p-0 m-0 flex"
+                v-if="
+                  (replyCmtValue[0].contents != null &&
+                    replyCmtValue[0].contents != '<body><p><br></p></body>' &&
+                    replyCmtValue[0].contents != '<body></body>') ||
+                  replyCmtValue[0].children != null
+                "
+              >
                 <div class="col-1"></div>
-                <div class="pl-4 p-0 m-0 pr-4 bg-cmt-color border-1 border-round border-blue-100"
-                  :class="replyCmtValue[0].parent != null ? 'w-full' : ''">
-                  <div class="w-full pl-4 p-0 m-0 pr-4 bg-reply border-bottom-comment"
-                    style="padding-top: 5px !important;" v-if="replyCmtValue[0].parent != null">
+                <div
+                  class="pl-4 p-0 m-0 pr-4 bg-cmt-color border-1 border-round border-blue-100"
+                  :class="replyCmtValue[0].parent != null ? 'w-full' : ''"
+                >
+                  <div
+                    class="w-full pl-4 p-0 m-0 pr-4 bg-reply border-bottom-comment"
+                    style="padding-top: 5px !important"
+                    v-if="replyCmtValue[0].parent != null"
+                  >
                     <div class="col-12 p-0 m-0">
                       <!-- delete-button-hover -->
                       <div class="col-12 flex p-0 m-0">
                         <div class="format-center">
-                          <Avatar @error="$event.target.src = basedomainURL + '/Portals/Image/nouser1.png'" v-tooltip="{
-                            value: replyCmtValue[0].parent.tooltip,
-                            escape: true,
-                          }" v-bind:label="
-  replyCmtValue[0].parent.avatar
-    ? ''
-    : replyCmtValue[0].parent.full_name
-      .split(' ')
-      .at(-1)
-      .substring(0, 1)
-" v-bind:image="
-  basedomainURL + replyCmtValue[0].parent.avatar
-" style="color: #ffffff; cursor: pointer" :style="{
-  background: bgColor[2],
-  border: '1px solid' + bgColor[2],
-}" class="myTextAvatar p-0 m-0" size="small" shape="circle" />
+                          <Avatar
+                            @error="
+                              $event.target.src =
+                                basedomainURL + '/Portals/Image/nouser1.png'
+                            "
+                            v-tooltip="{
+                              value: replyCmtValue[0].parent.tooltip,
+                              escape: true,
+                            }"
+                            v-bind:label="
+                              replyCmtValue[0].parent.avatar
+                                ? ''
+                                : replyCmtValue[0].parent.full_name
+                                    .split(' ')
+                                    .at(-1)
+                                    .substring(0, 1)
+                            "
+                            v-bind:image="
+                              basedomainURL + replyCmtValue[0].parent.avatar
+                            "
+                            style="color: #ffffff; cursor: pointer"
+                            :style="{
+                              background: bgColor[2],
+                              border: '1px solid' + bgColor[2],
+                            }"
+                            class="myTextAvatar p-0 m-0"
+                            size="small"
+                            shape="circle"
+                          />
                         </div>
                         <div class="col-10 format-left p-0 m-0">
-                          <span class="ml-2" style="
-                                              font-weight: 700;
-                                              font-size: 16px;
-                                              color: #385898;
-                                            ">{{ replyCmtValue[0].parent.full_name }}</span>
+                          <span
+                            class="ml-2"
+                            style="
+                              font-weight: 700;
+                              font-size: 16px;
+                              color: #385898;
+                            "
+                            >{{ replyCmtValue[0].parent.full_name }}</span
+                          >
                           <span class="ml-2">
                             {{
                               moment(
@@ -1385,87 +1758,140 @@ onMounted(() => {
                           </span>
                         </div>
                       </div>
-                      <div class="row col-12 flex p-0 m-0" v-if="
-                        replyCmtValue[0].parent.contents != null &&
-                        replyCmtValue[0].parent.contents != '<body></body>'
-                      ">
+                      <div
+                        class="row col-12 flex p-0 m-0"
+                        v-if="
+                          replyCmtValue[0].parent.contents != null &&
+                          replyCmtValue[0].parent.contents != '<body></body>'
+                        "
+                      >
                         <div class="col-1 p-0 m-0 text-3xl right-0"></div>
 
-                        <div class="pl-4 p-0 m-0 pr-4 flex" style="
-                                            white-space: nowrap;
-                                            overflow: hidden;
-                                            display: -webkit-box;
-                                            -webkit-line-clamp: 3;
-                                            -webkit-box-orient: vertical;
-                                            text-overflow: ellipsis;
-                                          ">
-                          <font-awesome-icon icon="fa-solid fa-quote-left" /><span
-                            v-html="replyCmtValue[0].parent.contents"></span><font-awesome-icon
-                            icon="fa-solid fa-quote-right" />
+                        <div
+                          class="pl-4 p-0 m-0 pr-4 flex"
+                          style="
+                            white-space: nowrap;
+                            overflow: hidden;
+                            display: -webkit-box;
+                            -webkit-line-clamp: 3;
+                            -webkit-box-orient: vertical;
+                            text-overflow: ellipsis;
+                          "
+                        >
+                          <font-awesome-icon
+                            icon="fa-solid fa-quote-left"
+                          /><span
+                            v-html="replyCmtValue[0].parent.contents"
+                          ></span
+                          ><font-awesome-icon icon="fa-solid fa-quote-right" />
                         </div>
                         <div class="col-1 p-0 m-0"></div>
                       </div>
                     </div>
                   </div>
-                  <div class="pl-4 p-0 m-0 pr-4" v-html="replyCmtValue[0].contents"></div>
+                  <div
+                    class="pl-4 p-0 m-0 pr-4"
+                    v-html="replyCmtValue[0].contents"
+                  ></div>
                 </div>
 
                 <div class="col-1"></div>
               </div>
-              <div class="row col-12 flex p-0 m-0 pt-2" v-if="replyCmtValue[0].files != null">
+              <div
+                class="row col-12 flex p-0 m-0 pt-2"
+                v-if="replyCmtValue[0].files != null"
+              >
                 <div class="col-1"></div>
-                <div class="col-10 p-0 m-0 bg-white-100 border-1 border-round border-blue-100">
+                <div
+                  class="col-10 p-0 m-0 bg-white-100 border-1 border-round border-blue-100"
+                >
                   <div class="col-12 flex flex-wrap">
-                    <div v-for="(slotProps, index) in replyCmtValue[0].files" :key="index"
-                      class="col-4 py-0 mb-0 h-full relative div-menu-file-hover" v-on:dblclick="ViewFileInfo(slotProps)"
+                    <div
+                      v-for="(slotProps, index) in replyCmtValue[0].files"
+                      :key="index"
+                      class="col-4 py-0 mb-0 h-full relative div-menu-file-hover"
+                      v-on:dblclick="ViewFileInfo(slotProps)"
                       v-tooltip.top="{
                         value: 'Nháy chuột 2 lần để xem chi tiết',
-                      }">
+                      }"
+                    >
                       <div class="absolute right-0 top-0 div-menu-file">
-                        <Button icon="pi pi-ellipsis-h" class="p-button-hover-file-menu p-button-text"
-                          v-tooltip="{ value: '' }" @click="
+                        <Button
+                          icon="pi pi-ellipsis-h"
+                          class="p-button-hover-file-menu p-button-text"
+                          v-tooltip="{ value: '' }"
+                          @click="
                             toggle_panel_file(
                               $event,
                               slotProps,
                               replyCmtValue[0].created_by,
                             )
-                          " aria-haspopup="true" aria-controls="overlay_panel" />
+                          "
+                          aria-haspopup="true"
+                          aria-controls="overlay_panel"
+                        />
                       </div>
-                      <div class="col-12 p-0 m-0 py-2 format-default file-hover file-comments" style="height: 8rem">
-                        <div class="col-12 p-0 m-0" style="display: flex;flex-direction: column;align-items: center;">
-                          <Image :src="basedomainURL + slotProps.file_path" :alt="slotProps.file_name" preview
+                      <div
+                        class="col-12 p-0 m-0 py-2 format-default file-hover file-comments"
+                        style="height: 8rem"
+                      >
+                        <div
+                          class="col-12 p-0 m-0"
+                          style="
+                            display: flex;
+                            flex-direction: column;
+                            align-items: center;
+                          "
+                        >
+                          <Image
+                            :src="basedomainURL + slotProps.file_path"
+                            :alt="slotProps.file_name"
+                            preview
                             :imageStyle="'max-width: 50px; max-height: 50px; margin-top:5px'"
-                            v-if="slotProps.is_image == 1" style="
-                                              white-space: nowrap;
-                                              overflow: hidden;
-                                              text-overflow: ellipsis;
-                                            " />
-                          <img v-else :src="
-                            basedomainURL +
+                            v-if="slotProps.is_image == 1"
+                            style="
+                              white-space: nowrap;
+                              overflow: hidden;
+                              text-overflow: ellipsis;
+                            "
+                          />
+                          <img
+                            v-else
+                            :src="
+                              basedomainURL +
                               '/Portals/Image/file/' +
                               slotProps.file_type +
                               '.png'
-                              ? basedomainURL +
-                              '/Portals/Image/file/' +
-                              slotProps.file_type +
-                              '.png'
-                              : basedomainURL +
-                              '/Portals/Image/file/iconga.png'
-                          " style="
-                                              width: 50px;
-                                              height: 50px;
-                                              object-fit: contain;
-                                              margintop: 5px;
-                                            " :alt="slotProps.file_name" />
-                          <div class="col-12 py-2 px-3 format-center file-comments-hover" style="
-                                              overflow: hidden;
-                                              text-overflow: ellipsis;
-                                              display: block;
-                                              white-space: nowrap;
-                                            ">
-                            <span class="" v-tooltip.top="{
-                              value: slotProps.file_name,
-                            }">
+                                ? basedomainURL +
+                                  '/Portals/Image/file/' +
+                                  slotProps.file_type +
+                                  '.png'
+                                : basedomainURL +
+                                  '/Portals/Image/file/iconga.png'
+                            "
+                            style="
+                              width: 50px;
+                              height: 50px;
+                              object-fit: contain;
+                              margintop: 5px;
+                            "
+                            :alt="slotProps.file_name"
+                          />
+                          <div
+                            class="col-12 py-2 px-3 format-center file-comments-hover"
+                            style="
+                              overflow: hidden;
+                              text-overflow: ellipsis;
+                              display: block;
+                              white-space: nowrap;
+                            "
+                          >
+                            <span
+                              class=""
+                              v-tooltip.top="{
+                                value: slotProps.file_name,
+                              }"
+                            >
                               {{ " " + slotProps.file_name }}
                             </span>
                           </div>
@@ -1485,7 +1911,13 @@ onMounted(() => {
       </div>
     </div>
   </div>
-  <OverlayPanel class="p-0" ref="panelEmoij1" append-to="body" :show-close-icon="false" id="overlay_panelEmoij1">
+  <OverlayPanel
+    class="p-0"
+    ref="panelEmoij1"
+    append-to="body"
+    :show-close-icon="false"
+    id="overlay_panelEmoij1"
+  >
     <VuemojiPicker @emojiClick="handleEmojiClick" />
   </OverlayPanel>
   <Menu
@@ -1510,22 +1942,44 @@ onMounted(() => {
       </a>
     </template>
   </Menu>
-  <FileInfoVue :data="fileInfo" v-if="isViewFileInfo"></FileInfoVue>
-  <Dialog :header="headerAddDiscuss" v-model:visible="displayDiscuss" :style="{ width: '40vw' }" :closable="true"
-    :maximizable="true">
+  <FileInfoVue
+    :data="fileInfo"
+    v-if="isViewFileInfo"
+  ></FileInfoVue>
+  <Dialog
+    :header="headerAddDiscuss"
+    v-model:visible="displayDiscuss"
+    :style="{ width: '40vw' }"
+    :closable="true"
+    :maximizable="true"
+  >
     <form>
       <div class="grid formgrid m-2">
         <div class="field col-12 md:col-12">
-          <label class="col-3 text-left p-0">Nội dung thảo luận<span class="redsao"> (*) </span></label>
-          <InputText v-model="discussProject.discuss_project_content" spellcheck="false" class="col-9 ip36 px-2"
-            :class="{ 'p-invalid': v3$.discuss_project_content.$invalid && submitted }" />
+          <label class="col-3 text-left p-0"
+            >Nội dung thảo luận<span class="redsao"> (*) </span></label
+          >
+          <InputText
+            v-model="discussProject.discuss_project_content"
+            spellcheck="false"
+            class="col-9 ip36 px-2"
+            :class="{
+              'p-invalid': v3$.discuss_project_content.$invalid && submitted,
+            }"
+          />
         </div>
-        <div style="display: flex" class="field col-12 md:col-12">
+        <div
+          style="display: flex"
+          class="field col-12 md:col-12"
+        >
           <div class="col-3 text-left"></div>
-          <small v-if="
-            (v3$.discuss_project_content.$invalid && submitted) ||
-            v3$.discuss_project_content.$pending.$response
-          " class="col-9 p-error p-0">
+          <small
+            v-if="
+              (v3$.discuss_project_content.$invalid && submitted) ||
+              v3$.discuss_project_content.$pending.$response
+            "
+            class="col-9 p-error p-0"
+          >
             <span class="col-12 p-0">{{
               v3$.discuss_project_content.required.$message
                 .replace("Value", "Nội dung thảo luận")
@@ -1533,53 +1987,122 @@ onMounted(() => {
             }}</span>
           </small>
         </div>
-        <div class="field col-12 md:col-12" style="display: flex; align-items: center">
+        <div
+          class="field col-12 md:col-12"
+          style="display: flex; align-items: center"
+        >
           <label class="col-3 text-left p-0">Ngày bắt đầu</label>
-          <div class="col-9" style="display: flex; padding: 0px; align-items: center">
-            <Calendar :manualInput="true" :showIcon="true" :showTime="true" class="col-5 ip36 title-lable"
-              style="margin-top: 5px; padding: 0px" id="time1" autocomplete="on" v-model="discussProject.start_date" />
-            <div class="col-7" style="display: flex; padding: 0px; align-items: center">
+          <div
+            class="col-9"
+            style="display: flex; padding: 0px; align-items: center"
+          >
+            <Calendar
+              :manualInput="true"
+              :showIcon="true"
+              :showTime="true"
+              class="col-5 ip36 title-lable"
+              style="margin-top: 5px; padding: 0px"
+              id="time1"
+              autocomplete="on"
+              v-model="discussProject.start_date"
+            />
+            <div
+              class="col-7"
+              style="display: flex; padding: 0px; align-items: center"
+            >
               <label class="col-5 text-center">Ngày kết thúc</label>
-              <Calendar :manualInput="true" :showTime="true" :showIcon="true" class="col-7 ip36 title-lable"
-                style="margin-top: 5px; padding: 0px" id="time2" placeholder="dd/MM/yy HH:mm" autocomplete="on"
-                v-model="discussProject.end_date" @date-select="CheckDate($event)" />
+              <Calendar
+                :manualInput="true"
+                :showTime="true"
+                :showIcon="true"
+                class="col-7 ip36 title-lable"
+                style="margin-top: 5px; padding: 0px"
+                id="time2"
+                placeholder="dd/MM/yy HH:mm"
+                autocomplete="on"
+                v-model="discussProject.end_date"
+                @date-select="CheckDate($event)"
+              />
             </div>
           </div>
         </div>
         <div class="field col-12 md:col-12">
           <label class="col-3 text-left p-0">STT</label>
-          <InputNumber v-model="discussProject.is_order" style="padding: 0px !important" class="col-9 ip36 px-2" />
+          <InputNumber
+            v-model="discussProject.is_order"
+            style="padding: 0px !important"
+            class="col-9 ip36 px-2"
+          />
         </div>
         <div class="field col-12 md:col-12 flex">
           <label class="col-3 text-left p-0">Public thảo luận</label>
-          <div class="col-9" style="position: relative;">
-            <InputSwitch class="col-12" style="position: absolute; top: 0px; left: 0px"
-              v-model="discussProject.is_public" />
+          <div
+            class="col-9"
+            style="position: relative"
+          >
+            <InputSwitch
+              class="col-12"
+              style="position: absolute; top: 0px; left: 0px"
+              v-model="discussProject.is_public"
+            />
           </div>
         </div>
-        <div class="field col-12 md:col-12" v-if="discussProject.is_public == false">
-          <label class="col-3 text-left p-0">Người tham gia
-            <span @click="OpenDialogTreeUser(false, 1)" class="choose-user"><i class="pi pi-user-plus"></i></span></label>
-          <MultiSelect :filter="true" v-model="discussProject.members" :options="listDropdownMembers" optionValue="code"
-            optionLabel="name" class="col-9 ip36 p-0" placeholder="Người tham gia" display="chip">
+        <div
+          class="field col-12 md:col-12"
+          v-if="discussProject.is_public == false"
+        >
+          <label class="col-3 text-left p-0"
+            >Người tham gia
+            <span
+              @click="OpenDialogTreeUser(false, 1)"
+              class="choose-user"
+              ><i class="pi pi-user-plus"></i></span
+          ></label>
+          <MultiSelect
+            :filter="true"
+            v-model="discussProject.members"
+            :options="listDropdownMembers"
+            optionValue="code"
+            optionLabel="name"
+            class="col-9 ip36 p-0"
+            placeholder="Người tham gia"
+            display="chip"
+          >
             <template #option="slotProps">
-              <div class="country-item flex" style="align-items: center; margin-left: 10px">
-                <Avatar @error="$event.target.src = basedomainURL + '/Portals/Image/nouser1.png'" v-bind:label="
-                  slotProps.option.avatar
-                    ? ''
-                    : (slotProps.option.name ?? '').substring(0, 1)
-                " v-bind:image="basedomainURL + slotProps.option.avatar" 
-                style="
-                                                            background-color: #2196f3;
-                                                            color: #ffffff;
-                                                            width: 32px;
-                                                            height: 32px;
-                                                            font-size: 15px !important;
-                                                            margin-left: -10px;
-                                                          " :style="{
-                                                            background: bgColor[slotProps.index % 7] + '!important',
-                                                          }" class="cursor-pointer" size="xlarge" shape="circle" />
-                <div class="pt-1" style="padding-left: 10px">
+              <div
+                class="country-item flex"
+                style="align-items: center; margin-left: 10px"
+              >
+                <Avatar
+                  @error="
+                    $event.target.src =
+                      basedomainURL + '/Portals/Image/nouser1.png'
+                  "
+                  v-bind:label="
+                    slotProps.option.avatar
+                      ? ''
+                      : (slotProps.option.name ?? '').substring(0, 1)
+                  "
+                  v-bind:image="basedomainURL + slotProps.option.avatar"
+                  style="
+                    background-color: #2196f3;
+                    color: #ffffff;
+                    width: 32px;
+                    height: 32px;
+                    font-size: 15px !important;
+                    margin-left: -10px;
+                  "
+                  :style="{
+                    background: bgColor[slotProps.index % 7] + '!important',
+                  }"
+                  class="cursor-pointer"
+                  size="xlarge"
+                  shape="circle"
+                />
+                <div
+                  class="pt-1"
+                  style="padding-left: 10px"
+                >
                   {{ slotProps.option.name }}
                 </div>
               </div>
@@ -1589,8 +2112,17 @@ onMounted(() => {
       </div>
     </form>
     <template #footer>
-      <Button label="Hủy" icon="pi pi-times" @click="closeDialogProjectMain" class="p-button-text" />
-      <Button label="Lưu" icon="pi pi-check" @click="saveDiscussProjectMain(!v3$.discuss_project_content.$invalid)" />
+      <Button
+        label="Hủy"
+        icon="pi pi-times"
+        @click="closeDialogProjectMain"
+        class="p-button-text"
+      />
+      <Button
+        label="Lưu"
+        icon="pi pi-check"
+        @click="saveDiscussProjectMain(!v3$.discuss_project_content.$invalid)"
+      />
     </template>
   </Dialog>
 </template>
@@ -1613,7 +2145,6 @@ onMounted(() => {
   width: 50%;
   animation: 0.5s;
 }
-
 
 #projectmain-thaoluan {
   max-height: calc(100vh - 110px);

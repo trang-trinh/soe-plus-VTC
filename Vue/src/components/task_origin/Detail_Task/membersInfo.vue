@@ -1,6 +1,8 @@
 <script setup>
 import { ref, inject, onMounted } from "vue";
 import { useToast } from "vue-toastification";
+import { useVuelidate } from "@vuelidate/core";
+import { required } from "@vuelidate/validators";
 import { encr } from "../../../util/function.js";
 import moment from "moment";
 const cryoptojs = inject("cryptojs");
@@ -24,6 +26,50 @@ const bgColor = ref([
   "#CCADD7",
   "#FF88D3",
 ]);
+const model = ref({
+  point: "",
+  comments: "",
+});
+const configMember = ref();
+const user = store.getters.user;
+const loadConfig = () => {
+  axios
+    .post(
+      baseURL + "/api/TaskProc/getTaskData",
+      {
+        str: encr(
+          JSON.stringify({
+            proc: "task_review_member_config_get",
+            par: [{ par: "user_id", va: user.user_id }],
+          }),
+          SecretKey,
+          cryoptojs,
+        ).toString(),
+      },
+      config,
+    )
+    .then((response) => {
+      let data = JSON.parse(response.data.data)[0];
+      configMember.value =
+        data.length > 0
+          ? data[0]
+          : {
+              executors: 0,
+              co_executors: 0,
+              supervisor: 0,
+            };
+    })
+    .catch((error) => {
+      toast.error("Tải dữ liệu không thành công!");
+      if (error && error.status === 401) {
+        swal.fire({
+          text: "Mã token đã hết hạn hoặc không hợp lệ, vui lòng đăng nhập lại!",
+          confirmButtonText: "OK",
+        });
+        store.commit("gologout");
+      }
+    });
+};
 const height1 = ref(window.screen.availHeight);
 const TatCa = ref(false);
 const NguoiXuLy = ref(false);
@@ -130,7 +176,6 @@ const LoadMember = (type) => {
       let countMemType1 = JSON.parse(response.data.data)[4];
       let countMemType2 = JSON.parse(response.data.data)[5];
       let countMemType3 = JSON.parse(response.data.data)[6];
-
       members.value = mem;
       // member;
       ngv.value = countMemType0[0].countType0;
@@ -356,6 +401,38 @@ const addMember = (event) => {
       });
     });
 };
+const Update_Point = () => {
+  let formData = new FormData();
+  formData.append("member", JSON.stringify(model.value));
+  axios
+    .put(baseURL + "/api/task_Member/Update_Member_Info", formData, {
+      headers: { Authorization: `Bearer ${store.getters.token}` },
+    })
+    .then((response) => {
+      if (response.data.err != "1") {
+        toast.success("Cập nhật thành viên công việc thành công!");
+        visibleDialog.value = false;
+        Switch(index.value);
+      } else {
+        let ms = response.data.ms;
+        swal.fire({
+          title: "Thông báo!",
+          html: ms,
+          icon: "error",
+          confirmButtonText: "OK",
+        });
+      }
+    })
+    .catch((error) => {
+      swal.close();
+      swal.fire({
+        title: "Thông báo",
+        text: "Có lỗi xảy ra, vui lòng kiểm tra lại!" + error,
+        icon: "error",
+        confirmButtonText: "OK",
+      });
+    });
+};
 const delMember = (user) => {
   let id = [];
   id.push(user.member_id);
@@ -421,11 +498,30 @@ const delMember = (user) => {
     });
 };
 const tabs = ref([]);
+const index = ref();
 const changeTab = (e) => {
   Switch(tabs.value[e].va);
+  index.value = tabs.value[e].va;
+};
+const headerDialog = ref();
+const visibleDialog = ref(false);
+const Point = (e) => {
+  visibleDialog.value = true;
+  headerDialog.value = "Đánh giá thành viên";
+  model.value = JSON.parse(JSON.stringify(e));
+  if (model.value.is_type == 1) {
+    model.value.point = configMember.value.executors;
+  }
+  if (model.value.is_type == 2) {
+    model.value.point = configMember.value.co_executors;
+  }
+  if (model.value.is_type == 3) {
+    model.value.point = configMember.value.supervisor;
+  }
 };
 onMounted(() => {
   Switch(props.isType ? props.isType : 1);
+  loadConfig();
 });
 </script>
 <template>
@@ -524,7 +620,7 @@ onMounted(() => {
                 :key="m"
                 style="border-bottom: 1px solid #ccc"
               >
-                <div class="col-2 format-center p-0 m-0">
+                <div class="col-1 format-center p-0 m-0">
                   <Avatar
                     @error="
                       $event.target.src =
@@ -533,6 +629,7 @@ onMounted(() => {
                     v-tooltip.right="{
                       value: m.tooltip,
                       escape: true,
+                      fitContent: true,
                     }"
                     v-bind:label="
                       m.avt ? '' : m.full_name.split(' ').at(-1).substring(0, 1)
@@ -570,7 +667,7 @@ onMounted(() => {
                   </div>
                 </div>
                 <div
-                  class="col-1 format-center"
+                  class="col-2 format-center"
                   v-if="
                     props.isClose == false &&
                     !TatCa &&
@@ -582,9 +679,16 @@ onMounted(() => {
                   "
                 >
                   <Button
+                    icon="p-custom pi pi-user-edit"
+                    class="p-button-raised p-button-text p-custom mx-1"
+                    v-tooltip="'Đánh giá thành viên'"
+                    @click="Point(m)"
+                  />
+                  <Button
                     icon="p-custom pi pi-trash"
-                    class="p-button-raised p-button-text p-custom"
+                    class="p-button-raised p-button-text p-custom mx-1"
                     @click="delMember(m)"
+                    v-tooltip="'Xóa thành viên'"
                   />
                 </div>
               </div>
@@ -604,6 +708,55 @@ onMounted(() => {
       </TabView>
     </div>
   </div>
+  <Dialog
+    v-model:visible="visibleDialog"
+    :header="headerDialog"
+    modal
+    :closable="false"
+    dismissableMask
+    style="width: 40vw"
+  >
+    <form>
+      <div class="col-12 flex">
+        <div class="col-4 flex align-items-center">Điểm đánh giá</div>
+        <InputNumber
+          class="col-8"
+          suffix=" %"
+          mode="decimal"
+          :minFractionDigits="2"
+          :useGrouping="false"
+          v-model="model.point"
+          v-tooltip="'Mức hoàn thành công việc'"
+        >
+        </InputNumber>
+      </div>
+
+      <div class="col-12 flex">
+        <div class="col-4 flex align-items-center">Nội dung</div>
+        <div class="col-8">
+          <Textarea
+            class="w-full"
+            autoResize
+            v-model="model.comments"
+          ></Textarea>
+        </div>
+      </div>
+    </form>
+    <template #footer>
+      <Button
+        class="mx-1 p-button-text"
+        icon="pi pi-times"
+        label="Hủy"
+        @click="visibleDialog = false"
+      ></Button>
+      <Button
+        class="mx-1"
+        icon="pi pi-times"
+        label="Lưu"
+        @click="Update_Point()"
+      ></Button>
+    </template>
+  </Dialog>
 </template>
 <style scoped>
 .format-center {
