@@ -2474,7 +2474,7 @@ onMounted(() => {
               spellcheck="false"
               class="ip36"
               style="width: calc(100% - 10rem)"
-              v-model="donvi.short_name"
+              v-model="department_merger.decision_number"
               :style="{ backgroundColor: '#FEF9E7', fontWeight: 'bold' }"
             />
           </div>
@@ -2483,12 +2483,12 @@ onMounted(() => {
               >Ngày {{ checkStructure ? "sáp nhập" : "giải thể" }}</label
             >
             <Calendar
-              @blur="autoFillDate(department_merger, 'merger_date')"
-              id="merger_date"
+              @blur="autoFillDate(department_merger, 'decision_date')"
+              id="decision_date"
               :showIcon="true"
               :showOnFocus="false"
               autocomplete="off"
-              v-model="department_merger.merger_date"
+              v-model="department_merger.decision_date"
               style="width: calc(100% - 10rem)"
               placeholder="dd/mm/yyyy"
             />
