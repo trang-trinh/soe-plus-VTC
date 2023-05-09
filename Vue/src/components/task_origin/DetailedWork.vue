@@ -17,8 +17,9 @@ import Task_FollowVue from "./Detail_Task/Task_Follow.vue";
 import TaskCheckListDetailVue from "./Detail_Task/TaskCheckListDetail.vue";
 import { encr } from "../../util/function.js";
 import moment from "moment";
-import DocLinkTaskVue from "./Detail_Task/DocTask.vue";`
-import treeuser from "../../components/user/treeuser.vue";`
+import DocLinkTaskVue from "./Detail_Task/DocTask.vue";
+`
+import treeuser from "../../components/user/treeuser.vue";`;
 
 const cryoptojs = inject("cryptojs");
 const options = ref({});
@@ -1804,13 +1805,13 @@ const forceRerender = () => {
 };
 const show = (ch) => {
   forceRerender();
-  debugger;
   selectedTaskID.value = null;
   showDetail1.value = true;
   selectedTaskID.value = ch.task_id;
 };
 const closeChildDetail = () => {
   showDetail1.value = false;
+  loadData(true);
 };
 
 //----Xóa Task----
@@ -1848,12 +1849,12 @@ const DelTask = (task) => {
             if (response.data.err != "1") {
               swal.close();
               toast.success("Xoá công việc thành công!");
-              isShow.value = false;
+
               if (props.turn >= 1) {
-                close();
+                props.closeChildDetail();
                 loadChildTaskOrigin(0);
               } else {
-                hideall();
+                props.closeDetail();
               }
             } else {
               swal.fire({
@@ -2299,10 +2300,6 @@ const endProgress = () => {
   interval.value = null;
 };
 
-const hideall = () => {
-  isShow.value = false;
-  emitter.emit("SideBar", false);
-};
 const PositionSideBar = ref("right");
 const MaxMin = (m) => {
   PositionSideBar.value = m;
@@ -2336,10 +2333,7 @@ const isViewTask = (e) => {
       });
     });
 };
-const changeNguoiGiaoViec = (event) => {
-  Task.value.assign_user_id = [];
-  Task.value.assign_user_id.push(event.value[1]);
-};
+
 const deleteFile = (datafile) => {
   swal
     .fire({
@@ -7804,7 +7798,7 @@ const CloseVisible = () => {
                   <div
                     class="col-12 p-0"
                     style="border: 1px solid #e1e1e1; margin-top: -1px"
-                    v-if="Task.files.length > 0 && !isAdd"
+                    v-if="Task.files != null && Task.files.length > 0 && !isAdd"
                   >
                     <DataView
                       :lazy="true"

@@ -1892,6 +1892,7 @@ $screen-xs-max: 786px;
 
 $screen-qHD: 2048px;
 $screen-fHD: 1920px;
+$screen-Mac: 1440px;
 $screen-HD: 1366px;
 
 $text-color: #263238;
@@ -1931,6 +1932,9 @@ $animation-time: 0.5s;
   @media only screen and (max-width: $screen-fHD) {
     max-width: 46.9vw;
   }
+  @media only screen and (max-width: $screen-Mac) {
+    max-width: 54vw;
+  }
   @media only screen and (max-width: $screen-HD) {
     max-width: 53.9vw;
   }
@@ -1966,7 +1970,7 @@ $animation-time: 0.5s;
     }
   }
   .item-title {
-    color: $brand-primary;
+    color: #72777a;
     font-weight: 600;
     margin: 0;
     white-space: nowrap;
