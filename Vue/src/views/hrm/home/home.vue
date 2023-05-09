@@ -713,7 +713,7 @@ onMounted(() => {
             <Toolbar class="outline-none surface-0 border-none p-0">
               <template #start
                 ><span :style="{ fontSize: '15px', fontWeight: 'bold' }"
-                  >Trình độ học vấn</span
+                  >Thống kê nhân sự theo trình độ học vấn</span
                 ></template
               >
               <template #end>
