@@ -139,6 +139,8 @@ const options = ref({
   loading: true,
   filter_organization_id: store.getters.user.organization_id,
 });
+const databirthdays = ref([]);
+const dataphonebooks = ref([]);
 const organizations = ref([]);
 const dictionarys = ref([]);
 const bgColor = ref([
@@ -290,6 +292,12 @@ const renderAcademic = (chart, data) => {
 };
 const changeOrganization = () => {
   initAcademicLevel(true);
+};
+
+const goRouter = (name, params) => {
+  if (name != null) {
+    router.push({ name: name, params: params || {} });
+  }
 };
 
 //init
@@ -614,6 +622,67 @@ const initNote = (ref) => {
       }
     });
 };
+const initBirthday = () => {
+  axios
+    .post(
+      baseURL + "/api/calendar/get_datas",
+      {
+        str: encr(
+          JSON.stringify({
+            proc: "dashboard_birthday",
+            par: [
+              { par: "user_id", va: store.getters.user.user_id },
+              { par: "myDate", va: new Date() },
+            ],
+          }),
+          SecretKey,
+          cryoptojs
+        ).toString(),
+      },
+      config
+    )
+    .then((response) => {
+      if (response != null && response.data != null) {
+        var data = response.data.data;
+        if (data != null) {
+          let tbn = JSON.parse(data);
+          if (tbn[0] != null && tbn[0].length > 0) {
+            tbn[0].forEach((item, i) => {
+              if (item["birthday"] != null) {
+                item["birthday"] = moment(new Date(item["birthday"])).format(
+                  "DD/MM/YYYY"
+                );
+              }
+            });
+            datatodaybirthdays.value = tbn[0];
+          }
+          if (tbn[1] != null && tbn[1].length > 0) {
+            tbn[1].forEach((item, i) => {
+              if (item["birthday"] != null) {
+                item["birthday"] = moment(new Date(item["birthday"])).format(
+                  "DD/MM/YYYY"
+                );
+              }
+            });
+            databirthdays.value = tbn[1];
+          }
+          if (tbn[3] != null && tbn[3].length > 0) {
+            tbn[3].forEach((item, i) => {
+              if (item["birthday"] != null) {
+                item["birthday"] = moment(new Date(item["birthday"])).format(
+                  "DD/MM/YYYY"
+                );
+              }
+            });
+            dataphonebooks.value = tbn[3];
+          }
+        }
+      }
+    })
+    .catch((error) => {
+      console.log(error);
+    });
+};
 const initDictionary = (ref) => {
   if (ref) {
     swal.fire({
@@ -672,6 +741,7 @@ onMounted(() => {
   initAcademicLevel();
   initGender();
   initNote();
+  initBirthday();
   initDictionary();
 });
 </script>
@@ -741,7 +811,10 @@ onMounted(() => {
               </template>
             </Toolbar>
           </div>
-          <div class="card-body carousel-hidden-p-link" style="min-height: 415px">
+          <div
+            class="card-body carousel-hidden-p-link"
+            style="min-height: 415px"
+          >
             <div
               v-show="
                 !options.loading &&
@@ -758,7 +831,12 @@ onMounted(() => {
                 :options="basicOptions"
                 :plugins="plugins"
                 class="w-full"
-                :style="{ width: '100% !important', height: '100% !important', display: 'flex', alignItems: 'center' }"
+                :style="{
+                  width: '100% !important',
+                  height: '100% !important',
+                  display: 'flex',
+                  alignItems: 'center',
+                }"
               />
             </div>
             <div
@@ -780,7 +858,10 @@ onMounted(() => {
           <div class="card-header" style="cursor: pointer">
             <span>Thống kê nhân sự theo độ tuổi</span>
           </div>
-          <div class="card-body carousel-hidden-p-link" style="min-height: 378px">
+          <div
+            class="card-body carousel-hidden-p-link"
+            style="min-height: 378px"
+          >
             <div
               v-show="
                 !options.loading &&
@@ -1010,77 +1091,146 @@ onMounted(() => {
         </div>
       </div>
       <div class="col-4 md:col-4">
-        <div class="card m-1">
-          <div class="card-header" style="cursor: pointer">
-            <span>.</span>
+        <div
+          class="card m-1 mb-3"
+          @click="goRouter('birthday')"
+          style="cursor: pointer"
+        >
+          <div class="card-header">
+            <span>Sinh nhật</span>
           </div>
-          <div class="card-body carousel-hidden-p-link" style="height: 400px">
-            <Carousel
-              v-show="[].length > 0"
-              :value="[]"
-              :numVisible="4"
-              :numScroll="4"
-              :circular="false"
-              orientation="vertical"
-              verticalViewPortHeight="400px"
-            >
-              <template #item="slotProps">
-                <div
-                  class="grid-item carousel-item"
-                  @click="
-                    goRouter('/news/direct/details', {
-                      name: '-orient-' + slotProps.data.news_id,
-                    })
-                  "
-                >
-                  <div class="d-grid formgrid px-2">
-                    <div class="col-12 md:col-12 p-0 pl-0">
-                      <div class="d-grid formgrid">
-                        <div class="col-12 md:col-12 p-0 flex pb-2">
-                          <div>
-                            <img
-                              v-if="slotProps.data.is_hot"
-                              style="
-                                width: 40px;
-                                height: 20px;
-                                margin-right: 12px;
-                              "
-                              :src="basedomainURL + '/Portals/News/new.jpg'"
-                              alt="new"
-                            />
-                          </div>
-                          <div>
-                            <span
-                              class="limit-line"
-                              :class="slotProps.data.is_hot ? 'font-bold' : ''"
-                              >{{ slotProps.data.title }}</span
-                            >
-                          </div>
-                        </div>
-                        <div class="col-12 md:col-12 p-0">
-                          <div class="description">
-                            <i class="pi pi-clock"></i>
-                            <span class="ml-2">{{
-                              slotProps.data.approved_date
-                            }}</span>
-                          </div>
-                        </div>
-                      </div>
+          <div class="card-body" style="height: 80px">
+            <div class="d-grid formgrid">
+              <div class="col-3 md:col-3 p-0">
+                <div class="format-grid-center">
+                  <div style="width: 55px">
+                    <img
+                      :src="basedomainURL + '/Portals/birthday.png'"
+                      style="
+                        width: 100%;
+                        height: 100%;
+                        object-fit: contain;
+                        border-radius: 3px;
+                      "
+                    />
+                  </div>
+                </div>
+              </div>
+              <div class="col-9 md:col-9 p-0">
+                <div class="d-grid formgrid">
+                  <div class="col-12 md:col-12 p-0 pb-2 text-center">
+                    <span
+                      v-if="datatodaybirthdays && datatodaybirthdays.length > 0"
+                      >Sinh nhật hôm nay</span
+                    >
+                    <span v-else>Sinh nhật sắp tới</span>
+                  </div>
+                  <div
+                    v-if="datatodaybirthdays && datatodaybirthdays.length > 0"
+                    class="col-12 md:col-12 p-0"
+                  >
+                    <div class="flex justify-content-center">
+                      <AvatarGroup
+                        v-if="
+                          datatodaybirthdays && datatodaybirthdays.length > 0
+                        "
+                      >
+                        <Avatar
+                          v-for="(item, index) in datatodaybirthdays.slice(
+                            0,
+                            3
+                          )"
+                          v-bind:label="
+                            item.avatar ? '' : item.last_name.substring(0, 1)
+                          "
+                          v-bind:image="
+                            item.avatar
+                              ? basedomainURL + item.avatar
+                              : basedomainURL + '/Portals/Image/noimg.jpg'
+                          "
+                          v-tooltip.top="item.full_name"
+                          :key="item.user_id"
+                          style="border: 2px solid white; color: white"
+                          @error="basedomainURL + '/Portals/Image/noimg.jpg'"
+                          size="large"
+                          shape="circle"
+                          class="cursor-pointer"
+                          :style="{ backgroundColor: bgColor[index % 7] }"
+                        />
+                        <Avatar
+                          v-if="
+                            datatodaybirthdays && datatodaybirthdays.length > 3
+                          "
+                          v-bind:label="
+                            '+' + (datatodaybirthdays.length - 3).toString()
+                          "
+                          shape="circle"
+                          size="large"
+                          style="background-color: #2196f3; color: #ffffff"
+                          class="cursor-pointer"
+                        />
+                      </AvatarGroup>
                     </div>
-                    <div class="col-12 md:col-12 p-0 pt-2">
-                      <div class="description">
-                        <span class="limit-line">{{ slotProps.data.des }}</span>
-                      </div>
+                  </div>
+                  <div v-else class="col-12 md:col-12 p-0">
+                    <div class="flex justify-content-center">
+                      <AvatarGroup
+                        v-if="databirthdays && databirthdays.length > 0"
+                      >
+                        <Avatar
+                          v-for="(item, index) in databirthdays.slice(0, 3)"
+                          v-bind:label="
+                            item.avatar ? '' : item.last_name.substring(0, 1)
+                          "
+                          v-bind:image="
+                            item.avatar
+                              ? basedomainURL + item.avatar
+                              : basedomainURL + '/Portals/Image/noimg.jpg'
+                          "
+                          v-tooltip.top="item.full_name"
+                          :key="item.user_id"
+                          style="border: 2px solid white; color: white"
+                          @error="basedomainURL + '/Portals/Image/noimg.jpg'"
+                          size="large"
+                          shape="circle"
+                          class="cursor-pointer"
+                          :style="{ backgroundColor: bgColor[index % 7] }"
+                        />
+                        <Avatar
+                          v-if="databirthdays && databirthdays.length > 3"
+                          v-bind:label="
+                            '+' + (databirthdays.length - 3).toString()
+                          "
+                          shape="circle"
+                          size="large"
+                          style="background-color: #2196f3; color: #ffffff"
+                          class="cursor-pointer"
+                        />
+                      </AvatarGroup>
                     </div>
                   </div>
                 </div>
-              </template>
-            </Carousel>
-            <div
-              v-show="datanews == null || datanews.length == 0"
-              class="w-full h-full format-flex-center"
-            >
-              <span class="description">Hiện chưa có dữ liệu</span>
+              </div>
+            </div>
+          </div>
+        </div>
+        <div
+          class="card m-1"
+          @click="goRouter('birthday')"
+          style="cursor: pointer"
+        >
+          <div class="card-header">
+            <span>Danh bạ</span>
+          </div>
+          <div class="card-body" style="height: 80px">
+            <div class="d-grid formgrid">
+              <div class="col-3 md:col-3 p-0">
+                <div class="format-grid-center">
+                  <div>
+                    <i class="pi pi-book" :style="{ fontSize: '50px' }"></i>
+                  </div>
+                </div>
+              </div>
             </div>
           </div>
         </div>
