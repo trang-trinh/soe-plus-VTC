@@ -741,7 +741,7 @@ onMounted(() => {
               </template>
             </Toolbar>
           </div>
-          <div class="card-body carousel-hidden-p-link" style="height: 415px">
+          <div class="card-body carousel-hidden-p-link" style="min-height: 415px">
             <div
               v-show="
                 !options.loading &&
@@ -758,7 +758,7 @@ onMounted(() => {
                 :options="basicOptions"
                 :plugins="plugins"
                 class="w-full"
-                :style="{ width: '98% !important' }"
+                :style="{ width: '100% !important', height: '100% !important', display: 'flex', alignItems: 'center' }"
               />
             </div>
             <div
@@ -780,7 +780,7 @@ onMounted(() => {
           <div class="card-header" style="cursor: pointer">
             <span>Thống kê nhân sự theo độ tuổi</span>
           </div>
-          <div class="card-body carousel-hidden-p-link" style="height: 360px">
+          <div class="card-body carousel-hidden-p-link" style="min-height: 378px">
             <div
               v-show="
                 !options.loading &&
