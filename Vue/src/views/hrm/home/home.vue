@@ -33,7 +33,7 @@ const basicOptions = ref({
           style: "decimal",
           minimumFractionDigits: 0,
           maximumFractionDigits: 20,
-        }) + " nhân sự",
+        }),
       anchor: "center",
       align: "end",
       color: "black",
@@ -42,7 +42,6 @@ const basicOptions = ref({
           font: {
             //weight: "bold",
             //size: 48,
-            
           },
         },
         value: {
@@ -138,7 +137,7 @@ const addToArray = (temp, array, id, lv, od) => {
 //Declare
 const options = ref({
   loading: true,
-  filter_organization_id: -1,
+  filter_organization_id: store.getters.user.organization_id,
 });
 const organizations = ref([]);
 const dictionarys = ref([]);
@@ -644,12 +643,14 @@ const initDictionary = (ref) => {
         var data = response.data.data;
         if (data != null) {
           let tbs = JSON.parse(data);
-          if (tbs[0] != null && tbs[0].length > 0) {
+          if (tbs[0] != null && tbs[0].length > 1) {
             var temp1 = [];
             addToArray(temp1, tbs[0], null, 0, "is_order");
             tbs[0] = temp1;
+          } else if (tbs[0] != null && tbs[0].length > 0) {
+            tbs[0][0].newname = tbs[0][0].organization_name;
           }
-          tbs[0].unshift({ organization_id: -1, newname: "Tất cả" });
+          //tbs[0].unshift({ organization_id: -1, newname: "Tất cả" });
           dictionarys.value = tbs;
         }
       }
@@ -722,7 +723,7 @@ onMounted(() => {
                   <Dropdown
                     :options="dictionarys[0]"
                     :filter="true"
-                    :showClear="true"
+                    :showClear="false"
                     :editable="false"
                     v-model="options.filter_organization_id"
                     @change="changeOrganization()"
