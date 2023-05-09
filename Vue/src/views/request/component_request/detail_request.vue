@@ -2199,7 +2199,7 @@ onMounted(() => {
                             >
                                 <div class="box-jobStask">
                                     <template v-for="(job, idxJob) in orderDatas(RQJobs, 'is_order')">
-                                        <div class="box-job" v-if="job.isCurrent == job.isCurrent == null">
+                                        <div class="box-job" v-if="job.isCurrent == true || job.isCurrent == null">
                                             <div class="job-headder">
                                                 <a style="padding:5px" data-toggle="collapse" data-target="#CollJob{{job.request_job_id}}">
                                                     <i class="pi pi-angle-down"></i>
