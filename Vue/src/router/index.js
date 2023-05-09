@@ -439,6 +439,9 @@ const Request_Config_Auth_Sign = () =>
   import("../views/request/config/set_auth_sign.vue");
 const Request_Config_Number = () =>
   import("../views/request/config/set_number_request.vue");
+// Report Request
+const Report_Request_Statistical = () => import("../views/request/report/report_statiscal.vue");
+const Report_Request_personal = () => import("../views/request/report/report_personal.vue");
 // Backup file
 const BackupFile = () => import("../views/backup/backup_schedule.vue");
 const BackupHistory = () => import("../views/backup/backup_history.vue");
@@ -2085,6 +2088,17 @@ const router = createRouter({
       path: "/request/document",
       name: "Request_Document",
       component: Request_Document,
+    },
+    // Report Request
+    {
+      path: "/reportrequest/statistical",
+      name: "Report_Request_Statistical",
+      component: Report_Request_Statistical,
+    },
+    {
+      path: "/reportrequest/request_personal",
+      name: "Report_Request_personal",
+      component: Report_Request_personal,
     },
     // Request/Category
     {
