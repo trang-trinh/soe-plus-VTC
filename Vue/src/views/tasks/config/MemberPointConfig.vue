@@ -69,7 +69,7 @@ const loadData = () => {
       toast.error("Tải dữ liệu không thành công2!");
       addLog({
         title: "Lỗi Console loadData",
-        controller: "DetailedWork.vue",
+        controller: "MemberPointConfig.vue",
         logcontent: error.message,
         loai: 2,
       });
