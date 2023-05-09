@@ -271,6 +271,7 @@ const HrmTool2 = () => import("../views/hrm/profile/tool/DocTempView.vue");
 const HrmIframe = () => import("../views/hrm/profile/tool/iframedoc.vue");
 const Hrm_Info = () => import("../views/hrm/Hrm_Info.vue");
 const HrmProfile = () => import("../views/hrm/profile/profile.vue");
+const HrmMyProfile = () => import("../views/hrm/myprofile/myprofile.vue");
 const HrmProfileInfo = () =>
   import("../views/hrm/profile/component/profileinfo.vue");
 const HrmContract = () => import("../views/hrm/contract/contract.vue");
@@ -367,8 +368,11 @@ const caHRMTypeContract = () =>
   const caHRMDeclareShift = () => import("../views/hrm/declare/hrm_delare_shift.vue");
 
   const declarePaycheck = () => import("../views/hrm/declare/hrm_declare_paycheck.vue");
+ 
+  const hrmPayroll = () => import("../views/hrm/payroll/hrm_payroll.vue");
+  const smartProc = () => import("../views/hrm/template/smartProc.vue");
+  const smartReport = () => import("../views/hrm/template/smartReport.vue");
 
-  
   const hrmHolidayDate = () => import("../views/hrm/declare/hrm_holiday_dates.vue");
   const hrmHeadbarCalendar = () => import("../views/hrm/declare/hrm_headbar_calendar.vue");
 const caHRMDecision = () => import("../views/hrm/category/caDecision.vue");
@@ -408,6 +412,8 @@ const HRM_Reward = () => import("../views/hrm/reward/rewardTitle.vue");
 const HRM_ConfigUser = () => import("../views/hrm/config/ConfigHRM.vue");
 const HRM_ConfigEmail = () => import("../views/hrm/config/ConfigEmail.vue");
 const HRM_Contact = () => import("../views/hrm/contact/Contact.vue");
+const HRM_structure = () => import("../views/hrm/structure/hrm_structure.vue");
+
 //hrm report
 const HRM_Report = () => import("../views/hrm/report/ReportMain.vue");
 const HRM_ReportWorkers = () => import("../views/hrm/report/report_general/ReportWorkers.vue");
@@ -979,7 +985,7 @@ const router = createRouter({
       component: statisticalConfig,
     },
     {
-      path: "/statistical/chart/:id",
+      path: "/statistical/statistical_main/:id",
       name: "statisticalchart",
       component: statisticalChart,
     },
@@ -1590,6 +1596,11 @@ const router = createRouter({
       component: HrmProfile,
     },
     {
+      path: "/hrm/myprofile",
+      name: "myprofile",
+      component: HrmMyProfile,
+    },
+    {
       path: "/hrm/profile/:id",
       name: "profileinfo",
       component: HrmProfileInfo,
@@ -1764,8 +1775,21 @@ const router = createRouter({
       path: "/hrm/declare/declare_paycheck",
       name: "caHRMDeclarePaycheck",
       component: declarePaycheck,
+    },    {
+      path: "/hrm/payroll/hrm_payroll",
+      name: "hrmPayroll",
+      component: hrmPayroll,
     },
-    
+    {
+      path: "/hrm/template/smart_report",
+      name: "hrmsmartReport",
+      component: smartReport,
+    },
+    {
+      path: "/hrm/template/smart_proc",
+      name: "hrmsmartProc",
+      component: smartProc,
+    },
     {
       path: "/hrm/hrm_shift",
       name: "caHRMDeclareShift",
@@ -1934,6 +1958,11 @@ const router = createRouter({
       path: "/hrm/contact",
       name: "hrm_contact",
       component: HRM_Contact,
+    },
+    {
+      path: "/hrm/hrm_structure",
+      name: "hrm_structure",
+      component: HRM_structure,
     },
     // hrm report
     {

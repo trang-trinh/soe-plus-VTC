@@ -63,7 +63,7 @@ const bgColor = ref([
 const typestatus = ref([
   { value: 0, title: "Chờ duyệt", bg_color: "#0078d4", text_color: "#fff" },
   { value: 1, title: "Đã duyệt", bg_color: "#5FC57B", text_color: "#fff" },
-  { value: 2, title: "hông duyệt", bg_color: "#DF5249", text_color: "#fff" },
+  { value: 2, title: "Không duyệt", bg_color: "#DF5249", text_color: "#fff" },
 ]);
 const liquidations = ref([
   { value: 0, title: "Thôi việc" },
@@ -751,7 +751,7 @@ const updateStatus = (item, status, event, model) => {
     date: model != null ? model.date : null,
   };
   axios
-    .put(baseURL + "/api/hrm_contract/update_status_contract", data, config)
+    .put(baseURL + "/api/hrm_decision/update_status_decision", data, config)
     .then((response) => {
       if (response.data.err === "1") {
         swal.fire({

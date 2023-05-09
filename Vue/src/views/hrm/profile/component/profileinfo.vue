@@ -14,6 +14,8 @@ import comptask from "../../profile/component/comptask.vue";
 import comptimekeep from "../component/comptimekeep.vue";
 import diloginsurance from "../../profile/component/diloginsurance.vue";
 import comreward from "../../profile/component/comreward.vue";
+import leaveyear from "../../myprofile/component/comview6.vue";
+import decision from "../../myprofile/component/comview8.vue";
 import moment from "moment";
 
 const route = useRoute();
@@ -743,14 +745,14 @@ const itemButPrints = ref([
       goPrint(14);
     },
   },
-  {
-    view: 15,
-    label: "Sổ lao động mẫu 145/2020/NĐ-CP",
-    icon: "fa-regular fa-file",
-    command: (event) => {
-      goPrint(15);
-    },
-  },
+  // {
+  //   view: 15,
+  //   label: "Sổ lao động mẫu 145/2020/NĐ-CP",
+  //   icon: "fa-regular fa-file",
+  //   command: (event) => {
+  //     goPrint(15);
+  //   },
+  // },
 ]);
 const togglePrints = (event) => {
   menuButPrints.value.toggle(event);
@@ -4223,7 +4225,9 @@ const onPage = (event) => {
                 </div>
               </div>
             </div>
-            <div v-show="options.view === 7" class="f-full">Phép năm</div>
+            <div v-show="options.view === 7" class="f-full h-leaveyear">
+              <leaveyear :profile_id="options.profile_id" />
+            </div>
             <div v-show="options.view === 8" class="f-full">
               <div class="d-lang-table-1 p-2">
                 <DataTable
@@ -4420,7 +4424,9 @@ const onPage = (event) => {
                 </DataTable>
               </div>
             </div>
-            <div v-show="options.view === 9" class="f-full">Quyết định</div>
+            <div v-show="options.view === 9" class="f-full h-decision">
+              <decision :profile_id="options.profile_id" />
+            </div>
             <div v-show="options.view === 10" class="f-full">
               <Toolbar class="outline-none surface-0 border-none pb-1">
                 <template #start>
@@ -4612,7 +4618,10 @@ const onPage = (event) => {
                 </template>
                 <template #end> </template>
               </Toolbar>
-              <div class="d-lang-table-1 p-2">
+              <div
+                class="d-lang-table-1 p-2"
+                :style="{ height: 'calc(100vh - 202px) !important' }"
+              >
                 <DataTable
                   @page="onPage($event)"
                   @rowSelect="selectRow10"
@@ -4692,7 +4701,7 @@ const onPage = (event) => {
                       style="
                         display: flex;
                         width: 100%;
-                        height: calc(100vh - 291px);
+                        height: calc(100vh - 326px);
                         background-color: #fff;
                       "
                     >
@@ -5297,7 +5306,7 @@ const onPage = (event) => {
     :view="true"
   />
   <dialogfile
-    :key="componentKey['2']"
+    :key="componentKey['3']"
     :headerDialog="headerDialogFile"
     :displayDialog="displayDialogFile"
     :file="options.file"
@@ -5434,6 +5443,21 @@ const onPage = (event) => {
   .p-accordion-header-link {
     padding-top: 0;
     padding-bottom: 0;
+  }
+}
+::v-deep(.h-leaveyear){
+  .box-table {
+    height: calc(100vh - 165px) !important;
+    background-color: #fff;
+    overflow: auto;
+}
+}
+::v-deep(.h-decision){
+  .d-lang-table{
+    height: calc(100vh - 165px) !important;
+  }
+  .p-datatable-emptymessage .align-items-center{
+    height: calc(100vh - 236px) !important;
   }
 }
 </style>

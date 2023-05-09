@@ -250,8 +250,8 @@ const openBasic = (str) => {
     training_place: null,
     is_order: sttStamp.value,
     organization_id: store.getters.user.organization_id,
-    user_follows_fake: null,
-    user_verify_fake: null,
+    user_follows_fake: [],
+    user_verify_fake:  [],
     organization_training_fake: {},
   };
 
@@ -282,6 +282,7 @@ const sttStamp = ref(1);
 
 //Sửa bản ghi
 const editTem = (dataTem) => {
+  
   training_emps.value = dataTem;
   headerDialog.value = "Sửa đào tạo";
   isSaveTem.value = false;
@@ -1158,9 +1159,7 @@ const initTudien = () => {
 };
 
 onMounted(() => {
-  if (!checkURL(window.location.pathname, store.getters.listModule)) {
-    //router.back();
-  }
+ 
   initTudien();
   loadData(true);
 

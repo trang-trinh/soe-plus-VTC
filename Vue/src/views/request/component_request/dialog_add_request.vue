@@ -13,7 +13,7 @@ const store = inject("store");
 const swal = inject("$swal");
 const cryoptojs = inject("cryptojs");
 const basedomainURL = baseURL;
-const baseUrlCheck = "http://localhost:8080/";
+const baseUrlCheck = baseURL;
 const config = {
 	headers: { Authorization: `Bearer ${store.getters.token}` },
 };
@@ -26,6 +26,17 @@ const bgColor = ref([
     "#8BCFFB",
     "#CCADD7",
 ]);
+const groupBy = (xs, key) => {
+    return xs.reduce((rv, x) => {
+        (rv[x[key]] = rv[x[key]] || []).push(x);
+        return rv;
+    }, {});
+};
+function isValidDate(date) {
+    //return d instanceof Date && !isNaN(d);
+    return (new Date(date) !== "Invalid Date") && !isNaN(new Date(date))
+}
+
 const props = defineProps({
 	key: Number,
 	headerDialog: String,
@@ -82,6 +93,11 @@ const list_type_process = ref([
     { name: 'Một trong nhiều', code: 0 },
     { name: 'Duyệt tuần tự'  , code: 1 },
     { name: 'Duyệt đồng thời', code: 2 }
+]);
+const list_type_dayoff = ref([
+    { text: 'FULL', code: '0', name: 'Cả ngày' },
+    { text: 'AM'  , code: '1', name: 'Buổi sáng' },
+    { text: 'PM'  , code: '2', name: 'Buổi chiều' }
 ]);
 
 // File 
@@ -471,7 +487,7 @@ const loadFormD = (form_id) => {
                     if (parentProps.length > 0) {
                         parentProps.forEach(function (rr) {
                             var o = { ...rr };
-                            o.STTRow = 0;
+                            o.is_order_row = 0;
                             fr.push(o);
                         });
                     }
@@ -594,6 +610,7 @@ const formDS_filter = (parentFilter) => {
 const renderWidth = (kieu) => {
     switch (kieu) {
         case "checkbox":
+        case "switch":
         case "radio":
             return 60;
         case "date":
@@ -619,7 +636,7 @@ const loadRequestDetail = (dataRequest) => {
                 r.value_field = r.value_field == "true";
             });
         }
-        var fd2 = props.detailFormDynamic.filter(x => x.kieu_truong.toLowerCase() == "checkbox" && x.value_field.toLowerCase() == "true");
+        var fd2 = props.detailFormDynamic.filter(x => (x.kieu_truong.toLowerCase() == "checkbox" || x.kieu_truong.toLowerCase() == "switch") && x.value_field.toLowerCase() == "true");
         if (fd2 != null && fd2.length > 0) {
             //fd2.value_field = "true";
             fd2.forEach((r) => {
@@ -652,16 +669,24 @@ const loadRequestDetail = (dataRequest) => {
         }
     }
 }
-const groupBy = (xs, key) => {
-    return xs.reduce((rv, x) => {
-        (rv[x[key]] = rv[x[key]] || []).push(x);
-        return rv;
-    }, {});
+const addRow = (i) => {
+    var fr = [];
+    Ftables.value[i][0].forEach(function (rr) {
+        var o = { ...rr };
+        o.request_detail_id = null;
+        o.value_field = null;
+        o.is_order_row = Ftables.value[i].length;
+        fr.push(o);
+    });
+    Ftables.value[i].push(fr);
 };
-function isValidDate(date) {
-    //return d instanceof Date && !isNaN(d);
-    return (new Date(date) !== "Invalid Date") && !isNaN(new Date(date))
-}
+const removeRow = (pi, i) => {
+    Ftables.value[pi].splice(i, 1);
+};
+const openRelate = (dataRelate, module, type) => {
+    
+};
+
 onMounted(() => {
     if (props.dataForm.request_id != null) {
         loadRequestDetail(props.dataForm);
@@ -841,10 +866,12 @@ onMounted(() => {
                             :key="idxForm" 
                         >
                             <div v-if="d.is_type != 3">
-                                <div class="form-group formlabel" style="margin-top:15px" v-if="d.is_label">{{ d.ten_truong }}</div>
+                                <div class="form-group formlabel" v-if="d.is_label">
+                                    {{ d.ten_truong }}
+                                </div>
                                 <div class="form-group" v-else>
                                     <div class="form-group flex mb-0" 
-                                        v-if="d.kieu_truong != 'checkbox' && d.kieu_truong != 'radio' && d.is_type != 2"
+                                        v-if="d.kieu_truong != 'checkbox' && d.kieu_truong != 'radio' && d.kieu_truong != 'switch' && d.is_type != 2"
                                     >
                                         <label>{{ d.ten_truong }}</label>
                                         <span v-if="d.is_required" class="redsao pl-1">(*)</span> 
@@ -889,11 +916,18 @@ onMounted(() => {
                                                 autoResize
                                             />
                                         </div>
-                                        <div v-if="d.kieu_truong == 'checkbox'">
+                                        <div v-if="d.kieu_truong == 'switch'">
                                             <div class="flex ip36 mb-0" 
                                                 style="align-items: center; flex-direction: row;">
                                                 <InputSwitch v-model="d.value_field" />
                                                 <label class="ml-2">{{ d.ten_truong }}</label>
+                                            </div>
+                                        </div>
+                                        <div v-if="d.kieu_truong == 'checkbox'">
+                                            <div class="flex ip36 mb-0" 
+                                                style="align-items: center; flex-direction: row;">
+                                                <Checkbox v-model="d.value_field" :binary="true" />
+                                                <!-- <label class="ml-2">{{ td.ten_truong }}</label> -->
                                             </div>
                                         </div>
                                         <div v-if="d.kieu_truong == 'radio'">
@@ -904,6 +938,16 @@ onMounted(() => {
                                                 <label class="ml-2">{{ d.ten_truong }}</label>
                                             </div>
                                         </div>
+                                        <div v-if="d.kieu_truong == 'select' && d.is_type == 9">
+                                            <Dropdown
+                                                :options="list_type_dayoff"
+                                                v-model="d.value_field"
+                                                optionLabel="name" 
+                                                optionValue="code" 
+                                                placeholder="-- Loại nghỉ --"
+                                            >
+                                            </Dropdown>
+                                        </div>
                                         <div v-if="d.kieu_truong == 'date' || d.kieu_truong == 'datetime'">
                                             <Calendar
                                                 :showIcon="true"
@@ -911,7 +955,7 @@ onMounted(() => {
                                                 autocomplete="on"
                                                 inputId="time24"
                                                 v-model="d.value_field"
-                                                placeholder="DD/MM/yyyy"
+                                                placeholder="dd/mm/yyyy"
                                                 :class="{ 'p-invalid': d.is_required && !d.value_field && submitted, }"
                                             />
                                         </div>
@@ -930,41 +974,50 @@ onMounted(() => {
                                         </div>
                                     </div>
                                 </div>
-                                <div class="formd" 
-                                    :class="dc.is_class || ''"
-                                    v-for="(dc, idxChildForm) in formDS_filter(d.request_formd_id)"
-                                    :key="idxChildForm" 
-                                ></div>
+                                <div v-if="formDS_filter(d.request_formd_id).length > 0">
+                                    <div class="formd" 
+                                        :class="dc.is_class || ''"
+                                        v-for="(dc, idxChildForm) in formDS_filter(d.request_formd_id)"
+                                        :key="idxChildForm" 
+                                    ></div>
+                                </div>
                             </div>
                             <div v-if="d.is_type == 3">
-                                <div class="form-group" style="margin-top:15px" v-if="d.is_label">
-                                    <div class="form-group formlabel" style="margin-bottom:0;display:flex">
-                                        <label>{{ d.ten_truong }}</label>
-                                        <a v-if="request_data.IsEdit" @click="addRow($index)">
-                                            <i class="pi pi-plus-circle"></i>
-                                            <span class="pl-2">Thêm dòng</span>
-                                        </a>                                        
+                                <div class="form-group" v-if="d.is_label">
+                                    <div class="form-group formlabel" style="margin-bottom:0.25rem;display:flex;align-items: center;">
+                                        <label class="mb-0">{{ d.ten_truong }}</label>
+                                        <Button v-if="request_data.IsEdit"
+                                            @click="addRow(idxForm)"
+                                            v-tooltip.top="'Thêm dòng'"
+                                            icon="pi pi-plus-circle"
+                                            class="p-button-rounded p-button-text ml-2"                                        
+                                        >
+                                        </Button>                                        
                                         <div style="flex:1"></div>
-                                        <a v-if="request_data.IsEdit" @click="openRelate(null,'srequest',0)">
+                                        <Button v-if="request_data.IsEdit && request_data.is_general_request" 
+                                            @click="openRelate(null,'srequest',0)"
+                                        >
                                             <i class="pi pi-sliders-h"></i>
                                             <span class="pl-2">Tổng hợp đề xuất</span>
-                                        </a>
+                                        </Button>
                                     </div>
-                                    <table class="table table-bordered">
+                                    <table class="table table-bordered" style="border-spacing: 0;">
                                         <thead style="background-color:#eee">
                                             <tr>
-                                                <th :width="renderWidth(th.kieu_truong)" 
-                                                    v-for="(dc, idxChildForm) in formDS_filter(d.request_formd_id)"
-                                                    :key="idxChildForm"
-                                                >
-                                                    {{dc.TenTruong}}
-                                                </th>
-                                                <th width="40"></th>
+                                                <template v-for="(dc, idxChildForm) in formDS_filter(d.request_formd_id)"
+                                                    :key="idxChildForm">
+                                                    <th class="th-table-render"
+                                                        :width="dc.is_width != null && dc.is_width > 0 ? dc.is_width : renderWidth(dc.kieu_truong)"
+                                                    >
+                                                        {{dc.ten_truong}}
+                                                    </th>
+                                                </template>
+                                                <th class="th-table-render" width="40"></th>
                                             </tr>
                                         </thead>
-                                        <tbody ng-init="$pindex=$index">
-                                            <tr v-for="(r, indexF) in Ftables[$pindex]" :key="indexF">
-                                                <td v-for="td in r">
+                                        <tbody>
+                                            <tr v-for="(r, indexF) in Ftables[idxForm]" :key="indexF">
+                                                <td class="td-table-render" v-for="td in r">
                                                     <div v-if="td.kieu_truong">
                                                         <div v-if="td.kieu_truong == 'email'">
                                                             <InputText :max="td.is_length" 
@@ -1002,35 +1055,53 @@ onMounted(() => {
                                                                 autoResize
                                                             />
                                                         </div>
+                                                        <div v-if="td.kieu_truong == 'switch'">
+                                                            <div class="flex ip36 mb-0" 
+                                                                style="align-items: center; flex-direction: row; justify-content: center;">
+                                                                <InputSwitch v-model="td.value_field" />
+                                                                <!-- <label class="ml-2">{{ td.ten_truong }}</label> -->
+                                                            </div>
+                                                        </div>
                                                         <div v-if="td.kieu_truong == 'checkbox'">
                                                             <div class="flex ip36 mb-0" 
-                                                                style="align-items: center; flex-direction: row;">
-                                                                <InputSwitch v-model="td.value_field" />
-                                                                <label class="ml-2">{{ td.ten_truong }}</label>
+                                                                style="align-items: center; flex-direction: row; justify-content: center;">
+                                                                <Checkbox v-model="td.value_field" :binary="true" />
+                                                                <!-- <label class="ml-2">{{ td.ten_truong }}</label> -->
                                                             </div>
                                                         </div>
                                                         <div v-if="td.kieu_truong == 'radio'">
                                                             <div class="flex ip36 mb-0" 
-                                                                style="align-items: center; flex-direction: row;">
+                                                                style="align-items: center; flex-direction: row; justify-content: center;">
                                                                 <RadioButton :value="td.request_formd_id" 
                                                                     v-model="request_data.Radio"/>
-                                                                <label class="ml-2">{{ td.ten_truong }}</label>
+                                                                <!-- <label class="ml-2">{{ td.ten_truong }}</label> -->
                                                             </div>
+                                                        </div>                                                        
+                                                        <div v-if="td.kieu_truong == 'select' && td.is_type == 9">
+                                                            <Dropdown class="w-full"
+                                                                :options="list_type_dayoff"
+                                                                v-model="td.value_field"
+                                                                optionLabel="name" 
+                                                                optionValue="code" 
+                                                                :placeholder="'-- ' + td.ten_truong + ' --'"
+                                                                style="border:none;"
+                                                            >
+                                                            </Dropdown>
                                                         </div>
                                                         <div v-if="td.kieu_truong == 'date' || td.kieu_truong == 'datetime'">
                                                             <Calendar
-                                                                :showIcon="true"
-                                                                class="form-control col-12 ip36 p-0"
+                                                                :showIcon="false"
+                                                                class="form-control col-12 ip36 p-0 calendar-table"
                                                                 autocomplete="on"
                                                                 inputId="time24"
                                                                 v-model="td.value_field"
-                                                                placeholder="DD/MM/yyyy"
+                                                                placeholder="dd/mm/yyyy"
                                                                 :class="{ 'p-invalid': td.is_required && !td.value_field && submitted, }"
                                                             />
                                                         </div>
                                                         <div v-if="td.kieu_truong == 'time'">
                                                             <Calendar
-                                                                :showIcon="true"
+                                                                :showIcon="false"
                                                                 class="form-control col-12 ip36 p-0"
                                                                 autocomplete="on"
                                                                 inputId="time24"
@@ -1042,10 +1113,10 @@ onMounted(() => {
                                                         </div>
                                                     </div>
                                                 </td>
-                                                <td style="text-align:center">
-                                                    <a v-if="Ftables[$pindex].length>1" 
-                                                        @click="removeRow($pindex, indexF)">
-                                                        <i class="pi pi-trash"></i>
+                                                <td class="td-table-render" style="text-align:center">
+                                                    <a v-if="Ftables[idxForm].length > 1" 
+                                                        @click="removeRow(idxForm, indexF)">
+                                                        <i class="pi pi-trash" style="color:red;cursor:pointer;"></i>
                                                     </a>
                                                 </td>
                                             </tr>
@@ -1657,6 +1728,12 @@ onMounted(() => {
     ::v-deep(.hide-icon-down) {
         .p-multiselect-trigger span.pi-chevron-down {
             display: none;
+        }
+    }
+    ::v-deep(.calendar-table) {
+        input {
+            text-align: center;
+            border: none;
         }
     }
 </style>

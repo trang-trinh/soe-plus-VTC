@@ -210,6 +210,7 @@ const goOrganization = (organization) => {
 const renderTree = (data, id, name, title) => {
   let arrChils = [];
   let arrtreeChils = [];
+ 
   data
     .filter((x) => x.parent_id == null)
     .forEach((m, i) => {
@@ -228,27 +229,9 @@ const renderTree = (data, id, name, title) => {
       };
       rechildren(om, m[id]);
       arrChils.push(om);
-      //
-      om = { key: m[id], data: m[id], label: m[name] };
-      const retreechildren = (mm, pid) => {
-        let dts = data.filter((x) => x.parent_id == pid);
-        if (dts.length > 0) {
-          if (!mm.children) mm.children = [];
-          dts.forEach((em) => {
-            let om1 = { key: em[id], data: em[id], label: em[name] };
-            retreechildren(om1, em[id]);
-            mm.children.push(om1);
-          });
-        }
-      };
-      retreechildren(om, m[id]);
-      arrtreeChils.push(om);
+     
     });
-  arrtreeChils.unshift({
-    key: -1,
-    data: -1,
-    label: "-----Chọn " + title + "----",
-  });
+  
   return { arrChils: arrChils, arrtreeChils: arrtreeChils };
 };
 const expandNode = (node) => {
@@ -276,6 +259,7 @@ const onRefresh = () => {
   options.value.search = "";
 };
 const initOrganization = () => {
+  options.value.loading=true;
   axios
     .post(
       baseURL + "/api/Proc/CallProc",
@@ -310,6 +294,7 @@ const initOrganization = () => {
           temporganizations.value = [];
         }
         initUser(true);
+        options.value.loading=false;
       }
     })
     .catch((error) => {
@@ -321,6 +306,7 @@ const initOrganization = () => {
         icon: "error",
         confirmButtonText: "OK",
       });
+      options.value.loading=false;
       return;
     });
 };
@@ -343,14 +329,10 @@ const initUser = (rf) => {
     .post(
       baseURL + "/api/Proc/CallProc",
       {
-        proc: "hrm_user_list_filter",
+        proc: "hrm_profile_list_all",
         par: [
-          { par: "user_id", va: store.getters.user.user_id },
-
-          { par: "page_no", va: options.value.pageNo },
-          { par: "page_size", va: options.value.pageSize },
-          { par: "search", va: options.value.search },
-        ],
+        { par: "user_id", va: store.getters.user.user_id } 
+                 ],
       },
       config
     )
@@ -501,6 +483,7 @@ onMounted(() => {
             :value="temporganizations"
             :scrollable="true"
             :rowHover="true"
+            :loading="options.loading"
             :expandedKeys="expandedKeys"
             :lazy="true"
             dataKey="organization_id"

@@ -189,9 +189,12 @@ const initTudien = () => {
     })
     .catch((error) => {});
 };
+const isHuman =() =>{
+
+}
 const exportExcel = () => {
   
-  let name = "BC.HS007";
+  let name = "BC.HĐ001";
   var htmltable1 = "";
   // htmltable1 = renderExcel_Ketqua();
   var tab_text = '<html xmlns:x="urn:schemas-microsoft-com:office:excel">';
@@ -210,10 +213,10 @@ const exportExcel = () => {
   tab_text =
     tab_text +
     '<style>.p-datatable-thead th {background:#7bb0d7 !important;height: 30px !important;} .cstd{font-family: Times New Roman;border:none!important; font-size: 12pt; font-weight: 700; text-align: center; vertical-align: center;color:#000000}.head2{font-family: Times New Roman;border:none!important; font-size: 12pt;font-weight:bold; text-align: left; vertical-align: left;}</style>'    
-  tab_text = tab_text+ "<table><td colspan='15' class='head2'>"+(department_name.value.toUpperCase() || store.getters.user.organization_name)+"</td></table>";
+  tab_text = tab_text+ "<table><td colspan='19' class='head2'>"+(department_name.value.toUpperCase() || store.getters.user.organization_name)+"</td></table>";
   // tab_text = tab_text+ "<table><td colspan='18' class='cstd' style='text-align: left; vertical-align: left;'>CÔNG TY/PHÒNG/TRUNG TÂM "+(store.getters.user.organization_name||".......")+"</td></table>";
   tab_text =
-      tab_text +'<table><td colspan="15" class="cstd" >BÁO CÁO QUÁ TRÌNH CÔNG TÁC CỦA NHÂN SỰ TRƯỚC KHI VÀO CÔNG TY</td >';
+      tab_text +'<table><td colspan="19" class="cstd" >THEO DÕI KÝ HỢP ĐỒNG</td >';
   tab_text = tab_text + "</table>";
   //var exportTable = $('#' + id).clone();
   //exportTable.find('input').each(function (index, elem) { $(elem).remove(); });\
@@ -253,13 +256,9 @@ const exportExcel = () => {
     document.body.removeChild(elem);
   }
 };
-const valueClick = ref();
-const activeRow = (row, value)=>{
-  valueClick.value = value;
+const activeRow = (row)=>{
   datalists.value.forEach((item)=>{
-    item.list_ns.forEach((item2)=>{
-      item2.is_active = false;
-    })
+      item.is_active = false;
   })
   row.is_active= true;
 }
@@ -340,7 +339,10 @@ onMounted(() => {
 
 <template>
     <div class="main-layout true flex-grow-1 p-2 pb-0 pr-0">
-        <div style="background-color: #fff; padding: 1rem;">
+        <div style="background-color: #fff; padding: 1rem; padding-left: 0;">
+          <h3 class="module-title module-title-hidden mt-0 ml-3 mb-2">
+            <i class="pi pi-chart-bar"></i> Báo cáo thống kê hợp đồng
+          </h3>
         <Toolbar class="w-full custoolbar">
           <template #start>
             <Button
@@ -459,13 +461,13 @@ onMounted(() => {
           </template>
         </Toolbar>
     </div>
-    <div style="overflow: scroll;max-height: calc(100vh - 124px);min-height: calc(100vh - 124px);background-color: #fff;">
+    <div style="overflow: scroll;max-height: calc(100vh - 147px);min-height: calc(100vh - 147px);background-color: #fff;">
         <table cellspacing=0 id="table-bc" class="table table-condensed table-hover tbpad" style="width: max-content;">
         <thead style="position: sticky; z-index: 6; top:0">
             <tr>
-                <th class="text-center" rowspan="2" width="50">STT</th>
-                <th class="text-center" rowspan="2" width="100">Mã nhân sự</th>
-                <th class="text-center" rowspan="2" width="150">Họ và tên</th>
+                <th class="text-center sticky left-sticky1 left-1" rowspan="2" width="50">STT</th>
+                <th class="text-center sticky left-sticky1 left-2" rowspan="2" width="100">Mã nhân sự</th>
+                <th class="text-center sticky left-sticky1 left-3" rowspan="2" width="150">Họ và tên</th>
                 <th class="text-center" rowspan="2" width="100">Ngày sinh</th>
                 <th class="text-center" rowspan="2" width="100">Chức vụ</th>
                 <th class="text-center" rowspan="2" width="100">Chức danh</th>
@@ -474,22 +476,22 @@ onMounted(() => {
                 <th class="text-center" colspan="12">Quá trình ký hợp đồng</th>
             </tr>
             <tr>
-                <th class="text-center" width="100">Lần ký</th>
-                <th class="text-center" width="100">Số hợp đồng</th>
+                <th class="text-center" width="80">Lần ký</th>
+                <th class="text-center" width="120">Số hợp đồng</th>
                 <th class="text-center" width="100">Ngày ký</th>
-                <th class="text-center" width="100">Loại hợp đồng</th>
+                <th class="text-center" width="180">Loại hợp đồng</th>
                 <th class="text-center" width="100">Thời hạn</th>
                 <th class="text-center" width="100">Ngày hết hạn</th>
-                <th class="text-center" width="100">Người ký</th>
+                <th class="text-center" width="140">Người ký</th>
                 <th class="text-center" width="100">Mức lương</th>
-                <th class="text-center" width="100">Ngạch lương</th>
+                <th class="text-center" width="150">Ngạch lương</th>
                 <th class="text-center" width="100">Bậc lương</th>
                 <th class="text-center" width="100">Hệ số lương</th>
                 <th class="text-center" width="100">Phụ cấp</th>
             </tr>
         </thead>
         <tbody v-for="(bc, index1) in datalists" :key="index1">
-            <tr v-for="(qt, index3) in bc.Congtac" :key="index3" class="item-hover" > 
+            <tr v-for="(qt, index3) in bc.Congtac" :key="index3" class="item-hover" @click="activeRow(bc)"> 
                 <td v-if="index3 ==0" :rowspan="bc.Congtac.length" class="text-center bg-stt left-sticky1 left-1" :class="bc.is_active?'active-item':'bg-stt'">{{index1+1}}</td>
                 <td v-if="index3 ==0"  :rowspan="bc.Congtac.length" align="left" class="left-sticky1 left-2">
                     {{bc.profile_code}}
@@ -497,31 +499,41 @@ onMounted(() => {
                 <td v-if="index3 ==0"  :rowspan="bc.Congtac.length" align="left" class="left-sticky1 left-3">
                     {{bc.profile_user_name}}
                 </td>
-                <td v-if="index3 ==0"  :rowspan="bc.Congtac.length" align="left" class="left-sticky1 left-4">
-                    {{bc.birthday}}
+                <td v-if="index3 ==0"  :rowspan="bc.Congtac.length" align="center">
+                  <span v-if="bc.birthday"> {{ moment(new Date(bc.birthday)).format("DD/MM/YYYY ") }}</span>
                 </td>
-                <td v-if="index3 ==0"  :rowspan="bc.Congtac.length" align="left" class="left-sticky1 left-4">
+                <td v-if="index3 ==0"  :rowspan="bc.Congtac.length" align="left" >
                     {{bc.position_name}}
                 </td>
-                <td v-if="index3 ==0"  :rowspan="bc.Congtac.length" align="left" class="left-sticky1 left-4">
+                <td v-if="index3 ==0"  :rowspan="bc.Congtac.length" align="left">
                     {{bc.title_name}}
                 </td>
-                <td v-if="index3 ==0"  :rowspan="bc.Congtac.length" align="left" class="left-sticky1 left-4">
-                    {{bc.start_date}}
+                <td v-if="index3 ==0"  :rowspan="bc.Congtac.length" align="center">
+                  <span v-if="bc.recruitment_date"> {{ moment(new Date(bc.recruitment_date)).format("DD/MM/YYYY ") }}</span>
                 </td>
-                <td align="left">{{qt.company}}</td>
-                <td align="left">{{qt.address}}</td>
-                <td align="center">{{qt.start_date}}</td>
-                <td align="center">{{qt.end_date}}</td>
+                <td v-if="index3 ==0"  :rowspan="bc.Congtac.length" align="left" class="center"></td>
+                <td align="center" v-if="qt.contract_code">Lần {{index3+1}}</td>
+                <td align="left">{{qt.contract_code}}</td>
+                <td align="center">{{qt.sign_date}}</td>
+                <td align="left">{{qt.type_contract_name}}</td>
                 <td align="center"></td>
-                <td align="center">{{qt.title_name}}</td>
-                <td align="left">{{qt.description}}</td>
-                <td align="left">{{qt.reason}}</td>
+                <td align="center">
+                  <span v-if="qt.end_date"> {{ moment(new Date(qt.end_date)).format("DD/MM/YYYY ") }}</span>
+                </td>
+                <td align="left">{{qt.user_sign}}</td>
                 <td align="right">
                   <span v-if="qt.wage>0">{{ formatNumber(qt.wage, 0, ".", ".") }}</span>
                 </td>
-                <td align="left">{{qt.reference_name}}</td>
-                <td align="center">{{qt.reference_phone}}</td>
+                <td align="left">
+                  {{qt.wage_name}}
+                </td>
+                <td align="center">
+                  <span v-if="qt.wage_level>0">{{qt.wage_level}}</span>
+                </td>
+                <td align="center">
+                  <span v-if="qt.coef_salary_name>0">{{qt.coef_salary_name}}</span>
+                </td>
+                <td align="center"></td>
             </tr>      
           </tbody>
     </table>
