@@ -280,5 +280,83 @@ namespace API.Controllers.Task_Origin1
                 return Request.CreateResponse(HttpStatusCode.OK, new { ms = contents, err = "1" });
             }
         }
+        [HttpPut]
+        public async Task<HttpResponseMessage> Update_Member_Info()
+        {
+            var identity = User.Identity as ClaimsIdentity;
+            IEnumerable<Claim> claims = identity.Claims;
+            string dvid = claims.Where(p => p.Type == "dvid").FirstOrDefault()?.Value;
+            string ip = getipaddress();
+            string name = claims.Where(p => p.Type == "fname").FirstOrDefault()?.Value;
+            string tid = claims.Where(p => p.Type == "tid").FirstOrDefault()?.Value;
+            string uid = claims.Where(p => p.Type == "uid").FirstOrDefault()?.Value;
+            string domainurl = HttpContext.Current.Request.Url.Scheme + "://" + HttpContext.Current.Request.Url.Host + ":" + HttpContext.Current.Request.Url.Port + "/"; if (identity == null)
+            {
+                return Request.CreateResponse(HttpStatusCode.OK, new { ms = "Bạn không có quyền truy cập chức năng này!", err = "1" });
+            }
+
+            try
+            {
+                using (DBEntities db = new DBEntities())
+                {
+
+                    if (!Request.Content.IsMimeMultipartContent())
+                    {
+                        throw new HttpResponseException(HttpStatusCode.UnsupportedMediaType);
+                    }
+
+                    string root = HttpContext.Current.Server.MapPath("~/Portals");
+
+                    var provider = new MultipartFormDataStreamProvider(root);
+
+                    // Read the form data and return an async task.
+                    var task = Request.Content.ReadAsMultipartAsync(provider).
+                    ContinueWith<HttpResponseMessage>(t =>
+                    {
+                        if (t.IsFaulted || t.IsCanceled)
+                        {
+                            Request.CreateErrorResponse(HttpStatusCode.InternalServerError, t.Exception);
+                        }
+                        ///Get data from FrontEnd
+                        string tempID = provider.FormData.GetValues("member").SingleOrDefault();
+                        task_member listprocess_id = JsonConvert.DeserializeObject<task_member>(tempID);
+                        listprocess_id.modified_by = uid;
+                        listprocess_id.modified_date = DateTime.Now;
+                        listprocess_id.modified_ip = ip; ;
+                        listprocess_id.modified_token_id = tid;
+                        db.Entry(listprocess_id).State = EntityState.Modified;
+                        db.SaveChanges();
+                        #region add tasklog
+                        helper.saveLog(uid, name, JsonConvert.SerializeObject(new { data = listprocess_id }), domainurl + "/task_Member/Update_Member_Info", ip, tid, "Cập nhật thành viên công việc", 1, "Công việc");
+                        #endregion
+                        return Request.CreateResponse(HttpStatusCode.OK, new { err = "0" });
+                    });
+                    return await task;
+                }
+
+            }
+            catch (DbEntityValidationException e)
+            {
+                string contents = helper.getCatchError(e, null);
+                helper.saveLog(uid, name, JsonConvert.SerializeObject(new { data = contents }), domainurl + "/task_Member/Update_Member_Info", ip, tid, "Lỗi khi cập nhật thành viên công việcc", 0, "Công việc");
+                if (!helper.debug)
+                {
+                    contents = "";
+                }
+                Log.Error(contents);
+                return Request.CreateResponse(HttpStatusCode.OK, new { ms = contents, err = "1" });
+            }
+            catch (Exception e)
+            {
+                string contents = helper.ExceptionMessage(e);
+                helper.saveLog(uid, name, JsonConvert.SerializeObject(new { data = contents }), domainurl + "/task_Member/Update_Member_Info", ip, tid, "Lỗi khi cập nhật thành viên công việc", 0, "Công việc");
+                if (!helper.debug)
+                {
+                    contents = "";
+                }
+                Log.Error(contents);
+                return Request.CreateResponse(HttpStatusCode.OK, new { ms = contents, err = "1" });
+            }
+        }
     }
 }
