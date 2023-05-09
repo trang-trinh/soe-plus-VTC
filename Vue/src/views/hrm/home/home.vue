@@ -34,7 +34,7 @@ const basicOptions = ref({
           minimumFractionDigits: 0,
           maximumFractionDigits: 20,
         }) + " nhân sự",
-      anchor: "end",
+      anchor: "center",
       align: "end",
       color: "black",
       labels: {
@@ -42,6 +42,7 @@ const basicOptions = ref({
           font: {
             //weight: "bold",
             //size: 48,
+            
           },
         },
         value: {
