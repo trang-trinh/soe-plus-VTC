@@ -19,8 +19,103 @@ const toast = useToast();
 const cryoptojs = inject("cryptojs");
 const basedomainURL = baseURL;
 const plugins = [ChartDataLabels];
+const basicOptions = ref({
+  plugins: {
+    legend: {
+      display: false,
+      labels: {
+        color: "#495057",
+      },
+    },
+    datalabels: {
+      formatter: (val) =>
+        val.toLocaleString("vi-vN", {
+          style: "decimal",
+          minimumFractionDigits: 0,
+          maximumFractionDigits: 20,
+        }) + " nhân sự",
+      anchor: "end",
+      align: "end",
+      color: "black",
+      labels: {
+        title: {
+          font: {
+            //weight: "bold",
+            //size: 48,
+          },
+        },
+        value: {
+          color: "black",
+          font: {
+            //weight: "bold",
+            //size: 48,
+          },
+        },
+      },
+    },
+  },
+  scales: {
+    x: {
+      ticks: {
+        color: "#495057",
+      },
+      grid: {
+        color: "#ebedef",
+      },
+    },
+    y: {
+      ticks: {
+        color: "#495057",
+      },
+      grid: {
+        color: "#ebedef",
+      },
+    },
+  },
+});
+const lightOptions = ref({
+  plugins: {
+    legend: {
+      display: true,
+      labels: {
+        color: "#495057",
+      },
+    },
+    datalabels: {
+      formatter: (val) =>
+        val.toLocaleString("vi-vN", {
+          style: "decimal",
+          minimumFractionDigits: 0,
+          maximumFractionDigits: 20,
+        }) + " %",
+      anchor: "center",
+      align: "center",
+      color: "white",
+      labels: {
+        title: {
+          font: {
+            //weight: "bold",
+            //size: 48,
+          },
+        },
+        value: {
+          color: "white",
+          font: {
+            //weight: "bold",
+            //size: 48,
+          },
+        },
+      },
+    },
+  },
+});
 
 //Declare
+const options = ref({
+  loading: true,
+  filter_organization_id: null,
+});
+const organizations = ref([]);
 const bgColor = ref([
   "#FF6633",
   "#AFDFCF",
@@ -69,80 +164,8 @@ const colors = ref([
   "#999999",
   "#999999",
 ]);
-const genderColor = ref(["#EE7E79", "#83ECC6", "#84B7F9", "#F5CD7C"]);
-const options = ref([]);
-const organizations = ref([]);
-const yearOlds = ref({
-  labels: [],
-  datasets: [
-    {
-      data: [],
-      backgroundColor: [],
-      hoverBackgroundColor: [],
-    },
-  ],
-});
-const genders = ref([]);
-const lightOptions = ref({
-  plugins: {
-    legend: {
-      display: true,
-      labels: {
-        color: "#495057",
-      },
-    },
-    datalabels: {
-      formatter: (val) =>
-        val.toLocaleString("vi-vN", {
-          style: "decimal",
-          minimumFractionDigits: 0,
-          maximumFractionDigits: 20,
-        }) + " %",
-      anchor: "center",
-      align: "center",
-      color: "white",
-      labels: {
-        title: {
-          font: {
-            //weight: "bold",
-            //size: 48,
-          },
-        },
-        value: {
-          color: "white",
-          font: {
-            //weight: "bold",
-            //size: 48,
-          },
-        },
-      },
-    },
-  },
-});
-const notes = ref([]);
-const renderGender = (chart, data) => {
-  var temp = data;
-  chart.datasets = [];
-  var labels = [];
-  var arr = [];
-  if (temp != null && temp.length > 0) {
-    labels = temp.map((item) => item["title"] + " ");
-    arr = temp.map((item) => item["avg"]);
-  }
-  setTimeout(() => {
-    lightOptions.value.plugins.legend.display = true;
-    chart.datasets.push({
-      label: "",
-      data: [],
-      backgroundColor: [],
-      hoverBackgroundColor: [],
-    });
-    chart.labels = labels;
-    chart.datasets[0].data = arr;
-    chart.datasets[0].backgroundColor = genderColor.value;
-    chart.datasets[0].hoverBackgroundColor = genderColor.value;
-  }, 100);
-};
+
+// Total
 const animateNumber = (
   finalNumber,
   duration = 5000,
@@ -167,7 +190,150 @@ const animateNumber = (
   }
 };
 
+// Gender
+const genderColor = ref(["#EE7E79", "#83ECC6", "#84B7F9", "#F5CD7C"]);
+const yearOlds = ref({
+  labels: [],
+  datasets: [
+    {
+      data: [],
+      backgroundColor: [],
+      hoverBackgroundColor: [],
+    },
+  ],
+});
+const genders = ref([]);
+
+const notes = ref([]);
+const renderGender = (chart, data) => {
+  var temp = data;
+  chart.datasets = [];
+  var labels = [];
+  var arr = [];
+  if (temp != null && temp.length > 0) {
+    labels = temp.map((item) => item["title"] + " ");
+    arr = temp.map((item) => item["avg"]);
+  }
+  setTimeout(() => {
+    lightOptions.value.plugins.legend.display = true;
+    chart.datasets.push({
+      label: "",
+      data: [],
+      backgroundColor: [],
+      hoverBackgroundColor: [],
+    });
+    chart.labels = labels;
+    chart.datasets[0].data = arr;
+    chart.datasets[0].backgroundColor = genderColor.value;
+    chart.datasets[0].hoverBackgroundColor = genderColor.value;
+  }, 100);
+};
+
+//academic level
+const academics = ref({
+  labels: [],
+  datasets: [
+    {
+      data: [],
+      backgroundColor: [],
+      hoverBackgroundColor: [],
+    },
+  ],
+});
+const renderAcademic = (chart, data) => {
+  var temp = data;
+  chart.datasets = [];
+  var labels = [];
+  var arr = [];
+  if (temp != null && temp.length > 0) {
+    labels = temp.map((item) => item["academic_level_name"] + " ");
+    arr = temp.map((item) => item["total"]);
+  }
+  setTimeout(() => {
+    //lightOptions.value.plugins.legend.display = true;
+    chart.datasets.push({
+      label: "",
+      data: [],
+      backgroundColor: [],
+      hoverBackgroundColor: [],
+    });
+    chart.labels = labels;
+    chart.datasets[0].data = arr;
+    chart.datasets[0].backgroundColor = colors.value;
+    chart.datasets[0].hoverBackgroundColor = colors.value;
+  }, 100);
+};
+
 //init
+const initAcademicLevel = () => {
+  academics.value = [];
+  axios
+    .post(
+      baseURL + "/api/hrm/callProc",
+      {
+        str: encr(
+          JSON.stringify({
+            proc: "hrm_home_academic_level",
+            par: [
+              { par: "user_id", va: store.getters.user.user_id },
+              {
+                par: "filter_organization_id",
+                va: options.value.filter_organization_id,
+              },
+            ],
+          }),
+          SecretKey,
+          cryoptojs
+        ).toString(),
+      },
+      config
+    )
+    .then((response) => {
+      if (response != null && response.data != null) {
+        let data = response.data.data;
+        if (data != null) {
+          var tbs = JSON.parse(data);
+          if (tbs[0] != null && tbs[0].length > 0) {
+            tbs[0].forEach((item) => {
+              if (item.total) {
+                item.total_name = item.total.toLocaleString("vi-vN", {
+                  style: "decimal",
+                  minimumFractionDigits: 0,
+                  maximumFractionDigits: 20,
+                });
+              }
+            });
+            renderAcademic(academics.value, tbs[0]);
+          } else {
+            renderAcademic(academics.value, []);
+          }
+        }
+      }
+      if (options.value.loading) options.value.loading = false;
+    })
+    .catch((error) => {
+      swal.close();
+      if (options.value.loading) options.value.loading = false;
+      if (error && error.status === 401) {
+        swal.fire({
+          title: "Thông báo!",
+          text: "Mã token đã hết hạn hoặc không hợp lệ, vui lòng đăng nhập lại!",
+          icon: "error",
+          confirmButtonText: "OK",
+        });
+        store.commit("gologout");
+        return;
+      } else {
+        swal.fire({
+          title: "Thông báo!",
+          text: "Có lỗi xảy ra, vui lòng kiểm tra lại!",
+          icon: "error",
+          confirmButtonText: "OK",
+        });
+        return;
+      }
+    });
+};
 const initGender = () => {
   yearOlds.value = [];
   axios
@@ -386,6 +552,7 @@ const initNote = () => {
 };
 onMounted(() => {
   initOrganization();
+  initAcademicLevel();
   initGender();
   initNote();
 });
@@ -424,72 +591,35 @@ onMounted(() => {
       <div class="col-8 md:col-8">
         <div class="card m-1">
           <div class="card-header" style="cursor: pointer">
-            <span>.</span>
+            <span>Trình độ học vấn</span>
           </div>
           <div class="card-body carousel-hidden-p-link" style="height: 415px">
-            <Carousel
-              v-show="[].length > 0"
-              :value="[]"
-              :numVisible="4"
-              :numScroll="4"
-              :circular="false"
-              orientation="vertical"
-              verticalViewPortHeight="400px"
-            >
-              <template #item="slotProps">
-                <div
-                  class="grid-item carousel-item"
-                  @click="
-                    goRouter('/news/direct/details', {
-                      name: '-orient-' + slotProps.data.news_id,
-                    })
-                  "
-                >
-                  <div class="d-grid formgrid px-2">
-                    <div class="col-12 md:col-12 p-0 pl-0">
-                      <div class="d-grid formgrid">
-                        <div class="col-12 md:col-12 p-0 flex pb-2">
-                          <div>
-                            <img
-                              v-if="slotProps.data.is_hot"
-                              style="
-                                width: 40px;
-                                height: 20px;
-                                margin-right: 12px;
-                              "
-                              :src="basedomainURL + '/Portals/News/new.jpg'"
-                              alt="new"
-                            />
-                          </div>
-                          <div>
-                            <span
-                              class="limit-line"
-                              :class="slotProps.data.is_hot ? 'font-bold' : ''"
-                              >{{ slotProps.data.title }}</span
-                            >
-                          </div>
-                        </div>
-                        <div class="col-12 md:col-12 p-0">
-                          <div class="description">
-                            <i class="pi pi-clock"></i>
-                            <span class="ml-2">{{
-                              slotProps.data.approved_date
-                            }}</span>
-                          </div>
-                        </div>
-                      </div>
-                    </div>
-                    <div class="col-12 md:col-12 p-0 pt-2">
-                      <div class="description">
-                        <span class="limit-line">{{ slotProps.data.des }}</span>
-                      </div>
-                    </div>
-                  </div>
-                </div>
-              </template>
-            </Carousel>
             <div
-              v-show="datanews == null || datanews.length == 0"
+              v-show="
+                !options.loading &&
+                academics.datasets != null &&
+                academics.datasets[0] != null &&
+                academics.datasets[0].data.length > 0
+              "
+              class="w-full h-full format-center"
+            >
+              <Chart
+                id="chart32"
+                type="bar"
+                :data="academics"
+                :options="basicOptions"
+                :plugins="plugins"
+                class="w-full"
+                :style="{ width: '98% !important' }"
+              />
+            </div>
+            <div
+              v-show="
+                !options.loading &&
+                academics.datasets != null &&
+                academics.datasets[0] != null &&
+                academics.datasets[0].data.length === 0
+              "
               class="w-full h-full format-flex-center"
             >
               <span class="description">Hiện chưa có dữ liệu</span>
@@ -538,7 +668,8 @@ onMounted(() => {
             <template v-for="(item, index) in genders">
               <div>
                 <h1 class="m-0">
-                  <span class="description">{{ item.title }} :</span> <span>{{ item.total_name }}</span>
+                  <span class="description">{{ item.title }} :</span>
+                  <span>{{ item.total_name }}</span>
                 </h1>
               </div>
             </template>
