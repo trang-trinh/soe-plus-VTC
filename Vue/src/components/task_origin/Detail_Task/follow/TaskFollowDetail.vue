@@ -17,26 +17,21 @@ const props = defineProps({
   rowReorder: Function,
   memberType: Intl,
 });
+const closeDetail = () => {
+  showDetail.value = false;
+  selectedTaskID.value = null;
+};
 const type_display = ref();
 const PositionSideBar = ref("right");
 const emitter = inject("emitter");
-const showDetail1 = ref(false);
+const showDetail = ref(false);
 const selectedTaskID = ref();
 const onNodeSelect = (id) => {
-  showDetail1.value = false;
-  showDetail1.value = true;
+  showDetail.value = false;
+  showDetail.value = true;
   selectedTaskID.value = id;
 };
-emitter.on("SideBar", (obj) => {
-  showDetail1.value = false;
-});
-emitter.on("SideBar1", (obj) => {
-  console.log(1);
-  showDetail1.value = false;
-});
-emitter.on("psb", (obj) => {
-  PositionSideBar.value = obj;
-});
+
 onMounted(() => {
   type_display.value = 1;
 });
@@ -773,28 +768,13 @@ onMounted(() => {
       </div>
     </div>
   </Dialog>
-  <Sidebar
-    v-model:visible="showDetail1"
-    :position="PositionSideBar"
-    :style="{
-      width:
-        PositionSideBar == 'right'
-          ? width1 > 1800
-            ? '65vw'
-            : '75vw'
-          : '100vw',
-      'min-height': '100vh !important',
-    }"
-    :showCloseIcon="false"
-    @hide="close()"
+  <DetailedWork
+    v-if="showDetail === true"
+    :id="selectedTaskID"
+    :turn="0"
+    :closeDetail="closeDetail"
   >
-    <DetailedWork
-      :isShow="showDetail1"
-      :id="selectedTaskID"
-      :turn="1"
-    >
-    </DetailedWork
-  ></Sidebar>
+  </DetailedWork>
 </template>
 
 <style lang="scss" scoped>

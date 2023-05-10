@@ -60,6 +60,11 @@ const listStatusRequests = ref([
     { id: 3,  text: "Thu hồi",    class: "rqthuhoi" },
     { id: -3, text: "Xóa",        class: "rqxoa" }
 ]);
+const list_type_dayoff = ref([
+    { text: 'FULL', code: '0', name: 'Cả ngày' },
+    { text: 'AM'  , code: '1', name: 'Buổi sáng' },
+    { text: 'PM'  , code: '2', name: 'Buổi chiều' }
+]);
 const orderDatas = (dataJob, type) => {
     let resultOrder = dataJob.sort((a, b) => { 
         return a[type] - b[type];
@@ -82,6 +87,21 @@ const formatByte = ((bytes, precision) => {
 	let	number = Math.floor(Math.log(bytes) / Math.log(1024));
 	return (bytes / Math.pow(1024, Math.floor(number))).toFixed(precision) + ' ' + units[number];
 });
+
+const renderWidth = (kieu) => {
+    switch (kieu) {
+        case "checkbox":
+        case "switch":
+        case "radio":
+            return 60;
+        case "date":
+        case "time":
+        case "datetime":
+            return 160;
+        default:
+            return '';
+    }
+};
 
 const props = defineProps({
     isShow: Boolean,
@@ -126,7 +146,7 @@ const loadDetailRequest = () => {
                 detail_request.value.objStatus = props.listStatusRequests.find(x => x.id == detail_request.value.status_processing);
                 detail_request.value.times_processing_max = detail_request.value.times_processing_max || 0;
                 // temp fake 1
-                detail_request.value.IsViewXL = false; // r.IsViewXL;
+                //detail_request.value.IsViewXL = false; // r.IsViewXL;
                 //detail_request.value.Tiendo = 20;
                 // end temp fake 1
 
@@ -164,20 +184,20 @@ const loadDetailRequest = () => {
                 }
                 if (data[1] != null && data[1].length > 0) {
                     FormDS.value = data[1].filter(x => x.is_order_row == null);
-                    var fd = data[1].filter(x => x.kieu_truong.toLowerCase() == "radio" && x.value_field.toLowerCase() == "true");
+                    var fd = data[1].filter(x => x.kieu_truong != null && x.kieu_truong.toLowerCase() == "radio" && x.value_field != null && x.value_field.toLowerCase() == "true");
                     if (fd != null && fd.length > 0) {
                         fd.forEach((r) => {
                             detail_request.value.Radio = r.request_formd_id;
                             r.value_field = r.value_field == "true";
                         });
                     }
-                    var fd2 = data[1].filter(x => (x.kieu_truong.toLowerCase() == "checkbox" || x.kieu_truong.toLowerCase() == "switch") && x.value_field.toLowerCase() == "true");
+                    var fd2 = data[1].filter(x => (x.kieu_truong != null && (x.kieu_truong.toLowerCase() == "checkbox" || x.kieu_truong.toLowerCase() == "switch")) && x.value_field != null && x.value_field.toLowerCase() == "true");
                     if (fd2 != null && fd2.length > 0) {
                         fd2.forEach((r) => {
                             r.value_field = r.value_field == "true";
                         });
                     }
-                    var fd3 = data[1].filter(x => (x.kieu_truong == "datetime" || x.kieu_truong == "date") && x.value_field != null && isValidDate(x.value_field));
+                    var fd3 = data[1].filter(x => (x.kieu_truong != null && (x.kieu_truong == "datetime" || x.kieu_truong == "date")) && x.value_field != null && x.value_field != null && isValidDate(x.value_field));
                     if (fd3 != null && fd3.length > 0) {
                         fd3.forEach((r) => {
                             r.value_field = new Date(r.value_field);
@@ -997,6 +1017,22 @@ const showfile = (file, cmt) => {
 	displayModalIframeReq.value = true;
 };
 
+//
+const getDataSelectView = (listData, value, name, code) => {
+    if (listData.length > 0) {
+        let dataChoose = listData.filter(x => x[code] == value);
+        if (dataChoose.length > 0) {
+            return dataChoose[0][name];
+        }
+        else {
+            return "";
+        }
+    }
+    else {
+        return "";
+    }
+};
+
 // Right sidebar
 const tabLogActive = ref(0);
 const changeTabContent = (event) => {
@@ -1042,7 +1078,7 @@ onMounted(() => {
     <div class="overflow-hidden h-full w-full col-12 p-0 m-0 flex"
         v-if="is_viewSecurityRequest == true"
     >
-        <div class="col-8 md:col-8 p-0 pl-2 pr-2 m-0" 
+        <div class="col-8 md:col-8 p-0 pl-2 m-0" 
             style="border-right: 5px solid #ededed;" 
             v-if="detail_request != null"
         >
@@ -1123,7 +1159,7 @@ onMounted(() => {
                         {{ " - " + (detail_request.created_date ? moment(new Date(detail_request.created_date)).format('HH:mm DD/MM/yyyy') : '') }}
                     </span>
                 </div>
-                <div class="col-12 flex">
+                <div class="col-12 flex pr-3">
                     <div class="requestbutton" 
                         style="max-width:30%" 
                         v-if="detail_request.is_create && !detail_request.is_func && detail_request.status_processing == 1 && detail_request.Tiendo <= 0"
@@ -1298,7 +1334,7 @@ onMounted(() => {
                         >
                             <form id="frRequest">
                                 <div class="row">
-                                    <div class="col-3 p-0" v-if="true || detail_request.modified_date">
+                                    <div class="col-3 p-0" v-if="detail_request.modified_date">
                                         <div class="t-r">
                                             <div class="flex">
                                                 <span class="cv-spicon flex" style="align-items:center;">
@@ -1328,7 +1364,7 @@ onMounted(() => {
                                             </span>
                                         </p>
                                     </div>
-                                    <div class="col-3 p-0" v-if="true || detail_request.deadline_date != null">
+                                    <div class="col-3 p-0" v-if="detail_request.deadline_date != null">
                                         <div class="t-r">
                                             <div class="flex">
                                                 <span class="cv-spicon flex" style="align-items:center;">
@@ -1399,7 +1435,7 @@ onMounted(() => {
                                 
                                 <div class="row mt-2" 
                                     style="flex-direction:column;"
-                                    v-if="true || (detail_request.status_processing == 2 || detail_request.status_processing == 3)"
+                                    v-if="(detail_request.status_processing == 2 || detail_request.status_processing == 3)"
                                 >
                                     <div class="t-r">
                                         <div class="flex">
@@ -1409,7 +1445,7 @@ onMounted(() => {
                                             <span class="cv-request">Đánh giá đề xuất</span>
                                         </div>
                                     </div>
-                                    <div class="flex p-3" v-if="true || detail_request.avatar_completed_all">
+                                    <div class="flex px-3 py-2" v-if="detail_request.avatar_completed_all">
                                         <div class="r-ava">
                                             <Avatar
                                                 v-bind:label="
@@ -1425,7 +1461,6 @@ onMounted(() => {
                                                 v-tooltip.top="{ value: (detail_request.full_name_completed_all + '<br/>' + detail_request.position_name_completed_all + '<br/>' + detail_request.department_name_completed_all), escape: true }"
                                                 style="color: #ffffff; font-size: 1rem !important;"
                                                 :style="{ background: bgColor[0], }"
-                                                size="large"
                                                 shape="circle"
                                                 class="border-radius"
                                             />
@@ -1442,7 +1477,7 @@ onMounted(() => {
                                             </div>
                                         </div>
                                     </div>
-                                    <div class="flex p-3" v-if="true || (detail_request.evaluated_score > 0)">
+                                    <div class="flex px-3 py-2" v-if="(detail_request.evaluated_score > 0)">
                                         <div class="r-ava">
                                             <Avatar
                                                 v-bind:label="
@@ -1458,7 +1493,6 @@ onMounted(() => {
                                                 v-tooltip.top="{ value: (detail_request.full_name_evaluated + '<br/>' + detail_request.position_name_evaluated + '<br/>' + detail_request.department_name_evaluated), escape: true }"
                                                 style="color: #ffffff; font-size: 1rem !important;"
                                                 :style="{ background: bgColor[0], }"
-                                                size="large"
                                                 shape="circle"
                                                 class="border-radius"
                                             />
@@ -1470,7 +1504,7 @@ onMounted(() => {
                                                     {{ detail_request.evaluated_date ? moment(new Date(detail_request.evaluated_date)).format("HH:mm DD/MM/yyyy") : '' }}
                                                 </span>
                                             </div>
-                                            <div class="mt-2" v-if="true || detail_request.status_processing == 3">
+                                            <div class="mt-2" v-if="detail_request.status_processing == 3">
                                                 <Rating class="star-rating-custom"
                                                     v-model="detail_request.evaluated_score"
                                                     v-tooltip.top="{ value: 'Ngày đánh giá: <br/>' + (detail_request.evaluated_date ? moment(new Date(detail_request.evaluated_date)).format('HH:mm DD/MM/yyyy') : ''), escape: true }"
@@ -1487,7 +1521,15 @@ onMounted(() => {
                                 </div>
                                 
                                 <div class="row mt-2" v-if="FormDS && formDS_filter().length>0">
-                                    <div class="col-12 flex p-0" style="flex-wrap: wrap;">
+                                    <div class="t-r">
+                                        <div class="flex">
+                                            <span class="cv-spicon flex" style="align-items:center;">
+                                                <i class="pi pi-book"></i>
+                                            </span>
+                                            <span class="cv-request">Chi tiết đề xuất</span>
+                                        </div>
+                                    </div>
+                                    <div class="col-12 flex p-0 pl-3" style="flex-wrap: wrap;">
                                         <div class="formd pl-0"
                                             :class="(!d.is_class ? 'pr-0': (d.is_class == 'col-12' ? (d.is_class + ' pr-0') : d.is_class)) + ' ' + (d.is_end_line ? 'pr-0' : '')"
                                             v-for="(d, idxForm) in formDS_filter(null)"
@@ -1495,110 +1537,60 @@ onMounted(() => {
                                         >
                                             <div v-if="d.is_type != 3">
                                                 <div class="form-group formlabel" v-if="d.is_label">
-                                                    {{ d.ten_truong }}
+                                                    <label class="font-bold">{{ d.ten_truong }}</label>
                                                 </div>
-                                                <div class="form-group" v-else>
+                                                <div class="form-group mb-0" :class="'kieu-' + d.kieu_truong" v-else>
                                                     <div class="form-group flex mb-0" 
                                                         v-if="d.kieu_truong != 'checkbox' && d.kieu_truong != 'radio' && d.kieu_truong != 'switch' && d.is_type != 2"
                                                     >
-                                                        <label>{{ d.ten_truong }}</label>
-                                                        <span v-if="d.is_required" class="redsao pl-1">(*)</span> 
+                                                        <label class="font-bold">{{ d.ten_truong }}</label>
                                                     </div>
-                                                    <div class="form-group flex mb-0" v-else>
+                                                    <!-- <div class="form-group flex mb-0" v-else>
                                                         <label style="height: 1rem;"></label>
-                                                    </div>
+                                                    </div> -->
                                                     <div v-if="d.kieu_truong">
-                                                        <div v-if="d.kieu_truong == 'email'">
-                                                            <InputText :max="d.is_length" 
-                                                                type="email" 
-                                                                spellcheck="false" 
-                                                                v-model="d.value_field"
-                                                                class="form-control col-12 ip36 p-2"
-                                                                :class="{ 'p-invalid': d.is_required && !d.value_field && submitted, }"
-                                                            />
-                                                        </div>
-                                                        <div v-if="d.kieu_truong == 'varchar' || d.kieu_truong == 'nvarchar'">
-                                                            <InputText :max="d.is_length" 
-                                                                type="text" 
-                                                                spellcheck="false" 
-                                                                v-model="d.value_field"
-                                                                class="form-control col-12 ip36 p-2"
-                                                                :class="{ 'p-invalid': d.is_required && !d.value_field && submitted, }"
-                                                            />
-                                                        </div>
-                                                        <div v-if="d.kieu_truong == 'int' || d.kieu_truong == 'float'">
-                                                            <InputNumber
-                                                                spellcheck="false" 
-                                                                v-model="d.value_field" 
-                                                                class="form-control col-12 ip36 p-2"
-                                                                :class="{ 'p-invalid': d.is_required && !d.value_field && submitted, }"
-                                                            />
-                                                        </div>
-                                                        <div v-if="d.kieu_truong == 'textarea'">
-                                                            <Textarea :max="d.is_length" 
-                                                                spellcheck="false" 
-                                                                v-model="d.value_field" 
-                                                                class="form-control col-12 p-2"
-                                                                :class="{ 'p-invalid': d.is_required && !d.value_field && submitted, }"
-                                                                rows="2"
-                                                                autoResize
-                                                            />
+                                                        <div v-if="d.kieu_truong == 'email' || d.kieu_truong == 'varchar' || 
+                                                                    d.kieu_truong == 'nvarchar' || d.kieu_truong == 'int' || 
+                                                                    d.kieu_truong == 'float' || d.kieu_truong == 'textarea'" 
+                                                            :style="d.text_align == null ? 'text-align:left;' : ('text-align:' + d.text_align)">
+                                                            {{ d.value_field }}
                                                         </div>
                                                         <div v-if="d.kieu_truong == 'switch'">
                                                             <div class="flex ip36 mb-0" 
-                                                                style="align-items: center; flex-direction: row;">
-                                                                <InputSwitch v-model="d.value_field" />
+                                                                style="flex-direction: row;">
+                                                                <InputSwitch v-model="d.value_field" :disabled="true" />
                                                                 <label class="ml-2">{{ d.ten_truong }}</label>
                                                             </div>
                                                         </div>
                                                         <div v-if="d.kieu_truong == 'checkbox'">
                                                             <div class="flex ip36 mb-0" 
-                                                                style="align-items: center; flex-direction: row;">
-                                                                <Checkbox v-model="d.value_field" :binary="true" />
-                                                                <!-- <label class="ml-2">{{ td.ten_truong }}</label> -->
+                                                                style="flex-direction: row;">
+                                                                <Checkbox v-model="d.value_field" :binary="true" :disabled="true" />
+                                                                <label class="ml-2">{{ d.ten_truong }}</label>
                                                             </div>
                                                         </div>
                                                         <div v-if="d.kieu_truong == 'radio'">
                                                             <div class="flex ip36 mb-0" 
-                                                                style="align-items: center; flex-direction: row;">
-                                                                <RadioButton :value="d.request_formd_id" 
-                                                                    v-model="request_data.Radio"/>
+                                                                style="flex-direction: row;">
+                                                                <RadioButton :value="d.request_formd_id" v-model="request_data.Radio" :disabled="true" />
                                                                 <label class="ml-2">{{ d.ten_truong }}</label>
                                                             </div>
                                                         </div>
-                                                        <div v-if="d.kieu_truong == 'select' && d.is_type == 9">
-                                                            <Dropdown
-                                                                :options="list_type_dayoff"
-                                                                v-model="d.value_field"
-                                                                optionLabel="name" 
-                                                                optionValue="code" 
-                                                                placeholder="-- Loại nghỉ --"
-                                                            >
-                                                            </Dropdown>
+                                                        <div v-if="d.kieu_truong == 'select' && d.is_type == 9" 
+                                                            :style="d.text_align == null ? 'text-align:left;' : ('text-align:' + d.text_align)">
+                                                            {{ getDataSelectView(list_type_dayoff, d.value_field, 'name', 'code') }}
                                                         </div>
-                                                        <div v-if="d.kieu_truong == 'date' || d.kieu_truong == 'datetime'">
-                                                            <Calendar
-                                                                :showIcon="true"
-                                                                class="form-control col-12 ip36 p-0"
-                                                                autocomplete="on"
-                                                                inputId="time24"
-                                                                v-model="d.value_field"
-                                                                placeholder="dd/mm/yyyy"
-                                                                :class="{ 'p-invalid': d.is_required && !d.value_field && submitted, }"
-                                                            />
+                                                        <div v-if="d.kieu_truong == 'date'" 
+                                                            :style="d.text_align == null ? 'text-align:center;' : ('text-align:' + d.text_align)">
+                                                            {{ (d.value_field ? moment(new Date(d.value_field)).format('DD/MM/yyyy') : '') }}
                                                         </div>
-                                                        <div v-if="d.kieu_truong == 'time'">
-                                                            <!-- <Input type="text" class="form-control" v-model="d.value_field" placeholder="HH:MM:SS" onkeypress="formatTime(this)" max="8" :required="d.is_required" /> -->
-                                                            <Calendar
-                                                                :showIcon="true"
-                                                                class="form-control col-12 ip36 p-0"
-                                                                autocomplete="on"
-                                                                inputId="time24"
-                                                                v-model="d.value_field"
-                                                                placeholder="HH:mm"
-                                                                timeOnly
-                                                                :class="{ 'p-invalid': d.is_required && !d.value_field && submitted, }"
-                                                            />
+                                                        <div v-if="d.kieu_truong == 'datetime'" 
+                                                            :style="d.text_align == null ? 'text-align:center;' : ('text-align:' + d.text_align)">
+                                                            {{ (d.value_field ? moment(new Date(d.value_field)).format('HH:mm DD/MM/yyyy') : '') }}
+                                                        </div>
+                                                        <div v-if="d.kieu_truong == 'time'" 
+                                                            :style="d.text_align == null ? 'text-align:center;' : ('text-align:' + d.text_align)">
+                                                            {{ (d.value_field ? moment(new Date(d.value_field)).format('HH:mm') : '') }}
                                                         </div>
                                                     </div>
                                                 </div>
@@ -1611,11 +1603,11 @@ onMounted(() => {
                                                 </div>
                                             </div>
                                             <div v-if="d.is_type == 3">
-                                                <div class="form-group" v-if="d.is_label">
+                                                <div class="form-group mb-0" v-if="d.is_label">
                                                     <div class="form-group formlabel" 
                                                         style="margin-bottom:0.25rem;display:flex;align-items: center;"
                                                     >
-                                                        <label class="mb-0">{{ d.ten_truong }}</label>
+                                                        <label class="font-bold mb-0">{{ d.ten_truong }}</label>
                                                         <div style="flex:1"></div>
                                                         <!-- <Button v-if="request_data.IsEdit && request_data.is_general_request" 
                                                             @click="openRelate(null,'srequest',0)"
@@ -1642,98 +1634,49 @@ onMounted(() => {
                                                             <tr v-for="(r, indexF) in Ftables[idxForm]" :key="indexF">
                                                                 <td class="td-table-render" v-for="td in r">
                                                                     <div v-if="td.kieu_truong">
-                                                                        <div v-if="td.kieu_truong == 'email'">
-                                                                            <InputText :max="td.is_length" 
-                                                                                type="email" 
-                                                                                spellcheck="false" 
-                                                                                v-model="td.value_field"
-                                                                                class="form-control col-12 ip36 p-2"
-                                                                                disabled
-                                                                            />
-                                                                        </div>
-                                                                        <div v-if="td.kieu_truong == 'varchar' || td.kieu_truong == 'nvarchar'">
-                                                                            <InputText :max="td.is_length" 
-                                                                                type="text" 
-                                                                                spellcheck="false" 
-                                                                                v-model="td.value_field"
-                                                                                class="form-control col-12 ip36 p-2"
-                                                                                disabled
-                                                                            />
-                                                                        </div>
-                                                                        <div v-if="td.kieu_truong == 'int' || td.kieu_truong == 'float'">
-                                                                            <InputNumber
-                                                                                spellcheck="false" 
-                                                                                v-model="td.value_field" 
-                                                                                class="form-control col-12 ip36 p-2"
-                                                                                disabled
-                                                                            />
-                                                                        </div>
-                                                                        <div v-if="td.kieu_truong == 'textarea'">
-                                                                            <Textarea :max="td.is_length" 
-                                                                                spellcheck="false" 
-                                                                                v-model="td.value_field" 
-                                                                                class="form-control col-12 p-2"
-                                                                                disabled
-                                                                                rows="1"
-                                                                                autoResize
-                                                                            />
+                                                                        <div v-if="td.kieu_truong == 'email' || td.kieu_truong == 'varchar' || 
+                                                                                    td.kieu_truong == 'nvarchar' || td.kieu_truong == 'int' || 
+                                                                                    td.kieu_truong == 'float' || td.kieu_truong == 'textarea'" 
+                                                                            style="padding:0.25rem;"
+                                                                            :style="td.text_align == null ? 'text-align:left;' : ('text-align:' + td.text_align)">
+                                                                            {{ td.value_field }}
                                                                         </div>
                                                                         <div v-if="td.kieu_truong == 'switch'">
                                                                             <div class="flex ip36 mb-0" 
                                                                                 style="align-items: center; flex-direction: row; justify-content: center;">
-                                                                                <InputSwitch v-model="td.value_field" disabled/>
-                                                                                <!-- <label class="ml-2">{{ td.ten_truong }}</label> -->
+                                                                                <InputSwitch v-model="td.value_field" :disabled="true"/>
                                                                             </div>
                                                                         </div>
                                                                         <div v-if="td.kieu_truong == 'checkbox'">
                                                                             <div class="flex ip36 mb-0" 
                                                                                 style="align-items: center; flex-direction: row; justify-content: center;">
-                                                                                <Checkbox v-model="td.value_field" :binary="true" disabled/>
-                                                                                <!-- <label class="ml-2">{{ td.ten_truong }}</label> -->
+                                                                                <Checkbox v-model="td.value_field" :binary="true" :disabled="true"/>
                                                                             </div>
                                                                         </div>
                                                                         <div v-if="td.kieu_truong == 'radio'">
                                                                             <div class="flex ip36 mb-0" 
                                                                                 style="align-items: center; flex-direction: row; justify-content: center;">
-                                                                                <RadioButton :value="td.request_formd_id" 
-                                                                                    v-model="request_data.Radio" disabled/>
-                                                                                <!-- <label class="ml-2">{{ td.ten_truong }}</label> -->
+                                                                                <RadioButton :value="td.request_formd_id" v-model="request_data.Radio" :disabled="true"/>
                                                                             </div>
                                                                         </div>                                                        
-                                                                        <div v-if="td.kieu_truong == 'select' && td.is_type == 9">
-                                                                            <Dropdown class="w-full"
-                                                                                :options="list_type_dayoff"
-                                                                                v-model="td.value_field"
-                                                                                optionLabel="name" 
-                                                                                optionValue="code" 
-                                                                                :placeholder="'-- ' + td.ten_truong + ' --'"
-                                                                                style="border:none;"
-                                                                                disabled
-                                                                            >
-                                                                            </Dropdown>
+                                                                        <div v-if="td.kieu_truong == 'select' && td.is_type == 9"
+                                                                            style="padding:0.25rem;">
+                                                                            {{ getDataSelectView(list_type_dayoff, td.value_field, 'name', 'code') }}
+                                                                        </div>                                                                        
+                                                                        <div v-if="td.kieu_truong == 'date'"
+                                                                            style="padding:0.25rem;" 
+                                                                            :style="td.text_align == null ? 'text-align:center;' : ('text-align:' + td.text_align)">
+                                                                            {{ (td.value_field ? moment(new Date(td.value_field)).format('DD/MM/yyyy') : '') }}
                                                                         </div>
-                                                                        <div v-if="td.kieu_truong == 'date' || td.kieu_truong == 'datetime'">
-                                                                            <Calendar
-                                                                                :showIcon="false"
-                                                                                class="form-control col-12 ip36 p-0 calendar-table"
-                                                                                autocomplete="on"
-                                                                                inputId="time24"
-                                                                                v-model="td.value_field"
-                                                                                placeholder="dd/mm/yyyy"
-                                                                                disabled
-                                                                            />
+                                                                        <div v-if="td.kieu_truong == 'datetime'"
+                                                                            style="padding:0.25rem;" 
+                                                                            :style="td.text_align == null ? 'text-align:center;' : ('text-align:' + td.text_align)">
+                                                                            {{ (td.value_field ? moment(new Date(td.value_field)).format('HH:mm DD/MM/yyyy') : '') }}
                                                                         </div>
-                                                                        <div v-if="td.kieu_truong == 'time'">
-                                                                            <Calendar
-                                                                                :showIcon="false"
-                                                                                class="form-control col-12 ip36 p-0"
-                                                                                autocomplete="on"
-                                                                                inputId="time24"
-                                                                                v-model="td.value_field"
-                                                                                placeholder="HH:mm"
-                                                                                timeOnly
-                                                                                disabled
-                                                                            />
+                                                                        <div v-if="td.kieu_truong == 'time'"
+                                                                            style="padding:0.25rem;" 
+                                                                            :style="td.text_align == null ? 'text-align:center;' : ('text-align:' + td.text_align)">
+                                                                            {{ (td.value_field ? moment(new Date(td.value_field)).format('HH:mm') : '') }}
                                                                         </div>
                                                                     </div>
                                                                 </td>
@@ -1779,7 +1722,7 @@ onMounted(() => {
                                                     :class="r.status != 2 && r.is_overdue && r.Deadline && r.SoNgayHan <= 24 ? 'overdue-request' : ''"
                                                 >
                                                     <span style="word-break: break-all;">{{ r.request_code }}</span>
-                                                    <div class="mt-2" v-if="true || r.status_processing == 3">
+                                                    <div class="mt-2" v-if="r.status_processing == 3">
                                                         <Rating class="star-rating-custom"
                                                             v-model="r.evaluated_score"
                                                             v-tooltip.top="{ value: 'Ngày đánh giá: <br/>' + (r.evaluated_date ? moment(new Date(r.evaluated_date)).format('HH:mm DD/MM/yyyy') : ''), escape: true }"
@@ -1840,9 +1783,8 @@ onMounted(() => {
                                                                                 : basedomainURL + '/Portals/Image/nouser1.png'
                                                                             "
                                                                             v-tooltip.top="{ value: (u.full_name+'<br/>'+u.position_name+'<br/>'+u.department_name), escape: true }"
-                                                                            style="color: #ffffff; width:2rem; height:2rem; font-size: 1rem !important;"
+                                                                            style="color: #ffffff; font-size: 1rem !important;"
                                                                             :style="{ background: bgColor[0], }"
-                                                                            size="large"
                                                                             shape="circle"
                                                                             class="border-radius"
                                                                         />
@@ -1873,9 +1815,8 @@ onMounted(() => {
                                                                                 : basedomainURL + '/Portals/Image/nouser1.png'
                                                                             "
                                                                             v-tooltip.top="{ value: (u.full_name+'<br/>'+u.position_name+'<br/>'+u.department_name), escape: true }"
-                                                                            style="color: #ffffff; width:2rem; height:2rem; font-size: 1rem !important;"
+                                                                            style="color: #ffffff; font-size: 1rem !important;"
                                                                             :style="{ background: bgColor[0], }"
-                                                                            size="large"
                                                                             shape="circle"
                                                                             class="border-radius"
                                                                         />
@@ -2037,7 +1978,6 @@ onMounted(() => {
                                                 v-tooltip.top="{ value: (u.full_name + '<br/>' + u.position_name + '<br/>' + u.department_name), escape: true }"
                                                 style="color: #ffffff; font-size: 1rem !important;"
                                                 :style="{ background: bgColor[0], }"
-                                                size="large"
                                                 shape="circle"
                                                 class="border-radius"
                                             />
@@ -2150,7 +2090,7 @@ onMounted(() => {
 														<ul class="p-0 flex" 
                                                             style="background-color: transparent; box-shadow: none;list-style: none; margin: 0;">
 															<li class="flex">
-																<a v-if="true || u.created_by != store.getters.user.user_id" class="mr-1"
+																<a v-if="u.created_by != store.getters.user.user_id" class="mr-1"
 																	@click="showEmote($event, u)">
 																	<span class="badge-2 fw-400 m-0" style="font-size: 12px;" v-tooltip.top="'Tương tác'">
                                                                         <span class="flex" style="align-items:center;">
@@ -2493,7 +2433,7 @@ onMounted(() => {
                     <div
                         v-if="isClose == false"
                         class="absolute format-center col-12 p-0 m-0 flex bottom-0"
-                        style="border-radius: 0.5rem;border: 1px solid #b3b3b3;width:calc(100% - 1.5rem);"
+                        style="border-radius: 0.5rem;border: 1px solid #b3b3b3;width:calc(100% - 2rem);"
                     >
                         <div class="border-0 flex p-0 m-0" style="flex:1;">
                             <QuillEditor
@@ -2943,7 +2883,7 @@ onMounted(() => {
     >
         <div>
             <ul class="ul-func-mes m-0" style="width: 10rem;">
-                <li class="px-2 py-2" v-if="true || (cmtFuncClick.IsMe && cmtFuncClick.type_comment == 0)">
+                <li class="px-2 py-2" v-if="(cmtFuncClick.IsMe && cmtFuncClick.type_comment == 0)">
                     <a @click="EditComment(cmtFuncClick)" class="d-b td-n">
                         <i class="pi pi-pencil"></i>
                         <span class="ml-1"> Chỉnh sửa</span>
@@ -2953,13 +2893,13 @@ onMounted(() => {
                     <i class="pi pi-reply"></i>
                     <span class="ml-1"> Trả lời</span></a>
                 </li>
-                <li class="px-2 py-2" v-if="true || (cmtFuncClick.type_comment == 1 || cmtFuncClick.type_comment == 2 || cmtFuncClick.type_comment == 3 || cmtFuncClick.type_comment == 4)"> 
+                <li class="px-2 py-2" v-if="(cmtFuncClick.type_comment == 1 || cmtFuncClick.type_comment == 2 || cmtFuncClick.type_comment == 3 || cmtFuncClick.type_comment == 4)"> 
                     <a @click="downloadFile(cmtFuncClick)" class="d-b td-n">
                     <i class="pi pi-download"></i>
                     <span class="ml-1"> Tải xuống</span></a>
                 </li>
-                <li v-if="true || cmtFuncClick.IsMe" role="separator" class="divider"></li>
-                <li class="px-2 py-2" v-if="true || (detail_request.isdelcomment || cmtFuncClick.IsMe)"> 
+                <li v-if="cmtFuncClick.IsMe" role="separator" class="divider"></li>
+                <li class="px-2 py-2" v-if="(detail_request.isdelcomment || cmtFuncClick.IsMe)"> 
                     <a @click="Del_Comment(cmtFuncClick,cmtFuncClick.index)" class="d-b td-n" style="color:red;">
                         <i class="pi pi-trash"></i> 
                         <span class="ml-1"> Xóa</span>

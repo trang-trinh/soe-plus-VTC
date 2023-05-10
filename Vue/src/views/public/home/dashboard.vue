@@ -275,10 +275,11 @@ const onRowSelect = (id) => {
   showDetail.value = true;
   selectedTaskID.value = id;
 };
-emitter.on("SideBar", (obj) => {
-  showDetail.value = obj;
-});
-
+const closeDetail = () => {
+  showDetail.value = false;
+  selectedTaskID.value = null;
+  initData();
+};
 //Cắt cơm
 const componentKey = ref(0);
 const forceRerender = () => {
@@ -1298,12 +1299,12 @@ const initCalendarDuty = (rf) => {
       console.log(error);
     });
 };
-// region chat 
+// region chat
 const datalistsChat = ref([]);
 const chat = ref({
-	chat_group_name: "",
-	status: 1,
-	organization_id: store.getters.user.organization_id,
+  chat_group_name: "",
+  status: 1,
+  organization_id: store.getters.user.organization_id,
 });
 const ActiveMessage = (user) => {
   router
@@ -1317,56 +1318,53 @@ const ActiveMessage = (user) => {
 };
 const savingChat = ref(false);
 const saveGroupChat = () => {
-	if (savingChat.value == true) {
-		return;
-	}
-  
-	var ms = { chat_message_id: null }; 
-	let formData = new FormData();
+  if (savingChat.value == true) {
+    return;
+  }
+
+  var ms = { chat_message_id: null };
+  let formData = new FormData();
   let listMember = [];
-	formData.append("models", JSON.stringify(chat.value));
-	formData.append("members", JSON.stringify(listMember));
-	formData.append("messages", JSON.stringify(ms));
-	savingChat.value = true;
-	axios({
-		method: "post",
-		url:
-		baseURL + "/api/chat/Add_Chat",
-		data: formData,
-		headers: {
-			Authorization: `Bearer ${store.getters.token}`,
-		},
-	})
-  .then((response) => {
-		savingChat.value = false;
-		if (response.data.err != "1") {
-			if (response.data.chatGroupID) {
-				cookies.set("ck_cgi", response.data.chatGroupID);
-				router
-						.push({ name: "chat_message", })
-						.then(() => {
-							router.go(0);
-						});
-			}
-		} else {
-			swal.fire({
-				title: "Thông báo!",
-				text: "Có lỗi xảy ra, vui lòng kiểm tra lại!",
-				icon: "error",
-				confirmButtonText: "OK",
-			});
-		}
+  formData.append("models", JSON.stringify(chat.value));
+  formData.append("members", JSON.stringify(listMember));
+  formData.append("messages", JSON.stringify(ms));
+  savingChat.value = true;
+  axios({
+    method: "post",
+    url: baseURL + "/api/chat/Add_Chat",
+    data: formData,
+    headers: {
+      Authorization: `Bearer ${store.getters.token}`,
+    },
   })
-  .catch((error) => {
-    savingChat.value = false;
-    if (error && error.status === 401) {
-      swal.fire({					
-        text: "Mã token đã hết hạn hoặc không hợp lệ, vui lòng đăng nhập lại!",					
-        confirmButtonText: "OK",
-      });
-      store.commit("gologout");
-    }
-  });
+    .then((response) => {
+      savingChat.value = false;
+      if (response.data.err != "1") {
+        if (response.data.chatGroupID) {
+          cookies.set("ck_cgi", response.data.chatGroupID);
+          router.push({ name: "chat_message" }).then(() => {
+            router.go(0);
+          });
+        }
+      } else {
+        swal.fire({
+          title: "Thông báo!",
+          text: "Có lỗi xảy ra, vui lòng kiểm tra lại!",
+          icon: "error",
+          confirmButtonText: "OK",
+        });
+      }
+    })
+    .catch((error) => {
+      savingChat.value = false;
+      if (error && error.status === 401) {
+        swal.fire({
+          text: "Mã token đã hết hạn hoặc không hợp lệ, vui lòng đăng nhập lại!",
+          confirmButtonText: "OK",
+        });
+        store.commit("gologout");
+      }
+    });
 };
 // end region chat
 
@@ -1552,24 +1550,31 @@ onMounted(() => {
                       "
                     >
                       <div class="d-grid formgrid px-2">
-                       
                         <div class="col-12 md:col-12 p-0 pl-0">
                           <div class="d-grid formgrid">
                             <div class="col-12 md:col-12 p-0 flex pb-2">
-                             <div><img
-                          v-if="slotProps.data.is_hot"
-                            style="
-                              width: 40px;
-                              height: 20px;
-                              margin-right: 12px;
-                            "
-                            :src="basedomainURL + '/Portals/News/new.jpg'"
-                            alt="new"
-                          /></div> 
-                           <div> <span class="limit-line" :class="slotProps.data.is_hot?'font-bold':''">{{
-                                slotProps.data.title
-                              }}</span>
-                            </div></div> 
+                              <div>
+                                <img
+                                  v-if="slotProps.data.is_hot"
+                                  style="
+                                    width: 40px;
+                                    height: 20px;
+                                    margin-right: 12px;
+                                  "
+                                  :src="basedomainURL + '/Portals/News/new.jpg'"
+                                  alt="new"
+                                />
+                              </div>
+                              <div>
+                                <span
+                                  class="limit-line"
+                                  :class="
+                                    slotProps.data.is_hot ? 'font-bold' : ''
+                                  "
+                                  >{{ slotProps.data.title }}</span
+                                >
+                              </div>
+                            </div>
                             <div class="col-12 md:col-12 p-0">
                               <div class="description">
                                 <i class="pi pi-clock"></i>
@@ -2540,26 +2545,13 @@ onMounted(() => {
       </div>
     </div>
   </div>
-  <Sidebar
-    v-model:visible="showDetail"
-    :position="PositionSideBar"
-    :style="{
-      width:
-        PositionSideBar == 'right'
-          ? width1 > 1800
-            ? ' 65vw'
-            : '75vw'
-          : '100vw',
-      'min-height': '100vh !important',
-    }"
-    :showCloseIcon="false"
+  <detailedwork
+    v-if="showDetail === true"
+    :id="selectedTaskID"
+    :turn="0"
+    :closeDetail="closeDetail"
   >
-    <detailedwork
-      :isShow="showDetail"
-      :id="selectedTaskID"
-      :turn="0"
-    />
-  </Sidebar>
+  </detailedwork>
 
   <dialogcutrice
     :key="componentKey"

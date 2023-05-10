@@ -515,18 +515,22 @@ onMounted(() => {
                           '<br/>' +
                           (u.tenToChuc || ''),
                         escape: true,
-                      }" v-bind:label="u.avatar
-    ? ''
-    : (u.last_name ?? '').substring(0, 1)
-    " v-bind:image="basedomainURL + u.avatar" style="
-                                                                                                      background-color: #2196f3;
-                                                                                                      color: #ffffff;
-                                                                                                      width: 2.5rem;
-                                                                                                      height: 2.5rem;
-                                                                                                    font-size: 15px !important;
-                                                                                                  " :style="{
-                                                                                                      background: bgColor[index] + '!important',
-                                                                                                    }"
+                      }" 
+                      v-bind:label="u.avatar
+                        ? ''
+                        : (u.last_name ?? '').substring(0, 1)
+                        " 
+                      v-bind:image="basedomainURL + u.avatar" 
+                      style="
+                          background-color: #2196f3;
+                          color: #ffffff;
+                          width: 2.5rem;
+                          height: 2.5rem;
+                        font-size: 15px !important;
+                      " 
+                      :style="{
+                          background: bgColor[index] + '!important',
+                        }"
                       class="cursor-pointer" size="xlarge" shape="circle" />
                     <span style="font-size: 14px;">{{ u.full_name }}</span>
                   </div>
@@ -538,11 +542,11 @@ onMounted(() => {
       </div>
       <div class="col-9"
         style="background-color: #fff;margin-left: 5px;min-height: calc(100vh - 100px);max-height: calc(100vh - 100px);">
-        <DataTable class="table-ca-request-procedure-procedure" :value="listGroups" :paginator="false" :scrollable="true" 
+        <DataTable class="table-ca-request-procedure" :value="listGroups" :paginator="false" :scrollable="true" 
           scrollDirection="both" :lazy="true" dataKey="request_form_sign_id" :rowHover="true">
           <Column field="group_name" header="Nhóm phê duyệt"
-            headerStyle="width:auto;height:50px;border-left:none;border-right:none;"
-            bodyStyle="width:auto;border-left:none;border-right:none;position:relative">
+            headerStyle="min-width:20rem;height:50px;border-left:none;border-right:none;flex:1;"
+            bodyStyle="min-width:20rem;border-left:none;border-right:none;position:relative;flex:1;">
           </Column>
           <Column field="type_process_name" header="Kiểu duyệt"
             headerStyle="text-align:center;width:11rem;height:50px;border-left:none;border-right:none;"
@@ -555,10 +559,10 @@ onMounted(() => {
             class="align-items-center justify-content-center text-center">
             <template #body="data">
               <div style="
-                                                                                              background-color: #fff8ee;
-                                                                                              padding: 10px 20px;
-                                                                                              border-radius: 5px;
-                                                                                            ">
+                    background-color: #fff8ee;
+                    padding: 10px 20px;
+                    border-radius: 5px;
+                  ">
                 <span style="color: #ffab2b; font-size: 13px; font-weight: bold">{{ moment(new
                   Date(data.data.created_date)).format("DD/MM/YYYY") }}
                 </span>
@@ -591,28 +595,31 @@ onMounted(() => {
               <div v-if="store.state.user.is_super == true || store.state.user.user_id == Tem.data.created_by ||
                 (store.state.user.role_id == 'admin' && store.state.user.organization_id == Tem.data.organization_id)
                 ">
-                <Button @click="edit_request_form_sign(Tem.data)" class="
-                                                                      															p-button-rounded
-                                                                      															p-button-secondary
-                                                                      															p-button-outlined
-                                                                      															mx-1
-                                                                      														" type="button" icon="pi pi-pencil"
+                <Button @click="edit_request_form_sign(Tem.data)" 
+                  class="
+                    p-button-rounded
+                    p-button-secondary
+                    p-button-outlined
+                    mx-1
+                  " type="button" icon="pi pi-pencil"
                   v-tooltip.top="'Sửa'"></Button>
-                <Button class="
-                                                                      															p-button-rounded
-                                                                      															p-button-danger
-                                                                      															p-button-outlined
-                                                                      															mx-1
-                                                                      														" type="button" icon="pi pi-trash"
+                <Button 
+                  class="
+                    p-button-rounded
+                    p-button-danger
+                    p-button-outlined
+                    mx-1
+                  " type="button" icon="pi pi-trash"
                   @click="del_request_form_sign(Tem.data)" v-tooltip.top="'Xóa'"></Button>
               </div>
             </template>
           </Column>
           <template #empty>
-            <div class="align-items-center justify-content-center p-4 text-center m-auto" style="
-                                                                                                                  display: flex;
-                                                                                                                  flex-direction: column;
-                                                                                                                "
+            <div class="align-items-center justify-content-center p-4 text-center m-auto" 
+              style="
+                display: flex;
+                flex-direction: column;
+              "
               v-if="listGroups.length == 0">
               <img src="../../../../assets/background/nodata.png" height="144" />
               <h3 class="m-1">Không có dữ liệu</h3>
@@ -710,18 +717,22 @@ onMounted(() => {
                         '<br/>' +
                         (data.data.tenToChuc || ''),
                       escape: true,
-                    }" v-bind:label="data.data.avatar
-      ? ''
-      : (data.data.last_name ?? '').substring(0, 1)
-    " v-bind:image="basedomainURL + data.data.avatar" style="
-                                                                                                      background-color: #2196f3;
-                                                                                                      color: #ffffff;
-                                                                                                      width: 2.5rem;
-                                                                                                      height: 2.5rem;
-                                                                                                    font-size: 15px !important;
-                                                                                                  " :style="{
-                                                                                                      background: bgColor[data.index] + '!important',
-                                                                                                    }"
+                    }" 
+                    v-bind:label="data.data.avatar
+                      ? ''
+                      : (data.data.last_name ?? '').substring(0, 1)
+                    " 
+                    v-bind:image="basedomainURL + data.data.avatar" 
+                    style="
+                        background-color: #2196f3;
+                        color: #ffffff;
+                        width: 2.5rem;
+                        height: 2.5rem;
+                      font-size: 15px !important;
+                    " 
+                    :style="{
+                        background: bgColor[data.index] + '!important',
+                      }"
                     class="cursor-pointer" size="xlarge" shape="circle" />
                   <span style="font-size: 14px;margin-left: 10px;">{{ data.data.full_name }}</span>
                 </div>
@@ -762,21 +773,23 @@ onMounted(() => {
                 <div v-if="store.state.user.is_super == true || store.state.user.user_id == Tem.data.created_by ||
                   (store.state.user.role_id == 'admin' && store.state.user.organization_id == Tem.data.organization_id)
                   ">
-                  <Button class="
-                                                                      															p-button-rounded
-                                                                      															p-button-danger
-                                                                      															p-button-outlined
-                                                                      															mx-1
-                                                                      														" type="button" icon="pi pi-trash"
+                  <Button 
+                    class="
+                      p-button-rounded
+                      p-button-danger
+                      p-button-outlined
+                      mx-1
+                    " type="button" icon="pi pi-trash"
                     @click="del_request_form_sign_user(Tem.data, Tem.index)" v-tooltip.top="'Xóa'"></Button>
                 </div>
               </template>
             </Column>
             <template #empty>
-              <div class="align-items-center justify-content-center p-4 text-center m-auto" style="
-                                                                                                                  display: flex;
-                                                                                                                  flex-direction: column;
-                                                                                                                "
+              <div class="align-items-center justify-content-center p-4 text-center m-auto" 
+                style="
+                  display: flex;
+                  flex-direction: column;
+                "
                 v-if="listSelectUsers.length == 0">
                 <img src="../../../../assets/background/nodata.png" height="144" />
                 <h3 class="m-1">Không có dữ liệu</h3>
@@ -824,6 +837,9 @@ onMounted(() => {
 ::v-deep(.table-ca-request-procedure) {
   .p-datatable-emptymessage {
     justify-content: center;
+  }
+  .p-datatable-emptymessage td {
+    width: 100%;
   }
 }
 

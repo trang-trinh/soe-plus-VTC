@@ -4,7 +4,7 @@ import { inject, onMounted, ref } from "vue";
 import moment from "moment";
 import ModuleMenu from "../../components/base/ModuleMenu.vue";
 import Notify from "../../components/base/Notify.vue";
-import DetailedWork from "../task_origin/DetailedWork.vue";
+
 import { useRouter, useRoute } from "vue-router";
 import { encr } from "../../util/function.js";
 const cryoptojs = inject("cryptojs");

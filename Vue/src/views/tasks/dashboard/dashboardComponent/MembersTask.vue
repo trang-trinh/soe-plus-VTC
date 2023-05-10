@@ -61,6 +61,11 @@ const listStatus = ref([
   { value: 8, text: "Đã đánh giá", bg_color: "#51b7ae", text_color: "#FFFFFF" },
   { value: -1, text: "Bị xóa", bg_color: "red", text_color: "#FFFFFF" },
 ]);
+const closeDetail = () => {
+  showDetail.value = false;
+  selectedTaskID.value = null;
+  loadData(true);
+};
 const listUser = ref([]);
 const Chartdata = ref();
 const loadData = (rf) => {
@@ -1376,27 +1381,13 @@ onMounted(() => {
       </template>
     </DataTable>
   </div>
-  <Sidebar
-    v-model:visible="showDetail"
-    :position="PositionSideBar"
-    :style="{
-      width:
-        PositionSideBar == 'right'
-          ? width1 > 1800
-            ? ' 65vw'
-            : '75vw'
-          : '100vw',
-      'min-height': '100vh !important',
-    }"
-    :showCloseIcon="false"
+  <DetailedWork
+    v-if="showDetail === true"
+    :id="selectedTaskID"
+    :turn="0"
+    :closeDetail="closeDetail"
   >
-    <DetailedWork
-      :isShow="showDetail"
-      :id="selectedTaskID"
-      :turn="0"
-    >
-    </DetailedWork
-  ></Sidebar>
+  </DetailedWork>
   <Dialog
     :visible="OpenDialog"
     :header="'Biểu đồ so sánh xử lý công việc'"
