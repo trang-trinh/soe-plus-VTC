@@ -91,6 +91,12 @@ const listCountIDoButton = ref([
     bgColor: "#6FBF73",
   },
 ]);
+const closeDetail = () => {
+  showDetail.value = false;
+  selectedTaskID.value = null;
+  LoadCountTask(0);
+  LoadActive();
+};
 const listTask = ref([]);
 const chartData1 = ref();
 const chartData2 = ref();
@@ -114,7 +120,7 @@ const simpleDateName = (date) => {
     );
   }
 };
-const PositionSideBar = ref("right");
+
 const page = ref();
 const listDropdownStatus = ref([
   {
@@ -373,14 +379,6 @@ const ViewTask = (id) => {
 
 const showDetail = ref(false);
 const selectedTaskID = ref();
-
-emitter.on("SideBar", (obj) => {
-  showDetail.value = obj;
-  LoadCountTask(0);
-});
-emitter.on("psb", (obj) => {
-  PositionSideBar.value = obj;
-});
 const loadMore = () => {
   page.value += 1;
   LoadActive();
@@ -785,27 +783,13 @@ onMounted(() => {
       </div>
     </div>
   </div>
-  <Sidebar
-    v-model:visible="showDetail"
-    :position="PositionSideBar"
-    :style="{
-      width:
-        PositionSideBar == 'right'
-          ? width1 > 1800
-            ? ' 65vw'
-            : '75vw'
-          : '100vw',
-      'min-height': '100vh !important',
-    }"
-    :showCloseIcon="false"
+  <DetailedWork
+    v-if="showDetail === true"
+    :id="selectedTaskID"
+    :turn="0"
+    :closeDetail="closeDetail"
   >
-    <DetailedWork
-      :isShow="showDetail"
-      :id="selectedTaskID"
-      :turn="0"
-    >
-    </DetailedWork>
-  </Sidebar>
+  </DetailedWork>
 </template>
 
 <style lang="scss" scoped>

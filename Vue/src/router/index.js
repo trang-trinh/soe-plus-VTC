@@ -2172,6 +2172,11 @@ const router = createRouter({
       name: "BackupHistory",
       component: BackupHistory,
     },
+    {
+      path: "/tasks/aa",
+      name: "BackupHistory",
+      component: () => import("../components/task_origin/DialogTask.vue"),
+    },
   ],
 });
 // router.beforeEach((to, from) => {

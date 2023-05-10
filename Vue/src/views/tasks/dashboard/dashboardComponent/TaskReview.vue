@@ -13,7 +13,7 @@ const store = inject("store");
 const toast = useToast();
 const swal = inject("$swal");
 // eslint-disable-next-line no-undef
-const basedomainURL = baseURL;
+const basedomainURL = fileURL;
 const config = {
   headers: { Authorization: `Bearer ${store.getters.token}` },
 };
@@ -140,10 +140,11 @@ const onNodeSelect = (id) => {
   showDetail.value = true;
   selectedTaskID.value = id.task_id;
 };
-emitter.on("SideBar", (obj) => {
-  showDetail.value = obj;
+const closeDetail = () => {
+  showDetail.value = false;
+  selectedTaskID.value = null;
   loadData();
-});
+};
 const DialogVisible = ref(false);
 const DialogFileVisible = ref(false);
 const listSelected = ref([]);
@@ -1208,27 +1209,13 @@ onMounted(() => {
     </template>
     <!-- Chức năng đang chỉnh sửa vui lòng liên hệ quản trị viên phần mềm -->
   </Dialog>
-  <Sidebar
-    v-model:visible="showDetail"
-    :position="PositionSideBar"
-    :style="{
-      width:
-        PositionSideBar == 'right'
-          ? width1 > 1800
-            ? ' 65vw'
-            : '75vw'
-          : '100vw',
-      'min-height': '100vh !important',
-    }"
-    :showCloseIcon="false"
+  <DetailedWork
+    v-if="showDetail === true"
+    :id="selectedTaskID"
+    :turn="0"
+    :closeDetail="closeDetail"
   >
-    <DetailedWork
-      :isShow="showDetail"
-      :id="selectedTaskID"
-      :turn="0"
-    >
-    </DetailedWork
-  ></Sidebar>
+  </DetailedWork>
 </template>
 
 <style lang="scss" scoped>

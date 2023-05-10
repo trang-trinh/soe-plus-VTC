@@ -99,20 +99,18 @@ const props = defineProps({
   display: String,
   disabled: Boolean,
   type: Intl,
+  callbackFun: Function,
+  key_user: String,
 });
 const model = ref();
 const submitModel = () => {
-  emitter.emit("emitData", {
-    type: "submitModel",
-    data: { data: model.value, type: props.type },
-  });
+  props.callbackFun(props.key_user, model.value);
+  return false;
 };
 const removeUser = (item) => {
   model.value = model.value.filter((x) => x.profile_id != item.profile_id);
-  emitter.emit("emitData", {
-    type: "submitModel",
-    data: { data: model.value, type: props.type },
-  });
+  props.callbackFun(props.key_user, model.value);
+  return false;
 };
 onMounted(() => {
   loadUserProfiles();

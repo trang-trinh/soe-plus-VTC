@@ -9,6 +9,21 @@ import DropdownUser from "../component/DropdownProfiles.vue";
 import { encr, checkURL } from "../../../util/function.js";
 //Khai báo
 const emitter = inject("emitter");
+const getProfileUsers=(user,obj)=>{
+   
+  if (user=="profile_id_fake") {
+          declare_paycheck.value[user] = [];
+          obj.forEach((element) => {
+            declare_paycheck.value[user].push(element.profile_id);
+          });
+        } else {
+          options.value.list_profile_id = [];
+          obj.forEach((element) => {
+            options.value.list_profile_id.push(element.profile_id);
+          });
+        }
+ 
+}
 const cryoptojs = inject("cryptojs");
 const axios = inject("axios");
 const store = inject("store");
@@ -1062,9 +1077,11 @@ onMounted(() => {
                     <div class="py-2">Nhân sự nhận mẫu phiếu lương</div>
                     <DropdownUser
                       :model="options.list_profile_id"
-                      :type="2"
+                      
                       :display="'chip'"
                       :placeholder="'Chọn nhân sự'"
+                      :callbackFun="getProfileUsers"
+                :key_user="'list_profile_id'"
                     />
                   </div>
                   <div class="field col-12 p-0">
@@ -1383,7 +1400,8 @@ onMounted(() => {
                 'p-invalid':
                   declare_paycheck.profile_id_fake == null && submitted,
               }"
-              :type="1"
+               :callbackFun="getProfileUsers"
+                :key_user="'profile_id_fake'"
             />
           </div>
         </div>

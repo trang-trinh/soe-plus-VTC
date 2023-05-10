@@ -18,8 +18,7 @@ import TaskCheckListDetailVue from "./Detail_Task/TaskCheckListDetail.vue";
 import { encr } from "../../util/function.js";
 import moment from "moment";
 import DocLinkTaskVue from "./Detail_Task/DocTask.vue";
-`
-import treeuser from "../../components/user/treeuser.vue";`;
+import treeuser from "../../components/user/treeuser.vue";
 
 const cryoptojs = inject("cryptojs");
 const options = ref({});
@@ -309,6 +308,8 @@ const loadTaskMain = () => {
         status == 3
       ) {
         isClose.value = true;
+      } else {
+        isClose.value = false;
       }
       datalists.value = data[0];
       listWeights.value = data1;
@@ -803,6 +804,7 @@ const loadData = (rf) => {
         swal.showLoading();
       },
     });
+
     loadTaskMain();
     loadTaskCheckList();
     loadMember();
@@ -810,8 +812,9 @@ const loadData = (rf) => {
     loadChildTaskOrigin(0);
     loadFile();
     loadTaskDoc();
+    swal.close();
   }
-  swal.close();
+
   isLoading.value = false;
 };
 const RenderComments = (data) => {
@@ -2815,10 +2818,11 @@ const UpdateStatusTaksFunc = (stt, end_date, isFormValid) => {
       if (response.data.err != "1") {
         swal.close();
         toast.success("Cập nhật trạng thái công việc thành công!");
-        loadData(true);
+
         sbmStatusTask.value = false;
         openStatusTask.value = false;
         emitter.emit("update_status_task", true);
+        loadData(true);
       } else {
         let ms = response.data.ms;
         swal.fire({
@@ -3129,6 +3133,9 @@ const ViewFileInfo = (data) => {
 emitter.on("closeViewFile", (obj) => {
   isViewFileInfo.value = obj;
 });
+emitter.on("update_status_task", (obj) => {
+  loadData(true);
+});
 emitter.on("closeTaskChecklists", (obj) => {
   ViewTaskChecklists.value = obj;
   loadData(true);
@@ -3420,7 +3427,9 @@ const CloseVisible = () => {
     "
     :showCloseIcon="false"
     :modal="props.turn == 0 ? true : false"
-    ><div
+    class="p-sidebar-task"
+  >
+    <div
       v-if="isLoading == true"
       class="flex relative top-50 aligns-items-center justify-content-center"
     >
@@ -6214,6 +6223,7 @@ const CloseVisible = () => {
               :data="datalists"
               :isClose="isClose"
               :openAddTask="addNewChildTaskOrigin"
+              :turn="props.turn"
             ></Task_FollowVue>
           </div>
           <div v-if="CongViecCon == true">

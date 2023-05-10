@@ -5877,7 +5877,7 @@ const ChangeShowListCVGroup = (model) => {
             </template>
           </Dropdown>
         </div>
-        <div
+        <!-- <div
           class="field col-12 md:col-12"
           style="
             display: flex;
@@ -5892,7 +5892,7 @@ const ChangeShowListCVGroup = (model) => {
             style="position: absolute; top: 0px; left: 160px"
             v-model="Task.is_XML"
           />
-        </div>
+        </div> -->
         <div class="field col-12 md:col-12">
           <Accordion :multiple="true">
             <AccordionTab header="THÔNG TIN KHÁC">

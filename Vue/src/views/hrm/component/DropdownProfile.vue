@@ -8,7 +8,6 @@ const cryoptojs = inject("cryptojs");
 const axios = inject("axios");
 const store = inject("store");
 const swal = inject("$swal");
-const isDynamicSQL = ref(false);
 const config = {
   headers: { Authorization: `Bearer ${store.getters.token}` },
 };
@@ -26,7 +25,7 @@ const listDataUsers = ref([]);
 const listDataUsersSave = ref([]);
 const loadUserProfiles = () => {
   listDataUsers.value = [];
-   
+
   axios
     .post(
       baseURL + "/api/hrm_ca_SQL/getData",
@@ -34,11 +33,7 @@ const loadUserProfiles = () => {
         str: encr(
           JSON.stringify({
             proc: "hrm_profile_list_all",
-            par: [
-          
-              { par: "user_id", va: store.getters.user.user_id },
-       
-            ],
+            par: [{ par: "user_id", va: store.getters.user.user_id }],
           }),
           SecretKey,
           cryoptojs
@@ -48,14 +43,14 @@ const loadUserProfiles = () => {
     )
     .then((response) => {
       let data = JSON.parse(response.data.data)[0];
-       
+
       data.forEach((element, i) => {
         listDataUsers.value.push({
           profile_user_name: element.profile_user_name,
           code: {
             profile_id: element.profile_id,
             profile_user_name: element.profile_user_name,
-            avatar: element.avatar
+            avatar: element.avatar,
           },
           profile_id: element.profile_id,
           avatar: element.avatar,
@@ -67,15 +62,23 @@ const loadUserProfiles = () => {
           organization_id: element.organization_id,
         });
       });
-      var models = listDataUsers.value.find((x) => x.profile_id == props.model);
-      if(models)
-      model.value = {
-        profile_id: models.profile_id,
-        profile_user_name: models.profile_user_name,
-        avatar: models.avatar,
-      };
-      else
-      model.value =null;
+      var models = null;
+      if (props.optionValue == "code") {
+        models = listDataUsers.value.find((x) => x.profile_id == props.model);
+        if (models)
+          model.value = {
+            profile_id: models.profile_id,
+            profile_user_name: models.profile_user_name,
+            avatar: models.avatar,
+          };
+        else model.value = null;
+      } else {
+        models = listDataUsers.value.find(
+          (x) => x.profile_user_name == props.model
+        );
+        if (models) model.value = models.profile_user_name;
+        else model.value = null;
+      }
 
       listDataUsersSave.value = [...listDataUsers.value];
       isShow.value = true;
@@ -99,53 +102,51 @@ const props = defineProps({
   class: String,
   display: String,
   disabled: Boolean,
-  editable:Boolean,
-  optionLabel:String,
-  optionValue:String,
-  style:String
+  editable: Boolean,
+  optionLabel: String,
+  optionValue: String,
+  style: String,
+  callbackFun: Function,
+  key_user: String,
 });
 const model = ref();
 const submitModel = () => {
-  emitter.emit("emitData", { type: "submitDropdownUser", data: model.value });
-  
+  props.callbackFun(props.key_user, model.value);
+  return false;
 };
-const removeUser = (item) => {
-  emitter.emit("emitData", { type: "delItem", data: item });
-};
-onMounted(() => {
 
+onMounted(() => {
   loadUserProfiles();
   return {
     loadUserProfiles,
     model,
   };
 });
- 
+
 onBeforeUpdate(() => {
-
- 
-  if( listDataUsersSave.value.length>0)
-  {
-        var models = listDataUsersSave.value.find((x) => x.profile_id == props.model);
-        if (models)
-          model.value={
-            profile_id: models.profile_id,
-            profile_user_name: models.profile_user_name,
-            avatar: models.avatar,
-          };
-        else model.value = null;
-      }
-        else
-      loadUserProfiles();
-    
-
-
-
+  var models = null;
+  if (listDataUsersSave.value.length > 0) {
+    if (props.optionValue == "code") {
+      models = listDataUsersSave.value.find((x) => x.profile_id == props.model);
+      if (models)
+        model.value = {
+          profile_id: models.profile_id,
+          profile_user_name: models.profile_user_name,
+          avatar: models.avatar,
+        };
+      else model.value = null;
+    } else {
+      models = listDataUsersSave.value.find(
+        (x) => x.profile_user_name == props.model
+      );
+      if (models) model.value = models.profile_user_name;
+      else model.value = null;
+    }
+  } else loadUserProfiles();
 });
 </script>
 
 <template>
- 
   <Dropdown
     :options="listDataUsers"
     :filter="true"
@@ -155,7 +156,7 @@ onBeforeUpdate(() => {
     :optionValue="props.optionValue"
     :style="props.style"
     v-model="model"
-    class="  d-dropdown-design"
+    class="d-dropdown-design"
     style="height: auto; min-height: 36px"
     :placeholder="props.placeholder"
     @change="submitModel"
