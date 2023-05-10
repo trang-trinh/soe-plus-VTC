@@ -7,6 +7,8 @@ import { FilterMatchMode, FilterOperator } from "primevue/api";
 import { encr, checkURL } from "../../../util/function.js";
 import DropdownUser from "../component/DropdownProfile.vue";
 import DropdownUsers from "../component/DropdownUsers.vue";
+import DocComponent from "./components/DocComponent.vue";
+
 //Khai báo
 const emitter = inject("emitter");
 const cryoptojs = inject("cryptojs");
@@ -24,6 +26,7 @@ const filters = ref({
     constraints: [{ value: null, matchMode: FilterMatchMode.STARTS_WITH }],
   },
 });
+const visibleSidebarDoc = ref(false);
 const rules = {
   report_name: {
     required,
@@ -36,8 +39,60 @@ const rules = {
     ],
   },
 };
+const getProfileUser = (user, obj) => {
+  if (obj) {
+    smart_report.value[user] = obj.profile_id;
+  } else {
+    smart_report.value[user] = null;
+  }
+};
 
+const execSQL = async (id) => {
+  const axResponse = await axios.post(
+    baseURL + "/api/HRM_SQL/getData",
+    {
+      str: encr(
+        JSON.stringify({
+          proc: "smart_report_get",
+          par: [{ par: "report_id", va: id }],
+        }),
+        SecretKey,
+        cryoptojs
+      ).toString(),
+    },
+    config
+  );
+
+  return axResponse;
+};
+const configBaocao = async (row) => {
+ 
+  axios;
+
+  swal.fire({
+    width: 110,
+    didOpen: () => {
+      swal.showLoading();
+    },
+  });
+  const axResponse = await execSQL( row.report_id);
+
+  if (axResponse.status == 200) {
+    if (axResponse.data.error) {
+      toast.error("Không mở được bản ghi");
+    } else {
+      smart_report.value = JSON.parse(axResponse.data.data)[0][0];
+       
+      if (smart_report.value.proc_name)
+        smart_report.value.proc_name1 =
+          smart_report.value.proc_name.split(" ")[0];
+      visibleSidebarDoc.value = true;
+    }
+  }
+  swal.close();
+};
 //Lấy số bản ghi
+
 const loadCount = () => {
   axios
     .post(
@@ -153,8 +208,7 @@ const onPage = (event) => {
   } else if (event.page > options.value.PageNo) {
     //Trang sau
 
-    options.value.id =
-      datalists.value[datalists.value.length - 1].report_id;
+    options.value.id = datalists.value[datalists.value.length - 1].report_id;
     options.value.IsNext = true;
   } else if (event.page < options.value.PageNo) {
     //Trang trước
@@ -470,6 +524,13 @@ const editTem = (dataTem) => {
         store.commit("gologout");
       }
     });
+};
+const callbackFun = (obj) => {
+  Object.keys(obj).forEach((k) => {
+    smart_report.value[k] = obj[k];
+  });
+  isSaveTem.value = true;
+  saveData();
 };
 //Xóa bản ghi
 const delTem = (Tem) => {
@@ -838,7 +899,7 @@ const toggle = (event) => {
 };
 
 const filesList = ref([]);
- 
+
 const onUpFile = (file) => {
   let formData = new FormData();
   formData.append("fileupload", file);
@@ -852,7 +913,6 @@ const onUpFile = (file) => {
   })
     .then((response) => {
       if (response.data.err != "1") {
-        
         smart_report.value.report_template = response.data.htmls[0];
         checkUploadFile.value = true;
         checkDisabled.value = false;
@@ -871,7 +931,7 @@ const checkUploadFile = ref(false);
 const onUploadFile = (event) => {
   checkDisabled.value = true;
   checkUploadFile.value = false;
- 
+
   filesList.value = [];
 
   var ms = false;
@@ -986,7 +1046,6 @@ emitter.on("emitData", (obj) => {
 
     case "submitDropdownUsers":
       if (obj.data) {
-       
         if (obj.data.type == 1) {
           smart_report.value.user_access_fake = [];
 
@@ -1252,7 +1311,6 @@ onMounted(() => {
         </template>
       </Column>
       <Column
-     
         header="Template"
         class="align-items-center justify-content-center text-center"
         headerStyle="text-align:center;max-width:120px;height:50px"
@@ -1265,7 +1323,6 @@ onMounted(() => {
             ></i></div></template
       ></Column>
       <Column
-      
         header="Sử dụng"
         class="align-items-center justify-content-center text-center"
         headerStyle="text-align:center;max-width:120px;height:50px"
@@ -1279,7 +1336,6 @@ onMounted(() => {
           </div> </template
       ></Column>
       <Column
- 
         header="Public"
         class="align-items-center justify-content-center text-center"
         headerStyle="text-align:center;max-width:120px;height:50px"
@@ -1292,7 +1348,6 @@ onMounted(() => {
             ></i></div></template
       ></Column>
       <Column
-       
         field="status"
         header="Trạng thái"
         headerStyle="text-align:center;max-width:120px;height:50px"
@@ -1326,6 +1381,7 @@ onMounted(() => {
             type="button"
             icon="pi pi-cog"
             v-tooltip.left="'Cấu hình báo cáo'"
+            @click="configBaocao(Tem.data)"
           ></Button>
           <Button
             @click="copyTem(Tem.data)"
@@ -1377,7 +1433,22 @@ onMounted(() => {
       </template>
     </DataTable>
   </div>
+  <Sidebar v-model:visible="visibleSidebarDoc" position="full" class="d-sidebar-full">
+    <template #header>
+      <h2 class="p-0 m-0">
+        <i class="pi pi-cog mr-2"></i>{{ smart_report.report_name }}
+      </h2>
+    </template>
+    <div style="padding: 0 20px">
 
+ 
+      <DocComponent
+        :isedit="true"
+        :report="smart_report"
+        :callbackFun="callbackFun"
+      ></DocComponent>
+    </div>
+  </Sidebar>
   <Dialog
     :header="headerDialog"
     v-model:visible="displayBasic"
@@ -1454,7 +1525,6 @@ onMounted(() => {
               class="w-4rem lck-checked ml-3"
             />
           </div>
-       
         </div>
         <div class="col-12 field md:col-12 flex align-items-center">
           <div class="col-6 field md:col-6 p-0 flex align-items-center">
@@ -1488,18 +1558,14 @@ onMounted(() => {
               ></i>
             </div>
           </div>
-          <div
-            class="col-3 field md:col-3 p-0 flex align-items-center pl-1"
-          >
+          <div class="col-3 field md:col-3 p-0 flex align-items-center pl-1">
             <div class="text-left p-0">Kích hoạt</div>
             <InputSwitch
               v-model="smart_report.status"
               class="w-4rem lck-checked ml-3"
             />
           </div>
-          <div
-            class="col-3 field md:col-3 p-0 flex align-items-center  "
-          >
+          <div class="col-3 field md:col-3 p-0 flex align-items-center">
             <div class="text-left p-0">Template</div>
             <InputSwitch
               v-model="smart_report.is_temp"
@@ -1524,30 +1590,31 @@ onMounted(() => {
             <div class="col-12 field md:col-12 flex">
               <div class="col-6 md:col-6 p-0 align-items-center pr-1">
                 <div class="col-12 text-left p-0 pb-2">Thủ tục lấy dữ liệu</div>
-                <div class="col-12 p-0  h-full ">
-                <Dropdown
-                  v-model="smart_report.proc_name"
-                  :options="listProcDropdown"
-                  optionLabel="name"
-                  optionValue="code"
-                  class="w-full p-0"
-                  style="height: auto; min-height: 36px"
-                />
+                <div class="col-12 p-0 h-full">
+                  <Dropdown
+                    v-model="smart_report.proc_name"
+                    :options="listProcDropdown"
+                    optionLabel="name"
+                    optionValue="code"
+                    class="w-full p-0"
+                    style="height: auto; min-height: 36px"
+                  />
                 </div>
               </div>
               <div class="col-6 md:col-6 p-0 align-items-center pl-1">
                 <div class="col-12 text-left p-0 pb-2">Chọn nhân sự mẫu</div>
                 <div class="col-12 p-0">
                   <DropdownUser
-                  :model="smart_report.profile_id"
-                  :placeholder="'Chọn nhân sự'"
-                  :class="'w-full p-0'"
-                  :editable="false"
-                  optionLabel="profile_user_name"
-                optionValue="code"
-                />
+                    :model="smart_report.profile_id"
+                    :placeholder="'Chọn nhân sự'"
+                    :class="'w-full p-0'"
+                    :editable="false"
+                    optionLabel="profile_user_name"
+                    optionValue="code"
+                    :callbackFun="getProfileUser"
+                    :key_user="'profile_id'"
+                  />
                 </div>
-            
               </div>
             </div>
             <div class="col-12 field md:col-12">
@@ -1608,7 +1675,7 @@ onMounted(() => {
     </form>
     <template #footer>
       <Button
-      v-if="isSaveTem==true"
+        v-if="isSaveTem == true"
         label="Xóa cấu hình"
         icon="pi pi-cog"
         @click="closeDialog"

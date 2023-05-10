@@ -141,7 +141,7 @@ export const formatDate = (value, type) => {
     }
     return false;
 }
-export const change_unsigned = (str) => {
+export const change_unsigned = (str, c) => {
     var result = str;
     result = result.toLowerCase();
     result = result.replace(/à|á|ạ|ả|ã|â|ầ|ấ|ậ|ẩ|ẫ|ă|ằ|ắ|ặ|ẳ|ẵ/g, "a");
@@ -151,13 +151,151 @@ export const change_unsigned = (str) => {
     result = result.replace(/ù|ú|ụ|ủ|ũ|ư|ừ|ứ|ự|ử|ữ/g, "u");
     result = result.replace(/ỳ|ý|ỵ|ỷ|ỹ/g, "y");
     result = result.replace(/đ/g, "d");
+    if (c) {
+        result = result.replaceAll(" ", c);
+    }
     return result;
 }
+export const removeAccents = (str) => {
+    var AccentsMap = [
+        "aàảãáạăằẳẵắặâầẩẫấậ",
+        "AÀẢÃÁẠĂẰẲẴẮẶÂẦẨẪẤẬ",
+        "dđ", "DĐ",
+        "eèẻẽéẹêềểễếệ",
+        "EÈẺẼÉẸÊỀỂỄẾỆ",
+        "iìỉĩíị",
+        "IÌỈĨÍỊ",
+        "oòỏõóọôồổỗốộơờởỡớợ",
+        "OÒỎÕÓỌÔỒỔỖỐỘƠỜỞỠỚỢ",
+        "uùủũúụưừửữứự",
+        "UÙỦŨÚỤƯỪỬỮỨỰ",
+        "yỳỷỹýỵ",
+        "YỲỶỸÝỴ"
+    ];
+    for (var i = 0; i < AccentsMap.length; i++) {
+        var re = new RegExp('[' + AccentsMap[i].substr(1) + ']', 'g');
+        var char = AccentsMap[i][0];
+        str = str.replace(re, char);
+    }
+    return str.toLocaleLowerCase().replaceAll(" ", "");
+}
+export const isObject = (val) => {
+    return (typeof val === 'object');
+}
+export const capitalizeFirstLetter = (string, f) => {
+    try {
+        if (f == true) {
+            const words = string.split(" ");
+            for (let i = 0; i < words.length; i++) {
+                words[i] = words[i][0].toUpperCase() + words[i].substr(1);
+            }
+            return words.join(" ");
+        }
+        return string.charAt(0).toUpperCase() + string.slice(1);
+    } catch (e) {
+        return string;
+    }
+}
+export const download = (filename, text) => {
+    var element = document.createElement('a');
+    element.setAttribute('href', 'data:text/plain;charset=utf-8,' + encodeURIComponent(text));
+    element.setAttribute('download', filename);
+    element.style.display = 'none';
+    document.body.appendChild(element);
+    element.click();
+    document.body.removeChild(element);
+}
+export const strimHTML = (str) => {
+    return str.replace(/<\/?("[^"]*"|'[^']*'|[^>])*(>|$)/g, "");
+}
+export const getTagSelection = (dwindow) => {
+    const sel = dwindow.getSelection();
+    const range = sel.getRangeAt(0);
+    let istable = range.startContainer.parentElement.closest("td").children.length == 1;
+    let tagn = istable ? "tr" : "p";
+    return tagn;
+}
+export const uid = function () {
+    return Date.now().toString(36) + Math.random().toString(36).substr(2);
+}
+export const getKeyByValue = (object, value) => {
+    let vl = Object.keys(object).find(key => object[key] === value);
+    return vl;
+}
+export const decodeHTMLEntities = (text) => {
+    var entities = {
+        'amp': '&',
+        'apos': '\'',
+        '#x27': '\'',
+        '#x2F': '/',
+        '#39': '\'',
+        '#47': '/',
+        'lt': '<',
+        'gt': '>',
+        'nbsp': ' ',
+        'quot': '"'
+    }
+    return text.replace(/&([^;]+);/gm, function (match, entity) {
+        return entities[entity] || match
+    })
+}
+export const getRandomInt = (min, max, st) => {
+    return (Math.floor(Math.random() * (max - min + 1)) + min) * (st || 1);
+}
+export const getRandomArray = (arr) => {
+    return arr[Math.floor(Math.random() * arr.length)];
+}
+export const getCookie = (name) => {
+    function escape(s) { return s.replace(/([.*+?\^$(){}|\[\]\/\\])/g, '\\$1'); }
+    var match = document.cookie.match(RegExp('(?:^|;\\s*)' + escape(name) + '=([^;]*)'));
+    return match ? match[1] : null;
+}
+var monthNames = [
+    "January", "February", "March",
+    "April", "May", "June", "July",
+    "August", "September", "October",
+    "November", "December"
+];
+
+var Days = [
+    "Sunday", "Monday", "Tuesday", "Wednesday",
+    "Thursday", "Friday", "Saturday"
+];
+var pad = function (n, width, z) {
+    z = z || '0';
+    n = n + '';
+    return n.length >= width ? n : new Array(width - n.length + 1).join(z) + n;
+}
+export const utilformatDate = (dt, format) => {
+    format = format.replace('ss', pad(dt.getSeconds(), 2));
+    format = format.replace('s', dt.getSeconds());
+    format = format.replace('dd', pad(dt.getDate(), 2));
+    format = format.replace('d', dt.getDate());
+    format = format.replace('mm', pad(dt.getMinutes(), 2));
+    format = format.replace('m', dt.getMinutes());
+    format = format.replace('MMMM', monthNames[dt.getMonth()]);
+    format = format.replace('MMM', monthNames[dt.getMonth()].substring(0, 3));
+    format = format.replace('MM', pad(dt.getMonth() + 1, 2));
+    format = format.replace(/M(?![ao])/, dt.getMonth() + 1);
+    format = format.replace('DD', Days[dt.getDay()]);
+    format = format.replace(/D(?!e)/, Days[dt.getDay()].substring(0, 3));
+    format = format.replace('yyyy', dt.getFullYear());
+    format = format.replace('YYYY', dt.getFullYear());
+    format = format.replace('yy', (dt.getFullYear() + "").substring(2));
+    format = format.replace('YY', (dt.getFullYear() + "").substring(2));
+    format = format.replace('HH', pad(dt.getHours(), 2));
+    format = format.replace('H', dt.getHours());
+    return format;
+}
+export const formatSize = (bytes) => {
+    if (bytes === 0) return "0 B";
+    const k = 1024;
+    const sizes = ["B", "KB", "MB", "GB", "TB", "PB", "EB", "ZB", "YB"];
+    const i = Math.floor(Math.log(bytes) / Math.log(k));
+    return parseFloat((bytes / Math.pow(k, i)).toFixed(2)) + " " + sizes[i];
+};
 export const checkURL = (url, listModule) => {
-
-
     var checkrw = listModule.find(x => x.is_link == url);
-
     if (
         checkrw != null
     ) {
@@ -165,12 +303,7 @@ export const checkURL = (url, listModule) => {
     } else
         return false;
 }
-export const removeAccents = (str) => {
-    return str.normalize('NFD')
-              .replace(/[\u0300-\u036f]/g, '')
-              .replace(/đ/g, 'd').replace(/Đ/g, 'D');
-  }
-
+ 
   
 export const autoFillDate = (model,prop_name) => {
     var ip_val = document.getElementById(prop_name).value;
@@ -206,5 +339,4 @@ export const autoFillDate = (model,prop_name) => {
           model[prop_name] = dd + '/' + mm + '/' + yyyy;
         }
     }
-   
 }

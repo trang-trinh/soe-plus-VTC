@@ -8,6 +8,19 @@ import dialogReward from "./component/dialog_reward.vue";
 import DropdownUser from "../component/DropdownProfiles.vue";
 import router from "@/router";
 //Khai báo
+
+const getProfileUsers=(user,obj)=>{
+   
+   if (user=="reward_name") {
+   
+     
+           options.value.reward_name = [];
+           obj.forEach((element) => {
+             options.value.reward_name.push(element.profile_id);
+           });
+         }
+  
+ }
 const emitter = inject("emitter");
 const cryoptojs = inject("cryptojs");
 const axios = inject("axios");
@@ -1229,6 +1242,8 @@ onMounted(() => {
                               :display="'chip'"
                               :placeholder="'Chọn đối tượng khen thưởng'"
                               :type="2"
+                              :callbackFun="getProfileUsers"
+                :key_user="'reward_name'"
                             />
                           </div>
                           <div class="col-12 md:col-12">

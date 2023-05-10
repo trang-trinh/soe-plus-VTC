@@ -1775,13 +1775,6 @@ onMounted(() => {
                     </span>
                   </template>
                   <template #end>
-                    <Button
-                      v-if="store.getters.user.is_super"
-                      @click="showModalAddDonvi(0)"
-                      label="Thêm đơn vị"
-                      icon="pi pi-plus"
-                      class="mr-2"
-                    />
                   </template>
                 </Toolbar>
               </div>
@@ -2922,14 +2915,14 @@ onMounted(() => {
       >
         <template #body="md">
           <MultiSelect
+            v-if="md.node.data.permission"
             v-model="md.node.data.is_permission"
             @change="changeQuyen(md.node)"
             :style="{ width: '250px' }"
             id="overlay_Quyen"
             ref="menuQuyen"
             :popup="true"
-            :options="tdQuyens"
-            optionLabel="text"
+            :options="tdQuyens.filter(x => md.node.data.permission.toString().split('').includes(x.value.toString()))"            optionLabel="text"
             optionValue="value"
             placeholder="Chọn quyền"
           />

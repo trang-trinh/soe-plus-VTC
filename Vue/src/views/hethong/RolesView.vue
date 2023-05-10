@@ -444,6 +444,7 @@ const renderTree = (data, id, name, title) => {
   return { arrChils: arrChils, arrtreeChils: arrtreeChils };
 };
 const configRole = (md, type) => {
+  debugger
   swal.fire({
     width: 110,
     didOpen: () => {
@@ -1404,8 +1405,8 @@ onMounted(() => {
       <Column headerClass="align-items-center justify-content-center text-center" header="Quyền"
         headerStyle="text-align:center;width:250px" bodyStyle="text-align:center;width:250px">
         <template #body="md">
-          <MultiSelect v-model="md.node.data.is_permission" @change="changeQuyen(md.node)" :style="{ width: '250px' }"
-            id="overlay_Quyen" ref="menuQuyen" :popup="true" :options="tdQuyens" optionLabel="text" optionValue="value"
+          <MultiSelect v-if="md.node.data.permission" v-model="md.node.data.is_permission" @change="changeQuyen(md.node)" :style="{ width: '250px' }"
+            id="overlay_Quyen" ref="menuQuyen" :popup="true" :options="tdQuyens.filter(x => md.node.data.permission.toString().split('').includes(x.value.toString()))" optionLabel="text" optionValue="value"
             placeholder="Chọn quyền" />
         </template>
       </Column>

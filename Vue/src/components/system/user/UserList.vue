@@ -2667,14 +2667,14 @@ onMounted(() => {
       >
         <template #body="md">
           <MultiSelect
+            v-if="md.node.data.permission"
             v-model="md.node.data.is_permission"
             @change="changeQuyen(md.node)"
             :style="{ width: '250px' }"
             id="overlay_Quyen"
             ref="menuQuyen"
             :popup="true"
-            :options="tdQuyens"
-            optionLabel="text"
+            :options="tdQuyens.filter(x => md.node.data.permission.toString().split('').includes(x.value.toString()))"            optionLabel="text"
             optionValue="value"
             placeholder="Chọn quyền"
           />
