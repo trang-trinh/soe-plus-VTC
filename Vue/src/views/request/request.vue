@@ -116,6 +116,7 @@ const options = ref({
 const isFilter = ref(false);
 const isFirst = ref(true);
 const datas = ref([]);
+const is_check_all = ref(false);
 const listRequest = (rf) => {
     if (isFilter.value) {
         initDataFilter();
@@ -160,9 +161,9 @@ const listRequest = (rf) => {
                         item.objStatus = listStatusRequests.value.find(x => x.id == item.status);
                         // fake data
                         // item.Tiendo = 20;
-                        // item.status_processing = 3;
-                        // item.evaluated_score = 4;
-                        // item.evaluated_date = new Date();
+                        //item.status_processing = 3;
+                        //item.evaluated_score = 4;
+                        //item.evaluated_date = new Date();
                         // end fake data
                         if (item.listSignUser != null) {
                             item.listSignUser = JSON.parse(item.listSignUser);
@@ -215,6 +216,65 @@ const listRequest = (rf) => {
 };
 const initDataFilter = () => {
 
+};
+const changeCheckedAll = (checkedAll) => {
+    if (datas.value != null && datas.value.length > 0) {
+        datas.value.filter((x) => x["request_id"] != null && x["is_private"] !== true)
+        .forEach((item, i) => {
+            item["is_check"] = checkedAll;
+        });
+        selectedNodes.value = datas.value.filter((x) => x["is_check"]);
+    }
+};
+const changeChecked = (item) => {
+    if (datas.value != null && datas.value.length > 0) {
+        selectedNodes.value = datas.value.filter((x) => x["is_check"]);
+    }
+};
+const menuSends = ref();
+const itemSends = ref([
+    {
+        id: 0,
+        label: "Chuyển đến quy trình",
+        icon: "pi pi-chart-line",
+    },
+    {
+        id: 1,
+        label: "Chuyển đến nhóm",
+        icon: "pi pi-users",
+    },
+    {
+        id: 2,
+        label: "Chuyển đích danh",
+        icon: "pi pi-user-edit",
+    },
+]);
+const toggleSend = (event) => {
+    menuSends.value.toggle(event);
+};
+const openAddDialogSend = (str, type) => {
+    if (type != null) {
+        switch (type) {
+            case 0:
+                headerSend.value = "Chuyển đến quy trình";
+                modelsend.value.type_send = 0;
+                displaySend.value = true;
+                break;
+            case 1:
+                headerSend.value = "Chuyển đến quy trình";
+                modelsend.value.type_send = 0;
+                displaySend.value = true;
+                break;
+            case 2:
+                headerSend.value = "Chuyển đến quy trình";
+                modelsend.value.type_send = 0;
+                displaySend.value = true;
+                break;
+            default:
+                break;
+            }
+    }
+    forceRerenderSend();
 };
 
 const filterTab = ref();
@@ -450,7 +510,11 @@ const closeDialog = () => {
         request_team_id: dictionarys.value[2].length > 0 ? dictionarys.value[2][0].request_team_id : null,
         IsEdit: true,
     };
-    displayAddRequest.value = false;
+    displayAddRequest.value = false;    
+    selectedNodes.value.forEach((el) => {
+        el.is_check = false;
+    });
+    selectedNodes.value = [];
     forceRerenderForm();
 };
 const cpnAddRequest = ref(0);
@@ -603,11 +667,20 @@ const deleteRequest = (item) => {
                     swal.showLoading();
                 },
             });
-
+            var ids = [];
+            if (item != null) {
+                ids = [item["request_id"]];
+            } else {
+                if (selectedNodes.value.length > 0) {
+                    selectedNodes.value.forEach((row, i) => {
+                        ids.push(row["request_id"]);
+                    });
+                }
+            }
             axios
                 .delete(baseUrlCheck + "/api/request/Delete_Request", {
                     headers: { Authorization: `Bearer ${store.getters.token}` },
-                    data: item != null ? [item.request_id] : "-1",
+                    data: ids,
                 })
                 .then((response) => {
                     swal.close();
@@ -615,6 +688,7 @@ const deleteRequest = (item) => {
                         swal.close();
                         toast.success("Xoá đề xuất thành công!");
                         options.value.PageNo = 1;
+                        selectedNodes.value = [];
                         listRequest(true);
                         countRequest();
                     } else {
@@ -663,6 +737,7 @@ const refresh = () => {
     };
     isFirst.value = true;
     selectedNodes.value = [];
+    is_check_all.value = false;
     isFilter.value = false;
     listRequest(true);
     countRequest();
@@ -671,14 +746,16 @@ const request_select = ref();
 const menuButMores = ref();
 const headerSend = ref("");
 const displaySend = ref(false);
-const dataSelected = ref([]);
 const cpnSendRequest = ref(0);
 const forceRerenderSend = () => {
 	cpnSendRequest.value += 1;
 };
 const closeDialogSend = () => {
     //listRequest(true);
-    dataSelected.value = [];
+    selectedNodes.value.forEach((el) => {
+        el.is_check = false;
+    });
+    selectedNodes.value = [];
     displaySend.value = false;
 };
 const modelsend = ref({
@@ -741,14 +818,16 @@ const itemsFuncByStatus = () => {
     }
     return itemButMores.value;
 };
-const selectedNodes = ref({});
+const selectedNodes = ref([]);
 const toggleMores = (event, item) => {
     request_select.value = item;
-    dataSelected.value = [];
-    dataSelected.value.push(item);
+    item.is_check = true;
+    selectedNodes.value.forEach((el) => {
+        el.is_check = false;
+    });
+    selectedNodes.value = [];
+    selectedNodes.value.push(item);
     menuButMores.value.toggle(event);
-    selectedNodes.value = item;
-    options.value["filterRequest_id"] = selectedNodes.value["request_id"];
 };
 
 onMounted(() => {
@@ -775,17 +854,44 @@ onMounted(() => {
             </template>
             <template #end>
                 <Button
+                    @click="toggleSend"
+                    icon="pi pi pi-send"
+                    label="Chuyển xử lý"
+                    class="mr-2 p-button-outlined p-button-secondary"
+                    aria:haspopup="true"
+                    aria-controls="overlay_send"
+                    v-if="selectedNodes.length > 0"
+                />
+                <Menu
+                    :model="itemSends"
+                    :popup="true"
+                    id="overlay_send"
+                    ref="menuSends"
+                >
+                    <template #item="{ item }">
+                        <a class="p-menuitem-link"
+                            role="menuitem"
+                            tabindex="0"
+                            @click="openAddDialogSend(item.label, item.id)"
+                        >
+                            <span class="p-menuitem-icon" :class="item.icon"></span>
+                            <span class="p-menuitem-text">{{ item.label }}</span>
+                        </a>
+                    </template>
+                </Menu>
+                <Button
                     @click="openAddDialog('Thêm mới đề xuất')"
                     label="Thêm mới"
                     icon="pi pi-plus"
                     class="mr-2"
                 />
-                <!-- <Button
+                <Button
                     icon="pi pi-trash"
                     label="Xóa"
                     class="p-button-danger mr-2"
+                    v-if="selectedNodes.length > 0"
                     @click="deleteRequest()"
-                /> -->
+                />
                 <Button
                     @click="refresh()"
                     class="p-button-outlined p-button-secondary mr-2"
@@ -856,20 +962,49 @@ onMounted(() => {
                 scrollHeight="calc(100vh - 170px)"
                 :rowHover="true"                
                 v-model:selection="selectedNodes"
-                @rowSelect="openViewRequest($event.data)"
             >
+                <Column
+                    headerStyle="text-align:center;max-width:50px;height:45px"
+                    bodyStyle="text-align:center;max-width:50px"
+                    class="align-items-center justify-content-center text-center"
+                    >
+                    <template #header>
+                        <div class="mx-2">
+                        <Checkbox
+                            v-model="is_check_all"
+                            :binary="true"
+                            @change="changeCheckedAll(is_check_all)"
+                        />
+                        </div>
+                    </template>
+                    <template #body="slotProps">
+                        <div class="mx-2">
+                            <Checkbox
+                                v-if="((slotProps.data.created_by == store.getters.user.user_id || store.getters.user.is_super) && slotProps.data.status == 0) ||
+                                    slotProps.data.is_user_approved"
+                                v-model="slotProps.data.is_check"
+                                :binary="true"
+                                @change="changeChecked(slotProps.data)"
+                            />
+                        </div>
+                    </template>
+                </Column>
                 <Column
                     field="request_code"
                     header="Mã số"
                     headerStyle="text-align:center;max-width:150px;height:45px"
-                    bodyStyle="text-align:center;max-width:150px;"  
+                    bodyStyle="text-align:center;max-width:150px;padding:0 0.5rem !important;"  
                     class="align-items-center justify-content-center text-center"
                 >
                     <template #body="slotProps">
                         <div class="flex" 
                             :class="slotProps.data.status != 2 && slotProps.data.is_overdue && slotProps.data.Deadline && slotProps.data.SoNgayHan <= 24 ? 'overdue-request' : ''"
-                            style="flex-direction: column;">
-                            <span style="word-break: break-all;">{{ slotProps.data.request_code }}</span>
+                            style="flex-direction: column;height:100%;justify-content: center;" 
+                            @click="openViewRequest(slotProps.data)"
+                        >
+                            <span style="word-break: break-all;">
+                                {{ slotProps.data.request_code }}
+                            </span>
                             <div class="mt-2" v-if="slotProps.data.status_processing == 3">
                                 <Rating class="star-rating-custom"
                                     v-model="slotProps.data.evaluated_score"
@@ -890,7 +1025,10 @@ onMounted(() => {
                     class="align-items-center"
                 >
                     <template #body="slotProps">
-                        <div class="flex" style="flex-direction: column;">
+                        <div class="flex" 
+                            style="flex-direction: column;height: 100%; width: 100%; justify-content: center;" 
+                            @click="openViewRequest(slotProps.data)"
+                        >
                             <div class="flex" style="align-items: baseline;">
                                 <span class="uutien mr-2" 
                                     :class="'uutien' + (slotProps.data.is_security||0)" 
@@ -1094,6 +1232,13 @@ onMounted(() => {
                             aria-haspopup="true"
                             aria-controls="overlay_More"
                             v-tooltip.top="'Tác vụ'"
+                        />                        
+                        <Menu
+                            class="menu-request"
+                            id="overlay_More"
+                            ref="menuButMores"
+                            :model="itemsFuncByStatus()"
+                            :popup="true"
                         />
                     </template>
                 </Column>
@@ -1116,13 +1261,6 @@ onMounted(() => {
             </DataTable>
         </div>
     </div>
-    <Menu
-        class="menu-request"
-        id="overlay_More"
-        ref="menuButMores"
-        :model="itemsFuncByStatus()"
-        :popup="true"
-    />
     <Sidebar
         class="sidebar-request"
         v-model:visible="showDetailRequest"
@@ -1165,7 +1303,7 @@ onMounted(() => {
         :key="cpnSendRequest"
         :headerDialog="headerSend"
         :displayDialog="displaySend"
-        :dataSelected="dataSelected"
+        :dataSelected="selectedNodes"
         :modelsend="modelsend"
         :closeDialog="closeDialogSend"
     />
