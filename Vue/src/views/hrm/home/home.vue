@@ -1216,7 +1216,7 @@ onMounted(() => {
         </div>
         <div
           class="card m-1"
-          @click="goRouter('birthday')"
+          @click="goRouter('hrm_contact')"
           style="cursor: pointer"
         >
           <div class="card-header">
