@@ -1324,7 +1324,38 @@ min-width: 450px !important;
   box-shadow: 0 1px 5px rgba(0,0,0,.25) !important;
   padding: 0 !important;
   }
+ .d-sidebar-full .p-sidebar-full .p-sidebar {
+  transition: none;
+  transform: none;
+  width: 100vw !important;
+  height: 100vh !important;
+  max-height: 100%;
+  top: 0px !important;
+  left: 0px !important;
+}
+
+.p-sidebar.d-sidebar-full .p-sidebar-header{
+  padding: 1rem !important; 
+  width: 100%;
+
+}
+.p-sidebar.d-sidebar-full .p-sidebar-header .p-sidebar-header-content{
  
+  width: 100%;
+  
+}
+.p-sidebar.d-sidebar-full .has-child{
+  height: 100% !important;
+}
+.p-sidebar.d-sidebar-full .has-child td{
+  height: unset !important;
+}
+.p-datatable.d-sidebar-full   td{
+  height:unset !important;
+}
+.p-rowgroup-header,.p-datatable-thead{
+  display: none !important;
+}
 /*Style chung cho min-w-Xrem*/
 
 /* Style quan */
