@@ -12,7 +12,14 @@ import { encr, autoFillDate } from "../../../util/function.js";
 const cryoptojs = inject("cryptojs");
 
 const emitter = inject("emitter");
-
+const getProfileUser=(user,obj)=>{
+ 
+  if (obj) {
+    department_merger.value[user]=obj.profile_id;
+      } else {
+        department_merger.value[user] = null;
+      }
+}
 emitter.on("emitData", (obj) => {
   switch (obj.type) {
     case "submitDropdownUser":
@@ -530,55 +537,7 @@ const expandNode = (node) => {
     // }
   }
 };
-const editDonvi = (md) => {
-  submitted.value = false;
-  swal.fire({
-    width: 110,
-    didOpen: () => {
-      swal.showLoading();
-    },
-  });
-  displayAddDonvi.value = true;
-  axios
-    .post(
-      baseURL + "/api/Phongban/GetDataProc",
-      {
-        str: encr(
-          JSON.stringify({
-            proc: "sys_organization_get",
-            par: [{ par: "organization_id", va: md.organization_id }],
-          }),
-          SecretKey,
-          cryoptojs
-        ).toString(),
-      },
-      config
-    )
-    .then((response) => {
-      swal.close();
-      let data = JSON.parse(response.data.data);
-      if (data.length > 0) {
-        donvi.value = data[0][0];
-        if (donvi.value.foundation_date)
-          donvi.value.foundation_date = new Date(donvi.value.foundation_date);
-        if (donvi.value.dissolution_date)
-          donvi.value.dissolution_date = new Date(donvi.value.dissolution_date);
-
-        selectCapcha.value = {};
-        selectCapcha.value[donvi.value.parent_id || "-1"] = true;
-        selectDiadanh.value = {};
-        selectDiadanh.value[donvi.value.place_id || "-1"] = true;
-      }
-    })
-    .catch((error) => {
-      if (error.status === 401) {
-        swal.fire({
-          text: "Mã token đã hết hạn hoặc không hợp lệ, vui lòng đăng nhập lại!",
-          confirmButtonText: "OK",
-        });
-      }
-    });
-};
+ 
 const handleSubmit = (isFormValid) => {
   submitted.value = true;
   if (!isFormValid) {
@@ -934,6 +893,7 @@ const org_history = ref({});
 
 const visibleRight = ref(false);
 const onHideSidebar = () => {
+  if(layout.value=="grid")
   document.getElementById("orgchart"+donvi.value.organization_id).style.backgroundColor='unset';
   selectedKey.value = null;
   selectedNodes.value = null;
@@ -1132,6 +1092,7 @@ const displayOrgHistory = ref(false);
 const headerOrgHistory = ref("");
 
 const onAddOrgHistory = (data) => {
+   
   org_history.value = data;
   isView.value = false;
 
@@ -2005,7 +1966,7 @@ onMounted(() => {
           </div>
         </div>
       </div>
-      <div style="position: absolute; bottom: 0; right: 0" class="p-3">
+      <div   class="p-3">
         <Toolbar class="custoolbar">
           <template #end>
             <Button
@@ -2500,6 +2461,8 @@ onMounted(() => {
                 :editable="false"
                 optionLabel="profile_user_name"
                 optionValue="code"
+                :callbackFun="getProfileUser"
+                :key_user="'signer'"
               />
             </div>
           </div>

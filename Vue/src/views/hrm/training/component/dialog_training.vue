@@ -12,6 +12,14 @@ const swal = inject("$swal");
 const axios = inject("axios");
 const emitter = inject("emitter");
 
+const getProfileUsers=(user,obj)=>{
+   
+  training_emps.value[user] = [];
+           obj.forEach((element) => {
+            training_emps.value[user].push(element.profile_id);
+           });
+  
+ }
 emitter.on("emitData", (obj) => {
   switch (obj.type) {
     case "submitDropdownUser":
@@ -1129,6 +1137,8 @@ onMounted(() => {
                     training_emps.user_verify_fake == null && submitted,
                 }"
               :type="1"
+              :callbackFun="getProfileUsers"
+                :key_user="'user_verify_fake'"
             />
               <!-- <MultiSelect
                 v-model="training_emps.user_verify_fake"
@@ -1209,7 +1219,8 @@ onMounted(() => {
               :model="training_emps.user_follows_fake"
               :display="'chip'"
               :placeholder="'-------- Chọn người theo dõi --------'"
-           
+              :callbackFun="getProfileUsers"
+                :key_user="'user_follows_fake'"
               :type="2"
             />
               <!-- <MultiSelect

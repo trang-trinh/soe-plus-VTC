@@ -13,7 +13,7 @@ const store = inject("store");
 const toast = useToast();
 const swal = inject("$swal");
 // eslint-disable-next-line no-undef
-const basedomainURL = baseURL;
+const basedomainURL = fileURL;
 const config = {
   headers: { Authorization: `Bearer ${store.getters.token}` },
 };

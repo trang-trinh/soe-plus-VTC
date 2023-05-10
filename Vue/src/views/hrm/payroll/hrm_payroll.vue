@@ -9,6 +9,22 @@ import DropdownProfile from "../component/DropdownProfile.vue";
 import DropdownUser from "../component/DropdownProfiles.vue";
 import { encr, checkURL } from "../../../util/function.js";
 import moment from "moment";
+
+const getProfileUsers=(user,obj)=>{
+   
+   if (user=="profile_id_fake") {
+    payroll.value[user] = [];
+           obj.forEach((element) => {
+            payroll.value[user].push(element.profile_id);
+           });
+         } else {
+           options.value.list_profile_id = [];
+           obj.forEach((element) => {
+             options.value.list_profile_id.push(element.profile_id);
+           });
+         }
+  
+ }
 //Khai báo
 const emitter = inject("emitter");
 const cryoptojs = inject("cryptojs");
@@ -926,7 +942,13 @@ const choiceUser = () => {
     });
   closeDialogUser();
 };
-
+const getProfileUser=(user,obj)=>{
+  if (obj) {
+    payroll.value[user]=obj;
+      } else {
+        payroll.value.sign_user = null;
+      }
+}
 emitter.on("emitData", (obj) => {
   switch (obj.type) {
     case "submitDropdownUser":
@@ -1093,6 +1115,8 @@ onMounted(() => {
                       :display="'chip'"
                       :placeholder="'Chọn nhân sự'"
                       :type="2"
+                      :callbackFun="getProfileUsers"
+                :key_user="'list_profile_id'"
                     />
                   </div>
                   <div class="field col-12 p-0">
@@ -1533,6 +1557,8 @@ onMounted(() => {
                   :editable="true"
                   optionLabel="profile_user_name"
                 optionValue="profile_user_name"
+                :callbackFun="getProfileUser"
+                :key_user="'sign_user'"
               />
                
             </div>
@@ -1575,6 +1601,8 @@ onMounted(() => {
               :class="{
                 'p-invalid': payroll.profile_id_fake == null && submitted,
               }"
+                :callbackFun="getProfileUsers"
+                :key_user="'profile_id_fake'"
                     :type="1"
             />
           </div>
