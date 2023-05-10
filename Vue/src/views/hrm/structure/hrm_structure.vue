@@ -12,7 +12,14 @@ import { encr, autoFillDate } from "../../../util/function.js";
 const cryoptojs = inject("cryptojs");
 
 const emitter = inject("emitter");
-
+const getProfileUser=(user,obj)=>{
+ 
+  if (obj) {
+    department_merger.value[user]=obj.profile_id;
+      } else {
+        department_merger.value[user] = null;
+      }
+}
 emitter.on("emitData", (obj) => {
   switch (obj.type) {
     case "submitDropdownUser":
@@ -2500,6 +2507,8 @@ onMounted(() => {
                 :editable="false"
                 optionLabel="profile_user_name"
                 optionValue="code"
+                :callbackFun="getProfileUser"
+                :key_user="'signer'"
               />
             </div>
           </div>
