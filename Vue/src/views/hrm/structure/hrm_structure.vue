@@ -660,6 +660,8 @@ const delOrgHistory = (Tem) => {
             if (response.data.err != "1") {
               swal.close();
               toast.success("Xoá bản ghi thành công!");
+              displayOrgHistory.value=false;
+              initReward(org_history.value.organization_id);
             } else {
               swal.fire({
                 title: "Error!",
@@ -1913,7 +1915,7 @@ onMounted(() => {
                   <div v-if="data.data.created_date">
                     {{
                       moment(new Date(data.data.created_date)).format(
-                        "HH:mm DD/MM/YYYY"
+                        "DD/MM/YYYY"
                       )
                     }}
                   </div>
