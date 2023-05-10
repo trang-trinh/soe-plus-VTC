@@ -10,7 +10,21 @@ import DropdownUser from "../component/DropdownProfiles.vue";
 import moment from "moment";
  
 //Khai báo
-
+const getProfileUsers=(user,obj)=>{
+   
+   if (user=="profile_id_fake") {
+    work_schedule.value[user] = [];
+           obj.forEach((element) => {
+            work_schedule.value[user].push(element.profile_id);
+           });
+         } else {
+           options.value.profile_id = [];
+           obj.forEach((element) => {
+             options.value.profile_id.push(element.profile_id);
+           });
+         }
+  
+ }
 const cryoptojs = inject("cryptojs");
 const emitter = inject("emitter");
 const axios = inject("axios");
@@ -1162,6 +1176,8 @@ onMounted(() => {
                       :model="options.profile_id"
                       :display="'chip'"
                       :placeholder="'Chọn nhân sự'"    :type="2"
+                      :callbackFun="getProfileUsers"
+                :key_user="'profile_id'"
                     /> 
                   </div>
                 </div>
@@ -1680,6 +1696,8 @@ onMounted(() => {
               :class="{
                 'p-invalid': work_schedule.profile_id_fake == null && submitted,
               }"    :type="1"
+                :callbackFun="getProfileUsers"
+                :key_user="'profile_id_fake'"
             />
           </div>
         </div>

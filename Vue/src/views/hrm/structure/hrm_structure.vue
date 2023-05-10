@@ -4,13 +4,22 @@ import { required, maxLength, minLength, email } from "@vuelidate/validators";
 import { useToast } from "vue-toastification";
 import { useVuelidate } from "@vuelidate/core";
 import DropdownProfile from "../component/DropdownProfile.vue";
+import VueBlocksTree from "vue3-blocks-tree";
+import "vue3-blocks-tree/dist/vue3-blocks-tree.css";
 // import router from "@/router";
 import moment from "moment";
 import { encr, autoFillDate } from "../../../util/function.js";
 const cryoptojs = inject("cryptojs");
 
 const emitter = inject("emitter");
-
+const getProfileUser=(user,obj)=>{
+ 
+  if (obj) {
+    department_merger.value[user]=obj.profile_id;
+      } else {
+        department_merger.value[user] = null;
+      }
+}
 emitter.on("emitData", (obj) => {
   switch (obj.type) {
     case "submitDropdownUser":
@@ -76,7 +85,7 @@ const filters = ref({});
 const opition = ref({
   search: "",
   PageNo: 1,
-  PageSize: 1000,
+  PageSize: 10000,
   organization_type: null,
   user_id: store.getters.user.user_id,
 });
@@ -97,7 +106,8 @@ const options = ref({
 const donvis = ref();
 const data_org = ref();
 const treedonvis = ref();
-
+const orgchartDonvi = ref({});
+const checkShowOrgChart = ref(false);
 const selectDiadanh = ref();
 const displayAddDonvi = ref(false);
 const isFirst = ref(true);
@@ -109,27 +119,7 @@ const basedomainURL = fileURL;
 const config = {
   headers: { Authorization: `Bearer ${store.getters.token}` },
 };
-const menuButs = ref();
-const itemButs = ref([
-  {
-    label: "Import từ file Excel",
-    icon: "pi pi-file-excel",
-    command: (event) => {
-      exportDonvi("ExportExcel");
-    },
-  },
-  {
-    label: "Export ra file Excel",
-    icon: "pi pi-file-excel",
-    command: (event) => {
-      exportDonvi("ExportExcelMau");
-    },
-  },
-]);
-//Khai báo function
-const toggleExport = (event) => {
-  menuButs.value.toggle(event);
-};
+
 const onNodeSelect = (node) => {
   selectedNodes.value = node.data.organization_id;
   submitted.value = false;
@@ -307,8 +297,174 @@ const renderTree = (data, id, name, title) => {
 
   return { arrChils: arrChils, arrtreeChils: arrtreeChils };
 };
+
+const renderOrgChart = (data, id, name, title) => {
+  let arrChils = [];
+  let arrtreeChils = [];
+  const rechildren = (mm, pid) => {
+    let dts = data.filter((x) => x.parent_id == pid);
+
+    if (dts.length > 0) {
+      if (!mm.children) mm.children = [];
+      dts.forEach((em, index) => {
+        let om1 = {
+          label: em.organization_name + "",
+          expand: false,
+          some_id: em[id],
+          logo: em.logo,
+          type: em.organization_type,
+        };
+        if (!store.getters.user.is_super) {
+          om1.expand = true;
+        }
+
+        rechildren(om1, em[id]);
+        mm.children.push(om1);
+      });
+    }
+  };
+  data
+    .filter((x) => x.parent_id == null)
+    .forEach((m, i) => {
+      let om = {
+        label: m.organization_name + "",
+        expand: true,
+        some_id: m[id],
+        logo: m.logo,
+        type: m.organization_type,
+      };
+
+      rechildren(om, m[id]);
+      arrChils.push(om);
+    });
+
+  return { arrChils: arrChils, arrtreeChils: arrtreeChils };
+};
 const listTreeSelect = ref({});
 const department_merger = ref({});
+const reloadLayout = () => {
+  axios
+    .post(
+      baseURL + "/api/Phongban/GetDataProc",
+      {
+        str: encr(
+          JSON.stringify({
+            proc: "sys_organization_list_main",
+            par: [
+              { par: "pageno", va: opition.value.PageNo },
+              { par: "pagesize", va: opition.value.PageSize },
+              { par: "search", va: opition.value.search },
+              { par: "organization_type", va: opition.value.organization_type },
+              { par: "user_id", va: opition.value.user_id },
+            ],
+          }),
+          SecretKey,
+          cryoptojs
+        ).toString(),
+      },
+      config
+    )
+    .then((response) => {
+      let data = JSON.parse(response.data.data);
+
+      if (data.length > 0) {
+        if (layout.value == "list") {
+          let obj = renderTree(
+            data[0],
+            "organization_id",
+            "organization_name",
+            "đơn vị"
+          );
+          donvis.value = obj.arrChils;
+          listTreeSelect.value = obj.arrtreeChils;
+          data_org.value = data[0];
+          if (!store.getters.user.is_super) {
+            donvis.value.forEach((element) => {
+              expandNode(element);
+            });
+          } else {
+            expandedKeys.value[store.getters.user.organization_id] = true;
+          }
+          treedonvis.value = obj.arrtreeChils;
+          opition.value.totalRecords = data[1][0].totalrecords;
+        } else {
+          let obj = renderOrgChart(
+            data[0],
+            "organization_id",
+            "organization_name",
+            "đơn vị"
+          );
+          orgchartDonvi.value = obj.arrChils[0];
+          checkShowOrgChart.value = true;
+        }
+      } else {
+        orgchartDonvi.value = [];
+      }
+
+      if (isFirst.value) isFirst.value = false;
+    })
+    .catch((error) => {
+      if (error && error.status === 401) {
+        swal.fire({
+          text: "Mã token đã hết hạn hoặc không hợp lệ, vui lòng đăng nhập lại!",
+          confirmButtonText: "OK",
+        });
+      }
+    });
+};
+const onNodeSelectOrgchart = (event) => {
+  document.getElementById("orgchart"+event.some_id).style.backgroundColor='#f0f8ff';
+  selectedNodes.value = event.some_id;
+  submitted.value = false;
+  swal.fire({
+    width: 110,
+    didOpen: () => {
+      swal.showLoading();
+    },
+  });
+
+  axios
+    .post(
+      baseURL + "/api/Phongban/GetDataProc",
+      {
+        str: encr(
+          JSON.stringify({
+            proc: "sys_organization_get",
+            par: [{ par: "organization_id", va: event.some_id }],
+          }),
+          SecretKey,
+          cryoptojs
+        ).toString(),
+      },
+      config
+    )
+    .then((response) => {
+      swal.close();
+      let data = JSON.parse(response.data.data);
+      if (data.length > 0) {
+        donvi.value = data[0][0];
+        if (donvi.value.foundation_date)
+          donvi.value.foundation_date = new Date(donvi.value.foundation_date);
+        if (donvi.value.dissolution_date)
+          donvi.value.dissolution_date = new Date(donvi.value.dissolution_date);
+        selectCapcha.value = {};
+        selectCapcha.value[donvi.value.parent_id || "-1"] = true;
+        selectDiadanh.value = {};
+        selectDiadanh.value[donvi.value.place_id || "-1"] = true;
+      }
+
+      initReward(event.some_id);
+      visibleRight.value = true;
+    })
+    .catch((error) => {
+      if (error.status === 401) {
+        swal.fire({
+          text: "Mã token đã hết hạn hoặc không hợp lệ, vui lòng đăng nhập lại!",
+          confirmButtonText: "OK",
+        });
+      }
+    });
+};
 const loadDonvi = (rf) => {
   if (rf) {
     opition.value.loading = true;
@@ -381,55 +537,7 @@ const expandNode = (node) => {
     // }
   }
 };
-const editDonvi = (md) => {
-  submitted.value = false;
-  swal.fire({
-    width: 110,
-    didOpen: () => {
-      swal.showLoading();
-    },
-  });
-  displayAddDonvi.value = true;
-  axios
-    .post(
-      baseURL + "/api/Phongban/GetDataProc",
-      {
-        str: encr(
-          JSON.stringify({
-            proc: "sys_organization_get",
-            par: [{ par: "organization_id", va: md.organization_id }],
-          }),
-          SecretKey,
-          cryoptojs
-        ).toString(),
-      },
-      config
-    )
-    .then((response) => {
-      swal.close();
-      let data = JSON.parse(response.data.data);
-      if (data.length > 0) {
-        donvi.value = data[0][0];
-        if (donvi.value.foundation_date)
-          donvi.value.foundation_date = new Date(donvi.value.foundation_date);
-        if (donvi.value.dissolution_date)
-          donvi.value.dissolution_date = new Date(donvi.value.dissolution_date);
-
-        selectCapcha.value = {};
-        selectCapcha.value[donvi.value.parent_id || "-1"] = true;
-        selectDiadanh.value = {};
-        selectDiadanh.value[donvi.value.place_id || "-1"] = true;
-      }
-    })
-    .catch((error) => {
-      if (error.status === 401) {
-        swal.fire({
-          text: "Mã token đã hết hạn hoặc không hợp lệ, vui lòng đăng nhập lại!",
-          confirmButtonText: "OK",
-        });
-      }
-    });
-};
+ 
 const handleSubmit = (isFormValid) => {
   submitted.value = true;
   if (!isFormValid) {
@@ -464,20 +572,6 @@ const handleSubmit = (isFormValid) => {
   addDonvi();
 };
 
-const addTreeDonvi = (md, type) => {
-  let is_order =
-    data_org.value.filter((x) => x.parent_id == md.organization_id).length + 1;
-  selectCapcha.value = {};
-  selectCapcha.value[md.organization_id] = true;
-  donvi.value = {
-    organization_name: "",
-    is_order: is_order,
-    status: true,
-    organization_type: type,
-  };
-  submitted.value = false;
-  displayAddDonvi.value = true;
-};
 const addDonvi = () => {
   let formData = new FormData();
   for (var k in files) {
@@ -531,16 +625,11 @@ const addDonvi = () => {
       });
     });
 };
-
-// xóa đơn vị
-const delDonvi = (md) => {
+const delOrgHistory = (Tem) => {
   swal
     .fire({
       title: "Thông báo",
-      text:
-        "Bạn có muốn xoá " +
-        (md.organization_type == 1 ? "phòng ban" : "đơn vị") +
-        " này không!",
+      text: "Bạn có muốn xoá bản ghi này không!",
       icon: "warning",
       showCancelButton: true,
       confirmButtonColor: "#3085d6",
@@ -556,24 +645,24 @@ const delDonvi = (md) => {
             swal.showLoading();
           },
         });
+
         axios
-          .delete(baseURL + "/api/Phongban/Del_Donvi", {
-            headers: { Authorization: `Bearer ${store.getters.token}` },
-            data: md != null ? [md.organization_id] : [selectedNodes.value],
-          })
+          .delete(
+            baseURL +
+              "/api/sys_organization_history/delete_sys_organization_history",
+            {
+              headers: { Authorization: `Bearer ${store.getters.token}` },
+              data: Tem != null ? [Tem.organization_history_id] : 1,
+            }
+          )
           .then((response) => {
             swal.close();
             if (response.data.err != "1") {
               swal.close();
-              md.organization_type == 1
-                ? toast.success("Xoá phòng ban thành công!")
-                : toast.success("Xoá đơn vị thành công!");
-              if (layout.value == "list") loadDonvi();
-              else initTreeDV();
-              if (!md) selectedNodes.value = null;
+              toast.success("Xoá bản ghi thành công!");
             } else {
               swal.fire({
-                title: "Thông báo!",
+                title: "Error!",
                 text: response.data.ms,
                 icon: "error",
                 confirmButtonText: "OK",
@@ -592,6 +681,8 @@ const delDonvi = (md) => {
       }
     });
 };
+// xóa đơn vị
+
 // xóa nhiều
 
 const exportDonvi = (method) => {
@@ -802,6 +893,8 @@ const org_history = ref({});
 
 const visibleRight = ref(false);
 const onHideSidebar = () => {
+  if(layout.value=="grid")
+  document.getElementById("orgchart"+donvi.value.organization_id).style.backgroundColor='unset';
   selectedKey.value = null;
   selectedNodes.value = null;
 };
@@ -989,25 +1082,95 @@ const saveOrganization = (isFormValid) => {
       });
     });
 };
+const propsOrgchartDonvi = ref({
+  label: "label",
+  expand: "expand",
+  children: "children",
+  key: "key",
+});
 const displayOrgHistory = ref(false);
 const headerOrgHistory = ref("");
 
 const onAddOrgHistory = (data) => {
+   
   org_history.value = data;
-  isSaveOrgHistory.value=true;
+  isView.value = false;
+
+  isSaveOrgHistory.value = true;
   headerOrgHistory.value = "Thêm lịch sử thay đổi";
   displayOrgHistory.value = true;
 };
+const checkAddOrd = ref(false);
+const isEditOrgHistory = () => {
+  checkAddOrd.value = true;
+  isSaveOrgHistory.value = false;
+  isView.value = false;
+};
+const editOrgHistory = (data) => {
+  axios
+    .post(
+      baseURL + "/api/HRM_SQL/GetData",
+      {
+        str: encr(
+          JSON.stringify({
+            proc: "sys_organization_history_get",
+            par: [
+              {
+                par: "organization_history_id",
+                va: data.organization_history_id,
+              },
+            ],
+          }),
+          SecretKey,
+          cryoptojs
+        ).toString(),
+      },
+      config
+    )
+    .then((response) => {
+      swal.close();
+      let data = JSON.parse(response.data.data);
+      if (data.length > 0) {
+        org_history.value = data[0][0];
+        if (org_history.value.foundation_date)
+          org_history.value.foundation_date = new Date(
+            org_history.value.foundation_date
+          );
+        if (org_history.value.dissolution_date)
+          org_history.value.dissolution_date = new Date(
+            org_history.value.dissolution_date
+          );
+        if (org_history.value.decision_date)
+          org_history.value.decision_date = new Date(
+            org_history.value.decision_date
+          );
+        listFilesS.value = data[1];
+        checkAddOrd.value = false;
+        isView.value = true;
+        isSaveOrgHistory.value = false;
 
-  
- const isSaveOrgHistory=ref(false);
+        headerOrgHistory.value = "Chi tiết lịch sử thay đổi";
+        displayOrgHistory.value = true;
+      }
+    })
+    .catch((error) => {
+      if (error.status === 401) {
+        swal.fire({
+          text: "Mã token đã hết hạn hoặc không hợp lệ, vui lòng đăng nhập lại!",
+          confirmButtonText: "OK",
+        });
+      }
+    });
+};
+const isView = ref(false);
+
+const isSaveOrgHistory = ref(false);
 const saveOrgHistory = () => {
   submitted.value = true;
   if (org_history.value.decision_number == null) {
     return;
   }
 
-  
   let formData = new FormData();
   formData.append("model", JSON.stringify(org_history.value));
   swal.fire({
@@ -1016,79 +1179,90 @@ const saveOrgHistory = () => {
       swal.showLoading();
     },
   });
- 
 
-for (var i = 0; i < filesList.value.length; i++) {
-  let file = filesList.value[i];
-  formData.append("image", file);
-}
+  for (var i = 0; i < filesList.value.length; i++) {
+    let file = filesList.value[i];
+    formData.append("image", file);
+  }
 
-formData.append("sys_organization_history", JSON.stringify(org_history.value));
-formData.append("hrm_files", JSON.stringify(listFilesS.value));
-swal.fire({
-  width: 110,
-  didOpen: () => {
-    swal.showLoading();
-  },
-});
-if (isSaveOrgHistory.value==true) {
-  axios
-    .post(baseURL + "/api/sys_organization_history/add_sys_organization_history", formData, config)
-    .then((response) => {
-      if (response.data.err != "1") {
+  formData.append(
+    "sys_organization_history",
+    JSON.stringify(org_history.value)
+  );
+  formData.append("hrm_files", JSON.stringify(listFilesS.value));
+  swal.fire({
+    width: 110,
+    didOpen: () => {
+      swal.showLoading();
+    },
+  });
+  if (isSaveOrgHistory.value == true) {
+    axios
+      .post(
+        baseURL + "/api/sys_organization_history/add_sys_organization_history",
+        formData,
+        config
+      )
+      .then((response) => {
+        if (response.data.err != "1") {
+          swal.close();
+          toast.success("Thêm lịch sử đơn vị thành công!");
+
+          displayOrgHistory.value = false;
+        } else {
+          swal.fire({
+            title: "Error!",
+            text: response.data.ms,
+            icon: "error",
+            confirmButtonText: "OK",
+          });
+        }
+      })
+      .catch((error) => {
         swal.close();
-        toast.success("Thêm lịch sử đơn vị thành công!");
-
-        displayOrgHistory.value=false;
-      } else {
         swal.fire({
           title: "Error!",
-          text: response.data.ms,
+          text: "Có lỗi xảy ra, vui lòng kiểm tra lại!",
           icon: "error",
           confirmButtonText: "OK",
         });
-      }
-    })
-    .catch((error) => {
-      swal.close();
-      swal.fire({
-        title: "Error!",
-        text: "Có lỗi xảy ra, vui lòng kiểm tra lại!",
-        icon: "error",
-        confirmButtonText: "OK",
       });
-    });
-} else {
-  axios
-    .put(baseURL + "/api/sys_organization_history/update_sys_organization_history", formData, config)
-    .then((response) => {
-      if (response.data.err != "1") {
-        swal.close();
-        toast.success("Sửa lịch sử đơn vị thành công!");
+  } else {
+    axios
+      .put(
+        baseURL +
+          "/api/sys_organization_history/update_sys_organization_history",
+        formData,
+        config
+      )
+      .then((response) => {
+        if (response.data.err != "1") {
+          swal.close();
+          toast.success("Sửa lịch sử đơn vị thành công!");
 
-        displayOrgHistory.value=false;
-      } else {
+          displayOrgHistory.value = false;
+        } else {
+          swal.fire({
+            title: "Error!",
+            text: response.data.ms,
+            icon: "error",
+            confirmButtonText: "OK",
+          });
+        }
+      })
+      .catch((error) => {
+        swal.close();
         swal.fire({
           title: "Error!",
-          text: response.data.ms,
+          text: "Có lỗi xảy ra, vui lòng kiểm tra lại!",
           icon: "error",
           confirmButtonText: "OK",
         });
-      }
-    })
-    .catch((error) => {
-      swal.close();
-      swal.fire({
-        title: "Error!",
-        text: "Có lỗi xảy ra, vui lòng kiểm tra lại!",
-        icon: "error",
-        confirmButtonText: "OK",
       });
-    });
-}
+  }
 };
 const closeOrgHistory = () => {
-  org_history.value={};
+  org_history.value = {};
   displayOrgHistory.value = false;
 };
 
@@ -1099,82 +1273,90 @@ onMounted(() => {
 });
 </script>
 <template>
-  <div class="main-layout flex-grow-1 p-2" v-if="layout == 'list'">
-    <TreeTable
-      :value="donvis"
-      v-model:selectionKeys="selectedKey"
-      :loading="opition.loading"
-      @nodeSelect="onNodeSelect"
-      @nodeUnselect="onNodeUnselect"
-      :expandedKeys="expandedKeys"
-      :filters="filters"
-      :showGridlines="false"
-      selectionMode="single"
-      filterMode="strict"
-      class="p-treetable-sm d-tree-missheader"
-      :rows="20"
-      :rowHover="true"
-      responsiveLayout="scroll"
-      :scrollable="true"
-      scrollHeight="flex"
-      :metaKeySelection="false"
+  <div class="surface-100">
+    <div
+      class="main-layout flex-grow-1 p-2"
+      v-if="layout == 'list'"
+      style="height: calc(100vh - 52px)"
     >
-      <template #header>
-        <h3 class="module-title module-title-hidden mt-0 ml-1 mb-2">
-          <i class="pi pi-sitemap"></i>
-          Cơ cấu tổ chức
-        </h3>
-        <Toolbar class="w-full custoolbar">
-          <template #start>
-            <span class="p-input-icon-left">
-              <i class="pi pi-search" />
-              <InputText
-                type="text"
-                spellcheck="false"
-                v-model="filters['global']"
-                placeholder="Tìm kiếm"
+      <TreeTable
+        :value="donvis"
+        v-model:selectionKeys="selectedKey"
+        :loading="opition.loading"
+        @nodeSelect="onNodeSelect"
+        @nodeUnselect="onNodeUnselect"
+        :expandedKeys="expandedKeys"
+        :filters="filters"
+        :showGridlines="false"
+        selectionMode="single"
+        filterMode="strict"
+        class="p-treetable-sm d-tree-missheader"
+        :rows="20"
+        :rowHover="true"
+        responsiveLayout="scroll"
+        :scrollable="true"
+        scrollHeight="flex"
+        :metaKeySelection="false"
+      >
+        <template #header>
+          <h3 class="module-title module-title-hidden mt-0 ml-1 mb-2">
+            <i class="pi pi-sitemap"></i>
+            Cơ cấu tổ chức
+          </h3>
+          <Toolbar class="w-full custoolbar">
+            <template #start>
+              <span class="p-input-icon-left">
+                <i class="pi pi-search" />
+                <InputText
+                  type="text"
+                  spellcheck="false"
+                  v-model="filters['global']"
+                  placeholder="Tìm kiếm"
+                />
+              </span>
+            </template>
+
+            <template #end>
+              <Button
+                icon="pi pi-link"
+                label="Sáp nhập"
+                class="font-bold w-9rem mr-2"
+                @click="onShowStructure"
               />
-            </span>
-          </template>
+              <Button
+                @click="onDissolution"
+                icon="pi pi-stop-circle"
+                label="Giải thể"
+                class="p-button-outlined font-bold p-button-danger w-9rem mr-2"
+              />
+              <DataViewLayoutOptions
+                v-model="layout"
+                @update:modelValue="reloadLayout"
+              />
 
-          <template #end>
-            <Button
-              icon="pi pi-link"
-              label="Sáp nhập"
-              class="font-bold w-9rem mr-2"
-              @click="onShowStructure"
-            />
-            <Button
-              @click="onDissolution"
-              icon="pi pi-stop-circle"
-              label="Giải thể"
-              class="p-button-outlined font-bold p-button-danger w-9rem mr-2"
-            />
-            <DataViewLayoutOptions v-model="layout" />
-
-            <Button
-              class="mr-2 ml-2 p-button-outlined p-button-secondary"
-              icon="pi pi-refresh"
-              @click="onRefersh"
-            />
-          </template>
-        </Toolbar>
-      </template>
-
-      <Column field="organization_name" header="Tên đơn vị" :expander="true">
-        <template #body="md">
-          <span
-            :class="'donvi' + md.node.data.organization_type"
-            :style="[
-              md.node.data.parent_id ? '' : 'font-weight:bold',
-              md.node.data.status ? '' : 'color:red !important',
-            ]"
-            >{{ md.node.data.organization_name }}</span
-          >
+              <Button
+                class="mr-2 ml-2 p-button-outlined p-button-secondary"
+                icon="pi pi-refresh"
+                @click="onRefersh"
+              />
+            </template>
+          </Toolbar>
         </template>
-      </Column>
 
-      <Column
+        <Column field="organization_name" header="Tên đơn vị" :expander="true">
+          <template #body="md">
+            <span
+              :class="'donvi' + md.node.data.organization_type"
+              :style="[
+                md.node.data.parent_id ? '' : 'font-weight:bold',
+                md.node.data.status ? '' : 'color:red !important',
+              ]"
+              >{{ md.node.data.organization_name }}</span
+            >
+          </template>
+        </Column>
+
+        <!-- <Column
         header="Chức năng"
         headerClass="text-center"
         class="align-items-center justify-content-center text-center"
@@ -1207,254 +1389,122 @@ onMounted(() => {
             @click="delDonvi(md.node.data)"
           ></Button>
         </template>
-      </Column>
-      <template #empty>
-        <div
-          class="m-auto align-items-center justify-content-center p-4 text-center"
-          v-if="!isFirst"
-        >
-          <img src="../../../assets/background/nodata.png" height="144" />
-          <h3 class="m-1">Không có dữ liệu</h3>
-        </div>
-      </template>
-    </TreeTable>
-  </div>
-  <div v-if="layout == 'grid'">
-    <Splitter class="h-full w-full pb-0 pr-0">
-      <SplitterPanel :size="40" class=" ">
-        <div class="p-3" v-if="datalistsDetails">
-          <h3 class="module-title m-0">
-            <i class="pi pi-microsoft"></i>
-            {{
-              store.getters.user.is_super
-                ? "Danh sách đơn vị"
-                : "Cơ cấu tổ chức"
-            }}
-          </h3>
-        </div>
-        <Toolbar class="w-full">
-          <template #start>
-            <span class="p-input-icon-left">
-              <i class="pi pi-search" />
-              <InputText spellcheck="false" placeholder="Tìm kiếm đơn vị" />
-            </span>
-          </template>
-
-          <template #end>
-            <Button
-              @click="showModalAddDonvi(1)"
-              label="Thêm đơn vị"
-              icon="pi pi-plus"
-              class="mx-2"
-            />
-            <Button
-              @click="refreshStamp"
-              class="mr-2 p-button-outlined p-button-secondary"
-              icon="pi pi-refresh"
-              v-tooltip="'Tải lại'"
-            />
-          </template>
-        </Toolbar>
-        <div class="pl-3">
+      </Column> -->
+        <template #empty>
           <div
-            v-for="(dv, index) in donvitrees"
-            :key="index"
-            :style="'margin-left:' + (dv.is_level + 2) + 'em'"
-            v-show="!dv.isClosed"
-            class="my-3 mr-2 relative cursor-pointer"
+            class="m-auto align-items-center justify-content-center p-4 text-center"
+            v-if="!isFirst"
           >
-            <div
-              @mouseover="dv.hover = true"
-              @mouseleave="dv.hover = false"
-              style="min-height: 20px"
-            >
-              <span
-                @click="toggle_Donvisudung(dv)"
-                class="absolute"
-                style="left: -1.7rem; top: 0"
-                v-if="dv.canExpand"
-              >
-                <!-- <a v-if="!dv.isOpened"><i style="font-size: 16px;" class="pi pi-plus-circle"></i></a> -->
-                <a v-if="!dv.isOpened"
-                  ><font-awesome-icon
-                    icon="fa-solid fa-square-plus"
-                    style="font-size: 16px"
-                /></a>
-                <a v-if="dv.isOpened"
-                  ><font-awesome-icon
-                    icon="fa-solid fa-square-minus"
-                    style="font-size: 16px"
-                /></a>
-              </span>
-              <div
-                class="font-bold w-full text-lg item-hover"
-                :class="{
-                  active: id_active === dv.organization_id,
-                  'c-red-600': !dv.status,
-                }"
-                @click="
-                  loadDataDetails(dv.organization_id, dv.organization_name)
-                "
-              >
-                {{ dv.organization_name }}
-              </div>
-              <div class="absolute" v-if="dv.hover" style="right: 0; top: 0">
-                <Button
-                  type="button"
-                  icon="pi pi-plus-circle"
-                  class="p-button-rounded p-button-secondary p-button-outlined"
-                  style="width: 1.5rem; height: 1.5rem"
-                  v-tooltip.top="'Thêm đơn vị trực thuộc'"
-                  @click="addTreeDonvi(dv, 0)"
-                ></Button>
-                <Button
-                  type="button"
-                  icon="pi pi-pencil"
-                  v-tooltip.top="'Chỉnh sửa'"
-                  class="p-button-rounded p-button-secondary p-button-outlined ml-1"
-                  style="width: 1.5rem; height: 1.5rem"
-                  @click="editDonvi(dv)"
-                ></Button>
-                <Button
-                  type="button"
-                  icon="pi pi-trash"
-                  v-tooltip.top="'Xóa'"
-                  class="p-button-rounded p-button-secondary p-button-outlined ml-1"
-                  style="width: 1.5rem; height: 1.5rem"
-                  @click="delDonvi(dv)"
-                ></Button>
-              </div>
-            </div>
+            <img src="../../../assets/background/nodata.png" height="144" />
+            <h3 class="m-1">Không có dữ liệu</h3>
           </div>
-        </div>
-      </SplitterPanel>
-      <SplitterPanel :size="60">
-        <div class="d-lang-table-r">
-          <div class="p-3" v-if="datalistsDetails">
-            <h3 class="module-title m-0">
-              <i class="pi pi-book"></i> {{ department_name }} ({{
-                datalistsDetails.length
-              }})
-            </h3>
-          </div>
-          <Toolbar class="w-full">
+        </template>
+      </TreeTable>
+    </div>
+    <div v-if="layout == 'grid'">
+      <div class="w-full surface-0 m-2 pt-2 pl-2">
+        <div class="surface-0">
+          <h3 class="module-title module-title-hidden mt-0 ml-1 mb-2">
+            <i class="pi pi-sitemap"></i>
+            Cơ cấu tổ chức
+          </h3>
+          <Toolbar class="w-full custoolbar">
             <template #start>
               <span class="p-input-icon-left">
                 <i class="pi pi-search" />
                 <InputText
+                  type="text"
                   spellcheck="false"
-                  placeholder="Tìm kiếm phòng ban"
+                  v-model="filters['global']"
+                  placeholder="Tìm kiếm"
                 />
               </span>
             </template>
 
             <template #end>
               <Button
-                @click="showModalAddDonvi(1)"
-                label="Thêm phòng ban"
-                icon="pi pi-plus"
-                class="mx-2"
+                icon="pi pi-link"
+                label="Sáp nhập"
+                class="font-bold w-9rem mr-2"
+                @click="onShowStructure"
               />
-              <DataViewLayoutOptions v-model="layout" />
+              <Button
+                @click="onDissolution"
+                icon="pi pi-stop-circle"
+                label="Giải thể"
+                class="p-button-outlined font-bold p-button-danger w-9rem mr-2"
+              />
+              <DataViewLayoutOptions
+                v-model="layout"
+                @update:modelValue="reloadLayout"
+              />
 
               <Button
-                @click="refreshStamp"
-                class="ml-2 p-button-outlined p-button-secondary"
+                class="mr-2 ml-2 p-button-outlined p-button-secondary"
                 icon="pi pi-refresh"
-                v-tooltip="'Tải lại'"
-              />
-
-              <Menu
-                id="overlay_Export"
-                ref="menuButs"
-                :model="itemButs"
-                :popup="true"
+                @click="onRefersh"
               />
             </template>
           </Toolbar>
-          <TreeTable
-            :value="datalistsDetails"
-            v-model:selectionKeys="selectedWarehouses"
-            :filters="filters_pb"
-            :showGridlines="true"
-            class="p-treetable-sm"
-            :rows="options.pagesizeP"
-            :rowHover="true"
-            responsiveLayout="scroll"
-            :scrollable="true"
-            scrollHeight="flex"
-            @page="onPageP($event)"
-            :totalRecords="options.totalRecordsPage"
-          >
-            <Column
-              field="is_order"
-              header="STT"
-              class="align-items-center justify-content-center text-center font-bold"
-              headerStyle="text-align:center;max-width:100px"
-              bodyStyle="text-align:center;max-width:100px"
-            >
-              <template #body="md">
-                <div v-bind:class="md.node.data.status ? '' : 'text-error'">
-                  {{ md.node.data.label_order }}
-                </div>
-              </template>
-            </Column>
-            <Column
-              field="organization_name"
-              header="Tên phòng ban"
-              :expander="true"
-            >
-              <template #body="md">
-                <span
-                  :class="'donvi' + md.node.data.organization_type"
-                  :style="[
-                    md.node.data.parent_id ? '' : '',
-                    md.node.data.status ? '' : 'color:red !important',
-                  ]"
-                  >{{ md.node.data.organization_name }}</span
-                >
-              </template>
-            </Column>
-            <Column
-              header="Chức năng"
-              headerClass="text-center"
-              class="align-items-center justify-content-center text-center"
-              headerStyle="text-align:center;max-width:120px"
-              bodyStyle="text-align:center;max-width:120px"
-            >
-              <template #header> </template>
-              <template #body="md">
-                <Button
-                  type="button"
-                  icon="pi pi-plus-circle"
-                  class="p-button-rounded p-button-secondary p-button-outlined"
-                  style="margin-right: 0.5rem"
-                  v-tooltip.top="'Thêm phòng ban'"
-                  @click="addTreeDonvi(md.node.data, 1)"
-                ></Button>
-                <Button
-                  type="button"
-                  icon="pi pi-pencil"
-                  v-tooltip.top="'Chỉnh sửa'"
-                  class="p-button-rounded p-button-secondary p-button-outlined"
-                  style="margin-right: 0.5rem"
-                  @click="editDonvi(md.node.data)"
-                ></Button>
-                <Button
-                  type="button"
-                  icon="pi pi-trash"
-                  v-tooltip.top="'Xóa'"
-                  class="p-button-rounded p-button-secondary p-button-outlined"
-                  @click="delDonvi(md.node.data)"
-                ></Button>
-              </template>
-            </Column>
-          </TreeTable>
         </div>
-      </SplitterPanel>
-    </Splitter>
-  </div>
+        <div
+          style="overflow: scroll; width: 86vw; height: 85vh"
+          v-if="checkShowOrgChart"
+          class="align-items-center"
+        >
+          <VueBlocksTree
+            :data="orgchartDonvi"
+            :props="propsOrgchartDonvi"
+            :horizontal="true"
+            :collapsable="true"
+            class="d-design-orgchart"
+          >
+            <template #node="{ data }">
+              <div
+                :id="'orgchart' + data.some_id"
+                style="padding: 10px 15px"
+                class="flex flex-column align-items-center cursor-pointer d-design-org-hover"
+                @click="onNodeSelectOrgchart(data)"
+              >
+                <div
+                  v-if="data.type == 0"
+                  class="flex flex-column align-items-center"
+                >
+                  <div v-if="data.logo" style="width: 132px; height: 38px">
+                    <img
+                      :alt="data.label"
+                      :src="basedomainURL + data.logo"
+                      width="132"
+                      height="38"
+                      style="object-fit: contain"
+                    />
+                  </div>
+                  <div
+                    v-else
+                    style="width: 132px; height: 38px; color: transparent"
+                  >
+                    aassaaa
+                  </div>
+                  <div class="mt-3 font-medium text-lg">
+                    {{ data.label }}
+                  </div>
+                </div>
+                <div v-else class="font-medium text-lg">
+                  {{ data.label }}
+                </div>
+              </div>
+            </template>
+          </VueBlocksTree>
 
+          <!-- @node-expand="(e, data,nodeContext) => $emit('node-expand', e, data,nodeContext)"
+        @node-focus="(e, data,nodeContext) => $emit('node-focus', e, data,nodeContext)"
+        @node-click="(e, data,nodeContext) => $emit('node-click', e, data,nodeContext)"
+        @node-mouseover="(e, data,nodeContext) => $emit('node-mouseover', e, data,nodeContext)"
+        @node-mouseout="(e, data,nodeContext) => $emit('node-mouseout', e, data,nodeContext)" -->
+        </div>
+      </div>
+    </div>
+  </div>
   <Sidebar
     v-model:visible="visibleRight"
     position="right"
@@ -1775,7 +1825,15 @@ onMounted(() => {
           <div class="col-6 md:col-6">
             <h3>3. Lịch sử thay đổi</h3>
           </div>
-          <div class="col-6 md:col-6 text-right">
+          <div
+            class="col-6 md:col-6 text-right"
+            v-if="
+              store.state.user.is_super == true ||
+              store.state.user.user_id == donvi.created_by ||
+              (store.state.user.role_id == 'admin' &&
+                store.state.user.organization_id == donvi.organization_id)
+            "
+          >
             <Button
               label="Thêm mới lịch sử"
               icon="pi pi-plus"
@@ -1821,22 +1879,22 @@ onMounted(() => {
                 bodyStyle="text-align:center; "
                 headerClass="align-items-center justify-content-center text-center overflow-hidden"
               >
-              
               </Column>
               <Column
-         
                 header="Thời gian hoạt động"
                 headerStyle="text-align:center;max-width:350px;height:50px"
                 bodyStyle="text-align:center;max-width:350px"
                 class="align-items-center justify-content-center text-center overflow-hidden"
               >
                 <template #body="data">
-                  <div >
+                  <div>
                     {{
                       moment(new Date(data.data.foundation_date)).format(
                         "DD/MM/YYYY"
                       )
-                    }} - {{
+                    }}
+                    -
+                    {{
                       moment(new Date(data.data.dissolution_date)).format(
                         "DD/MM/YYYY"
                       )
@@ -1862,15 +1920,13 @@ onMounted(() => {
                 </template>
               </Column>
 
-              
-
               <Column
                 header=" "
                 headerStyle="text-align:center;max-width:50px;height:50px"
                 bodyStyle="text-align:center;max-width:50px"
                 class="align-items-center justify-content-center text-center overflow-hidden"
               >
-                <template #body="data">
+                <template #body="Tem">
                   <div
                     v-if="
                       store.state.user.is_super == true ||
@@ -1881,9 +1937,10 @@ onMounted(() => {
                     "
                   >
                     <Button
-                      :v-tooltip.left="'Xóa lịch sử'"
-                      icon="pi pi-trash"
-                      class="p-button-rounded p-button-danger p-button-outlined"
+                      :v-tooltip.left="'Xem lịch sử'"
+                      icon="pi pi-eye"
+                      class="p-button-rounded p-button-outlined"
+                      @click="editOrgHistory(Tem.data)"
                     />
                   </div>
                 </template>
@@ -1909,7 +1966,7 @@ onMounted(() => {
           </div>
         </div>
       </div>
-      <div style="position: absolute; bottom: 0; right: 0" class="p-3">
+      <div   class="p-3">
         <Toolbar class="custoolbar">
           <template #end>
             <Button
@@ -1956,6 +2013,7 @@ onMounted(() => {
                     org_history.decision_number == '') &&
                   submitted,
               }"
+              :disabled="isView"
             />
           </div>
           <div class="col-6 p-0 flex align-items-center">
@@ -1965,6 +2023,7 @@ onMounted(() => {
               id="icon"
               v-model="org_history.decision_date"
               :showIcon="true"
+              :disabled="isView"
             />
           </div>
         </div>
@@ -1976,6 +2035,7 @@ onMounted(() => {
             class="ip36"
             style="width: calc(100% - 10rem)"
             v-model="org_history.content"
+            :disabled="isView"
           />
         </div>
         <div class="col-12 field flex align-items-center">
@@ -1989,6 +2049,7 @@ onMounted(() => {
             class="ip36"
             style="width: calc(100% - 10rem)"
             v-model="org_history.organization_name"
+            :disabled="isView"
           />
         </div>
 
@@ -2000,6 +2061,7 @@ onMounted(() => {
               class="ip36"
               style="width: calc(100% - 10rem)"
               v-model="org_history.organization_name_en"
+              :disabled="isView"
             />
           </div>
           <div class="col-6 p-0 flex align-items-center">
@@ -2009,6 +2071,7 @@ onMounted(() => {
               class="ip36"
               style="width: calc(100% - 10rem)"
               v-model="org_history.short_name"
+              :disabled="isView"
             />
           </div>
         </div>
@@ -2021,6 +2084,7 @@ onMounted(() => {
               id="icon"
               v-model="org_history.foundation_date"
               :showIcon="true"
+              :disabled="isView"
             />
           </div>
           <div class="col-6 p-0 flex align-items-center">
@@ -2031,6 +2095,7 @@ onMounted(() => {
               id="icon"
               v-model="org_history.dissolution_date"
               :showIcon="true"
+              :disabled="isView"
             />
           </div>
         </div>
@@ -2042,6 +2107,7 @@ onMounted(() => {
               class="ip36"
               style="width: calc(100% - 10rem)"
               v-model="org_history.representative"
+              :disabled="isView"
             />
           </div>
           <div class="col-6 p-0 flex align-items-center">
@@ -2051,6 +2117,7 @@ onMounted(() => {
               class="ip36"
               style="width: calc(100% - 10rem)"
               v-model="org_history.business_code"
+              :disabled="isView"
             />
           </div>
         </div>
@@ -2062,6 +2129,7 @@ onMounted(() => {
               class="ip36"
               style="width: calc(100% - 10rem)"
               v-model="org_history.address"
+              :disabled="isView"
             />
           </div>
           <div class="col-6 p-0 flex align-items-center">
@@ -2071,6 +2139,7 @@ onMounted(() => {
               class="ip36"
               style="width: calc(100% - 10rem)"
               v-model="org_history.phone"
+              :disabled="isView"
             />
           </div>
         </div>
@@ -2083,6 +2152,7 @@ onMounted(() => {
               class="ip36"
               style="width: calc(100% - 10rem)"
               v-model="org_history.address_registration"
+              :disabled="isView"
             />
           </div>
           <div class="col-6 p-0 flex align-items-center">
@@ -2092,6 +2162,7 @@ onMounted(() => {
               class="ip36"
               style="width: calc(100% - 10rem)"
               v-model="org_history.is_url"
+              :disabled="isView"
             />
           </div>
         </div>
@@ -2104,6 +2175,7 @@ onMounted(() => {
               class="ip36"
               style="width: calc(100% - 10rem)"
               v-model="org_history.mail"
+              :disabled="isView"
             />
           </div>
           <div class="col-6 p-0 flex align-items-center">
@@ -2113,6 +2185,7 @@ onMounted(() => {
               class="ip36"
               style="width: calc(100% - 10rem)"
               v-model="org_history.fax"
+              :disabled="isView"
             />
           </div>
         </div>
@@ -2124,10 +2197,16 @@ onMounted(() => {
             class="ip36"
             style="width: calc(100% - 10rem)"
             v-model="org_history.feature"
+            :disabled="isView"
           />
         </div>
-        <div class="col-12 field  text-lg font-bold">File đính kèm</div>
-        <div class="w-full col-12 field  ">
+        <div
+          class="col-12 field text-lg font-bold"
+          v-if="(listFilesS.length > 0 && isView) || !isView"
+        >
+          File đính kèm
+        </div>
+        <div class="w-full col-12 field">
           <FileUpload
             chooseLabel="Chọn File"
             :showUploadButton="false"
@@ -2137,6 +2216,7 @@ onMounted(() => {
             @select="onUploadFile"
             @remove="removeFile"
             :invalidFileSizeMessage="'{0}: Dung lượng File không được lớn hơn {1}'"
+            v-if="!isView"
           >
             <template #empty>
               <p class="p-0 m-0 text-500">Kéo thả hoặc chọn File.</p>
@@ -2253,13 +2333,46 @@ onMounted(() => {
       </div>
     </form>
     <template #footer>
-      <Button
-        label="Huỷ"
-        icon="pi pi-times"
-        @click="closeOrgHistory"
-        class="p-button-raised p-button-secondary"
-      />
-      <Button label="Lưu" icon="pi pi-save" @click="saveOrgHistory()" />
+      <Toolbar class="custoolbar">
+        <template #start>
+          <div
+            v-if="
+              store.state.user.is_super == true ||
+              store.state.user.user_id == org_history.created_by ||
+              (store.state.user.role_id == 'admin' &&
+                store.state.user.organization_id ==
+                  org_history.organization_id &&
+                isSaveOrgHistory == false &&
+                !checkAddOrd)
+            "
+          >
+            <Button
+              label="Xóa"
+              class="p-button-raised p-button-danger"
+              icon="pi pi-trash"
+              @click="delOrgHistory(org_history)"
+            />
+            <Button
+              label="Sửa"
+              class="p-button-raised"
+              icon="pi pi-cog"
+              @click="isEditOrgHistory()"
+            />
+          </div>
+        </template>
+        <template #end>
+          <div>
+            <Button
+              label="Huỷ"
+              icon="pi pi-times"
+              @click="closeOrgHistory"
+              class="p-button-raised p-button-secondary"
+            />
+
+            <Button label="Lưu" icon="pi pi-save" @click="saveOrgHistory()" />
+          </div>
+        </template>
+      </Toolbar>
     </template>
   </Dialog>
   <Dialog
@@ -2282,7 +2395,7 @@ onMounted(() => {
               spellcheck="false"
               class="ip36"
               style="width: calc(100% - 10rem)"
-              v-model="donvi.short_name"
+              v-model="department_merger.decision_number"
               :style="{ backgroundColor: '#FEF9E7', fontWeight: 'bold' }"
             />
           </div>
@@ -2291,12 +2404,12 @@ onMounted(() => {
               >Ngày {{ checkStructure ? "sáp nhập" : "giải thể" }}</label
             >
             <Calendar
-              @blur="autoFillDate(department_merger, 'merger_date')"
-              id="merger_date"
+              @blur="autoFillDate(department_merger, 'decision_date')"
+              id="decision_date"
               :showIcon="true"
               :showOnFocus="false"
               autocomplete="off"
-              v-model="department_merger.merger_date"
+              v-model="department_merger.decision_date"
               style="width: calc(100% - 10rem)"
               placeholder="dd/mm/yyyy"
             />
@@ -2348,6 +2461,8 @@ onMounted(() => {
                 :editable="false"
                 optionLabel="profile_user_name"
                 optionValue="code"
+                :callbackFun="getProfileUser"
+                :key_user="'signer'"
               />
             </div>
           </div>
@@ -2362,6 +2477,7 @@ onMounted(() => {
             :maxFileSize="524288000"
             @select="onUploadFile"
             @remove="removeFile"
+            accept=".doc,.docx,.xlst,.xls"
             :invalidFileSizeMessage="'{0}: Dung lượng File không được lớn hơn {1}'"
           >
             <template #empty>
@@ -2836,6 +2952,12 @@ onMounted(() => {
 }
 </style>
 <style scoped>
+.d-design-org-hover:hover {
+  background-color: #f0f8ff !important;
+}
+.d-design-org-hover:focus {
+  background-color: #f0f8ff !important;
+}
 .text-error {
   color: red !important;
 }

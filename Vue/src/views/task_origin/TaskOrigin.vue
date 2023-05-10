@@ -47,15 +47,7 @@ function fkey(e) {
     }
   }
 }
-const hideall = () => {
-  if (idTaskLoaded.value != null) {
-    router.push({ name: "taskmain", params: {} }).then(() => {
-      router.go(0);
-    });
-  } else {
-    loadData(true, opition.value.type_view);
-  }
-};
+
 const expandedRowGroups = ref();
 const checkDelList = ref(false);
 const toast = useToast();
@@ -5885,7 +5877,7 @@ const ChangeShowListCVGroup = (model) => {
             </template>
           </Dropdown>
         </div>
-        <div
+        <!-- <div
           class="field col-12 md:col-12"
           style="
             display: flex;
@@ -5900,7 +5892,7 @@ const ChangeShowListCVGroup = (model) => {
             style="position: absolute; top: 0px; left: 160px"
             v-model="Task.is_XML"
           />
-        </div>
+        </div> -->
         <div class="field col-12 md:col-12">
           <Accordion :multiple="true">
             <AccordionTab header="THÔNG TIN KHÁC">

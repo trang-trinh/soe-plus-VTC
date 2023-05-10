@@ -23,18 +23,14 @@ const onNodeSelect = (id) => {
   showDetail.value = true;
   selectedTaskID.value = id.task_id;
 };
-emitter.on("SideBar", (obj) => {
-  showDetail.value = obj;
-  props.func();
-});
+const closeDetail = () => {
+  showDetail.value = false;
+  selectedTaskID.value = null;
+};
 watch(showDetail, () => {
   if (showDetail.value == false) {
     props.func();
   }
-});
-const PositionSideBar = ref("right");
-emitter.on("psb", (obj) => {
-  PositionSideBar.value = obj;
 });
 </script>
 
@@ -433,27 +429,13 @@ emitter.on("psb", (obj) => {
       </template>
     </DataTable>
   </div>
-  <Sidebar
-    v-model:visible="showDetail"
-    :position="PositionSideBar"
-    :style="{
-      width:
-        PositionSideBar == 'right'
-          ? width1 > 1800
-            ? ' 65vw'
-            : '75vw'
-          : '100vw',
-      'min-height': '100vh !important',
-    }"
-    :showCloseIcon="false"
+  <DetailedWork
+    v-if="showDetail === true"
+    :id="selectedTaskID"
+    :turn="0"
+    :closeDetail="closeDetail"
   >
-    <DetailedWork
-      :isShow="showDetail"
-      :id="selectedTaskID"
-      :turn="0"
-    >
-    </DetailedWork
-  ></Sidebar>
+  </DetailedWork>
 </template>
 
 <style lang="scss" scoped>

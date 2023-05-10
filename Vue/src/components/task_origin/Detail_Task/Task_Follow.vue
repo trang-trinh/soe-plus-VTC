@@ -773,24 +773,13 @@ const UpdateStatusTaksFunc = (e) => {
 // 0: tạo/giao 1,2: làm, 3:theo dõi
 const TypeMember = ref();
 
-const PositionSideBar = ref("right");
-
-const showDetail1 = ref(false);
+const showDetail = ref(false);
 const selectedTaskID = ref();
 const onNodeSelect = (id) => {
-  showDetail1.value = false;
-  showDetail1.value = true;
+  showDetail.value = false;
+  showDetail.value = true;
   selectedTaskID.value = id;
 };
-emitter.on("SideBar", () => {
-  showDetail1.value = false;
-});
-emitter.on("SideBar1", () => {
-  showDetail1.value = false;
-});
-emitter.on("psb", (obj) => {
-  PositionSideBar.value = obj;
-});
 
 onBeforeMount(() => {
   loadData();
@@ -822,6 +811,11 @@ const expandedRows = ref([]);
 
 const selectStep = (e, i) => {
   indexSelected.value = i;
+};
+const closeDetail = () => {
+  showDetail.value = false;
+  selectedTaskID.value = null;
+  loadData();
 };
 </script>
 <template>
@@ -1854,28 +1848,13 @@ const selectStep = (e, i) => {
       </div>
     </template></Menu
   >
-  <Sidebar
-    v-model:visible="showDetail1"
-    :position="PositionSideBar"
-    :style="{
-      width:
-        PositionSideBar == 'right'
-          ? width1 > 1800
-            ? '65vw'
-            : '75vw'
-          : '100vw',
-      'min-height': '100vh !important',
-    }"
-    :showCloseIcon="false"
-    @hide="close()"
+  <DetailedWork
+    v-if="showDetail === true"
+    :id="selectedTaskID"
+    :turn="0"
+    :closeDetail="closeDetail"
   >
-    <DetailedWork
-      :isShow="showDetail1"
-      :id="selectedTaskID"
-      :turn="1"
-    >
-    </DetailedWork
-  ></Sidebar>
+  </DetailedWork>
 </template>
 
 <style lang="scss" scoped>
@@ -1892,6 +1871,7 @@ $screen-xs-max: 786px;
 
 $screen-qHD: 2048px;
 $screen-fHD: 1920px;
+$screen-Mac: 1440px;
 $screen-HD: 1366px;
 
 $text-color: #263238;
@@ -1931,6 +1911,9 @@ $animation-time: 0.5s;
   @media only screen and (max-width: $screen-fHD) {
     max-width: 46.9vw;
   }
+  @media only screen and (max-width: $screen-Mac) {
+    max-width: 54vw;
+  }
   @media only screen and (max-width: $screen-HD) {
     max-width: 53.9vw;
   }
@@ -1966,7 +1949,7 @@ $animation-time: 0.5s;
     }
   }
   .item-title {
-    color: $brand-primary;
+    color: #72777a;
     font-weight: 600;
     margin: 0;
     white-space: nowrap;

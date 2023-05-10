@@ -7,6 +7,7 @@ import moment from "moment";
 import dialogAddRequest from "../request/component_request/dialog_add_request.vue";
 import DetailedRequest from "../request/component_request/detail_request.vue";
 import toolbarSearchRequest from "../request/component_request/toolbar_search_request.vue";
+import dialogSend from "../request/component_request/dialog_send.vue";
 
 const router = inject("router");
 const route = useRoute();
@@ -15,7 +16,7 @@ const swal = inject("$swal");
 const axios = inject("axios");
 const emitter = inject("emitter");
 const basedomainURL = baseURL;
-//const baseUrlCheck = "http://localhost:8080/";
+const baseUrlCheck = baseURL;
 const config = {
   headers: {
     Authorization: `Bearer ${store.getters.token}`,
@@ -450,6 +451,7 @@ const closeDialog = () => {
         IsEdit: true,
     };
     displayAddRequest.value = false;
+    forceRerenderForm();
 };
 const cpnAddRequest = ref(0);
 const forceRerenderForm = () => {
@@ -582,7 +584,59 @@ const editRequest = (dataRequest) => {
 };
 
 const deleteRequest = (item) => {
+    swal
+        .fire({
+            title: "Thông báo",
+            text: "Bạn có muốn xoá đề xuất này không!",
+            icon: "warning",
+            showCancelButton: true,
+            confirmButtonColor: "#3085d6",
+            cancelButtonColor: "#d33",
+            confirmButtonText: "Có",
+            cancelButtonText: "Không",
+    })
+    .then((result) => {
+        if (result.isConfirmed) {
+            swal.fire({
+                width: 110,
+                didOpen: () => {
+                    swal.showLoading();
+                },
+            });
 
+            axios
+                .delete(baseUrlCheck + "/api/request/Delete_Request", {
+                    headers: { Authorization: `Bearer ${store.getters.token}` },
+                    data: item != null ? [item.request_id] : "-1",
+                })
+                .then((response) => {
+                    swal.close();
+                    if (response.data.err != "1") {
+                        swal.close();
+                        toast.success("Xoá đề xuất thành công!");
+                        options.value.PageNo = 1;
+                        listRequest(true);
+                        countRequest();
+                    } else {
+                        swal.fire({
+                            title: "Thông báo",
+                            text: "Xảy ra lỗi khi xóa đề xuất",
+                            icon: "error",
+                            confirmButtonText: "OK",
+                        });
+                    }
+                })
+                .catch((error) => {
+                    swal.close();
+                    if (error.status === 401) {
+                        swal.fire({                            
+                            text: "Mã token đã hết hạn hoặc không hợp lệ, vui lòng đăng nhập lại!",                            
+                            confirmButtonText: "OK",
+                        });
+                    }
+                });
+        }
+    });
 };
 
 const refresh = () => {
@@ -615,17 +669,58 @@ const refresh = () => {
 };
 const request_select = ref();
 const menuButMores = ref();
+const headerSend = ref("");
+const displaySend = ref(false);
+const dataSelected = ref([]);
+const cpnSendRequest = ref(0);
+const forceRerenderSend = () => {
+	cpnSendRequest.value += 1;
+};
+const closeDialogSend = () => {
+    //listRequest(true);
+    dataSelected.value = [];
+    displaySend.value = false;
+};
+const modelsend = ref({
+    type_send: 0,
+    type_module: 0,
+    module_key:"M12"
+});
 const itemButMores = ref([
     {
-        label: "Gửi",
-        icon: "pi pi-send",
+        label: "Chuyển đến quy trình",
+        icon: "pi pi-chart-line",
         command: (event) => {
-            sendRequest(request_select.value, "Chỉnh sửa đề xuất");
+            headerSend.value = "Chuyển đến quy trình";
+            modelsend.value.type_send = 0;
+            displaySend.value = true;
+            forceRerenderSend();
+        },
+    },
+    {
+        label: "Chuyển đến nhóm",
+        icon: "pi pi-users",
+        command: (event) => {
+            headerSend.value = "Chuyển đến nhóm";
+            modelsend.value.type_send = 1;
+            displaySend.value = true;
+            forceRerenderSend();
+        },
+    },
+    {
+        label: "Chuyển đích danh",
+        icon: "pi pi-user-edit",
+        command: (event) => {
+            headerSend.value = "Chuyển đích danh";
+            modelsend.value.type_send = 2;
+            displaySend.value = true;
+            forceRerenderSend();
         },
     },
     {
         label: "Chỉnh sửa",
         icon: "pi pi-pencil",
+        statusDisplay: 0,
         command: (event) => {
             editRequest(request_select.value);
         },
@@ -634,15 +729,23 @@ const itemButMores = ref([
         label: "Xoá",
         icon: "pi pi-trash",
         class: "red-text",
+        statusDisplay: 0,
         command: (event) => {
-            deleteItem(request_select.value);
+            deleteRequest(request_select.value);
         },
     },
 ]);
-
+const itemsFuncByStatus = () => {
+    if (request_select.value != null && request_select.value.status_processing != 0) {
+        return itemButMores.value.filter(x => x.statusDisplay != 0);
+    }
+    return itemButMores.value;
+};
 const selectedNodes = ref({});
 const toggleMores = (event, item) => {
     request_select.value = item;
+    dataSelected.value = [];
+    dataSelected.value.push(item);
     menuButMores.value.toggle(event);
     selectedNodes.value = item;
     options.value["filterRequest_id"] = selectedNodes.value["request_id"];
@@ -1017,7 +1120,7 @@ onMounted(() => {
         class="menu-request"
         id="overlay_More"
         ref="menuButMores"
-        :model="itemButMores"
+        :model="itemsFuncByStatus()"
         :popup="true"
     />
     <Sidebar
@@ -1028,6 +1131,8 @@ onMounted(() => {
             width: PositionSideBar == 'right' ? (widthWindow > 1800 ? '65vw' : '75vw') : '100%',
             'min-height': '100vh !important',
         }"
+        :baseZindex="1000"        
+		:autoZIndex="true"
         :showCloseIcon="false"
         @hide="hideall()"
         >
@@ -1055,6 +1160,15 @@ onMounted(() => {
 		:reloadData="listRequest"
 		:closeDialog="closeDialog"
     ></dialogAddRequest>
+    <dialogSend
+        v-if="displaySend == true"
+        :key="cpnSendRequest"
+        :headerDialog="headerSend"
+        :displayDialog="displaySend"
+        :dataSelected="dataSelected"
+        :modelsend="modelsend"
+        :closeDialog="closeDialogSend"
+    />
 </template>
 <style scoped>
 @import url(style_request.css);
@@ -1076,6 +1190,11 @@ onMounted(() => {
 		}
         td:has(div.overdue-request) {
             border-left: 4px solid red;
+        }
+        .p-datatable-thead {
+            position: sticky;
+            top: 0;
+            z-index: auto;
         }
 	}
     ::v-deep(.progress-bar-custom) {
