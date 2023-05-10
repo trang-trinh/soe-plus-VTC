@@ -1353,9 +1353,6 @@ li.p-chips-token {
 .p-datatable.d-sidebar-full   td{
   height:unset !important;
 }
-.p-rowgroup-header,.p-datatable-thead{
-  display: none !important;
-}
 /*Style chung cho min-w-Xrem*/
 
 /* Style quan */

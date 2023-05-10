@@ -1496,6 +1496,7 @@ export default {
     let dtUser = {};
     const initDataTempAuto = async (tf) => {
       if (!isUrlReport.value) {
+        
         let dts = await goProc(
           true,
           `soe_user_info`,
@@ -1608,6 +1609,7 @@ export default {
         props.report.report_config.trim() != ""
       ) {
         try {
+             
           objConfig = JSON.parse(props.report.report_config.trim());
           if (isUrlReport.value && Object.keys(props.pars).length > 0) {
             await initURLReport();
@@ -1815,6 +1817,7 @@ export default {
       if (!row.value) row.value = row.name;
       dbrow.value = row;
       if (o != null) IsOne.value = o;
+       
       isDisplayDatabase.value = true;
     };
     const saveDatabase = () => {
@@ -2443,6 +2446,7 @@ export default {
         if (axResponse.data.error) {
           //toast.error("Không mở được bản ghi");
         } else {
+             
           dts = JSON.parse(axResponse.data.data);
           if (!f) {
             dts = dts[0];
@@ -2522,7 +2526,7 @@ export default {
             par: pa.Parameter_name,
             va: objpar[pa.Parameter_name.replace("@", "")],
           });
-        });
+        }); 
       let dts = await goProc(false, objConfig.proc.name, pas, true);
       //init với kiểu lưu
       let tbs = [];
@@ -3020,6 +3024,7 @@ export default {
 
     let dtProfile = {};
     const initProfile = async (r) => {
+        
       let dts = await goProc(
         true,
         `profile_info '${store.getters.user.user_id}', '${r.profile_id}'`,
@@ -3035,7 +3040,7 @@ export default {
     const editDataAll = async (objvalue) => {
       if (props.report.is_config) {
         objDataTemp.value = props.report.is_config;
-      }
+      } 
       let dts = await goProc(true, props.report.proc_all, [], true);
       dtDataReports.value.forEach((dt) => {
         let tb = dts[0].find((x) => x.profile_id == dt.profile_id);
@@ -3134,7 +3139,7 @@ export default {
           par: pa.Parameter_name,
           va: r[pa.Parameter_name.replace("@", "")],
         });
-      });
+      }); 
       let dts = await goProc(false, objConfig.proc.name, pas, true);
       objForm.value = dts[0][0];
       cForm.value = r;
@@ -3145,7 +3150,7 @@ export default {
             par: pa.Parameter_name,
             va: rcopy[pa.Parameter_name.replace("@", "")],
           });
-        });
+        }); 
         let dts = await goProc(false, objConfig.proc.name, pas, true);
         if (dts.length > 0) {
           objForm.value.is_data = dts[0][0].is_data;
@@ -3155,6 +3160,7 @@ export default {
       //itemtypeInputs.value = itemtypeInputs.value.filter(x => !x.items);
       opTypeDB.value = optionTypeDBs.value[2];
       isdataSidebar.value = true;
+      
       dts = await goProc(
         true,
         `profile_info '${store.getters.user.user_id}', '${r.profile_id}'`,
@@ -3893,7 +3899,7 @@ export default {
                   placeholder="Tìm kiếm"
                 />
               </span>
-            </div>
+            </div> 
             <Button
               @click="saveConfig()"
               icon="pi pi-save"

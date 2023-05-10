@@ -189,7 +189,7 @@ export default {
             headers: { Authorization: `Bearer ${store.getters.token}` },
           }
         );
- 
+  
         if (axResponse.status == 200) {
           if (axResponse.data.error) {
             toast.error("Không tải được dữ liệu");
@@ -245,6 +245,7 @@ export default {
       });
     };
     onMounted(() => {
+         
       if (
         props.report.proc_name &&
         props.report.proc_name.toLowerCase().includes("select")
