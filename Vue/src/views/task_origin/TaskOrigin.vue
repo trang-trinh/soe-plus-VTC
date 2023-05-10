@@ -47,15 +47,7 @@ function fkey(e) {
     }
   }
 }
-const hideall = () => {
-  if (idTaskLoaded.value != null) {
-    router.push({ name: "taskmain", params: {} }).then(() => {
-      router.go(0);
-    });
-  } else {
-    loadData(true, opition.value.type_view);
-  }
-};
+
 const expandedRowGroups = ref();
 const checkDelList = ref(false);
 const toast = useToast();

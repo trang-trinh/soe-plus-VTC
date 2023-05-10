@@ -19,8 +19,130 @@ const toast = useToast();
 const cryoptojs = inject("cryptojs");
 const basedomainURL = baseURL;
 const plugins = [ChartDataLabels];
+const basicOptions = ref({
+  plugins: {
+    legend: {
+      display: false,
+      labels: {
+        color: "#495057",
+      },
+    },
+    datalabels: {
+      formatter: (val) =>
+        val.toLocaleString("vi-vN", {
+          style: "decimal",
+          minimumFractionDigits: 0,
+          maximumFractionDigits: 20,
+        }),
+      anchor: "center",
+      align: "end",
+      color: "black",
+      labels: {
+        title: {
+          font: {
+            //weight: "bold",
+            //size: 48,
+          },
+        },
+        value: {
+          color: "black",
+          font: {
+            //weight: "bold",
+            //size: 48,
+          },
+        },
+      },
+    },
+  },
+  scales: {
+    x: {
+      ticks: {
+        color: "#495057",
+      },
+      grid: {
+        color: "#ebedef",
+      },
+    },
+    y: {
+      ticks: {
+        color: "#495057",
+      },
+      grid: {
+        color: "#ebedef",
+      },
+    },
+  },
+});
+const lightOptions = ref({
+  plugins: {
+    legend: {
+      display: true,
+      labels: {
+        color: "#495057",
+      },
+    },
+    datalabels: {
+      formatter: (val) =>
+        val.toLocaleString("vi-vN", {
+          style: "decimal",
+          minimumFractionDigits: 0,
+          maximumFractionDigits: 20,
+        }) + " %",
+      anchor: "center",
+      align: "center",
+      color: "white",
+      labels: {
+        title: {
+          font: {
+            //weight: "bold",
+            //size: 48,
+          },
+        },
+        value: {
+          color: "white",
+          font: {
+            //weight: "bold",
+            //size: 48,
+          },
+        },
+      },
+    },
+  },
+});
+const addToArray = (temp, array, id, lv, od) => {
+  var filter = array.filter((x) => x.parent_id === id);
+  filter = filter.sort((a, b) => {
+    return b[od] - a[od];
+  });
+  if (filter.length > 0) {
+    var sp = "";
+    for (var i = 0; i < lv; i++) {
+      sp += "---";
+    }
+    lv++;
+    filter.forEach((item) => {
+      item.lv = lv;
+      item.close = true;
+      if (!item.ids) {
+        item.ids = "";
+        item.ids += "," + item.organization_id;
+      }
+      if (!item.newname) item.newname = sp + item.organization_name;
+      temp.push(item);
+      addToArray(temp, array, item.organization_id, lv);
+    });
+  }
+};
 
 //Declare
+const options = ref({
+  loading: true,
+  filter_organization_id: store.getters.user.organization_id,
+});
+const databirthdays = ref([]);
+const dataphonebooks = ref([]);
+const organizations = ref([]);
+const dictionarys = ref([]);
 const bgColor = ref([
   "#FF6633",
   "#AFDFCF",
@@ -69,80 +191,8 @@ const colors = ref([
   "#999999",
   "#999999",
 ]);
-const genderColor = ref(["#EE7E79", "#83ECC6", "#84B7F9", "#F5CD7C"]);
-const options = ref([]);
-const organizations = ref([]);
-const yearOlds = ref({
-  labels: [],
-  datasets: [
-    {
-      data: [],
-      backgroundColor: [],
-      hoverBackgroundColor: [],
-    },
-  ],
-});
-const genders = ref([]);
-const lightOptions = ref({
-  plugins: {
-    legend: {
-      display: true,
-      labels: {
-        color: "#495057",
-      },
-    },
-    datalabels: {
-      formatter: (val) =>
-        val.toLocaleString("vi-vN", {
-          style: "decimal",
-          minimumFractionDigits: 0,
-          maximumFractionDigits: 20,
-        }) + " %",
-      anchor: "center",
-      align: "center",
-      color: "white",
-      labels: {
-        title: {
-          font: {
-            //weight: "bold",
-            //size: 48,
-          },
-        },
-        value: {
-          color: "white",
-          font: {
-            //weight: "bold",
-            //size: 48,
-          },
-        },
-      },
-    },
-  },
-});
-const notes = ref([]);
-const renderGender = (chart, data) => {
-  var temp = data;
-  chart.datasets = [];
-  var labels = [];
-  var arr = [];
-  if (temp != null && temp.length > 0) {
-    labels = temp.map((item) => item["title"] + " ");
-    arr = temp.map((item) => item["avg"]);
-  }
-  setTimeout(() => {
-    lightOptions.value.plugins.legend.display = true;
-    chart.datasets.push({
-      label: "",
-      data: [],
-      backgroundColor: [],
-      hoverBackgroundColor: [],
-    });
-    chart.labels = labels;
-    chart.datasets[0].data = arr;
-    chart.datasets[0].backgroundColor = genderColor.value;
-    chart.datasets[0].hoverBackgroundColor = genderColor.value;
-  }, 100);
-};
+
+// Total
 const animateNumber = (
   finalNumber,
   duration = 5000,
@@ -167,8 +217,177 @@ const animateNumber = (
   }
 };
 
+// Gender
+const genderColor = ref(["#EE7E79", "#83ECC6", "#84B7F9", "#F5CD7C"]);
+const yearOlds = ref({
+  labels: [],
+  datasets: [
+    {
+      data: [],
+      backgroundColor: [],
+      hoverBackgroundColor: [],
+    },
+  ],
+});
+const genders = ref([]);
+
+const notes = ref([]);
+const renderGender = (chart, data) => {
+  var temp = data;
+  chart.datasets = [];
+  var labels = [];
+  var arr = [];
+  if (temp != null && temp.length > 0) {
+    labels = temp.map((item) => item["title"] + " ");
+    arr = temp.map((item) => item["avg"]);
+  }
+  setTimeout(() => {
+    lightOptions.value.plugins.legend.display = true;
+    chart.datasets.push({
+      label: "",
+      data: [],
+      backgroundColor: [],
+      hoverBackgroundColor: [],
+    });
+    chart.labels = labels;
+    chart.datasets[0].data = arr;
+    chart.datasets[0].backgroundColor = genderColor.value;
+    chart.datasets[0].hoverBackgroundColor = genderColor.value;
+  }, 100);
+};
+
+//academic level
+const academics = ref({
+  labels: [],
+  datasets: [
+    {
+      data: [],
+      backgroundColor: [],
+      hoverBackgroundColor: [],
+    },
+  ],
+});
+const renderAcademic = (chart, data) => {
+  var temp = data;
+  chart.datasets = [];
+  var labels = [];
+  var arr = [];
+  if (temp != null && temp.length > 0) {
+    labels = temp.map((item) => item["academic_level_name"] + " ");
+    arr = temp.map((item) => item["total"]);
+  }
+  setTimeout(() => {
+    //lightOptions.value.plugins.legend.display = true;
+    chart.datasets.push({
+      label: "",
+      data: [],
+      backgroundColor: [],
+      hoverBackgroundColor: [],
+    });
+    chart.labels = labels;
+    chart.datasets[0].data = arr;
+    chart.datasets[0].backgroundColor = colors.value;
+    chart.datasets[0].hoverBackgroundColor = colors.value;
+  }, 100);
+};
+const changeOrganization = () => {
+  initAcademicLevel(true);
+};
+
+const goRouter = (name, params) => {
+  if (name != null) {
+    router.push({ name: name, params: params || {} });
+  }
+};
+
 //init
-const initGender = () => {
+const initAcademicLevel = (ref) => {
+  if (ref) {
+    swal.fire({
+      width: 110,
+      didOpen: () => {
+        swal.showLoading();
+      },
+    });
+  }
+  academics.value = [];
+  axios
+    .post(
+      baseURL + "/api/hrm/callProc",
+      {
+        str: encr(
+          JSON.stringify({
+            proc: "hrm_home_academic_level",
+            par: [
+              { par: "user_id", va: store.getters.user.user_id },
+              {
+                par: "filter_organization_id",
+                va: options.value.filter_organization_id,
+              },
+            ],
+          }),
+          SecretKey,
+          cryoptojs
+        ).toString(),
+      },
+      config
+    )
+    .then((response) => {
+      if (response != null && response.data != null) {
+        let data = response.data.data;
+        if (data != null) {
+          var tbs = JSON.parse(data);
+          if (tbs[0] != null && tbs[0].length > 0) {
+            tbs[0].forEach((item) => {
+              if (item.total) {
+                item.total_name = item.total.toLocaleString("vi-vN", {
+                  style: "decimal",
+                  minimumFractionDigits: 0,
+                  maximumFractionDigits: 20,
+                });
+              }
+            });
+            renderAcademic(academics.value, tbs[0]);
+          } else {
+            renderAcademic(academics.value, []);
+          }
+        }
+      }
+      swal.close();
+      if (options.value.loading) options.value.loading = false;
+    })
+    .catch((error) => {
+      swal.close();
+      if (options.value.loading) options.value.loading = false;
+      if (error && error.status === 401) {
+        swal.fire({
+          title: "Thông báo!",
+          text: "Mã token đã hết hạn hoặc không hợp lệ, vui lòng đăng nhập lại!",
+          icon: "error",
+          confirmButtonText: "OK",
+        });
+        store.commit("gologout");
+        return;
+      } else {
+        swal.fire({
+          title: "Thông báo!",
+          text: "Có lỗi xảy ra, vui lòng kiểm tra lại!",
+          icon: "error",
+          confirmButtonText: "OK",
+        });
+        return;
+      }
+    });
+};
+const initGender = (ref) => {
+  if (ref) {
+    swal.fire({
+      width: 110,
+      didOpen: () => {
+        swal.showLoading();
+      },
+    });
+  }
   yearOlds.value = [];
   axios
     .post(
@@ -218,6 +437,7 @@ const initGender = () => {
           }
         }
       }
+      swal.close();
       if (options.value.loading) options.value.loading = false;
     })
     .catch((error) => {
@@ -243,7 +463,15 @@ const initGender = () => {
       }
     });
 };
-const initOrganization = () => {
+const initOrganization = (ref) => {
+  if (ref) {
+    swal.fire({
+      width: 110,
+      didOpen: () => {
+        swal.showLoading();
+      },
+    });
+  }
   axios
     .post(
       baseURL + "/api/hrm/callProc",
@@ -283,6 +511,7 @@ const initOrganization = () => {
           }
         }
       }
+      swal.close();
       if (options.value.loading) options.value.loading = false;
     })
     .catch((error) => {
@@ -308,7 +537,15 @@ const initOrganization = () => {
       }
     });
 };
-const initNote = () => {
+const initNote = (ref) => {
+  if (ref) {
+    swal.fire({
+      width: 110,
+      didOpen: () => {
+        swal.showLoading();
+      },
+    });
+  }
   axios
     .post(
       baseURL + "/api/hrm/callProc",
@@ -359,6 +596,7 @@ const initNote = () => {
           }
         }
       }
+      swal.close();
       if (options.value.loading) options.value.loading = false;
     })
     .catch((error) => {
@@ -384,10 +622,127 @@ const initNote = () => {
       }
     });
 };
+const initBirthday = () => {
+  axios
+    .post(
+      baseURL + "/api/calendar/get_datas",
+      {
+        str: encr(
+          JSON.stringify({
+            proc: "dashboard_birthday",
+            par: [
+              { par: "user_id", va: store.getters.user.user_id },
+              { par: "myDate", va: new Date() },
+            ],
+          }),
+          SecretKey,
+          cryoptojs
+        ).toString(),
+      },
+      config
+    )
+    .then((response) => {
+      if (response != null && response.data != null) {
+        var data = response.data.data;
+        if (data != null) {
+          let tbn = JSON.parse(data);
+          if (tbn[0] != null && tbn[0].length > 0) {
+            tbn[0].forEach((item, i) => {
+              if (item["birthday"] != null) {
+                item["birthday"] = moment(new Date(item["birthday"])).format(
+                  "DD/MM/YYYY"
+                );
+              }
+            });
+            datatodaybirthdays.value = tbn[0];
+          }
+          if (tbn[1] != null && tbn[1].length > 0) {
+            tbn[1].forEach((item, i) => {
+              if (item["birthday"] != null) {
+                item["birthday"] = moment(new Date(item["birthday"])).format(
+                  "DD/MM/YYYY"
+                );
+              }
+            });
+            databirthdays.value = tbn[1];
+          }
+          if (tbn[3] != null && tbn[3].length > 0) {
+            tbn[3].forEach((item, i) => {
+              if (item["birthday"] != null) {
+                item["birthday"] = moment(new Date(item["birthday"])).format(
+                  "DD/MM/YYYY"
+                );
+              }
+            });
+            dataphonebooks.value = tbn[3];
+          }
+        }
+      }
+    })
+    .catch((error) => {
+      console.log(error);
+    });
+};
+const initDictionary = (ref) => {
+  if (ref) {
+    swal.fire({
+      width: 110,
+      didOpen: () => {
+        swal.showLoading();
+      },
+    });
+  }
+  axios
+    .post(
+      baseURL + "/api/hrm/callProc",
+      {
+        str: encr(
+          JSON.stringify({
+            proc: "hrm_home_dictionary",
+            par: [{ par: "user_id", va: store.getters.user.user_id }],
+          }),
+          SecretKey,
+          cryoptojs
+        ).toString(),
+      },
+      config
+    )
+    .then((response) => {
+      if (response != null && response.data != null) {
+        var data = response.data.data;
+        if (data != null) {
+          let tbs = JSON.parse(data);
+          if (tbs[0] != null && tbs[0].length > 1) {
+            var temp1 = [];
+            addToArray(temp1, tbs[0], null, 0, "is_order");
+            tbs[0] = temp1;
+          } else if (tbs[0] != null && tbs[0].length > 0) {
+            tbs[0][0].newname = tbs[0][0].organization_name;
+          }
+          //tbs[0].unshift({ organization_id: -1, newname: "Tất cả" });
+          dictionarys.value = tbs;
+        }
+      }
+      swal.close();
+      if (options.value.loading) options.value.loading = false;
+    })
+    .catch((error) => {
+      swal.fire({
+        title: "Thông báo!",
+        text: "Có lỗi xảy ra, vui lòng kiểm tra lại!",
+        icon: "error",
+        confirmButtonText: "OK",
+      });
+      return;
+    });
+};
 onMounted(() => {
   initOrganization();
+  initAcademicLevel();
   initGender();
   initNote();
+  initBirthday();
+  initDictionary();
 });
 </script>
 <template>
@@ -423,73 +778,74 @@ onMounted(() => {
       </div>
       <div class="col-8 md:col-8">
         <div class="card m-1">
-          <div class="card-header" style="cursor: pointer">
-            <span>.</span>
-          </div>
-          <div class="card-body carousel-hidden-p-link" style="height: 415px">
-            <Carousel
-              v-show="[].length > 0"
-              :value="[]"
-              :numVisible="4"
-              :numScroll="4"
-              :circular="false"
-              orientation="vertical"
-              verticalViewPortHeight="400px"
-            >
-              <template #item="slotProps">
-                <div
-                  class="grid-item carousel-item"
-                  @click="
-                    goRouter('/news/direct/details', {
-                      name: '-orient-' + slotProps.data.news_id,
-                    })
-                  "
-                >
-                  <div class="d-grid formgrid px-2">
-                    <div class="col-12 md:col-12 p-0 pl-0">
-                      <div class="d-grid formgrid">
-                        <div class="col-12 md:col-12 p-0 flex pb-2">
-                          <div>
-                            <img
-                              v-if="slotProps.data.is_hot"
-                              style="
-                                width: 40px;
-                                height: 20px;
-                                margin-right: 12px;
-                              "
-                              :src="basedomainURL + '/Portals/News/new.jpg'"
-                              alt="new"
-                            />
-                          </div>
-                          <div>
-                            <span
-                              class="limit-line"
-                              :class="slotProps.data.is_hot ? 'font-bold' : ''"
-                              >{{ slotProps.data.title }}</span
-                            >
-                          </div>
-                        </div>
-                        <div class="col-12 md:col-12 p-0">
-                          <div class="description">
-                            <i class="pi pi-clock"></i>
-                            <span class="ml-2">{{
-                              slotProps.data.approved_date
-                            }}</span>
-                          </div>
-                        </div>
-                      </div>
-                    </div>
-                    <div class="col-12 md:col-12 p-0 pt-2">
-                      <div class="description">
-                        <span class="limit-line">{{ slotProps.data.des }}</span>
-                      </div>
-                    </div>
-                  </div>
+          <div
+            class="card-header"
+            :style="{ cursor: 'pointer', padding: '4px 4px 4px 1rem' }"
+          >
+            <Toolbar class="outline-none surface-0 border-none p-0">
+              <template #start
+                ><span :style="{ fontSize: '15px', fontWeight: 'bold' }"
+                  >Thống kê nhân sự theo trình độ học vấn</span
+                ></template
+              >
+              <template #end>
+                <div class="form-group m-0">
+                  <Dropdown
+                    :options="dictionarys[0]"
+                    :filter="true"
+                    :showClear="false"
+                    :editable="false"
+                    v-model="options.filter_organization_id"
+                    @change="changeOrganization()"
+                    optionLabel="newname"
+                    optionValue="organization_id"
+                    placeholder="Chọn đơn vị"
+                    class="ip36"
+                    :style="{
+                      whiteSpace: 'nowrap',
+                      overflow: 'hidden',
+                      textOverflow: 'ellipsis',
+                    }"
+                  />
                 </div>
               </template>
-            </Carousel>
+            </Toolbar>
+          </div>
+          <div
+            class="card-body carousel-hidden-p-link"
+            style="min-height: 415px"
+          >
             <div
-              v-show="datanews == null || datanews.length == 0"
+              v-show="
+                !options.loading &&
+                academics.datasets != null &&
+                academics.datasets[0] != null &&
+                academics.datasets[0].data.length > 0
+              "
+              class="w-full h-full format-center"
+            >
+              <Chart
+                id="chart32"
+                type="bar"
+                :data="academics"
+                :options="basicOptions"
+                :plugins="plugins"
+                class="w-full"
+                :style="{
+                  width: '100% !important',
+                  height: '100% !important',
+                  display: 'flex',
+                  alignItems: 'center',
+                }"
+              />
+            </div>
+            <div
+              v-show="
+                !options.loading &&
+                academics.datasets != null &&
+                academics.datasets[0] != null &&
+                academics.datasets[0].data.length === 0
+              "
               class="w-full h-full format-flex-center"
             >
               <span class="description">Hiện chưa có dữ liệu</span>
@@ -502,7 +858,10 @@ onMounted(() => {
           <div class="card-header" style="cursor: pointer">
             <span>Thống kê nhân sự theo độ tuổi</span>
           </div>
-          <div class="card-body carousel-hidden-p-link" style="height: 360px">
+          <div
+            class="card-body carousel-hidden-p-link"
+            style="min-height: 378px"
+          >
             <div
               v-show="
                 !options.loading &&
@@ -538,7 +897,8 @@ onMounted(() => {
             <template v-for="(item, index) in genders">
               <div>
                 <h1 class="m-0">
-                  <span class="description">{{ item.title }} :</span> <span>{{ item.total_name }}</span>
+                  <span class="description">{{ item.title }} :</span>
+                  <span>{{ item.total_name }}</span>
                 </h1>
               </div>
             </template>
@@ -731,77 +1091,146 @@ onMounted(() => {
         </div>
       </div>
       <div class="col-4 md:col-4">
-        <div class="card m-1">
-          <div class="card-header" style="cursor: pointer">
-            <span>.</span>
+        <div
+          class="card m-1 mb-3"
+          @click="goRouter('birthday')"
+          style="cursor: pointer"
+        >
+          <div class="card-header">
+            <span>Sinh nhật</span>
           </div>
-          <div class="card-body carousel-hidden-p-link" style="height: 400px">
-            <Carousel
-              v-show="[].length > 0"
-              :value="[]"
-              :numVisible="4"
-              :numScroll="4"
-              :circular="false"
-              orientation="vertical"
-              verticalViewPortHeight="400px"
-            >
-              <template #item="slotProps">
-                <div
-                  class="grid-item carousel-item"
-                  @click="
-                    goRouter('/news/direct/details', {
-                      name: '-orient-' + slotProps.data.news_id,
-                    })
-                  "
-                >
-                  <div class="d-grid formgrid px-2">
-                    <div class="col-12 md:col-12 p-0 pl-0">
-                      <div class="d-grid formgrid">
-                        <div class="col-12 md:col-12 p-0 flex pb-2">
-                          <div>
-                            <img
-                              v-if="slotProps.data.is_hot"
-                              style="
-                                width: 40px;
-                                height: 20px;
-                                margin-right: 12px;
-                              "
-                              :src="basedomainURL + '/Portals/News/new.jpg'"
-                              alt="new"
-                            />
-                          </div>
-                          <div>
-                            <span
-                              class="limit-line"
-                              :class="slotProps.data.is_hot ? 'font-bold' : ''"
-                              >{{ slotProps.data.title }}</span
-                            >
-                          </div>
-                        </div>
-                        <div class="col-12 md:col-12 p-0">
-                          <div class="description">
-                            <i class="pi pi-clock"></i>
-                            <span class="ml-2">{{
-                              slotProps.data.approved_date
-                            }}</span>
-                          </div>
-                        </div>
-                      </div>
+          <div class="card-body" style="height: 80px">
+            <div class="d-grid formgrid">
+              <div class="col-3 md:col-3 p-0">
+                <div class="format-grid-center">
+                  <div style="width: 55px">
+                    <img
+                      :src="basedomainURL + '/Portals/birthday.png'"
+                      style="
+                        width: 100%;
+                        height: 100%;
+                        object-fit: contain;
+                        border-radius: 3px;
+                      "
+                    />
+                  </div>
+                </div>
+              </div>
+              <div class="col-9 md:col-9 p-0">
+                <div class="d-grid formgrid">
+                  <div class="col-12 md:col-12 p-0 pb-2 text-center">
+                    <span
+                      v-if="datatodaybirthdays && datatodaybirthdays.length > 0"
+                      >Sinh nhật hôm nay</span
+                    >
+                    <span v-else>Sinh nhật sắp tới</span>
+                  </div>
+                  <div
+                    v-if="datatodaybirthdays && datatodaybirthdays.length > 0"
+                    class="col-12 md:col-12 p-0"
+                  >
+                    <div class="flex justify-content-center">
+                      <AvatarGroup
+                        v-if="
+                          datatodaybirthdays && datatodaybirthdays.length > 0
+                        "
+                      >
+                        <Avatar
+                          v-for="(item, index) in datatodaybirthdays.slice(
+                            0,
+                            3
+                          )"
+                          v-bind:label="
+                            item.avatar ? '' : item.last_name.substring(0, 1)
+                          "
+                          v-bind:image="
+                            item.avatar
+                              ? basedomainURL + item.avatar
+                              : basedomainURL + '/Portals/Image/noimg.jpg'
+                          "
+                          v-tooltip.top="item.full_name"
+                          :key="item.user_id"
+                          style="border: 2px solid white; color: white"
+                          @error="basedomainURL + '/Portals/Image/noimg.jpg'"
+                          size="large"
+                          shape="circle"
+                          class="cursor-pointer"
+                          :style="{ backgroundColor: bgColor[index % 7] }"
+                        />
+                        <Avatar
+                          v-if="
+                            datatodaybirthdays && datatodaybirthdays.length > 3
+                          "
+                          v-bind:label="
+                            '+' + (datatodaybirthdays.length - 3).toString()
+                          "
+                          shape="circle"
+                          size="large"
+                          style="background-color: #2196f3; color: #ffffff"
+                          class="cursor-pointer"
+                        />
+                      </AvatarGroup>
                     </div>
-                    <div class="col-12 md:col-12 p-0 pt-2">
-                      <div class="description">
-                        <span class="limit-line">{{ slotProps.data.des }}</span>
-                      </div>
+                  </div>
+                  <div v-else class="col-12 md:col-12 p-0">
+                    <div class="flex justify-content-center">
+                      <AvatarGroup
+                        v-if="databirthdays && databirthdays.length > 0"
+                      >
+                        <Avatar
+                          v-for="(item, index) in databirthdays.slice(0, 3)"
+                          v-bind:label="
+                            item.avatar ? '' : item.last_name.substring(0, 1)
+                          "
+                          v-bind:image="
+                            item.avatar
+                              ? basedomainURL + item.avatar
+                              : basedomainURL + '/Portals/Image/noimg.jpg'
+                          "
+                          v-tooltip.top="item.full_name"
+                          :key="item.user_id"
+                          style="border: 2px solid white; color: white"
+                          @error="basedomainURL + '/Portals/Image/noimg.jpg'"
+                          size="large"
+                          shape="circle"
+                          class="cursor-pointer"
+                          :style="{ backgroundColor: bgColor[index % 7] }"
+                        />
+                        <Avatar
+                          v-if="databirthdays && databirthdays.length > 3"
+                          v-bind:label="
+                            '+' + (databirthdays.length - 3).toString()
+                          "
+                          shape="circle"
+                          size="large"
+                          style="background-color: #2196f3; color: #ffffff"
+                          class="cursor-pointer"
+                        />
+                      </AvatarGroup>
                     </div>
                   </div>
                 </div>
-              </template>
-            </Carousel>
-            <div
-              v-show="datanews == null || datanews.length == 0"
-              class="w-full h-full format-flex-center"
-            >
-              <span class="description">Hiện chưa có dữ liệu</span>
+              </div>
+            </div>
+          </div>
+        </div>
+        <div
+          class="card m-1"
+          @click="goRouter('birthday')"
+          style="cursor: pointer"
+        >
+          <div class="card-header">
+            <span>Danh bạ</span>
+          </div>
+          <div class="card-body" style="height: 80px">
+            <div class="d-grid formgrid">
+              <div class="col-3 md:col-3 p-0">
+                <div class="format-grid-center">
+                  <div>
+                    <i class="pi pi-book" :style="{ fontSize: '50px' }"></i>
+                  </div>
+                </div>
+              </div>
             </div>
           </div>
         </div>
@@ -987,6 +1416,20 @@ span.online {
   }
   .p-datatable-thead .justify-content-right .p-column-header-content {
     justify-content: right !important;
+  }
+}
+::v-deep(.form-group) {
+  .p-multiselect .p-multiselect-label,
+  .p-dropdown .p-dropdown-label {
+    height: 100%;
+    display: flex;
+    align-items: center;
+  }
+  .p-chip img {
+    margin: 0;
+  }
+  .p-avatar-text {
+    font-size: 1rem;
   }
 }
 ::v-deep(.border-none) {

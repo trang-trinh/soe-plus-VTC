@@ -17,8 +17,9 @@ import Task_FollowVue from "./Detail_Task/Task_Follow.vue";
 import TaskCheckListDetailVue from "./Detail_Task/TaskCheckListDetail.vue";
 import { encr } from "../../util/function.js";
 import moment from "moment";
-import DocLinkTaskVue from "./Detail_Task/DocTask.vue";`
-import treeuser from "../../components/user/treeuser.vue";`
+import DocLinkTaskVue from "./Detail_Task/DocTask.vue";
+`
+import treeuser from "../../components/user/treeuser.vue";`;
 
 const cryoptojs = inject("cryptojs");
 const options = ref({});
@@ -308,6 +309,8 @@ const loadTaskMain = () => {
         status == 3
       ) {
         isClose.value = true;
+      } else {
+        isClose.value = false;
       }
       datalists.value = data[0];
       listWeights.value = data1;
@@ -802,6 +805,7 @@ const loadData = (rf) => {
         swal.showLoading();
       },
     });
+
     loadTaskMain();
     loadTaskCheckList();
     loadMember();
@@ -809,8 +813,9 @@ const loadData = (rf) => {
     loadChildTaskOrigin(0);
     loadFile();
     loadTaskDoc();
+    swal.close();
   }
-  swal.close();
+
   isLoading.value = false;
 };
 const RenderComments = (data) => {
@@ -1804,13 +1809,13 @@ const forceRerender = () => {
 };
 const show = (ch) => {
   forceRerender();
-  debugger;
   selectedTaskID.value = null;
   showDetail1.value = true;
   selectedTaskID.value = ch.task_id;
 };
 const closeChildDetail = () => {
   showDetail1.value = false;
+  loadData(true);
 };
 
 //----Xóa Task----
@@ -1848,12 +1853,12 @@ const DelTask = (task) => {
             if (response.data.err != "1") {
               swal.close();
               toast.success("Xoá công việc thành công!");
-              isShow.value = false;
+
               if (props.turn >= 1) {
-                close();
+                props.closeChildDetail();
                 loadChildTaskOrigin(0);
               } else {
-                hideall();
+                props.closeDetail();
               }
             } else {
               swal.fire({
@@ -2299,10 +2304,6 @@ const endProgress = () => {
   interval.value = null;
 };
 
-const hideall = () => {
-  isShow.value = false;
-  emitter.emit("SideBar", false);
-};
 const PositionSideBar = ref("right");
 const MaxMin = (m) => {
   PositionSideBar.value = m;
@@ -2336,10 +2337,7 @@ const isViewTask = (e) => {
       });
     });
 };
-const changeNguoiGiaoViec = (event) => {
-  Task.value.assign_user_id = [];
-  Task.value.assign_user_id.push(event.value[1]);
-};
+
 const deleteFile = (datafile) => {
   swal
     .fire({
@@ -2821,10 +2819,11 @@ const UpdateStatusTaksFunc = (stt, end_date, isFormValid) => {
       if (response.data.err != "1") {
         swal.close();
         toast.success("Cập nhật trạng thái công việc thành công!");
-        loadData(true);
+
         sbmStatusTask.value = false;
         openStatusTask.value = false;
         emitter.emit("update_status_task", true);
+        loadData(true);
       } else {
         let ms = response.data.ms;
         swal.fire({
@@ -3135,6 +3134,9 @@ const ViewFileInfo = (data) => {
 emitter.on("closeViewFile", (obj) => {
   isViewFileInfo.value = obj;
 });
+emitter.on("update_status_task", (obj) => {
+  loadData(true);
+});
 emitter.on("closeTaskChecklists", (obj) => {
   ViewTaskChecklists.value = obj;
   loadData(true);
@@ -3426,7 +3428,8 @@ const CloseVisible = () => {
     "
     :showCloseIcon="false"
     :modal="props.turn == 0 ? true : false"
-    ><div
+  >
+    <div
       v-if="isLoading == true"
       class="flex relative top-50 aligns-items-center justify-content-center"
     >
@@ -6220,6 +6223,7 @@ const CloseVisible = () => {
               :data="datalists"
               :isClose="isClose"
               :openAddTask="addNewChildTaskOrigin"
+              :turn="props.turn"
             ></Task_FollowVue>
           </div>
           <div v-if="CongViecCon == true">
@@ -7804,7 +7808,7 @@ const CloseVisible = () => {
                   <div
                     class="col-12 p-0"
                     style="border: 1px solid #e1e1e1; margin-top: -1px"
-                    v-if="Task.files.length > 0 && !isAdd"
+                    v-if="Task.files != null && Task.files.length > 0 && !isAdd"
                   >
                     <DataView
                       :lazy="true"

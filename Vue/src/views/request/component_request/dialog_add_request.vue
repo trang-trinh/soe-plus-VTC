@@ -381,17 +381,19 @@ const saveData = (frm) => {
                 r.value_field = false;
             }
         });
+        cparr.filter(x => x.kieu_truong == "checkbox" || x.kieu_truong == "select").forEach(function (r) {
+            r.value_field = r.value_field == null ? (r.is_order_row == null ? null : false) : r.value_field;
+        });
         cparr.filter(x => x.kieu_truong == "datetime" && x.value_field != null && isValidDate(x.value_field)).forEach(function (r) {
             r.value_field = moment(r.value_field).format('YYYY-MM-DDTHH:mm:ss');
         });
         cparr.filter(x => x.kieu_truong == "date" && x.value_field != null && isValidDate(x.value_field)).forEach(function (r) {
             r.value_field = moment(r.value_field).format('YYYY-MM-DD');
         });
-        console.log(cparr);
         formData.append("formDS", JSON.stringify(cparr));
     }
     else {
-        var cparr = [...formDS.value];
+        var cparr = [];
         formData.append("formDS", JSON.stringify(cparr));
     }
     
@@ -403,6 +405,9 @@ const saveData = (frm) => {
         let file = files.value[i];
         formData.append("files", file);
     }
+    // if (true) {
+    //     return false;
+    // }
     swal.fire({
         width: 110,
         didOpen: () => {
@@ -513,6 +518,9 @@ const listFollower = ref([]);
 const request_LoadSignUser = (Form_ID, Team_ID) => {
     listManager.value = []; // quanlys
     listFollower.value = []; // theodois
+    if (typeof Form_ID == 'object') {
+        Form_ID = Form_ID.request_form_id;
+    }
     axios({
         method: "post",
         url: basedomainURL + "api/request/getData",
@@ -627,7 +635,7 @@ const loadRequestDetail = (dataRequest) => {
         loadFormD(dataRequest.request_form_id);
     } else {
         formDS.value = props.detailFormDynamic.filter(x => x.is_order_row == null);
-        var fd = props.detailFormDynamic.filter(x => x.kieu_truong.toLowerCase() == "radio" && x.value_field.toLowerCase() == "true");
+        var fd = props.detailFormDynamic.filter(x => x.kieu_truong != null && x.kieu_truong.toLowerCase() == "radio" && x.value_field != null && x.value_field.toLowerCase() == "true");
         if (fd != null && fd.length > 0) {
             //request_data.value.Radio = fd.request_formd_id;
             //fd.value_field = "true";
@@ -636,14 +644,14 @@ const loadRequestDetail = (dataRequest) => {
                 r.value_field = r.value_field == "true";
             });
         }
-        var fd2 = props.detailFormDynamic.filter(x => (x.kieu_truong.toLowerCase() == "checkbox" || x.kieu_truong.toLowerCase() == "switch") && x.value_field.toLowerCase() == "true");
+        var fd2 = props.detailFormDynamic.filter(x => (x.kieu_truong != null && (x.kieu_truong.toLowerCase() == "checkbox" || x.kieu_truong.toLowerCase() == "switch")) && x.value_field != null && x.value_field.toLowerCase() == "true");
         if (fd2 != null && fd2.length > 0) {
             //fd2.value_field = "true";
             fd2.forEach((r) => {
                 r.value_field = r.value_field == "true";
             });
         }
-        var fd3 = props.detailFormDynamic.filter(x => (x.kieu_truong == "datetime" || x.kieu_truong == "date") && x.value_field != null && isValidDate(x.value_field));
+        var fd3 = props.detailFormDynamic.filter(x => (x.kieu_truong != null && (x.kieu_truong == "datetime" || x.kieu_truong == "date")) && x.value_field != null && x.value_field != null && isValidDate(x.value_field));
         if (fd3 != null && fd3.length > 0) {
             fd3.forEach((r) => {
                 r.value_field = new Date(r.value_field);
@@ -857,7 +865,6 @@ onMounted(() => {
                     </div>
 				</div>
                 <div class="col-12 md:col-12 flex p-0" v-if="formDS && formDS_filter().length > 0">
-                <!-- <div class="col-12 md:col-12 flex p-0" v-if="false"> -->
                     <div class="col-12 flex p-0" style="flex-wrap: wrap;">
                         <div class="formd pl-0" 
                             :class="(!d.is_class ? 'pr-0': (d.is_class == 'col-12' ? (d.is_class + ' pr-0') : d.is_class)) 
@@ -1026,6 +1033,7 @@ onMounted(() => {
                                                                 v-model="td.value_field"
                                                                 class="form-control col-12 ip36 p-2"
                                                                 :class="{ 'p-invalid': td.is_required && !td.value_field && submitted, }"
+                                                                style="border:none;"
                                                             />
                                                         </div>
                                                         <div v-if="td.kieu_truong == 'varchar' || td.kieu_truong == 'nvarchar'">
@@ -1035,6 +1043,7 @@ onMounted(() => {
                                                                 v-model="td.value_field"
                                                                 class="form-control col-12 ip36 p-2"
                                                                 :class="{ 'p-invalid': td.is_required && !td.value_field && submitted, }"
+                                                                style="border:none;"
                                                             />
                                                         </div>
                                                         <div v-if="td.kieu_truong == 'int' || td.kieu_truong == 'float'">
@@ -1043,6 +1052,7 @@ onMounted(() => {
                                                                 v-model="td.value_field" 
                                                                 class="form-control col-12 ip36 p-2"
                                                                 :class="{ 'p-invalid': td.is_required && !td.value_field && submitted, }"
+                                                                style="border:none;"
                                                             />
                                                         </div>
                                                         <div v-if="td.kieu_truong == 'textarea'">
@@ -1051,6 +1061,7 @@ onMounted(() => {
                                                                 v-model="td.value_field" 
                                                                 class="form-control col-12 p-2"
                                                                 :class="{ 'p-invalid': td.is_required && !td.value_field && submitted, }"
+                                                                style="border:none;"
                                                                 rows="1"
                                                                 autoResize
                                                             />
@@ -1097,6 +1108,7 @@ onMounted(() => {
                                                                 v-model="td.value_field"
                                                                 placeholder="dd/mm/yyyy"
                                                                 :class="{ 'p-invalid': td.is_required && !td.value_field && submitted, }"
+                                                                style="border:none;"
                                                             />
                                                         </div>
                                                         <div v-if="td.kieu_truong == 'time'">
@@ -1109,6 +1121,7 @@ onMounted(() => {
                                                                 placeholder="HH:mm"
                                                                 timeOnly
                                                                 :class="{ 'p-invalid': td.is_required && !td.value_field && submitted, }"
+                                                                style="border:none;"
                                                             />
                                                         </div>
                                                     </div>

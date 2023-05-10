@@ -616,6 +616,125 @@ namespace API.Controllers.Request
 
         }
 
+        [HttpDelete]
+        public async Task<HttpResponseMessage> Delete_Request([System.Web.Mvc.Bind(Include = "")][FromBody] List<string> id)
+        {
+            var identity = User.Identity as ClaimsIdentity;
+            IEnumerable<Claim> claims = identity.Claims;
+
+            string ip = getipaddress();
+            string name = claims.Where(p => p.Type == "fname").FirstOrDefault()?.Value;
+            string tid = claims.Where(p => p.Type == "tid").FirstOrDefault()?.Value;
+            string uid = claims.Where(p => p.Type == "uid").FirstOrDefault()?.Value;
+            bool ad = claims.Where(p => p.Type == "ad").FirstOrDefault()?.Value == "True";
+            string domainurl = HttpContext.Current.Request.Url.Scheme + "://" + HttpContext.Current.Request.Url.Host + ":" + HttpContext.Current.Request.Url.Port + "/";
+            if (identity == null)
+            {
+                return Request.CreateResponse(HttpStatusCode.OK, new { ms = "Bạn không có quyền truy cập chức năng này!", err = "1" });
+            }
+            try
+            {
+                using (DBEntities db = new DBEntities())
+                {
+                    var das = await db.request_master.Where(a => id.Contains(a.request_id)).ToListAsync();
+                    List<string> paths = new List<string>();
+                    if (das != null)
+                    {
+                        List<request_master> del = new List<request_master>();
+                        foreach (var da in das)
+                        {
+                            if (ad || da.created_by == uid)
+                            {
+                                var listFileLaw = db.request_master_file.Where(x => x.request_id == da.request_id).ToList();
+                                if (listFileLaw.Count > 0)
+                                {
+                                    foreach (var item in listFileLaw)
+                                    {
+                                        var organization_id_law = db.request_master.Find(item.request_id) != null ? db.request_master.Find(item.request_id).organization_id.ToString() : "other";
+                                        var pathFile = "/Portals/" + organization_id_law + "/";
+                                        if (item.file_path != null && item.file_path.Contains(pathFile))
+                                        {
+                                            paths.Add(item.file_path);
+                                        }
+                                    }
+                                }
+                                del.Add(da);
+                                #region add cms_logs
+                                if (helper.wlog)
+                                {
+                                    request_log log = new request_log();
+                                    log.log_type = 2;
+                                    log.title = "Xóa đề xuất: " + da.request_name;
+                                    log.log_content = JsonConvert.SerializeObject(new { requestDel = JsonConvert.SerializeObject(da, new JsonSerializerSettings() { ReferenceLoopHandling = ReferenceLoopHandling.Ignore }) }); ;
+                                    log.log_module = "M12";
+                                    log.id_key = da.request_id;
+                                    log.created_date = DateTime.Now;
+                                    log.created_by = uid;
+                                    log.created_token_id = tid;
+                                    log.created_ip = ip;
+                                    db.request_log.Add(log);
+                                    db.SaveChanges();
+
+                                }
+                                #endregion
+                            }
+                        }
+                        if (del.Count == 0)
+                        {
+                            return Request.CreateResponse(HttpStatusCode.OK, new { err = "1", ms = "Bạn không có quyền xóa dữ liệu." });
+                        }
+                        db.request_master.RemoveRange(del);
+                    }
+                    await db.SaveChangesAsync();
+                    foreach (string strPath in paths)
+                    {
+                        if (strPath.Contains("/Portals/") && strPath.Contains("/Request/") && !strPath.Contains("../"))
+                        {
+                            var strPathFormat = Regex.Replace(strPath.Replace("\\", "/"), @"\.*/+", "/");
+                            var listPath = strPathFormat.Split('/');
+                            var pathConfig = "";
+                            foreach (var item in listPath)
+                            {
+                                if (item.Trim() != "")
+                                {
+                                    pathConfig += "/" + Path.GetFileName(item);
+                                }
+                            }
+                            var pathDelFile = HttpContext.Current.Server.MapPath("~/" + pathConfig);
+                            bool existFiles = System.IO.Directory.Exists(pathDelFile);
+                            if (existFiles)
+                                System.IO.Directory.Delete(pathDelFile, true);
+                        }
+                    }
+
+                    return Request.CreateResponse(HttpStatusCode.OK, new { err = "0" });
+                }
+            }
+            catch (DbEntityValidationException e)
+            {
+                string contents = helper.getCatchError(e, null);
+                helper.saveLog(uid, name, JsonConvert.SerializeObject(new { data = id, contents }), domainurl + "request/Delete_Request", ip, tid, "Lỗi khi xoá đề xuất", 0, "request");
+                if (!helper.debug)
+                {
+                    contents = "";
+                }
+                Log.Error(contents);
+                return Request.CreateResponse(HttpStatusCode.OK, new { ms = contents, err = "1" });
+            }
+            catch (Exception e)
+            {
+                string contents = helper.ExceptionMessage(e);
+                helper.saveLog(uid, name, JsonConvert.SerializeObject(new { data = id, contents }), domainurl + "request/Delete_Request", ip, tid, "Lỗi khi xoá đề xuất", 0, "request");
+                if (!helper.debug)
+                {
+                    contents = "";
+                }
+                Log.Error(contents);
+                return Request.CreateResponse(HttpStatusCode.OK, new { ms = contents, err = "1" });
+            }
+
+        }
+
         #region CallProc
         [HttpPost]
         public async Task<HttpResponseMessage> getData([System.Web.Mvc.Bind(Include = "str")][FromBody] JObject data)
