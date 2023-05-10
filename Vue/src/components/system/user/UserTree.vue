@@ -56,13 +56,26 @@ const isChuky = ref(false);
 const isKynhay = ref(false);
 const user_data = ref({});
 const tdQuyens = [
-  { value: 0, text: "Không có quyền (0)" },
-  { value: 1, text: "Xem cá nhân (1)" },
-  { value: 2, text: "Xem tất cả (2)" },
-  { value: 3, text: "Chỉnh sửa cá nhân (3)" },
-  { value: 4, text: "Chỉnh sửa tất cả (4)" },
-  { value: 5, text: "Duyệt (5)" },
-  { value: 6, text: "Full (6)" },
+  { value: 1, text: "Tất cả các quyền" },
+  { value: 2, text: "Xem cá nhân" },
+  { value: 3, text: "Xem phòng ban" },
+  { value: 4, text: "Xem công ty" },
+  { value: 5, text: "Xem tất cả" },
+  { value: 6, text: "Chỉnh sửa (thêm, sửa, xóa)" },
+  { value: 7, text: "Chỉnh sửa cá nhân" },
+  { value: 8, text: "Duyệt chỉnh sửa hồ sơ" },
+  { value: 9, text: "Thiết lập ban đầu" },
+  { value: 10, text: "Duyệt đề xuất" },
+  { value: 11, text: "Lập đề xuất" },
+  { value: 12, text: "Phê duyệt" },
+  { value: 13, text: "Chiến dịch tuyển dụng" },
+  { value: 14, text: "Ứng viên" },
+  { value: 15, text: "Lịch phỏng vấn" },
+  { value: 16, text: "Tạo đánh giá" },
+  { value: 17, text: "Duyệt đánh giá" },
+  { value: 18, text: "Quản trị người dùng" },
+  { value: 19, text: "Quản trị người dùng đơn vị" },
+  { value: 20, text: "Backup dữ liệu" },
 ].reverse();
 const store = inject("store");
 const isAdd = ref(true);
@@ -2922,7 +2935,7 @@ onMounted(() => {
             id="overlay_Quyen"
             ref="menuQuyen"
             :popup="true"
-            :options="tdQuyens.filter(x => md.node.data.permission.toString().split('').includes(x.value.toString()))"            optionLabel="text"
+            :options="tdQuyens.filter(x => md.node.data.permission.split(',').includes(x.value.toString()))"            optionLabel="text"
             optionValue="value"
             placeholder="Chọn quyền"
           />

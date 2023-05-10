@@ -34,15 +34,28 @@ const rules = {
 };
 const v$ = useVuelidate(rules, module);
 //Khai báo biến
-var arrsDefault = [0,1,2,3,4,5,6]
+var arrsDefault = [1]
 const tdQuyens = [
-  { value: 0, text: "Không có quyền (0)" },
-  { value: 1, text: "Xem cá nhân (1)" },
-  { value: 2, text: "Xem tất cả (2)" },
-  { value: 3, text: "Chỉnh sửa cá nhân (3)" },
-  { value: 4, text: "Chỉnh sửa tất cả (4)" },
-  { value: 5, text: "Duyệt (5)" },
-  { value: 6, text: "Full (6)" },
+  { value: 1, text: "Tất cả các quyền" },
+  { value: 2, text: "Xem cá nhân" },
+  { value: 3, text: "Xem phòng ban" },
+  { value: 4, text: "Xem công ty" },
+  { value: 5, text: "Xem tất cả" },
+  { value: 6, text: "Chỉnh sửa (thêm, sửa, xóa)" },
+  { value: 7, text: "Chỉnh sửa cá nhân" },
+  { value: 8, text: "Duyệt chỉnh sửa hồ sơ" },
+  { value: 9, text: "Thiết lập ban đầu" },
+  { value: 10, text: "Duyệt đề xuất" },
+  { value: 11, text: "Lập đề xuất" },
+  { value: 12, text: "Phê duyệt" },
+  { value: 13, text: "Chiến dịch tuyển dụng" },
+  { value: 14, text: "Ứng viên" },
+  { value: 15, text: "Lịch phỏng vấn" },
+  { value: 16, text: "Tạo đánh giá" },
+  { value: 17, text: "Duyệt đánh giá" },
+  { value: 18, text: "Quản trị người dùng" },
+  { value: 19, text: "Quản trị người dùng đơn vị" },
+  { value: 20, text: "Backup dữ liệu" },
 ].reverse();
 const store = inject("store");
 const selectCapcha = ref();
@@ -371,7 +384,7 @@ const handleSubmit = (isFormValid) => {
       module.value.organization_id = null;
     }
   }
-  if(module.value.permission) module.value.permission = module.value.permission.join("");
+  if(module.value.permission) module.value.permission = module.value.permission.join(",");
   addModule();
 };
 const addTreeModule = (md) => {
@@ -581,7 +594,7 @@ const exportModule = (method) => {
 const convertIntToArray = (str)=>{
   var arrs = [];
   if(str != null){
-    str.toString().split("").forEach((item)=>{
+    str.toString().split(",").forEach((item)=>{
     arrs.push(parseInt(item));
     })
   }
@@ -975,10 +988,12 @@ onMounted(() => {
         </div>
         <div class="field col-12 md:col-12">
           <label class="col-2 text-left">Quyền</label>
+          {{ module.permission }}
           <MultiSelect
+            :filter="true"
             class="col-10"
             v-model="module.permission"
-            :options="tdQuyens"
+            :options="tdQuyens.sort((a, b) => a.value - b.value)"
             optionLabel="text"
             optionValue="value"
             placeholder="Chọn quyền"
