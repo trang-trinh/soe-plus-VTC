@@ -23,7 +23,7 @@ body {
   height: 100vh;
   color: #000000;
 }
-.p-datatable .p-datatable-tbody>tr{
+.p-datatable .p-datatable-tbody > tr {
   color: #000000 !important;
 }
 /* .p-button.p-button-secondary.p-button-outlined, .p-buttonset.p-button-secondary > .p-button.p-button-outlined, .p-splitbutton.p-button-secondary > .p-button.p-button-outlined{
@@ -894,12 +894,12 @@ li.p-chips-token {
   text-align: center !important;
 }
 .d-design-calendar-1.p-calendar .p-inputtext {
-  opacity: 1 !important; 
+  opacity: 1 !important;
 }
 .d-design-inputnumber.p-inputnumber .p-inputtext {
   text-align: center !important;
 }
-.d-design-sidebar .p-sidebar-content{
+.d-design-sidebar .p-sidebar-content {
   height: 100%;
   position: relative;
 }
@@ -1317,63 +1317,68 @@ li.p-chips-token {
 .d-style-hover:hover .d-style-hover-1 {
   display: block;
 }
-.d-design-orgchart .org-tree-node-label{
-min-width: 450px !important; 
+.d-design-orgchart .org-tree-node-label {
+  min-width: 450px !important;
 }
-.d-design-orgchart .org-tree-node-label .org-tree-node-label-inner{
-  box-shadow: 0 1px 5px rgba(0,0,0,.25) !important;
+.d-design-orgchart .org-tree-node-label .org-tree-node-label-inner {
+  box-shadow: 0 1px 5px rgba(0, 0, 0, 0.25) !important;
   padding: 0 !important;
-  }
- 
+}
+
 /*Style chung cho min-w-Xrem*/
 
 /* Style quan */
-.menu-request .red-text .p-menuitem-link .p-menuitem-icon, 
-.menu-request .red-text .p-menuitem-link .p-menuitem-text{
+.menu-request .red-text .p-menuitem-link .p-menuitem-icon,
+.menu-request .red-text .p-menuitem-link .p-menuitem-text {
   color: red !important;
 }
 .sidebar-request .p-sidebar-content {
   height: 100%;
   padding: 0 !important;
 }
-.d-calendar-design-m .p-datepicker-header{
-display: none !important;
+.d-calendar-design-m .p-datepicker-header {
+  display: none !important;
 }
 /* Style khai báo ngày nghỉ lễ */
-.theme-default .cv-header-day{
-  font-weight: bold !important; 
+.theme-default .cv-header-day {
+  font-weight: bold !important;
 }
-.theme-default .cv-day-number{
- display: none;
+.theme-default .cv-day-number {
+  display: none;
 }
-.d-chip-design img{
+.d-chip-design img {
   margin-left: 0 !important;
   margin-right: 0 !important ;
 }
-.d-multi-design .p-multiselect-label{
+.d-multi-design .p-multiselect-label {
   white-space: unset !important;
-  cursor: pointer !important; 
-   overflow: unset !important; 
-     text-overflow: unset !important;  
+  cursor: pointer !important;
+  overflow: unset !important;
+  text-overflow: unset !important;
 }
-.d-tree-missheader .p-treetable-thead{
+.d-tree-missheader .p-treetable-thead {
   display: none !important;
 }
 
-.d-tree-missheader td{
+.d-tree-missheader td {
   border: unset !important;
 }
-.d-dropdown-design .p-dropdown-label.p-inputtext{
+.d-dropdown-design .p-dropdown-label.p-inputtext {
   padding: 0 !important;
   align-items: center !important;
-    display: flex !important;
-    padding-left: 6px !important;
+  display: flex !important;
+  padding-left: 6px !important;
 }
-.theme-default .cv-header .cv-header-nav .previousYear,.previousPeriod,.currentPeriod,.nextPeriod,.nextYear{
+.theme-default .cv-header .cv-header-nav .previousYear,
+.previousPeriod,
+.currentPeriod,
+.nextPeriod,
+.nextYear {
   background: #ffffff;
   border: 1px solid #ced4da;
   color: #495057;
-  transition: background-color 0.2s, color 0.2s, border-color 0.2s, box-shadow 0.2s;
+  transition: background-color 0.2s, color 0.2s, border-color 0.2s,
+    box-shadow 0.2s;
   display: inline-flex;
   cursor: pointer;
   user-select: none;
@@ -1383,51 +1388,55 @@ display: none !important;
   overflow: hidden;
   position: relative;
 }
-.theme-default .cv-header .cv-header-nav .currentPeriod{
- font-weight: bold;
+.theme-default .cv-header .cv-header-nav .currentPeriod {
+  font-weight: bold;
 }
-.theme-default .cv-header .periodLabel{
+.theme-default .cv-header .periodLabel {
   display: flex;
   justify-content: center;
   align-items: center;
   text-align: center;
   font-weight: bold;
 }
-.cv-wrapper .cv-week .cv-weekdays .cv-item{
-  margin-top: 3px;margin-left: 3px;
+.cv-wrapper .cv-week .cv-weekdays .cv-item {
+  margin-top: 3px;
+  margin-left: 3px;
   cursor: pointer;
 }
 .cv-wrapper .cv-week {
   min-height: 5rem;
 }
-.cv-wrapper .cv-week .cv-weekdays .cv-item.span1{
+.cv-wrapper .cv-week .cv-weekdays .cv-item.span1 {
   width: calc((100% / 7) - 0.5em);
 }
-.cv-wrapper .cv-week .cv-weekdays .cv-item.span2{
+.cv-wrapper .cv-week .cv-weekdays .cv-item.span2 {
   width: calc((200% / 7) - 0.5em);
 }
-.cv-wrapper .cv-week .cv-weekdays .cv-item.span3{
+.cv-wrapper .cv-week .cv-weekdays .cv-item.span3 {
   width: calc((300% / 7) - 0.5em);
 }
-.cv-wrapper .cv-week .cv-weekdays .cv-item.span4{
+.cv-wrapper .cv-week .cv-weekdays .cv-item.span4 {
   width: calc((400% / 7) - 0.5em);
 }
-.cv-wrapper .cv-week .cv-weekdays .cv-item.span5{
+.cv-wrapper .cv-week .cv-weekdays .cv-item.span5 {
   width: calc((500% / 7) - 0.5em);
 }
-.cv-wrapper .cv-week .cv-weekdays .cv-item.span6{
+.cv-wrapper .cv-week .cv-weekdays .cv-item.span6 {
   width: calc((600% / 7) - 0.5em);
 }
-.cv-wrapper .cv-week .cv-weekdays .cv-item.span7{
+.cv-wrapper .cv-week .cv-weekdays .cv-item.span7 {
   width: calc((700% / 7) - 0.5em);
 }
 
-.justify-content-left{
+.justify-content-left {
   justify-content: left !important;
 }
-.justify-content-center{
+.justify-content-center {
   justify-content: center !important;
 }
-.justify-content-right{
+.justify-content-right {
   justify-content: right !important;
+}
+.p-sidebar-task.p-sidebar .p-sidebar-content {
+  overflow-y: hidden !important;
 }
