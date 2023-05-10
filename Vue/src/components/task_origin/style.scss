@@ -375,6 +375,7 @@ a {
 .p-avatar {
     font-size: inherit !important;
 }
+
 ///loading style
 $background: #222;
 $leftFace: #D53A33;
@@ -486,3 +487,4 @@ body {
 }
 
 @include generateSlice();
+

@@ -18,8 +18,7 @@ import TaskCheckListDetailVue from "./Detail_Task/TaskCheckListDetail.vue";
 import { encr } from "../../util/function.js";
 import moment from "moment";
 import DocLinkTaskVue from "./Detail_Task/DocTask.vue";
-`
-import treeuser from "../../components/user/treeuser.vue";`;
+import treeuser from "../../components/user/treeuser.vue";
 
 const cryoptojs = inject("cryptojs");
 const options = ref({});
@@ -3428,6 +3427,7 @@ const CloseVisible = () => {
     "
     :showCloseIcon="false"
     :modal="props.turn == 0 ? true : false"
+    class="p-sidebar-task"
   >
     <div
       v-if="isLoading == true"
