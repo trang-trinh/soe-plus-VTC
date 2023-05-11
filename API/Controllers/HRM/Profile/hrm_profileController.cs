@@ -16,6 +16,12 @@ using System.IO;
 using Newtonsoft.Json.Linq;
 using OfficeOpenXml.FormulaParsing.Excel.Functions.Math;
 using OfficeOpenXml.FormulaParsing.Excel.Functions.DateTime;
+using OfficeOpenXml;
+using System.Text.RegularExpressions;
+using System.Security.Cryptography;
+using System.Globalization;
+using Microsoft.Owin;
+using OfficeOpenXml.FormulaParsing.Excel.Functions.RefAndLookup;
 
 namespace API.Controllers.HRM.Profile
 {
@@ -1702,6 +1708,519 @@ namespace API.Controllers.HRM.Profile
                     contents = "";
                 }
                 return Request.CreateResponse(HttpStatusCode.OK, new { ms = contents, err = "1" });
+            }
+        }
+
+        [HttpPost]
+        public async Task<HttpResponseMessage> import_excel_profile()
+        {
+            string fpath = "";
+            using (DBEntities db = new DBEntities())
+            {
+                var identity = User.Identity as ClaimsIdentity;
+                IEnumerable<Claim> claims = identity.Claims;
+                string ip = getipaddress();
+                string name = claims.Where(p => p.Type == "fname").FirstOrDefault()?.Value;
+                string tid = claims.Where(p => p.Type == "tid").FirstOrDefault()?.Value;
+                string uid = claims.Where(p => p.Type == "uid").FirstOrDefault()?.Value;
+                bool ad = claims.Where(p => p.Type == "ad").FirstOrDefault()?.Value == "True";
+                string domainurl = HttpContext.Current.Request.Url.Scheme + "://" + HttpContext.Current.Request.Url.Host + ":" + HttpContext.Current.Request.Url.Port + "/";
+                try
+                {
+                    if (!Request.Content.IsMimeMultipartContent())
+                    {
+                        throw new HttpResponseException(HttpStatusCode.UnsupportedMediaType);
+                    }
+                    var user_now = db.sys_users.FirstOrDefault(x => x.user_id == uid);
+                    var organization_id_user = "other";
+                    if (user_now != null && user_now.organization_id != null)
+                    {
+                        organization_id_user = user_now.organization_id.ToString();
+                    }
+                    string strPath = HttpContext.Current.Server.MapPath("~/Portals/" + organization_id_user + "/Excel/");
+                    bool exists = Directory.Exists(strPath);
+                    if (!exists)
+                        Directory.CreateDirectory(strPath);
+                    var provider = new MultipartFormDataStreamProvider(strPath);
+                    var task = await Request.Content.ReadAsMultipartAsync(provider);
+
+                    FileInfo finfo = new FileInfo(provider.FileData.First().LocalFileName);
+                    string guid = Guid.NewGuid().ToString();
+                    var fileNameTemp = Regex.Replace(finfo.FullName.Replace("\\", "/"), @"\.*/+", "/");
+                    var listPathTemp = fileNameTemp.Split('/');
+                    var pathConfigTemp = "";
+                    foreach (var item in listPathTemp)
+                    {
+                        if (item.Trim() != "")
+                        {
+                            pathConfigTemp += "/" + Path.GetFileName(item);
+                        }
+                    }
+                    File.Move(pathConfigTemp.Substring(1), Path.Combine(strPath, guid + "_" + provider.FileData.First().Headers.ContentDisposition.FileName.Replace("\"", "")));
+                    fpath = strPath + guid + "_" + provider.FileData.First().Headers.ContentDisposition.FileName.Replace("\"", "");
+
+                    FileInfo temp = new FileInfo(fpath);
+                    using (ExcelPackage pck = new ExcelPackage(temp))
+                    {
+                        try
+                        {
+                            List<ExcelWorksheet> sheets = pck.Workbook.Worksheets.ToList();
+                            for (int s = 0; s <= sheets.Count; s++)
+                            {
+                                ExcelWorksheet sheet = sheets[s];
+                                switch (sheets[s].Name)
+                                {
+                                    case "Hồ sơ nhân sự":
+                                        List<hrm_profile> profiles = new List<hrm_profile>();
+                                        List<hrm_profile_health> healths = new List<hrm_profile_health>();
+                                        for (int r = 5; r <= sheet.Dimension.End.Row; r++)
+                                        {
+                                            if (sheet.Cells[r, 2].Value == null)
+                                            {
+                                                break;
+                                            }
+                                            hrm_profile profile = new hrm_profile();
+                                            hrm_profile_health health = new hrm_profile_health();
+                                            for (int c = 2; c <= sheet.Dimension.End.Column; c++)
+                                            {
+                                                if (sheet.Cells[4, c].Value == null)
+                                                {
+                                                    break;
+                                                }
+                                                var column = sheet.Cells[4, c].Value;
+                                                var value = sheet.Cells[r, c].Value;
+                                                switch (column)
+                                                {
+                                                    case "2":
+                                                        var p = await db.hrm_profile.FirstOrDefaultAsync(x => x.profile_code == value.ToString());
+                                                        if (p != null)
+                                                        {
+                                                            profile.profile_id = p.profile_id;
+                                                        }
+                                                        break;
+                                                    case "3":
+                                                        profile.profile_name = value.ToString();
+                                                        profile.profile_name_en = helper.convertToUnSign3(profile.profile_name);
+                                                        profile.profile_last_name = profile.profile_name.Split(' ').Last();
+                                                        profile.profile_user_name = value.ToString();
+                                                        break;
+                                                    case "4":
+                                                        profile.identity_papers_code = value.ToString();
+                                                        break;
+                                                    case "5":
+                                                        profile.identity_date_issue = DateTime.ParseExact(value.ToString(), "dd/MM/yyyy", CultureInfo.InvariantCulture);
+                                                        break;
+                                                    case "6":
+                                                        profile.identity_end_date_issue = DateTime.ParseExact(value.ToString(), "dd/MM/yyyy", CultureInfo.InvariantCulture);
+                                                        break;
+                                                    case "7":
+                                                        var identity_place_name = value.ToString();
+                                                        var identity_place_exists = await db.hrm_ca_identity_place.FirstOrDefaultAsync(x => x.identity_place_name.Contains(identity_place_name));
+                                                        if (identity_place_exists != null)
+                                                        {
+                                                            profile.identity_place_id = identity_place_exists.identity_place_id;
+                                                        }
+                                                        break;
+                                                    case "8":
+                                                        profile.tax_code = value.ToString();
+                                                        break;
+                                                    case "9":
+                                                        profile.gender = int.Parse(value.ToString());
+                                                        break;
+                                                    case "10":
+                                                        profile.birthday = DateTime.ParseExact(value.ToString(), "dd/MM/yyyy", CultureInfo.InvariantCulture);
+                                                        break;
+                                                    case "11":
+                                                        var ethnic_name = value.ToString();
+                                                        var ethnic_exists = await db.hrm_ca_ethnic.FirstOrDefaultAsync(x => x.ethnic_name.Contains(ethnic_name));
+                                                        if (ethnic_exists != null)
+                                                        {
+                                                            profile.ethnic_id = ethnic_exists.ethnic_id;
+                                                        }
+                                                        break;
+                                                    case "12":
+                                                        var religion_name = value.ToString();
+                                                        var religio_exists = await db.hrm_ca_religion.FirstOrDefaultAsync(x => x.religion_name.Contains(religion_name));
+                                                        if (religio_exists != null)
+                                                        {
+                                                            profile.religion_id = religio_exists.religion_id;
+                                                        }
+                                                        break;
+                                                    case "13":
+                                                        var nationality_name = value.ToString();
+                                                        var nationality_exists = await db.hrm_ca_nationality.FirstOrDefaultAsync(x => x.nationality_name.Contains(nationality_name));
+                                                        if (nationality_exists != null)
+                                                        {
+                                                            profile.nationality_id = nationality_exists.nationality_id;
+                                                        }
+                                                        break;
+                                                    case "14":
+                                                        
+                                                        break;
+                                                    case "15":
+                                                        var marital_status = value.ToString();
+                                                        if (marital_status.ToLower().Contains("đã"))
+                                                        {
+                                                            profile.marital_status = 1;
+                                                        }
+                                                        else if (marital_status.ToLower().Contains("ly"))
+                                                        {
+                                                            profile.marital_status = 2;
+                                                        }
+                                                        else
+                                                        {
+                                                            profile.marital_status = 0;
+                                                        }
+                                                        break;
+                                                    case "16":
+                                                        var bank_name = value.ToString();
+                                                        var bank_exists = await db.hrm_ca_bank.FirstOrDefaultAsync(x => x.bank_name.Contains(bank_name));
+                                                        if (bank_exists != null)
+                                                        {
+                                                            profile.bank_id = bank_exists.bank_id;
+                                                        }
+                                                        break;
+                                                    case "17":
+                                                        profile.bank_number = value.ToString();
+                                                        break;
+                                                    case "18":
+                                                        profile.bank_account = value.ToString();
+                                                        break;
+                                                    case "19":
+                                                        break;
+                                                    case "20":
+                                                        profile.place_permanent = value.ToString();
+                                                        break;
+                                                    case "21":
+                                                        profile.place_residence_name = value.ToString();
+                                                        break;
+                                                    case "22":
+                                                        profile.birthplace_name = value.ToString();
+                                                        break;
+                                                    case "23":
+                                                        profile.birthplace_origin_name = value.ToString();
+                                                        break;
+                                                    case "24":
+                                                        profile.place_register_permanent_first = value.ToString();
+                                                        break;
+                                                    case "25":
+                                                        profile.place_register_permanent_name = value.ToString();
+                                                        break;
+                                                    case "26":
+                                                        profile.involved_name = value.ToString();
+                                                        break;
+                                                    case "27":
+                                                        profile.involved_phone = value.ToString();
+                                                        break;
+                                                    case "28":
+                                                        profile.involved_place = value.ToString();
+                                                        break;
+                                                    case "29":
+                                                        var relationship_name = value.ToString();
+                                                        var relationship_exists = await db.hrm_ca_relationship.FirstOrDefaultAsync(x => x.relationship_name.Contains(relationship_name));
+                                                        if (relationship_exists != null)
+                                                        {
+                                                            profile.relationship_id = relationship_exists.relationship_id;
+                                                        }
+                                                        break;
+                                                    case "30":
+                                                        profile.profile_nick_name = value.ToString();
+                                                        break;
+                                                    case "31":
+                                                        
+                                                        break;
+                                                    case "32":
+                                                        profile.email = value.ToString();
+                                                        break;
+                                                    case "33":
+                                                        profile.phone = value.ToString();
+                                                        break;
+                                                    case "34":
+                                                        var olds = value.ToString().Split(',').ToList();
+                                                        if (olds.Count > 0)
+                                                        {
+                                                            var yearold = olds[0]?.ToLower().Trim().Replace("năm", "").Trim() ?? "0";
+                                                            var monthold = olds[1]?.ToLower().Trim().Replace("tháng", "").Trim() ?? "0";
+
+                                                            profile.seniority_year = int.Parse(yearold);
+                                                            profile.seniority_month = int.Parse(monthold);
+                                                        }
+                                                        break;
+                                                    case "35":
+                                                        profile.recruitment_date = DateTime.ParseExact(value.ToString(), "dd/MM/yyyy", CultureInfo.InvariantCulture);
+                                                        break;
+                                                    case "36":
+                                                        var cultural_level_name = value.ToString();
+                                                        var cultural_level_exists = await db.hrm_ca_cultural_level.FirstOrDefaultAsync(x => x.cultural_level_name.Contains(cultural_level_name));
+                                                        if (cultural_level_exists != null)
+                                                        {
+                                                            profile.cultural_level_id = cultural_level_exists.cultural_level_id;
+                                                        }
+                                                        break;
+                                                    case "37":
+                                                        var political_theory_name = value.ToString();
+                                                        var political_theory_exists = await db.hrm_ca_political_theory.FirstOrDefaultAsync(x => x.political_theory_name.Contains(political_theory_name));
+                                                        if (political_theory_exists != null)
+                                                        {
+                                                            profile.political_theory_id = political_theory_exists.political_theory_id;
+                                                        }
+                                                        break;
+                                                    case "38":
+                                                        var informatic_level_name = value.ToString();
+                                                        var informatic_level_exists = await db.hrm_ca_informatic_level.FirstOrDefaultAsync(x => x.informatic_level_name.Contains(informatic_level_name));
+                                                        if (informatic_level_exists != null)
+                                                        {
+                                                            profile.informatic_level_id = informatic_level_exists.informatic_level_id;
+                                                        }
+                                                        break;
+                                                    case "39":
+                                                        var language_level_name = value.ToString();
+                                                        var language_level_exists = await db.hrm_ca_language_level.FirstOrDefaultAsync(x => x.language_level_name.Contains(language_level_name));
+                                                        if (language_level_exists != null)
+                                                        {
+                                                            profile.language_level_id = language_level_exists.language_level_id;
+                                                        }
+                                                        break;
+                                                    case "40":
+                                                        var management_state_name = value.ToString();
+                                                        var management_state_exists = await db.hrm_ca_management_state.FirstOrDefaultAsync(x => x.management_state_name.Contains(management_state_name));
+                                                        if (management_state_exists != null)
+                                                        {
+                                                            profile.management_state_id = management_state_exists.management_state_id;
+                                                        }
+                                                        break;
+                                                    case "41":
+                                                        profile.is_partisan = value.ToString().ToLower() == "x" ? true : false;
+                                                        break;
+                                                    case "42":
+                                                        profile.card_partisan = value.ToString();
+                                                        break;
+                                                    case "43":
+                                                        profile.partisan_date = DateTime.ParseExact(value.ToString(), "dd/MM/yyyy", CultureInfo.InvariantCulture);
+                                                        break;
+                                                    case "44":
+                                                        profile.partisan_main_date = DateTime.ParseExact(value.ToString(), "dd/MM/yyyy", CultureInfo.InvariantCulture);
+                                                        break;
+                                                    case "45":
+                                                        break;
+                                                    case "46":
+                                                        profile.partisan_branch = value.ToString();
+                                                        break;
+                                                    case "47":
+                                                        break;
+                                                    case "48":
+                                                        break;
+                                                    case "49":
+                                                        profile.military_start_date = DateTime.ParseExact(value.ToString(), "dd/MM/yyyy", CultureInfo.InvariantCulture);
+                                                        break;
+                                                    case "50":
+                                                        profile.military_end_date = DateTime.ParseExact(value.ToString(), "dd/MM/yyyy", CultureInfo.InvariantCulture);
+                                                        break;
+                                                    case "51":
+                                                        profile.military_rank = value.ToString();
+                                                        break;
+                                                    case "52":
+                                                        profile.military_title = value.ToString();
+                                                        break;
+                                                    case "53":
+                                                        profile.military_veterans_rank = value.ToString();
+                                                        break;
+                                                    case "54":
+                                                        health.military_health = value.ToString();
+                                                        break;
+                                                    case "55":
+                                                        health.height = value.ToString();
+                                                        break;
+                                                    case "56":
+                                                        health.weight = value.ToString();
+                                                        break;
+                                                    case "57":
+                                                        health.blood_group = value.ToString();
+                                                        break;
+                                                    case "58":
+                                                        health.heartbeat = value.ToString();
+                                                        break;
+                                                    case "59":
+                                                        health.blood_pressure = value.ToString();
+                                                        break;
+                                                    case "60":
+                                                        health.note = value.ToString();
+                                                        break;
+                                                    case "61":
+                                                        profile.mission_forte = value.ToString();
+                                                        break;
+                                                    case "62":
+                                                        profile.biography_first = value.ToString();
+                                                        break;
+                                                    case "63":
+                                                        profile.biography_second = value.ToString();
+                                                        break;
+                                                    case "64":
+                                                        profile.biography_third = value.ToString();
+                                                        break;
+                                                    case "65":
+                                                        profile.salary_family = double.Parse(value.ToString());
+                                                        break;
+                                                    case "66":
+                                                        profile.salary_orther = double.Parse(value.ToString());
+                                                        break;
+                                                    case "67":
+                                                        profile.type_rent = value.ToString();
+                                                        break;
+                                                    case "68":
+                                                        profile.area_level = double.Parse(value.ToString());
+                                                        break;
+                                                    case "69":
+                                                        profile.type_house = value.ToString();
+                                                        break;
+                                                    case "70":
+                                                        profile.area_buy = double.Parse(value.ToString());
+                                                        break;
+                                                    case "71":
+                                                        profile.area_granted = double.Parse(value.ToString());
+                                                        break;
+                                                    case "72":
+                                                        profile.area_buy_yourself = double.Parse(value.ToString());
+                                                        break;
+                                                    case "73":
+                                                        break;
+                                                    case "74":
+                                                        profile.note = value.ToString();
+                                                        break;
+                                                }
+                                            }
+                                            if (!string.IsNullOrEmpty(profile.profile_id))
+                                            {
+                                                var exs = await db.hrm_profile.FirstOrDefaultAsync(x => x.profile_id == profile.profile_id);
+                                                if (exs != null)
+                                                {
+                                                    exs.profile_name = profile.profile_name;
+                                                    exs.profile_name_en = profile.profile_name_en;
+                                                    exs.profile_last_name = profile.profile_last_name;
+                                                    exs.profile_user_name = profile.profile_user_name;
+                                                    exs.identity_papers_code = profile.identity_papers_code;
+                                                    exs.identity_date_issue = profile.identity_date_issue;
+                                                    exs.identity_end_date_issue = profile.identity_end_date_issue;
+                                                    exs.identity_place_id = profile.identity_place_id;
+                                                    exs.tax_code = profile.tax_code;
+                                                    exs.gender = profile.gender;
+                                                    exs.birthday = profile.birthday;
+                                                    exs.ethnic_id = profile.ethnic_id;
+                                                    exs.religion_id = profile.religion_id;
+                                                    exs.nationality_id = profile.nationality_id;
+                                                    exs.bank_id = profile.bank_id;
+                                                    exs.bank_number = profile.bank_number;
+                                                    exs.bank_account = profile.bank_account;
+                                                    exs.place_permanent = profile.place_permanent;
+                                                    exs.place_residence_name = profile.place_residence_name;
+                                                    exs.birthplace_name = profile.birthplace_name;
+                                                    exs.birthplace_origin_name = profile.birthplace_origin_name;
+                                                    exs.place_register_permanent_first = profile.place_register_permanent_first;
+                                                    exs.place_register_permanent_name = profile.place_register_permanent_name;
+                                                    exs.involved_name = profile.involved_name;
+                                                    exs.involved_phone = profile.involved_phone;
+                                                    exs.involved_place = profile.involved_place;
+                                                    exs.relationship_id = profile.relationship_id;
+                                                    exs.profile_nick_name = profile.profile_nick_name;
+                                                    exs.email = profile.email;
+                                                    exs.phone = profile.phone;
+                                                    exs.seniority_year = profile.seniority_year;
+                                                    exs.seniority_month = profile.seniority_month;
+                                                    exs.recruitment_date = profile.recruitment_date;
+                                                    exs.cultural_level_id = profile.cultural_level_id;
+                                                    exs.political_theory_id = profile.political_theory_id;
+                                                    exs.informatic_level_id = profile.informatic_level_id;
+                                                    exs.language_level_id = profile.language_level_id;
+                                                    exs.management_state_id = profile.management_state_id;
+                                                    exs.is_partisan = profile.is_partisan;
+                                                    exs.card_partisan = profile.card_partisan;
+                                                    exs.partisan_date = profile.partisan_date;
+                                                    exs.partisan_main_date = profile.partisan_main_date;
+                                                    exs.partisan_branch = profile.partisan_branch;
+                                                    exs.military_start_date = profile.military_start_date;
+                                                    exs.military_end_date = profile.military_end_date;
+                                                    exs.military_rank = profile.military_rank;
+                                                    exs.military_title = profile.military_title;
+                                                    exs.military_veterans_rank = profile.military_veterans_rank;
+                                                    exs.mission_forte = profile.mission_forte;
+                                                    exs.biography_first = profile.biography_first;
+                                                    exs.biography_second = profile.biography_second;
+                                                    exs.biography_third = profile.biography_third;
+                                                    exs.salary_family = profile.salary_family;
+                                                    exs.salary_orther = profile.salary_orther;
+                                                    exs.type_rent = profile.type_rent;
+                                                    exs.area_level = profile.area_level;
+                                                    exs.type_house = profile.type_house;
+                                                    exs.area_buy = profile.area_buy;
+                                                    exs.area_granted = profile.area_granted;
+                                                    exs.area_buy_yourself = profile.area_buy_yourself;
+                                                    exs.note = profile.note;
+                                                }
+                                                else
+                                                {
+                                                    profiles.Add(profile);
+                                                }
+                                                var exss = await db.hrm_profile_health.FirstOrDefaultAsync(x => x.profile_id == profile.profile_id);
+                                                if (exss != null)
+                                                {
+                                                    exss.height = health.height;
+                                                    exss.weight = health.weight;
+                                                    exss.blood_group = health.blood_group;
+                                                    exss.heartbeat = health.heartbeat;
+                                                    exss.blood_pressure = health.blood_pressure;
+                                                    exss.note = health.note;
+                                                }
+                                                else
+                                                {
+                                                    health.health_id = helper.GenKey();
+                                                    healths.Add(health);
+                                                }
+                                            }
+                                        }
+                                        if (profiles.Count > 0)
+                                        {
+                                            db.hrm_profile.AddRange(profiles);
+                                            await db.SaveChangesAsync();
+                                        }
+                                        break;
+                                    default:
+                                        break;
+                                }
+
+                            }
+                            return Request.CreateResponse(HttpStatusCode.OK, new { err = "0" });
+                        }
+                        catch (DbEntityValidationException e)
+                        {
+                            return Request.CreateResponse(HttpStatusCode.OK, new { err = "1" + e.Message });
+                        }
+                        catch (Exception e)
+                        {
+                            return Request.CreateResponse(HttpStatusCode.OK, new { err = "1" + e });
+                        }
+
+                    }
+                }
+                catch (DbEntityValidationException e)
+                {
+                    string contents = helper.getCatchError(e, null);
+                    helper.saveLog(uid, name, JsonConvert.SerializeObject(new { data = fpath, contents }), domainurl + "hrm_leave/import_excel", ip, tid, "Lỗi khi Import Excel", 0, "hrm_leave");
+                    if (!helper.debug)
+                    {
+                        contents = "";
+                    }
+                    return Request.CreateResponse(HttpStatusCode.OK, new { ms = contents, err = "1" });
+                }
+                catch (Exception e)
+                {
+                    string contents = helper.ExceptionMessage(e);
+                    helper.saveLog(uid, name, JsonConvert.SerializeObject(new { data = fpath, contents }), domainurl + "hrm_leave/import_excel", ip, tid, "Lỗi khi Import Excel", 0, "hrm_leave");
+                    if (!helper.debug)
+                    {
+                        contents = "";
+                    }
+                    return Request.CreateResponse(HttpStatusCode.OK, new { ms = contents, err = "1" });
+                }
             }
         }
     }

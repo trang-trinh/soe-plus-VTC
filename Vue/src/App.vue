@@ -74,6 +74,7 @@ const config = {
 //   },
 // );
 const passModuleToSidebar = () => {
+  
   var link = router.fullPath;
   if (!link) return false;
   var module_name = link.split("/")[1];
