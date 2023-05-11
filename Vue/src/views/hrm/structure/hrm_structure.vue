@@ -768,6 +768,16 @@ watch(layout, () => {
     loadDonvi(true);
   }
 });
+
+const divZoom = ref(0.8);
+
+const toogledivZoom = (f) => {
+      if (f) {
+        divZoom.value = (divZoom.value * 10 + 1) / 10;
+      } else {
+        divZoom.value = (divZoom.value * 10 - 1) / 10;
+      }
+    };
 //tree
 
 const initTreeDV = (rf) => {
@@ -1406,24 +1416,27 @@ onMounted(() => {
     <div v-if="layout == 'grid'">
       <div class="w-full surface-0 m-2 pt-2 pl-2">
         <div class="surface-0">
-          <h3 class="module-title module-title-hidden mt-0 ml-1 mb-2">
-            <i class="pi pi-sitemap"></i>
-            Cơ cấu tổ chức
-          </h3>
+          <h1 class="module-title module-title-hidden mt-0  mb-2 format-center font-bold mr-5">
+          CƠ CẤU TỔ CHỨC CÔNG TY
+          </h1>
           <Toolbar class="w-full custoolbar">
-            <template #start>
-              <span class="p-input-icon-left">
-                <i class="pi pi-search" />
-                <InputText
-                  type="text"
-                  spellcheck="false"
-                  v-model="filters['global']"
-                  placeholder="Tìm kiếm"
-                />
-              </span>
-            </template>
-
+            
             <template #end>
+              <Button
+        @click="toogledivZoom(false)"
+        icon="pi pi-search-minus"
+        class="p-button-secondary p-button-outlined ml-1"
+      />
+      <Button
+        @click="divZoom = 1"
+        :label="parseInt(divZoom * 100) + '%'"
+        class="p-button-secondary p-button-outlined ml-1"
+      />
+      <Button
+        @click="toogledivZoom(true)"
+        icon="pi pi-search-plus"
+        class="p-button-secondary p-button-outlined ml-1 mr-2"
+      />
               <Button
                 icon="pi pi-link"
                 label="Sáp nhập"
@@ -1439,13 +1452,9 @@ onMounted(() => {
               <DataViewLayoutOptions
                 v-model="layout"
                 @update:modelValue="reloadLayout"
+                class="mr-5"
               />
-
-              <Button
-                class="mr-2 ml-2 p-button-outlined p-button-secondary"
-                icon="pi pi-refresh"
-                @click="onRefersh"
-              />
+ 
             </template>
           </Toolbar>
         </div>
@@ -1453,6 +1462,7 @@ onMounted(() => {
           style="overflow: scroll; width: 86vw; height: 85vh"
           v-if="checkShowOrgChart"
           class="align-items-center"
+        
         >
           <VueBlocksTree
             :data="orgchartDonvi"
@@ -1460,6 +1470,10 @@ onMounted(() => {
             :horizontal="true"
             :collapsable="true"
             class="d-design-orgchart"
+            :style="
+          'zoom:' +
+          divZoom  
+        "
           >
             <template #node="{ data }">
               <div
