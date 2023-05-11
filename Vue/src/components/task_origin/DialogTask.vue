@@ -226,26 +226,20 @@ const listtreeOrganization = () => {
 const listUser = () => {
   axios
     .post(
-      baseURL + "/api/TaskProc/getTaskData",
+      baseURL + "/api/device_card/getData",
       {
         str: encr(
           JSON.stringify({
-            proc: "sys_users_list_task_origin",
+            proc: "[sys_user_list_tree]",
             par: [
-              { par: "search", va: "" },
               { par: "user_id", va: store.getters.user.user_id },
-              { par: "role_id", va: null },
               {
-                par: "organization_id",
-                va: store.getters.user.organization_id,
+                par: "filter_organization_id",
+                va: null,
               },
-              { par: "department_id", va: null },
-              { par: "position_id", va: null },
-
-              { par: "isadmin", va: null },
-              { par: "status", va: null },
-              { par: "start_date", va: null },
-              { par: "end_date", va: null },
+              { par: "page_no", va: null },
+              { par: "page_size", va: null },
+              { par: "search", va: null },
             ],
           }),
           SecretKey,
@@ -255,13 +249,39 @@ const listUser = () => {
       config,
     )
     .then((response) => {
-      let data = JSON.parse(response.data.data)[0];
-      listDropdownUser.value = data.map((x) => ({
-        name: x.full_name,
-        code: x.user_id,
-        avatar: x.avatar,
-        ten: x.last_name,
-      }));
+      var data = response.data.data;
+      if (data != null) {
+        let tbs = JSON.parse(data);
+
+        if (tbs[0] != null && tbs[0].length > 0) {
+          tbs[0].forEach((element, i) => {
+            if (element["created_date"] != null) {
+              var ldate = element["created_date"].split(" ");
+              element["created_date"] = ldate[0];
+            }
+          });
+          if (tbs[0].length > 0) {
+            tbs[0].forEach((element, i) => {
+              element["STT"] = i + 1;
+            });
+          }
+          listDropdownUser.value = tbs[0].map((x, i) => ({
+            user_id: x.user_id,
+            full_name: x.full_name,
+            full_name_en: x.full_name_en,
+            is_order: x.is_order,
+            user_key: x.user_key,
+            last_name: x.last_name,
+            avatar: x.avatar,
+            organization_id: x.organization_id,
+            position_id: x.position_id,
+            position_name: x.position_name,
+            department_id: x.department_id,
+            organization_name: x.organization_name,
+            STT: x.STT,
+          }));
+        }
+      }
     })
     .catch((error) => {
       console.log(error);
@@ -320,26 +340,26 @@ const OpenDialogTreeUser = (one, type) => {
   selectedUser.value = [];
   if (type == 1) {
     Task.value.assign_user_id.forEach((t) => {
-      let select = { user_id: t };
-      selectedUser.value.push(select);
+      let user = JSON.parse(JSON.stringify(t));
+      selectedUser.value.push(user);
     });
     headerDialogUser.value = "Chọn người giao việc";
   } else if (type == 2) {
     Task.value.work_user_ids.forEach((t) => {
-      let select = { user_id: t };
-      selectedUser.value.push(select);
+      let user = JSON.parse(JSON.stringify(t));
+      selectedUser.value.push(user);
     });
     headerDialogUser.value = "Chọn người thực hiện";
   } else if (type == 3) {
     Task.value.works_user_ids.forEach((t) => {
-      let select = { user_id: t };
-      selectedUser.value.push(select);
+      let user = JSON.parse(JSON.stringify(t));
+      selectedUser.value.push(user);
     });
     headerDialogUser.value = "Chọn người đồng thực hiện";
   } else if (type == 4) {
     Task.value.follow_user_ids.forEach((t) => {
-      let select = { user_id: t };
-      selectedUser.value.push(select);
+      let user = JSON.parse(JSON.stringify(t));
+      selectedUser.value.push(user);
     });
     headerDialogUser.value = "Chọn người theo dõi";
   }
@@ -350,21 +370,22 @@ const OpenDialogTreeUser = (one, type) => {
 const closeDialog = () => {
   displayDialogUser.value = false;
 };
-const choiceTreeUser = () => {
+const choiceTreeUser = (e) => {
+  console.log(e, is_type.value);
+  selectedUser.value = [];
+  selectedUser.value = JSON.parse(JSON.stringify(e));
   switch (is_type.value) {
     case 1:
-      if (selectedUser.value.length > 0) {
-        selectedUser.value.forEach((t) => {
-          Task.value.assign_user_id = [];
-          Task.value.assign_user_id.push(t.user_id);
-        });
+      if (selectedUser.value != null) {
+        Task.value.assign_user_id = [];
+        Task.value.assign_user_id.push(selectedUser.value);
       }
       break;
     case 2:
       if (selectedUser.value.length > 0) {
         Task.value.work_user_ids = [];
         selectedUser.value.forEach((t) => {
-          Task.value.work_user_ids.push(t.user_id);
+          Task.value.work_user_ids.push(t);
         });
       }
       break;
@@ -372,7 +393,7 @@ const choiceTreeUser = () => {
       if (selectedUser.value.length > 0) {
         Task.value.works_user_ids = [];
         selectedUser.value.forEach((t) => {
-          Task.value.works_user_ids.push(t.user_id);
+          Task.value.works_user_ids.push(t);
         });
       }
       break;
@@ -380,7 +401,7 @@ const choiceTreeUser = () => {
       if (selectedUser.value.length > 0) {
         Task.value.follow_user_ids = [];
         selectedUser.value.forEach((t) => {
-          Task.value.follow_user_ids.push(t.user_id);
+          Task.value.follow_user_ids.push(t);
         });
       }
       break;
@@ -502,8 +523,7 @@ onMounted(() => {
             :filter="true"
             v-model="Task.assign_user_id"
             :options="listDropdownUser"
-            optionValue="code"
-            optionLabel="name"
+            optionLabel="full_name"
             class="col-9 ip36 p-0"
             placeholder="Người giao việc"
             :class="{
@@ -521,7 +541,7 @@ onMounted(() => {
                   v-bind:label="
                     slotProps.option.avatar
                       ? ''
-                      : (slotProps.option.name ?? '').substring(0, 1)
+                      : (slotProps.option.last_name ?? '').substring(0, 1)
                   "
                   v-bind:image="basedomainURL + slotProps.option.avatar"
                   style="
@@ -543,12 +563,13 @@ onMounted(() => {
                   class="pt-1"
                   style="padding-left: 10px"
                 >
-                  {{ slotProps.option.name }}
+                  {{ slotProps.option.full_name }}
                 </div>
               </div>
             </template>
           </MultiSelect>
         </div>
+
         <div
           v-if="!Task.is_department"
           class="field col-12 md:col-12"
@@ -557,7 +578,7 @@ onMounted(() => {
             >Người thực hiện
             <Button
               icon="pi pi-user-plus"
-              @click="OpenDialogTreeUser(false, 1)"
+              @click="OpenDialogTreeUser(false, 2)"
               class="p-button-text p-0"
               v-tooltip="'Chọn thành viên'"
             ></Button>
@@ -567,8 +588,7 @@ onMounted(() => {
             :filter="true"
             v-model="Task.work_user_ids"
             :options="listDropdownUser"
-            optionValue="code"
-            optionLabel="name"
+            optionLabel="full_name"
             class="col-9 ip36 p-0"
             placeholder="Người thực hiện"
             :class="{
@@ -585,7 +605,7 @@ onMounted(() => {
                   v-bind:label="
                     slotProps.option.avatar
                       ? ''
-                      : (slotProps.option.name ?? '').substring(0, 1)
+                      : (slotProps.option.last_name ?? '').substring(0, 1)
                   "
                   v-bind:image="basedomainURL + slotProps.option.avatar"
                   style="
@@ -607,7 +627,7 @@ onMounted(() => {
                   class="pt-1"
                   style="padding-left: 10px"
                 >
-                  {{ slotProps.option.name }}
+                  {{ slotProps.option.full_name }}
                 </div>
               </div>
             </template>
@@ -650,8 +670,7 @@ onMounted(() => {
             :filter="true"
             v-model="Task.works_user_ids"
             :options="listDropdownUser"
-            optionValue="code"
-            optionLabel="name"
+            optionLabel="full_name"
             class="col-9 ip36 p-0"
             display="chip"
           >
@@ -664,7 +683,7 @@ onMounted(() => {
                   v-bind:label="
                     slotProps.option.avatar
                       ? ''
-                      : (slotProps.option.name ?? '').substring(0, 1)
+                      : (slotProps.option.last_name ?? '').substring(0, 1)
                   "
                   v-bind:image="basedomainURL + slotProps.option.avatar"
                   style="
@@ -686,7 +705,7 @@ onMounted(() => {
                   class="pt-1"
                   style="padding-left: 10px"
                 >
-                  {{ slotProps.option.name }}
+                  {{ slotProps.option.full_name }}
                 </div>
               </div>
             </template>
@@ -709,8 +728,7 @@ onMounted(() => {
             :filter="true"
             v-model="Task.follow_user_ids"
             :options="listDropdownUser"
-            optionValue="code"
-            optionLabel="name"
+            optionLabel="full_name"
             class="col-9 ip36 p-0"
             display="chip"
           >
@@ -723,7 +741,7 @@ onMounted(() => {
                   v-bind:label="
                     slotProps.option.avatar
                       ? ''
-                      : (slotProps.option.name ?? '').substring(0, 1)
+                      : (slotProps.option.last_name ?? '').substring(0, 1)
                   "
                   v-bind:image="basedomainURL + slotProps.option.avatar"
                   style="
@@ -745,7 +763,7 @@ onMounted(() => {
                   class="pt-1"
                   style="padding-left: 10px"
                 >
-                  {{ slotProps.option.name }}
+                  {{ slotProps.option.full_name }}
                 </div>
               </div>
             </template>
@@ -967,8 +985,7 @@ onMounted(() => {
                   :filter="true"
                   v-model="Task.work_user_ids"
                   :options="listDropdownUser"
-                  optionValue="code"
-                  optionLabel="name"
+                  optionLabel="full_name"
                   class="col-9 ip36 p-0"
                   placeholder="Người thực hiện"
                   display="chip"
@@ -982,7 +999,7 @@ onMounted(() => {
                         v-bind:label="
                           slotProps.option.avatar
                             ? ''
-                            : (slotProps.option.name ?? '').substring(0, 1)
+                            : (slotProps.option.last_name ?? '').substring(0, 1)
                         "
                         v-bind:image="basedomainURL + slotProps.option.avatar"
                         style="
@@ -1005,7 +1022,7 @@ onMounted(() => {
                         class="pt-1"
                         style="padding-left: 10px"
                       >
-                        {{ slotProps.option.name }}
+                        {{ slotProps.option.full_name }}
                       </div>
                     </div>
                   </template>
@@ -1028,8 +1045,7 @@ onMounted(() => {
                   :filter="true"
                   v-model="Task.works_user_ids"
                   :options="listDropdownUser"
-                  optionValue="code"
-                  optionLabel="name"
+                  optionLabel="full_name"
                   class="col-9 ip36 p-0"
                   display="chip"
                 >
@@ -1042,7 +1058,7 @@ onMounted(() => {
                         v-bind:label="
                           slotProps.option.avatar
                             ? ''
-                            : (slotProps.option.name ?? '').substring(0, 1)
+                            : (slotProps.option.last_name ?? '').substring(0, 1)
                         "
                         v-bind:image="basedomainURL + slotProps.option.avatar"
                         style="
@@ -1065,7 +1081,7 @@ onMounted(() => {
                         class="pt-1"
                         style="padding-left: 10px"
                       >
-                        {{ slotProps.option.name }}
+                        {{ slotProps.option.full_name }}
                       </div>
                     </div>
                   </template>
@@ -1088,8 +1104,7 @@ onMounted(() => {
                   :filter="true"
                   v-model="Task.follow_user_ids"
                   :options="listDropdownUser"
-                  optionValue="code"
-                  optionLabel="name"
+                  optionLabel="full_name"
                   class="col-9 ip36 p-0"
                   display="chip"
                 >
@@ -1102,7 +1117,7 @@ onMounted(() => {
                         v-bind:label="
                           slotProps.option.avatar
                             ? ''
-                            : (slotProps.option.name ?? '').substring(0, 1)
+                            : (slotProps.option.last_name ?? '').substring(0, 1)
                         "
                         v-bind:image="basedomainURL + slotProps.option.avatar"
                         style="
@@ -1125,7 +1140,7 @@ onMounted(() => {
                         class="pt-1"
                         style="padding-left: 10px"
                       >
-                        {{ slotProps.option.name }}
+                        {{ slotProps.option.full_name }}
                       </div>
                     </div>
                   </template>
