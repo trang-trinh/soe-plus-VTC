@@ -1495,6 +1495,7 @@ export default {
     };
     let dtUser = {};
     const initDataTempAuto = async (tf) => {
+       
       if (!isUrlReport.value) {
         
         let dts = await goProc(
@@ -1506,6 +1507,7 @@ export default {
         );
         dtUser = dts[0];
       }
+
       let stt = 0;
       let obj = { stt: 0, key: 0, value: "data-" + stt, cols: [] };
       let tagps = [];
@@ -1609,7 +1611,7 @@ export default {
         props.report.report_config.trim() != ""
       ) {
         try {
-             
+             debugger
           objConfig = JSON.parse(props.report.report_config.trim());
           if (isUrlReport.value && Object.keys(props.pars).length > 0) {
             await initURLReport();
@@ -1698,6 +1700,7 @@ export default {
       if (props.report.report_template)
         isxls.value = props.report.report_template.startsWith("<!doctype");
       tempHTML = "";
+      debugger
       if (props.report.report_template)
         initDocHTML(props.report.report_template);
       showLoadding.value = false;
@@ -2353,6 +2356,7 @@ export default {
         if (document.getElementById("app-body"))
           document.getElementById("app-body").classList.remove("p-2");
       }
+      
       if (props.report) {
         initTemplate();
       }
