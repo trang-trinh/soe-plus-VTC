@@ -629,11 +629,18 @@ onMounted(() => {
 					</div>
 				</div>
 				<div class="col-12 md:col-12 flex p-0">
-					<div class="col-12 md:col-12 p-0 align-items-center flex">
+					<div class="col-6 md:col-6 p-0 align-items-center flex">
 						<InputSwitch class="mr-3"
 							v-model="request_form.is_private" />
 						<div class="text-left p-0" style="align-items:center;">
 							Bảo mật (<i>Chỉ người tạo, người duyệt thấy đề xuất</i>)
+						</div>
+					</div>
+					<div class="col-6 md:col-6 p-0 align-items-center flex" v-if="store.state.user.is_super">
+						<InputSwitch class="mr-3"
+							v-model="request_form.is_system" />
+						<div class="text-left p-0" style="align-items:center;">
+							Hệ thống
 						</div>
 					</div>
 				</div>
