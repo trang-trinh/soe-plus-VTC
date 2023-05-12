@@ -1046,6 +1046,17 @@ const removeImportFile = (event) => {
 const handleImportFile = (event) => {
   importFiles.value = event.target.files;
 };
+const instance = axios.create({
+  baseURL: baseURL,
+  onUploadProgress: function (progressEvent) {
+    const percentCompleted = Math.round(
+      (progressEvent.loaded * 100) / progressEvent.total
+    );
+    console.log(percentCompleted);
+  },
+});
+const uploading = ref(false);
+const uploadProgress = ref(0);
 const execImportExcel = () => {
   if (!importFiles.value || importFiles.value.length === 0) {
     swal.fire({
@@ -1056,6 +1067,7 @@ const execImportExcel = () => {
     });
     return;
   }
+  uploading.value = true;
   displayImport.value = false;
   let formData = new FormData();
   for (var i = 0; i < importFiles.value.length; i++) {
@@ -1063,10 +1075,23 @@ const execImportExcel = () => {
     formData.append("files", file);
   }
   axios
-    .post(baseURL + "/api/hrm_profile/import_excel_profile", formData, config)
+    .post(baseURL + "/api/hrm_profile/import_excel_profile", formData, {
+      headers: {
+        Authorization: `Bearer ${store.getters.token}`,
+        // "Content-Type": "multipart/form-data",
+      },
+      onUploadProgress: (progressEvent) => {
+        uploadProgress.value = Math.round(
+          (progressEvent.loaded / progressEvent.total) * 100
+        );
+      },
+    })
     .then((response) => {
+      uploading.value = false;
+      uploadProgress.value = 0;
       toast.success("Nhập dữ liệu thành công");
       initData(true);
+      initCount();
     })
     .catch((error) => {
       swal.close();
@@ -3013,6 +3038,11 @@ onMounted(() => {
       </table>
     </div>
   </div>
+
+  <Dialog header="Đang tải dữ liệu ..." v-model:visible="uploading" :style="{ width: '30vw' }" :closable="false" :modal="false">
+    <ProgressBar :value="uploadProgress" :style="{ borderBottomLeftRadius: '0 !important', borderBottomRightRadius: '0 !important' }"/>
+    <ProgressBar v-if="uploadProgress < 100" mode="indeterminate" :style="{ borderTopLeftRadius: '0 !important', borderTopRightRadius: '0 !important', height: '.5em' }" />
+  </Dialog>
 
   <!-- Dialog -->
   <dilogprofile
