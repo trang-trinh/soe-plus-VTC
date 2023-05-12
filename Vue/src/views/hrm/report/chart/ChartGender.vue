@@ -99,9 +99,6 @@ const data_lines = ref([
   { labels: [], datasets: [{ data: [], backgroundColor: [], hoverBackgroundColor: [], },], text:"Biểu đồ nhân sự theo chức vụ"},
   { labels: [], datasets: [{ data: [], backgroundColor: [], hoverBackgroundColor: [], },], text:"Biểu đồ nhân sự tham gia Đảng"},
 ]);
-const changeType = (type) => {
-  loadData();
-};
 const loadData = () => {
   swal.fire({
     width: 110,
@@ -364,7 +361,6 @@ onMounted(() => {
           <SelectButton
             v-model="options.view"
             :options="types"
-            @change="changeType(options.type)"
             optionValue="type"
             optionLabel="type"
             dataKey="type"
