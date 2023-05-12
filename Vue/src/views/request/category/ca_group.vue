@@ -43,6 +43,10 @@ const rules = {
 const bgColor = ref([
     "#F8E69A", "#AFDFCF", "#F4B2A3", "#9A97EC", "#CAE2B0", "#8BCFFB", "#CCADD7"
 ]);
+const listTypeGroup = ref([
+	{ code: null, name: "--- Chọn loại nhóm ---" },
+	{ code: 1, name: "HR - Nghỉ phép" },
+]);
 //Lấy số bản ghi
 const loadCount = () => {
 	axios
@@ -160,6 +164,7 @@ const request_group = ref({
 	request_group_name: "",
 	status: true,
 	is_order: 1,
+	is_system: false,
 });
 
 const selectedDatas = ref();
@@ -189,6 +194,7 @@ const openBasic = (str) => {
 		status: true,
 		is_order: sttData.value,
 		organization_id: store.getters.user.organization_id,
+		is_system: false,
 	};
 
 	isSaveTem.value = false;
@@ -201,6 +207,7 @@ const closeDialog = () => {
 		request_group_name: "",
 		status: true,
 		is_order: 1,
+		is_system: false,
 	};
 
 	displayBasic.value = false;
@@ -978,7 +985,11 @@ onMounted(() => {
 						:class="{ 'p-invalid': v$.request_group_name.$invalid && submitted, }"
 					/>
 				</div>
-				<div class="field col-12 md:col-12 flex p-0">
+				<div class="field col-12 md:col-12 flex p-0"
+					v-if="(v$.request_group_name.$invalid && submitted) || v$.request_group_name.$pending.$response
+							|| (v$.request_group_name.maxLength.$invalid && submitted) || v$.request_group_name.maxLength.$pending.$response
+						"
+				>
 					<div class="col-3 text-left"></div>
 					<small
 						v-if="
@@ -1011,8 +1022,8 @@ onMounted(() => {
 						"
 					>
 						<div class="col-12 md:col-12 flex">
-							<label class="col-2 text-left"></label>
-							<span class="col-10 p-0">
+							<label class="col-3 text-left"></label>
+							<span class="col-9 p-0">
 								{{
 									v$.request_group_name.maxLength.$message.replace(
 										"The maximum length allowed is",
@@ -1024,8 +1035,21 @@ onMounted(() => {
 						</div>
 					</small>
 				</div>
-
-				<div class="col-12 field md:col-12 flex p-0">
+				<div class="col-12 md:col-12 flex p-0">					
+					<div class="field col-12 md:col-12 p-0 align-items-center flex">
+						<div class="col-3 text-left p-0">Loại nhóm</div>
+						<Dropdown
+							class="col-9"
+							:showClear="true"
+							v-model="request_group.is_type"
+							:options="listTypeGroup"
+							placeholder="--- Chọn loại nhóm ---"
+							optionLabel="name"
+							optionValue="code"
+						/>
+					</div>
+				</div>
+				<div class="col-12 md:col-12 flex p-0">
 					<div class="field col-6 md:col-6 p-0 align-items-center flex">
 						<div class="col-6 text-left p-0">STT</div>
 						<InputNumber
@@ -1033,9 +1057,16 @@ onMounted(() => {
 							class="col-6 ip36 p-0"
 						/>
 					</div>
+				</div>
+				
+				<div class="col-12 md:col-12 flex p-0">
 					<div class="field col-6 md:col-6 p-0 align-items-center flex">
-						<div class="col-6 text-center p-0">Trạng thái</div>
+						<div class="col-6 p-0">Trạng thái</div>
 						<InputSwitch v-model="request_group.status" />
+					</div>
+					<div class="field col-6 md:col-6 p-0 align-items-center flex" v-if="store.getters.user.is_super">
+						<div class="col-6 text-center p-0">Hệ thống</div>
+						<InputSwitch v-model="request_group.is_system" />
 					</div>
 				</div>
 			</div>

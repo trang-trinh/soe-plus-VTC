@@ -777,8 +777,23 @@ namespace API.Controllers.Request
                         int type_send = int.Parse(provider.FormData.GetValues("type_send").SingleOrDefault());
                         var key_id = int.Parse(provider.FormData.GetValues("key_id").SingleOrDefault());
                         string content = provider.FormData.GetValues("content").SingleOrDefault();
+                        string request_obj = provider.FormData.GetValues("request_obj").SingleOrDefault();
+                        List<request_master> listRequest = JsonConvert.DeserializeObject<List<request_master>>(request_obj);
 
+                        #region Xử lý request
+                        if (type_send == 0)
+                        {
 
+                        }
+                        else if (type_send == 1)
+                        {
+
+                        }
+                        else if (type_send == 2)
+                        {
+
+                        }
+                        #endregion
                         return Request.CreateResponse(HttpStatusCode.OK, new { err = "0" });
                     });
                     return await task;
