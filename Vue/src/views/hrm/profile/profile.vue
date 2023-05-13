@@ -444,6 +444,7 @@ const openAddDialog = (str) => {
   files.value = [];
   headerDialog.value = str;
   displayDialog.value = true;
+  datachilds.value = [];
 };
 const closeDialog = () => {
   displayDialog.value = false;
@@ -543,6 +544,12 @@ const editItem = (item, str) => {
               model.value.military_end_date
             );
           }
+          if (model.value["sign_date"] != null) {
+            model.value["sign_date"] = new Date(model.value["sign_date"]);
+          }
+          if (model.value["partisan_main_date"] != null) {
+            model.value["partisan_main_date"] = new Date(model.value["partisan_main_date"]);
+          }
         }
         if (tbs[1] != null && tbs[1].length > 0) {
           tbs[1].forEach((x) => {
@@ -556,6 +563,9 @@ const editItem = (item, str) => {
             }
             if (x["end_date"] != null) {
               x["end_date"] = new Date(x["end_date"]);
+            }
+            if (x["birthday"] != null) {
+              x["birthday"] = new Date(x["birthday"]);
             }
           });
           datachilds.value[1] = tbs[1];
