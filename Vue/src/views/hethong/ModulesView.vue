@@ -215,7 +215,7 @@ const showModalAddModule = () => {
     is_stand: [{ value: "Menuleft", text: "Menu trái" }],
     is_size: "720px",
     is_view_parent: true,
-    permission: [1],
+    permission: [1,2,3,4,5,6,7],
   };
   displayAddModule.value = true;
 };
