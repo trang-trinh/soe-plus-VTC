@@ -599,16 +599,18 @@ const filterForm = () => {
         request_data.value.is_change_process = ft != null ? ft.IsChangeQT : false;
         request_data.value.is_skip = ft != null ? (ft.IsSkip || false) : false;
         request_data.value.type_process = ft != null ? ft.is_process : 1;
+        request_data.value.is_type_form = fo.is_type; // 1: HR - Nghỉ phép
         //
         loadFormD(objRequestForm.request_form_id);
-        if (request_data.value.request_team_id) {
-            request_LoadSignUser(objRequestForm.request_form_id, request_data.value.request_team_id);
-        }
+        // if (request_data.value.request_team_id) {
+        //     request_LoadSignUser(objRequestForm.request_form_id, request_data.value.request_team_id);
+        // }
     } else {// Đề xuất trực tiếp
         request_data.value.times_processing_max = 8; // Số giờ xử lý tối đa
         request_data.value.is_change_process = true;
         request_data.value.is_skip = false;
         request_data.value.type_process = 1;
+        request_data.value.is_type_form = null;
     }
 };
 const formDS_filter = (parentFilter) => {
@@ -635,6 +637,22 @@ const loadRequestDetail = (dataRequest) => {
         loadFormD(dataRequest.request_form_id);
     } else {
         formDS.value = props.detailFormDynamic.filter(x => x.is_order_row == null);
+        if (formDS.value.length > 0) {
+            let spaceInLine = 12; // căn chỉnh form động
+            formDS.value.forEach((el, idx) => {
+                if (el.is_class == null) {
+                    el.is_class = "col-12";
+                }
+                spaceInLine = spaceInLine - parseInt(el.is_class.substring(4));
+                if (spaceInLine == 0) {
+                    el.is_end_line = true;
+                    spaceInLine = 12;
+                }
+                else if (spaceInLine < 0) {
+                    spaceInLine = 12;
+                }
+            });
+        }
         var fd = props.detailFormDynamic.filter(x => x.kieu_truong != null && x.kieu_truong.toLowerCase() == "radio" && x.value_field != null && x.value_field.toLowerCase() == "true");
         if (fd != null && fd.length > 0) {
             //request_data.value.Radio = fd.request_formd_id;
@@ -699,9 +717,7 @@ onMounted(() => {
     if (props.dataForm.request_id != null) {
         loadRequestDetail(props.dataForm);
     }
-    return {
-        
-    };
+    return {};
 });
 </script>
 <template>
@@ -717,7 +733,7 @@ onMounted(() => {
                 <div class="col-12 md:col-12 flex p-0">
                     <div class="col-4 md:col-8 p-0 pr-3">
                         <div class="form-group">
-                            <label>Loại đề xuất (Không chọn nếu là đề xuất trực tiếp)</label>
+                            <label class="label-form">Loại đề xuất (Không chọn nếu là đề xuất trực tiếp)</label>
                             <Dropdown class=""
                                 v-model="request_data.request_form_id" 
                                 :options="props.listTypeRequest" 
@@ -739,7 +755,7 @@ onMounted(() => {
                     </div>
                     <div class="col-8 md:col-4 p-0">
                         <div class="form-group">
-                            <label>Ngày lập</label>
+                            <label class="label-form">Ngày lập</label>
                             <Calendar
                                 :showIcon="true"
                                 class="ip36"
@@ -756,7 +772,7 @@ onMounted(() => {
                     <div class="form-group"
                         :class="(v$.request_name.required.$invalid && submitted) || v$.request_name.$pending.$response || (v$.request_name.maxLength.$invalid && submitted) || v$.request_name.maxLength.$pending.$response ? 'mb-2' : ''"
                     >
-                        <label class="text-left flex p-0" style="align-items:center;">
+                        <label class="text-left flex p-0 label-form" style="align-items:center;">
                             Tên đề xuất <span class="redsao pl-1"> (*)</span>                        
                         </label>
                         <Textarea v-model="request_data.request_name" 
@@ -798,7 +814,7 @@ onMounted(() => {
                 <div class="col-12 md:col-12 flex p-0">
                     <div class="col-4 md:col-8 p-0 pr-3">
                         <div class="form-group">
-                            <label>Mức độ ưu tiên</label>
+                            <label class="label-form">Mức độ ưu tiên</label>
                             <Dropdown class=""
                                 v-model="request_data.priority_level" 
                                 :options="listPriorityLevel" 
@@ -812,7 +828,7 @@ onMounted(() => {
                     </div>
                     <div class="col-8 md:col-4 p-0">
                         <div class="form-group">
-                            <label>Số giờ xử lý</label>
+                            <label class="label-form">Số giờ xử lý</label>
                             <InputNumber class="ip36"
                                 spellcheck="false"
                                 :min="0"
@@ -825,7 +841,7 @@ onMounted(() => {
                     <div class="form-group"
                         :class="(v$.content.required.$invalid && submitted) || v$.content.$pending.$response || (v$.content.maxLength.$invalid && submitted) || v$.content.maxLength.$pending.$response ? 'mb-2' : ''"
                     >
-                        <label class="text-left flex p-0" style="align-items:center;">
+                        <label class="text-left flex p-0 label-form" style="align-items:center;">
                             Nội dung <span class="redsao pl-1"> (*)</span>                        
                         </label>
                         <Textarea v-model="request_data.content" 
@@ -864,6 +880,63 @@ onMounted(() => {
                         </small>
                     </div>
 				</div>
+                <div class="col-12 md:col-12 flex p-0" 
+                    style="flex-direction: column;" 
+                    v-if="request_data.request_form_id != null && request_data.is_type_form == 1"
+                >
+                    <div class="flex mb-2">
+                        <label class="mr-2 label-form">Bộ phận công tác: </label>
+                        <!-- <span>{{ props.dictionarys[5][0].department_name || store.getters.user.organization_name }}</span> -->
+                        <span>{{ props.dictionarys[5][0].department_name || '' }}</span>
+                    </div>
+                    <div class="flex mb-2">
+                        <label class="mr-2 label-form">Số ngày đã nghỉ trong năm: </label>
+                    </div>
+                    <div class="form-group mb-1">
+                        <div class="col-12 md:col-12 flex p-0">
+                            <div class="col-6 md:col-6 flex p-0" style="flex-direction: column;">
+                                <div class="label-dayoff">
+                                    <label class="mr-2">1. Nghỉ phép:</label>
+                                    <span>{{ '0' }}</span>
+                                </div>
+                                <div class="label-dayoff">
+                                    <label class="mr-2">2. Nghỉ ốm:</label>
+                                    <span>{{ '0' }}</span>
+                                </div>
+                                <div class="label-dayoff">
+                                    <label class="mr-2">3. Nghỉ thai sản:</label>
+                                    <span>{{ '0' }}</span>
+                                </div>
+                            </div>
+                            <div class="col-6 md:col-6 flex p-0" style="flex-direction: column;">
+                                <div class="label-dayoff">
+                                    <label class="mr-2">4. Nghỉ không lương hưởng báo hiểm:</label>
+                                    <span>{{ '0' }}</span>
+                                </div>
+                                <div class="label-dayoff">
+                                    <label class="mr-2">5. Nghỉ không lương không đóng báo hiểm:</label>
+                                    <span>{{ '0' }}</span>
+                                </div>
+                                <div class="label-dayoff">
+                                    <label class="mr-2">6. Việc riêng theo chế độ:</label>
+                                    <span>{{ '0' }}</span>
+                                </div>
+                            </div>
+                        </div>       
+                        <div class="col-12 md:col-12 flex p-0">                 
+                            <div class="col-12 md:col-12 flex p-0" style="flex-direction: column;">                                
+                                <div class="label-dayoff">
+                                    <label class="label-form mr-2">Số ngày phép được phân bổ:</label>
+                                    <span>{{ '0' }}</span>
+                                </div>
+                                <div class="label-dayoff">
+                                    <label class="label-form mr-2">Số ngày phép còn lại:</label>
+                                    <span>{{ '0' }}</span>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
                 <div class="col-12 md:col-12 flex p-0" v-if="formDS && formDS_filter().length > 0">
                     <div class="col-12 flex p-0" style="flex-wrap: wrap;">
                         <div class="formd pl-0" 
@@ -873,14 +946,14 @@ onMounted(() => {
                             :key="idxForm" 
                         >
                             <div v-if="d.is_type != 3">
-                                <div class="form-group formlabel" v-if="d.is_label">
+                                <div class="form-group formlabel label-form" v-if="d.is_label">
                                     {{ d.ten_truong }}
                                 </div>
                                 <div class="form-group" v-else>
                                     <div class="form-group flex mb-0" 
                                         v-if="d.kieu_truong != 'checkbox' && d.kieu_truong != 'radio' && d.kieu_truong != 'switch' && d.is_type != 2"
                                     >
-                                        <label>{{ d.ten_truong }}</label>
+                                        <label class="label-form">{{ d.ten_truong }}</label>
                                         <span v-if="d.is_required" class="redsao pl-1">(*)</span> 
                                     </div>
                                     <div class="form-group flex mb-0" v-else>
@@ -992,7 +1065,7 @@ onMounted(() => {
                             <div v-if="d.is_type == 3">
                                 <div class="form-group" v-if="d.is_label">
                                     <div class="form-group formlabel" style="margin-bottom:0.25rem;display:flex;align-items: center;">
-                                        <label class="mb-0">{{ d.ten_truong }}</label>
+                                        <label class="mb-0 label-form">{{ d.ten_truong }}</label>
                                         <Button v-if="request_data.IsEdit"
                                             @click="addRow(idxForm)"
                                             v-tooltip.top="'Thêm dòng'"
@@ -1091,6 +1164,7 @@ onMounted(() => {
                                                         <div v-if="td.kieu_truong == 'select' && td.is_type == 9">
                                                             <Dropdown class="w-full"
                                                                 :options="list_type_dayoff"
+                                                                :showClear="true"
                                                                 v-model="td.value_field"
                                                                 optionLabel="name" 
                                                                 optionValue="code" 
@@ -1139,10 +1213,10 @@ onMounted(() => {
                             </div>
                         </div>
                     </div>
-                </div>
+                </div>                
                 <div class="col-12 md:col-12 flex p-0">
                     <div class="form-group">
-                        <label>Lập đề xuất của Team</label>
+                        <label class="label-form">Lập đề xuất của Team</label>
                         <Dropdown class=""
                             v-model="request_data.request_team_id" 
                             :options="filterTeamRequest" 
@@ -1155,8 +1229,8 @@ onMounted(() => {
                     </div>
                 </div>
                 <div class="col-12 md:col-12 p-0" v-if="request_data.status != 1 && request_data.status != 2">
-                    <div class="col-12 md:col-12 flex p-0 mb-3">
-                        <label style="font-weight:bold;">Người duyệt phiếu</label>
+                    <!-- <div class="col-12 md:col-12 flex p-0 mb-3">
+                        <label class="label-form" style="font-weight:bold;">Người duyệt phiếu</label>
                     </div>
                     <div class="col-12 md:col-12 flex p-0" 
                         v-if="request_data.request_form_id && listSignUser.length > 0">
@@ -1175,38 +1249,16 @@ onMounted(() => {
                                 size="large" 
                                 shape="circle" 
                             />
-                            <!-- <template v-for="(us, idxUser) in listSignUser" :key="idxUser">
-                                <Avatar v-if="idxUser < 3"
-                                    v-bind:label="us.avatar ? '' : (us.last_name ?? '').substring(0, 1)"
-                                    v-bind:image="
-                                        us.avatar
-                                        ? basedomainURL + us.avatar
-                                        : basedomainURL + '/Portals/Image/noimg.jpg'
-                                    "
-                                    style="background-color: #2196f3; color: #ffffff;"
-                                    :style="{ background: bgColor[idxUser % 7], }"
-                                    class="text-avatar"
-                                    size="large" 
-                                    shape="circle" 
-                                />
-                            </template>                            
-                            <Avatar :label="'+' + (listSignUser.length - 3)" 
-                                style="background-color: #2196f3; color: #ffffff;" 
-                                class="text-avatar"
-                                size="large" 
-                                shape="circle"
-                                v-if="listSignUser.length > 3"
-                            /> -->
                         </AvatarGroup>
                     </div>
                     <div class="col-12 md:col-12 flex p-0" 
                         v-if="request_data.is_change_process && request_data.request_form_id">
 
-                    </div>
-                    <div class="col-12 md:col-12 p-0" v-if="!request_data.request_form_id">
+                    </div> -->
+                    <!-- <div class="col-12 md:col-12 p-0" v-if="!request_data.request_form_id">
                         <div class="col-12 md:col-12 flex p-0">
                             <div class="form-group">
-                                <label>Loại quy trình duyệt</label>
+                                <label class="label-form">Loại quy trình duyệt</label>
                                 <Dropdown class=""
                                     v-model="request_data.type_process" 
                                     :options="list_type_process" 
@@ -1220,7 +1272,7 @@ onMounted(() => {
                         </div>
                         <div class="col-12 md:col-12 flex p-0">
                             <div class="form-group">
-                                <label>Người duyệt
+                                <label class="label-form">Người duyệt
                                     <i class="pi pi-user-plus ml-2"
                                         v-tooltip.top="'Chọn người duyệt'"
                                         @click="showModalUser(false, 0)"
@@ -1269,44 +1321,16 @@ onMounted(() => {
                                                         <div class="format-flex-center">
                                                             <span>{{ value.full_name }}</span>
                                                         </div>
-                                                        <!-- <span tabindex="0"
+                                                        <-- <span tabindex="0"
                                                             class="p-chip-remove-icon pi pi-times-circle format-flex-center"
                                                             @click="removeMember(value, listUserApproved)"
-                                                        ></span> -->
+                                                        ></span> ->
                                                     </div>
                                                 </Chip>
                                             </li>
                                         </ul>
                                         <span v-else> {{ slotProps.placeholder }} </span>
                                     </template>
-                                    <!-- <template #option="slotProps">
-                                        <div v-if="slotProps.option" class="flex">
-                                            <div class="format-center">
-                                                <Avatar
-                                                    v-bind:label="slotProps.option.avatar ? '' : slotProps.option.last_name.substring(0, 1)"
-                                                    v-bind:image="
-                                                        slotProps.option.avatar
-                                                        ? basedomainURL + slotProps.option.avatar
-                                                        : basedomainURL + '/Portals/Image/noimg.jpg'
-                                                    "
-                                                    style="background-color: #2196f3; color: #ffffff; width: 3rem; height: 3rem;"
-                                                    :style="{ background: bgColor[slotProps.index % 7], }"
-                                                    class="text-avatar"
-                                                    size="xlarge"
-                                                    shape="circle"
-                                                />
-                                            </div>
-                                            <div class="ml-3" 
-                                                style="display: flex; flex-direction: column; justify-content: center;">
-                                                <div class="mb-1">{{ slotProps.option.full_name }}</div>
-                                                <div class="description">
-                                                    <div>{{ slotProps.option.position_name }}</div>
-                                                    <div>{{ slotProps.option.department_name }}</div>
-                                                </div>
-                                            </div>
-                                        </div>
-                                        <span v-else> Chưa có dữ liệu </span>
-                                    </template> -->
                                 </MultiSelect>
                                 <OrderList class="order-list-screen w-full"
                                     v-model="listUserApproved"
@@ -1357,10 +1381,10 @@ onMounted(() => {
                                 </OrderList>
                             </div>
                         </div>
-                    </div>
+                    </div> -->
                     <div class="col-12 md:col-12 flex p-0">
                         <div class="form-group">
-                            <label>Người quản lý
+                            <label class="label-form">Người quản lý
                                 <i class="pi pi-user-plus ml-2"
                                     v-tooltip.top="'Chọn người quản lý'"
                                     @click="showModalUser(false, 1)"
@@ -1499,7 +1523,7 @@ onMounted(() => {
                     </div>
                     <div class="col-12 md:col-12 flex p-0">
                         <div class="form-group">
-                            <label>Người theo dõi
+                            <label class="label-form">Người theo dõi
                                 <i class="pi pi-user-plus ml-2"
                                     v-tooltip.top="'Chọn người theo dõi'"
                                     @click="showModalUser(false, 2)"
@@ -1595,7 +1619,7 @@ onMounted(() => {
                                 style="height: 100%"
                             >
                                 <InputSwitch v-model="request_data.is_evaluate" />
-                                <label>Đánh giá kết quả</label>
+                                <label class="label-form">Đánh giá kết quả</label>
                             </div>
                         </div>
                     </div>
@@ -1605,7 +1629,7 @@ onMounted(() => {
                                 style="height: 100%"
                             >
                                 <InputSwitch v-model="request_data.is_mail" />
-                                <label>Gửi email</label>
+                                <label class="label-form">Gửi email</label>
                             </div>
                         </div>
                     </div>
@@ -1615,7 +1639,7 @@ onMounted(() => {
                                 style="height: 100%"
                             >
                                 <InputSwitch v-model="request_data.is_sign_ca" />
-                                <label>Yêu cầu chữ ký số (CA)</label>
+                                <label class="label-form">Yêu cầu chữ ký số (CA)</label>
                             </div>
                         </div>
                     </div>
@@ -1626,7 +1650,7 @@ onMounted(() => {
                             style="height: 100%"
                         >
                             <InputSwitch v-model="request_data.is_general_request" />
-                            <label>Tổng hợp đề xuất</label>
+                            <label class="label-form">Tổng hợp đề xuất</label>
                         </div>
                     </div>
                 </div>
@@ -1636,13 +1660,13 @@ onMounted(() => {
                             style="height: 100%"
                         >
                             <InputSwitch v-model="request_data.is_security" />
-                            <label>Kích hoạt bảo mật</label>
+                            <label class="label-form">Kích hoạt bảo mật</label>
                         </div>
                     </div>
                 </div>
-                <div class="col-12 md-col-12">
+                <div class="col-12 md-col-12 p-0">
                     <div class="form-group">
-                        <label>Tệp đính kèm</label>
+                        <label class="label-form">Tệp đính kèm</label>
                         <FileUpload
                             :multiple="true"
                             :show-upload-button="false"

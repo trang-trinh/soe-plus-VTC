@@ -34,7 +34,37 @@ const rules = {
 };
 const v$ = useVuelidate(rules, module);
 //Khai báo biến
-var arrsDefault = [1]
+
+const groupedPermissions = ref([
+    {
+        label: 'Thêm mới',
+        items: [
+            { label: 'Thêm mới', value: 1 },
+        ]
+    },
+    {
+        label: 'Chỉnh sửa',
+        items: [
+            { label: 'Chỉnh sửa phòng ban', value: 2 },
+            { label: 'Chỉnh sửa đơn vị', value: 3 },
+            { label: 'Chỉnh sửa tất cả', value: 4 },
+        ]
+    },
+    {
+        label: 'Xem',
+        items: [
+            { label: 'Xem phòng ban', value: 5 },
+            { label: 'Xem đơn vị', value: 6 },
+            { label: 'Xem tất cả', value: 7 },
+        ]
+    },
+    {
+        label: 'Duyệt',
+        items: [
+            { label: 'Duyệt', value: 8 }
+        ]
+    }
+]);
 const tdQuyens = [
   { value: 1, text: "Tất cả các quyền" },
   { value: 2, text: "Xem cá nhân" },
@@ -185,7 +215,7 @@ const showModalAddModule = () => {
     is_stand: [{ value: "Menuleft", text: "Menu trái" }],
     is_size: "720px",
     is_view_parent: true,
-    permission: arrsDefault,
+    permission: [1,2,3,4,5,6,7],
   };
   displayAddModule.value = true;
 };
@@ -986,9 +1016,8 @@ onMounted(() => {
             optionValue="data.organization_id"
           ></TreeSelect>
         </div>
-        <div class="field col-12 md:col-12">
+        <!-- <div class="field col-12 md:col-12">
           <label class="col-2 text-left">Quyền</label>
-          {{ module.permission }}
           <MultiSelect
             :filter="true"
             class="col-10"
@@ -999,6 +1028,20 @@ onMounted(() => {
             placeholder="Chọn quyền"
             display="chip"
           />
+        </div> -->
+        <div class="field col-12 md:col-12">
+          <label class="col-2 text-left">Quyền</label>
+          <MultiSelect v-model="module.permission" :options="groupedPermissions" optionLabel="label"
+           optionGroupLabel="label" optionGroupChildren="items" display="chip"  optionValue="value"
+           placeholder="Chọn quyền" class="col-10"
+           :filter="true"
+           >
+            <template #optiongroup="slotProps">
+                <div class="flex align-items-center">
+                    <div>{{ slotProps.option.label }}</div>
+                </div>
+            </template>
+        </MultiSelect>
         </div>
         <div class="field col-12 md:col-12">
           <label style="vertical-align: text-left" class="col-2"
