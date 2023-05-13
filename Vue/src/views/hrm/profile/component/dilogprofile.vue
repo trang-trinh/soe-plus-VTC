@@ -3730,7 +3730,11 @@ onMounted(() => {
         @click="closeDialog()"
         class="p-button-text"
       />
-      <Button label="Lưu và tiếp tục" icon="pi pi-check" @click="saveRow(1, true)" />
+      <Button
+        label="Lưu và tiếp tục"
+        icon="pi pi-check"
+        @click="saveRow(1, true)"
+      />
       <Button label="Lưu" icon="pi pi-check" @click="saveRow(1, true)" />
     </template>
   </Dialog>
@@ -4011,7 +4015,11 @@ onMounted(() => {
         @click="closeDialog()"
         class="p-button-text"
       />
-      <Button label="Lưu và tiếp tục" icon="pi pi-check" @click="saveRow(2, true)" />
+      <Button
+        label="Lưu và tiếp tục"
+        icon="pi pi-check"
+        @click="saveRow(2, true)"
+      />
       <Button label="Lưu" icon="pi pi-check" @click="saveRow(2, true)" />
     </template>
   </Dialog>
@@ -4161,7 +4169,11 @@ onMounted(() => {
         @click="closeDialog()"
         class="p-button-text"
       />
-      <Button label="Lưu và tiếp tục" icon="pi pi-check" @click="saveRow(4, true)" />
+      <Button
+        label="Lưu và tiếp tục"
+        icon="pi pi-check"
+        @click="saveRow(4, true)"
+      />
       <Button label="Lưu" icon="pi pi-check" @click="saveRow(4)" />
     </template>
   </Dialog>
