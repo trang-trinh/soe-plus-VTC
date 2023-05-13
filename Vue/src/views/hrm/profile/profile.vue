@@ -1046,15 +1046,6 @@ const removeImportFile = (event) => {
 const handleImportFile = (event) => {
   importFiles.value = event.target.files;
 };
-const instance = axios.create({
-  baseURL: baseURL,
-  onUploadProgress: function (progressEvent) {
-    const percentCompleted = Math.round(
-      (progressEvent.loaded * 100) / progressEvent.total
-    );
-    console.log(percentCompleted);
-  },
-});
 const uploading = ref(false);
 const uploadProgress = ref(0);
 const execImportExcel = () => {
@@ -1080,10 +1071,17 @@ const execImportExcel = () => {
         Authorization: `Bearer ${store.getters.token}`,
         // "Content-Type": "multipart/form-data",
       },
+      progress(progressEvent) {
+        uploadProgress.value = Math.round(
+          (progressEvent.loaded / progressEvent.total) * 100
+        );
+        debugger
+      },
       onUploadProgress: (progressEvent) => {
         uploadProgress.value = Math.round(
           (progressEvent.loaded / progressEvent.total) * 100
         );
+        debugger
       },
     })
     .then((response) => {
@@ -3039,9 +3037,29 @@ onMounted(() => {
     </div>
   </div>
 
-  <Dialog header="Đang tải dữ liệu ..." v-model:visible="uploading" :style="{ width: '30vw' }" :closable="false" :modal="false">
-    <ProgressBar :value="uploadProgress" :style="{ borderBottomLeftRadius: '0 !important', borderBottomRightRadius: '0 !important' }"/>
-    <ProgressBar v-if="uploadProgress < 100" mode="indeterminate" :style="{ borderTopLeftRadius: '0 !important', borderTopRightRadius: '0 !important', height: '.5em' }" />
+  <Dialog
+    header="Đang tải dữ liệu ..."
+    v-model:visible="uploading"
+    :style="{ width: '30vw' }"
+    :closable="false"
+    :modal="false"
+  >
+    <ProgressBar
+      :value="uploadProgress"
+      :style="{
+        borderBottomLeftRadius: '0 !important',
+        borderBottomRightRadius: '0 !important',
+      }"
+    />
+    <ProgressBar
+      v-if="uploadProgress < 100"
+      mode="indeterminate"
+      :style="{
+        borderTopLeftRadius: '0 !important',
+        borderTopRightRadius: '0 !important',
+        height: '.5em',
+      }"
+    />
   </Dialog>
 
   <!-- Dialog -->
