@@ -1164,6 +1164,7 @@ onMounted(() => {
                                                         <div v-if="td.kieu_truong == 'select' && td.is_type == 9">
                                                             <Dropdown class="w-full"
                                                                 :options="list_type_dayoff"
+                                                                :showClear="true"
                                                                 v-model="td.value_field"
                                                                 optionLabel="name" 
                                                                 optionValue="code" 
