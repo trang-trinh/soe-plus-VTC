@@ -74,6 +74,10 @@ const data_coppy_module = ref({});
 const v$ = useVuelidate(rules, role);
 const t$ = useVuelidate(rules_coppy, data_coppy_module);
 //Khai báo biến
+const types = ref([
+  { type: 1, icon: "pi pi-bars", title: "Phân quyền nhóm người dùng" },
+  { type: 2, icon: "pi pi-eye", title: "Xem quyền nhóm người dùng" },
+]);
 const dialogCoppy = ref(false);
 const selectCapcha = ref();
 selectCapcha.value = {};
@@ -92,6 +96,7 @@ const options = ref({
   PageSize: 20,
   loading: true,
   totalRecords: null,
+  view: 1
 });
 const filterSQL = ref([]);
 const first = ref(1);
@@ -115,26 +120,14 @@ let files = [];
 //   { value: 6, text: "Full (6)" },
 // ].reverse();
 const tdQuyens = [
-  { value: 1, text: "Tất cả các quyền" },
-  { value: 2, text: "Xem cá nhân" },
-  { value: 3, text: "Xem phòng ban" },
-  { value: 4, text: "Xem công ty" },
-  { value: 5, text: "Xem tất cả" },
-  { value: 6, text: "Chỉnh sửa (thêm, sửa, xóa)" },
-  { value: 7, text: "Chỉnh sửa cá nhân" },
-  { value: 8, text: "Duyệt chỉnh sửa hồ sơ" },
-  { value: 9, text: "Thiết lập ban đầu" },
-  { value: 10, text: "Duyệt đề xuất" },
-  { value: 11, text: "Lập đề xuất" },
-  { value: 12, text: "Phê duyệt" },
-  { value: 13, text: "Chiến dịch tuyển dụng" },
-  { value: 14, text: "Ứng viên" },
-  { value: 15, text: "Lịch phỏng vấn" },
-  { value: 16, text: "Tạo đánh giá" },
-  { value: 17, text: "Duyệt đánh giá" },
-  { value: 18, text: "Quản trị người dùng" },
-  { value: 19, text: "Quản trị người dùng đơn vị" },
-  { value: 20, text: "Backup dữ liệu" },
+      { text: 'Thêm mới', value: 1 },
+      { text: 'Chỉnh sửa phòng ban', value: 2 },
+      { text: 'Chỉnh sửa đơn vị', value: 3 },
+      { text: 'Chỉnh sửa tất cả', value: 4 },
+      { text: 'Xem phòng ban', value: 5 },
+      { text: 'Xem đơn vị', value: 6 },
+      { text: 'Xem tất cả', value: 7 },
+      { text: 'Duyệt', value: 8 },
 ].reverse();
 const quyen = ref({});
 const menuQuyen = ref();
@@ -1015,6 +1008,56 @@ const coppyRole = (id) => {
   submitted.value = false;
   dialogCoppy.value = true;
 }
+const isViewPhanQuen = ref(false);
+const data_permission = ref();
+const data_role_permission = ref()
+const viewPhanquyen = ()=>{
+  axios
+    .post(
+      baseURL + "/api/Roles/GetDataProc",
+      {
+        str: encr(
+          JSON.stringify({
+            proc: "sys_roles_list_permission",
+            par: [{ par: "user_id", va: store.getters.user.user_id }],
+          }),
+          SecretKey,
+          cryoptojs
+        ).toString(),
+      },
+      config
+    )
+    .then((response) => {
+      let data = JSON.parse(response.data.data);
+      if (data.length > 0) {
+        data[0].forEach(function (r) {
+            r.hasChilds = data[0].filter(x => x.parent_id == r.module_id).length > 0;
+            r.IsOpen = false;
+        });
+        data_permission.value = data[0];
+        data_role_permission.value = data[1];
+      } 
+      isViewPhanQuen.value = true;
+    })
+    .catch((error) => { });
+}
+const goOpen = (d) => {
+    d.IsOpen = !d.IsOpen;
+    if (d.IsOpen) {
+      data_permission.value.filter(x => x.parent_id == d.module_id).forEach(function (r) {
+            r.ChildOpen = d.IsOpen;
+        });
+    } else {
+        setChildOpen(d, false);
+    }
+};
+function setChildOpen(d, IsOpen) {
+    d.IsOpen = false;
+    data_permission.value.filter(x => x.parent_id == d.module_id).forEach(function (r) {
+        r.ChildOpen = IsOpen;
+        setChildOpen(r, IsOpen)
+    });
+}
 const saveCoppyCofig = (isFormValid) => {
   submitted.value = true;
   if (!isFormValid) {
@@ -1128,6 +1171,7 @@ onMounted(() => {
 
           <template #end>
             <Button label="Thêm nhóm người dùng" icon="pi pi-plus" class="mr-2" @click="showModalAddRole" />
+            <Button label="Xem phân quyền" class="mr-2 p-button-outlined p-button-secondary" icon="pi pi-eye" @click="viewPhanquyen()" />
             <Button class="mr-2 p-button-outlined p-button-secondary" icon="pi pi-refresh" @click="onRefersh" />
             <Button label="Xoá" icon="pi pi-trash" class="mr-2 p-button-danger" v-if="selectedNodes.length > 0"
               @click="deleteList()" />
@@ -1390,24 +1434,40 @@ onMounted(() => {
   </Dialog>
   <Dialog header="Phân quyền cho nhóm người dùng" v-model:visible="displayConfigRole" :style="{ width: '1150px' }"
     :maximizable="true" :autoZIndex="true">
-    <TreeTable :value="modules" :loading="opition.moduleloading" :showGridlines="true" filterMode="lenient"
+    <Toolbar class="w-full custoolbar">
+      <template #start>
+        <!-- <h3 class="module-title mt-0 ml-1 mb-2">
+          <i class="pi pi-microsoft"></i> Module chức năng
+        </h3> -->
+        <SelectButton
+        v-model="options.view"
+        :options="types"
+        optionValue="type"
+        optionLabel="type"
+        dataKey="type"
+        aria-labelledby="custom"
+      >
+        <template #option="slotProps">
+          <i
+            v-if="slotProps.option.icon != ''"
+            :class="slotProps.option.icon"
+            class="mr-2"
+          ></i
+          ><span>{{ slotProps.option.title }}</span>
+        </template>
+      </SelectButton>
+      </template>
+      <template #end>
+        <!-- <Button v-if="!different_module_move" class="mr-2 p-button-outlined p-button-secondary" label="Sao chép"
+          icon="pi pi-copy" @click="coppyModule()" :disabled="is_coppy_module ? true : false" />
+        <Button v-if="is_coppy_module && different_module_move" label="Dán" icon="pi pi-copy" class="mr-2"
+          @click="pasteModule()" /> -->
+      </template>
+    </Toolbar>
+    <TreeTable v-if="options.view==1"
+     :value="modules" :loading="opition.moduleloading" :showGridlines="true" filterMode="lenient"
       class="p-treetable-sm" :paginator="modules && modules.length > 20" :rows="20" :scrollable="true"
       scrollHeight="flex">
-      <template #header>
-        <Toolbar class="w-full custoolbar">
-          <template #start>
-            <h3 class="module-title mt-0 ml-1 mb-2">
-              <i class="pi pi-microsoft"></i> Module chức năng
-            </h3>
-          </template>
-          <template #end>
-            <Button v-if="!different_module_move" class="mr-2 p-button-outlined p-button-secondary" label="Sao chép"
-              icon="pi pi-copy" @click="coppyModule()" :disabled="is_coppy_module ? true : false" />
-            <Button v-if="is_coppy_module && different_module_move" label="Dán" icon="pi pi-copy" class="mr-2"
-              @click="pasteModule()" />
-          </template>
-        </Toolbar>
-      </template>
       <Column field="Icon" header="" class="align-items-center justify-content-center text-center"
         headerStyle="text-align:center;max-width:100px" bodyStyle="text-align:center;max-width:100px">
         <template #body="md">
@@ -1446,13 +1506,79 @@ onMounted(() => {
         </template>
       </Column>
     </TreeTable>
+    <TreeTable v-if="options.view==2"
+    :value="modules" :loading="opition.moduleloading" :showGridlines="true" filterMode="lenient"
+      class="p-treetable-sm" :paginator="modules && modules.length > 20" :rows="20" :scrollable="true"
+      scrollHeight="flex">
+      <Column field="Icon" header="" class="align-items-center justify-content-center text-center"
+        headerStyle="text-align:center;max-width:100px" bodyStyle="text-align:center;max-width:100px">
+        <template #body="md">
+          <i v-bind:class="md.node.data.icon"></i>
+        </template>
+      </Column>
+      <Column field="module_name" header="Tên Menu" :sortable="true" :expander="true" headerStyle="text-align:center;max-width:250px" bodyStyle="max-width:250px">
+      </Column>
+      <Column headerClass="align-items-center justify-content-center text-center" header="Quyền"
+         bodyStyle="text-align:center;">
+        <template #body="md">
+          <div v-if="md.node.data.permission" style="text-align:left">
+            <div  v-for="(item, index) in tdQuyens.filter(x => md.node.data.permission.split(',').includes(x.value.toString()))" :key="index">
+              - {{ item.text }}
+            </div>
+          </div>
+          <!-- <MultiSelect v-if="md.node.data.permission" v-model="md.node.data.is_permission" @change="changeQuyen(md.node)" :style="{ width: '250px' }"
+            id="overlay_Quyen" ref="menuQuyen" :popup="true" :options="tdQuyens.filter(x => md.node.data.permission.split(',').includes(x.value.toString()))" optionLabel="text" optionValue="value"
+            placeholder="Chọn quyền" /> -->
+        </template>
+      </Column>
+    </TreeTable>
     <template #footer>
       <Button label="Huỷ" icon="pi pi-times" @click="closedisplayConfigRole" class="p-button-raised p-button-secondary" />
       <Button label="Cập nhật" icon="pi pi-save" @click="addConfigRole" />
     </template>
   </Dialog>
+  <Dialog header="Quyền cho người dùng" v-model:visible="isViewPhanQuen" :style="{ width: '1150px',zIndex:100 }"
+    :maximizable="true" :autoZIndex="true">
+    <div class="tbphanquyen">
+        <table class="" style="margin:0 auto;height:fit-content;" cellspacing=0>
+            <thead>
+                <tr>
+                    <th style="min-width:200px" class="text-center" rowspan="2">Tên module</th>
+                    <th  width="200" v-for="(item, idx) in roles" :key="idx" class="text-center">{{item.role_name}}</th>
+                </tr>
+            </thead>
+            <tbody>
+                <tr v-for="(d, index) in data_permission" :key="index" v-show="d.lv==0 || d.ChildOpen">
+                    <td align="left" class="cell-name " :class="d.hasChilds" @click="goOpen(d)">
+                        <div :style="'padding-left:'+(10*d.lv+10)+'px;'">
+                            <i id="i" v-if="d.hasChilds" :class="'pi pi-angle-'+(d.IsOpen?'down':'right')"></i>
+                            <a style="padding-left:10px;" >{{d.module_name}}</a>
+                        </div>
+                    </td>
+                    <td width="200" v-for="(item, idx) in roles" :key="idx" class="text-left">
+                      <div v-if="data_role_permission.filter(x => x.role_id== item.role_id && x.module_id == d.module_id).length>0">
+                        <div style="padding-left: 7px;"  v-for="(quyen, index) in tdQuyens.filter(x => data_role_permission.filter(x => x.role_id== item.role_id && x.module_id == d.module_id)[0].is_permission.toString().split('').includes(x.value.toString()))" :key="index">
+                        - {{ quyen.text }}
+                        </div>
+                      </div>
+                    </td>
+                </tr>
+            </tbody>
+        </table>
+    </div>
+
+  </Dialog>
 </template>
 <style scoped>
+.tbphanquyen th,.tbphanquyen td  {
+  border:1px solid #e9ecef;
+  border-width: 1px;
+  border-spacing: 0;
+  height:40px;
+
+}
+tr{
+}
 .ipnone {
   display: none;
 }
