@@ -225,6 +225,15 @@ const saveRow = (type, isContinue) => {
     props.datachilds[type] = [];
   }
   props.datachilds[type].unshift(model.value);
+  if (model.value.is_man_degree && model.value.academic_level_id) {
+    var idx = props.dictionarys[6].findIndex(
+      (x) => x.academic_level_id === model.value.academic_level_id
+    );
+    if (idx !== -1) {
+      props.model.cultural_level_max =
+        props.dictionarys[6][idx].academic_level_name;
+    }
+  }
   if (!isContinue) {
     closeDialog();
   }
@@ -1209,6 +1218,7 @@ onMounted(() => {
                         class="ip36"
                         v-model="props.model.cultural_level_max"
                         maxLength="500"
+                        disabled
                       />
                     </div>
                   </div>
