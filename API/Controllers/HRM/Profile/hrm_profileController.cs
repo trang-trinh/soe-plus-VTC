@@ -2593,6 +2593,172 @@ namespace API.Controllers.HRM.Profile
                                             }
                                             await db.SaveChangesAsync();
                                             break;
+                                        case "QT làm việc ngoài đơn vị":
+                                            List<hrm_profile_experience> experiences = new List<hrm_profile_experience>();
+                                            for (int r = 4; r <= sheet.Dimension.End.Row; r++)
+                                            {
+                                                if (sheet.Cells[r, 2].Value == null)
+                                                {
+                                                    break;
+                                                }
+                                                hrm_profile_experience experience = new hrm_profile_experience();
+                                                for (int c = 2; c <= sheet.Dimension.End.Column; c++)
+                                                {
+                                                    if (sheet.Cells[3, c].Value == null)
+                                                    {
+                                                        break;
+                                                    }
+                                                    var column = sheet.Cells[3, c].Value;
+                                                    var value = sheet.Cells[r, c].Value;
+                                                    if (value != null)
+                                                    {
+                                                        switch (column)
+                                                        {
+                                                            case "2":
+                                                                var p = await db.hrm_profile.FirstOrDefaultAsync(x => x.profile_code == value.ToString());
+                                                                if (p != null)
+                                                                {
+                                                                    experience.profile_id = p.profile_id;
+                                                                }
+                                                                break;
+                                                            case "3":
+
+                                                                break;
+                                                            case "4":
+                                                                experience.company = value.ToString();
+                                                                break;
+                                                            case "5":
+                                                                experience.address = value.ToString();
+                                                                break;
+                                                            case "6":
+                                                                experience.start_date = DateTime.ParseExact(value.ToString(), "dd/MM/yyyy", CultureInfo.InvariantCulture);
+                                                                break;
+                                                            case "7":
+                                                                experience.end_date = DateTime.ParseExact(value.ToString(), "dd/MM/yyyy", CultureInfo.InvariantCulture);
+                                                                break;
+                                                            case "8":
+                                                                experience.title = value.ToString();
+                                                                break;
+                                                            case "9":
+                                                                experience.wage = value.ToString();
+                                                                break;
+                                                            case "10":
+                                                                experience.description = value.ToString();
+                                                                break;
+                                                            case "11":
+                                                                experience.reason = value.ToString();
+                                                                break;
+                                                            case "12":
+                                                                experience.wage = value.ToString();
+                                                                break;
+                                                            case "13":
+                                                                experience.reference_name = value.ToString();
+                                                                break;
+                                                            case "14":
+                                                                experience.reference_phone = value.ToString();
+                                                                break;
+                                                            case "15":
+                                                                break;
+                                                            default:
+                                                                break;
+                                                        }
+                                                    }
+                                                }
+                                                if (!string.IsNullOrEmpty(experience.profile_id))
+                                                {
+                                                    experiences.Add(experience);
+                                                }
+                                            }
+                                            if (experiences.Count > 0)
+                                            {
+                                                db.hrm_profile_experience.AddRange(experiences);
+                                            }
+                                            await db.SaveChangesAsync();
+                                            break;
+                                        case "QT Khen Thưởng":
+                                            List<hrm_reward> rewards = new List<hrm_reward>();
+                                            for (int r = 4; r <= sheet.Dimension.End.Row; r++)
+                                            {
+                                                if (sheet.Cells[r, 2].Value == null)
+                                                {
+                                                    break;
+                                                }
+                                                hrm_reward reward = new hrm_reward();
+                                                for (int c = 2; c <= sheet.Dimension.End.Column; c++)
+                                                {
+                                                    if (sheet.Cells[3, c].Value == null)
+                                                    {
+                                                        break;
+                                                    }
+                                                    var column = sheet.Cells[3, c].Value;
+                                                    var value = sheet.Cells[r, c].Value;
+                                                    if (value != null)
+                                                    {
+                                                        switch (column)
+                                                        {
+                                                            case "2":
+                                                                reward.reward_type = 1;
+                                                                var p = await db.hrm_profile.FirstOrDefaultAsync(x => x.profile_code == value.ToString());
+                                                                if (p != null)
+                                                                {
+                                                                    reward.reward_name = p.profile_id;
+                                                                }
+                                                                break;
+                                                            case "3":
+                                                                break;
+                                                            case "4":
+                                                                reward.decision_date = DateTime.ParseExact(value.ToString(), "dd/MM/yyyy", CultureInfo.InvariantCulture);
+                                                                break;
+                                                            case "5":
+                                                                break;
+                                                            case "6":
+                                                                reward.reward_number = value.ToString();
+                                                                break;
+                                                            case "7":
+                                                                var reward_level_name = value.ToString();
+                                                                var reward_level_exists = await db.hrm_ca_reward_level.FirstOrDefaultAsync(x => x.reward_level_name == reward_level_name);
+                                                                if (reward_level_exists != null)
+                                                                {
+                                                                    reward.reward_level_id = reward_level_exists.reward_level_id;
+                                                                }
+                                                                break;
+                                                            case "8":
+                                                                var reward_title_name = value.ToString();
+                                                                var reward_title_exists = await db.hrm_ca_reward_title.FirstOrDefaultAsync(x => x.reward_title_name == reward_title_name);
+                                                                if (reward_title_exists != null)
+                                                                {
+                                                                    reward.reward_title_id = reward_title_exists.reward_title_id;
+                                                                }
+                                                                break;
+                                                            case "9":
+                                                                reward.reward_content = value.ToString();
+                                                                break;
+                                                            case "10":
+                                                                reward.decision_place = value.ToString();
+                                                                break;
+                                                            case "11":
+                                                                var ps = await db.hrm_profile.FirstOrDefaultAsync(x => x.profile_code == value.ToString());
+                                                                if (ps != null)
+                                                                {
+                                                                    reward.signer = ps.profile_id;
+                                                                }
+                                                                break;
+                                                            default:
+                                                                break;
+                                                        }
+                                                    }
+                                                }
+                                                if (!string.IsNullOrEmpty(reward.reward_name))
+                                                {
+                                                    rewards.Add(reward);
+                                                }
+                                            }
+                                            if (rewards.Count > 0)
+                                            {
+                                                db.hrm_reward.AddRange(rewards);
+                                            }
+                                            await db.SaveChangesAsync();
+                                            break;
                                         default:
                                             break;
                                     }
