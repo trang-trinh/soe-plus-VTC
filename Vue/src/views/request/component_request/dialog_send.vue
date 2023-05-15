@@ -382,10 +382,13 @@ const removeMember = (user, arr, type) => {
 };
 const submitted = ref(false);
 const send = () => {
+    if (submitted.value == true) {
+        return;
+    }
     submitted.value = true;
     if (!process.value.key_id) {
         swal.fire({
-            title: "Thông báo!",
+            title: "Thông báo",
             text: "Vui lòng điền đầy đủ thông tin trường bôi đỏ!",
             icon: "error",
             confirmButtonText: "OK",
@@ -444,13 +447,14 @@ const send = () => {
                 });
                 return;
             }
-
+            
+            if (submitted.value) submitted.value = false;
             swal.close();
             toast.success("Gửi thành công!");
             props.closeDialog();
         })
         .catch((error) => {
-            console.log(error);
+            if (submitted.value) submitted.value = false;
             swal.close();
             swal.fire({
                 title: "Thông báo!",
@@ -459,7 +463,6 @@ const send = () => {
                 confirmButtonText: "OK",
             });
         });
-    if (submitted.value) submitted.value = false;
 };
 
 onMounted(() => {

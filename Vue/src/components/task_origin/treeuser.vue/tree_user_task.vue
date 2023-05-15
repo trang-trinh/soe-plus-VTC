@@ -19,14 +19,9 @@ const addLog = (log) => {
   // eslint-disable-next-line no-undef
   axios.post(baseURL + "/api/Proc/AddLog", log, config);
 };
-const Department = {
-  id: null,
-  department_id: null,
-  user_id: null,
-};
+
 const listDepartments = ref();
 
-const headerAddDepartment = ref();
 const listUsers = ref([]);
 const displayDepartment = ref(false);
 const opition = ref({
@@ -153,55 +148,6 @@ const bgColor = ref([
   "#CCADD7",
 ]);
 
-const closeDialogDepartment = () => {
-  displayDepartment.value = false;
-};
-
-const saveDepartmentUser = () => {
-  let formData = new FormData();
-  let listsend = [];
-  if (selectedNodeUser.value) {
-    if (selectedNodeUser.value.length > 0) {
-      selectedNodeUser.value.forEach((t) => {
-        console.log(t);
-        Department.value.user_id = t.user_id;
-        let dept = {
-          department_id: Department.value.department_id,
-          user_id: t.user_id,
-        };
-        listsend.push(dept);
-      });
-    }
-  }
-
-  formData.append("group", JSON.stringify(listsend));
-  axios
-    .put(baseURL + "/api/Doc_Role_Department/Update_user", formData, config)
-    .then((response) => {
-      if (response.data.err != "1") {
-        swal.close();
-        loadData(true);
-        closeDialogDepartment();
-        toast.success("Cập nhật phòng ban thành công!");
-      } else {
-        swal.fire({
-          title: "Thông báo!",
-          html: response.data.ms,
-          icon: "error",
-          confirmButtonText: "OK",
-        });
-      }
-    })
-    .catch(() => {
-      swal.close();
-      swal.fire({
-        title: "Error!",
-        text: "Có lỗi xảy ra, vui lòng kiểm tra lại!",
-        icon: "error",
-        confirmButtonText: "OK",
-      });
-    });
-};
 const loadUsers = () => {
   axios
     .post(
@@ -244,7 +190,21 @@ const loadUsers = () => {
               element["STT"] = i + 1;
             });
           }
-          listUsers.value = tbs[0];
+          listUsers.value = tbs[0].map((x) => ({
+            user_id: x.user_id,
+            full_name: x.full_name,
+            full_name_en: x.full_name_en,
+            is_order: x.is_order,
+            user_key: x.user_key,
+            last_name: x.last_name,
+            avatar: x.avatar,
+            organization_id: x.organization_id,
+            position_id: x.position_id,
+            position_name: x.position_name,
+            department_id: x.department_id,
+            organization_name: x.organization_name,
+            STT: x.STT,
+          }));
         }
         swal.close();
       }
@@ -379,24 +339,28 @@ const props = defineProps({
   selected: Array,
   choiceUser: Function,
 });
+
 onMounted(() => {
   loadData(true);
   loadUsers();
 
   displayDepartment.value = true;
+  selectedNodeUser.value = props.selected;
+
   return {};
 });
 </script>
 <template>
   <Dialog
-    :header="headerAddDepartment"
+    :header="props.headerDialog"
     v-model:visible="displayDepartment"
     :style="{ width: '50vw' }"
     :closable="true"
     :maximizable="true"
+    @hide="props.closeDialog"
   >
     {{ props }}
-    {{ listDepartments }}
+    {{ selectedNodeUser }}
     <form class="flex col-12">
       <div class="col-5 md:col-5">
         <Toolbar
@@ -408,8 +372,7 @@ onMounted(() => {
               style="width: 100%"
             >
               <i class="pi pi-search" />
-              <!-- v-model="options.SearchText"
-                @keyup.enter="SearchBytext()" -->
+
               <InputText
                 type="text"
                 v-model="filters2['global']"
@@ -429,7 +392,7 @@ onMounted(() => {
           :expandedKeys="expandedKeys"
           dataKey="organization_id"
           v-model:selectionKeys="selectedNodeOrganization"
-          :selectionMode="'checkbox'"
+          :selectionMode="props.one == true ? '' : 'checkbox'"
           scrollHeight="flex"
           filterDisplay="menu"
           class="d-lang-table"
@@ -496,7 +459,7 @@ onMounted(() => {
             >{{ slotProps.data.organization_name ?? "Không thuộc phòng ban" }}
           </template>
           <Column
-            :selectionMode="'multiple'"
+            :selectionMode="props.one == true ? 'single' : 'multiple'"
             headerStyle="text-align:center;max-width:50px"
             bodyStyle="text-align:center;max-width:50px"
             class="align-items-center justify-content-center text-center"
@@ -555,15 +518,36 @@ onMounted(() => {
       <Button
         label="Hủy"
         icon="pi pi-times"
-        @click="closeDialogDepartment()"
+        @click="props.closeDialog()"
         class="p-button-text"
       />
       <Button
         label="Lưu"
         icon="pi pi-check"
-        @click="saveDepartmentUser()"
+        @click="props.choiceUser(selectedNodeUser)"
       />
     </template>
   </Dialog>
 </template>
-<style lang="scss" scoped></style>
+<style lang="scss" scoped>
+.d-lang-table {
+  height: calc(100vh - 350px);
+}
+::v-deep(.text-avatar) {
+  .p-avatar-text {
+    font-size: 1.5rem;
+  }
+}
+
+::v-deep(.custom-search) {
+  .p-toolbar-group-left {
+    width: 100%;
+  }
+  input {
+    width: 100%;
+  }
+}
+.row-active {
+  color: rgb(13, 137, 236);
+}
+</style>
