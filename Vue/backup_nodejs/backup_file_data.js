@@ -2,7 +2,8 @@
 var file_system = require('fs');
 var archiver = require('archiver');
 
-var output = file_system.createWriteStream('data_file_backup.zip');
+var desZip = __dirname.replaceAll("\\", "/").replace(/vue\/backup_nodejs/gi,"api/BackupData");
+var output = file_system.createWriteStream(desZip + '/data_file_backup.zip');
 var archive = archiver('zip');
 
 output.on('close', function () {
@@ -21,6 +22,7 @@ archive.pipe(output);
 
 // append files from a sub-directory and naming it `new-subdir` within the archive
 //archive.directory('subdir/', 'new-subdir');
-archive.directory("E://SOE_Plus/soe_vtc/soe-plus-VTC/API/Portals", "BackupData");
+var dirZip = __dirname.replaceAll("\\", "/").replace(/vue\/backup_nodejs/gi,"api/Portals");
+archive.directory(dirZip, "BackupData");
 
 archive.finalize();
