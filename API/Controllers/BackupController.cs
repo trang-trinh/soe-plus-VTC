@@ -433,8 +433,16 @@ namespace API.Controllers
                                 sttPartPath++;
                             }
                             //string strCmdText = disk + ": & cd " + pathSocket + " & node backup_file_data.js /C";
-                            string strCmdText = "/k " + disk + ": & cd " + pathConfig.Substring(3) + " & node backup_file_data.js /c";
-                            var proc = System.Diagnostics.Process.Start("cmd.exe", strCmdText);
+                            string strCmdText = "/c " + disk + ": & cd " + pathConfig.Substring(3) + " & node backup_file_data.js";
+                            //var proc = System.Diagnostics.Process.Start("cmd.exe", strCmdText);
+                            var ps = new ProcessStartInfo();
+                            ps.FileName = "cmd.exe";
+                            ps.CreateNoWindow = true;
+                            ps.WindowStyle = ProcessWindowStyle.Hidden;
+                            ps.Arguments = strCmdText;
+                            System.Diagnostics.Process process = new System.Diagnostics.Process();
+                            process.StartInfo = ps;
+                            process.Start();
                         }
                         else if (model.type_backup == 2)
                         {
@@ -482,8 +490,16 @@ namespace API.Controllers
                                 }
                                 sttPartPath++;
                             }
-                            string strCmdText = "/k " + disk + ": & cd " + pathConfig.Substring(3) + " & node backup_file_data.js /c";
-                            var proc = System.Diagnostics.Process.Start("cmd.exe", strCmdText);
+                            string strCmdText = "/c " + disk + ": & cd " + pathConfig.Substring(3) + " & node backup_file_data.js";
+                            //var proc = System.Diagnostics.Process.Start("cmd.exe", strCmdText);
+                            var ps = new ProcessStartInfo();
+                            ps.FileName = "cmd.exe";
+                            ps.CreateNoWindow = true;
+                            ps.WindowStyle = ProcessWindowStyle.Hidden;
+                            ps.Arguments = strCmdText;
+                            System.Diagnostics.Process process = new System.Diagnostics.Process();
+                            process.StartInfo = ps;
+                            process.Start();
                         }
                         #region add sys_logs
                         //if (helper.wlog)
