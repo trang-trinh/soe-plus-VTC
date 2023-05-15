@@ -1294,7 +1294,7 @@ onMounted(() => {
                     </div>
                   </div>
                   <div class="col-12 md:col-12 p-0">
-                    <div
+                    <!-- <div
                       class="row"
                       v-for="(item, index) in props.datachilds[2]"
                     >
@@ -1397,7 +1397,7 @@ onMounted(() => {
                             :showClear="true"
                             :editable="true"
                             :filter="true"
-                            :options="dictionarys[27]"
+                            :options="props.dictionarys[27]"
                             optionLabel="learning_place_name"
                             optionValue="learning_place_name"
                             placeholder="Chọn nơi đào tạo"
@@ -1484,28 +1484,7 @@ onMounted(() => {
                           />
                         </div>
                       </div>
-                      <div class="col-6 md:col-6">
-                        <div class="form-group">
-                          <label>Ngày hiệu lực</label>
-                          <Calendar
-                            v-model="item.certificate_start_date"
-                            :showIcon="false"
-                            class="ip36"
-                            placeholder="dd/mm/yyyy"
-                          />
-                        </div>
-                      </div>
-                      <div class="col-6 md:col-6">
-                        <div class="form-group">
-                          <label>Ngày hết hiệu lực</label>
-                          <Calendar
-                            v-model="item.certificate_end_date"
-                            :showIcon="false"
-                            class="ip36"
-                            placeholder="dd/mm/yyyy"
-                          />
-                        </div>
-                      </div>
+                      
                       <div class="col-6 md:col-6 format-center">
                         <div class="form-group m-0">
                           <div
@@ -1577,345 +1556,395 @@ onMounted(() => {
                           />
                         </div>
                       </div>
-                    </div>
-                    <!-- <DataTable
-                    :value="props.datachilds[2]"
-                    :scrollable="true"
-                    :lazy="true"
-                    :rowHover="true"
-                    :showGridlines="true"
-                    scrollDirection="both"
-                    class="empty-full"
-                  >
-                    <Column
-                      header=""
-                      headerStyle="text-align:center;width:50px"
-                      bodyStyle="text-align:center;width:50px"
-                      class="align-items-center justify-content-center text-center"
-                    >
-                      <template #body="slotProps">
-                        <a
-                          @click="props.deleteRow(2, slotProps.index)"
-                          class="hover"
-                          v-tooltip.top="'Xóa'"
-                        >
-                          <i
-                            class="pi pi-times-circle"
-                            style="font-size: 18px"
-                          ></i>
-                        </a>
-                      </template>
-                    </Column>
-                    <Column
-                      field="university_name"
-                      header="Nơi đào tạo"
-                      headerStyle="text-align:center;width:180px;height:50px"
-                      bodyStyle="text-align:center;width:180px;"
-                      class="align-items-center justify-content-center text-center"
-                    >
-                      <template #body="slotProps">
-                        <Dropdown
-                          :showClear="true"
-                          :editable="true"
-                          :filter="true"
-                          :options="dictionarys[27]"
-                          optionLabel="learning_place_name"
-                          optionValue="learning_place_name"
-                          placeholder="Chọn nơi đào tạo"
-                          class="ip36"
-                          v-model="slotProps.data.university_name"
-                          maxLength="250"
-                        />
-                      </template>
-                    </Column>
-
-                    <Column
-                      field="specialized"
-                      header="Chuyên ngành"
-                      headerStyle="text-align:center;width:170px;height:50px"
-                      bodyStyle="text-align:center;width:170px;"
-                      class="align-items-center justify-content-center text-center"
-                    >
-                      <template #body="slotProps">
-                        <div class="form-group m-0">
-                          <Dropdown
-                            :showClear="true"
-                            :options="props.dictionarys[18]"
-                            optionLabel="specialization_name"
-                            optionValue="specialization_id"
-                            placeholder="Chọn chuyên ngành"
-                            v-model="slotProps.data.specialized"
-                            class="ip36"
-                            :style="{
-                              whiteSpace: 'nowrap',
-                              overflow: 'hidden',
-                              textOverflow: 'ellipsis',
-                            }"
-                          />
-                        </div>
-                      </template>
-                    </Column>
-                    <Column
-                      field="start_date"
-                      header="Từ tháng, năm"
-                      headerStyle="text-align:center;width:120px;height:50px"
-                      bodyStyle="text-align:center;width:120px;"
-                      class="align-items-center justify-content-center text-center"
-                    >
-                      <template #body="slotProps">
-                        <Calendar
-                          v-model="slotProps.data.start_date"
-                          :showIcon="false"
-                          view="month"
-                          dateFormat="mm/yy"
-                          class="ip36"
-                          placeholder="mm/yyyy"
-                        />
-                      </template>
-                    </Column>
-                    <Column
-                      field="end_date"
-                      header="Đến tháng, năm"
-                      headerStyle="text-align:center;width:120px;height:50px"
-                      bodyStyle="text-align:center;width:120px;"
-                      class="align-items-center justify-content-center text-center"
-                    >
-                      <template #body="slotProps">
-                        <Calendar
-                          v-model="slotProps.data.end_date"
-                          :showIcon="false"
-                          view="month"
-                          dateFormat="mm/yy"
-                          class="ip36"
-                          placeholder="mm/yyyy"
-                        />
-                      </template>
-                    </Column>
-                    <Column
-                      field="form_traning_id"
-                      header="Hệ đào tạo"
-                      headerStyle="text-align:center;width:170px;height:50px"
-                      bodyStyle="text-align:center;width:170px;"
-                      class="align-items-center justify-content-center text-center"
-                    >
-                      <template #body="slotProps">
-                        <div class="form-group m-0">
-                          <Dropdown
-                            :showClear="true"
-                            :options="props.dictionarys[12]"
-                            optionLabel="form_traning_name"
-                            optionValue="form_traning_id"
-                            placeholder="Chọn hệ đào tạo"
-                            v-model="slotProps.data.form_traning_id"
-                            class="ip36"
-                            :style="{
-                              whiteSpace: 'nowrap',
-                              overflow: 'hidden',
-                              textOverflow: 'ellipsis',
-                            }"
-                          />
-                        </div>
-                      </template>
-                    </Column>
-                    <Column
-                      field="university_name"
-                      header="Nơi đào tạo"
-                      headerStyle="text-align:center;width:180px;height:50px"
-                      bodyStyle="text-align:center;width:180px;"
-                      class="align-items-center justify-content-center text-center"
-                    >
-                      <template #body="slotProps">
-                        <Dropdown
-                          :showClear="true"
-                          :editable="true"
-                          :filter="true"
-                          :options="[
-                            { value: 1, title: 'Xuất sắc' },
-                            { value: 2, title: 'Giỏi' },
-                            { value: 3, title: 'Khá' },
-                            { value: 4, title: 'TB Khá' },
-                            { value: 5, title: 'Trung bình' },
-                          ]"
-                          optionLabel="title"
-                          optionValue="title"
-                          placeholder="Chọn xếp loại"
-                          class="ip36"
-                          v-model="slotProps.data.rating"
-                          maxLength="250"
-                        />
-                      </template>
-                    </Column>
-                    <Column
-                      field="degree_date"
-                      header="Ngày cấp bằng"
-                      headerStyle="text-align:center;width:120px;height:50px"
-                      bodyStyle="text-align:center;width:120px;"
-                      class="align-items-center justify-content-center text-center"
-                    >
-                      <template #body="slotProps">
-                        <Calendar
-                          v-model="slotProps.data.degree_date"
-                          :showIcon="false"
-                          view="day"
-                          dateFormat="dd/mm/yy"
-                          class="ip36"
-                          placeholder="dd/mm/yyyy"
-                        />
-                      </template>
-                    </Column>
-                    <Column
-                      field="graduation_year"
-                      header="Năm tốt nghiệp"
-                      headerStyle="text-align:center;width:120px;height:50px"
-                      bodyStyle="text-align:center;width:120px;"
-                      class="align-items-center justify-content-center text-center"
-                    >
-                      <template #body="slotProps">
-                        <Calendar
-                          v-model="slotProps.data.graduation_year"
-                          :showIcon="false"
-                          view="year"
-                          dateFormat="yy"
-                          class="ip36"
-                          placeholder="yyyy"
-                        />
-                      </template>
-                    </Column>
-                    <Column
-                      field="is_man_degree"
-                      header="Cấp bằng chính"
-                      headerStyle="text-align:center;width:120px;height:50px"
-                      bodyStyle="text-align:center;width:120px;"
-                      class="align-items-center justify-content-center text-center"
-                    >
-                      <template #body="slotProps">
+                      <div class="col-6 md:col-6">
                         <div class="form-group">
-                          <div
-                            class="field-checkbox flex justify-content-center"
-                            style="height: 100%"
-                          >
-                            <InputSwitch v-model="props.model.is_man_degree" />
-                            <label for="binary">Cấp bằng chính</label>
-                          </div>
-                        </div>
-                      </template>
-                    </Column>
-                    <Column
-                      field="certificate_id"
-                      header="Văn bằng, chứng chỉ"
-                      headerStyle="text-align:center;width:170px;height:50px"
-                      bodyStyle="text-align:center;width:170px;"
-                      class="align-items-center justify-content-center text-center"
-                    >
-                      <template #body="slotProps">
-                        <div class="form-group m-0">
-                          <Dropdown
-                            :showClear="true"
-                            :options="props.dictionarys[13]"
-                            optionLabel="certificate_name"
-                            optionValue="certificate_id"
-                            placeholder="Chọn văn bằng"
-                            v-model="slotProps.data.certificate_id"
+                          <label>Ngày hiệu lực</label>
+                          <Calendar
+                            v-model="item.certificate_start_date"
+                            :showIcon="false"
                             class="ip36"
-                            :style="{
-                              whiteSpace: 'nowrap',
-                              overflow: 'hidden',
-                              textOverflow: 'ellipsis',
-                            }"
+                            placeholder="dd/mm/yyyy"
                           />
                         </div>
-                      </template>
-                    </Column>
-                    <Column
-                      field="certificate_start_date"
-                      header="Ngày hiệu lực"
-                      headerStyle="text-align:center;width:120px;height:50px"
-                      bodyStyle="text-align:center;width:120px;"
-                      class="align-items-center justify-content-center text-center"
+                      </div>
+                      <div class="col-6 md:col-6">
+                        <div class="form-group">
+                          <label>Ngày hết hiệu lực</label>
+                          <Calendar
+                            v-model="item.certificate_end_date"
+                            :showIcon="false"
+                            class="ip36"
+                            placeholder="dd/mm/yyyy"
+                          />
+                        </div>
+                      </div>
+                    </div> -->
+                    <DataTable
+                      :value="props.datachilds[2]"
+                      :scrollable="true"
+                      :lazy="true"
+                      :rowHover="true"
+                      :showGridlines="true"
+                      scrollDirection="both"
+                      class="empty-full"
                     >
-                      <template #body="slotProps">
-                        <Calendar
-                          v-model="slotProps.data.certificate_start_date"
-                          :showIcon="false"
-                          class="ip36"
-                          placeholder="dd/mm/yyyy"
-                        />
+                      <Column
+                        header=""
+                        headerStyle="text-align:center;width:50px"
+                        bodyStyle="text-align:center;width:50px"
+                        class="align-items-center justify-content-center text-center"
+                      >
+                        <template #body="slotProps">
+                          <a
+                            @click="props.deleteRow(2, slotProps.index)"
+                            class="hover"
+                            v-tooltip.top="'Xóa'"
+                          >
+                            <i
+                              class="pi pi-times-circle"
+                              style="font-size: 18px"
+                            ></i>
+                          </a>
+                        </template>
+                      </Column>
+                      <Column
+                        field="start_date"
+                        header="Từ tháng, năm"
+                        headerStyle="text-align:center;width:120px;height:50px"
+                        bodyStyle="text-align:center;width:120px;"
+                        class="align-items-center justify-content-center text-center"
+                      >
+                        <template #body="slotProps">
+                          <Calendar
+                            v-model="slotProps.data.start_date"
+                            :showIcon="false"
+                            view="month"
+                            dateFormat="mm/yy"
+                            class="ip36"
+                            placeholder="mm/yyyy"
+                          />
+                        </template>
+                      </Column>
+                      <Column
+                        field="end_date"
+                        header="Đến tháng, năm"
+                        headerStyle="text-align:center;width:120px;height:50px"
+                        bodyStyle="text-align:center;width:120px;"
+                        class="align-items-center justify-content-center text-center"
+                      >
+                        <template #body="slotProps">
+                          <Calendar
+                            v-model="slotProps.data.end_date"
+                            :showIcon="false"
+                            view="month"
+                            dateFormat="mm/yy"
+                            class="ip36"
+                            placeholder="mm/yyyy"
+                          />
+                        </template>
+                      </Column>
+                      <Column
+                        field="academic_level_id"
+                        header="Trình độ chuyên môn"
+                        headerStyle="text-align:center;width:180px;height:50px"
+                        bodyStyle="text-align:center;width:180px;"
+                        class="align-items-center justify-content-center text-center"
+                      >
+                        <template #body="slotProps">
+                          <div class="form-group m-0">
+                            <Dropdown
+                              :showClear="true"
+                              :options="props.dictionarys[6]"
+                              optionLabel="academic_level_name"
+                              optionValue="academic_level_id"
+                              placeholder="Chọn trình độ"
+                              class="ip36"
+                              v-model="slotProps.data.academic_level_id"
+                              :style="{
+                                whiteSpace: 'nowrap',
+                                overflow: 'hidden',
+                                textOverflow: 'ellipsis',
+                              }"
+                            />
+                          </div>
+                        </template>
+                      </Column>
+                      <Column
+                        field="specialized"
+                        header="Chuyên ngành"
+                        headerStyle="text-align:center;width:180px;height:50px"
+                        bodyStyle="text-align:center;width:180px;"
+                        class="align-items-center justify-content-center text-center"
+                      >
+                        <template #body="slotProps">
+                          <div class="form-group m-0">
+                            <Dropdown
+                              :showClear="true"
+                              :options="props.dictionarys[18]"
+                              optionLabel="specialization_name"
+                              optionValue="specialization_id"
+                              placeholder="Chọn chuyên ngành"
+                              v-model="slotProps.data.specialized"
+                              class="ip36"
+                              :style="{
+                                whiteSpace: 'nowrap',
+                                overflow: 'hidden',
+                                textOverflow: 'ellipsis',
+                              }"
+                            />
+                          </div>
+                        </template>
+                      </Column>
+                      <Column
+                        field="university_name"
+                        header="Nơi đào tạo"
+                        headerStyle="text-align:center;width:180px;height:50px"
+                        bodyStyle="text-align:center;width:180px;"
+                        class="align-items-center justify-content-center text-center"
+                      >
+                        <template #body="slotProps">
+                          <Dropdown
+                            :showClear="true"
+                            :editable="true"
+                            :filter="true"
+                            :options="props.dictionarys[27]"
+                            optionLabel="learning_place_name"
+                            optionValue="learning_place_name"
+                            placeholder="Chọn nơi đào tạo"
+                            class="ip36"
+                            v-model="slotProps.data.university_name"
+                            maxLength="250"
+                          />
+                        </template>
+                      </Column>
+                      <Column
+                        field="form_traning_id"
+                        header="Hệ đào tạo"
+                        headerStyle="text-align:center;width:180px;height:50px"
+                        bodyStyle="text-align:center;width:180px;"
+                        class="align-items-center justify-content-center text-center"
+                      >
+                        <template #body="slotProps">
+                          <div class="form-group m-0">
+                            <Dropdown
+                              :showClear="true"
+                              :options="props.dictionarys[12]"
+                              optionLabel="form_traning_name"
+                              optionValue="form_traning_id"
+                              placeholder="Chọn hệ đào tạo"
+                              v-model="slotProps.data.form_traning_id"
+                              class="ip36"
+                              :style="{
+                                whiteSpace: 'nowrap',
+                                overflow: 'hidden',
+                                textOverflow: 'ellipsis',
+                              }"
+                            />
+                          </div>
+                        </template>
+                      </Column>
+                      <Column
+                        field="graduation_year"
+                        header="Năm tốt nghiệp"
+                        headerStyle="text-align:center;width:120px;height:50px"
+                        bodyStyle="text-align:center;width:120px;"
+                        class="align-items-center justify-content-center text-center"
+                      >
+                        <template #body="slotProps">
+                          <Calendar
+                            v-model="slotProps.data.graduation_year"
+                            :showIcon="false"
+                            view="year"
+                            dateFormat="yy"
+                            class="ip36"
+                            placeholder="yyyy"
+                          />
+                        </template>
+                      </Column>
+                      <Column
+                        field="rating"
+                        header="Xếp loại"
+                        headerStyle="text-align:center;width:180px;height:50px"
+                        bodyStyle="text-align:center;width:180px;"
+                        class="align-items-center justify-content-center text-center"
+                      >
+                        <template #body="slotProps">
+                          <Dropdown
+                            :showClear="true"
+                            :editable="true"
+                            :filter="true"
+                            :options="[
+                              { value: 1, title: 'Xuất sắc' },
+                              { value: 2, title: 'Giỏi' },
+                              { value: 3, title: 'Khá' },
+                              { value: 4, title: 'TB Khá' },
+                              { value: 5, title: 'Trung bình' },
+                            ]"
+                            optionLabel="title"
+                            optionValue="title"
+                            placeholder="Chọn xếp loại"
+                            class="ip36"
+                            v-model="slotProps.data.rating"
+                            maxLength="250"
+                          />
+                        </template>
+                      </Column>
+                      <Column
+                        field="degree_date"
+                        header="Ngày cấp bằng"
+                        headerStyle="text-align:center;width:120px;height:50px"
+                        bodyStyle="text-align:center;width:120px;"
+                        class="align-items-center justify-content-center text-center"
+                      >
+                        <template #body="slotProps">
+                          <Calendar
+                            v-model="slotProps.data.degree_date"
+                            :showIcon="false"
+                            view="day"
+                            dateFormat="dd/mm/yy"
+                            class="ip36"
+                            placeholder="dd/mm/yyyy"
+                          />
+                        </template>
+                      </Column>
+
+                      <Column
+                        field="is_man_degree"
+                        header="Bằng cấp chính"
+                        headerStyle="text-align:center;width:120px;height:50px"
+                        bodyStyle="text-align:center;width:120px;"
+                        class="align-items-center justify-content-center text-center"
+                      >
+                        <template #body="slotProps">
+                          <div class="form-group">
+                            <div
+                              class="field-checkbox flex justify-content-center"
+                              style="height: 100%"
+                            >
+                              <InputSwitch
+                                v-model="slotProps.data.is_man_degree"
+                              />
+                              <label for="binary">Bằng cấp chính</label>
+                            </div>
+                          </div>
+                        </template>
+                      </Column>
+                      <Column
+                        field="certificate_id"
+                        header="Chứng chỉ"
+                        headerStyle="text-align:center;width:170px;height:50px"
+                        bodyStyle="text-align:center;width:170px;"
+                        class="align-items-center justify-content-center text-center"
+                      >
+                        <template #body="slotProps">
+                          <div class="form-group m-0">
+                            <Dropdown
+                              :showClear="true"
+                              :options="props.dictionarys[13]"
+                              optionLabel="certificate_name"
+                              optionValue="certificate_id"
+                              placeholder="Chọn văn bằng"
+                              v-model="slotProps.data.certificate_id"
+                              class="ip36"
+                              :style="{
+                                whiteSpace: 'nowrap',
+                                overflow: 'hidden',
+                                textOverflow: 'ellipsis',
+                              }"
+                            />
+                          </div>
+                        </template>
+                      </Column>
+                      <Column
+                        field="certificate_key_code"
+                        header="Số hiệu"
+                        headerStyle="text-align:center;width:150px;height:50px"
+                        bodyStyle="text-align:center;width:150px;"
+                        class="align-items-center justify-content-center text-center"
+                      >
+                        <template #body="slotProps">
+                          <InputText
+                            v-model="slotProps.data.certificate_key_code"
+                            spellcheck="false"
+                            type="text"
+                            class="ip36"
+                            maxLength="50"
+                          />
+                        </template>
+                      </Column>
+                      <Column
+                        field="certificate_version"
+                        header="Phiên bản"
+                        headerStyle="text-align:center;width:150px;height:50px"
+                        bodyStyle="text-align:center;width:150px;"
+                        class="align-items-center justify-content-center text-center"
+                      >
+                        <template #body="slotProps">
+                          <InputText
+                            v-model="slotProps.data.certificate_version"
+                            spellcheck="false"
+                            type="text"
+                            class="ip36"
+                            maxLength="25"
+                          />
+                        </template>
+                      </Column>
+                      <Column
+                        field="certificate_release_time"
+                        header="Lần phát hành"
+                        headerStyle="text-align:center;width:150px;height:50px"
+                        bodyStyle="text-align:center;width:150px;"
+                        class="align-items-center justify-content-center text-center"
+                      >
+                        <template #body="slotProps">
+                          <InputText
+                            v-model="slotProps.data.certificate_release_time"
+                            spellcheck="false"
+                            type="text"
+                            class="ip36"
+                            maxLength="25"
+                          />
+                        </template>
+                      </Column>
+                      <Column
+                        field="certificate_start_date"
+                        header="Ngày hiệu lực"
+                        headerStyle="text-align:center;width:120px;height:50px"
+                        bodyStyle="text-align:center;width:120px;"
+                        class="align-items-center justify-content-center text-center"
+                      >
+                        <template #body="slotProps">
+                          <Calendar
+                            v-model="slotProps.data.certificate_start_date"
+                            :showIcon="false"
+                            class="ip36"
+                            placeholder="dd/mm/yyyy"
+                          />
+                        </template>
+                      </Column>
+                      <Column
+                        field="certificate_end_date"
+                        header="Ngày hết hiệu lực"
+                        headerStyle="text-align:center;width:120px;height:50px"
+                        bodyStyle="text-align:center;width:120px;"
+                        class="align-items-center justify-content-center text-center"
+                      >
+                        <template #body="slotProps">
+                          <Calendar
+                            v-model="slotProps.data.certificate_end_date"
+                            :showIcon="false"
+                            class="ip36"
+                            placeholder="dd/mm/yyyy"
+                          />
+                        </template>
+                      </Column>
+                      <template #empty>
+                        <div
+                          class="align-items-center justify-content-center p-4 text-center m-auto"
+                          style="display: flex; width: 100%"
+                        ></div>
                       </template>
-                    </Column>
-                    <Column
-                      field="certificate_end_date"
-                      header="Ngày hết hiệu lực"
-                      headerStyle="text-align:center;width:120px;height:50px"
-                      bodyStyle="text-align:center;width:120px;"
-                      class="align-items-center justify-content-center text-center"
-                    >
-                      <template #body="slotProps">
-                        <Calendar
-                          v-model="slotProps.data.certificate_end_date"
-                          :showIcon="false"
-                          class="ip36"
-                          placeholder="dd/mm/yyyy"
-                        />
-                      </template>
-                    </Column>
-                    <Column
-                      field="certificate_key_code"
-                      header="Số hiệu"
-                      headerStyle="text-align:center;width:150px;height:50px"
-                      bodyStyle="text-align:center;width:150px;"
-                      class="align-items-center justify-content-center text-center"
-                    >
-                      <template #body="slotProps">
-                        <InputText
-                          v-model="slotProps.data.certificate_key_code"
-                          spellcheck="false"
-                          type="text"
-                          class="ip36"
-                          maxLength="50"
-                        />
-                      </template>
-                    </Column>
-                    <Column
-                      field="certificate_version"
-                      header="Phiên bản"
-                      headerStyle="text-align:center;width:150px;height:50px"
-                      bodyStyle="text-align:center;width:150px;"
-                      class="align-items-center justify-content-center text-center"
-                    >
-                      <template #body="slotProps">
-                        <InputText
-                          v-model="slotProps.data.certificate_version"
-                          spellcheck="false"
-                          type="text"
-                          class="ip36"
-                          maxLength="25"
-                        />
-                      </template>
-                    </Column>
-                    <Column
-                      field="certificate_release_time"
-                      header="Lần phát hành"
-                      headerStyle="text-align:center;width:150px;height:50px"
-                      bodyStyle="text-align:center;width:150px;"
-                      class="align-items-center justify-content-center text-center"
-                    >
-                      <template #body="slotProps">
-                        <InputText
-                          v-model="slotProps.data.certificate_release_time"
-                          spellcheck="false"
-                          type="text"
-                          class="ip36"
-                          maxLength="25"
-                        />
-                      </template>
-                    </Column>
-                    <template #empty>
-                      <div
-                        class="align-items-center justify-content-center p-4 text-center m-auto"
-                        style="display: flex; width: 100%"
-                      ></div>
-                    </template>
-                  </DataTable> -->
+                    </DataTable>
                   </div>
                 </div>
               </div>
@@ -3735,7 +3764,7 @@ onMounted(() => {
         icon="pi pi-check"
         @click="saveRow(1, true)"
       />
-      <Button label="Lưu" icon="pi pi-check" @click="saveRow(1, true)" />
+      <Button label="Lưu" icon="pi pi-check" @click="saveRow(1)" />
     </template>
   </Dialog>
   <!--Dialog 2-->
@@ -3913,28 +3942,7 @@ onMounted(() => {
             />
           </div>
         </div>
-        <div class="col-6 md:col-6">
-          <div class="form-group">
-            <label>Ngày hiệu lực</label>
-            <Calendar
-              v-model="model.certificate_start_date"
-              :showIcon="false"
-              class="ip36"
-              placeholder="dd/mm/yyyy"
-            />
-          </div>
-        </div>
-        <div class="col-6 md:col-6">
-          <div class="form-group">
-            <label>Ngày hết hiệu lực</label>
-            <Calendar
-              v-model="model.certificate_end_date"
-              :showIcon="false"
-              class="ip36"
-              placeholder="dd/mm/yyyy"
-            />
-          </div>
-        </div>
+
         <div class="col-6 md:col-6 format-center">
           <div class="form-group m-0">
             <div
@@ -4006,6 +4014,28 @@ onMounted(() => {
             />
           </div>
         </div>
+        <div class="col-6 md:col-6">
+          <div class="form-group">
+            <label>Ngày hiệu lực</label>
+            <Calendar
+              v-model="model.certificate_start_date"
+              :showIcon="false"
+              class="ip36"
+              placeholder="dd/mm/yyyy"
+            />
+          </div>
+        </div>
+        <div class="col-6 md:col-6">
+          <div class="form-group">
+            <label>Ngày hết hiệu lực</label>
+            <Calendar
+              v-model="model.certificate_end_date"
+              :showIcon="false"
+              class="ip36"
+              placeholder="dd/mm/yyyy"
+            />
+          </div>
+        </div>
       </div>
     </form>
     <template #footer>
@@ -4020,7 +4050,7 @@ onMounted(() => {
         icon="pi pi-check"
         @click="saveRow(2, true)"
       />
-      <Button label="Lưu" icon="pi pi-check" @click="saveRow(2, true)" />
+      <Button label="Lưu" icon="pi pi-check" @click="saveRow(2)" />
     </template>
   </Dialog>
   <!--Dialog 4-->
