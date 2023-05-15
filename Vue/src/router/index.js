@@ -287,7 +287,8 @@ const Hrm_campaign = () => import("../views/hrm/recruitment/hrm_campaign.vue");
 const Hrm_proposal = () => import("../views/hrm/recruitment/hrm_proposal.vue");
 
 const Hrm_paycheck = () => import("../views/hrm/declare/hrm_paycheck.vue");
-const Hrm_declare_review_form = () => import("../views/hrm/declare/hrm_declare_review_form.vue");
+const Hrm_declare_review_form = () =>
+  import("../views/hrm/declare/hrm_declare_review_form.vue");
 const hrm_ConfigWorkLocation = () =>
   import("../views/hrm/declare/hrm_config_work_location.vue");
 const HRMWorkScheDule = () =>
@@ -435,7 +436,8 @@ const HRM_ReportAcademicLevelMember = () =>
   import("../views/hrm/report/report_general/AcademicLevelMember.vue");
 const HRM_ReportContractStatistical = () =>
   import("../views/hrm/report/report_contract/StatisticalContract.vue");
-  const HRM_ReportChartGender = () => import("../views/hrm/report/chart/ChartGender.vue");
+const HRM_ReportChartGender = () =>
+  import("../views/hrm/report/chart/ChartGender.vue");
 
 // Request
 const Request_Dashboard = () =>
@@ -2024,7 +2026,7 @@ const router = createRouter({
     {
       path: "/hrm/hrm_chart/chart_gender",
       name: "hrm_report_chart_gender",
-      component: HRM_ReportChartGender ,
+      component: HRM_ReportChartGender,
     },
     // Tài liệu
     {
@@ -2084,7 +2086,6 @@ const router = createRouter({
       component: Hrm_declare_review_form,
     },
 
-    
     {
       path: "/hrm/work_schedule",
       name: "HRMWorkScheDule",
@@ -2185,11 +2186,6 @@ const router = createRouter({
       path: "/system/backup_history",
       name: "BackupHistory",
       component: BackupHistory,
-    },
-    {
-      path: "/tasks/aa",
-      name: "BackupHistory",
-      component: () => import("../components/task_origin/DialogTask.vue"),
     },
   ],
 });
