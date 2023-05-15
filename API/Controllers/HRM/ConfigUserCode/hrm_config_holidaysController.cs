@@ -32,6 +32,81 @@ namespace API.Controllers.HRM.ConfigUserCode
         {
             return HttpContext.Current.Request.UserHostAddress;
         }
+        public class modelC
+        {
+            public int num_seniority { get; set; }
+            public int organization_id { get; set; }
+
+        }
+        [HttpPut]
+        public async Task<HttpResponseMessage> update_data(modelC model)
+        {
+            var identity = User.Identity as ClaimsIdentity;
+            if (identity == null)
+            {
+                return Request.CreateResponse(HttpStatusCode.OK, new { ms = "Bạn không có quyền truy cập chức năng này!", err = "1" });
+            }
+            string fdca_certificate = "";
+            IEnumerable<Claim> claims = identity.Claims;
+            string ip = getipaddress();
+            string name = claims.Where(p => p.Type == "fname").FirstOrDefault()?.Value;
+            string tid = claims.Where(p => p.Type == "tid").FirstOrDefault()?.Value;
+            string dvid = claims.Where(p => p.Type == "dvid").FirstOrDefault()?.Value;
+            string uid = claims.Where(p => p.Type == "uid").FirstOrDefault()?.Value;
+
+            string domainurl = HttpContext.Current.Request.Url.Scheme + "://" + HttpContext.Current.Request.Url.Host + ":" + HttpContext.Current.Request.Url.Port + "/";
+
+            try
+            {
+                using (DBEntities db = new DBEntities())
+                {
+                    var dv = int.Parse(dvid);
+                    var Superior = db.hrm_config_holidays.Where(p => p.organization_id == dv && p.type ==1 ).FirstOrDefault();
+                    if (Superior == null)
+                    {
+                        var hrm_CogfinUAD = new hrm_config_holidays();
+                     
+                        hrm_CogfinUAD.type = 1;
+
+                        hrm_CogfinUAD.organization_id = dv;
+                        hrm_CogfinUAD.num_seniority = 1;
+               
+
+                        hrm_CogfinUAD.created_by = uid;
+                        hrm_CogfinUAD.created_date = DateTime.Now;
+                        hrm_CogfinUAD.created_ip = ip;
+
+                        db.hrm_config_holidays.Add(hrm_CogfinUAD);
+                        db.SaveChanges();
+                         
+                    }
+                     
+                    return Request.CreateResponse(HttpStatusCode.OK, new { err = "0" });
+                }
+            }
+            catch (DbEntityValidationException e)
+            {
+                string contents = helper.getCatchError(e, null);
+                helper.saveLog(uid, name, JsonConvert.SerializeObject(new { data = fdca_certificate, contents }), domainurl + "hrm_config_contract/update_data", ip, tid, "Lỗi khi cập nhật mã số hợp đồng", 0, "mã số hợp đồng");
+                if (!helper.debug)
+                {
+                    contents = "";
+                }
+                Log.Error(contents);
+                return Request.CreateResponse(HttpStatusCode.OK, new { ms = contents, err = "1" });
+            }
+            catch (Exception e)
+            {
+                string contents = helper.ExceptionMessage(e);
+                helper.saveLog(uid, name, JsonConvert.SerializeObject(new { data = fdca_certificate, contents }), domainurl + "hrm_config_contract/update_data", ip, tid, "Lỗi khi cập nhật mã số hợp đồng", 0, "mã số hợp đồng");
+                if (!helper.debug)
+                {
+                    contents = "";
+                }
+                Log.Error(contents);
+                return Request.CreateResponse(HttpStatusCode.OK, new { ms = contents, err = "1" });
+            }
+        }
 
 
 

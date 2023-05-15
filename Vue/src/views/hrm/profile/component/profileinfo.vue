@@ -3552,12 +3552,12 @@ const formatViewNumber = (value, partDecimal) => {
                             </template>
                           </DataTable> -->
                           <div class="col-12 md:col-12">
-                            <div class="">
+                            <div class="form-group m-0">
                               <label class="label-profileinfo"><b>Thông tin Đảng</b></label>
                             </div>
                           </div>
                           <div class="col-6 md:col-6">
-                            <div class="">
+                            <div class="form-group m-0">
                               <label class="label-profileinfo">Ngạch công chức (viên chức): 
                                 <span class="description-2">
                                   {{ profile.civil_servant_rank_name }}
@@ -3568,7 +3568,7 @@ const formatViewNumber = (value, partDecimal) => {
                           <div class="col-6 md:col-6 format-center">
                           </div>
                           <div class="col-4 md:col-4">
-                            <div class="">
+                            <div class="form-group m-0">
                               <label class="label-profileinfo">Số thẻ Đảng: 
                                 <span class="description-2">
                                   {{ profile.card_partisan || '' }}
@@ -3577,7 +3577,7 @@ const formatViewNumber = (value, partDecimal) => {
                             </div>
                           </div>
                           <div class="col-4 md:col-4">
-                            <div class="">
+                            <div class="form-group m-0">
                               <label class="label-profileinfo">Ngày vào Đảng: 
                                 <span class="description-2">
                                   {{ profile.partisan_date ? moment(new Date(profile.partisan_date)).format('DD/MM/yyyy') : '' }}
@@ -3586,7 +3586,7 @@ const formatViewNumber = (value, partDecimal) => {
                             </div>
                           </div>
                           <div class="col-4 md:col-4">
-                            <div class="">
+                            <div class="form-group m-0">
                               <label class="label-profileinfo">Ngày vào Đảng chính thức: 
                                 <span class="description-2">
                                   {{ profile.partisan_main_date ? moment(new Date(profile.partisan_main_date)).format('DD/MM/yyyy') : '' }}
@@ -3595,7 +3595,7 @@ const formatViewNumber = (value, partDecimal) => {
                             </div>
                           </div>
                           <div class="col-6 md:col-6">
-                            <div class="">
+                            <div class="form-group m-0">
                               <label class="label-profileinfo">Chị bộ sinh hoạt Đảng: 
                                 <span class="description-2">
                                   {{ profile.partisan_branch || '' }}
@@ -3604,7 +3604,7 @@ const formatViewNumber = (value, partDecimal) => {
                             </div>
                           </div>
                           <div class="col-6 md:col-6">
-                            <div class="">
+                            <div class="form-group m-0">
                               <label class="label-profileinfo">Đảng bộ chính thức: 
                                 <span class="description-2">
                                   {{ profile.partisan_official || '' }}
@@ -3613,7 +3613,7 @@ const formatViewNumber = (value, partDecimal) => {
                             </div>
                           </div>
                           <div class="col-6 md:col-6">
-                            <div class="">
+                            <div class="form-group m-0">
                               <label class="label-profileinfo">Ngày tham gia cách mạng: 
                                 <span class="description-2">
                                   {{ profile.partisan_joindate ? moment(new Date(profile.partisan_joindate)).format('DD/MM/yyyy') : '' }}
@@ -3622,7 +3622,7 @@ const formatViewNumber = (value, partDecimal) => {
                             </div>
                           </div>
                           <div class="col-6 md:col-6">
-                            <div class="">
+                            <div class="form-group m-0">
                               <label class="label-profileinfo">Ngày tham gia tổ chức: 
                                 <span class="description-2">
                                   {{ profile.organization_joindate ? moment(new Date(profile.organization_joindate)).format('DD/MM/yyyy') : '' }}
@@ -3631,7 +3631,7 @@ const formatViewNumber = (value, partDecimal) => {
                             </div>
                           </div>
                           <div class="col-12 md:col-12">
-                            <div class="">
+                            <div class="form-group m-0">
                               <label class="label-profileinfo">Công việc trong tổ chức: 
                                 <span class="description-2">
                                   {{ profile.organization_task || '' }}
@@ -5182,7 +5182,7 @@ const formatViewNumber = (value, partDecimal) => {
                       </template>
                       <div class="row">
                         <div class="col-6 md:col-6">
-                          <div class="form-group">
+                          <div class="form-group m-0">
                             <label class="label-profileinfo"
                               >Chiều cao:
                               <span class="description-2">{{
@@ -5192,7 +5192,7 @@ const formatViewNumber = (value, partDecimal) => {
                           </div>
                         </div>
                         <div class="col-6 md:col-6">
-                          <div class="form-group">
+                          <div class="form-group m-0">
                             <label class="label-profileinfo"
                               >Cân nặng:
                               <span class="description-2">{{
@@ -5202,7 +5202,7 @@ const formatViewNumber = (value, partDecimal) => {
                           </div>
                         </div>
                         <div class="col-6 md:col-6">
-                          <div class="form-group">
+                          <div class="form-group m-0">
                             <label class="label-profileinfo"
                               >Nhóm máu:
                               <span class="description-2">{{
@@ -5212,7 +5212,7 @@ const formatViewNumber = (value, partDecimal) => {
                           </div>
                         </div>
                         <div class="col-6 md:col-6">
-                          <div class="form-group">
+                          <div class="form-group m-0">
                             <label class="label-profileinfo"
                               >Huyết áp:
                               <span class="description-2">{{
@@ -5222,7 +5222,7 @@ const formatViewNumber = (value, partDecimal) => {
                           </div>
                         </div>
                         <div class="col-6 md:col-6">
-                          <div class="form-group">
+                          <div class="form-group m-0">
                             <label class="label-profileinfo"
                               >Nhịp tim:
                               <span class="description-2">{{
@@ -5231,14 +5231,26 @@ const formatViewNumber = (value, partDecimal) => {
                             >
                           </div>
                         </div>
-                        <div class="col-12 md:col-12">
-                          <div class="form-group">
+                        <div class="col-6 md:col-6">
+                          <div class="form-group m-0">
                             <label class="label-profileinfo"
-                              >Ghi chú:
+                              >Tình trạng sức khỏe:
                               <span class="description-2">{{
-                                health.note
+                                health.military_health
                               }}</span></label
                             >
+                          </div>
+                        </div>
+                        <div class="col-12 md:col-12">
+                          <div class="flex" style="flex-direction:column;">
+                            <label class="label-profileinfo">Ghi chú: </label>
+                            <Textarea class="w-full"
+                              :autoResize="true"
+                              rows="1"
+                              v-model="health.note"
+                              :disabled="true"
+                              style="border:none;color:#606060 !important;line-height: 1.5;opacity:1;"
+                            />
                           </div>
                         </div>
                       </div>
@@ -5285,8 +5297,8 @@ const formatViewNumber = (value, partDecimal) => {
                           <Column
                             field="type_vaccine"
                             header="Loại vắc xin"
-                            headerStyle="text-align:center;width:250px;height:50px"
-                            bodyStyle="text-align:center;width:250px;"
+                            headerStyle="text-align:center;width:250px;height:50px;flex:1;"
+                            bodyStyle="text-align:center;width:250px;flex:1;"
                             class="align-items-center justify-content-center text-center"
                           >
                             <template #body="slotProps">
@@ -5309,8 +5321,8 @@ const formatViewNumber = (value, partDecimal) => {
                           <Column
                             field="vaccination_facility"
                             header="Cơ sở tiêm chủng"
-                            headerStyle="text-align:center;width:250px;height:50px"
-                            bodyStyle="text-align:center;width:250px;"
+                            headerStyle="text-align:center;width:250px;height:50px;flex:1;"
+                            bodyStyle="text-align:center;width:250px;flex:1;"
                             class="align-items-center justify-content-center text-center"
                           >
                             <template #body="slotProps">
@@ -5322,8 +5334,8 @@ const formatViewNumber = (value, partDecimal) => {
                           <Column
                             field="sign_user"
                             header="Người ký"
-                            headerStyle="text-align:center;width:200px;height:50px"
-                            bodyStyle="text-align:center;width:200px;"
+                            headerStyle="text-align:center;width:250px;height:50px"
+                            bodyStyle="text-align:center;width:250px;"
                             class="align-items-center justify-content-center text-center"
                           >
                             <template #body="slotProps">
@@ -5333,8 +5345,8 @@ const formatViewNumber = (value, partDecimal) => {
                           <Column
                             field="sign_user_position"
                             header="Chức vụ"
-                            headerStyle="text-align:center;width:200px;height:50px"
-                            bodyStyle="text-align:center;width:200px;"
+                            headerStyle="text-align:center;width:250px;height:50px"
+                            bodyStyle="text-align:center;width:250px;"
                             class="align-items-center justify-content-center text-center"
                           >
                             <template #body="slotProps">

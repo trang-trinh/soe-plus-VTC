@@ -1323,8 +1323,8 @@ li.p-chips-token {
 .d-design-orgchart .org-tree-node-label .org-tree-node-label-inner {
   box-shadow: 0 1px 5px rgba(0, 0, 0, 0.25) !important;
   padding: 0 !important;
-  }
- .d-sidebar-full .p-sidebar-full .p-sidebar {
+}
+.d-sidebar-full .p-sidebar-full .p-sidebar {
   transition: none;
   transform: none;
   width: 100vw !important;
@@ -1334,24 +1334,21 @@ li.p-chips-token {
   left: 0px !important;
 }
 
-.p-sidebar.d-sidebar-full .p-sidebar-header{
-  padding: 1rem !important; 
+.p-sidebar.d-sidebar-full .p-sidebar-header {
+  padding: 1rem !important;
   width: 100%;
-
 }
-.p-sidebar.d-sidebar-full .p-sidebar-header .p-sidebar-header-content{
- 
+.p-sidebar.d-sidebar-full .p-sidebar-header .p-sidebar-header-content {
   width: 100%;
-  
 }
-.p-sidebar.d-sidebar-full .has-child{
+.p-sidebar.d-sidebar-full .has-child {
   height: 100% !important;
 }
-.p-sidebar.d-sidebar-full .has-child td{
+.p-sidebar.d-sidebar-full .has-child td {
   height: unset !important;
 }
-.p-datatable.d-sidebar-full   td{
-  height:unset !important;
+.p-datatable.d-sidebar-full td {
+  height: unset !important;
 }
 /*Style chung cho min-w-Xrem*/
 
@@ -1464,7 +1461,4 @@ li.p-chips-token {
 }
 .justify-content-right {
   justify-content: right !important;
-}
-.p-sidebar-task.p-sidebar .p-sidebar-content {
-  overflow-y: hidden !important;
 }
