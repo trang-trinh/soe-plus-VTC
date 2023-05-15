@@ -357,9 +357,10 @@ namespace API.Controllers
             {
                 return Request.CreateResponse(HttpStatusCode.OK, new { ms = "Bạn không có quyền truy cập chức năng này!", err = "1" });
             }
-            try
-            {
-                using (DBEntities db = new DBEntities())
+
+            backup_history his = new backup_history();
+            using (DBEntities db = new DBEntities()) {
+                try
                 {
                     if (!Request.Content.IsMimeMultipartContent())
                     {
@@ -379,31 +380,41 @@ namespace API.Controllers
                         }
                         fdback = provider.FormData.GetValues("model").SingleOrDefault();
                         backup_schedule model = JsonConvert.DeserializeObject<backup_schedule>(fdback);
+                        // lich su back up
+                        his.backup_history_id = helper.GenKey();
+                        his.backup_id = model.backup_id;
+                        his.title_backup = (model.title != null ? (model.title.Trim() + " ") : "") +
+                                           (model.type_backup == 0 ? "Database " : model.type_backup == 1 ? "File " : model.type_backup == 2 ? "Database và File " : "") +
+                                           (model.type_time_backup == 0 ? "hàng ngày" : model.type_time_backup == 1 ? "hàng tuần" : model.type_time_backup == 2 ? "hàng tháng" : "");
+                        his.backup_date = DateTime.Now;
+                        his.status = 0;
+                        his.created_by = uid;
+
                         // backup ...                        
                         if (model.type_backup == 0)
                         {
                             // cmd
                             var pathBackup = "C://Program Files/Microsoft SQL Server/MSSQL15.MSSQLSERVER/MSSQL/Backup";
-                            //string disk = pathSocket.Substring(0, 1);
-                            //string strCmdText = disk + ": & cd " + pathSocket + " & sqlcmd -e -s touch -q \" backup database SOEVTC to disk = '" + pathSocket + "/" + "soevtc_backupdb_" + DateTime.Now.ToString() + ".bak" + "' \" /C";
-                            //var proc = System.Diagnostics.Process.Start("CMD.exe", strCmdText);
 
                             // proc backup
                             string Connection = System.Configuration.ConfigurationManager.ConnectionStrings["Connection"].ConnectionString;
                             var sqlpas = new List<SqlParameter>();
                             if (model.type_path_backup == 0)
                             {
-                                sqlpas.Add(new SqlParameter("@path_backup", pathBackup + "/" + "soevtc_backupdb_" + DateTime.Now.ToString("ddMMyyyyHHmmss") + ".bak"));
+                                var nameFileBackup = "soevtc_backupdb_" + DateTime.Now.ToString("ddMMyyyyHHmmss") + ".bak";
+                                sqlpas.Add(new SqlParameter("@path_backup", pathBackup + "/" + nameFileBackup));
+                                his.file_backup_path = pathBackup + "/" + nameFileBackup;
                             }
                             else
                             {
-                                sqlpas.Add(new SqlParameter("@path_backup", model.folder_backup_path + "/" + "soevtc_backupdb_" + DateTime.Now.ToString("ddMMyyyyHHmmss") + ".bak"));
+                                var nameFileBackup = "soevtc_backupdb_" + DateTime.Now.ToString("ddMMyyyyHHmmss") + ".bak";
+                                sqlpas.Add(new SqlParameter("@path_backup", model.folder_backup_path + "/" + nameFileBackup));
+                                his.file_backup_path = model.folder_backup_path + "/" + nameFileBackup;
                             }
                             var arrpas = sqlpas.ToArray();
                             System.Threading.Tasks.Task.Run(async () =>
                                 await System.Threading.Tasks.Task.Run(() => SqlHelper.ExecuteDataset(Connection, "backup_db_to_path", arrpas))                                
                             );
-
                         }
                         else if (model.type_backup == 1)
                         {
@@ -443,6 +454,11 @@ namespace API.Controllers
                             System.Diagnostics.Process process = new System.Diagnostics.Process();
                             process.StartInfo = ps;
                             process.Start();
+                            his.file_backup_path = "/BackupData/data_file_backup.zip";
+                            if (File.Exists(root + his.file_backup_path))
+                            {
+                                his.file_size = new FileInfo(root + his.file_backup_path).Length;
+                            }                            
                         }
                         else if (model.type_backup == 2)
                         {
@@ -453,11 +469,15 @@ namespace API.Controllers
                             var sqlpas = new List<SqlParameter>();
                             if (model.type_path_backup == 0)
                             {
-                                sqlpas.Add(new SqlParameter("@path_backup", pathBackup + "/" + "soevtc_backupdb_" + DateTime.Now.ToString("ddMMyyyyHHmmss") + ".bak"));
+                                var nameFileBackup = "soevtc_backupdb_" + DateTime.Now.ToString("ddMMyyyyHHmmss") + ".bak";
+                                sqlpas.Add(new SqlParameter("@path_backup", pathBackup + "/" + nameFileBackup));
+                                his.file_backup_path = pathBackup + "/" + nameFileBackup;
                             }
                             else
                             {
-                                sqlpas.Add(new SqlParameter("@path_backup", model.folder_backup_path + "/" + "soevtc_backupdb_" + DateTime.Now.ToString("ddMMyyyyHHmmss") + ".bak"));
+                                var nameFileBackup = "soevtc_backupdb_" + DateTime.Now.ToString("ddMMyyyyHHmmss") + ".bak";
+                                sqlpas.Add(new SqlParameter("@path_backup", model.folder_backup_path + "/" + nameFileBackup));
+                                his.file_backup_path = pathBackup + "/" + nameFileBackup;
                             }
                             var arrpas = sqlpas.ToArray();
                             System.Threading.Tasks.Task.Run(async () =>
@@ -501,6 +521,10 @@ namespace API.Controllers
                             process.StartInfo = ps;
                             process.Start();
                         }
+                        
+                        // Trang thai backup
+                        his.status = 1;
+
                         #region add sys_logs
                         //if (helper.wlog)
                         //{
@@ -509,33 +533,40 @@ namespace API.Controllers
                         //        domainurl + "Backup/Run_Backup", ip, tid, "Thực hiện backup dữ liệu", 1, "Backup");
                         //}
                         #endregion
-                        
+                        db.backup_history.Add(his);
+                        db.SaveChanges();
                         return Request.CreateResponse(HttpStatusCode.OK, new { err = "0" });
                     });
                     return await task;
                 }
-            }
-            catch (DbEntityValidationException e)
-            {
-                string contents = helper.getCatchError(e, null);
-                helper.saveLog(uid, name, JsonConvert.SerializeObject(new { data = fdback, contents }), domainurl + "Backup/Run_Backup", ip, tid, "Lỗi khi backup dữ liệu", 0, "Backup");
-                if (!helper.debug)
+                catch (DbEntityValidationException e)
                 {
-                    contents = "";
+                    his.status = 2;
+                    db.backup_history.Add(his);
+                    db.SaveChanges();
+                    string contents = helper.getCatchError(e, null);
+                    helper.saveLog(uid, name, JsonConvert.SerializeObject(new { data = fdback, contents }), domainurl + "Backup/Run_Backup", ip, tid, "Lỗi khi backup dữ liệu", 0, "Backup");
+                    if (!helper.debug)
+                    {
+                        contents = "";
+                    }
+                    Log.Error(contents);
+                    return Request.CreateResponse(HttpStatusCode.OK, new { ms = contents, err = "1" });
                 }
-                Log.Error(contents);
-                return Request.CreateResponse(HttpStatusCode.OK, new { ms = contents, err = "1" });
-            }
-            catch (Exception e)
-            {
-                string contents = helper.ExceptionMessage(e);
-                helper.saveLog(uid, name, JsonConvert.SerializeObject(new { data = fdback, contents }), domainurl + "Backup/Run_Backup", ip, tid, "Lỗi khi backup dữ liệu", 0, "Backup");
-                if (!helper.debug)
+                catch (Exception e)
                 {
-                    contents = "";
+                    his.status = 2;
+                    db.backup_history.Add(his);
+                    db.SaveChanges();
+                    string contents = helper.ExceptionMessage(e);
+                    helper.saveLog(uid, name, JsonConvert.SerializeObject(new { data = fdback, contents }), domainurl + "Backup/Run_Backup", ip, tid, "Lỗi khi backup dữ liệu", 0, "Backup");
+                    if (!helper.debug)
+                    {
+                        contents = "";
+                    }
+                    Log.Error(contents);
+                    return Request.CreateResponse(HttpStatusCode.OK, new { ms = contents, err = "1" });
                 }
-                Log.Error(contents);
-                return Request.CreateResponse(HttpStatusCode.OK, new { ms = contents, err = "1" });
             }
         }
 
