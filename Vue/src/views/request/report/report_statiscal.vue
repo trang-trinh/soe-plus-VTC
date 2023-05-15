@@ -31,6 +31,13 @@ const options = ref({
 });
 
 const datalists = ref();
+const count_all_request = ref(0);
+const count_all_request_moitao = ref(0);
+const count_all_request_choduyet = ref(0);
+const count_all_request_hoanthanh = ref(0);
+const count_all_request_quahan_choduyet = ref(0);
+const count_all_request_quahan_daduyet = ref(0);
+const count_all_request_quahan = ref(0);
 
 const loadData = (rf) => {
     options.value.loading = true;
@@ -54,13 +61,21 @@ const loadData = (rf) => {
         )
         .then((response) => {
             if (response != null && response.data != null) {
-                let data = JSON.parse(response.data.data)[0];
-                datalists.value = data;
+                let data = JSON.parse(response.data.data);
+                datalists.value = data[0];
+                count_all_request.value = data[1][0].count_all_request;
+                count_all_request_choduyet.value = data[3][0].count_all_request_choduyet;
+                count_all_request_moitao.value = data[2][0].count_all_request_moitao;
+                count_all_request_hoanthanh.value = data[4][0].count_all_request_hoanthanh;
+                datalists.value.forEach((d)=>{
+                    d.is_show = d.lv == 0 ? true : false;
+                })
             }
             swal.close();
             if (options.value.loading) options.value.loading = false;
         })
         .catch((error) => {
+            debugger
             toast.error("Tải dữ liệu không thành công!");
             options.value.loading = false;
             if (error && error.status === 401) {
@@ -80,6 +95,14 @@ onMounted(() => {
         loadData,
     };
 });
+
+const ChangeIsShowTeam = () => {
+    datalists.value.forEach((d)=>{
+        if(d.lv == 1){
+            d.is_show = options.value.is_team ? true : false;
+        }
+    })
+}
 </script>
 <template>
     <div class="surface-100 p-2">
@@ -88,7 +111,7 @@ onMounted(() => {
                 <div class="flex" style="width: 100%;">
                     <span class="p-input-icon-left"
                         style="position: relative;width: 50%;display: flex;align-items: center;">
-                        <InputSwitch @change="ChangeIsDepartment()" class="col-6" style="position: absolute;"
+                        <InputSwitch @change="ChangeIsShowTeam()" class="col-6" style="position: absolute;"
                             v-model="options.is_team" />
                         <label class="col-3 text-left p-0" style="position: absolute; left: 50px">Hiện team</label>
                     </span>
@@ -170,25 +193,25 @@ onMounted(() => {
                         <th class="text-center" width="100">Tổng cộng</th>
                     </tr>
                     <tr>
-                        <th class="text-center" width="100"></th>
-                        <th class="text-center" width="100"></th>
-                        <th class="text-center" width="100"></th>
-                        <th class="text-center" width="100"></th>
-                        <th class="text-center" width="100"></th>
-                        <th class="text-center" width="100"></th>
-                        <th class="text-center" width="100"></th>
+                        <th class="text-center" width="100">{{ count_all_request }}</th>
+                        <th class="text-center" width="100">{{ count_all_request_moitao }}</th>
+                        <th class="text-center" width="100">{{ count_all_request_choduyet }}</th>
+                        <th class="text-center" width="100">{{ count_all_request_hoanthanh }}</th>
+                        <th class="text-center" width="100">{{ count_all_request_quahan_choduyet }}</th>
+                        <th class="text-center" width="100">{{ count_all_request_quahan_daduyet }}</th>
+                        <th class="text-center" width="100">{{ count_all_request_quahan }}</th>
                     </tr>
                 </thead>
-                <tbody>
-                    <tr v-for="(d, index) in datalists" :key="index" class="item-hover">
-                        <td align="left" class="td-form">{{ d.request_form_name }}</td>
+                <tbody v-for="(d, index) in datalists" :key="index">
+                    <tr class="item-hover" v-if="d.is_show == true">
+                        <td align="left" :class="d.lv == 0 ? 'td-form-0' : 'td-form-1'">{{ d.table_name }}</td>
                         <td align="center">{{ d.count_all_request }}</td>
                         <td align="center">{{ d.count_all_request_moitao }}</td>
                         <td align="center">{{ d.count_all_request_choduyet }}</td>
                         <td align="center">{{ d.count_all_request_hoanthanh }}</td>
-                        <td align="center"></td>
-                        <td align="center"></td>
-                        <td align="center"></td>
+                        <td align="center">{{ d.count_all_request_quahan_choduyet }}</td>
+                        <td align="center">{{ d.count_all_request_quahan_daduyet }}</td>
+                        <td align="center">{{ d.count_all_request_quahan }}</td>
                     </tr>
                 </tbody>
             </table>
@@ -258,10 +281,12 @@ onMounted(() => {
   table th {
       background-color: #8BCFFB !important;
   }
-  table .td-form {
+  table .td-form-0 {
       background-color: #f6ddcc !important;
   }
-
+  table .td-form-1 {
+      background-color: #d5f5e3 !important;
+  }
   table th, table td {
       border: 0.3px solid rgba(0,0,0,.3) !important;
   }
