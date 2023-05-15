@@ -1415,7 +1415,7 @@ const configRole = (md) => {
         data
           .filter((x) => x.is_permission)
           .forEach((r) => {
-            let ds = r.is_permission.toString().split("");
+            let ds = r.is_permission.toString().split(",");
             var arrs = [];
             ds.forEach((e) => {
               arrs.push(parseInt(e));
@@ -1488,7 +1488,7 @@ const addConfigRole = () => {
       module_id: element.data.module_id,
       IsCap: element.data.IsCap,
       is_permission: element.data.is_permission
-        ? element.data.is_permission.join("")
+        ? element.data.is_permission.join()
         : element.data.is_permission,
       module_functions: element.data.module_functions
         ? element.data.module_functions.join()
@@ -1503,7 +1503,7 @@ const addConfigRole = () => {
           module_id: ec.data.module_id,
           IsCap: ec.data.IsCap,
           is_permission: ec.data.is_permission
-            ? ec.data.is_permission.join("")
+            ? ec.data.is_permission.join()
             : ec.data.is_permission,
           module_functions: element.data.module_functions
             ? element.data.module_functions.join()
@@ -1519,7 +1519,7 @@ const addConfigRole = () => {
               module_id: ec2.data.module_id,
               is_grade: ec2.data.is_grade,
               is_permission: ec2.data.is_permission
-                ? ec2.data.is_permission.join("")
+                ? ec2.data.is_permission.join()
                 : ec2.data.is_permission,
               module_functions: ec2.data.module_functions
                 ? ec2.data.module_functions.join()
@@ -2675,7 +2675,7 @@ onMounted(() => {
             id="overlay_Quyen"
             ref="menuQuyen"
             :popup="true"
-            :options="tdQuyens.filter(x => md.node.data.permission.split(',').includes(x.value.toString()))"            optionLabel="text"
+            :options="tdQuyens.filter(x => md.node.data.permission.split(',').includes(x.value.toString())).sort((a, b) => a.value - b.value)"            optionLabel="text"
             optionValue="value"
             placeholder="Chọn quyền"
           />

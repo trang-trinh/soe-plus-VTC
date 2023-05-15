@@ -15,7 +15,7 @@ export const store = createStore({
         birthDay: {},
         userConnected: [],
         listModule: [],
-
+        listOrgTree: [],
     },
     getters: {
         isframe: (state) => state.isframe,
@@ -29,9 +29,14 @@ export const store = createStore({
         birthDay_id: (state) => state.birthDay,
         userConnected: (state) => state.userConnected,
         listModule: (state) => state.listModule,
-
+        listOrgTree: (state) => state.listOrgTree,
     },
     mutations: {
+
+    
+        setlistOrgTree(state, vl) {
+            state.listOrgTree = vl;
+        },
         setisframe(state, vl) {
             state.isframe = vl;
         },
