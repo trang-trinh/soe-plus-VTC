@@ -4,11 +4,11 @@ import { useToast } from "vue-toastification";
 import { required } from "@vuelidate/validators";
 import { useVuelidate } from "@vuelidate/core";
 import { FilterMatchMode, FilterOperator } from "primevue/api";
-import { encr, checkURL } from "../../../util/function.js";
+import { encr, checkURL, decr } from "../../../util/function.js";
 import DropdownUser from "../component/DropdownProfile.vue";
 import DropdownUsers from "../component/DropdownUsers.vue";
 import DocComponent from "./components/DocComponent.vue";
-
+import { useRoute } from "vue-router";
 //Khai báo
 const emitter = inject("emitter");
 const cryoptojs = inject("cryptojs");
@@ -16,6 +16,7 @@ const axios = inject("axios");
 const store = inject("store");
 const swal = inject("$swal");
 const isDynamicSQL = ref(false);
+const route = useRoute();
 const config = {
   headers: { Authorization: `Bearer ${store.getters.token}` },
 };
@@ -24,6 +25,10 @@ const filters = ref({
   report_name: {
     operator: FilterOperator.AND,
     constraints: [{ value: null, matchMode: FilterMatchMode.STARTS_WITH }],
+  },
+  report_group: {
+    operator: FilterOperator.AND,
+    constraints: [{ value: null, matchMode: FilterMatchMode.CONTAINS }],
   },
 });
 const visibleSidebarDoc = ref(false);
@@ -66,7 +71,6 @@ const execSQL = async (id) => {
   return axResponse;
 };
 const configBaocao = async (row) => {
- 
   axios;
 
   swal.fire({
@@ -75,14 +79,14 @@ const configBaocao = async (row) => {
       swal.showLoading();
     },
   });
-  const axResponse = await execSQL( row.report_id);
+  const axResponse = await execSQL(row.report_id);
 
   if (axResponse.status == 200) {
     if (axResponse.data.error) {
       toast.error("Không mở được bản ghi");
     } else {
       smart_report.value = JSON.parse(axResponse.data.data)[0][0];
-       
+
       if (smart_report.value.proc_name)
         smart_report.value.proc_name1 =
           smart_report.value.proc_name.split(" ")[0];
@@ -123,75 +127,113 @@ const loadCount = () => {
 };
 //Lấy dữ liệu smart_report
 const loadData = (rf) => {
+  if (isDynamicSQL.value) {
+    loadDataSQL();
+    return false;
+  }
   if (rf) {
-    if (isDynamicSQL.value) {
-      loadDataSQL();
-      return false;
+    if (options.value.PageNo == 0) {
+      loadCount();
     }
-    if (rf) {
-      if (options.value.PageNo == 0) {
-        loadCount();
-      }
-    }
-    axios
-      .post(
-        baseURL + "/api/hrm_ca_SQL/getData",
-        {
-          str: encr(
-            JSON.stringify({
-              proc: "smart_report_list",
-              par: [
-                { par: "pageno", va: options.value.PageNo },
-                { par: "pagesize", va: options.value.PageSize },
-                { par: "user_id", va: store.getters.user.user_id },
-                { par: "status", va: null },
-              ],
-            }),
-            SecretKey,
-            cryoptojs
-          ).toString(),
-        },
-        config
-      )
-      .then((response) => {
-        let data = JSON.parse(response.data.data)[0];
-        if (isFirst.value) isFirst.value = false;
+  }
+  axios
+    .post(
+      baseURL + "/api/hrm_ca_SQL/getData",
+      {
+        str: encr(
+          JSON.stringify({
+            proc: "smart_report_list",
+            par: [
+              { par: "pageno", va: options.value.PageNo },
+              { par: "pagesize", va: options.value.PageSize },
+              { par: "user_id", va: store.getters.user.user_id },
+              { par: "status", va: null },
+            ],
+          }),
+          SecretKey,
+          cryoptojs
+        ).toString(),
+      },
+      config
+    )
+    .then((response) => {
+      let data = JSON.parse(response.data.data)[0];
+      if (isFirst.value) isFirst.value = false;
 
-        expandedRowGroups.value = [];
-        data.forEach((element, i) => {
-          element.STT = options.value.PageNo * options.value.PageSize + i + 1;
-          expandedRowGroups.value.push(element.report_group);
+      expandedRowGroups.value = [];
+      data.forEach((element, i) => {
+        element.STT = options.value.PageNo * options.value.PageSize + i + 1;
+        expandedRowGroups.value.push(element.report_group);
 
-          if (element.report_group) {
-            if (
-              !liReportGroup.value.find((x) => x.name == element.report_group)
-            ) {
-              liReportGroup.value.push({
-                name: element.report_group,
-              });
-            }
+        if (element.report_group) {
+          if (
+            !liReportGroup.value.find(
+              (x) => x.name == element.report_group.trim()
+            )
+          ) {
+            liReportGroup.value.push({
+              name: element.report_group,
+            });
           }
-        });
-        datalists.value = data;
-
-        options.value.loading = false;
-      })
-      .catch((error) => {
-        toast.error("Tải dữ liệu không thành công!");
-        options.value.loading = false;
-
-        if (error && error.status === 401) {
-          swal.fire({
-            text: "Mã token đã hết hạn hoặc không hợp lệ, vui lòng đăng nhập lại!",
-            confirmButtonText: "OK",
-          });
         }
       });
-  }
+      datalists.value = data;
+
+      options.value.loading = false;
+    })
+    .catch((error) => {
+      toast.error("Tải dữ liệu không thành công!");
+      options.value.loading = false;
+
+      if (error && error.status === 401) {
+        swal.fire({
+          text: "Mã token đã hết hạn hoặc không hợp lệ, vui lòng đăng nhập lại!",
+          confirmButtonText: "OK",
+        });
+      }
+    });
 };
 const onRowGroupExpand = (event) => {
   console.log(event, expandedRowGroups.value);
 };
+
+const initBaocao = async (id) => {
+  let strSQL = {
+    query: false,
+    proc: "report_get_key",
+    par: [
+      {
+        par: "report_key",
+        va: id,
+      },
+    ],
+  };
+  swal.fire({
+    width: 110,
+    didOpen: () => {
+      swal.showLoading();
+    },
+  });
+  const axResponse = await axios.post(
+    baseURL + "api/Proc/PostProc",
+    encr(JSON.stringify(strSQL), SecretKey, cryoptojs).toString(),
+    config
+  );
+
+  if (axResponse.status == 200) {
+    if (axResponse.data.error) {
+      toast.error("Không mở được báo cáo");
+    } else {
+      smart_report.value = JSON.parse(axResponse.data.data)[0][0];
+    }
+  }
+  swal.close();
+};
+const onRowClickTable = (data) => {
+  configBaocao(data.data);
+ 
+};
+
 //Phân trang dữ liệu
 const onPage = (event) => {
   if (event.rows != options.value.PageSize) {
@@ -253,7 +295,7 @@ const checkDelList = ref(false);
 
 const options = ref({
   IsNext: true,
-  sort: "created_date",
+  sort: "report_group",
   SearchText: "",
   PageNo: 0,
   PageSize: 20,
@@ -261,6 +303,7 @@ const options = ref({
   totalRecords: null,
   totalRecordView: 0,
   totalRecordProc: 0,
+  report_group_filter: [],
 });
 
 //Hiển thị dialog
@@ -308,6 +351,7 @@ const openBasicWRP = (wrt) => {
   headerDialog.value = "Thêm báo cáo";
   displayBasic.value = true;
 };
+const pars = ref([]);
 const closeDialog = () => {
   smart_report.value = {
     report_name: "",
@@ -354,7 +398,7 @@ const saveData = (isFormValid) => {
       swal.showLoading();
     },
   });
-  
+
   if (!isSaveTem.value) {
     axios
       .post(baseURL + "/api/smart_report/add_smart_report", formData, config)
@@ -527,36 +571,34 @@ const editTem = (dataTem) => {
     });
 };
 const callbackFun = (obj) => {
-  
   Object.keys(obj).forEach((k) => {
     smart_report.value[k] = obj[k];
   });
   let formData = new FormData();
   formData.append("smart_report", JSON.stringify(smart_report.value));
   axios
-      .put(baseURL + "/api/smart_report/update_smart_report", formData, config)
-      .then((response) => {
-        if (response.data.err != "1") {
-          swal.close();
- 
-        } else {
-          swal.fire({
-            title: "Error!",
-            text: response.data.ms,
-            icon: "error",
-            confirmButtonText: "OK",
-          });
-        }
-      })
-      .catch((error) => {
+    .put(baseURL + "/api/smart_report/update_smart_report", formData, config)
+    .then((response) => {
+      if (response.data.err != "1") {
         swal.close();
+      } else {
         swal.fire({
           title: "Error!",
-          text: "Có lỗi xảy ra, vui lòng kiểm tra lại!",
+          text: response.data.ms,
           icon: "error",
           confirmButtonText: "OK",
         });
+      }
+    })
+    .catch((error) => {
+      swal.close();
+      swal.fire({
+        title: "Error!",
+        text: "Có lỗi xảy ra, vui lòng kiểm tra lại!",
+        icon: "error",
+        confirmButtonText: "OK",
       });
+    });
 };
 //Xóa bản ghi
 const delTem = (Tem) => {
@@ -812,113 +854,10 @@ const onCheckBox = (value, check, checkIsmain) => {
   }
 };
 //Xóa nhiều
-const deleteList = () => {
-  let listId = new Array(selectedStamps.value.length);
-  let checkD = false;
-  selectedStamps.value.forEach((item) => {
-    if (item.is_default) {
-      toast.error("Không được xóa báo cáo mặc định!");
-      checkD = true;
-      return;
-    }
-  });
-  if (!checkD) {
-    swal
-      .fire({
-        title: "Thông báo",
-        text: "Bạn có muốn xoá báo cáo này không!",
-        icon: "warning",
-        showCancelButton: true,
-        confirmButtonColor: "#3085d6",
-        cancelButtonColor: "#d33",
-        confirmButtonText: "Có",
-        cancelButtonText: "Không",
-      })
-      .then((result) => {
-        if (result.isConfirmed) {
-          swal.fire({
-            width: 110,
-            didOpen: () => {
-              swal.showLoading();
-            },
-          });
 
-          selectedStamps.value.forEach((item) => {
-            listId.push(item.report_id);
-          });
-          axios
-            .delete(baseURL + "/api/smart_report/delete_smart_report", {
-              headers: { Authorization: `Bearer ${store.getters.token}` },
-              data: listId != null ? listId : 1,
-            })
-            .then((response) => {
-              swal.close();
-              if (response.data.err != "1") {
-                swal.close();
-                toast.success("Xoá báo cáo thành công!");
-                checkDelList.value = false;
-
-                loadData(true);
-              } else {
-                swal.fire({
-                  title: "Error!",
-                  text: response.data.ms,
-                  icon: "error",
-                  confirmButtonText: "OK",
-                });
-              }
-            })
-            .catch((error) => {
-              swal.close();
-              if (error.status === 401) {
-                swal.fire({
-                  title: "Error!",
-                  text: "Mã token đã hết hạn hoặc không hợp lệ, vui lòng đăng nhập lại!",
-                  icon: "error",
-                  confirmButtonText: "OK",
-                });
-              }
-            });
-        }
-      });
-  }
-};
 const expandedRowGroups = ref([1, 2]);
 //Filter
-const trangThai = ref([
-  { name: "Hiển thị", code: 1 },
-  { name: "Không hiển thị", code: 0 },
-]);
 
-const filterTrangthai = ref();
-
-const reFilterEmail = () => {
-  filterTrangthai.value = null;
-  isDynamicSQL.value = false;
-  checkFilter.value = false;
-  filterSQL.value = [];
-  options.value.SearchText = null;
-  op.value.hide();
-  loadData(true);
-};
-const filterFileds = () => {
-  filterSQL.value = [];
-  checkFilter.value = true;
-  let filterS = {
-    filterconstraints: [{ value: filterTrangthai.value, matchMode: "equals" }],
-    filteroperator: "and",
-    key: "status",
-  };
-  filterSQL.value.push(filterS);
-  loadDataSQL();
-};
-watch(selectedStamps, () => {
-  if (selectedStamps.value.length > 0) {
-    checkDelList.value = true;
-  } else {
-    checkDelList.value = false;
-  }
-});
 const op = ref();
 const toggle = (event) => {
   op.value.toggle(event);
@@ -1037,7 +976,7 @@ const initTuDien = () => {
     .then((response) => {
       let data = JSON.parse(response.data.data)[0];
       if (isFirst.value) isFirst.value = false;
- 
+
       data.forEach((element, i) => {
         listProcDropdown.value.push({
           name: element.proc_title,
@@ -1114,6 +1053,25 @@ emitter.on("emitData", (obj) => {
       break;
   }
 });
+const onFilterReportGr = () => {
+  if (options.value.report_group_filter.length > 0) {
+    filterSQL.value = [];
+    let filterS1 = {
+      filterconstraints: [],
+      filteroperator: "or",
+      key: "report_group",
+    };
+    options.value.report_group_filter.forEach((element) => {
+      var addr = { value: element, matchMode: "contains" };
+      filterS1.filterconstraints.push(addr);
+    });
+
+    filterSQL.value.push(filterS1);
+    loadDataSQL();
+  } else {
+    loadData();
+  }
+};
 onMounted(() => {
   loadData(true);
   initTuDien();
@@ -1132,7 +1090,6 @@ onMounted(() => {
     searchStamp,
     onCheckBox,
     selectedStamps,
-    deleteList,
   };
 });
 </script>
@@ -1162,7 +1119,6 @@ onMounted(() => {
       :paginator="true"
       dataKey="report_id"
       responsiveLayout="scroll"
-      v-model:selection="selectedStamps"
       :row-hover="true"
       rowGroupMode="subheader"
       groupRowsBy="report_group"
@@ -1171,7 +1127,10 @@ onMounted(() => {
       sortMode="single"
       sortField="report_group"
       :sortOrder="1"
+      selectionMode="single"
+      v-model:selection="selectedStamps"
       @rowgroup-expand="onRowGroupExpand($event)"
+      @row-click="onRowClickTable($event)"
     >
       <template #header>
         <h3 class="module-title mt-0 ml-1 mb-2">
@@ -1181,16 +1140,18 @@ onMounted(() => {
         </h3>
         <Toolbar class="w-full custoolbar">
           <template #start>
-            <span class="p-input-icon-left">
-              <i class="pi pi-search" />
-              <InputText
-                v-model="options.SearchText"
-                @keyup="searchStamp"
-                type="text"
-                spellcheck="false"
-                placeholder="Tìm kiếm"
-              />
-              <Button
+            <div class="align-items-center flex">
+              <span class="p-input-icon-left">
+                <i class="pi pi-search" />
+                <InputText
+                  v-model="options.SearchText"
+                  @keyup="searchStamp"
+                  type="text"
+                  spellcheck="false"
+                  placeholder="Tìm kiếm"
+                />
+
+                <!-- <Button
                 type="button"
                 class="ml-2"
                 icon="pi pi-filter"
@@ -1248,18 +1209,28 @@ onMounted(() => {
                     </Toolbar>
                   </div>
                 </div>
-              </OverlayPanel>
-            </span>
+              </OverlayPanel> -->
+              </span>
+
+              <div class="p-inputgroup flex-1 ml-2">
+                <span class="p-inputgroup-addon">
+                  <i class="pi pi-filter"></i>
+                </span>
+                <MultiSelect
+                  v-model="options.report_group_filter"
+                  :options="liReportGroup"
+                  optionLabel="name"
+                  optionValue="name"
+                  spellcheck="false"
+                  style="min-width: 13rem"
+                  placeholder="Chọn nhóm báo báo"
+                  @change="onFilterReportGr"
+                />
+              </div>
+            </div>
           </template>
 
           <template #end>
-            <Button
-              v-if="checkDelList"
-              @click="deleteList()"
-              label="Xóa"
-              icon="pi pi-trash"
-              class="mr-2 p-button-danger"
-            />
             <Button
               @click="openBasic('Thêm báo cáo')"
               label="Thêm mới"
@@ -1459,19 +1430,22 @@ onMounted(() => {
       </template>
     </DataTable>
   </div>
-  <Sidebar v-model:visible="visibleSidebarDoc" position="full" class="d-sidebar-full">
+  <Sidebar
+    v-model:visible="visibleSidebarDoc"
+    position="full"
+    class="d-sidebar-full"
+  >
     <template #header>
       <h2 class="p-0 m-0">
         <i class="pi pi-cog mr-2"></i>{{ smart_report.report_name }}
       </h2>
     </template>
     <div style="padding: 0 20px">
-
- 
       <DocComponent
         :isedit="true"
         :report="smart_report"
         :callbackFun="callbackFun"
+        :pars="pars"
       ></DocComponent>
     </div>
   </Sidebar>

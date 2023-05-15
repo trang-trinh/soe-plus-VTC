@@ -170,23 +170,7 @@ const delTem = (Tem) => {
       }
     });
 };
-
-const refreshStamp = () => {
-  options.value.SearchText = null;
-
-  options.value.loading = true;
-
-  isDynamicSQL.value = false;
-  filterSQL.value = [];
-  
-  let filterS = {
-    filterconstraints: [{ value:true, matchMode: "equals" }],
-    filteroperator: "and",
-    key: "status",
-  };
-  filterSQL.value.push(filterS);
-  loadDataTitle();
-};
+ 
 const listDataSelected = ref([]);
 const onFilter = (event) => {
   filterSQL.value = [];
@@ -461,24 +445,32 @@ const saveWarehouse = () => {
     });
 };
 
-const searchStamp = (event) => {
-  if (event.code == "Enter") {
-    if (options.value.SearchText == "") {
-    
-      options.value.loading = true;
-      loadDataTitle();
-    } else {
  
-      options.value.loading = true;
-      loadDataSQL() ;
-    }
-  }
-};
 onMounted(() => {
-  if (!checkURL(window.location.pathname, store.getters.listModule)) {
-    //router.back();
-  }
-  loadData();
+  axios
+    .put(
+      baseURL + "/api/hrm_config_holidays/update_data" ,
+      config
+    )
+    .then((response) => {
+      swal.close();
+      if (response.data.err != "1") {
+        swal.close();
+
+        loadData();
+      } else {
+        swal.fire({
+          title: "Error!",
+          text: "Có lỗi xảy ra vui lòng thử lại sau",
+          icon: "error",
+          confirmButtonText: "OK",
+        });
+      }
+    })
+    .catch((error) => {
+      swal.close();
+    });
+ 
  
   return {
     isFirst,

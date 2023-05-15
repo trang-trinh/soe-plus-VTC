@@ -156,9 +156,7 @@ const loadContract = () => {
 };
 
 onMounted(() => {
-  if (!checkURL(window.location.pathname, store.getters.listModule)) {
-    //router.back();
-  }
+ 
   loadContract();
   return {
     isFirst,
