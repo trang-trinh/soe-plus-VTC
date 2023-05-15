@@ -22,6 +22,7 @@ using System.Security.Cryptography;
 using System.Globalization;
 using Microsoft.Owin;
 using OfficeOpenXml.FormulaParsing.Excel.Functions.RefAndLookup;
+using System.Diagnostics.Contracts;
 
 namespace API.Controllers.HRM.Profile
 {
@@ -2299,6 +2300,296 @@ namespace API.Controllers.HRM.Profile
                                             if (assignments.Count > 0)
                                             {
                                                 db.hrm_profile_assignment.AddRange(assignments);
+                                            }
+                                            await db.SaveChangesAsync();
+                                            break;
+                                        case "Hợp đồng":
+                                            List<hrm_contract> contracts = new List<hrm_contract>();
+                                            for (int r = 4; r <= sheet.Dimension.End.Row; r++)
+                                            {
+                                                if (sheet.Cells[r, 2].Value == null)
+                                                {
+                                                    break;
+                                                }
+                                                hrm_contract contract = new hrm_contract();
+                                                for (int c = 2; c <= sheet.Dimension.End.Column; c++)
+                                                {
+                                                    if (sheet.Cells[3, c].Value == null)
+                                                    {
+                                                        break;
+                                                    }
+                                                    var column = sheet.Cells[3, c].Value;
+                                                    var value = sheet.Cells[r, c].Value;
+                                                    if (value != null)
+                                                    {
+                                                        switch (column)
+                                                        {
+                                                            case "2":
+                                                                var p = await db.hrm_profile.FirstOrDefaultAsync(x => x.profile_code == value.ToString());
+                                                                if (p != null)
+                                                                {
+                                                                    contract.profile_id = p.profile_id;
+                                                                }
+                                                                break;
+                                                            case "3":
+
+                                                                break;
+                                                            case "4":
+                                                                contract.contract_code = value.ToString();
+                                                                break;
+                                                            case "5":
+                                                                var department_name = value.ToString();
+                                                                var department_exists = await db.sys_organization.FirstOrDefaultAsync(x => x.short_name == department_name && x.organization_type == 1);
+                                                                if (department_exists != null)
+                                                                {
+                                                                    contract.department_id = department_exists.organization_id;
+                                                                }
+                                                                break;
+                                                            case "6":
+                                                                var position_name = value.ToString();
+                                                                var position_exists = await db.ca_positions.FirstOrDefaultAsync(x => x.position_name == position_name);
+                                                                if (position_exists != null)
+                                                                {
+                                                                    contract.position_id = position_exists.position_id;
+                                                                }
+                                                                break;
+                                                            case "7":
+                                                                var title_name = value.ToString();
+                                                                var title_exists = await db.hrm_ca_title.FirstOrDefaultAsync(x => x.title_name == title_name);
+                                                                if (title_exists != null)
+                                                                {
+                                                                    contract.title_id = title_exists.title_id;
+                                                                }
+                                                                break;
+                                                            case "8":
+                                                                var personel_groups_name = value.ToString();
+                                                                var personel_groups_exists = await db.hrm_ca_personel_groups.FirstOrDefaultAsync(x => x.personel_groups_name == personel_groups_name);
+                                                                if (personel_groups_exists != null)
+                                                                {
+                                                                    contract.personel_groups_id = personel_groups_exists.personel_groups_id;
+                                                                }
+                                                                break;
+                                                            case "9":
+                                                                var type_contract_name = value.ToString();
+                                                                var type_contract_exists = await db.hrm_ca_type_contract.FirstOrDefaultAsync(x => x.type_contract_name == type_contract_name);
+                                                                if (type_contract_exists != null)
+                                                                {
+                                                                    contract.type_contract_id = type_contract_exists.type_contract_id;
+                                                                }
+                                                                break;
+                                                            case "10":
+                                                                break;
+                                                            case "11":
+                                                                contract.start_date = DateTime.ParseExact(value.ToString(), "dd/MM/yyyy", CultureInfo.InvariantCulture);
+                                                                break;
+                                                            case "12":
+                                                                contract.end_date = DateTime.ParseExact(value.ToString(), "dd/MM/yyyy", CultureInfo.InvariantCulture);
+                                                                break;
+                                                            case "13":
+                                                                contract.sign_date = DateTime.ParseExact(value.ToString(), "dd/MM/yyyy", CultureInfo.InvariantCulture);
+                                                                break;
+                                                            case "14":
+                                                                var ps = await db.hrm_profile.FirstOrDefaultAsync(x => x.profile_code == value.ToString());
+                                                                if (ps != null)
+                                                                {
+                                                                    contract.sign_user_id = ps.profile_id;
+                                                                }
+                                                                break;
+                                                            case "15":
+                                                                contract.sign_address = value.ToString();
+                                                                break;
+                                                            default:
+                                                                break;
+                                                        }
+                                                    }
+                                                }
+                                                if (!string.IsNullOrEmpty(contract.profile_id))
+                                                {
+                                                    contracts.Add(contract);
+                                                }
+                                            }
+                                            if (contracts.Count > 0)
+                                            {
+                                                db.hrm_contract.AddRange(contracts);
+                                            }
+                                            await db.SaveChangesAsync();
+                                            break;
+                                        case "QHGĐ":
+                                            List<hrm_profile_relative> relatives = new List<hrm_profile_relative>();
+                                            for (int r = 4; r <= sheet.Dimension.End.Row; r++)
+                                            {
+                                                if (sheet.Cells[r, 2].Value == null)
+                                                {
+                                                    break;
+                                                }
+                                                hrm_profile_relative relative = new hrm_profile_relative();
+                                                for (int c = 2; c <= sheet.Dimension.End.Column; c++)
+                                                {
+                                                    if (sheet.Cells[3, c].Value == null)
+                                                    {
+                                                        break;
+                                                    }
+                                                    var column = sheet.Cells[3, c].Value;
+                                                    var value = sheet.Cells[r, c].Value;
+                                                    if (value != null)
+                                                    {
+                                                        switch (column)
+                                                        {
+                                                            case "2":
+                                                                var p = await db.hrm_profile.FirstOrDefaultAsync(x => x.profile_code == value.ToString());
+                                                                if (p != null)
+                                                                {
+                                                                    relative.profile_id = p.profile_id;
+                                                                }
+                                                                break;
+                                                            case "3":
+
+                                                                break;
+                                                            case "4":
+                                                                relative.is_type = value.ToString().ToLower().Contains("chồng") ? 1 : value.ToString().ToLower().Contains("vợ") ? 2 : 1;
+                                                                break;
+                                                            case "5":
+                                                                relative.relative_name = value.ToString();
+                                                                break;
+                                                            case "6":
+                                                                relative.birthday = value.ToString();
+                                                                break;
+                                                            case "7":
+                                                                relative.address = value.ToString();
+                                                                break;
+                                                            case "8":
+                                                                relative.countryside = value.ToString();
+                                                                break;
+                                                            case "9":
+                                                                relative.occupation = value.ToString();
+                                                                break;
+                                                            case "10":
+                                                                relative.company = value.ToString();
+                                                                break;
+                                                            case "11":
+                                                                relative.organization = value.ToString();
+                                                                break;
+                                                            case "12":
+                                                                relative.is_company = value.ToString().ToLower() == "x" ? true : false;
+                                                                break;
+                                                            case "13":
+                                                                relative.is_dependent = value.ToString().ToLower() == "x" ? 1 : 0;
+                                                                break;
+                                                            case "14":
+                                                                relative.is_die = value.ToString().ToLower() == "x" ? true : false;
+                                                                break;
+                                                            default:
+                                                                break;
+                                                        }
+                                                    }
+                                                }
+                                                if (!string.IsNullOrEmpty(relative.profile_id))
+                                                {
+                                                    relatives.Add(relative);
+                                                }
+                                            }
+                                            if (relatives.Count > 0)
+                                            {
+                                                db.hrm_profile_relative.AddRange(relatives);
+                                            }
+                                            await db.SaveChangesAsync();
+                                            break;
+                                        case "Học Vấn":
+                                            List<hrm_profile_skill> skills = new List<hrm_profile_skill>();
+                                            for (int r = 4; r <= sheet.Dimension.End.Row; r++)
+                                            {
+                                                if (sheet.Cells[r, 2].Value == null)
+                                                {
+                                                    break;
+                                                }
+                                                hrm_profile_skill skill = new hrm_profile_skill();
+                                                for (int c = 2; c <= sheet.Dimension.End.Column; c++)
+                                                {
+                                                    if (sheet.Cells[3, c].Value == null)
+                                                    {
+                                                        break;
+                                                    }
+                                                    var column = sheet.Cells[3, c].Value;
+                                                    var value = sheet.Cells[r, c].Value;
+                                                    if (value != null)
+                                                    {
+                                                        switch (column)
+                                                        {
+                                                            case "2":
+                                                                var p = await db.hrm_profile.FirstOrDefaultAsync(x => x.profile_code == value.ToString());
+                                                                if (p != null)
+                                                                {
+                                                                    skill.profile_id = p.profile_id;
+                                                                }
+                                                                break;
+                                                            case "3":
+
+                                                                break;
+                                                            case "4":
+                                                                
+                                                                break;
+                                                            case "5":
+                                                                skill.start_date = DateTime.ParseExact(value.ToString(), "dd/MM/yyyy", CultureInfo.InvariantCulture);
+                                                                break;
+                                                            case "6":
+                                                                skill.end_date = DateTime.ParseExact(value.ToString(), "dd/MM/yyyy", CultureInfo.InvariantCulture);
+                                                                break;
+                                                            case "7":
+                                                                var specialization_name = value.ToString();
+                                                                var specialization_exists = await db.hrm_ca_specialization.FirstOrDefaultAsync(x => x.specialization_name == specialization_name);
+                                                                if (specialization_exists != null)
+                                                                {
+                                                                    skill.specialized = specialization_exists.specialization_id;
+                                                                }
+                                                                break;
+                                                            case "8":
+                                                                var form_traning_name = value.ToString();
+                                                                var form_traning_exists = await db.hrm_ca_form_traning.FirstOrDefaultAsync(x => x.form_traning_name == form_traning_name);
+                                                                if (form_traning_exists != null)
+                                                                {
+                                                                    skill.form_traning_id = form_traning_exists.form_traning_id;
+                                                                }
+                                                                break;
+                                                            case "9":
+                                                                skill.university_name = value.ToString();
+                                                                break;
+                                                            case "10":
+                                                                skill.rating = value.ToString();
+                                                                break;
+                                                            case "11":
+                                                                skill.is_man_degree = value.ToString().ToLower() == "x" ? true : false;
+                                                                break;
+                                                            case "12":
+                                                                var certificate_name = value.ToString();
+                                                                var certificat_exists = await db.hrm_ca_certificate.FirstOrDefaultAsync(x => x.certificate_name == certificate_name);
+                                                                if (certificat_exists != null)
+                                                                {
+                                                                    skill.certificate_id = certificat_exists.certificate_id;
+                                                                }
+                                                                break;
+                                                            case "13":
+                                                                break;
+                                                            case "14":
+                                                                break;
+                                                            case "15":
+                                                                skill.certificate_start_date = DateTime.ParseExact(value.ToString(), "dd/MM/yyyy", CultureInfo.InvariantCulture);
+                                                                break;
+                                                            case "16":
+                                                                skill.certificate_end_date = DateTime.ParseExact(value.ToString(), "dd/MM/yyyy", CultureInfo.InvariantCulture);
+                                                                break;
+                                                            default:
+                                                                break;
+                                                        }
+                                                    }
+                                                }
+                                                if (!string.IsNullOrEmpty(skill.profile_id))
+                                                {
+                                                    skills.Add(skill);
+                                                }
+                                            }
+                                            if (skills.Count > 0)
+                                            {
+                                                db.hrm_profile_skill.AddRange(skills);
                                             }
                                             await db.SaveChangesAsync();
                                             break;

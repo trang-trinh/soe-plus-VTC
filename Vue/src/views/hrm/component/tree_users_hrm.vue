@@ -146,7 +146,9 @@ const changeUserChecked = () => {
     case false:
       var choses = selectedNodeUser.value.filter(
         (a) =>
-          props.selected.findIndex((b) => b["profile_id"] === a["profile_id"]) === -1
+          props.selected.findIndex(
+            (b) => b["profile_id"] === a["profile_id"]
+          ) === -1
       );
       if (choses.length > 0) {
         Array.prototype.push.apply(props.selected, choses);
@@ -171,23 +173,26 @@ const changeUserChecked = () => {
   }
 };
 const goOrganization = (organization) => {
-  options.value.filter_organization_id = organization["organization_id"];
+  options.value.filter_organization_id = organization.data["organization_id"];
   let listchilds = [];
-  if (organization["IDChild"] != null && organization["IDChild"] != "") {
-    listchilds = organization["IDChild"]
+  if (
+    organization.data["IDChild"] != null &&
+    organization.data["IDChild"] != ""
+  ) {
+    listchilds = organization.data["IDChild"]
       .split(",")
       .filter((x) => x !== "")
       .map((x) => parseInt(x));
   }
-  switch (organization["organization_type"]) {
+  switch (organization.data["organization_type"]) {
     case 0:
       filterusers.value = rootusers.value.filter(
         (a) =>
-          a["organization_id"] === organization["organization_id"] ||
+          a["organization_id"] === organization.data["organization_id"] ||
           listchilds.findIndex(
             (b) => b["organization_id"] === a["organization_id"]
           ) !== -1 ||
-          a["department_id"] === organization["organization_id"] ||
+          a["department_id"] === organization.data["organization_id"] ||
           listchilds.findIndex(
             (b) => b["organization_id"] === a["department_id"]
           ) !== -1
@@ -196,7 +201,7 @@ const goOrganization = (organization) => {
     case 1:
       filterusers.value = rootusers.value.filter(
         (a) =>
-          a["department_id"] === organization["organization_id"] ||
+          a["department_id"] === organization.data["organization_id"] ||
           listchilds.findIndex(
             (b) => b["organization_id"] === a["department_id"]
           ) !== -1
@@ -210,7 +215,7 @@ const goOrganization = (organization) => {
 const renderTree = (data, id, name, title) => {
   let arrChils = [];
   let arrtreeChils = [];
- 
+
   data
     .filter((x) => x.parent_id == null)
     .forEach((m, i) => {
@@ -229,9 +234,8 @@ const renderTree = (data, id, name, title) => {
       };
       rechildren(om, m[id]);
       arrChils.push(om);
-     
     });
-  
+
   return { arrChils: arrChils, arrtreeChils: arrtreeChils };
 };
 const expandNode = (node) => {
@@ -259,56 +263,67 @@ const onRefresh = () => {
   options.value.search = "";
 };
 const initOrganization = () => {
-  options.value.loading=true;
-  axios
-    .post(
-      baseURL + "/api/Proc/CallProc",
-      {
-        proc: "sys_organization_listtree",
-        par: [
-          { par: "user_id", va: store.getters.user.user_id },
-          { par: "search", va: options.value.search },
-        ],
-      },
-      config
-    )
-    .then((response) => {
-      var data = response.data.data;
-      if (data != null) {
-        let tbs = JSON.parse(data);
-
-        if (tbs[0] != null && tbs[0].length > 0) {
-          rootorganizations.value = [...tbs[0]];
-          let obj = renderTree(
-            tbs[0],
-            "organization_id",
-            "organization_name",
-            "Đơn vị"
-          );
-          temporganizations.value = obj.arrChils;
-          temporganizations.value.forEach((element) => {
-            expandNode(element);
-          });
-        } else {
-          rootorganizations.value = [];
-          temporganizations.value = [];
-        }
-        initUser(true);
-        options.value.loading=false;
-      }
-    })
-    .catch((error) => {
-      if (options.value.loading) options.value.loading = false;
-      swal.close();
-      swal.fire({
-        title: "Error!",
-        text: "Có lỗi xảy ra, vui lòng kiểm tra lại!",
-        icon: "error",
-        confirmButtonText: "OK",
-      });
-      options.value.loading=false;
-      return;
+  options.value.loading = true;
+  if (store.getters.listOrgTree.length > 0) {
+    temporganizations.value = store.getters.listOrgTree;
+    temporganizations.value.forEach((element) => {
+      expandNode(element);
     });
+    initUser(true);
+    options.value.loading = false;
+  } else {
+    axios
+      .post(
+        baseURL + "/api/Proc/CallProc",
+        {
+          proc: "sys_organization_listtree",
+          par: [
+            { par: "user_id", va: store.getters.user.user_id },
+            { par: "search", va: options.value.search },
+          ],
+        },
+        config
+      )
+      .then((response) => {
+        var data = response.data.data;
+        if (data != null) {
+          let tbs = JSON.parse(data);
+          if (tbs[0] != null && tbs[0].length > 0) {
+            rootorganizations.value = [...tbs[0]];
+            let obj = renderTree(
+              tbs[0],
+              "organization_id",
+              "organization_name",
+              "Đơn vị"
+            );
+            if (store.getters.listOrgTree.length == 0) {
+              store.commit("setlistOrgTree", obj.arrChils);
+            }
+            temporganizations.value = obj.arrChils;
+            temporganizations.value.forEach((element) => {
+              expandNode(element);
+            });
+          } else {
+            rootorganizations.value = [];
+            temporganizations.value = [];
+          }
+          initUser(true);
+          options.value.loading = false;
+        }
+      })
+      .catch((error) => {
+        if (options.value.loading) options.value.loading = false;
+        swal.close();
+        swal.fire({
+          title: "Error!",
+          text: "Có lỗi xảy ra, vui lòng kiểm tra lại!",
+          icon: "error",
+          confirmButtonText: "OK",
+        });
+        options.value.loading = false;
+        return;
+      });
+  }
 };
 const initUser = (rf) => {
   if (rf) {
@@ -324,15 +339,13 @@ const initUser = (rf) => {
     initUserSQL();
     return;
   }
- 
+
   axios
     .post(
       baseURL + "/api/Proc/CallProc",
       {
         proc: "hrm_profile_list_all",
-        par: [
-        { par: "user_id", va: store.getters.user.user_id } 
-                 ],
+        par: [{ par: "user_id", va: store.getters.user.user_id }],
       },
       config
     )
@@ -340,7 +353,7 @@ const initUser = (rf) => {
       var data = response.data.data;
       if (data != null) {
         let tbs = JSON.parse(data);
-         
+
         if (tbs[0] != null && tbs[0].length > 0) {
           tbs[0].forEach((element, i) => {
             if (element["created_date"] != null) {
@@ -357,8 +370,9 @@ const initUser = (rf) => {
           }
           rootusers.value = tbs[0].filter(
             (a) =>
-              props.selected.findIndex((b) => b["profile_id"] === a["profile_id"]) ===
-              -1
+              props.selected.findIndex(
+                (b) => b["profile_id"] === a["profile_id"]
+              ) === -1
           );
           tempusers.value = [...rootusers.value];
           filterusers.value = [...tempusers.value];
@@ -390,7 +404,7 @@ const initRender = () => {
     selectedNodeUser.value = props.selected;
   }, 1000);
 };
-const filterSQL=ref();
+const filterSQL = ref();
 const initUserSQL = () => {
   let par = {
     filter_organization_id: store.getters.user.organization_id,
@@ -447,7 +461,7 @@ const initUserSQL = () => {
     .catch((error) => {
       options.value.loading = false;
       toast.error("Tải dữ liệu không thành công!");
- 
+
       if (error && error.status === 401) {
         swal.fire({
           text: "Mã token đã hết hạn hoặc không hợp lệ, vui lòng đăng nhập lại!",
@@ -457,12 +471,12 @@ const initUserSQL = () => {
       }
     });
 };
-const displayDialog=ref(false);
+const displayDialog = ref(false);
 onMounted(() => {
   initOrganization();
- 
+
   //initRender();
-  displayDialog.value=props.displayDialog;
+  displayDialog.value = props.displayDialog;
   return {};
 });
 </script>
@@ -488,11 +502,12 @@ onMounted(() => {
             :lazy="true"
             dataKey="organization_id"
             v-model:selectionKeys="selectedNodeOrganization"
-            :selectionMode="props.one ? '' : 'checkbox'"
+            :selectionMode="'single'"
             filterMode="strict"
             scrollHeight="flex"
             filterDisplay="menu"
             class="d-lang-table"
+            @node-select="goOrganization($event)"
           >
             <Column
               field="organization_name"
@@ -502,7 +517,6 @@ onMounted(() => {
             >
               <template #body="slotProps">
                 <div
-                  @click="goOrganization(slotProps.node.data)"
                   :class="
                     slotProps.node.data.organization_id ===
                       options.filter_organization_id ||
@@ -599,8 +613,10 @@ onMounted(() => {
                   </div>
                   <div class="format-center justify-content-left ml-3">
                     <div>
-                      <div style="text-align: left;">{{ slotProps.data.profile_user_name }}</div>
-                      <div class="description" style="text-align: left;">
+                      <div style="text-align: left">
+                        {{ slotProps.data.profile_user_name }}
+                      </div>
+                      <div class="description" style="text-align: left">
                         {{ slotProps.data.role_name }}
                       </div>
                     </div>

@@ -449,8 +449,9 @@ export default {
           });
         }
       }
-    }
+    } 
     const eventDoc = () => {
+      if(dochtml)
       isdoc.value =
         dochtml.querySelector("title") != null &&
         dochtml.querySelector("title").innerHTML != "landscape";
@@ -474,6 +475,7 @@ export default {
       //Nếu là excel
       if (isxls.value) {
         //let stt = 0;
+        if(dochtml)
         dochtml.querySelectorAll("tr").forEach((element) => {
           if (element.innerText.trim() == "" && element.children.length > 2) {
             var css = window.getComputedStyle(element.children[2]);
@@ -487,15 +489,19 @@ export default {
         });
       }
       if (!isxls.value)
+      {
+      if(dochtml)
         dochtml.querySelectorAll("td").forEach((element) => {
           element.style.setProperty("vertical-align", "middle");
           element.style.setProperty("align-items", "center");
         });
-      else
+      }
+      else  
         dochtml.querySelectorAll("td").forEach((element) => {
           element.style.setProperty("padding", "5px");
         });
       let groups = [];
+      if(dochtml)
       dochtml
         .querySelectorAll(isxls.value ? "td" : "p>span")
         .forEach((element) => {
@@ -1512,7 +1518,7 @@ export default {
       let obj = { stt: 0, key: 0, value: "data-" + stt, cols: [] };
       let tagps = [];
       objDataTemp.value = [];
-
+       if(dochtml)
       dochtml
         .querySelectorAll('[style*="background-color:#ffff00"]')
         .forEach((el, i) => {
@@ -1585,6 +1591,7 @@ export default {
         objDataTemp.value.push(obj);
       });
       //
+      if(dochtml)
       dochtml.querySelectorAll("table").forEach((etb, i) => {
         if (
           etb.querySelector("td").style.backgroundColor == "rgb(255, 255, 0)"
@@ -1611,11 +1618,12 @@ export default {
         props.report.report_config.trim() != ""
       ) {
         try {
-             debugger
+               
           objConfig = JSON.parse(props.report.report_config.trim());
+            
           if (isUrlReport.value && Object.keys(props.pars).length > 0) {
             await initURLReport();
-          } else {
+          } else if(Object.keys(objConfig.proc).length>0  ) {
             await initReportData(objConfig);
           }
           if (objConfig.data) {
@@ -1700,7 +1708,7 @@ export default {
       if (props.report.report_template)
         isxls.value = props.report.report_template.startsWith("<!doctype");
       tempHTML = "";
-      debugger
+       
       if (props.report.report_template)
         initDocHTML(props.report.report_template);
       showLoadding.value = false;
@@ -1721,6 +1729,7 @@ export default {
       }
     };
     const initmutationObserver = () => {
+       
       var mutationObserver = new MutationObserver(function (mutations) {
         if (dochtml == iframeDoc.activeElement) {
           mutations.forEach(function (mutation) {
@@ -1739,6 +1748,7 @@ export default {
         attributeOldValue: true,
         characterDataOldValue: true,
       });
+       
     };
     const initMapData = () => {
       let obj = {};
@@ -2356,10 +2366,11 @@ export default {
         if (document.getElementById("app-body"))
           document.getElementById("app-body").classList.remove("p-2");
       }
-      
+       
       if (props.report) {
         initTemplate();
       }
+       
       if (!dochtml) dochtml = iframeDoc.getElementById("dochtml");
       users.forEach((u) => {
         itemusers.value.push({
@@ -2381,6 +2392,7 @@ export default {
         //
         initmutationObserver();
         //mutationObserver.disconnect();
+         
       }
     });
     //Data cho Report
@@ -2401,6 +2413,7 @@ export default {
       if (!objConfig.proc.name) {
         objConfig.proc.name = props.report.proc_name;
       }
+      
       dtDataReports.value = await goProc(
         objConfig.proc.issql,
         objConfig.proc.sql,
@@ -2445,7 +2458,7 @@ export default {
       );
 
       let dts = [];
-
+ 
       if (axResponse.status == 200) {
         if (axResponse.data.error) {
           //toast.error("Không mở được bản ghi");
@@ -2457,8 +2470,7 @@ export default {
           }
         }
       }
-      console.log(strSQL);
-      console.log(dts);
+  
       swal.close();
       return dts;
     };
@@ -2531,6 +2543,7 @@ export default {
             va: objpar[pa.Parameter_name.replace("@", "")],
           });
         }); 
+        
       let dts = await goProc(false, objConfig.proc.name, pas, true);
       //init với kiểu lưu
       let tbs = [];
@@ -3028,7 +3041,7 @@ export default {
 
     let dtProfile = {};
     const initProfile = async (r) => {
-        
+      
       let dts = await goProc(
         true,
         `profile_info '${store.getters.user.user_id}', '${r.profile_id}'`,
@@ -3045,6 +3058,7 @@ export default {
       if (props.report.is_config) {
         objDataTemp.value = props.report.is_config;
       } 
+      
       let dts = await goProc(true, props.report.proc_all, [], true);
       dtDataReports.value.forEach((dt) => {
         let tb = dts[0].find((x) => x.profile_id == dt.profile_id);
@@ -3144,6 +3158,7 @@ export default {
           va: r[pa.Parameter_name.replace("@", "")],
         });
       }); 
+      
       let dts = await goProc(false, objConfig.proc.name, pas, true);
       objForm.value = dts[0][0];
       cForm.value = r;
@@ -3155,6 +3170,7 @@ export default {
             va: rcopy[pa.Parameter_name.replace("@", "")],
           });
         }); 
+        
         let dts = await goProc(false, objConfig.proc.name, pas, true);
         if (dts.length > 0) {
           objForm.value.is_data = dts[0][0].is_data;
