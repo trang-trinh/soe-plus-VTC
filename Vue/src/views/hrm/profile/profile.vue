@@ -444,6 +444,7 @@ const openAddDialog = (str) => {
   files.value = [];
   headerDialog.value = str;
   displayDialog.value = true;
+  datachilds.value = [];
 };
 const closeDialog = () => {
   displayDialog.value = false;
@@ -543,6 +544,12 @@ const editItem = (item, str) => {
               model.value.military_end_date
             );
           }
+          if (model.value["sign_date"] != null) {
+            model.value["sign_date"] = new Date(model.value["sign_date"]);
+          }
+          if (model.value["partisan_main_date"] != null) {
+            model.value["partisan_main_date"] = new Date(model.value["partisan_main_date"]);
+          }
         }
         if (tbs[1] != null && tbs[1].length > 0) {
           tbs[1].forEach((x) => {
@@ -556,6 +563,9 @@ const editItem = (item, str) => {
             }
             if (x["end_date"] != null) {
               x["end_date"] = new Date(x["end_date"]);
+            }
+            if (x["birthday"] != null) {
+              x["birthday"] = new Date(x["birthday"]);
             }
           });
           datachilds.value[1] = tbs[1];
@@ -1046,6 +1056,8 @@ const removeImportFile = (event) => {
 const handleImportFile = (event) => {
   importFiles.value = event.target.files;
 };
+const uploading = ref(false);
+const uploadProgress = ref(0);
 const execImportExcel = () => {
   if (!importFiles.value || importFiles.value.length === 0) {
     swal.fire({
@@ -1056,6 +1068,7 @@ const execImportExcel = () => {
     });
     return;
   }
+  uploading.value = true;
   displayImport.value = false;
   let formData = new FormData();
   for (var i = 0; i < importFiles.value.length; i++) {
@@ -1063,10 +1076,30 @@ const execImportExcel = () => {
     formData.append("files", file);
   }
   axios
-    .post(baseURL + "/api/hrm_profile/import_excel_profile", formData, config)
+    .post(baseURL + "/api/hrm_profile/import_excel_profile", formData, {
+      headers: {
+        Authorization: `Bearer ${store.getters.token}`,
+        // "Content-Type": "multipart/form-data",
+      },
+      progress(progressEvent) {
+        uploadProgress.value = Math.round(
+          (progressEvent.loaded / progressEvent.total) * 100
+        );
+        debugger
+      },
+      onUploadProgress: (progressEvent) => {
+        uploadProgress.value = Math.round(
+          (progressEvent.loaded / progressEvent.total) * 100
+        );
+        debugger
+      },
+    })
     .then((response) => {
+      uploading.value = false;
+      uploadProgress.value = 0;
       toast.success("Nhập dữ liệu thành công");
       initData(true);
+      initCount();
     })
     .catch((error) => {
       swal.close();
@@ -3013,6 +3046,31 @@ onMounted(() => {
       </table>
     </div>
   </div>
+
+  <Dialog
+    header="Đang tải dữ liệu ..."
+    v-model:visible="uploading"
+    :style="{ width: '30vw' }"
+    :closable="false"
+    :modal="false"
+  >
+    <ProgressBar
+      :value="uploadProgress"
+      :style="{
+        borderBottomLeftRadius: '0 !important',
+        borderBottomRightRadius: '0 !important',
+      }"
+    />
+    <ProgressBar
+      v-if="uploadProgress < 100"
+      mode="indeterminate"
+      :style="{
+        borderTopLeftRadius: '0 !important',
+        borderTopRightRadius: '0 !important',
+        height: '.5em',
+      }"
+    />
+  </Dialog>
 
   <!-- Dialog -->
   <dilogprofile

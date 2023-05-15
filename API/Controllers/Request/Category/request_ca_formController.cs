@@ -75,7 +75,7 @@ namespace API.Controllers.Request.Category
                         List<request_ca_form_team> from_teams = JsonConvert.DeserializeObject<List<request_ca_form_team>>(fdca_form_team);
 
                         bool super = claims.Where(p => p.Type == "super").FirstOrDefault()?.Value == "True";
-                        obj_data.organization_id = super ? 0 : int.Parse(dvid);
+                        obj_data.organization_id = super && obj_data.is_system == true ? 0 : int.Parse(dvid);
                         obj_data.request_form_id = helper.GenKey();
                         obj_data.created_by = uid;
                         obj_data.created_date = DateTime.Now;
