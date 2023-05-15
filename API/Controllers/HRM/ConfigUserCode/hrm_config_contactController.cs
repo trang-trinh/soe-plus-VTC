@@ -56,13 +56,15 @@ namespace API.Controllers.HRM.ConfigUserCode
                 using (DBEntities db = new DBEntities())
                 {
                     var dv = int.Parse(dvid);
-                    var Superior = db.hrm_config_contact.Where(p => p.organization_id == dv).FirstOrDefault();
+                    var year = DateTime.Now.Year;
+                    var Superior = db.hrm_config_contact.AsNoTracking().Where(p => (p.organization_id == dv && p.year == year) || p.is_active==true).FirstOrDefault();
                     if (Superior == null)
                     {
                         var hrm_Cogfin = new hrm_config_contact();
-
                         hrm_Cogfin.is_date_of_birth = false;
                         hrm_Cogfin.is_phone_number = false;
+                        hrm_Cogfin.year = year;
+                        hrm_Cogfin.is_active = true;
                         hrm_Cogfin.organization_id = dv;
                         hrm_Cogfin.created_by = uid;
                         hrm_Cogfin.created_date = DateTime.Now;
@@ -139,10 +141,42 @@ namespace API.Controllers.HRM.ConfigUserCode
                         }
                         string fdca_certificate = "";
                         var dv = int.Parse(dvid);
+                        var year = DateTime.Now.Year;
                         fdca_certificate = provider.FormData.GetValues("hrm_config_contact").SingleOrDefault();
                         hrm_config_contact hrm_Config_Usercode = JsonConvert.DeserializeObject<hrm_config_contact>(fdca_certificate);
-                        db.Entry(hrm_Config_Usercode).State = EntityState.Modified;
-                        db.SaveChanges();
+                        var checkCer = db.hrm_config_contact.AsNoTracking().Where(p => p.organization_id == dv && p.year == hrm_Config_Usercode.year ).FirstOrDefault();
+
+                        var checkActive = db.hrm_config_contact.Where(p => p.organization_id == dv && p.is_active == true).FirstOrDefault();
+                        if (checkActive != null)
+                        {
+                            checkActive.is_active = false;
+                            db.SaveChanges();
+                        }
+                        if (checkCer == null)
+                        {
+                            var hrm_Cogfin = new hrm_config_contact();
+                            hrm_Config_Usercode.is_active = true;
+                            hrm_Config_Usercode.organization_id = dv;
+                            hrm_Config_Usercode.created_by = uid;
+                            hrm_Config_Usercode.created_date = DateTime.Now;
+                            hrm_Config_Usercode.created_ip = ip;
+                            db.hrm_config_contact.Add(hrm_Config_Usercode);
+                            db.SaveChanges();
+
+                        }
+                        else
+                        {
+                            hrm_Config_Usercode.is_active = true;
+                            hrm_Config_Usercode.created_by = uid;
+                            hrm_Config_Usercode.created_date = DateTime.Now;
+                            hrm_Config_Usercode.created_ip = ip;
+                            db.Entry(hrm_Config_Usercode).State = EntityState.Modified;
+                            db.SaveChanges();
+
+                        }
+
+
+                  
                         return Request.CreateResponse(HttpStatusCode.OK, new { err = "0" });
                     });
                     return await task;

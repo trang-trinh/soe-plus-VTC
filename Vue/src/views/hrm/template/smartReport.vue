@@ -682,7 +682,7 @@ const loadDataSQL = () => {
 
   let data = {
     id: "report_id DESC",
-    sqlS: filterTrangthai.value != null ? filterTrangthai.value : null,
+    sqlS:   null,
     sqlO: options.value.sort,
     Search: options.value.SearchText,
     PageNo: options.value.PageNo,
@@ -744,7 +744,7 @@ const searchStamp = (event) => {
 };
 const refreshStamp = () => {
   options.value.SearchText = null;
-  filterTrangthai.value = null;
+ 
   options.value.loading = true;
   selectedStamps.value = [];
   isDynamicSQL.value = false;
@@ -1151,66 +1151,7 @@ onMounted(() => {
                   placeholder="Tìm kiếm"
                 />
 
-                <!-- <Button
-                type="button"
-                class="ml-2"
-                icon="pi pi-filter"
-                @click="toggle"
-                aria:haspopup="true"
-                aria-controls="overlay_panel"
-                v-tooltip="'Bộ lọc'"
-                :class="
-                  filterTrangthai != null && checkFilter
-                    ? ''
-                    : 'p-button-secondary p-button-outlined'
-                "
-              />
-              <OverlayPanel
-                ref="op"
-                appendTo="body"
-                class="p-0 m-0"
-                :showCloseIcon="false"
-                id="overlay_panel"
-                style="width: 300px"
-              >
-                <div class="grid formgrid m-0">
-                  <div class="flex field col-12 p-0">
-                    <div
-                      class="col-4 text-left pt-2 p-0"
-                      style="text-align: left"
-                    >
-                      Trạng thái
-                    </div>
-                    <div class="col-8">
-                      <Dropdown
-                        class="col-12 p-0 m-0"
-                        v-model="filterTrangthai"
-                        :options="trangThai"
-                        optionLabel="name"
-                        optionValue="code"
-                        placeholder="Trạng thái"
-                      />
-                    </div>
-                  </div>
-                  <div class="flex col-12 p-0">
-                    <Toolbar
-                      class="border-none surface-0 outline-none pb-0 w-full"
-                    >
-                      <template #start>
-                        <Button
-                          @click="reFilterEmail"
-                          class="p-button-outlined"
-                          label="Xóa"
-                        ></Button>
-                      </template>
-                      <template #end>
-                        <Button @click="filterFileds" label="Lọc"></Button>
-                      </template>
-                    </Toolbar>
-                  </div>
-                </div>
-              </OverlayPanel> -->
-              </span>
+                   </span>
 
               <div class="p-inputgroup flex-1 ml-2">
                 <span class="p-inputgroup-addon">

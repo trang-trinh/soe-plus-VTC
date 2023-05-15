@@ -49,7 +49,7 @@ const options = ref({
 
 const saveDeConfig = () => {
   let formData = new FormData();
-
+  listdatas.value.push(seniority.value);
   formData.append("hrm_config_holidays", JSON.stringify(listdatas.value));
 
   axios
@@ -79,6 +79,7 @@ const saveDeConfig = () => {
 };
 
 const listdatas = ref([]);
+const seniority=ref({});
 const loadData = () => {
   axios
     .post(
@@ -97,10 +98,12 @@ const loadData = () => {
     )
     .then((response) => {
       let data = JSON.parse(response.data.data)[0];
-
+      let data1 = JSON.parse(response.data.data)[1];
       if (data) {  data.forEach((element, i) => {
           element.STT = i + 1;
         });
+
+        seniority.value=data1[0];
         listdatas.value = data;
       }
     })
@@ -422,7 +425,7 @@ const saveWarehouse = () => {
       if (response.data.err != "1") {
         swal.close();
         toast.success("Thêm số ngày nghỉ phép thành công!");
-        loadData();
+ 
 
         closeDialog();
       } else {
@@ -449,7 +452,7 @@ const saveWarehouse = () => {
 onMounted(() => {
   axios
     .put(
-      baseURL + "/api/hrm_config_holidays/update_data" ,
+      baseURL + "/api/hrm_config_holidays/update_data", seniority.value ,
       config
     )
     .then((response) => {
@@ -491,9 +494,21 @@ onMounted(() => {
             Phép thưởng theo chức danh
           </div>
         </div>
-        <div class="col-12 field format-center p-0 font-bold">
-          <div class="col-6 p-0 format-center text-xl">
-            <div class="col-11 p-0 format-center text-xl"></div>
+        <div class="col-12 field format-center p-0 ">
+          <div class="col-6 p-0 format-center font-bold">
+            <div class="col-11 p-0   flex align-items-center" >
+              <div class="mr-2">
+                Số năm thâm niên được thưởng phép
+              </div>
+              <div>
+                <InputNumber
+                      class="w-full d-design-inputnumber"
+                      style="max-width: 70px; text-align: center"
+                      v-model="seniority.num_seniority" mode="decimal" :useGrouping="false" 
+                    />
+              </div>
+              
+            </div>
             <div class="col-1 p-0 format-center text-xl">
               <Button @click="openBasic" icon="pi pi-plus" />
             </div>
