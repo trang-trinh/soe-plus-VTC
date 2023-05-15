@@ -202,6 +202,49 @@ const saveModel = (is_continue) => {
   if (submitted.value) submitted.value = true;
 };
 
+//
+const displayDialog1 = ref(false);
+const displayDialog2 = ref(false);
+const displayDialog3 = ref(false);
+const displayDialog4 = ref(false);
+const model = ref({});
+const openAddRow = (type) => {
+  model.value = {};
+  if (type === 1) {
+    displayDialog1.value = true;
+  } else if (type === 2) {
+    displayDialog2.value = true;
+  } else if (type === 3) {
+    displayDialog3.value = true;
+  } else if (type === 4) {
+    displayDialog4.value = true;
+  }
+};
+const saveRow = (type, isContinue) => {
+  if (props.datachilds[type] == null) {
+    props.datachilds[type] = [];
+  }
+  props.datachilds[type].unshift(model.value);
+  if (model.value.is_man_degree && model.value.academic_level_id) {
+    var idx = props.dictionarys[6].findIndex(
+      (x) => x.academic_level_id === model.value.academic_level_id
+    );
+    if (idx !== -1) {
+      props.model.cultural_level_max =
+        props.dictionarys[6][idx].academic_level_name;
+    }
+  }
+  if (!isContinue) {
+    closeDialog();
+  }
+};
+const closeDialog = () => {
+  displayDialog1.value = false;
+  displayDialog2.value = false;
+  displayDialog3.value = false;
+  displayDialog4.value = false;
+};
+
 //init
 const genCode = () => {
   axios
@@ -317,274 +360,202 @@ onMounted(() => {
               </template>
               <div class="col-12 md:col-12 p-0">
                 <div class="row">
-                  <div class="col-3 md:col-3 format-center">
-                    <div class="form-group">
-                      <div
-                        class="inputanh2 relative mb-2"
-                        style="margin: 0 auto"
-                      >
-                        <img
-                          v-tooltip.top="'Chọn ảnh hồ sơ'"
-                          @click="props.chooseImage('imgAvatar')"
-                          id="avatar"
-                          v-bind:src="
-                            props.model.avatar
-                              ? basedomainURL + props.model.avatar
-                              : basedomainURL + '/Portals/Image/noimg.jpg'
-                          "
-                        />
-                        <Button
-                          v-if="props.model.avatar || props.model.isDisplayAvt"
-                          style="width: 2rem; height: 2rem"
-                          icon="pi pi-times"
-                          @click="props.deleteImage('avatar')"
-                          class="p-button-rounded absolute top-0 right-0 cursor-pointer"
-                        />
-                        <input
-                          id="imgAvatar"
-                          type="file"
-                          accept="image/*"
-                          @change="props.handleFileAvtUpload($event, 'avatar')"
-                          style="display: none"
-                        />
-                      </div>
-                    </div>
-                  </div>
-                  <div class="col-9 md:col-9 p-0">
+                  <div class="col-12 md:col-12 p-0">
                     <div class="row">
-                      <div class="col-6 md:col-6">
+                      <div class="col-3 md:col-3 format-center">
                         <div class="form-group">
-                          <label
-                            >Mã nhân sự <span class="redsao">(*)</span></label
-                          >
-                          <InputText
-                            spellcheck="false"
-                            class="ip36"
-                            v-model="props.model.profile_code"
-                            :style="{
-                              backgroundColor: '#FEF9E7',
-                              fontWeight: 'bold',
-                            }"
-                            :class="{
-                              'p-invalid':
-                                !props.model.profile_code && submitted,
-                            }"
-                          />
-                          <div v-if="!props.model.profile_code && submitted">
-                            <small class="p-error">
-                              <span class="col-12 p-0"
-                                >Mã nhân sự không được để trống</span
-                              >
-                            </small>
-                          </div>
-                        </div>
-                      </div>
-                      <div class="col-6 md:col-6">
-                        <div class="form-group">
-                          <label>Mã quản lý cấp trên</label>
-                          <InputText
-                            spellcheck="false"
-                            class="ip36"
-                            v-model="props.model.superior_id"
-                          />
-                        </div>
-                      </div>
-                      <div class="col-6 md:col-6">
-                        <div class="form-group">
-                          <label
-                            >Họ và tên <span class="redsao">(*)</span></label
-                          >
-                          <InputText
-                            spellcheck="false"
-                            class="ip36"
-                            v-model="props.model.profile_user_name"
-                            :style="{ fontWeight: 'bold' }"
-                            :class="{
-                              'p-invalid':
-                                !props.model.profile_code && submitted,
-                            }"
-                          />
                           <div
-                            v-if="!props.model.profile_user_name && submitted"
+                            class="inputanh2 relative mb-2"
+                            style="margin: 0 auto"
                           >
-                            <small class="p-error">
-                              <span>Họ và tên không được để trống</span>
-                            </small>
+                            <img
+                              v-tooltip.top="'Chọn ảnh hồ sơ'"
+                              @click="props.chooseImage('imgAvatar')"
+                              id="avatar"
+                              v-bind:src="
+                                props.model.avatar
+                                  ? basedomainURL + props.model.avatar
+                                  : basedomainURL + '/Portals/Image/noimg.jpg'
+                              "
+                            />
+                            <Button
+                              v-if="
+                                props.model.avatar || props.model.isDisplayAvt
+                              "
+                              style="width: 2rem; height: 2rem"
+                              icon="pi pi-times"
+                              @click="props.deleteImage('avatar')"
+                              class="p-button-rounded absolute top-0 right-0 cursor-pointer"
+                            />
+                            <input
+                              id="imgAvatar"
+                              type="file"
+                              accept="image/*"
+                              @change="
+                                props.handleFileAvtUpload($event, 'avatar')
+                              "
+                              style="display: none"
+                            />
                           </div>
                         </div>
                       </div>
-                      <div class="col-6 md:col-6">
-                        <div class="form-group">
-                          <label>Mã chấm công</label>
-                          <InputText
-                            spellcheck="false"
-                            class="ip36"
-                            v-model="props.model.check_in_id"
-                          />
-                        </div>
-                      </div>
-                      <div class="col-6 md:col-6">
-                        <div class="form-group">
-                          <label
-                            >Ngày sinh <span class="redsao">(*)</span></label
-                          >
-                          <Calendar
-                            class="ip36"
-                            id="icon"
-                            v-model="props.model.birthday"
-                            :showIcon="true"
-                            placeholder="dd/mm/yyyy"
-                            :class="{
-                              'p-invalid':
-                                !props.model.profile_code && submitted,
-                            }"
-                          />
-                          <div v-if="!props.model.birthday && submitted">
-                            <small class="p-error">
-                              <span>Ngày sinh không được để trống</span>
-                            </small>
+                      <div class="col-9 md:col-9 p-0">
+                        <div class="row">
+                          <div class="col-6 md:col-6">
+                            <div class="form-group">
+                              <label
+                                >Mã nhân sự
+                                <span class="redsao">(*)</span></label
+                              >
+                              <InputText
+                                spellcheck="false"
+                                class="ip36"
+                                v-model="props.model.profile_code"
+                                :style="{
+                                  backgroundColor: '#FEF9E7',
+                                  fontWeight: 'bold',
+                                }"
+                                :class="{
+                                  'p-invalid':
+                                    !props.model.profile_code && submitted,
+                                }"
+                              />
+                              <div
+                                v-if="!props.model.profile_code && submitted"
+                              >
+                                <small class="p-error">
+                                  <span class="col-12 p-0"
+                                    >Mã nhân sự không được để trống</span
+                                  >
+                                </small>
+                              </div>
+                            </div>
                           </div>
-                        </div>
-                      </div>
-                      <div class="col-6 md:col-6">
-                        <div class="form-group">
-                          <label>Ngày tuyển dụng</label>
-                          <Calendar
-                            class="ip36"
-                            id="icon"
-                            v-model="props.model.recruitment_date"
-                            :showIcon="true"
-                            placeholder="dd/mm/yyyy"
-                          />
-                        </div>
-                      </div>
-                      <div class="col-6 md:col-6">
-                        <div class="form-group">
-                          <label>Giới tính</label>
-                          <Dropdown
-                            :options="props.genders"
-                            v-model="props.model.gender"
-                            optionLabel="text"
-                            optionValue="value"
-                            placeholder="Chọn giới tính"
-                            class="ip36"
-                            :style="{
-                              whiteSpace: 'nowrap',
-                              overflow: 'hidden',
-                              textOverflow: 'ellipsis',
-                            }"
-                          />
-                        </div>
-                      </div>
-                      <div class="col-6 md:col-6">
-                        <div class="form-group">
-                          <label>Tên gọi khác</label>
-                          <InputText
-                            spellcheck="false"
-                            class="ip36"
-                            v-model="props.model.profile_nick_name"
-                          />
+                          <div class="col-6 md:col-6">
+                            <div class="form-group">
+                              <label>Ngày tuyển dụng</label>
+                              <Calendar
+                                class="ip36"
+                                id="icon"
+                                v-model="props.model.recruitment_date"
+                                :showIcon="true"
+                                placeholder="dd/mm/yyyy"
+                              />
+                            </div>
+                          </div>
+                          <div class="col-6 md:col-6">
+                            <div class="form-group">
+                              <label
+                                >Họ và tên
+                                <span class="redsao">(*)</span></label
+                              >
+                              <InputText
+                                spellcheck="false"
+                                class="ip36"
+                                v-model="props.model.profile_user_name"
+                                :style="{ fontWeight: 'bold' }"
+                                :class="{
+                                  'p-invalid':
+                                    !props.model.profile_code && submitted,
+                                }"
+                              />
+                              <div
+                                v-if="
+                                  !props.model.profile_user_name && submitted
+                                "
+                              >
+                                <small class="p-error">
+                                  <span>Họ và tên không được để trống</span>
+                                </small>
+                              </div>
+                            </div>
+                          </div>
+                          <div class="col-6 md:col-6">
+                            <div class="form-group">
+                              <label>Mã quản lý cấp trên</label>
+                              <InputText
+                                spellcheck="false"
+                                class="ip36"
+                                v-model="props.model.superior_id"
+                              />
+                            </div>
+                          </div>
+                          <div class="col-6 md:col-6">
+                            <div class="form-group">
+                              <label
+                                >Ngày sinh
+                                <span class="redsao">(*)</span></label
+                              >
+                              <Calendar
+                                class="ip36"
+                                id="icon"
+                                v-model="props.model.birthday"
+                                :showIcon="true"
+                                placeholder="dd/mm/yyyy"
+                                :class="{
+                                  'p-invalid':
+                                    !props.model.profile_code && submitted,
+                                }"
+                              />
+                              <div v-if="!props.model.birthday && submitted">
+                                <small class="p-error">
+                                  <span>Ngày sinh không được để trống</span>
+                                </small>
+                              </div>
+                            </div>
+                          </div>
+                          <div class="col-6 md:col-6">
+                            <div class="form-group">
+                              <label>Mã chấm công</label>
+                              <InputText
+                                spellcheck="false"
+                                class="ip36"
+                                v-model="props.model.check_in_id"
+                              />
+                            </div>
+                          </div>
+                          <div class="col-6 md:col-6">
+                            <div class="form-group">
+                              <label>Tên gọi khác</label>
+                              <InputText
+                                spellcheck="false"
+                                class="ip36"
+                                v-model="props.model.profile_nick_name"
+                              />
+                            </div>
+                          </div>
+                          <div class="col-6 md:col-6">
+                            <div class="form-group">
+                              <label>Giới tính</label>
+                              <Dropdown
+                                :options="props.genders"
+                                v-model="props.model.gender"
+                                optionLabel="text"
+                                optionValue="value"
+                                placeholder="Chọn giới tính"
+                                class="ip36"
+                                :style="{
+                                  whiteSpace: 'nowrap',
+                                  overflow: 'hidden',
+                                  textOverflow: 'ellipsis',
+                                }"
+                              />
+                            </div>
+                          </div>
                         </div>
                       </div>
                     </div>
                   </div>
-                </div>
-              </div>
-              <div class="col-12 md:col-12">
-                <div class="form-group">
-                  <label>Nơi sinh</label>
-                  <Dropdown
-                    @filter="initPlaceFilter($event, 1)"
-                    :options="listPlaceDetails1"
-                    :filter="true"
-                    :editable="true"
-                    :showClear="true"
-                    v-model="props.model.select_birthplace"
-                    optionLabel="name"
-                    optionValue="place_details_id"
-                    class="ip36"
-                    placeholder="Xã phường, Quận huyện, Tỉnh thành"
-                    panelClass="d-design-dropdown"
-                    :style="{
-                      whiteSpace: 'nowrap',
-                      overflow: 'hidden',
-                      textOverflow: 'ellipsis',
-                    }"
-                  />
-                  <!-- <TreeSelect
-                    :options="props.places"
-                    :showClear="true"
-                    :max-height="200"
-                    v-model="props.model.select_birthplace"
-                    placeholder="Chọn nơi sinh"
-                    optionLabel="name"
-                    optionValue="place_id"
-                    class="ip36"
-                  >
-                  </TreeSelect> -->
-                </div>
-              </div>
-              <div class="col-12 md:col-12">
-                <div class="form-group">
-                  <label>Quê quán</label>
-                  <Dropdown
-                    @filter="initPlaceFilter($event, 2)"
-                    :options="listPlaceDetails2"
-                    :filter="true"
-                    :editable="true"
-                    :showClear="true"
-                    v-model="props.model.select_birthplace_origin"
-                    optionLabel="name"
-                    optionValue="place_details_id"
-                    class="ip36"
-                    placeholder="Xã phường, Quận huyện, Tỉnh thành"
-                    panelClass="d-design-dropdown"
-                    :style="{
-                      whiteSpace: 'nowrap',
-                      overflow: 'hidden',
-                      textOverflow: 'ellipsis',
-                    }"
-                  />
-                  <!-- <TreeSelect
-                    :options="props.places"
-                    :showClear="true"
-                    :max-height="200"
-                    v-model="props.model.select_birthplace_origin"
-                    placeholder="Chọn quê quán"
-                    optionLabel="name"
-                    optionValue="place_id"
-                    class="ip36"
-                  >
-                  </TreeSelect> -->
-                </div>
-              </div>
-              <div class="col-12 md:col-12">
-                <div class="form-group m-0">
-                  <label>Nơi đăng ký HKTT</label>
-                </div>
-              </div>
-              <div class="col-12 md:col-12 p-0">
-                <div class="row">
                   <div class="col-6 md:col-6">
                     <div class="form-group">
-                      <InputText
-                        spellcheck="false"
-                        class="ip36"
-                        v-model="props.model.place_register_permanent_first"
-                        maxLength="500"
-                        placeholder="Số nhà/đường phố"
-                      />
-                    </div>
-                  </div>
-                  <div class="col-6 md:col-6">
-                    <div class="form-group">
+                      <label>Nơi sinh</label>
                       <Dropdown
-                        @filter="initPlaceFilter($event, 3)"
-                        :options="listPlaceDetails3"
+                        @filter="initPlaceFilter($event, 1)"
+                        :options="listPlaceDetails1"
                         :filter="true"
                         :editable="true"
                         :showClear="true"
-                        v-model="props.model.select_place_register_permanent"
+                        v-model="props.model.select_birthplace"
                         optionLabel="name"
                         optionValue="place_details_id"
                         class="ip36"
@@ -596,216 +567,305 @@ onMounted(() => {
                           textOverflow: 'ellipsis',
                         }"
                       />
+                      <!-- <TreeSelect
+                    :options="props.places"
+                    :showClear="true"
+                    :max-height="200"
+                    v-model="props.model.select_birthplace"
+                    placeholder="Chọn nơi sinh"
+                    optionLabel="name"
+                    optionValue="place_id"
+                    class="ip36"
+                  >
+                  </TreeSelect> -->
                     </div>
                   </div>
-                </div>
-              </div>
-              <div class="col-12 md:col-12 p-0">
-                <div class="row">
-                  <div class="col-3 md:col-3">
+                  <div class="col-6 md:col-6">
                     <div class="form-group">
-                      <label>Loại giấy tờ</label>
+                      <label>Quê quán</label>
                       <Dropdown
-                        :showClear="true"
-                        :options="props.dictionarys[0]"
-                        optionLabel="identity_papers_name"
-                        optionValue="identity_papers_id"
-                        placeholder="Chọn loại"
-                        class="ip36"
-                        v-model="props.model.identity_papers_id"
-                        :style="{
-                          whiteSpace: 'nowrap',
-                          overflow: 'hidden',
-                          textOverflow: 'ellipsis',
-                        }"
-                      />
-                    </div>
-                  </div>
-                  <div class="col-3 md:col-3">
-                    <div class="form-group">
-                      <label>Số</label>
-                      <InputText
-                        spellcheck="false"
-                        class="ip36"
-                        v-model="props.model.identity_papers_code"
-                        maxLength="50"
-                      />
-                    </div>
-                  </div>
-                  <div class="col-3 md:col-3">
-                    <div class="form-group">
-                      <label>Ngày cấp</label>
-                      <Calendar
-                        class="ip36"
-                        id="icon"
-                        v-model="props.model.identity_date_issue"
-                        :showIcon="true"
-                        placeholder="dd/mm/yyyy"
-                      />
-                    </div>
-                  </div>
-                  <div class="col-3 md:col-3">
-                    <div class="form-group">
-                      <label>Ngày hết hạn</label>
-                      <Calendar
-                        class="ip36"
-                        id="icon"
-                        v-model="props.model.identity_end_date_issue"
-                        :showIcon="true"
-                        placeholder="dd/mm/yyyy"
-                      />
-                    </div>
-                  </div>
-                  <div class="col-4 md:col-4">
-                    <div class="form-group">
-                      <label>Nơi cấp</label>
-                      <Dropdown
-                        :options="props.dictionarys[17]"
-                        :showClear="true"
+                        @filter="initPlaceFilter($event, 2)"
+                        :options="listPlaceDetails2"
                         :filter="true"
-                        v-model="props.model.identity_place_id"
-                        placeholder="Chọn nơi cấp"
-                        optionLabel="identity_place_name"
-                        optionValue="identity_place_id"
-                        class="ip36"
-                        :style="{
-                          whiteSpace: 'nowrap',
-                          overflow: 'hidden',
-                          textOverflow: 'ellipsis',
-                        }"
-                      />
-                    </div>
-                  </div>
-                  <div class="col-4 md:col-4">
-                    <div class="form-group">
-                      <label>Quốc tịch</label>
-                      <Dropdown
+                        :editable="true"
                         :showClear="true"
-                        :options="props.dictionarys[1]"
-                        optionLabel="nationality_name"
-                        optionValue="nationality_id"
-                        placeholder="Chọn quốc tịch"
+                        v-model="props.model.select_birthplace_origin"
+                        optionLabel="name"
+                        optionValue="place_details_id"
                         class="ip36"
-                        v-model="props.model.nationality_id"
-                        :filter="true"
+                        placeholder="Xã phường, Quận huyện, Tỉnh thành"
+                        panelClass="d-design-dropdown"
                         :style="{
                           whiteSpace: 'nowrap',
                           overflow: 'hidden',
                           textOverflow: 'ellipsis',
                         }"
                       />
+                      <!-- <TreeSelect
+                    :options="props.places"
+                    :showClear="true"
+                    :max-height="200"
+                    v-model="props.model.select_birthplace_origin"
+                    placeholder="Chọn quê quán"
+                    optionLabel="name"
+                    optionValue="place_id"
+                    class="ip36"
+                  >
+                  </TreeSelect> -->
                     </div>
                   </div>
-                  <div class="col-4 md:col-4">
-                    <div class="form-group">
-                      <label>Tình trạng hôn nhân</label>
-                      <Dropdown
-                        :showClear="true"
-                        :options="props.marital_status"
-                        optionLabel="text"
-                        optionValue="value"
-                        placeholder="Chọn trạng thái"
-                        class="ip36"
-                        v-model="props.model.marital_status"
-                        :style="{
-                          whiteSpace: 'nowrap',
-                          overflow: 'hidden',
-                          textOverflow: 'ellipsis',
-                        }"
-                      />
+                  <div class="col-12 md:col-12">
+                    <div class="form-group m-0">
+                      <label>Nơi đăng ký HKTT</label>
                     </div>
                   </div>
-                  <div class="col-4 md:col-4">
-                    <div class="form-group">
-                      <label>Dân tộc</label>
-                      <Dropdown
-                        :showClear="true"
-                        :options="props.dictionarys[2]"
-                        optionLabel="ethnic_name"
-                        optionValue="ethnic_id"
-                        placeholder="Chọn dân tộc"
-                        class="ip36"
-                        v-model="props.model.ethnic_id"
-                        :filter="true"
-                        :style="{
-                          whiteSpace: 'nowrap',
-                          overflow: 'hidden',
-                          textOverflow: 'ellipsis',
-                        }"
-                      />
+                  <div class="col-12 md:col-12 p-0">
+                    <div class="row">
+                      <div class="col-6 md:col-6">
+                        <div class="form-group">
+                          <InputText
+                            spellcheck="false"
+                            class="ip36"
+                            v-model="props.model.place_register_permanent_first"
+                            maxLength="500"
+                            placeholder="Số nhà/đường phố"
+                          />
+                        </div>
+                      </div>
+                      <div class="col-6 md:col-6">
+                        <div class="form-group">
+                          <Dropdown
+                            @filter="initPlaceFilter($event, 3)"
+                            :options="listPlaceDetails3"
+                            :filter="true"
+                            :editable="true"
+                            :showClear="true"
+                            v-model="
+                              props.model.select_place_register_permanent
+                            "
+                            optionLabel="name"
+                            optionValue="place_details_id"
+                            class="ip36"
+                            placeholder="Xã phường, Quận huyện, Tỉnh thành"
+                            panelClass="d-design-dropdown"
+                            :style="{
+                              whiteSpace: 'nowrap',
+                              overflow: 'hidden',
+                              textOverflow: 'ellipsis',
+                            }"
+                          />
+                        </div>
+                      </div>
                     </div>
                   </div>
-                  <div class="col-4 md:col-4">
-                    <div class="form-group">
-                      <label>Tôn giáo</label>
-                      <Dropdown
-                        :showClear="true"
-                        :options="props.dictionarys[3]"
-                        optionLabel="religion_name"
-                        optionValue="religion_id"
-                        placeholder="Chọn tôn giáo"
-                        class="ip36"
-                        v-model="props.model.religion_id"
-                        :filter="true"
-                        :style="{
-                          whiteSpace: 'nowrap',
-                          overflow: 'hidden',
-                          textOverflow: 'ellipsis',
-                        }"
-                      />
-                    </div>
-                  </div>
-                  <div class="col-4 md:col-4">
-                    <div class="form-group">
-                      <label>Mã số thuế</label>
-                      <InputText
-                        spellcheck="false"
-                        class="ip36"
-                        v-model="props.model.tax_code"
-                        maxLength="50"
-                      />
-                    </div>
-                  </div>
-                  <div class="col-4 md:col-4">
-                    <div class="form-group">
-                      <label>Ngân hàng</label>
-                      <Dropdown
-                        :showClear="true"
-                        :options="props.dictionarys[4]"
-                        optionLabel="bank_name"
-                        optionValue="bank_id"
-                        placeholder="Chọn ngân hàng"
-                        class="ip36"
-                        v-model="props.model.bank_id"
-                        :filter="true"
-                        :style="{
-                          whiteSpace: 'nowrap',
-                          overflow: 'hidden',
-                          textOverflow: 'ellipsis',
-                        }"
-                      />
-                    </div>
-                  </div>
-                  <div class="col-4 md:col-4">
-                    <div class="form-group">
-                      <label>Số tài khoản</label>
-                      <InputText
-                        spellcheck="false"
-                        class="ip36"
-                        v-model="props.model.bank_number"
-                        maxLength="50"
-                      />
-                    </div>
-                  </div>
-                  <div class="col-4 md:col-4">
-                    <div class="form-group">
-                      <label>Tên tài khoản</label>
-                      <InputText
-                        spellcheck="false"
-                        class="ip36"
-                        v-model="props.model.bank_account"
-                        maxLength="50"
-                      />
+                  <div class="col-12 md:col-12 p-0">
+                    <div class="row">
+                      <div class="col-4 md:col-4">
+                        <div class="form-group">
+                          <label>Quốc tịch</label>
+                          <Dropdown
+                            :showClear="true"
+                            :options="props.dictionarys[1]"
+                            optionLabel="nationality_name"
+                            optionValue="nationality_id"
+                            placeholder="Chọn quốc tịch"
+                            class="ip36"
+                            v-model="props.model.nationality_id"
+                            :filter="true"
+                            :style="{
+                              whiteSpace: 'nowrap',
+                              overflow: 'hidden',
+                              textOverflow: 'ellipsis',
+                            }"
+                          />
+                        </div>
+                      </div>
+                      <div class="col-4 md:col-4">
+                        <div class="form-group">
+                          <label>Dân tộc</label>
+                          <Dropdown
+                            :showClear="true"
+                            :options="props.dictionarys[2]"
+                            optionLabel="ethnic_name"
+                            optionValue="ethnic_id"
+                            placeholder="Chọn dân tộc"
+                            class="ip36"
+                            v-model="props.model.ethnic_id"
+                            :filter="true"
+                            :style="{
+                              whiteSpace: 'nowrap',
+                              overflow: 'hidden',
+                              textOverflow: 'ellipsis',
+                            }"
+                          />
+                        </div>
+                      </div>
+                      <div class="col-4 md:col-4">
+                        <div class="form-group">
+                          <label>Tôn giáo</label>
+                          <Dropdown
+                            :showClear="true"
+                            :options="props.dictionarys[3]"
+                            optionLabel="religion_name"
+                            optionValue="religion_id"
+                            placeholder="Chọn tôn giáo"
+                            class="ip36"
+                            v-model="props.model.religion_id"
+                            :filter="true"
+                            :style="{
+                              whiteSpace: 'nowrap',
+                              overflow: 'hidden',
+                              textOverflow: 'ellipsis',
+                            }"
+                          />
+                        </div>
+                      </div>
+                      <div class="col-4 md:col-4">
+                        <div class="form-group">
+                          <label>Loại giấy tờ</label>
+                          <Dropdown
+                            :showClear="true"
+                            :options="props.dictionarys[0]"
+                            optionLabel="identity_papers_name"
+                            optionValue="identity_papers_id"
+                            placeholder="Chọn loại"
+                            class="ip36"
+                            v-model="props.model.identity_papers_id"
+                            :style="{
+                              whiteSpace: 'nowrap',
+                              overflow: 'hidden',
+                              textOverflow: 'ellipsis',
+                            }"
+                          />
+                        </div>
+                      </div>
+                      <div class="col-4 md:col-4">
+                        <div class="form-group">
+                          <label>Số</label>
+                          <InputText
+                            spellcheck="false"
+                            class="ip36"
+                            v-model="props.model.identity_papers_code"
+                            maxLength="50"
+                          />
+                        </div>
+                      </div>
+                      <div class="col-2 md:col-2">
+                        <div class="form-group">
+                          <label>Ngày cấp</label>
+                          <Calendar
+                            class="ip36"
+                            id="icon"
+                            v-model="props.model.identity_date_issue"
+                            :showIcon="true"
+                            placeholder="dd/mm/yyyy"
+                          />
+                        </div>
+                      </div>
+                      <div class="col-2 md:col-2">
+                        <div class="form-group">
+                          <label>Ngày hết hạn</label>
+                          <Calendar
+                            class="ip36"
+                            id="icon"
+                            v-model="props.model.identity_end_date_issue"
+                            :showIcon="true"
+                            placeholder="dd/mm/yyyy"
+                          />
+                        </div>
+                      </div>
+                      <div class="col-4 md:col-4">
+                        <div class="form-group">
+                          <label>Nơi cấp</label>
+                          <Dropdown
+                            :options="props.dictionarys[17]"
+                            :showClear="true"
+                            :filter="true"
+                            v-model="props.model.identity_place_id"
+                            placeholder="Chọn nơi cấp"
+                            optionLabel="identity_place_name"
+                            optionValue="identity_place_id"
+                            class="ip36"
+                            :style="{
+                              whiteSpace: 'nowrap',
+                              overflow: 'hidden',
+                              textOverflow: 'ellipsis',
+                            }"
+                          />
+                        </div>
+                      </div>
+                      <div class="col-4 md:col-4">
+                        <div class="form-group">
+                          <label>Mã số thuế</label>
+                          <InputText
+                            spellcheck="false"
+                            class="ip36"
+                            v-model="props.model.tax_code"
+                            maxLength="50"
+                          />
+                        </div>
+                      </div>
+                      <div class="col-4 md:col-4">
+                        <div class="form-group">
+                          <label>Tình trạng hôn nhân</label>
+                          <Dropdown
+                            :showClear="true"
+                            :options="props.marital_status"
+                            optionLabel="text"
+                            optionValue="value"
+                            placeholder="Chọn trạng thái"
+                            class="ip36"
+                            v-model="props.model.marital_status"
+                            :style="{
+                              whiteSpace: 'nowrap',
+                              overflow: 'hidden',
+                              textOverflow: 'ellipsis',
+                            }"
+                          />
+                        </div>
+                      </div>
+                      <div class="col-4 md:col-4">
+                        <div class="form-group">
+                          <label>Ngân hàng</label>
+                          <Dropdown
+                            :showClear="true"
+                            :options="props.dictionarys[4]"
+                            optionLabel="bank_name"
+                            optionValue="bank_id"
+                            placeholder="Chọn ngân hàng"
+                            class="ip36"
+                            v-model="props.model.bank_id"
+                            :filter="true"
+                            :style="{
+                              whiteSpace: 'nowrap',
+                              overflow: 'hidden',
+                              textOverflow: 'ellipsis',
+                            }"
+                          />
+                        </div>
+                      </div>
+                      <div class="col-4 md:col-4">
+                        <div class="form-group">
+                          <label>Số tài khoản</label>
+                          <InputText
+                            spellcheck="false"
+                            class="ip36"
+                            v-model="props.model.bank_number"
+                            maxLength="50"
+                          />
+                        </div>
+                      </div>
+                      <div class="col-4 md:col-4">
+                        <div class="form-group">
+                          <label>Tên tài khoản</label>
+                          <InputText
+                            spellcheck="false"
+                            class="ip36"
+                            v-model="props.model.bank_account"
+                            maxLength="50"
+                          />
+                        </div>
+                      </div>
                     </div>
                   </div>
                 </div>
@@ -813,136 +873,11 @@ onMounted(() => {
             </AccordionTab>
           </Accordion>
           <Accordion class="w-full" :multiple="true">
-            <AccordionTab>
-              <template #header>
-                <!-- <i class="pi pi-book mr-2"></i> -->
-                <span>2. Trình độ học vấn</span>
-              </template>
-              <div class="col-12 md:col-12">
-                <div class="row">
-                  <div class="col-6 md:col-6">
-                    <div class="form-group">
-                      <label>Trình độ phổ thông</label>
-                      <Dropdown
-                        :showClear="true"
-                        :options="props.dictionarys[5]"
-                        optionLabel="cultural_level_name"
-                        optionValue="cultural_level_id"
-                        placeholder="Chọn trình độ"
-                        class="ip36"
-                        v-model="props.model.cultural_level_id"
-                        :style="{
-                          whiteSpace: 'nowrap',
-                          overflow: 'hidden',
-                          textOverflow: 'ellipsis',
-                        }"
-                      />
-                    </div>
-                  </div>
-
-                  <!-- <div class="col-6 md:col-6">
-                    <div class="form-group">
-                      <label>Chuyên ngành học</label>
-                      <Dropdown
-                        :showClear="true"
-                        :filter="true"
-                        :options="props.dictionarys[7]"
-                        optionLabel="specialization_name"
-                        optionValue="specialization_id"
-                        placeholder="Chọn ngành"
-                        class="ip36"
-                        v-model="props.model.specialization_id"
-                        :style="{
-                          whiteSpace: 'nowrap',
-                          overflow: 'hidden',
-                          textOverflow: 'ellipsis',
-                        }"
-                      />
-                    </div>
-                  </div> -->
-                  <div class="col-6 md:col-6">
-                    <div class="form-group">
-                      <label>Quản lý nhà nước</label>
-                      <Dropdown
-                        :showClear="true"
-                        :options="props.dictionarys[14]"
-                        optionLabel="management_state_name"
-                        optionValue="management_state_id"
-                        placeholder="Chọn cấp"
-                        class="ip36"
-                        v-model="props.model.management_state_id"
-                        :style="{
-                          whiteSpace: 'nowrap',
-                          overflow: 'hidden',
-                          textOverflow: 'ellipsis',
-                        }"
-                      />
-                    </div>
-                  </div>
-                  <div class="col-4 md:col-4">
-                    <div class="form-group">
-                      <label>Lý luận chính trị</label>
-                      <Dropdown
-                        :showClear="true"
-                        :options="props.dictionarys[8]"
-                        optionLabel="political_theory_name"
-                        optionValue="political_theory_id"
-                        placeholder="Chọn cấp"
-                        class="ip36"
-                        v-model="props.model.political_theory_id"
-                        :style="{
-                          whiteSpace: 'nowrap',
-                          overflow: 'hidden',
-                          textOverflow: 'ellipsis',
-                        }"
-                      />
-                    </div>
-                  </div>
-                  <div class="col-4 md:col-4">
-                    <div class="form-group">
-                      <label>Ngoại ngữ</label>
-                      <Dropdown
-                        :showClear="true"
-                        :options="props.dictionarys[9]"
-                        optionLabel="language_level_name"
-                        optionValue="language_level_id"
-                        placeholder="Chọn cấp"
-                        class="ip36"
-                        v-model="props.model.language_level_id"
-                        :style="{
-                          whiteSpace: 'nowrap',
-                          overflow: 'hidden',
-                          textOverflow: 'ellipsis',
-                        }"
-                      />
-                    </div>
-                  </div>
-                  <div class="col-4 md:col-4">
-                    <div class="form-group">
-                      <label>Tin học</label>
-                      <Dropdown
-                        :showClear="true"
-                        :options="props.dictionarys[10]"
-                        optionLabel="informatic_level_name"
-                        optionValue="informatic_level_id"
-                        placeholder="Chọn cấp"
-                        class="ip36"
-                        v-model="props.model.informatic_level_id"
-                        :style="{
-                          whiteSpace: 'nowrap',
-                          overflow: 'hidden',
-                          textOverflow: 'ellipsis',
-                        }"
-                      />
-                    </div>
-                  </div>
-                </div>
-              </div>
-            </AccordionTab>
+            <!-- 2. Thông tin liên hệ -->
             <AccordionTab>
               <template #header>
                 <!-- <i class="pi pi-info-circle mr-2"></i> -->
-                <span>3. Thông tin liên hệ</span>
+                <span>2. Thông tin liên hệ</span>
               </template>
               <div class="col-12 md:col-12">
                 <div class="row">
@@ -1077,20 +1012,1781 @@ onMounted(() => {
                 </div>
               </div>
             </AccordionTab>
-            <!-- 4. Thông tin gia đình, người phụ thuộc -->
+            <!-- 3. Thông tin tuyển dụng -->
+            <AccordionTab>
+              <template #header>
+                <!-- <i class="pi pi-info-circle mr-2"></i> -->
+                <span>3. Thông tin tuyển dụng</span>
+              </template>
+              <div class="col-12 md:col-12">
+                <div class="row">
+                  <div class="col-6 md:col-6">
+                    <div class="form-group">
+                      <label>Ngày tuyển dụng lần đầu</label>
+                      <Calendar
+                        class="ip36"
+                        id="icon"
+                        v-model="props.model.recruitment_date_first"
+                        :showIcon="true"
+                        placeholder="dd/mm/yyyy"
+                      />
+                    </div>
+                  </div>
+                  <div class="col-6 md:col-6">
+                    <div class="form-group">
+                      <label>Hình thức tuyển dụng</label>
+                      <InputText
+                        spellcheck="false"
+                        class="ip36"
+                        v-model="props.model.recruitment_form"
+                        maxLength="500"
+                      />
+                    </div>
+                  </div>
+                  <div class="col-6 md:col-6">
+                    <div class="form-group">
+                      <label
+                        >Nghề nghiệp bản thân trước khi được tuyển dụng</label
+                      >
+                      <InputText
+                        spellcheck="false"
+                        class="ip36"
+                        v-model="props.model.job_before_recruitment"
+                        maxLength="500"
+                      />
+                    </div>
+                  </div>
+                  <div class="col-6 md:col-6">
+                    <div class="form-group">
+                      <label>Vị trí tuyển dụng</label>
+                      <InputText
+                        spellcheck="false"
+                        class="ip36"
+                        v-model="props.model.recruitment_position"
+                        maxLength="500"
+                      />
+                    </div>
+                  </div>
+                  <div class="col-12 md:col-12">
+                    <div class="form-group">
+                      <label>Tuyển dụng lại:</label>
+                    </div>
+                  </div>
+                  <div class="col-6 md:col-6 format-center">
+                    <div class="form-group m-0">
+                      <div
+                        class="field-checkbox flex justify-content-center"
+                        style="height: 100%"
+                      >
+                        <InputSwitch v-model="props.model.is_re_recruitment" />
+                        <label for="binary">Tuyển dụng lại</label>
+                      </div>
+                    </div>
+                  </div>
+                  <div
+                    v-if="props.model.is_re_recruitment"
+                    class="col-6 md:col-6"
+                  >
+                    <div class="form-group">
+                      <label>Lần tuyển dụng</label>
+                      <InputNumber
+                        v-model="props.model.recruitment_number"
+                        inputId="minmax"
+                        :min="0"
+                        showButtons
+                        class="ip36"
+                      />
+                    </div>
+                  </div>
+                  <div
+                    v-if="props.model.is_re_recruitment"
+                    class="col-12 md:col-12"
+                  >
+                    <div class="row">
+                      <div class="col-6 md:col-6">
+                        <div class="form-group">
+                          <label>Ngày tuyển dụng lại</label>
+                          <Calendar
+                            class="ip36"
+                            id="icon"
+                            v-model="props.model.re_recruitment_date"
+                            :showIcon="true"
+                            placeholder="dd/mm/yyyy"
+                          />
+                        </div>
+                      </div>
+                      <div class="col-6 md:col-6">
+                        <div class="form-group">
+                          <label>Hình thức tuyển dụng</label>
+                          <InputText
+                            spellcheck="false"
+                            class="ip36"
+                            v-model="props.model.re_recruitment_form"
+                            maxLength="500"
+                          />
+                        </div>
+                      </div>
+                      <div class="col-6 md:col-6">
+                        <div class="form-group">
+                          <label
+                            >Nghề nghiệp bản thân trước khi được tuyển
+                            dụng</label
+                          >
+                          <InputText
+                            spellcheck="false"
+                            class="ip36"
+                            v-model="props.model.job_before_re_recruitment"
+                            maxLength="500"
+                          />
+                        </div>
+                      </div>
+                      <div class="col-6 md:col-6">
+                        <div class="form-group">
+                          <label>Vị trí tuyển dụng</label>
+                          <InputText
+                            spellcheck="false"
+                            class="ip36"
+                            v-model="props.model.re_recruitment_position"
+                            maxLength="500"
+                          />
+                        </div>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+              </div>
+            </AccordionTab>
+            <!-- 4. Trình độ học vấn - Quá trình đào tạo -->
+            <AccordionTab>
+              <template #header>
+                <Toolbar class="w-full custoolbar p-0 font-bold">
+                  <template #start>
+                    <!-- <i class="pi pi-replay mr-2"></i> -->
+                    <span
+                      >4. Trình độ học vấn - Quá trình đào tạo</span
+                    ></template
+                  >
+                  <template #end>
+                    <a
+                      @click="
+                        openAddRow(2);
+                        $event.stopPropagation();
+                      "
+                      class="hover"
+                      v-tooltip.top="'Thêm mới'"
+                    >
+                      <i
+                        class="pi pi-plus-circle"
+                        data-v-62364173=""
+                        style="font-size: 18px"
+                      ></i>
+                    </a>
+                  </template>
+                </Toolbar>
+              </template>
+              <div class="col-12 md:col-12">
+                <div class="row">
+                  <div class="col-12 md:col-12">
+                    <div class="form-group">
+                      <label>4.1 Trình độ học vấn:</label>
+                    </div>
+                  </div>
+                  <div class="col-4 md:col-4">
+                    <div class="form-group">
+                      <label>Trình độ phổ thông</label>
+                      <Dropdown
+                        :showClear="true"
+                        :options="props.dictionarys[5]"
+                        optionLabel="cultural_level_name"
+                        optionValue="cultural_level_id"
+                        placeholder="Chọn trình độ"
+                        class="ip36"
+                        v-model="props.model.cultural_level_id"
+                        :style="{
+                          whiteSpace: 'nowrap',
+                          overflow: 'hidden',
+                          textOverflow: 'ellipsis',
+                        }"
+                      />
+                    </div>
+                  </div>
+                  <div class="col-4 md:col-4">
+                    <div class="form-group">
+                      <label>Trình độ học vấn cao nhất</label>
+                      <InputText
+                        spellcheck="false"
+                        class="ip36"
+                        v-model="props.model.cultural_level_max"
+                        maxLength="500"
+                        disabled
+                      />
+                    </div>
+                  </div>
+                  <div class="col-4 md:col-4">
+                    <div class="form-group">
+                      <label>Quản lý nhà nước</label>
+                      <Dropdown
+                        :showClear="true"
+                        :options="props.dictionarys[14]"
+                        optionLabel="management_state_name"
+                        optionValue="management_state_id"
+                        placeholder="Chọn cấp"
+                        class="ip36"
+                        v-model="props.model.management_state_id"
+                        :style="{
+                          whiteSpace: 'nowrap',
+                          overflow: 'hidden',
+                          textOverflow: 'ellipsis',
+                        }"
+                      />
+                    </div>
+                  </div>
+                  <div class="col-4 md:col-4">
+                    <div class="form-group">
+                      <label>Lý luận chính trị</label>
+                      <Dropdown
+                        :showClear="true"
+                        :options="props.dictionarys[8]"
+                        optionLabel="political_theory_name"
+                        optionValue="political_theory_id"
+                        placeholder="Chọn cấp"
+                        class="ip36"
+                        v-model="props.model.political_theory_id"
+                        :style="{
+                          whiteSpace: 'nowrap',
+                          overflow: 'hidden',
+                          textOverflow: 'ellipsis',
+                        }"
+                      />
+                    </div>
+                  </div>
+                  <div class="col-4 md:col-4">
+                    <div class="form-group">
+                      <label>Ngoại ngữ</label>
+                      <Dropdown
+                        :showClear="true"
+                        :options="props.dictionarys[9]"
+                        optionLabel="language_level_name"
+                        optionValue="language_level_id"
+                        placeholder="Chọn cấp"
+                        class="ip36"
+                        v-model="props.model.language_level_id"
+                        :style="{
+                          whiteSpace: 'nowrap',
+                          overflow: 'hidden',
+                          textOverflow: 'ellipsis',
+                        }"
+                      />
+                    </div>
+                  </div>
+                  <div class="col-4 md:col-4">
+                    <div class="form-group">
+                      <label>Tin học</label>
+                      <Dropdown
+                        :showClear="true"
+                        :options="props.dictionarys[10]"
+                        optionLabel="informatic_level_name"
+                        optionValue="informatic_level_id"
+                        placeholder="Chọn cấp"
+                        class="ip36"
+                        v-model="props.model.informatic_level_id"
+                        :style="{
+                          whiteSpace: 'nowrap',
+                          overflow: 'hidden',
+                          textOverflow: 'ellipsis',
+                        }"
+                      />
+                    </div>
+                  </div>
+                  <div class="col-12 md:col-12">
+                    <div class="form-group">
+                      <label>4.2 Quá trình đào tạo:</label>
+                    </div>
+                  </div>
+                  <div class="col-12 md:col-12 p-0">
+                    <!-- <div
+                      class="row"
+                      v-for="(item, index) in props.datachilds[2]"
+                    >
+                      <Toolbar
+                        class="w-full custoolbar p-0 font-bold"
+                        :style="{
+                          background: 'rgb(222, 230, 240) !important',
+                          padding: '5px !important',
+                          marginBottom: '1rem',
+                        }"
+                      >
+                        <template #start></template>
+                        <template #end>
+                          <a
+                            @click="props.deleteRow(2, index)"
+                            class="hover"
+                            v-tooltip.top="'Xóa'"
+                          >
+                            <i
+                              class="pi pi-times-circle"
+                              style="font-size: 18px"
+                            ></i>
+                          </a>
+                        </template>
+                      </Toolbar>
+                      <div class="col-12 md:col-12">
+                        <div class="form-group">
+                          <label>Văn bằng:</label>
+                        </div>
+                      </div>
+                      <div class="col-3 md:col-3">
+                        <div class="form-group">
+                          <label>Từ tháng, năm</label>
+                          <Calendar
+                            v-model="item.start_date"
+                            :showIcon="false"
+                            view="month"
+                            dateFormat="mm/yy"
+                            class="ip36"
+                            placeholder="mm/yyyy"
+                          />
+                        </div>
+                      </div>
+                      <div class="col-3 md:col-3">
+                        <div class="form-group">
+                          <label>Đến tháng, năm</label>
+                          <Calendar
+                            v-model="item.end_date"
+                            :showIcon="false"
+                            view="month"
+                            dateFormat="mm/yy"
+                            class="ip36"
+                            placeholder="mm/yyyy"
+                          />
+                        </div>
+                      </div>
+                      <div class="col-6 md:col-6">
+                        <div class="form-group">
+                          <label>Trình độ chuyên môn</label>
+                          <Dropdown
+                            :showClear="true"
+                            :options="props.dictionarys[6]"
+                            optionLabel="academic_level_name"
+                            optionValue="academic_level_id"
+                            placeholder="Chọn trình độ"
+                            class="ip36"
+                            v-model="item.academic_level_id"
+                            :style="{
+                              whiteSpace: 'nowrap',
+                              overflow: 'hidden',
+                              textOverflow: 'ellipsis',
+                            }"
+                          />
+                        </div>
+                      </div>
+                      <div class="col-6 md:col-6">
+                        <div class="form-group">
+                          <label>Chuyên ngành</label>
+                          <Dropdown
+                            :showClear="true"
+                            :filter="true"
+                            :options="props.dictionarys[18]"
+                            optionLabel="specialization_name"
+                            optionValue="specialization_id"
+                            placeholder="Chọn chuyên ngành"
+                            v-model="item.specialized"
+                            class="ip36"
+                            :style="{
+                              whiteSpace: 'nowrap',
+                              overflow: 'hidden',
+                              textOverflow: 'ellipsis',
+                            }"
+                          />
+                        </div>
+                      </div>
+                      <div class="col-6 md:col-6">
+                        <div class="form-group">
+                          <label>Nơi đào tạo</label>
+                          <Dropdown
+                            :showClear="true"
+                            :editable="true"
+                            :filter="true"
+                            :options="props.dictionarys[27]"
+                            optionLabel="learning_place_name"
+                            optionValue="learning_place_name"
+                            placeholder="Chọn nơi đào tạo"
+                            class="ip36"
+                            v-model="item.university_name"
+                            maxLength="250"
+                            :style="{
+                              whiteSpace: 'nowrap',
+                              overflow: 'hidden',
+                              textOverflow: 'ellipsis',
+                            }"
+                          />
+                        </div>
+                      </div>
+                      <div class="col-6 md:col-6">
+                        <div class="form-group">
+                          <label>Hệ đào tạo</label>
+                          <Dropdown
+                            :showClear="true"
+                            :options="props.dictionarys[12]"
+                            optionLabel="form_traning_name"
+                            optionValue="form_traning_id"
+                            placeholder="Chọn hệ đào tạo"
+                            v-model="item.form_traning_id"
+                            class="ip36"
+                            :style="{
+                              whiteSpace: 'nowrap',
+                              overflow: 'hidden',
+                              textOverflow: 'ellipsis',
+                            }"
+                          />
+                        </div>
+                      </div>
+                      <div class="col-6 md:col-6">
+                        <div class="form-group">
+                          <label>Năm tốt nghiệp</label>
+                          <Calendar
+                            v-model="item.graduation_year"
+                            :showIcon="false"
+                            view="year"
+                            dateFormat="yy"
+                            class="ip36"
+                            placeholder="yyyy"
+                          />
+                        </div>
+                      </div>
+                      <div class="col-6 md:col-6">
+                        <div class="form-group">
+                          <label>Xếp loại</label>
+                          <Dropdown
+                            :showClear="true"
+                            :editable="true"
+                            :filter="true"
+                            :options="[
+                              { value: 1, title: 'Xuất sắc' },
+                              { value: 2, title: 'Giỏi' },
+                              { value: 3, title: 'Khá' },
+                              { value: 4, title: 'TB Khá' },
+                              { value: 5, title: 'Trung bình' },
+                            ]"
+                            optionLabel="title"
+                            optionValue="title"
+                            placeholder="Chọn xếp loại"
+                            class="ip36"
+                            v-model="item.rating"
+                            maxLength="250"
+                            :style="{
+                              whiteSpace: 'nowrap',
+                              overflow: 'hidden',
+                              textOverflow: 'ellipsis',
+                            }"
+                          />
+                        </div>
+                      </div>
+                      <div class="col-6 md:col-6">
+                        <div class="form-group">
+                          <label>Ngày cấp bằng</label>
+                          <Calendar
+                            class="ip36"
+                            id="icon"
+                            v-model="item.degree_date"
+                            :showIcon="true"
+                            placeholder="dd/mm/yyyy"
+                          />
+                        </div>
+                      </div>
+                      
+                      <div class="col-6 md:col-6 format-center">
+                        <div class="form-group m-0">
+                          <div
+                            class="field-checkbox flex justify-content-center"
+                            style="height: 100%"
+                          >
+                            <InputSwitch v-model="item.is_man_degree" />
+                            <label for="binary">Bằng cấp chính</label>
+                          </div>
+                        </div>
+                      </div>
+                      <div class="col-12 md:col-12">
+                        <div class="form-group">
+                          <label>Chứng chỉ:</label>
+                        </div>
+                      </div>
+                      <div class="col-6 md:col-6">
+                        <div class="form-group">
+                          <label>Chứng chỉ</label>
+                          <Dropdown
+                            :showClear="true"
+                            :options="props.dictionarys[13]"
+                            optionLabel="certificate_name"
+                            optionValue="certificate_id"
+                            placeholder="Chọn văn bằng"
+                            v-model="item.certificate_id"
+                            class="ip36"
+                            :style="{
+                              whiteSpace: 'nowrap',
+                              overflow: 'hidden',
+                              textOverflow: 'ellipsis',
+                            }"
+                          />
+                        </div>
+                      </div>
+                      <div class="col-6 md:col-6">
+                        <div class="form-group">
+                          <label>Số hiệu</label>
+                          <InputText
+                            v-model="item.certificate_key_code"
+                            spellcheck="false"
+                            type="text"
+                            class="ip36"
+                            maxLength="50"
+                          />
+                        </div>
+                      </div>
+                      <div class="col-6 md:col-6">
+                        <div class="form-group">
+                          <label>Phiên bản</label>
+                          <InputText
+                            v-model="item.certificate_version"
+                            spellcheck="false"
+                            type="text"
+                            class="ip36"
+                            maxLength="25"
+                          />
+                        </div>
+                      </div>
+                      <div class="col-6 md:col-6">
+                        <div class="form-group">
+                          <label>Lần phát hành</label>
+                          <InputText
+                            v-model="item.certificate_release_time"
+                            spellcheck="false"
+                            type="text"
+                            class="ip36"
+                            maxLength="25"
+                          />
+                        </div>
+                      </div>
+                      <div class="col-6 md:col-6">
+                        <div class="form-group">
+                          <label>Ngày hiệu lực</label>
+                          <Calendar
+                            v-model="item.certificate_start_date"
+                            :showIcon="false"
+                            class="ip36"
+                            placeholder="dd/mm/yyyy"
+                          />
+                        </div>
+                      </div>
+                      <div class="col-6 md:col-6">
+                        <div class="form-group">
+                          <label>Ngày hết hiệu lực</label>
+                          <Calendar
+                            v-model="item.certificate_end_date"
+                            :showIcon="false"
+                            class="ip36"
+                            placeholder="dd/mm/yyyy"
+                          />
+                        </div>
+                      </div>
+                    </div> -->
+                    <DataTable
+                      :value="props.datachilds[2]"
+                      :scrollable="true"
+                      :lazy="true"
+                      :rowHover="true"
+                      :showGridlines="true"
+                      scrollDirection="both"
+                      class="empty-full"
+                    >
+                      <Column
+                        header=""
+                        headerStyle="text-align:center;width:50px"
+                        bodyStyle="text-align:center;width:50px"
+                        class="align-items-center justify-content-center text-center"
+                      >
+                        <template #body="slotProps">
+                          <a
+                            @click="props.deleteRow(2, slotProps.index)"
+                            class="hover"
+                            v-tooltip.top="'Xóa'"
+                          >
+                            <i
+                              class="pi pi-times-circle"
+                              style="font-size: 18px"
+                            ></i>
+                          </a>
+                        </template>
+                      </Column>
+                      <Column
+                        field="start_date"
+                        header="Từ tháng, năm"
+                        headerStyle="text-align:center;width:120px;height:50px"
+                        bodyStyle="text-align:center;width:120px;"
+                        class="align-items-center justify-content-center text-center"
+                      >
+                        <template #body="slotProps">
+                          <Calendar
+                            v-model="slotProps.data.start_date"
+                            :showIcon="false"
+                            view="month"
+                            dateFormat="mm/yy"
+                            class="ip36"
+                            placeholder="mm/yyyy"
+                          />
+                        </template>
+                      </Column>
+                      <Column
+                        field="end_date"
+                        header="Đến tháng, năm"
+                        headerStyle="text-align:center;width:120px;height:50px"
+                        bodyStyle="text-align:center;width:120px;"
+                        class="align-items-center justify-content-center text-center"
+                      >
+                        <template #body="slotProps">
+                          <Calendar
+                            v-model="slotProps.data.end_date"
+                            :showIcon="false"
+                            view="month"
+                            dateFormat="mm/yy"
+                            class="ip36"
+                            placeholder="mm/yyyy"
+                          />
+                        </template>
+                      </Column>
+                      <Column
+                        field="academic_level_id"
+                        header="Trình độ chuyên môn"
+                        headerStyle="text-align:center;width:180px;height:50px"
+                        bodyStyle="text-align:center;width:180px;"
+                        class="align-items-center justify-content-center text-center"
+                      >
+                        <template #body="slotProps">
+                          <div class="form-group m-0">
+                            <Dropdown
+                              :showClear="true"
+                              :options="props.dictionarys[6]"
+                              optionLabel="academic_level_name"
+                              optionValue="academic_level_id"
+                              placeholder="Chọn trình độ"
+                              class="ip36"
+                              v-model="slotProps.data.academic_level_id"
+                              :style="{
+                                whiteSpace: 'nowrap',
+                                overflow: 'hidden',
+                                textOverflow: 'ellipsis',
+                              }"
+                            />
+                          </div>
+                        </template>
+                      </Column>
+                      <Column
+                        field="specialized"
+                        header="Chuyên ngành"
+                        headerStyle="text-align:center;width:180px;height:50px"
+                        bodyStyle="text-align:center;width:180px;"
+                        class="align-items-center justify-content-center text-center"
+                      >
+                        <template #body="slotProps">
+                          <div class="form-group m-0">
+                            <Dropdown
+                              :showClear="true"
+                              :options="props.dictionarys[18]"
+                              optionLabel="specialization_name"
+                              optionValue="specialization_id"
+                              placeholder="Chọn chuyên ngành"
+                              v-model="slotProps.data.specialized"
+                              class="ip36"
+                              :style="{
+                                whiteSpace: 'nowrap',
+                                overflow: 'hidden',
+                                textOverflow: 'ellipsis',
+                              }"
+                            />
+                          </div>
+                        </template>
+                      </Column>
+                      <Column
+                        field="university_name"
+                        header="Nơi đào tạo"
+                        headerStyle="text-align:center;width:180px;height:50px"
+                        bodyStyle="text-align:center;width:180px;"
+                        class="align-items-center justify-content-center text-center"
+                      >
+                        <template #body="slotProps">
+                          <Dropdown
+                            :showClear="true"
+                            :editable="true"
+                            :filter="true"
+                            :options="props.dictionarys[27]"
+                            optionLabel="learning_place_name"
+                            optionValue="learning_place_name"
+                            placeholder="Chọn nơi đào tạo"
+                            class="ip36"
+                            v-model="slotProps.data.university_name"
+                            maxLength="250"
+                          />
+                        </template>
+                      </Column>
+                      <Column
+                        field="form_traning_id"
+                        header="Hệ đào tạo"
+                        headerStyle="text-align:center;width:180px;height:50px"
+                        bodyStyle="text-align:center;width:180px;"
+                        class="align-items-center justify-content-center text-center"
+                      >
+                        <template #body="slotProps">
+                          <div class="form-group m-0">
+                            <Dropdown
+                              :showClear="true"
+                              :options="props.dictionarys[12]"
+                              optionLabel="form_traning_name"
+                              optionValue="form_traning_id"
+                              placeholder="Chọn hệ đào tạo"
+                              v-model="slotProps.data.form_traning_id"
+                              class="ip36"
+                              :style="{
+                                whiteSpace: 'nowrap',
+                                overflow: 'hidden',
+                                textOverflow: 'ellipsis',
+                              }"
+                            />
+                          </div>
+                        </template>
+                      </Column>
+                      <Column
+                        field="graduation_year"
+                        header="Năm tốt nghiệp"
+                        headerStyle="text-align:center;width:120px;height:50px"
+                        bodyStyle="text-align:center;width:120px;"
+                        class="align-items-center justify-content-center text-center"
+                      >
+                        <template #body="slotProps">
+                          <Calendar
+                            v-model="slotProps.data.graduation_year"
+                            :showIcon="false"
+                            view="year"
+                            dateFormat="yy"
+                            class="ip36"
+                            placeholder="yyyy"
+                          />
+                        </template>
+                      </Column>
+                      <Column
+                        field="rating"
+                        header="Xếp loại"
+                        headerStyle="text-align:center;width:180px;height:50px"
+                        bodyStyle="text-align:center;width:180px;"
+                        class="align-items-center justify-content-center text-center"
+                      >
+                        <template #body="slotProps">
+                          <Dropdown
+                            :showClear="true"
+                            :editable="true"
+                            :filter="true"
+                            :options="[
+                              { value: 1, title: 'Xuất sắc' },
+                              { value: 2, title: 'Giỏi' },
+                              { value: 3, title: 'Khá' },
+                              { value: 4, title: 'TB Khá' },
+                              { value: 5, title: 'Trung bình' },
+                            ]"
+                            optionLabel="title"
+                            optionValue="title"
+                            placeholder="Chọn xếp loại"
+                            class="ip36"
+                            v-model="slotProps.data.rating"
+                            maxLength="250"
+                          />
+                        </template>
+                      </Column>
+                      <Column
+                        field="degree_date"
+                        header="Ngày cấp bằng"
+                        headerStyle="text-align:center;width:120px;height:50px"
+                        bodyStyle="text-align:center;width:120px;"
+                        class="align-items-center justify-content-center text-center"
+                      >
+                        <template #body="slotProps">
+                          <Calendar
+                            v-model="slotProps.data.degree_date"
+                            :showIcon="false"
+                            view="day"
+                            dateFormat="dd/mm/yy"
+                            class="ip36"
+                            placeholder="dd/mm/yyyy"
+                          />
+                        </template>
+                      </Column>
+
+                      <Column
+                        field="is_man_degree"
+                        header="Bằng cấp chính"
+                        headerStyle="text-align:center;width:120px;height:50px"
+                        bodyStyle="text-align:center;width:120px;"
+                        class="align-items-center justify-content-center text-center"
+                      >
+                        <template #body="slotProps">
+                          <div class="form-group">
+                            <div
+                              class="field-checkbox flex justify-content-center"
+                              style="height: 100%"
+                            >
+                              <InputSwitch
+                                v-model="slotProps.data.is_man_degree"
+                              />
+                              <label for="binary">Bằng cấp chính</label>
+                            </div>
+                          </div>
+                        </template>
+                      </Column>
+                      <Column
+                        field="certificate_id"
+                        header="Chứng chỉ"
+                        headerStyle="text-align:center;width:170px;height:50px"
+                        bodyStyle="text-align:center;width:170px;"
+                        class="align-items-center justify-content-center text-center"
+                      >
+                        <template #body="slotProps">
+                          <div class="form-group m-0">
+                            <Dropdown
+                              :showClear="true"
+                              :options="props.dictionarys[13]"
+                              optionLabel="certificate_name"
+                              optionValue="certificate_id"
+                              placeholder="Chọn văn bằng"
+                              v-model="slotProps.data.certificate_id"
+                              class="ip36"
+                              :style="{
+                                whiteSpace: 'nowrap',
+                                overflow: 'hidden',
+                                textOverflow: 'ellipsis',
+                              }"
+                            />
+                          </div>
+                        </template>
+                      </Column>
+                      <Column
+                        field="certificate_key_code"
+                        header="Số hiệu"
+                        headerStyle="text-align:center;width:150px;height:50px"
+                        bodyStyle="text-align:center;width:150px;"
+                        class="align-items-center justify-content-center text-center"
+                      >
+                        <template #body="slotProps">
+                          <InputText
+                            v-model="slotProps.data.certificate_key_code"
+                            spellcheck="false"
+                            type="text"
+                            class="ip36"
+                            maxLength="50"
+                          />
+                        </template>
+                      </Column>
+                      <Column
+                        field="certificate_version"
+                        header="Phiên bản"
+                        headerStyle="text-align:center;width:150px;height:50px"
+                        bodyStyle="text-align:center;width:150px;"
+                        class="align-items-center justify-content-center text-center"
+                      >
+                        <template #body="slotProps">
+                          <InputText
+                            v-model="slotProps.data.certificate_version"
+                            spellcheck="false"
+                            type="text"
+                            class="ip36"
+                            maxLength="25"
+                          />
+                        </template>
+                      </Column>
+                      <Column
+                        field="certificate_release_time"
+                        header="Lần phát hành"
+                        headerStyle="text-align:center;width:150px;height:50px"
+                        bodyStyle="text-align:center;width:150px;"
+                        class="align-items-center justify-content-center text-center"
+                      >
+                        <template #body="slotProps">
+                          <InputText
+                            v-model="slotProps.data.certificate_release_time"
+                            spellcheck="false"
+                            type="text"
+                            class="ip36"
+                            maxLength="25"
+                          />
+                        </template>
+                      </Column>
+                      <Column
+                        field="certificate_start_date"
+                        header="Ngày hiệu lực"
+                        headerStyle="text-align:center;width:120px;height:50px"
+                        bodyStyle="text-align:center;width:120px;"
+                        class="align-items-center justify-content-center text-center"
+                      >
+                        <template #body="slotProps">
+                          <Calendar
+                            v-model="slotProps.data.certificate_start_date"
+                            :showIcon="false"
+                            class="ip36"
+                            placeholder="dd/mm/yyyy"
+                          />
+                        </template>
+                      </Column>
+                      <Column
+                        field="certificate_end_date"
+                        header="Ngày hết hiệu lực"
+                        headerStyle="text-align:center;width:120px;height:50px"
+                        bodyStyle="text-align:center;width:120px;"
+                        class="align-items-center justify-content-center text-center"
+                      >
+                        <template #body="slotProps">
+                          <Calendar
+                            v-model="slotProps.data.certificate_end_date"
+                            :showIcon="false"
+                            class="ip36"
+                            placeholder="dd/mm/yyyy"
+                          />
+                        </template>
+                      </Column>
+                      <template #empty>
+                        <div
+                          class="align-items-center justify-content-center p-4 text-center m-auto"
+                          style="display: flex; width: 100%"
+                        ></div>
+                      </template>
+                    </DataTable>
+                  </div>
+                </div>
+              </div>
+            </AccordionTab>
+            <!-- 5 Thông tin đảng, tham gia TCCT- XH -->
+            <AccordionTab>
+              <template #header>
+                <Toolbar class="w-full custoolbar p-0 font-bold">
+                  <template #start>
+                    <!-- <i class="pi pi-replay mr-2"></i> -->
+                    <span>5 Thông tin đảng, tham gia TCCT- XH</span></template
+                  >
+                  <template #end>
+                    <!-- <a
+                      @click="
+                        props.addRow(3);
+                        $event.stopPropagation();
+                      "
+                      class="hover"
+                      v-tooltip.top="'Thêm mới'"
+                    >
+                      <i
+                        class="pi pi-plus-circle"
+                        data-v-62364173=""
+                        style="font-size: 18px"
+                      ></i>
+                    </a> -->
+                  </template>
+                </Toolbar>
+              </template>
+              <!-- <div class="col-12 md:col-12 p-0">
+                <div style="">
+                  <DataTable
+                    :value="props.datachilds[3]"
+                    :scrollable="true"
+                    :lazy="true"
+                    :rowHover="true"
+                    :showGridlines="true"
+                    scrollDirection="both"
+                    class="empty-full"
+                  >
+                    <Column
+                      header=""
+                      headerStyle="text-align:center;width:50px"
+                      bodyStyle="text-align:center;width:50px"
+                      class="align-items-center justify-content-center text-center"
+                    >
+                      <template #body="slotProps">
+                        <a
+                          @click="props.deleteRow(3, slotProps.index)"
+                          class="hover"
+                          v-tooltip.top="'Xóa'"
+                        >
+                          <i
+                            class="pi pi-times-circle"
+                            style="font-size: 18px"
+                          ></i>
+                        </a>
+                      </template>
+                    </Column>
+                    <Column
+                      field="card_number"
+                      header="Số thẻ"
+                      headerStyle="text-align:center;width:180px;height:50px"
+                      bodyStyle="text-align:center;width:180px;"
+                      class="align-items-center justify-content-center text-center"
+                    >
+                      <template #body="slotProps">
+                        <InputText
+                          v-model="slotProps.data.card_number"
+                          spellcheck="false"
+                          type="text"
+                          class="ip36"
+                          maxLength="50"
+                        />
+                      </template>
+                    </Column>
+                    <Column
+                      field="form"
+                      header="Hình thức"
+                      headerStyle="text-align:center;width:170px;height:50px"
+                      bodyStyle="text-align:center;width:170px;"
+                      class="align-items-center justify-content-center text-center"
+                    >
+                      <template #body="slotProps">
+                        <div class="form-group m-0">
+                          <Dropdown
+                            :showClear="true"
+                            :editable="false"
+                            :options="[
+                              { value: 0, title: 'Dự bị' },
+                              { value: 1, title: 'Chính thức' },
+                              { value: 1, title: 'Điều chuyển' },
+                            ]"
+                            optionLabel="title"
+                            optionValue="value"
+                            placeholder="Chọn chuyên ngành"
+                            v-model="slotProps.data.form"
+                            class="ip36"
+                            :style="{
+                              whiteSpace: 'nowrap',
+                              overflow: 'hidden',
+                              textOverflow: 'ellipsis',
+                            }"
+                          />
+                        </div>
+                      </template>
+                    </Column>
+                    <Column
+                      field="start_date"
+                      header="Từ ngày"
+                      headerStyle="text-align:center;width:120px;height:50px"
+                      bodyStyle="text-align:center;width:120px;"
+                      class="align-items-center justify-content-center text-center"
+                    >
+                      <template #body="slotProps">
+                        <Calendar
+                          v-model="slotProps.data.start_date"
+                          :showIcon="false"
+                          class="ip36"
+                          placeholder="dd/mm/yyyy"
+                        />
+                      </template>
+                    </Column>
+                    <Column
+                      field="end_date"
+                      header="Đến ngày"
+                      headerStyle="text-align:center;width:120px;height:50px"
+                      bodyStyle="text-align:center;width:120px;"
+                      class="align-items-center justify-content-center text-center"
+                    >
+                      <template #body="slotProps">
+                        <Calendar
+                          v-model="slotProps.data.end_date"
+                          :showIcon="false"
+                          class="ip36"
+                          placeholder="dd/mm/yyyy"
+                        />
+                      </template>
+                    </Column>
+                    <Column
+                      field="admission_place"
+                      header="Nơi kết nạp"
+                      headerStyle="text-align:center;width:180px;height:50px"
+                      bodyStyle="text-align:center;width:180px;"
+                      class="align-items-center justify-content-center text-center"
+                    >
+                      <template #body="slotProps">
+                        <InputText
+                          v-model="slotProps.data.admission_place"
+                          spellcheck="false"
+                          type="text"
+                          class="ip36"
+                          maxLength="250"
+                        />
+                      </template>
+                    </Column>
+                    <Column
+                      field="transfer_place"
+                      header="Nơi điều chuyển"
+                      headerStyle="text-align:center;width:180px;height:50px"
+                      bodyStyle="text-align:center;width:180px;"
+                      class="align-items-center justify-content-center text-center"
+                    >
+                      <template #body="slotProps">
+                        <InputText
+                          v-model="slotProps.data.transfer_place"
+                          spellcheck="false"
+                          type="text"
+                          class="ip36"
+                          maxLength="250"
+                        />
+                      </template>
+                    </Column>
+                    <template #empty>
+                      <div
+                        class="align-items-center justify-content-center p-4 text-center m-auto"
+                        style="display: flex; width: 100%"
+                      ></div>
+                    </template>
+                  </DataTable>
+                </div>
+              </div> -->
+              <div class="col-12 md:col-12 p-0">
+                <div class="row">
+                  <div class="col-12 md:col-12">
+                    <div class="form-group">
+                      <label><b>Tham gia đoàn thanh niên</b></label>
+                    </div>
+                  </div>
+                  <div class="col-6 md:col-6">
+                    <div class="form-group">
+                      <label>Số thẻ Đoàn</label>
+                      <InputText
+                        spellcheck="false"
+                        class="ip36"
+                        v-model="props.model.bevy_code"
+                        maxLength="50"
+                      />
+                    </div>
+                  </div>
+                  <div class="col-6 md:col-6">
+                    <div class="form-group">
+                      <label>Ngày vào Đoàn</label>
+                      <Calendar
+                        :showIcon="true"
+                        v-model="props.model.bevy_date"
+                        class="ip36"
+                        id="icon"
+                        placeholder="dd/mm/yyyy"
+                      />
+                    </div>
+                  </div>
+                  <div class="col-6 md:col-6">
+                    <div class="form-group">
+                      <label>Nơi vào Đoàn</label>
+                      <InputText
+                        spellcheck="false"
+                        class="ip36"
+                        v-model="props.model.bevy_address"
+                        maxLength="500"
+                      />
+                    </div>
+                  </div>
+                  <div class="col-6 md:col-6">
+                    <div class="form-group">
+                      <label>Chức vụ Đoàn hiện tại</label>
+                      <InputText
+                        spellcheck="false"
+                        class="ip36"
+                        v-model="props.model.bevy_position"
+                        maxLength="500"
+                      />
+                    </div>
+                  </div>
+                  <div class="col-12 md:col-12">
+                    <div class="form-group">
+                      <label><b>Thông tin Đảng</b></label>
+                    </div>
+                  </div>
+                  <div class="col-6 md:col-6 format-center">
+                    <div class="form-group">
+                      <div
+                        class="field-checkbox flex justify-content-center"
+                        style="height: 100%"
+                      >
+                        <InputSwitch v-model="props.model.is_partisan" />
+                        <label for="binary">Là Đảng viên</label>
+                      </div>
+                    </div>
+                  </div>
+                  <div class="col-6 md:col-6">
+                    <div class="form-group">
+                      <label>Ngạch công chức (viên chức)</label>
+                      <Dropdown
+                        :showClear="true"
+                        :options="props.dictionarys[26]"
+                        optionLabel="newname"
+                        optionValue="newname"
+                        placeholder="Chọn ngạch công chức (viên chức)"
+                        class="ip36"
+                        v-model="props.model.civil_servant_rank_name"
+                        :style="{
+                          whiteSpace: 'nowrap',
+                          overflow: 'hidden',
+                          textOverflow: 'ellipsis',
+                        }"
+                      />
+                    </div>
+                  </div>
+
+                  <div class="col-6 md:col-6">
+                    <div class="form-group">
+                      <label>Số thẻ Đảng</label>
+                      <InputText
+                        spellcheck="false"
+                        class="ip36"
+                        v-model="props.model.card_partisan"
+                        maxLength="50"
+                      />
+                    </div>
+                  </div>
+                  <div class="col-3 md:col-3">
+                    <div class="form-group">
+                      <label>Ngày vào Đảng</label>
+                      <Calendar
+                        :showIcon="true"
+                        v-model="props.model.partisan_date"
+                        class="ip36"
+                        id="icon"
+                        placeholder="dd/mm/yyyy"
+                      />
+                    </div>
+                  </div>
+                  <div class="col-3 md:col-3">
+                    <div class="form-group">
+                      <label>Ngày vào Đảng chính thức</label>
+                      <Calendar
+                        :showIcon="true"
+                        v-model="props.model.partisan_main_date"
+                        class="ip36"
+                        id="icon"
+                        placeholder="dd/mm/yyyy"
+                      />
+                    </div>
+                  </div>
+                  <div class="col-6 md:col-6">
+                    <div class="form-group">
+                      <label>Nơi kết nạp</label>
+                      <InputText
+                        spellcheck="false"
+                        class="ip36"
+                        v-model="props.model.partisan_address"
+                        maxLength="500"
+                      />
+                    </div>
+                  </div>
+                  <div class="col-6 md:col-6">
+                    <div class="form-group">
+                      <label>Tính phí Đảng tại đơn vị</label>
+                      <InputNumber
+                        v-model="props.model.partisan_fee"
+                        mode="decimal"
+                        :minFractionDigits="0"
+                        :maxFractionDigits="2"
+                        class="ip36"
+                      />
+                    </div>
+                  </div>
+                  <div class="col-6 md:col-6">
+                    <div class="form-group">
+                      <label>Chị bộ sinh hoạt Đảng</label>
+                      <InputText
+                        spellcheck="false"
+                        class="ip36"
+                        v-model="props.model.partisan_branch"
+                        maxLength="500"
+                      />
+                    </div>
+                  </div>
+                  <div class="col-6 md:col-6">
+                    <div class="form-group">
+                      <label>Đảng bộ chính thức</label>
+                      <InputText
+                        spellcheck="false"
+                        class="ip36"
+                        v-model="props.model.partisan_official"
+                        maxLength="500"
+                      />
+                    </div>
+                  </div>
+                  <div class="col-3 md:col-3">
+                    <div class="form-group">
+                      <label>Ngày tham gia cách mạng</label>
+                      <Calendar
+                        :showIcon="true"
+                        v-model="props.model.partisan_joindate"
+                        class="ip36"
+                        id="icon"
+                        placeholder="dd/mm/yyyy"
+                      />
+                    </div>
+                  </div>
+                  <div class="col-3 md:col-3">
+                    <div class="form-group">
+                      <label>Ngày tham gia tổ chức</label>
+                      <Calendar
+                        :showIcon="true"
+                        v-model="props.model.organization_joindate"
+                        class="ip36"
+                        id="icon"
+                        placeholder="dd/mm/yyyy"
+                      />
+                    </div>
+                  </div>
+                  <div class="col-6 md:col-6">
+                    <div class="form-group">
+                      <label>Công việc trong tổ chức</label>
+                      <InputText
+                        spellcheck="false"
+                        class="ip36"
+                        v-model="props.model.organization_task"
+                        maxLength="500"
+                      />
+                    </div>
+                  </div>
+                  <div class="col-6 md:col-6">
+                    <div class="form-group">
+                      <label>Danh hiệu</label>
+                      <InputText
+                        spellcheck="false"
+                        class="ip36"
+                        v-model="props.model.appellation"
+                        maxLength="500"
+                      />
+                    </div>
+                  </div>
+                  <div class="col-6 md:col-6">
+                    <div class="form-group">
+                      <label>Huy hiệu</label>
+                      <InputText
+                        spellcheck="false"
+                        class="ip36"
+                        v-model="props.model.armorial"
+                        maxLength="500"
+                      />
+                    </div>
+                  </div>
+                </div>
+              </div>
+            </AccordionTab>
+            <!-- 6. Thông tin tham gia quân đội -->
+            <AccordionTab>
+              <template #header>
+                <!-- <i class="pi pi-chart-line mr-2"></i> -->
+                <span>6. Thông tin tham gia quân đội</span>
+              </template>
+              <div class="col-12 md:col-12">
+                <div class="row">
+                  <div class="col-6 md:col-6">
+                    <div class="form-group">
+                      <label>Ngày nhập ngũ</label>
+                      <Calendar
+                        :showIcon="true"
+                        v-model="props.model.military_start_date"
+                        class="ip36"
+                        id="icon"
+                        placeholder="dd/mm/yyyy"
+                      />
+                    </div>
+                  </div>
+                  <div class="col-6 md:col-6">
+                    <div class="form-group">
+                      <label>Ngày xuất ngũ</label>
+                      <Calendar
+                        :showIcon="true"
+                        v-model="props.model.military_end_date"
+                        class="ip36"
+                        id="icon"
+                        placeholder="dd/mm/yyyy"
+                      />
+                    </div>
+                  </div>
+                  <div class="col-6 md:col-6">
+                    <div class="form-group">
+                      <label>Quân hàm cao nhất</label>
+                      <InputText
+                        spellcheck="false"
+                        class="ip36"
+                        v-model="props.model.military_rank"
+                        maxLength="50"
+                      />
+                    </div>
+                  </div>
+                  <div class="col-6 md:col-6">
+                    <div class="form-group">
+                      <label>Danh hiệu phong tặng cao nhất</label>
+                      <Dropdown
+                        :showClear="true"
+                        :editable="true"
+                        :options="[
+                          { value: 1, title: 'Anh hùng lao động' },
+                          { value: 2, title: 'Anh hùng lực lượng vũ trang' },
+                          { value: 3, title: 'Nhà giáo' },
+                          { value: 4, title: 'Thầy thuốc' },
+                          { value: 5, title: 'Nghệ sĩ nhân dân ưu tú' },
+                        ]"
+                        optionLabel="title"
+                        optionValue="title"
+                        placeholder="Chọn danh hiệu phong tặng cao nhất"
+                        class="ip36"
+                        v-model="props.model.military_title"
+                        maxLength="250"
+                        :style="{
+                          whiteSpace: 'nowrap',
+                          overflow: 'hidden',
+                          textOverflow: 'ellipsis',
+                        }"
+                      />
+                    </div>
+                  </div>
+                  <!-- <div class="col-6 md:col-6">
+                    <div class="form-group">
+                      <label>Sở trường công tác</label>
+                      <InputText
+                        spellcheck="false"
+                        class="ip36"
+                        v-model="props.model.military_forte"
+                        maxLength="250"
+                      />
+                    </div>
+                  </div> -->
+                  <!-- <div class="col-6 md:col-6">
+                    <div class="form-group">
+                      <label>Sức khỏe</label>
+                      <InputText
+                        spellcheck="false"
+                        class="ip36"
+                        v-model="props.model.military_health"
+                        maxLength="250"
+                      />
+                    </div>
+                  </div> -->
+
+                  <div class="col-6 md:col-6">
+                    <div class="form-group">
+                      <label>Thương binh hạng</label>
+                      <InputText
+                        spellcheck="false"
+                        class="ip36"
+                        v-model="props.model.military_veterans_rank"
+                        maxLength="50"
+                      />
+                    </div>
+                  </div>
+                  <div class="col-6 md:col-6">
+                    <div class="form-group">
+                      <label>Con gia đình chính sách</label>
+                      <Dropdown
+                        :showClear="true"
+                        :editable="true"
+                        :options="[
+                          { value: 1, title: 'Con thương binh' },
+                          { value: 2, title: 'Con liệt sĩ' },
+                          { value: 3, title: 'Người nhiễm chất độc da cam' },
+                          { value: 4, title: 'Dioxin' },
+                        ]"
+                        optionLabel="title"
+                        optionValue="title"
+                        placeholder="Là con gia đình chính sách"
+                        class="ip36"
+                        v-model="props.model.military_policy_family"
+                        maxLength="250"
+                        :style="{
+                          whiteSpace: 'nowrap',
+                          overflow: 'hidden',
+                          textOverflow: 'ellipsis',
+                        }"
+                      />
+                    </div>
+                  </div>
+                </div>
+              </div>
+            </AccordionTab>
+            <!-- 7. Kinh nghiệm làm việc -->
+            <AccordionTab>
+              <template #header>
+                <Toolbar class="w-full custoolbar p-0 font-bold">
+                  <template #start>
+                    <span
+                      >7. Quá trình công tác trước khi vào đơn vị</span
+                    ></template
+                  >
+                  <template #end>
+                    <a
+                      @click="
+                        openAddRow(4);
+                        $event.stopPropagation();
+                      "
+                      class="hover"
+                      v-tooltip.top="'Thêm mới'"
+                    >
+                      <i
+                        class="pi pi-plus-circle"
+                        data-v-62364173=""
+                        style="font-size: 18px"
+                      ></i>
+                    </a>
+                  </template>
+                </Toolbar>
+              </template>
+              <div class="col-12 md:col-12 p-0">
+                <div class="row">
+                  <div class="col-6 md:col-6 format-center">
+                    <div class="form-group m-0">
+                      <label
+                        >Thời gian làm việc trong khối nhà nước trước khi vào
+                        công ty:
+                      </label>
+                    </div>
+                  </div>
+                  <div class="col-3 md:col-3">
+                    <div class="form-group">
+                      <label>Năm</label>
+                      <InputNumber
+                        v-model="props.model.seniority_year"
+                        inputId="minmax"
+                        :min="0"
+                        :max="100"
+                        showButtons
+                        class="ip36"
+                      />
+                    </div>
+                  </div>
+                  <div class="col-3 md:col-3">
+                    <div class="form-group">
+                      <label>Tháng</label>
+                      <InputNumber
+                        v-model="props.model.seniority_month"
+                        inputId="minmax"
+                        :min="0"
+                        :max="11"
+                        showButtons
+                        class="ip36"
+                      />
+                    </div>
+                  </div>
+                </div>
+                <div>
+                  <DataTable
+                    :value="props.datachilds[4]"
+                    :scrollable="true"
+                    :lazy="true"
+                    :rowHover="true"
+                    :showGridlines="true"
+                    scrollDirection="both"
+                    class="empty-full"
+                  >
+                    <Column
+                      header=""
+                      headerStyle="text-align:center;width:50px"
+                      bodyStyle="text-align:center;width:50px"
+                      class="align-items-center justify-content-center text-center"
+                    >
+                      <template #body="slotProps">
+                        <a
+                          @click="props.deleteRow(4, slotProps.index)"
+                          class="hover"
+                          v-tooltip.top="'Xóa'"
+                        >
+                          <i
+                            class="pi pi-times-circle"
+                            style="font-size: 18px"
+                          ></i>
+                        </a>
+                      </template>
+                    </Column>
+                    <Column
+                      field="start_date"
+                      header="Từ tháng, năm"
+                      headerStyle="text-align:center;width:120px;height:50px"
+                      bodyStyle="text-align:center;width:120px;"
+                      class="align-items-center justify-content-center text-center"
+                    >
+                      <template #body="slotProps">
+                        <Calendar
+                          v-model="slotProps.data.start_date"
+                          :showIcon="false"
+                          view="month"
+                          dateFormat="mm/yy"
+                          class="ip36"
+                          placeholder="mm/yyyy"
+                        />
+                      </template>
+                    </Column>
+                    <Column
+                      field="end_date"
+                      header="Đến tháng, năm"
+                      headerStyle="text-align:center;width:120px;height:50px"
+                      bodyStyle="text-align:center;width:120px;"
+                      class="align-items-center justify-content-center text-center"
+                    >
+                      <template #body="slotProps">
+                        <Calendar
+                          v-model="slotProps.data.end_date"
+                          :showIcon="false"
+                          view="month"
+                          dateFormat="mm/yy"
+                          class="ip36"
+                          placeholder="mm/yyyy"
+                        />
+                      </template>
+                    </Column>
+                    <Column
+                      field="company"
+                      header="Công ty, đơn vị"
+                      headerStyle="text-align:center;width:180px;height:50px"
+                      bodyStyle="text-align:center;width:180px;"
+                      class="align-items-center justify-content-center text-center"
+                    >
+                      <template #body="slotProps">
+                        <InputText
+                          v-model="slotProps.data.company"
+                          spellcheck="false"
+                          type="text"
+                          class="ip36"
+                          maxLength="250"
+                        />
+                      </template>
+                    </Column>
+                    <Column
+                      field="address"
+                      header="Địa chỉ"
+                      headerStyle="text-align:center;width:180px;height:50px"
+                      bodyStyle="text-align:center;width:180px;"
+                      class="align-items-center justify-content-center text-center"
+                    >
+                      <template #body="slotProps">
+                        <InputText
+                          v-model="slotProps.data.address"
+                          spellcheck="false"
+                          type="text"
+                          class="ip36"
+                          maxLength="500"
+                        />
+                      </template>
+                    </Column>
+                    <Column
+                      field="role"
+                      header="Vị trí"
+                      headerStyle="text-align:center;width:150px;height:50px"
+                      bodyStyle="text-align:center;width:150px;"
+                      class="align-items-center justify-content-center text-center"
+                    >
+                      <template #body="slotProps">
+                        <InputText
+                          v-model="slotProps.data.role"
+                          spellcheck="false"
+                          type="text"
+                          class="ip36"
+                          maxLength="50"
+                        />
+                      </template>
+                    </Column>
+                    <Column
+                      field="wage"
+                      header="Mức lương"
+                      headerStyle="text-align:center;width:150px;height:50px"
+                      bodyStyle="text-align:center;width:150px;"
+                      class="align-items-center justify-content-center text-center"
+                    >
+                      <template #body="slotProps">
+                        <InputText
+                          v-model="slotProps.data.wage"
+                          spellcheck="false"
+                          type="text"
+                          class="ip36"
+                          maxLength="500"
+                        />
+                      </template>
+                    </Column>
+                    <Column
+                      field="reference_name"
+                      header="Người tham chiếu"
+                      headerStyle="text-align:center;width:150px;height:50px"
+                      bodyStyle="text-align:center;width:150px;"
+                      class="align-items-center justify-content-center text-center"
+                    >
+                      <template #body="slotProps">
+                        <InputText
+                          v-model="slotProps.data.reference_name"
+                          spellcheck="false"
+                          type="text"
+                          class="ip36"
+                          maxLength="50"
+                        />
+                      </template>
+                    </Column>
+                    <Column
+                      field="reference_phone"
+                      header="SĐT"
+                      headerStyle="text-align:center;width:120px;height:50px"
+                      bodyStyle="text-align:center;width:120px;"
+                      class="align-items-center justify-content-center text-center"
+                    >
+                      <template #body="slotProps">
+                        <InputMask
+                          v-model="slotProps.data.reference_phone"
+                          mask="9999999999"
+                          placeholder="__________"
+                          class="ip36"
+                        />
+                      </template>
+                    </Column>
+                    <Column
+                      field="description"
+                      header="Mô tả công việc"
+                      headerStyle="text-align:center;width:200px;height:50px"
+                      bodyStyle="text-align:center;width:200px;"
+                      class="align-items-center justify-content-center text-center"
+                    >
+                      <template #body="slotProps">
+                        <InputText
+                          v-model="slotProps.data.description"
+                          spellcheck="false"
+                          type="text"
+                          class="ip36"
+                          maxLength="500"
+                        />
+                      </template>
+                    </Column>
+                    <Column
+                      field="reason"
+                      header="Lý do nghỉ việc"
+                      headerStyle="text-align:center;width:200px;height:50px"
+                      bodyStyle="text-align:center;width:200px;"
+                      class="align-items-center justify-content-center text-center"
+                    >
+                      <template #body="slotProps">
+                        <InputText
+                          v-model="slotProps.data.reason"
+                          spellcheck="false"
+                          type="text"
+                          class="ip36"
+                          maxLength="500"
+                        />
+                      </template>
+                    </Column>
+                    <template #empty>
+                      <div
+                        class="align-items-center justify-content-center p-4 text-center m-auto"
+                        style="display: flex; width: 100%"
+                      ></div>
+                    </template>
+                  </DataTable>
+                </div>
+              </div>
+            </AccordionTab>
+            <!-- 8. Thông tin gia đình, người phụ thuộc -->
             <AccordionTab>
               <template #header>
                 <Toolbar class="w-full custoolbar p-0 font-bold">
                   <template #start>
                     <!-- <i class="pi pi-users mr-2"></i> -->
                     <span
-                      >4. Thông tin gia đình, người phụ thuộc</span
+                      >8. Thông tin gia đình, người phụ thuộc</span
                     ></template
                   >
                   <template #end>
                     <a
                       @click="
-                        props.addRow(1);
+                        openAddRow(1);
                         $event.stopPropagation();
                       "
                       class="hover"
@@ -1458,1432 +3154,6 @@ onMounted(() => {
                 </div>
               </div>
             </AccordionTab>
-            <!-- 5. Quá trình đào tạo, bồi dưỡng về chuyên môn, nghiệp vụ, lý luận chính trị, ngoại ngữ, tin học -->
-            <AccordionTab>
-              <template #header>
-                <Toolbar class="w-full custoolbar p-0 font-bold">
-                  <template #start>
-                    <!-- <i class="pi pi-replay mr-2"></i> -->
-                    <span
-                      >5. Quá trình đào tạo, bồi dưỡng về chuyên môn, nghiệp vụ,
-                      lý luận chính trị, ngoại ngữ, tin học</span
-                    ></template
-                  >
-                  <template #end>
-                    <a
-                      @click="
-                        props.addRow(2);
-                        $event.stopPropagation();
-                      "
-                      class="hover"
-                      v-tooltip.top="'Thêm mới'"
-                    >
-                      <i
-                        class="pi pi-plus-circle"
-                        data-v-62364173=""
-                        style="font-size: 18px"
-                      ></i>
-                    </a>
-                  </template>
-                </Toolbar>
-              </template>
-              <div class="col-12 md:col-12 p-0">
-                <div class="row" v-for="(item, index) in props.datachilds[2]">
-                  <Toolbar class="w-full custoolbar p-0 font-bold">
-                    <template #start></template>
-                    <template #end>
-                      <a
-                        @click="props.deleteRow(2, index)"
-                        class="hover"
-                        v-tooltip.top="'Xóa'"
-                      >
-                        <i
-                          class="pi pi-times-circle"
-                          style="font-size: 18px"
-                        ></i>
-                      </a>
-                    </template>
-                  </Toolbar>
-                  <div class="col-6 md:col-6">
-                    <div class="form-group">
-                      <label>Nơi đào tạo</label>
-                      <Dropdown
-                        :showClear="true"
-                        :editable="true"
-                        :filter="true"
-                        :options="dictionarys[27]"
-                        optionLabel="learning_place_name"
-                        optionValue="learning_place_name"
-                        placeholder="Chọn nơi đào tạo"
-                        class="ip36"
-                        v-model="item.university_name"
-                        maxLength="250"
-                        :style="{
-                          whiteSpace: 'nowrap',
-                          overflow: 'hidden',
-                          textOverflow: 'ellipsis',
-                        }"
-                      />
-                    </div>
-                  </div>
-                  <div class="col-6 md:col-6">
-                    <div class="form-group">
-                      <label>Chuyên ngành</label>
-                      <Dropdown
-                        :showClear="true"
-                        :filter="true"
-                        :options="props.dictionarys[18]"
-                        optionLabel="specialization_name"
-                        optionValue="specialization_id"
-                        placeholder="Chọn chuyên ngành"
-                        v-model="item.specialized"
-                        class="ip36"
-                        :style="{
-                          whiteSpace: 'nowrap',
-                          overflow: 'hidden',
-                          textOverflow: 'ellipsis',
-                        }"
-                      />
-                    </div>
-                  </div>
-                  <div class="col-6 md:col-6">
-                    <div class="form-group">
-                      <label>Từ tháng, năm</label>
-                      <Calendar
-                        v-model="item.start_date"
-                        :showIcon="false"
-                        view="month"
-                        dateFormat="mm/yy"
-                        class="ip36"
-                        placeholder="mm/yyyy"
-                      />
-                    </div>
-                  </div>
-                  <div class="col-6 md:col-6">
-                    <div class="form-group">
-                      <label>Đến tháng, năm</label>
-                      <Calendar
-                        v-model="item.end_date"
-                        :showIcon="false"
-                        view="month"
-                        dateFormat="mm/yy"
-                        class="ip36"
-                        placeholder="mm/yyyy"
-                      />
-                    </div>
-                  </div>
-                  <div class="col-6 md:col-6">
-                    <div class="form-group">
-                      <label>Hệ đào tạo</label>
-                      <Dropdown
-                        :showClear="true"
-                        :options="props.dictionarys[12]"
-                        optionLabel="form_traning_name"
-                        optionValue="form_traning_id"
-                        placeholder="Chọn hệ đào tạo"
-                        v-model="item.form_traning_id"
-                        class="ip36"
-                        :style="{
-                          whiteSpace: 'nowrap',
-                          overflow: 'hidden',
-                          textOverflow: 'ellipsis',
-                        }"
-                      />
-                    </div>
-                  </div>
-                  <div class="col-6 md:col-6">
-                    <div class="form-group">
-                      <label>Xếp loại</label>
-                      <Dropdown
-                        :showClear="true"
-                        :editable="true"
-                        :filter="true"
-                        :options="[
-                          { value: 1, title: 'Xuất sắc' },
-                          { value: 2, title: 'Giỏi' },
-                          { value: 3, title: 'Khá' },
-                          { value: 4, title: 'TB Khá' },
-                          { value: 5, title: 'Trung bình' },
-                        ]"
-                        optionLabel="title"
-                        optionValue="title"
-                        placeholder="Chọn xếp loại"
-                        class="ip36"
-                        v-model="item.rating"
-                        maxLength="250"
-                        :style="{
-                          whiteSpace: 'nowrap',
-                          overflow: 'hidden',
-                          textOverflow: 'ellipsis',
-                        }"
-                      />
-                    </div>
-                  </div>
-                  <div class="col-6 md:col-6">
-                    <div class="form-group">
-                      <label>Ngày cấp bằng</label>
-                      <Calendar
-                        class="ip36"
-                        id="icon"
-                        v-model="item.degree_date"
-                        :showIcon="true"
-                        placeholder="dd/mm/yyyy"
-                      />
-                    </div>
-                  </div>
-                  <div class="col-6 md:col-6">
-                    <div class="form-group">
-                      <label>Năm tốt nghiệp</label>
-                      <Calendar
-                        v-model="item.graduation_year"
-                        :showIcon="false"
-                        view="year"
-                        dateFormat="yy"
-                        class="ip36"
-                        placeholder="yyyy"
-                      />
-                    </div>
-                  </div>
-                  <div class="col-6 md:col-6">
-                    <div class="form-group">
-                      <label>Trình độ chuyên môn</label>
-                      <Dropdown
-                        :showClear="true"
-                        :options="props.dictionarys[6]"
-                        optionLabel="academic_level_name"
-                        optionValue="academic_level_id"
-                        placeholder="Chọn trình độ"
-                        class="ip36"
-                        v-model="item.academic_level_id"
-                        :style="{
-                          whiteSpace: 'nowrap',
-                          overflow: 'hidden',
-                          textOverflow: 'ellipsis',
-                        }"
-                      />
-                    </div>
-                  </div>
-                  <div class="col-6 md:col-6 format-center">
-                    <div class="form-group m-0">
-                      <div
-                        class="field-checkbox flex justify-content-center"
-                        style="height: 100%"
-                      >
-                        <InputSwitch v-model="item.is_man_degree" />
-                        <label for="binary">Bằng cấp chính</label>
-                      </div>
-                    </div>
-                  </div>
-                  <div class="col-6 md:col-6">
-                    <div class="form-group">
-                      <label>Ngày hiệu lực</label>
-                      <Calendar
-                        v-model="item.certificate_start_date"
-                        :showIcon="false"
-                        class="ip36"
-                        placeholder="dd/mm/yyyy"
-                      />
-                    </div>
-                  </div>
-                  <div class="col-6 md:col-6">
-                    <div class="form-group">
-                      <label>Ngày hết hiệu lực</label>
-                      <Calendar
-                        v-model="item.certificate_end_date"
-                        :showIcon="false"
-                        class="ip36"
-                        placeholder="dd/mm/yyyy"
-                      />
-                    </div>
-                  </div>
-                  <div class="col-6 md:col-6">
-                    <div class="form-group">
-                      <label>Văn bằng, chứng chỉ</label>
-                      <Dropdown
-                        :showClear="true"
-                        :options="props.dictionarys[13]"
-                        optionLabel="certificate_name"
-                        optionValue="certificate_id"
-                        placeholder="Chọn văn bằng"
-                        v-model="item.certificate_id"
-                        class="ip36"
-                        :style="{
-                          whiteSpace: 'nowrap',
-                          overflow: 'hidden',
-                          textOverflow: 'ellipsis',
-                        }"
-                      />
-                    </div>
-                  </div>
-                  <div class="col-6 md:col-6">
-                    <div class="form-group">
-                      <label>Số hiệu</label>
-                      <InputText
-                        v-model="item.certificate_key_code"
-                        spellcheck="false"
-                        type="text"
-                        class="ip36"
-                        maxLength="50"
-                      />
-                    </div>
-                  </div>
-                  <div class="col-6 md:col-6">
-                    <div class="form-group">
-                      <label>Phiên bản</label>
-                      <InputText
-                        v-model="item.certificate_version"
-                        spellcheck="false"
-                        type="text"
-                        class="ip36"
-                        maxLength="25"
-                      />
-                    </div>
-                  </div>
-                  <div class="col-6 md:col-6">
-                    <div class="form-group">
-                      <label>Lần phát hành</label>
-                      <InputText
-                        v-model="item.certificate_release_time"
-                        spellcheck="false"
-                        type="text"
-                        class="ip36"
-                        maxLength="25"
-                      />
-                    </div>
-                  </div>
-                  <!-- <DataTable
-                    :value="props.datachilds[2]"
-                    :scrollable="true"
-                    :lazy="true"
-                    :rowHover="true"
-                    :showGridlines="true"
-                    scrollDirection="both"
-                    class="empty-full"
-                  >
-                    <Column
-                      header=""
-                      headerStyle="text-align:center;width:50px"
-                      bodyStyle="text-align:center;width:50px"
-                      class="align-items-center justify-content-center text-center"
-                    >
-                      <template #body="slotProps">
-                        <a
-                          @click="props.deleteRow(2, slotProps.index)"
-                          class="hover"
-                          v-tooltip.top="'Xóa'"
-                        >
-                          <i
-                            class="pi pi-times-circle"
-                            style="font-size: 18px"
-                          ></i>
-                        </a>
-                      </template>
-                    </Column>
-                    <Column
-                      field="university_name"
-                      header="Nơi đào tạo"
-                      headerStyle="text-align:center;width:180px;height:50px"
-                      bodyStyle="text-align:center;width:180px;"
-                      class="align-items-center justify-content-center text-center"
-                    >
-                      <template #body="slotProps">
-                        <Dropdown
-                          :showClear="true"
-                          :editable="true"
-                          :filter="true"
-                          :options="dictionarys[27]"
-                          optionLabel="learning_place_name"
-                          optionValue="learning_place_name"
-                          placeholder="Chọn nơi đào tạo"
-                          class="ip36"
-                          v-model="slotProps.data.university_name"
-                          maxLength="250"
-                        />
-                      </template>
-                    </Column>
-
-                    <Column
-                      field="specialized"
-                      header="Chuyên ngành"
-                      headerStyle="text-align:center;width:170px;height:50px"
-                      bodyStyle="text-align:center;width:170px;"
-                      class="align-items-center justify-content-center text-center"
-                    >
-                      <template #body="slotProps">
-                        <div class="form-group m-0">
-                          <Dropdown
-                            :showClear="true"
-                            :options="props.dictionarys[18]"
-                            optionLabel="specialization_name"
-                            optionValue="specialization_id"
-                            placeholder="Chọn chuyên ngành"
-                            v-model="slotProps.data.specialized"
-                            class="ip36"
-                            :style="{
-                              whiteSpace: 'nowrap',
-                              overflow: 'hidden',
-                              textOverflow: 'ellipsis',
-                            }"
-                          />
-                        </div>
-                      </template>
-                    </Column>
-                    <Column
-                      field="start_date"
-                      header="Từ tháng, năm"
-                      headerStyle="text-align:center;width:120px;height:50px"
-                      bodyStyle="text-align:center;width:120px;"
-                      class="align-items-center justify-content-center text-center"
-                    >
-                      <template #body="slotProps">
-                        <Calendar
-                          v-model="slotProps.data.start_date"
-                          :showIcon="false"
-                          view="month"
-                          dateFormat="mm/yy"
-                          class="ip36"
-                          placeholder="mm/yyyy"
-                        />
-                      </template>
-                    </Column>
-                    <Column
-                      field="end_date"
-                      header="Đến tháng, năm"
-                      headerStyle="text-align:center;width:120px;height:50px"
-                      bodyStyle="text-align:center;width:120px;"
-                      class="align-items-center justify-content-center text-center"
-                    >
-                      <template #body="slotProps">
-                        <Calendar
-                          v-model="slotProps.data.end_date"
-                          :showIcon="false"
-                          view="month"
-                          dateFormat="mm/yy"
-                          class="ip36"
-                          placeholder="mm/yyyy"
-                        />
-                      </template>
-                    </Column>
-                    <Column
-                      field="form_traning_id"
-                      header="Hệ đào tạo"
-                      headerStyle="text-align:center;width:170px;height:50px"
-                      bodyStyle="text-align:center;width:170px;"
-                      class="align-items-center justify-content-center text-center"
-                    >
-                      <template #body="slotProps">
-                        <div class="form-group m-0">
-                          <Dropdown
-                            :showClear="true"
-                            :options="props.dictionarys[12]"
-                            optionLabel="form_traning_name"
-                            optionValue="form_traning_id"
-                            placeholder="Chọn hệ đào tạo"
-                            v-model="slotProps.data.form_traning_id"
-                            class="ip36"
-                            :style="{
-                              whiteSpace: 'nowrap',
-                              overflow: 'hidden',
-                              textOverflow: 'ellipsis',
-                            }"
-                          />
-                        </div>
-                      </template>
-                    </Column>
-                    <Column
-                      field="university_name"
-                      header="Nơi đào tạo"
-                      headerStyle="text-align:center;width:180px;height:50px"
-                      bodyStyle="text-align:center;width:180px;"
-                      class="align-items-center justify-content-center text-center"
-                    >
-                      <template #body="slotProps">
-                        <Dropdown
-                          :showClear="true"
-                          :editable="true"
-                          :filter="true"
-                          :options="[
-                            { value: 1, title: 'Xuất sắc' },
-                            { value: 2, title: 'Giỏi' },
-                            { value: 3, title: 'Khá' },
-                            { value: 4, title: 'TB Khá' },
-                            { value: 5, title: 'Trung bình' },
-                          ]"
-                          optionLabel="title"
-                          optionValue="title"
-                          placeholder="Chọn xếp loại"
-                          class="ip36"
-                          v-model="slotProps.data.rating"
-                          maxLength="250"
-                        />
-                      </template>
-                    </Column>
-                    <Column
-                      field="degree_date"
-                      header="Ngày cấp bằng"
-                      headerStyle="text-align:center;width:120px;height:50px"
-                      bodyStyle="text-align:center;width:120px;"
-                      class="align-items-center justify-content-center text-center"
-                    >
-                      <template #body="slotProps">
-                        <Calendar
-                          v-model="slotProps.data.degree_date"
-                          :showIcon="false"
-                          view="day"
-                          dateFormat="dd/mm/yy"
-                          class="ip36"
-                          placeholder="dd/mm/yyyy"
-                        />
-                      </template>
-                    </Column>
-                    <Column
-                      field="graduation_year"
-                      header="Năm tốt nghiệp"
-                      headerStyle="text-align:center;width:120px;height:50px"
-                      bodyStyle="text-align:center;width:120px;"
-                      class="align-items-center justify-content-center text-center"
-                    >
-                      <template #body="slotProps">
-                        <Calendar
-                          v-model="slotProps.data.graduation_year"
-                          :showIcon="false"
-                          view="year"
-                          dateFormat="yy"
-                          class="ip36"
-                          placeholder="yyyy"
-                        />
-                      </template>
-                    </Column>
-                    <Column
-                      field="is_man_degree"
-                      header="Cấp bằng chính"
-                      headerStyle="text-align:center;width:120px;height:50px"
-                      bodyStyle="text-align:center;width:120px;"
-                      class="align-items-center justify-content-center text-center"
-                    >
-                      <template #body="slotProps">
-                        <div class="form-group">
-                          <div
-                            class="field-checkbox flex justify-content-center"
-                            style="height: 100%"
-                          >
-                            <InputSwitch v-model="props.model.is_man_degree" />
-                            <label for="binary">Cấp bằng chính</label>
-                          </div>
-                        </div>
-                      </template>
-                    </Column>
-                    <Column
-                      field="certificate_id"
-                      header="Văn bằng, chứng chỉ"
-                      headerStyle="text-align:center;width:170px;height:50px"
-                      bodyStyle="text-align:center;width:170px;"
-                      class="align-items-center justify-content-center text-center"
-                    >
-                      <template #body="slotProps">
-                        <div class="form-group m-0">
-                          <Dropdown
-                            :showClear="true"
-                            :options="props.dictionarys[13]"
-                            optionLabel="certificate_name"
-                            optionValue="certificate_id"
-                            placeholder="Chọn văn bằng"
-                            v-model="slotProps.data.certificate_id"
-                            class="ip36"
-                            :style="{
-                              whiteSpace: 'nowrap',
-                              overflow: 'hidden',
-                              textOverflow: 'ellipsis',
-                            }"
-                          />
-                        </div>
-                      </template>
-                    </Column>
-                    <Column
-                      field="certificate_start_date"
-                      header="Ngày hiệu lực"
-                      headerStyle="text-align:center;width:120px;height:50px"
-                      bodyStyle="text-align:center;width:120px;"
-                      class="align-items-center justify-content-center text-center"
-                    >
-                      <template #body="slotProps">
-                        <Calendar
-                          v-model="slotProps.data.certificate_start_date"
-                          :showIcon="false"
-                          class="ip36"
-                          placeholder="dd/mm/yyyy"
-                        />
-                      </template>
-                    </Column>
-                    <Column
-                      field="certificate_end_date"
-                      header="Ngày hết hiệu lực"
-                      headerStyle="text-align:center;width:120px;height:50px"
-                      bodyStyle="text-align:center;width:120px;"
-                      class="align-items-center justify-content-center text-center"
-                    >
-                      <template #body="slotProps">
-                        <Calendar
-                          v-model="slotProps.data.certificate_end_date"
-                          :showIcon="false"
-                          class="ip36"
-                          placeholder="dd/mm/yyyy"
-                        />
-                      </template>
-                    </Column>
-                    <Column
-                      field="certificate_key_code"
-                      header="Số hiệu"
-                      headerStyle="text-align:center;width:150px;height:50px"
-                      bodyStyle="text-align:center;width:150px;"
-                      class="align-items-center justify-content-center text-center"
-                    >
-                      <template #body="slotProps">
-                        <InputText
-                          v-model="slotProps.data.certificate_key_code"
-                          spellcheck="false"
-                          type="text"
-                          class="ip36"
-                          maxLength="50"
-                        />
-                      </template>
-                    </Column>
-                    <Column
-                      field="certificate_version"
-                      header="Phiên bản"
-                      headerStyle="text-align:center;width:150px;height:50px"
-                      bodyStyle="text-align:center;width:150px;"
-                      class="align-items-center justify-content-center text-center"
-                    >
-                      <template #body="slotProps">
-                        <InputText
-                          v-model="slotProps.data.certificate_version"
-                          spellcheck="false"
-                          type="text"
-                          class="ip36"
-                          maxLength="25"
-                        />
-                      </template>
-                    </Column>
-                    <Column
-                      field="certificate_release_time"
-                      header="Lần phát hành"
-                      headerStyle="text-align:center;width:150px;height:50px"
-                      bodyStyle="text-align:center;width:150px;"
-                      class="align-items-center justify-content-center text-center"
-                    >
-                      <template #body="slotProps">
-                        <InputText
-                          v-model="slotProps.data.certificate_release_time"
-                          spellcheck="false"
-                          type="text"
-                          class="ip36"
-                          maxLength="25"
-                        />
-                      </template>
-                    </Column>
-                    <template #empty>
-                      <div
-                        class="align-items-center justify-content-center p-4 text-center m-auto"
-                        style="display: flex; width: 100%"
-                      ></div>
-                    </template>
-                  </DataTable> -->
-                </div>
-              </div>
-            </AccordionTab>
-            <!-- 6. Lịch sử Đảng viên -->
-            <AccordionTab>
-              <template #header>
-                <Toolbar class="w-full custoolbar p-0 font-bold">
-                  <template #start>
-                    <!-- <i class="pi pi-replay mr-2"></i> -->
-                    <span
-                      >6. Thông tin về Đảng và tham gia tổ chức chính trị/xã
-                      hội</span
-                    ></template
-                  >
-                  <template #end>
-                    <!-- <a
-                      @click="
-                        props.addRow(3);
-                        $event.stopPropagation();
-                      "
-                      class="hover"
-                      v-tooltip.top="'Thêm mới'"
-                    >
-                      <i
-                        class="pi pi-plus-circle"
-                        data-v-62364173=""
-                        style="font-size: 18px"
-                      ></i>
-                    </a> -->
-                  </template>
-                </Toolbar>
-              </template>
-              <!-- <div class="col-12 md:col-12 p-0">
-                <div style="">
-                  <DataTable
-                    :value="props.datachilds[3]"
-                    :scrollable="true"
-                    :lazy="true"
-                    :rowHover="true"
-                    :showGridlines="true"
-                    scrollDirection="both"
-                    class="empty-full"
-                  >
-                    <Column
-                      header=""
-                      headerStyle="text-align:center;width:50px"
-                      bodyStyle="text-align:center;width:50px"
-                      class="align-items-center justify-content-center text-center"
-                    >
-                      <template #body="slotProps">
-                        <a
-                          @click="props.deleteRow(3, slotProps.index)"
-                          class="hover"
-                          v-tooltip.top="'Xóa'"
-                        >
-                          <i
-                            class="pi pi-times-circle"
-                            style="font-size: 18px"
-                          ></i>
-                        </a>
-                      </template>
-                    </Column>
-                    <Column
-                      field="card_number"
-                      header="Số thẻ"
-                      headerStyle="text-align:center;width:180px;height:50px"
-                      bodyStyle="text-align:center;width:180px;"
-                      class="align-items-center justify-content-center text-center"
-                    >
-                      <template #body="slotProps">
-                        <InputText
-                          v-model="slotProps.data.card_number"
-                          spellcheck="false"
-                          type="text"
-                          class="ip36"
-                          maxLength="50"
-                        />
-                      </template>
-                    </Column>
-                    <Column
-                      field="form"
-                      header="Hình thức"
-                      headerStyle="text-align:center;width:170px;height:50px"
-                      bodyStyle="text-align:center;width:170px;"
-                      class="align-items-center justify-content-center text-center"
-                    >
-                      <template #body="slotProps">
-                        <div class="form-group m-0">
-                          <Dropdown
-                            :showClear="true"
-                            :editable="false"
-                            :options="[
-                              { value: 0, title: 'Dự bị' },
-                              { value: 1, title: 'Chính thức' },
-                              { value: 1, title: 'Điều chuyển' },
-                            ]"
-                            optionLabel="title"
-                            optionValue="value"
-                            placeholder="Chọn chuyên ngành"
-                            v-model="slotProps.data.form"
-                            class="ip36"
-                            :style="{
-                              whiteSpace: 'nowrap',
-                              overflow: 'hidden',
-                              textOverflow: 'ellipsis',
-                            }"
-                          />
-                        </div>
-                      </template>
-                    </Column>
-                    <Column
-                      field="start_date"
-                      header="Từ ngày"
-                      headerStyle="text-align:center;width:120px;height:50px"
-                      bodyStyle="text-align:center;width:120px;"
-                      class="align-items-center justify-content-center text-center"
-                    >
-                      <template #body="slotProps">
-                        <Calendar
-                          v-model="slotProps.data.start_date"
-                          :showIcon="false"
-                          class="ip36"
-                          placeholder="dd/mm/yyyy"
-                        />
-                      </template>
-                    </Column>
-                    <Column
-                      field="end_date"
-                      header="Đến ngày"
-                      headerStyle="text-align:center;width:120px;height:50px"
-                      bodyStyle="text-align:center;width:120px;"
-                      class="align-items-center justify-content-center text-center"
-                    >
-                      <template #body="slotProps">
-                        <Calendar
-                          v-model="slotProps.data.end_date"
-                          :showIcon="false"
-                          class="ip36"
-                          placeholder="dd/mm/yyyy"
-                        />
-                      </template>
-                    </Column>
-                    <Column
-                      field="admission_place"
-                      header="Nơi kết nạp"
-                      headerStyle="text-align:center;width:180px;height:50px"
-                      bodyStyle="text-align:center;width:180px;"
-                      class="align-items-center justify-content-center text-center"
-                    >
-                      <template #body="slotProps">
-                        <InputText
-                          v-model="slotProps.data.admission_place"
-                          spellcheck="false"
-                          type="text"
-                          class="ip36"
-                          maxLength="250"
-                        />
-                      </template>
-                    </Column>
-                    <Column
-                      field="transfer_place"
-                      header="Nơi điều chuyển"
-                      headerStyle="text-align:center;width:180px;height:50px"
-                      bodyStyle="text-align:center;width:180px;"
-                      class="align-items-center justify-content-center text-center"
-                    >
-                      <template #body="slotProps">
-                        <InputText
-                          v-model="slotProps.data.transfer_place"
-                          spellcheck="false"
-                          type="text"
-                          class="ip36"
-                          maxLength="250"
-                        />
-                      </template>
-                    </Column>
-                    <template #empty>
-                      <div
-                        class="align-items-center justify-content-center p-4 text-center m-auto"
-                        style="display: flex; width: 100%"
-                      ></div>
-                    </template>
-                  </DataTable>
-                </div>
-              </div> -->
-              <div class="col-12 md:col-12 p-0">
-                <div class="row">
-                  <div class="col-12 md:col-12">
-                    <div class="form-group">
-                      <label><b>Thông tin Đoàn</b></label>
-                    </div>
-                  </div>
-                  <div class="col-6 md:col-6">
-                    <div class="form-group">
-                      <label>Số thẻ Đoàn</label>
-                      <InputText
-                        spellcheck="false"
-                        class="ip36"
-                        v-model="props.model.bevy_code"
-                        maxLength="50"
-                      />
-                    </div>
-                  </div>
-                  <div class="col-6 md:col-6">
-                    <div class="form-group">
-                      <label>Ngày vào Đoàn</label>
-                      <Calendar
-                        :showIcon="true"
-                        v-model="props.model.bevy_date"
-                        class="ip36"
-                        id="icon"
-                        placeholder="dd/mm/yyyy"
-                      />
-                    </div>
-                  </div>
-                  <div class="col-6 md:col-6">
-                    <div class="form-group">
-                      <label>Nơi vào Đoàn</label>
-                      <InputText
-                        spellcheck="false"
-                        class="ip36"
-                        v-model="props.model.bevy_address"
-                        maxLength="500"
-                      />
-                    </div>
-                  </div>
-                  <div class="col-6 md:col-6">
-                    <div class="form-group">
-                      <label>Chức vụ Đoàn hiện tại</label>
-                      <InputText
-                        spellcheck="false"
-                        class="ip36"
-                        v-model="props.model.bevy_position"
-                        maxLength="500"
-                      />
-                    </div>
-                  </div>
-                  <div class="col-12 md:col-12">
-                    <div class="form-group">
-                      <label><b>Thông tin Đảng</b></label>
-                    </div>
-                  </div>
-                  <div class="col-6 md:col-6">
-                    <div class="form-group">
-                      <label>Ngạch công chức (viên chức)</label>
-                      <Dropdown
-                        :showClear="true"
-                        :options="props.dictionarys[26]"
-                        optionLabel="newname"
-                        optionValue="newname"
-                        placeholder="Chọn ngạch công chức (viên chức)"
-                        class="ip36"
-                        v-model="props.model.civil_servant_rank_name"
-                        :style="{
-                          whiteSpace: 'nowrap',
-                          overflow: 'hidden',
-                          textOverflow: 'ellipsis',
-                        }"
-                      />
-                    </div>
-                  </div>
-                  <div class="col-6 md:col-6 format-center">
-                    <div class="form-group">
-                      <div
-                        class="field-checkbox flex justify-content-center"
-                        style="height: 100%"
-                      >
-                        <InputSwitch v-model="props.model.is_partisan" />
-                        <label for="binary">Là Đảng viên</label>
-                      </div>
-                    </div>
-                  </div>
-                  <div class="col-4 md:col-4">
-                    <div class="form-group">
-                      <label>Số thẻ Đảng</label>
-                      <InputText
-                        spellcheck="false"
-                        class="ip36"
-                        v-model="props.model.card_partisan"
-                        maxLength="50"
-                      />
-                    </div>
-                  </div>
-                  <div class="col-4 md:col-4">
-                    <div class="form-group">
-                      <label>Ngày vào Đảng</label>
-                      <Calendar
-                        :showIcon="true"
-                        v-model="props.model.partisan_date"
-                        class="ip36"
-                        id="icon"
-                        placeholder="dd/mm/yyyy"
-                      />
-                    </div>
-                  </div>
-                  <div class="col-4 md:col-4">
-                    <div class="form-group">
-                      <label>Ngày vào Đảng chính thức</label>
-                      <Calendar
-                        :showIcon="true"
-                        v-model="props.model.partisan_main_date"
-                        class="ip36"
-                        id="icon"
-                        placeholder="dd/mm/yyyy"
-                      />
-                    </div>
-                  </div>
-                  <div class="col-6 md:col-6">
-                    <div class="form-group">
-                      <label>Chị bộ sinh hoạt Đảng</label>
-                      <InputText
-                        spellcheck="false"
-                        class="ip36"
-                        v-model="props.model.partisan_branch"
-                        maxLength="500"
-                      />
-                    </div>
-                  </div>
-                  <div class="col-6 md:col-6">
-                    <div class="form-group">
-                      <label>Đảng bộ chính thức</label>
-                      <InputText
-                        spellcheck="false"
-                        class="ip36"
-                        v-model="props.model.partisan_official"
-                        maxLength="500"
-                      />
-                    </div>
-                  </div>
-                  <div class="col-6 md:col-6">
-                    <div class="form-group">
-                      <label>Ngày tham gia cách mạng</label>
-                      <Calendar
-                        :showIcon="true"
-                        v-model="props.model.partisan_joindate"
-                        class="ip36"
-                        id="icon"
-                        placeholder="dd/mm/yyyy"
-                      />
-                    </div>
-                  </div>
-                  <div class="col-6 md:col-6">
-                    <div class="form-group">
-                      <label>Ngày tham gia tổ chức</label>
-                      <Calendar
-                        :showIcon="true"
-                        v-model="props.model.organization_joindate"
-                        class="ip36"
-                        id="icon"
-                        placeholder="dd/mm/yyyy"
-                      />
-                    </div>
-                  </div>
-                  <div class="col-12 md:col-12">
-                    <div class="form-group">
-                      <label>Công việc trong tổ chức</label>
-                      <InputText
-                        spellcheck="false"
-                        class="ip36"
-                        v-model="props.model.organization_task"
-                        maxLength="500"
-                      />
-                    </div>
-                  </div>
-                  <div class="col-12 md:col-12">
-                    <div class="form-group">
-                      <label>Danh hiệu</label>
-                      <Textarea
-                        :autoResize="true"
-                        rows="4"
-                        v-model="props.model.appellation"
-                      />
-                    </div>
-                  </div>
-                  <div class="col-12 md:col-12">
-                    <div class="form-group">
-                      <label>Huy hiệu</label>
-                      <Textarea
-                        :autoResize="true"
-                        rows="4"
-                        v-model="props.model.armorial"
-                      />
-                    </div>
-                  </div>
-                </div>
-              </div>
-            </AccordionTab>
-            <!-- 7. Thông tin tham gia quân đội -->
-            <AccordionTab>
-              <template #header>
-                <!-- <i class="pi pi-chart-line mr-2"></i> -->
-                <span>7. Thông tin tham gia quân đội</span>
-              </template>
-              <div class="col-12 md:col-12">
-                <div class="row">
-                  <div class="col-6 md:col-6">
-                    <div class="form-group">
-                      <label>Ngày nhập ngũ</label>
-                      <Calendar
-                        :showIcon="true"
-                        v-model="props.model.military_start_date"
-                        class="ip36"
-                        id="icon"
-                        placeholder="dd/mm/yyyy"
-                      />
-                    </div>
-                  </div>
-                  <div class="col-6 md:col-6">
-                    <div class="form-group">
-                      <label>Ngày xuất ngũ</label>
-                      <Calendar
-                        :showIcon="true"
-                        v-model="props.model.military_end_date"
-                        class="ip36"
-                        id="icon"
-                        placeholder="dd/mm/yyyy"
-                      />
-                    </div>
-                  </div>
-                  <div class="col-6 md:col-6">
-                    <div class="form-group">
-                      <label>Quân hàm cao nhất</label>
-                      <InputText
-                        spellcheck="false"
-                        class="ip36"
-                        v-model="props.model.military_rank"
-                        maxLength="50"
-                      />
-                    </div>
-                  </div>
-                  <div class="col-6 md:col-6">
-                    <div class="form-group">
-                      <label>Danh hiệu phong tặng cao nhất</label>
-                      <Dropdown
-                        :showClear="true"
-                        :editable="true"
-                        :options="[
-                          { value: 1, title: 'Anh hùng lao động' },
-                          { value: 2, title: 'Anh hùng lực lượng vũ trang' },
-                          { value: 3, title: 'Nhà giáo' },
-                          { value: 4, title: 'Thầy thuốc' },
-                          { value: 5, title: 'Nghệ sĩ nhân dân ưu tú' },
-                        ]"
-                        optionLabel="title"
-                        optionValue="title"
-                        placeholder="Chọn danh hiệu phong tặng cao nhất"
-                        class="ip36"
-                        v-model="props.model.military_title"
-                        maxLength="250"
-                        :style="{
-                          whiteSpace: 'nowrap',
-                          overflow: 'hidden',
-                          textOverflow: 'ellipsis',
-                        }"
-                      />
-                    </div>
-                  </div>
-                  <!-- <div class="col-6 md:col-6">
-                    <div class="form-group">
-                      <label>Sở trường công tác</label>
-                      <InputText
-                        spellcheck="false"
-                        class="ip36"
-                        v-model="props.model.military_forte"
-                        maxLength="250"
-                      />
-                    </div>
-                  </div> -->
-                  <!-- <div class="col-6 md:col-6">
-                    <div class="form-group">
-                      <label>Sức khỏe</label>
-                      <InputText
-                        spellcheck="false"
-                        class="ip36"
-                        v-model="props.model.military_health"
-                        maxLength="250"
-                      />
-                    </div>
-                  </div> -->
-
-                  <div class="col-6 md:col-6">
-                    <div class="form-group">
-                      <label>Thương binh hạng</label>
-                      <InputText
-                        spellcheck="false"
-                        class="ip36"
-                        v-model="props.model.military_veterans_rank"
-                        maxLength="50"
-                      />
-                    </div>
-                  </div>
-                  <div class="col-6 md:col-6">
-                    <div class="form-group">
-                      <label>Con gia đình chính sách</label>
-                      <Dropdown
-                        :showClear="true"
-                        :editable="true"
-                        :options="[
-                          { value: 1, title: 'Con thương binh' },
-                          { value: 2, title: 'Con liệt sĩ' },
-                          { value: 3, title: 'Người nhiễm chất độc da cam' },
-                          { value: 4, title: 'Dioxin' },
-                        ]"
-                        optionLabel="title"
-                        optionValue="title"
-                        placeholder="Là con gia đình chính sách"
-                        class="ip36"
-                        v-model="props.model.military_policy_family"
-                        maxLength="250"
-                        :style="{
-                          whiteSpace: 'nowrap',
-                          overflow: 'hidden',
-                          textOverflow: 'ellipsis',
-                        }"
-                      />
-                    </div>
-                  </div>
-                </div>
-              </div>
-            </AccordionTab>
-            <!-- 8. Kinh nghiệm làm việc -->
-            <AccordionTab>
-              <template #header>
-                <Toolbar class="w-full custoolbar p-0 font-bold">
-                  <template #start>
-                    <span
-                      >8. Quá trình công tác (đơn vị cũ)/Kinh nghiệm làm
-                      việc</span
-                    ></template
-                  >
-                  <template #end>
-                    <a
-                      @click="
-                        props.addRow(4);
-                        $event.stopPropagation();
-                      "
-                      class="hover"
-                      v-tooltip.top="'Thêm mới'"
-                    >
-                      <i
-                        class="pi pi-plus-circle"
-                        data-v-62364173=""
-                        style="font-size: 18px"
-                      ></i>
-                    </a>
-                  </template>
-                </Toolbar>
-              </template>
-              <div class="col-12 md:col-12 p-0">
-                <div class="row">
-                  <div class="col-6 md:col-6 format-center">
-                    <div class="form-group m-0">
-                      <label
-                        >Thời gian làm việc trong khối nhà nước trước khi vào
-                        công ty:
-                      </label>
-                    </div>
-                  </div>
-                  <div class="col-3 md:col-3">
-                    <div class="form-group">
-                      <label>Năm</label>
-                      <InputNumber
-                        v-model="props.model.seniority_year"
-                        inputId="minmax"
-                        :min="0"
-                        :max="100"
-                        showButtons
-                        class="ip36"
-                      />
-                    </div>
-                  </div>
-                  <div class="col-3 md:col-3">
-                    <div class="form-group">
-                      <label>Tháng</label>
-                      <InputNumber
-                        v-model="props.model.seniority_month"
-                        inputId="minmax"
-                        :min="0"
-                        :max="11"
-                        showButtons
-                        class="ip36"
-                      />
-                    </div>
-                  </div>
-                </div>
-                <div>
-                  <DataTable
-                    :value="props.datachilds[4]"
-                    :scrollable="true"
-                    :lazy="true"
-                    :rowHover="true"
-                    :showGridlines="true"
-                    scrollDirection="both"
-                    class="empty-full"
-                  >
-                    <Column
-                      header=""
-                      headerStyle="text-align:center;width:50px"
-                      bodyStyle="text-align:center;width:50px"
-                      class="align-items-center justify-content-center text-center"
-                    >
-                      <template #body="slotProps">
-                        <a
-                          @click="props.deleteRow(4, slotProps.index)"
-                          class="hover"
-                          v-tooltip.top="'Xóa'"
-                        >
-                          <i
-                            class="pi pi-times-circle"
-                            style="font-size: 18px"
-                          ></i>
-                        </a>
-                      </template>
-                    </Column>
-                    <Column
-                      field="start_date"
-                      header="Từ tháng, năm"
-                      headerStyle="text-align:center;width:120px;height:50px"
-                      bodyStyle="text-align:center;width:120px;"
-                      class="align-items-center justify-content-center text-center"
-                    >
-                      <template #body="slotProps">
-                        <Calendar
-                          v-model="slotProps.data.start_date"
-                          :showIcon="false"
-                          view="month"
-                          dateFormat="mm/yy"
-                          class="ip36"
-                          placeholder="mm/yyyy"
-                        />
-                      </template>
-                    </Column>
-                    <Column
-                      field="end_date"
-                      header="Đến tháng, năm"
-                      headerStyle="text-align:center;width:120px;height:50px"
-                      bodyStyle="text-align:center;width:120px;"
-                      class="align-items-center justify-content-center text-center"
-                    >
-                      <template #body="slotProps">
-                        <Calendar
-                          v-model="slotProps.data.end_date"
-                          :showIcon="false"
-                          view="month"
-                          dateFormat="mm/yy"
-                          class="ip36"
-                          placeholder="mm/yyyy"
-                        />
-                      </template>
-                    </Column>
-                    <Column
-                      field="company"
-                      header="Công ty, đơn vị"
-                      headerStyle="text-align:center;width:180px;height:50px"
-                      bodyStyle="text-align:center;width:180px;"
-                      class="align-items-center justify-content-center text-center"
-                    >
-                      <template #body="slotProps">
-                        <InputText
-                          v-model="slotProps.data.company"
-                          spellcheck="false"
-                          type="text"
-                          class="ip36"
-                          maxLength="250"
-                        />
-                      </template>
-                    </Column>
-                    <Column
-                      field="address"
-                      header="Địa chỉ"
-                      headerStyle="text-align:center;width:180px;height:50px"
-                      bodyStyle="text-align:center;width:180px;"
-                      class="align-items-center justify-content-center text-center"
-                    >
-                      <template #body="slotProps">
-                        <InputText
-                          v-model="slotProps.data.address"
-                          spellcheck="false"
-                          type="text"
-                          class="ip36"
-                          maxLength="500"
-                        />
-                      </template>
-                    </Column>
-                    <Column
-                      field="role"
-                      header="Vị trí"
-                      headerStyle="text-align:center;width:150px;height:50px"
-                      bodyStyle="text-align:center;width:150px;"
-                      class="align-items-center justify-content-center text-center"
-                    >
-                      <template #body="slotProps">
-                        <InputText
-                          v-model="slotProps.data.role"
-                          spellcheck="false"
-                          type="text"
-                          class="ip36"
-                          maxLength="50"
-                        />
-                      </template>
-                    </Column>
-                    <Column
-                      field="wage"
-                      header="Mức lương"
-                      headerStyle="text-align:center;width:150px;height:50px"
-                      bodyStyle="text-align:center;width:150px;"
-                      class="align-items-center justify-content-center text-center"
-                    >
-                      <template #body="slotProps">
-                        <InputText
-                          v-model="slotProps.data.wage"
-                          spellcheck="false"
-                          type="text"
-                          class="ip36"
-                          maxLength="500"
-                        />
-                      </template>
-                    </Column>
-                    <Column
-                      field="reference_name"
-                      header="Người tham chiếu"
-                      headerStyle="text-align:center;width:150px;height:50px"
-                      bodyStyle="text-align:center;width:150px;"
-                      class="align-items-center justify-content-center text-center"
-                    >
-                      <template #body="slotProps">
-                        <InputText
-                          v-model="slotProps.data.reference_name"
-                          spellcheck="false"
-                          type="text"
-                          class="ip36"
-                          maxLength="50"
-                        />
-                      </template>
-                    </Column>
-                    <Column
-                      field="reference_phone"
-                      header="SĐT"
-                      headerStyle="text-align:center;width:120px;height:50px"
-                      bodyStyle="text-align:center;width:120px;"
-                      class="align-items-center justify-content-center text-center"
-                    >
-                      <template #body="slotProps">
-                        <InputMask
-                          v-model="slotProps.data.reference_phone"
-                          mask="9999999999"
-                          placeholder="__________"
-                          class="ip36"
-                        />
-                      </template>
-                    </Column>
-                    <Column
-                      field="description"
-                      header="Mô tả công việc"
-                      headerStyle="text-align:center;width:200px;height:50px"
-                      bodyStyle="text-align:center;width:200px;"
-                      class="align-items-center justify-content-center text-center"
-                    >
-                      <template #body="slotProps">
-                        <InputText
-                          v-model="slotProps.data.description"
-                          spellcheck="false"
-                          type="text"
-                          class="ip36"
-                          maxLength="500"
-                        />
-                      </template>
-                    </Column>
-                    <Column
-                      field="reason"
-                      header="Lý do nghỉ việc"
-                      headerStyle="text-align:center;width:200px;height:50px"
-                      bodyStyle="text-align:center;width:200px;"
-                      class="align-items-center justify-content-center text-center"
-                    >
-                      <template #body="slotProps">
-                        <InputText
-                          v-model="slotProps.data.reason"
-                          spellcheck="false"
-                          type="text"
-                          class="ip36"
-                          maxLength="500"
-                        />
-                      </template>
-                    </Column>
-                    <template #empty>
-                      <div
-                        class="align-items-center justify-content-center p-4 text-center m-auto"
-                        style="display: flex; width: 100%"
-                      ></div>
-                    </template>
-                  </DataTable>
-                </div>
-              </div>
-            </AccordionTab>
             <!-- Đặc điểm lịch sử bản thân -->
             <AccordionTab>
               <template #header>
@@ -2892,7 +3162,7 @@ onMounted(() => {
               </template>
               <div class="col-12 md:col-12 p-0">
                 <div class="row">
-                  <div class="col-6 md:col-6">
+                  <div class="col-4 md:col-4">
                     <div class="form-group">
                       <label>Thành phần gia đình xuất thân</label>
                       <InputText
@@ -2903,20 +3173,8 @@ onMounted(() => {
                       />
                     </div>
                   </div>
-                  <div class="col-6 md:col-6">
-                    <div class="form-group">
-                      <label
-                        >Nghề nghiệp bản thân trước khi được tuyển dụng</label
-                      >
-                      <InputText
-                        spellcheck="false"
-                        class="ip36"
-                        v-model="props.model.job_before_recruitment"
-                        maxLength="500"
-                      />
-                    </div>
-                  </div>
-                  <div class="col-6 md:col-6">
+
+                  <div class="col-4 md:col-4">
                     <div class="form-group">
                       <label>Công việc đã làm lâu nhất</label>
                       <InputText
@@ -2927,7 +3185,7 @@ onMounted(() => {
                       />
                     </div>
                   </div>
-                  <div class="col-6 md:col-6">
+                  <div class="col-4 md:col-4">
                     <div class="form-group">
                       <label>Sở trường công tác</label>
                       <InputText
@@ -2999,7 +3257,10 @@ onMounted(() => {
                   </div>
                   <div class="col-12 md:col-12">
                     <div class="form-group">
-                      <label>Nhật xét, đánh giá của cơ quan, đơn vị quản lý và sử dụng cán bộ, công chức</label>
+                      <label
+                        >Nhật xét, đánh giá của cơ quan, đơn vị quản lý và sử
+                        dụng cán bộ, công chức</label
+                      >
                       <Textarea
                         :autoResize="true"
                         rows="4"
@@ -3262,6 +3523,698 @@ onMounted(() => {
       />
 
       <Button label="Lưu" icon="pi pi-check" @click="saveModel()" />
+    </template>
+  </Dialog>
+
+  <!--Dialog 1-->
+  <Dialog
+    header="Quá trình công tác trước khi vào đơn vị"
+    v-model:visible="displayDialog1"
+    :style="{ width: '60vw' }"
+    :maximizable="true"
+    :closable="true"
+    style="z-index: 9001"
+  >
+    <form @submit.prevent="" name="submitform">
+      <div class="grid formgrid m-2">
+        <div class="col-4 md:col-4">
+          <div class="form-group">
+            <label>Quan hệ gia đình</label>
+            <Dropdown
+              :showClear="true"
+              :options="[
+                { value: 1, title: 'Về bản thân' },
+                { value: 2, title: 'Về bên vợ' },
+              ]"
+              optionLabel="title"
+              optionValue="value"
+              placeholder="Chọn quan hệ"
+              v-model="model.is_type"
+              class="ip36"
+              :style="{
+                whiteSpace: 'nowrap',
+                overflow: 'hidden',
+                textOverflow: 'ellipsis',
+              }"
+            />
+          </div>
+        </div>
+        <div class="col-4 md:col-4">
+          <div class="form-group">
+            <label>Họ tên</label>
+            <InputText
+              v-model="model.relative_name"
+              spellcheck="false"
+              type="text"
+              class="ip36"
+              maxLength="25"
+            />
+          </div>
+        </div>
+        <div class="col-4 md:col-4">
+          <div class="form-group">
+            <label>Quan hệ</label>
+            <Dropdown
+              :showClear="true"
+              :options="props.dictionarys[11]"
+              optionLabel="relationship_name"
+              optionValue="relationship_id"
+              placeholder="Chọn quan hệ"
+              v-model="model.relationship_id"
+              class="ip36"
+              :style="{
+                whiteSpace: 'nowrap',
+                overflow: 'hidden',
+                textOverflow: 'ellipsis',
+              }"
+            />
+          </div>
+        </div>
+        <div class="col-4 md:col-4">
+          <div class="form-group">
+            <label>Năm sinh</label>
+            <Calendar
+              v-model="model.birthday"
+              :showIcon="false"
+              inputMask="9999"
+              view="year"
+              dateFormat="yy"
+              class="ip36"
+              placeholder="yyyy"
+            />
+          </div>
+        </div>
+        <div class="col-4 md:col-4">
+          <div class="form-group">
+            <label>Điện thoại</label>
+            <InputMask
+              v-model="model.phone"
+              mask="9999999999"
+              placeholder="__________"
+              class="ip36"
+            />
+          </div>
+        </div>
+        <div class="col-4 md:col-4">
+          <div class="form-group">
+            <label>Mã số thuế</label>
+            <InputText
+              v-model="model.tax_code"
+              spellcheck="false"
+              type="text"
+              class="ip36"
+              maxLength="50"
+            />
+          </div>
+        </div>
+        <div class="col-3 md:col-3">
+          <div class="form-group">
+            <label>CCCD/Hộ chiếu</label>
+            <InputText
+              v-model="model.identification_citizen"
+              spellcheck="false"
+              type="text"
+              class="ip36"
+              maxLength="50"
+            />
+          </div>
+        </div>
+        <div class="col-3 md:col-3">
+          <div class="form-group">
+            <label>Ngày cấp</label>
+            <Calendar
+              v-model="model.identification_date_issue"
+              :showIcon="true"
+              class="ip36"
+              placeholder="dd/mm/yyyy"
+            />
+          </div>
+        </div>
+        <div class="col-6 md:col-6">
+          <div class="form-group">
+            <label>Nơi cấp</label>
+            <InputText
+              v-model="model.identification_place_issue"
+              spellcheck="false"
+              type="text"
+              class="ip36"
+              maxLength="250"
+            />
+          </div>
+        </div>
+        <div class="col-6 md:col-6">
+          <div class="form-group">
+            <label>Phụ thuộc</label>
+            <Dropdown
+              :options="[
+                { value: 1, title: 'Có phụ thuộc' },
+                { value: 0, title: 'Không phụ thuộc' },
+              ]"
+              :filter="false"
+              :showClear="true"
+              :editable="false"
+              v-model="model.is_dependent"
+              optionLabel="title"
+              optionValue="value"
+              placeholder="Chọn trạng thái"
+              class="ip36"
+              :style="{
+                whiteSpace: 'nowrap',
+                overflow: 'hidden',
+                textOverflow: 'ellipsis',
+              }"
+            >
+              <template #option="slotProps">
+                <div class="country-item flex align-items-center">
+                  <div class="pt-1 pl-2">
+                    {{ slotProps.option.title }}
+                  </div>
+                </div>
+              </template>
+            </Dropdown>
+          </div>
+        </div>
+        <div class="col-3 md:col-3">
+          <div class="form-group">
+            <label>Từ ngày</label>
+            <Calendar
+              v-model="model.start_date"
+              :showIcon="true"
+              class="ip36"
+              placeholder="dd/mm/yyyy"
+            />
+          </div>
+        </div>
+        <div class="col-3 md:col-3">
+          <div class="form-group">
+            <label>Đến ngày</label>
+            <Calendar
+              v-model="model.end_date"
+              :showIcon="true"
+              class="ip36"
+              placeholder="dd/mm/yyyy"
+            />
+          </div>
+        </div>
+        <div div class="col-6 md:col-6">
+          <div class="form-group">
+            <label>Thông tin cơ bản</label>
+            <InputText
+              v-model="model.info"
+              spellcheck="false"
+              type="text"
+              class="ip36"
+            />
+          </div>
+        </div>
+        <div div class="col-6 md:col-6">
+          <div class="form-group">
+            <label>Ghi chú</label>
+            <InputText
+              v-model="model.note"
+              spellcheck="false"
+              type="text"
+              class="ip36"
+            />
+          </div>
+        </div>
+        <div class="col-6 md:col-6">
+          <div class="form-group">
+            <div
+              class="field-checkbox flex justify-content-center"
+              style="height: 100%"
+            >
+              <InputSwitch v-model="model.is_company" />
+              <label for="binary">Cùng cơ quan</label>
+            </div>
+          </div>
+        </div>
+        <div class="col-6 md:col-6">
+          <div class="form-group">
+            <div
+              class="field-checkbox flex justify-content-center"
+              style="height: 100%"
+            >
+              <InputSwitch v-model="model.is_die" />
+              <label for="binary">Đã mất</label>
+            </div>
+          </div>
+        </div>
+      </div>
+    </form>
+    <template #footer>
+      <Button
+        label="Hủy"
+        icon="pi pi-times"
+        @click="closeDialog()"
+        class="p-button-text"
+      />
+      <Button
+        label="Lưu và tiếp tục"
+        icon="pi pi-check"
+        @click="saveRow(1, true)"
+      />
+      <Button label="Lưu" icon="pi pi-check" @click="saveRow(1)" />
+    </template>
+  </Dialog>
+  <!--Dialog 2-->
+  <Dialog
+    header="Quá trình đào tạo"
+    v-model:visible="displayDialog2"
+    :style="{ width: '60vw' }"
+    :maximizable="true"
+    :closable="true"
+    style="z-index: 9001"
+  >
+    <form @submit.prevent="" name="submitform">
+      <div class="grid formgrid m-2">
+        <div class="col-12 md:col-12">
+          <div class="form-group">
+            <label>Văn bằng:</label>
+          </div>
+        </div>
+        <div class="col-3 md:col-3">
+          <div class="form-group">
+            <label>Từ tháng, năm</label>
+            <Calendar
+              v-model="model.start_date"
+              :showIcon="false"
+              view="month"
+              dateFormat="mm/yy"
+              class="ip36"
+              placeholder="mm/yyyy"
+            />
+          </div>
+        </div>
+        <div class="col-3 md:col-3">
+          <div class="form-group">
+            <label>Đến tháng, năm</label>
+            <Calendar
+              v-model="model.end_date"
+              :showIcon="false"
+              view="month"
+              dateFormat="mm/yy"
+              class="ip36"
+              placeholder="mm/yyyy"
+            />
+          </div>
+        </div>
+        <div class="col-6 md:col-6">
+          <div class="form-group">
+            <label>Trình độ chuyên môn</label>
+            <Dropdown
+              :showClear="true"
+              :options="props.dictionarys[6]"
+              optionLabel="academic_level_name"
+              optionValue="academic_level_id"
+              placeholder="Chọn trình độ"
+              class="ip36"
+              v-model="model.academic_level_id"
+              :style="{
+                whiteSpace: 'nowrap',
+                overflow: 'hidden',
+                textOverflow: 'ellipsis',
+              }"
+            />
+          </div>
+        </div>
+        <div class="col-6 md:col-6">
+          <div class="form-group">
+            <label>Chuyên ngành</label>
+            <Dropdown
+              :showClear="true"
+              :filter="true"
+              :options="props.dictionarys[18]"
+              optionLabel="specialization_name"
+              optionValue="specialization_id"
+              placeholder="Chọn chuyên ngành"
+              v-model="model.specialized"
+              class="ip36"
+              :style="{
+                whiteSpace: 'nowrap',
+                overflow: 'hidden',
+                textOverflow: 'ellipsis',
+              }"
+            />
+          </div>
+        </div>
+        <div class="col-6 md:col-6">
+          <div class="form-group">
+            <label>Nơi đào tạo</label>
+            <Dropdown
+              :showClear="true"
+              :editable="true"
+              :filter="true"
+              :options="props.dictionarys[27]"
+              optionLabel="learning_place_name"
+              optionValue="learning_place_name"
+              placeholder="Chọn nơi đào tạo"
+              class="ip36"
+              v-model="model.university_name"
+              maxLength="250"
+              :style="{
+                whiteSpace: 'nowrap',
+                overflow: 'hidden',
+                textOverflow: 'ellipsis',
+              }"
+            />
+          </div>
+        </div>
+        <div class="col-6 md:col-6">
+          <div class="form-group">
+            <label>Hệ đào tạo</label>
+            <Dropdown
+              :showClear="true"
+              :options="props.dictionarys[12]"
+              optionLabel="form_traning_name"
+              optionValue="form_traning_id"
+              placeholder="Chọn hệ đào tạo"
+              v-model="model.form_traning_id"
+              class="ip36"
+              :style="{
+                whiteSpace: 'nowrap',
+                overflow: 'hidden',
+                textOverflow: 'ellipsis',
+              }"
+            />
+          </div>
+        </div>
+        <div class="col-6 md:col-6">
+          <div class="form-group">
+            <label>Năm tốt nghiệp</label>
+            <Calendar
+              v-model="model.graduation_year"
+              :showIcon="false"
+              view="year"
+              dateFormat="yy"
+              class="ip36"
+              placeholder="yyyy"
+            />
+          </div>
+        </div>
+        <div class="col-6 md:col-6">
+          <div class="form-group">
+            <label>Xếp loại</label>
+            <Dropdown
+              :showClear="true"
+              :editable="true"
+              :filter="true"
+              :options="[
+                { value: 1, title: 'Xuất sắc' },
+                { value: 2, title: 'Giỏi' },
+                { value: 3, title: 'Khá' },
+                { value: 4, title: 'TB Khá' },
+                { value: 5, title: 'Trung bình' },
+              ]"
+              optionLabel="title"
+              optionValue="title"
+              placeholder="Chọn xếp loại"
+              class="ip36"
+              v-model="model.rating"
+              maxLength="250"
+              :style="{
+                whiteSpace: 'nowrap',
+                overflow: 'hidden',
+                textOverflow: 'ellipsis',
+              }"
+            />
+          </div>
+        </div>
+        <div class="col-6 md:col-6">
+          <div class="form-group">
+            <label>Ngày cấp bằng</label>
+            <Calendar
+              class="ip36"
+              id="icon"
+              v-model="model.degree_date"
+              :showIcon="true"
+              placeholder="dd/mm/yyyy"
+            />
+          </div>
+        </div>
+
+        <div class="col-6 md:col-6 format-center">
+          <div class="form-group m-0">
+            <div
+              class="field-checkbox flex justify-content-center"
+              style="height: 100%"
+            >
+              <InputSwitch v-model="model.is_man_degree" />
+              <label for="binary">Bằng cấp chính</label>
+            </div>
+          </div>
+        </div>
+        <div class="col-12 md:col-12">
+          <div class="form-group">
+            <label>Chứng chỉ:</label>
+          </div>
+        </div>
+        <div class="col-6 md:col-6">
+          <div class="form-group">
+            <label>Chứng chỉ</label>
+            <Dropdown
+              :showClear="true"
+              :options="props.dictionarys[13]"
+              optionLabel="certificate_name"
+              optionValue="certificate_id"
+              placeholder="Chọn văn bằng"
+              v-model="model.certificate_id"
+              class="ip36"
+              :style="{
+                whiteSpace: 'nowrap',
+                overflow: 'hidden',
+                textOverflow: 'ellipsis',
+              }"
+            />
+          </div>
+        </div>
+        <div class="col-6 md:col-6">
+          <div class="form-group">
+            <label>Số hiệu</label>
+            <InputText
+              v-model="model.certificate_key_code"
+              spellcheck="false"
+              type="text"
+              class="ip36"
+              maxLength="50"
+            />
+          </div>
+        </div>
+        <div class="col-6 md:col-6">
+          <div class="form-group">
+            <label>Phiên bản</label>
+            <InputText
+              v-model="model.certificate_version"
+              spellcheck="false"
+              type="text"
+              class="ip36"
+              maxLength="25"
+            />
+          </div>
+        </div>
+        <div class="col-6 md:col-6">
+          <div class="form-group">
+            <label>Lần phát hành</label>
+            <InputText
+              v-model="model.certificate_release_time"
+              spellcheck="false"
+              type="text"
+              class="ip36"
+              maxLength="25"
+            />
+          </div>
+        </div>
+        <div class="col-6 md:col-6">
+          <div class="form-group">
+            <label>Ngày hiệu lực</label>
+            <Calendar
+              v-model="model.certificate_start_date"
+              :showIcon="false"
+              class="ip36"
+              placeholder="dd/mm/yyyy"
+            />
+          </div>
+        </div>
+        <div class="col-6 md:col-6">
+          <div class="form-group">
+            <label>Ngày hết hiệu lực</label>
+            <Calendar
+              v-model="model.certificate_end_date"
+              :showIcon="false"
+              class="ip36"
+              placeholder="dd/mm/yyyy"
+            />
+          </div>
+        </div>
+      </div>
+    </form>
+    <template #footer>
+      <Button
+        label="Hủy"
+        icon="pi pi-times"
+        @click="closeDialog()"
+        class="p-button-text"
+      />
+      <Button
+        label="Lưu và tiếp tục"
+        icon="pi pi-check"
+        @click="saveRow(2, true)"
+      />
+      <Button label="Lưu" icon="pi pi-check" @click="saveRow(2)" />
+    </template>
+  </Dialog>
+  <!--Dialog 4-->
+  <Dialog
+    header="Quá trình công tác trước khi vào đơn vị"
+    v-model:visible="displayDialog4"
+    :style="{ width: '60vw' }"
+    :maximizable="true"
+    :closable="true"
+    style="z-index: 9001"
+  >
+    <form @submit.prevent="" name="submitform">
+      <div class="grid formgrid m-2">
+        <div class="col-12 md:col-12">
+          <div class="form-group">
+            <label>Văn bằng:</label>
+          </div>
+        </div>
+        <div class="col-3 md:col-3">
+          <div class="form-group">
+            <label>Từ tháng, năm</label>
+            <Calendar
+              v-model="model.start_date"
+              :showIcon="false"
+              view="month"
+              dateFormat="mm/yy"
+              class="ip36"
+              placeholder="mm/yyyy"
+            />
+          </div>
+        </div>
+        <div class="col-3 md:col-3">
+          <div class="form-group">
+            <label>Đến tháng, năm</label>
+            <Calendar
+              v-model="model.end_date"
+              :showIcon="false"
+              view="month"
+              dateFormat="mm/yy"
+              class="ip36"
+              placeholder="mm/yyyy"
+            />
+          </div>
+        </div>
+        <div class="col-6 md:col-6">
+          <div class="form-group">
+            <label>Công ty, đơn vị</label>
+            <InputText
+              v-model="model.company"
+              spellcheck="false"
+              type="text"
+              class="ip36"
+              maxLength="250"
+            />
+          </div>
+        </div>
+        <div class="col-6 md:col-6">
+          <div class="form-group">
+            <label>Địa chỉ</label>
+            <InputText
+              v-model="model.address"
+              spellcheck="false"
+              type="text"
+              class="ip36"
+              maxLength="500"
+            />
+          </div>
+        </div>
+        <div class="col-6 md:col-6">
+          <div class="form-group">
+            <label>Vị trí</label>
+            <InputText
+              v-model="model.role"
+              spellcheck="false"
+              type="text"
+              class="ip36"
+              maxLength="50"
+            />
+          </div>
+        </div>
+        <div class="col-6 md:col-6">
+          <div class="form-group">
+            <label>Mức lương</label>
+            <InputText
+              v-model="model.wage"
+              spellcheck="false"
+              type="text"
+              class="ip36"
+              maxLength="500"
+            />
+          </div>
+        </div>
+        <div class="col-6 md:col-6">
+          <div class="form-group">
+            <label>Người tham chiếu</label>
+            <InputText
+              v-model="model.reference_name"
+              spellcheck="false"
+              type="text"
+              class="ip36"
+              maxLength="50"
+            />
+          </div>
+        </div>
+        <div class="col-6 md:col-6">
+          <div class="form-group">
+            <label>Điện thoại</label>
+            <InputMask
+              v-model="model.reference_phone"
+              mask="9999999999"
+              placeholder="__________"
+              class="ip36"
+            />
+          </div>
+        </div>
+        <div class="col-6 md:col-6">
+          <div class="form-group">
+            <label>Mô tả công việc</label>
+            <InputText
+              v-model="model.description"
+              spellcheck="false"
+              type="text"
+              class="ip36"
+              maxLength="500"
+            />
+          </div>
+        </div>
+        <div class="col-12 md:col-12">
+          <div class="form-group">
+            <label>Lý do nghỉ việc</label>
+            <InputText
+              v-model="model.reason"
+              spellcheck="false"
+              type="text"
+              class="ip36"
+              maxLength="500"
+            />
+          </div>
+        </div>
+      </div>
+    </form>
+    <template #footer>
+      <Button
+        label="Hủy"
+        icon="pi pi-times"
+        @click="closeDialog()"
+        class="p-button-text"
+      />
+      <Button
+        label="Lưu và tiếp tục"
+        icon="pi pi-check"
+        @click="saveRow(4, true)"
+      />
+      <Button label="Lưu" icon="pi pi-check" @click="saveRow(4)" />
     </template>
   </Dialog>
 </template>

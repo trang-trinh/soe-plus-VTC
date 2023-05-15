@@ -4,9 +4,9 @@ import { useToast } from "vue-toastification";
 import { useVuelidate } from "@vuelidate/core";
 import { required } from "@vuelidate/validators";
 import DetailedWork from "../../components/task_origin/DetailedWork.vue";
+import DialogTask from "../../components/task_origin/DialogTask.vue";
 import moment from "moment";
 import { encr } from "../../util/function.js";
-import treeuser from "../../components/user/treeuser.vue";
 import { useRoute } from "vue-router";
 const cryoptojs = inject("cryptojs");
 const router = inject("router");
@@ -17,7 +17,6 @@ const forceRerender = () => {
   componentKey.value += 1;
 };
 const expandedKeys = ref([]);
-const width1 = ref(window.screen.availWidth);
 document.onkeydown = fkey;
 document.onkeypress = fkey;
 document.onkeyup = fkey;
@@ -60,10 +59,7 @@ const menuGroupListTypeButs = ref();
 const menuFilterButs = ref();
 const selectedTasks = ref();
 const listTask = ref();
-const submitted = ref(false);
-const isAdd = ref(false);
 const displayTask = ref(false);
-const issaveTask = ref(false);
 const headerAddTask = ref();
 const listDropdownUser = ref([]);
 const listDropdownorganization = ref([]);
@@ -74,9 +70,6 @@ const first = ref(0);
 const sttTask = ref();
 const filterTime1 = ref();
 const filterTime2 = ref();
-const selectcapcha = ref({});
-const TaskMembers = ref([]);
-let files = [];
 const config = {
   headers: { Authorization: `Bearer ${store.getters.token}` },
 };
@@ -187,33 +180,14 @@ const rules = {
     ],
   },
 };
-const Task = ref({
-  task_name: "",
-  assign_user_id: [],
-  work_user_ids: [],
-  is_prioritize: false,
-  is_deadline: true,
-  is_review: true,
-  is_security: false,
-  weight: null,
-  start_date: null,
-  end_date: null,
-  description: null,
-  status: 0,
-  target: null,
-  request: null,
-  is_XML: false,
-  works_user_ids: [],
-  follow_user_ids: [],
-});
-const v$ = useVuelidate(rules, Task);
+
 const itemSortButs = ref([
   {
     label: "Ngày cập nhật mới đến cũ",
     sort: "modified_date",
     ob: "DESC",
     active: true,
-    command: (event) => {
+    command: () => {
       ChangeSortTask("modified_date", "DESC");
     },
   },
@@ -222,7 +196,7 @@ const itemSortButs = ref([
     sort: "modified_date",
     ob: "ASC",
     active: false,
-    command: (event) => {
+    command: () => {
       ChangeSortTask("modified_date", "ASC");
     },
   },
@@ -231,7 +205,7 @@ const itemSortButs = ref([
     sort: "is_order",
     ob: "ASC",
     active: false,
-    command: (event) => {
+    command: () => {
       ChangeSortTask("is_order", "ASC");
     },
   },
@@ -240,7 +214,7 @@ const itemSortButs = ref([
     sort: "is_order",
     ob: "DESC",
     active: false,
-    command: (event) => {
+    command: () => {
       ChangeSortTask("is_order", "DESC");
     },
   },
@@ -249,7 +223,7 @@ const itemSortButs = ref([
     sort: "created_date",
     ob: "DESC",
     active: false,
-    command: (event) => {
+    command: () => {
       ChangeSortTask("created_date", "DESC");
     },
   },
@@ -258,7 +232,7 @@ const itemSortButs = ref([
     sort: "created_date",
     ob: "ASC",
     active: false,
-    command: (event) => {
+    command: () => {
       ChangeSortTask("created_date", "ASC");
     },
   },
@@ -267,7 +241,7 @@ const itemSortButs = ref([
     sort: "task_name",
     ob: "ASC",
     active: false,
-    command: (event) => {
+    command: () => {
       ChangeSortTask("task_name", "ASC");
     },
   },
@@ -276,7 +250,7 @@ const itemSortButs = ref([
     sort: "task_name",
     ob: "DESC",
     active: false,
-    command: (event) => {
+    command: () => {
       ChangeSortTask("task_name", "DESC");
     },
   },
@@ -285,7 +259,7 @@ const itemSortButs = ref([
     sort: "start_date",
     ob: "ASC",
     active: false,
-    command: (event) => {
+    command: () => {
       ChangeSortTask("start_date", "ASC");
     },
   },
@@ -294,7 +268,7 @@ const itemSortButs = ref([
     sort: "start_date",
     ob: "DESC",
     active: false,
-    command: (event) => {
+    command: () => {
       ChangeSortTask("start_date", "DESC");
     },
   },
@@ -303,7 +277,7 @@ const itemSortButs = ref([
     sort: "finish_date",
     ob: "ASC",
     active: false,
-    command: (event) => {
+    command: () => {
       ChangeSortTask("finish_date", "ASC");
     },
   },
@@ -312,7 +286,7 @@ const itemSortButs = ref([
     sort: "finish_date",
     ob: "DESC",
     active: false,
-    command: (event) => {
+    command: () => {
       ChangeSortTask("finish_date", "DESC");
     },
   },
@@ -326,7 +300,7 @@ const itemGroupListTypeButs = ref([
     active: false,
     icon: "pi pi-briefcase",
     type: 1,
-    command: (event) => {
+    command: () => {
       ChangeGroupView(1);
     },
   },
@@ -335,7 +309,7 @@ const itemGroupListTypeButs = ref([
     active: false,
     icon: "pi pi-clone",
     type: 2,
-    command: (event) => {
+    command: () => {
       ChangeGroupView(2);
     },
   },
@@ -346,7 +320,7 @@ const itemListTypeButs = ref([
     active: false,
     icon: "pi pi-list",
     type: 1,
-    command: (event) => {
+    command: () => {
       ChangeView(1);
     },
   },
@@ -355,7 +329,7 @@ const itemListTypeButs = ref([
     active: true,
     icon: "pi pi-list",
     type: 2,
-    command: (event) => {
+    command: () => {
       ChangeView(2);
     },
   },
@@ -364,7 +338,7 @@ const itemListTypeButs = ref([
     active: false,
     icon: "pi pi-table",
     type: 3,
-    command: (event) => {
+    command: () => {
       ChangeView(3);
     },
   },
@@ -373,7 +347,7 @@ const itemListTypeButs = ref([
     active: false,
     icon: "pi pi-calendar-plus",
     type: 4,
-    command: (event) => {
+    command: () => {
       ChangeView(4);
     },
   },
@@ -382,7 +356,7 @@ const itemListTypeButs = ref([
     active: false,
     icon: "pi pi-user-plus",
     type: 5,
-    command: (event) => {
+    command: () => {
       ChangeView(5);
     },
   },
@@ -519,6 +493,7 @@ const itemFilterButs = ref([
     ],
   },
 ]);
+const listDropdownUserAssign = ref([]);
 const emitter = inject("emitter");
 emitter.on("emitData", (obj) => {
   switch (obj.type) {
@@ -649,7 +624,7 @@ const ChangeFilter = (type, act) => {
     case 5: //theo ngày nhận
       opition.value.sdate = null;
       opition.value.edate = null;
-      debugger;
+
       itemFilterButs.value
         .filter((x) => x.istype == 5)
         .forEach((t) => {
@@ -881,154 +856,26 @@ watch(selectedTasks, () => {
     checkDelList.value = false;
   }
 });
-const closeDialogTask = () => {
-  Task.value = {
-    task_name: "",
-    assign_user_id: [],
-    is_prioritize: false,
-    is_deadline: true,
-    is_review: true,
-    is_security: false,
-    weight: null,
-    start_date: null,
-    end_date: null,
-    description: null,
-    status: 0,
-    target: null,
-    request: null,
 
-    works_user_ids: [],
-    work_user_ids: [],
-    follow_user_ids: [],
-  };
-  files = [];
-  displayTask.value = false;
-  // loadData(true);
-};
+const is_Add = ref(false);
+const is_Template = ref(false);
 const addTask = (str) => {
-  submitted.value = false;
-  Task.value = {
-    task_name: "",
-    assign_user_id: [],
-    is_prioritize: false,
-    is_deadline: true,
-    is_review: true,
-    is_security: false,
-    weight: null,
-    start_date: new Date(),
-    end_date: null,
-    description: null,
-    status: 0,
-    target: null,
-    request: null,
-    works_user_ids: [],
-    work_user_ids: [],
-    follow_user_ids: [],
-    is_order: sttTask.value,
-    files: [],
-    is_XML: false,
-  };
-  selectcapcha.value = [];
-  selectcapcha.value[-1] = true;
-  if (store.state.user.is_super) {
-    Task.value.organization_id = 0;
-  } else {
-    Task.value.organization_id = store.state.user.organization_id;
-  }
-  Task.value.assign_user_id.push(store.state.user.user_id);
-  Task.value.work_user_ids.push(store.state.user.user_id);
-  isAdd.value = true;
-  issaveTask.value = false;
   headerAddTask.value = str;
   displayTask.value = true;
+  is_Add.value = true;
 };
+const closeDialogTask = () => {
+  displayTask.value = false;
+};
+const afterSave = () => {
+  loadData(false, opition.value.type_view);
+};
+const DialogData = ref();
 const editTask = (task_data) => {
-  submitted.value = false;
-  selectcapcha.value = [];
-  isAdd.value = false;
-  axios
-    .post(
-      baseURL + "/api/TaskProc/getTaskData",
-      {
-        str: encr(
-          JSON.stringify({
-            proc: "task_origin_get_edit",
-            par: [{ par: "task_id", va: task_data.task_id }],
-          }),
-          SecretKey,
-          cryoptojs,
-        ).toString(),
-      },
-      config,
-    )
-    .then((response) => {
-      let data = JSON.parse(response.data.data);
-      if (data.length > 0) {
-        data[0].forEach((element, i) => {
-          element.Thanhviens = element.Thanhviens
-            ? JSON.parse(element.Thanhviens)
-            : [];
-          element.files = element.files ? JSON.parse(element.files) : [];
-          element.files = element.files ? element.files : [];
-        });
-      }
-      Task.value = data[0][0];
-      Task.value.is_XML = false;
-      selectcapcha.value[Task.value.department_id || -1] = true;
-      Task.value.start_date = Task.value.start_date
-        ? new Date(Task.value.start_date)
-        : null;
-      Task.value.end_date = Task.value.end_date
-        ? new Date(Task.value.end_date)
-        : null;
-      Task.value.is_department =
-        Task.value.department_id && Task.value.department_id != -1
-          ? true
-          : false;
-      Task.value.assign_user_id = [];
-      Task.value.work_user_ids = [];
-      Task.value.works_user_ids = [];
-      Task.value.follow_user_ids = [];
-      if (Task.value.Thanhviens.length > 0) {
-        Task.value.Thanhviens.forEach((t) => {
-          if (t.is_type == "0") {
-            Task.value.assign_user_id.push(t.user_id);
-          } else if (t.is_type == "1") {
-            Task.value.work_user_ids.push(t.user_id);
-          } else if (t.is_type == "2") {
-            Task.value.works_user_ids.push(t.user_id);
-          } else if (t.is_type == "3") {
-            Task.value.follow_user_ids.push(t.user_id);
-          }
-        });
-      }
-      Task.value.is_order = Task.value.STT;
-      headerAddTask.value = "Sửa công việc";
-      issaveTask.value = false;
-      displayTask.value = true;
-      if (store.state.user.is_super) {
-        Task.value.organization_id = 0;
-      } else {
-        Task.value.organization_id = store.state.user.organization_id;
-      }
-    })
-    .catch((error) => {
-      toast.error("Tải dữ liệu không thành công!");
-      opition.value.loading = false;
-      addLog({
-        title: "Lỗi Console loadData",
-        controller: "LogsView.vue",
-        log_content: error.message,
-        loai: 2,
-      });
-      if (error && error.status === 401) {
-        swal.fire({
-          text: "Mã token đã hết hạn hoặc không hợp lệ, vui lòng đăng nhập lại!",
-          confirmButtonText: "OK",
-        });
-        store.commit("gologout");
-      }
-    });
+  headerAddTask.value = "Sửa công việc";
+  displayTask.value = true;
+  DialogData.value = task_data;
+  is_Add.value = false;
 };
 const DelTask = (dataTask) => {
   if (dataTask.childtasks > 0) {
@@ -1098,65 +945,6 @@ const DelTask = (dataTask) => {
         }
       });
   }
-};
-const deleteFile = (datafile) => {
-  swal
-    .fire({
-      title: "Thông báo",
-      text: "Bạn có muốn xoá file này không!",
-      icon: "warning",
-      showCancelButton: true,
-      confirmButtonColor: "#3085d6",
-      cancelButtonColor: "#d33",
-      confirmButtonText: "Có",
-      cancelButtonText: "Không",
-    })
-    .then((result) => {
-      if (result.isConfirmed) {
-        swal.fire({
-          width: 110,
-          didOpen: () => {
-            swal.showLoading();
-          },
-        });
-        axios
-          .delete(baseURL + "/api/task_origin/Delete_file", {
-            headers: { Authorization: `Bearer ${store.getters.token}` },
-            data: [datafile.file_id],
-          })
-          .then((response) => {
-            swal.close();
-            if (response.data.err != "1") {
-              swal.close();
-              toast.success("Xoá file thành công!");
-              var idx = Task.value.files.findIndex(
-                (x) => x.file_id == datafile.file_id,
-              );
-              if (idx != -1) {
-                Task.value.files.splice(idx, 1);
-              }
-            } else {
-              swal.fire({
-                title: "Thông báo!",
-                text: response.data.ms,
-                icon: "error",
-                confirmButtonText: "OK",
-              });
-            }
-          })
-          .catch((error) => {
-            swal.close();
-            if (error.status === 401) {
-              swal.fire({
-                title: "Thông báo!",
-                text: "Mã token đã hết hạn hoặc không hợp lệ, vui lòng đăng nhập lại!",
-                icon: "error",
-                confirmButtonText: "OK",
-              });
-            }
-          });
-      }
-    });
 };
 const interval = ref(null);
 const startProgress = (datalists) => {
@@ -1229,19 +1017,9 @@ const groupBy = (list, props) => {
   }, {});
 };
 
-const formatDate = (timeMinute) => {
-  if (timeMinute < 60) {
-    return timeMinute;
-  } else if (timeMinute >= 60 && timeMinute < 1440) {
-    return timeMinute / 60;
-  } else {
-    return timeMinute / 1440;
-  }
-};
-
 const loadData = (rf, type) => {
   if (type == 3 || type == 2 || type == 4 || type == 5) {
-    opition.value.PageSize = 10000;
+    opition.value.PageSize = 100000;
   }
   if (rf) {
     opition.value.loading = true;
@@ -1297,6 +1075,7 @@ const loadData = (rf, type) => {
                   (x) => x.value == element.status,
                 )[0].text
               : "";
+
           element.status_name =
             element.count_extend > 0 ? "Xin gia hạn" : element.status_name;
           element.status_bg_color =
@@ -1428,9 +1207,9 @@ const loadData = (rf, type) => {
               });
             }
           } else {
-            var listCV = groupBy(data1, "group_id");
+            listCV = groupBy(data1, "group_id");
             for (let k in listCV) {
-              var CVGroup = [];
+              CVGroup = [];
               listCV[k].forEach(function (r) {
                 CVGroup.push(r);
               });
@@ -1456,10 +1235,10 @@ const loadData = (rf, type) => {
       if (type == 3) {
         if (opition.value.type_group_view) {
           if (opition.value.type_group_view == 1) {
-            var listCV = groupBy(data1, "project_id");
-            var arrNew = [];
+            listCV = groupBy(data1, "project_id");
+            arrNew = [];
             for (let k in listCV) {
-              var CVGroup = [];
+              CVGroup = [];
               listCV[k].forEach(function (r) {
                 CVGroup.push(r);
               });
@@ -1501,10 +1280,10 @@ const loadData = (rf, type) => {
             });
             sttTask.value = data[1][0].total + 1;
           } else {
-            var listCV = groupBy(data1, "group_id");
-            var arrNew = [];
+            listCV = groupBy(data1, "group_id");
+            arrNew = [];
             for (let k in listCV) {
-              var CVGroup = [];
+              CVGroup = [];
               listCV[k].forEach(function (r) {
                 CVGroup.push(r);
               });
@@ -1545,10 +1324,10 @@ const loadData = (rf, type) => {
             });
           }
         } else {
-          var listCV = groupBy(data1, "status");
-          var arrNew = [];
+          listCV = groupBy(data1, "status");
+          arrNew = [];
           for (let k in listCV) {
-            var CVGroup = [];
+            CVGroup = [];
             listCV[k].forEach(function (r) {
               CVGroup.push(r);
             });
@@ -1658,7 +1437,6 @@ const listUser = () => {
       }
     })
     .catch((error) => {
-      console.log(error);
       toast.error("Tải dữ liệu không thành công!");
       opition.value.loading = false;
 
@@ -1742,7 +1520,6 @@ const listtreeOrganization = () => {
       listDropdownorganization.value = obj.arrtreeChils;
     })
     .catch((error) => {
-      console.log(error);
       toast.error("Tải dữ liệu không thành công!");
       opition.value.loading = false;
 
@@ -1783,7 +1560,6 @@ const listProjectMain = () => {
       listDropdownweight.value = data[2];
     })
     .catch((error) => {
-      console.log(error);
       toast.error("Tải dữ liệu không thành công!");
       opition.value.loading = false;
 
@@ -1796,141 +1572,7 @@ const listProjectMain = () => {
       }
     });
 };
-const onUploadFile = (event) => {
-  files = [];
-  event.files.forEach((element) => {
-    files.push(element);
-  });
-};
-const removeFile = (event) => {
-  files = files.filter((a) => a != event.file);
-};
-const saveTask = (isFormValid) => {
-  TaskMembers.value = [];
-  submitted.value = true;
-  if (Task.value.is_deadline) {
-    if (!isFormValid) {
-      return;
-    }
-  }
-  if (!selectcapcha.value) {
-    selectcapcha.value = [];
-  }
-  Task.value.department_id = parseInt(Object.keys(selectcapcha.value)[0]);
-  let formData = new FormData();
-  for (var i = 0; i < files.length; i++) {
-    let file = files[i];
-    formData.append("url", file);
-  }
-  if (Task.value.assign_user_id.length > 0) {
-    Task.value.assign_user_id.forEach((t) => {
-      let member = {
-        project_id: null,
-        task_id: null,
-        user_id: t,
-        is_type: 0,
-        status: true,
-      };
-      member.user_id = t;
-      TaskMembers.value.push(member);
-    });
-  }
-  if (Task.value.work_user_ids.length > 0) {
-    Task.value.work_user_ids.forEach((t) => {
-      let member1 = {
-        project_id: null,
-        task_id: null,
-        user_id: t,
-        is_type: 1,
-        status: true,
-      };
-      member1.user_id = t;
-      TaskMembers.value.push(member1);
-    });
-  }
-  if (Task.value.works_user_ids.length > 0) {
-    Task.value.works_user_ids.forEach((t) => {
-      let member2 = {
-        project_id: null,
-        task_id: null,
-        user_id: t,
-        is_type: 2,
-        status: true,
-      };
-      TaskMembers.value.push(member2);
-    });
-  }
-  if (Task.value.follow_user_ids.length > 0) {
-    Task.value.follow_user_ids.forEach((t) => {
-      let member3 = {
-        project_id: null,
-        task_id: null,
-        user_id: t,
-        is_type: 3,
-        status: true,
-      };
-      TaskMembers.value.push(member3);
-    });
-  }
-  if (isAdd.value == false) {
-    if (Task.value.created_date) {
-      Task.value.created_date = new Date(Task.value.created_date);
-    }
-    if (Task.value.update_date) {
-      Task.value.update_date = new Date(Task.value.update_date);
-    }
-    if (Task.value.start_date) {
-      Task.value.start_date = new Date(Task.value.start_date);
-    }
-    if (Task.value.end_date) {
-      Task.value.end_date = new Date(Task.value.end_date);
-    }
-  }
 
-  // Task.value.start_date = Task.value.start_date
-  //   ? new Date(Task.value.start_date)
-  //   : null;
-  // Task.value.end_date = Task.value.end_date
-  //   ? new Date(Task.value.end_date)
-  //   : null;
-  formData.append("isXML", JSON.stringify(Task.value.is_XML));
-  formData.append("taskmember", JSON.stringify(TaskMembers.value));
-  formData.append("taskOrigin", JSON.stringify(Task.value));
-  if (!issaveTask.value) {
-    axios
-      .post(
-        baseURL +
-          "/api/task_origin/" +
-          (isAdd.value == true ? "Add_TaskOrigin" : "Update_TaskOrigin"),
-        formData,
-        config,
-      )
-      .then((response) => {
-        if (response.data.err != "1") {
-          swal.close();
-          toast.success("Cập nhật công việc thành công!");
-          loadData(false, opition.value.type_view);
-          closeDialogTask();
-        } else {
-          swal.fire({
-            title: "Error!",
-            text: response.data.ms,
-            icon: "error",
-            confirmButtonText: "OK",
-          });
-        }
-      })
-      .catch((error) => {
-        swal.close();
-        swal.fire({
-          title: "Error!",
-          text: "Có lỗi xảy ra, vui lòng kiểm tra lại!",
-          icon: "error",
-          confirmButtonText: "OK",
-        });
-      });
-  }
-};
 const onPage = (event) => {
   if (event.rows != opition.value.PageSize) {
     opition.value.PageSize = event.rows;
@@ -1996,21 +1638,6 @@ const onRefresh = () => {
   loadData(true, opition.value.type_view);
 };
 const idTaskLoaded = ref(route.params.id);
-const changeNguoiGaoViec = (event) => {
-  Task.value.assign_user_id = [];
-  Task.value.assign_user_id.push(event.value[1]);
-};
-const CheckDate = (date) => {
-  if (date < Task.value.start_date) {
-    swal.fire({
-      title: "Thông báo!",
-      text: "Ngày kết thúc phải lớn hơn ngày bắt đầu, vui lòng chọn lại!",
-      icon: "info",
-      confirmButtonText: "OK",
-    });
-    Task.value.end_date = null;
-  }
-};
 
 function getDaysInMonth(year, month) {
   return new Date(year, month, 0).getDate();
@@ -2030,10 +1657,10 @@ const getDates = (startDate, endDate) => {
       DW: d.getDay(),
       Day: parseInt(moment(currentDate).format("DD")),
       DayName: WeekDay.value.filter(
-        (x) => x.value == d.toLocaleString("default", { weekday: "long" }),
+        (x) => x.value == d.toLocaleString("en-us", { weekday: "long" }),
       )[0].text,
       bg: WeekDay.value.filter(
-        (x) => x.value == d.toLocaleString("default", { weekday: "long" }),
+        (x) => x.value == d.toLocaleString("en-us", { weekday: "long" }),
       )[0].bg,
       color:
         parseInt(moment(currentDate).format("DD")) ==
@@ -2160,45 +1787,6 @@ onMounted(() => {
   return {};
 });
 
-const ChangeIsDepartment = (model) => {
-  selectcapcha.value = [];
-  Task.value.assign_user_id = [];
-  Task.value.work_user_ids = [];
-  selectcapcha.value[-1] = true;
-  if (store.state.user.is_super) {
-    Task.value.organization_id = 0;
-  } else {
-    Task.value.organization_id = store.state.user.organization_id;
-  }
-  Task.value.assign_user_id.push(store.state.user.user_id);
-  Task.value.work_user_ids.push(store.state.user.user_id);
-};
-const ChangeTaskDepartment = () => {
-  let id = parseInt(Object.keys(selectcapcha.value)[0]);
-  Task.value.assign_user_id = [];
-  Task.value.work_user_ids = [];
-  if (id != -1) {
-    listOrganization.value
-      .filter((x) => x.organization_id == id)
-      .forEach((t) => {
-        if (t.user_id) {
-          Task.value.assign_user_id.push(store.state.user.user_id);
-          Task.value.work_user_ids.push(t.user_id);
-        } else {
-          selectcapcha.value = [];
-          selectcapcha.value[-1] = true;
-          Task.value.assign_user_id.push(store.state.user.user_id);
-          Task.value.work_user_ids.push(store.state.user.user_id);
-          swal.fire({
-            title: "Thông báo!",
-            text: "Phòng ban này chưa tồn tại người chủ trì!",
-            icon: "info",
-            confirmButtonText: "OK",
-          });
-        }
-      });
-  }
-};
 const showDetail = ref(false);
 const selectedTaskID = ref();
 const onRowSelect = (id) => {
@@ -2220,86 +1808,6 @@ const closeDetail = () => {
   loadData(false, opition.value.type_view);
 };
 
-const onRowUnselect = (id) => {};
-
-const displayDialogUser = ref(false);
-const selectedUser = ref([]);
-const headerDialogUser = ref();
-const is_one = ref(false);
-const is_type = ref();
-const OpenDialogTreeUser = (one, type) => {
-  selectedUser.value = [];
-  if (type == 1) {
-    Task.value.assign_user_id.forEach((t) => {
-      let select = { user_id: t };
-      selectedUser.value.push(select);
-    });
-    headerDialogUser.value = "Chọn người giao việc";
-  } else if (type == 2) {
-    Task.value.work_user_ids.forEach((t) => {
-      let select = { user_id: t };
-      selectedUser.value.push(select);
-    });
-    headerDialogUser.value = "Chọn người thực hiện";
-  } else if (type == 3) {
-    Task.value.works_user_ids.forEach((t) => {
-      let select = { user_id: t };
-      selectedUser.value.push(select);
-    });
-    headerDialogUser.value = "Chọn người đồng thực hiện";
-  } else if (type == 4) {
-    Task.value.follow_user_ids.forEach((t) => {
-      let select = { user_id: t };
-      selectedUser.value.push(select);
-    });
-    headerDialogUser.value = "Chọn người theo dõi";
-  }
-  displayDialogUser.value = true;
-  is_one.value = one;
-  is_type.value = type;
-};
-const closeDialog = () => {
-  displayDialogUser.value = false;
-};
-const choiceTreeUser = () => {
-  switch (is_type.value) {
-    case 1:
-      if (selectedUser.value.length > 0) {
-        selectedUser.value.forEach((t) => {
-          Task.value.assign_user_id = [];
-          Task.value.assign_user_id.push(t.user_id);
-        });
-      }
-      break;
-    case 2:
-      if (selectedUser.value.length > 0) {
-        Task.value.work_user_ids = [];
-        selectedUser.value.forEach((t) => {
-          Task.value.work_user_ids.push(t.user_id);
-        });
-      }
-      break;
-    case 3:
-      if (selectedUser.value.length > 0) {
-        Task.value.works_user_ids = [];
-        selectedUser.value.forEach((t) => {
-          Task.value.works_user_ids.push(t.user_id);
-        });
-      }
-      break;
-    case 4:
-      if (selectedUser.value.length > 0) {
-        Task.value.follow_user_ids = [];
-        selectedUser.value.forEach((t) => {
-          Task.value.follow_user_ids.push(t.user_id);
-        });
-      }
-      break;
-    default:
-      break;
-  }
-  displayDialogUser.value = false;
-};
 const ChangeShowListCVGroup = (model) => {
   model.isShow = !model.isShow;
 };
@@ -4144,7 +3652,10 @@ const ChangeShowListCVGroup = (model) => {
               id="type_group_view"
               v-if="opition.type_group_view != null"
             >
-              <div v-for="l in item.ListCVGroup">
+              <div
+                v-for="(l, index) in item.ListCVGroup"
+                :key="index"
+              >
                 <span
                   @click="ChangeShowListCVGroup(l)"
                   style="
@@ -4171,7 +3682,8 @@ const ChangeShowListCVGroup = (model) => {
                 <div v-if="l.isShow">
                   <Card
                     v-if="l.CVGroup2.length > 0"
-                    v-for="cv in l.CVGroup2"
+                    v-for="(cv, index) in l.CVGroup2"
+                    :key="index"
                     style="width: 320px; border-bottom: 1px solid #ccc"
                   >
                     <template #title>
@@ -4765,8 +4277,7 @@ const ChangeShowListCVGroup = (model) => {
                   Kết thúc
                 </th>
                 <th
-                  v-for="(m, index) in Grands"
-                  :key="index"
+                  v-for="m in Grands"
                   class="p-3"
                   align="center"
                   :width="m.Dates.length * 40"
@@ -4788,8 +4299,7 @@ const ChangeShowListCVGroup = (model) => {
                       : 'background-color:' + g.bg + ';',
                     'color:' + g.color)
                   "
-                  v-for="(g, index) in GrandsDate"
-                  :key="index"
+                  v-for="g in GrandsDate"
                 >
                   {{ g.DayName }}
                 </th>
@@ -4805,9 +4315,7 @@ const ChangeShowListCVGroup = (model) => {
                       : 'background-color:' + g.bg + ';',
                     'color:' + g.color)
                   "
-                  v-for="(g, index) in GrandsDate"
-                  ,
-                  :key="index"
+                  v-for="g in GrandsDate"
                 >
                   {{ g.DayN }}
                 </th>
@@ -4815,8 +4323,7 @@ const ChangeShowListCVGroup = (model) => {
             </thead>
             <tbody>
               <tr
-                v-for="(l, index) in listTask"
-                :key="index"
+                v-for="l in listTask"
                 @click="onRowSelect(l)"
               >
                 <td
@@ -4933,8 +4440,7 @@ const ChangeShowListCVGroup = (model) => {
                       : 'background-color:' + g.bg + ';',
                     'color:' + g.color)
                   "
-                  v-for="(g, index) in l.dateArray"
-                  :key="index"
+                  v-for="g in l.dateArray"
                 >
                   <div
                     v-if="g.Name"
@@ -5347,907 +4853,17 @@ const ChangeShowListCVGroup = (model) => {
     >
     </DetailedWork>
   </div>
-  <Dialog
+  <DialogTask
+    v-if="displayTask == true"
     :header="headerAddTask"
-    style="z-index: 10"
-    v-model:visible="displayTask"
-    :closable="true"
-    :maximizable="true"
-    :style="{ width: '700px' }"
+    :visible="displayTask"
+    :is_add="is_Add"
+    :is_template="is_Template"
+    :data="DialogData"
+    :closeDialogTask="closeDialogTask"
+    :afterSave="afterSave"
   >
-    <form>
-      <div class="grid formgrid m-2">
-        <div class="field col-12 md:col-12">
-          <label class="col-3 text-left p-0"
-            >Tên công việc<span class="redsao"> (*) </span></label
-          >
-          <InputText
-            v-model="Task.task_name"
-            spellcheck="false"
-            class="col-9 ip36 px-2"
-            :class="{ 'p-invalid': v$.task_name.$invalid && submitted }"
-          />
-        </div>
-        <div
-          style="display: flex"
-          class="field col-12 md:col-12"
-        >
-          <div class="col-3 text-left"></div>
-          <small
-            v-if="
-              (v$.task_name.$invalid && submitted) ||
-              v$.task_name.$pending.$response
-            "
-            class="col-9 p-error p-0"
-          >
-            <span class="col-12 p-0">{{
-              v$.task_name.required.$message
-                .replace("Value", "Tên công việc")
-                .replace("is required", "không được để trống")
-            }}</span>
-          </small>
-        </div>
-        <!-- update tráng -->
-        <div
-          class="field col-12 md:col-12"
-          style="position: relative"
-        >
-          <label class="col-3 text-left p-0">Công việc của phòng</label>
-          <InputSwitch
-            @change="ChangeIsDepartment(Task.is_department)"
-            class="col-6"
-            style="position: absolute; top: 0px; left: 200px"
-            v-model="Task.is_department"
-          />
-          <!-- <TreeSelect class="col-9" v-model="selectcapcha" :options="listDropdownorganization" :showClear="true"
-            :max-height="200" placeholder="" optionLabel="organization_name" optionValue="department_id"
-            @change="ChangeTaskDepartment()" /> -->
-        </div>
-        <div
-          class="field col-12 md:col-12"
-          v-if="Task.is_department"
-        >
-          <label class="col-3 text-left p-0">Phòng ban</label>
-          <TreeSelect
-            class="col-9"
-            v-model="selectcapcha"
-            :options="listDropdownorganization"
-            :showClear="true"
-            :max-height="200"
-            placeholder=""
-            optionLabel="organization_name"
-            optionValue="department_id"
-            @change="ChangeTaskDepartment()"
-          />
-        </div>
-        <!-- end -->
-        <div class="field col-12 md:col-12">
-          <label class="col-3 text-left p-0">Thuộc dự án</label>
-          <Dropdown
-            :filter="true"
-            v-model="Task.project_id"
-            panelClass="d-design-dropdown"
-            selectionLimit="1"
-            :options="listDropdownProject"
-            optionLabel="project_name"
-            optionValue="project_id"
-            spellcheck="false"
-            class="col-9 ip36 p-0"
-          >
-            <template #option="slotProps">
-              <div class="country-item flex">
-                <div class="pt-1">{{ slotProps.option.project_name }}</div>
-              </div>
-            </template>
-          </Dropdown>
-        </div>
-        <div class="field col-12 md:col-12">
-          <label class="col-3 text-left p-0"
-            >Người giao việc
-            <span
-              @click="OpenDialogTreeUser(true, 1)"
-              class="choose-user"
-              ><i class="pi pi-user-plus"></i></span
-            ><span class="redsao"> (*) </span></label
-          >
-          <MultiSelect
-            :filter="true"
-            v-model="Task.assign_user_id"
-            :options="listDropdownUser"
-            optionValue="code"
-            optionLabel="name"
-            class="col-9 ip36 p-0"
-            placeholder="Người giao việc"
-            @change="changeNguoiGaoViec($event)"
-            :class="{
-              'p-invalid': Task.assign_user_id.length == 0 && submitted,
-            }"
-            display="chip"
-          >
-            <template #option="slotProps">
-              <div
-                class="country-item flex"
-                style="align-items: center; margin-left: 10px"
-              >
-                <Avatar
-                  v-bind:label="
-                    slotProps.option.avatar
-                      ? ''
-                      : (slotProps.option.name ?? '').substring(0, 1)
-                  "
-                  v-bind:image="basedomainURL + slotProps.option.avatar"
-                  style="
-                    background-color: #2196f3;
-                    color: #ffffff;
-                    width: 32px;
-                    height: 32px;
-                    font-size: 15px !important;
-                    margin-left: -10px;
-                  "
-                  :style="{
-                    background: bgColor[slotProps.index % 7] + '!important',
-                  }"
-                  class="cursor-pointer"
-                  size="xlarge"
-                  shape="circle"
-                />
-                <div
-                  class="pt-1"
-                  style="padding-left: 10px"
-                >
-                  {{ slotProps.option.name }}
-                </div>
-              </div>
-            </template>
-          </MultiSelect>
-        </div>
-        <div
-          v-if="!Task.is_department"
-          class="field col-12 md:col-12"
-        >
-          <label class="col-3 text-left p-0"
-            >Người thực hiện
-            <span
-              @click="OpenDialogTreeUser(false, 2)"
-              class="choose-user"
-              ><i class="pi pi-user-plus"></i></span
-            ><span class="redsao"> (*) </span></label
-          >
-          <MultiSelect
-            :filter="true"
-            v-model="Task.work_user_ids"
-            :options="listDropdownUser"
-            optionValue="code"
-            optionLabel="name"
-            class="col-9 ip36 p-0"
-            placeholder="Người thực hiện"
-            :class="{
-              'p-invalid': Task.work_user_ids.length == 0 && submitted,
-            }"
-            display="chip"
-          >
-            <template #option="slotProps">
-              <div
-                class="country-item flex"
-                style="align-items: center; margin-left: 10px"
-              >
-                <Avatar
-                  v-bind:label="
-                    slotProps.option.avatar
-                      ? ''
-                      : (slotProps.option.name ?? '').substring(0, 1)
-                  "
-                  v-bind:image="basedomainURL + slotProps.option.avatar"
-                  style="
-                    background-color: #2196f3;
-                    color: #ffffff;
-                    width: 32px;
-                    height: 32px;
-                    font-size: 15px !important;
-                    margin-left: -10px;
-                  "
-                  :style="{
-                    background: bgColor[slotProps.index % 7] + '!important',
-                  }"
-                  class="cursor-pointer"
-                  size="xlarge"
-                  shape="circle"
-                />
-                <div
-                  class="pt-1"
-                  style="padding-left: 10px"
-                >
-                  {{ slotProps.option.name }}
-                </div>
-              </div>
-            </template>
-          </MultiSelect>
-        </div>
-        <div
-          v-if="!Task.is_department"
-          style="display: flex"
-          class="field col-12 md:col-12"
-        >
-          <div class="col-3 text-left"></div>
-          <small
-            v-if="
-              (v$.work_user_ids.$invalid && submitted) ||
-              v$.work_user_ids.$pending.$response
-            "
-            class="col-9 p-error p-0"
-          >
-            <span class="col-12 p-0">{{
-              v$.work_user_ids.required.$message
-                .replace("Value", "Người thực hiện")
-                .replace("is required", "không được để trống")
-            }}</span>
-          </small>
-        </div>
-        <div
-          v-if="!Task.is_department"
-          class="field col-12 md:col-12"
-        >
-          <label class="col-3 text-left p-0"
-            >Người đồng thực hiện
-            <span
-              @click="OpenDialogTreeUser(false, 3)"
-              class="choose-user"
-              ><i class="pi pi-user-plus"></i></span
-          ></label>
-          <MultiSelect
-            :filter="true"
-            v-model="Task.works_user_ids"
-            :options="listDropdownUser"
-            optionValue="code"
-            optionLabel="name"
-            class="col-9 ip36 p-0"
-            display="chip"
-          >
-            <template #option="slotProps">
-              <div
-                class="country-item flex"
-                style="align-items: center; padding-left: 10px"
-              >
-                <Avatar
-                  v-bind:label="
-                    slotProps.option.avatar
-                      ? ''
-                      : (slotProps.option.name ?? '').substring(0, 1)
-                  "
-                  v-bind:image="basedomainURL + slotProps.option.avatar"
-                  style="
-                    background-color: #2196f3;
-                    color: #ffffff;
-                    width: 32px;
-                    height: 32px;
-                    font-size: 15px !important;
-                    margin-left: -10px;
-                  "
-                  :style="{
-                    background: bgColor[slotProps.index % 7] + '!important',
-                  }"
-                  class="cursor-pointer"
-                  size="xlarge"
-                  shape="circle"
-                />
-                <div
-                  class="pt-1"
-                  style="padding-left: 10px"
-                >
-                  {{ slotProps.option.name }}
-                </div>
-              </div>
-            </template>
-          </MultiSelect>
-        </div>
-        <div
-          v-if="!Task.is_department"
-          class="field col-12 md:col-12"
-        >
-          <label class="col-3 text-left p-0"
-            >Người theo dõi
-            <span
-              @click="OpenDialogTreeUser(false, 4)"
-              class="choose-user"
-              ><i class="pi pi-user-plus"></i></span
-          ></label>
-          <MultiSelect
-            :filter="true"
-            v-model="Task.follow_user_ids"
-            :options="listDropdownUser"
-            optionValue="code"
-            optionLabel="name"
-            class="col-9 ip36 p-0"
-            display="chip"
-          >
-            <template #option="slotProps">
-              <div
-                class="country-item flex"
-                style="align-items: center; padding-left: 10px"
-              >
-                <Avatar
-                  v-bind:label="
-                    slotProps.option.avatar
-                      ? ''
-                      : (slotProps.option.name ?? '').substring(0, 1)
-                  "
-                  v-bind:image="basedomainURL + slotProps.option.avatar"
-                  style="
-                    background-color: #2196f3;
-                    color: #ffffff;
-                    width: 32px;
-                    height: 32px;
-                    font-size: 15px !important;
-                    margin-left: -10px;
-                  "
-                  :style="{
-                    background: bgColor[slotProps.index % 7] + '!important',
-                  }"
-                  class="cursor-pointer"
-                  size="xlarge"
-                  shape="circle"
-                />
-                <div
-                  class="pt-1"
-                  style="padding-left: 10px"
-                >
-                  {{ slotProps.option.name }}
-                </div>
-              </div>
-            </template>
-          </MultiSelect>
-        </div>
-        <div class="field col-12 md:col-12">
-          <label class="col-3 text-left p-0">Nhóm</label>
-          <Dropdown
-            :filter="true"
-            v-model="Task.group_id"
-            panelClass="d-design-dropdown"
-            selectionLimit="1"
-            :options="listDropdownTaskGroup"
-            optionLabel="group_name"
-            optionValue="group_id"
-            spellcheck="false"
-            class="col-9 ip36 p-0"
-          >
-            <template #option="slotProps">
-              <div class="country-item flex">
-                <div class="pt-1">{{ slotProps.option.group_name }}</div>
-              </div>
-            </template>
-          </Dropdown>
-        </div>
-        <div
-          class="field col-12 md:col-12"
-          style="display: flex"
-        >
-          <div class="col-3"></div>
-          <div
-            class="col-9"
-            style="display: flex"
-          >
-            <div class="col-5">
-              <Checkbox
-                style="margin-right: 5px"
-                v-model="Task.is_review"
-                :binary="true"
-              />
-              YC đánh giá công việc
-            </div>
-            <div class="col-4">
-              <Checkbox
-                style="margin-right: 5px"
-                v-model="Task.is_deadline"
-                :binary="true"
-              />
-              Có hạn xử lý
-            </div>
-            <div class="col-3">
-              <Checkbox
-                style="margin-right: 5px"
-                v-model="Task.is_prioritize"
-                :binary="true"
-              />
-              Ưu tiên
-            </div>
-          </div>
-        </div>
-        <div
-          class="field col-12 md:col-12"
-          style="display: flex; align-items: center"
-        >
-          <label class="col-3 text-left p-0">Ngày bắt đầu</label>
-          <div
-            class="col-9"
-            style="display: flex; padding: 0px; align-items: center"
-          >
-            <Calendar
-              :showIcon="true"
-              id="time24"
-              :showTime="true"
-              autocomplete="on"
-              class="col-5 ip36 title-lable"
-              style="margin-top: 5px; padding: 0px"
-              v-model="Task.start_date"
-            />
-            <!-- <Calendar
-              :manualInput="true"
-              :showIcon="true"
-              class="col-5 ip36 title-lable"
-              style="margin-top: 5px; padding: 0px"
-              id="time1"
-              hourFormat="12"
-              autocomplete="on"
-              v-model="Task.start_date"
-            /> -->
-            <div
-              class="col-7"
-              style="display: flex; padding: 0px; align-items: center"
-            >
-              <label class="col-5 text-center">Ngày kết thúc</label>
-
-              <Calendar
-                :showTime="true"
-                :showIcon="true"
-                class="col-7 ip36 title-lable"
-                style="margin-top: 5px; padding: 0px"
-                id="time2"
-                placeholder="dd/MM/yy"
-                autocomplete="on"
-                v-model="Task.end_date"
-                :class="{
-                  'p-invalid':
-                    v$.end_date.$invalid && submitted && Task.is_deadline,
-                }"
-                @date-select="CheckDate($event)"
-              />
-            </div>
-          </div>
-        </div>
-        <div
-          style="display: flex"
-          class="field col-12 md:col-12"
-        >
-          <div class="col-3 text-left"></div>
-          <small
-            v-if="
-              (v$.end_date.$invalid && submitted && Task.is_deadline) ||
-              (v$.end_date.$pending.$response && Task.is_deadline)
-            "
-            class="col-9 p-error p-0"
-          >
-            <span class="col-12 p-0">{{
-              v$.end_date.required.$message
-                .replace("Value", "Ngày kết thúc")
-                .replace("is required", "không được để trống")
-            }}</span>
-          </small>
-        </div>
-        <div
-          class="field col-12 md:col-12"
-          style="display: flex; align-items: center"
-        >
-          <label class="col-3 text-left p-0">STT</label>
-          <div
-            class="col-9"
-            style="display: flex; padding: 0px; align-items: center"
-          >
-            <InputText
-              style="margin-top: 5px"
-              v-model="Task.is_order"
-              spellcheck="false"
-              class="col-4 ip36 px-2"
-            />
-            <div
-              class="col-8"
-              style="
-                display: flex;
-                padding: 0px;
-                align-items: center;
-                position: relative;
-              "
-            >
-              <label class="col-6 text-center">Kích hoạt bảo mật</label>
-              <InputSwitch
-                class="col-6"
-                style="position: absolute; top: 0px; left: 200px"
-                v-model="Task.is_security"
-              />
-            </div>
-          </div>
-        </div>
-        <div class="field col-12 md:col-12">
-          <label class="col-3 text-left p-0">Trạng thái công việc</label>
-          <Dropdown
-            :filter="true"
-            style="margin-top: 5px"
-            panelClass="d-design-dropdown"
-            v-model="Task.status"
-            :options="listDropdownStatus"
-            optionLabel="text"
-            optionValue="value"
-            placeholder="Trạng thái công việc"
-            spellcheck="false"
-            class="col-9 ip36 p-0"
-          >
-            <template #option="slotProps">
-              <div class="country-item flex">
-                <div class="pt-1">{{ slotProps.option.text }}</div>
-              </div>
-            </template>
-          </Dropdown>
-        </div>
-        <div
-          class="field col-12 md:col-12"
-          style="
-            display: flex;
-            /* padding: 0px; */
-            align-items: center;
-            position: relative;
-          "
-        >
-          <label class="col-3 text-left p-0">Xuất XML</label>
-          <InputSwitch
-            class="col-9"
-            style="position: absolute; top: 0px; left: 160px"
-            v-model="Task.is_XML"
-          />
-        </div>
-        <div class="field col-12 md:col-12">
-          <Accordion :multiple="true">
-            <AccordionTab header="THÔNG TIN KHÁC">
-              <div
-                v-if="Task.is_department"
-                class="field col-12 md:col-12"
-              >
-                <label class="col-3 text-left p-0"
-                  >Người thực hiện
-                  <span
-                    @click="OpenDialogTreeUser(false, 2)"
-                    class="choose-user"
-                    ><i class="pi pi-user-plus"></i></span
-                ></label>
-                <MultiSelect
-                  :filter="true"
-                  v-model="Task.work_user_ids"
-                  :options="listDropdownUser"
-                  optionValue="code"
-                  optionLabel="name"
-                  class="col-9 ip36 p-0"
-                  placeholder="Người thực hiện"
-                  display="chip"
-                >
-                  <template #option="slotProps">
-                    <div
-                      class="country-item flex"
-                      style="align-items: center; margin-left: 10px"
-                    >
-                      <Avatar
-                        v-bind:label="
-                          slotProps.option.avatar
-                            ? ''
-                            : (slotProps.option.name ?? '').substring(0, 1)
-                        "
-                        v-bind:image="basedomainURL + slotProps.option.avatar"
-                        style="
-                          background-color: #2196f3;
-                          color: #ffffff;
-                          width: 32px;
-                          height: 32px;
-                          font-size: 15px !important;
-                          margin-left: -10px;
-                        "
-                        :style="{
-                          background:
-                            bgColor[slotProps.index % 7] + '!important',
-                        }"
-                        class="cursor-pointer"
-                        size="xlarge"
-                        shape="circle"
-                      />
-                      <div
-                        class="pt-1"
-                        style="padding-left: 10px"
-                      >
-                        {{ slotProps.option.name }}
-                      </div>
-                    </div>
-                  </template>
-                </MultiSelect>
-              </div>
-              <div
-                v-if="Task.is_department"
-                class="field col-12 md:col-12"
-              >
-                <label class="col-3 text-left p-0"
-                  >Người đồng thực hiện
-                  <span
-                    @click="OpenDialogTreeUser(false, 3)"
-                    class="choose-user"
-                    ><i class="pi pi-user-plus"></i></span
-                ></label>
-                <MultiSelect
-                  :filter="true"
-                  v-model="Task.works_user_ids"
-                  :options="listDropdownUser"
-                  optionValue="code"
-                  optionLabel="name"
-                  class="col-9 ip36 p-0"
-                  display="chip"
-                >
-                  <template #option="slotProps">
-                    <div
-                      class="country-item flex"
-                      style="align-items: center; padding-left: 10px"
-                    >
-                      <Avatar
-                        v-bind:label="
-                          slotProps.option.avatar
-                            ? ''
-                            : (slotProps.option.name ?? '').substring(0, 1)
-                        "
-                        v-bind:image="basedomainURL + slotProps.option.avatar"
-                        style="
-                          background-color: #2196f3;
-                          color: #ffffff;
-                          width: 32px;
-                          height: 32px;
-                          font-size: 15px !important;
-                          margin-left: -10px;
-                        "
-                        :style="{
-                          background:
-                            bgColor[slotProps.index % 7] + '!important',
-                        }"
-                        class="cursor-pointer"
-                        size="xlarge"
-                        shape="circle"
-                      />
-                      <div
-                        class="pt-1"
-                        style="padding-left: 10px"
-                      >
-                        {{ slotProps.option.name }}
-                      </div>
-                    </div>
-                  </template>
-                </MultiSelect>
-              </div>
-              <div
-                v-if="Task.is_department"
-                class="field col-12 md:col-12"
-              >
-                <label class="col-3 text-left p-0"
-                  >Người theo dõi
-                  <span
-                    @click="OpenDialogTreeUser(false, 4)"
-                    class="choose-user"
-                    ><i class="pi pi-user-plus"></i></span
-                ></label>
-                <MultiSelect
-                  :filter="true"
-                  v-model="Task.follow_user_ids"
-                  :options="listDropdownUser"
-                  optionValue="code"
-                  optionLabel="name"
-                  class="col-9 ip36 p-0"
-                  display="chip"
-                >
-                  <template #option="slotProps">
-                    <div
-                      class="country-item flex"
-                      style="align-items: center; padding-left: 10px"
-                    >
-                      <Avatar
-                        v-bind:label="
-                          slotProps.option.avatar
-                            ? ''
-                            : (slotProps.option.name ?? '').substring(0, 1)
-                        "
-                        v-bind:image="basedomainURL + slotProps.option.avatar"
-                        style="
-                          background-color: #2196f3;
-                          color: #ffffff;
-                          width: 32px;
-                          height: 32px;
-                          font-size: 15px !important;
-                          margin-left: -10px;
-                        "
-                        :style="{
-                          background:
-                            bgColor[slotProps.index % 7] + '!important',
-                        }"
-                        class="cursor-pointer"
-                        size="xlarge"
-                        shape="circle"
-                      />
-                      <div
-                        class="pt-1"
-                        style="padding-left: 10px"
-                      >
-                        {{ slotProps.option.name }}
-                      </div>
-                    </div>
-                  </template>
-                </MultiSelect>
-              </div>
-              <div class="field col-12 md:col-12">
-                <label class="col-3 text-left p-0">Chọn trọng số</label>
-                <Dropdown
-                  :filter="true"
-                  v-model="Task.weight"
-                  panelClass="d-design-dropdown"
-                  selectionLimit="1"
-                  :options="listDropdownweight"
-                  optionLabel="weight_name"
-                  optionValue="weight_id"
-                  spellcheck="false"
-                  class="col-9 ip36 p-0"
-                >
-                  <template #option="slotProps">
-                    <div class="country-item flex">
-                      <div class="pt-1">{{ slotProps.option.weight_name }}</div>
-                    </div>
-                  </template>
-                </Dropdown>
-              </div>
-              <div
-                class="field col-12 md:col-12"
-                style="display: flex; align-items: center"
-              >
-                <label class="col-3 text-left p-0">Mô tả</label>
-                <Textarea
-                  style="margin-top: 5px; padding: 5px; min-height: 100px"
-                  v-model="Task.description"
-                  class="col-9 ip36"
-                  :autoResize="true"
-                  rows="5"
-                  cols="30"
-                />
-              </div>
-              <div
-                class="field col-12 md:col-12"
-                style="display: flex; align-items: center"
-              >
-                <label class="col-3 text-left p-0">Mục tiêu</label>
-                <Textarea
-                  style="margin-top: 5px; padding: 5px; min-height: 100px"
-                  v-model="Task.target"
-                  class="col-9 ip36"
-                  :autoResize="true"
-                  rows="5"
-                  cols="30"
-                />
-              </div>
-              <div
-                class="field col-12 md:col-12"
-                style="display: flex; align-items: center"
-              >
-                <label class="col-3 text-left p-0">Khó khăn vướng mắc</label>
-                <Textarea
-                  style="margin-top: 5px; padding: 5px; min-height: 100px"
-                  v-model="Task.difficult"
-                  class="col-9 ip36"
-                  :autoResize="true"
-                  rows="5"
-                  cols="30"
-                />
-              </div>
-              <div
-                class="field col-12 md:col-12"
-                style="display: flex; align-items: center"
-              >
-                <label class="col-3 text-left p-0">Đề xuất</label>
-                <Textarea
-                  style="margin-top: 5px; padding: 5px; min-height: 50px"
-                  v-model="Task.request"
-                  class="col-9 ip36"
-                  :autoResize="true"
-                  rows="5"
-                  cols="30"
-                />
-              </div>
-              <div
-                class="field col-12 md:col-12"
-                id="task_file"
-                style="display: flex"
-              >
-                <label class="col-3 text-left p-0">File</label>
-                <div class="col-9 p-0">
-                  <FileUpload
-                    chooseLabel="Chọn File"
-                    style="margin-top: 5px !important"
-                    :showUploadButton="false"
-                    :showCancelButton="false"
-                    :multiple="true"
-                    accept=""
-                    :maxFileSize="10000000"
-                    @select="onUploadFile"
-                    @remove="removeFile"
-                  />
-                  <div
-                    class="col-12 p-0"
-                    style="border: 1px solid #e1e1e1; margin-top: -1px"
-                    v-if="Task.files.length > 0 && !isAdd"
-                  >
-                    <DataView
-                      :lazy="true"
-                      :value="Task.files"
-                      :rowHover="true"
-                      :scrollable="true"
-                      class="w-full h-full ptable p-datatable-sm flex flex-column col-10 ip36 p-0"
-                      layout="list"
-                      responsiveLayout="scroll"
-                    >
-                      <template #list="slotProps">
-                        <Toolbar
-                          class="w-full"
-                          style="display: flex"
-                        >
-                          <template #start>
-                            <div class="flex align-items-center task-file-list">
-                              <img
-                                class="mr-2"
-                                :src="
-                                  basedomainURL +
-                                  '/Portals/Image/file/' +
-                                  slotProps.data.file_type +
-                                  '.png'
-                                "
-                                style="object-fit: contain"
-                                width="40"
-                                height="40"
-                              />
-                              <span
-                                style="line-height: 1.5; word-break: break-all"
-                              >
-                                {{ slotProps.data.file_name }}</span
-                              >
-                            </div>
-                          </template>
-                          <template #end>
-                            <Button
-                              icon="pi pi-times"
-                              class="p-button-rounded p-button-danger"
-                              @click="deleteFile(slotProps.data)"
-                            />
-                          </template>
-                        </Toolbar>
-                      </template>
-                    </DataView>
-                  </div>
-                </div>
-              </div>
-            </AccordionTab>
-          </Accordion>
-        </div>
-      </div>
-    </form>
-    <template #footer>
-      <Button
-        label="Hủy"
-        icon="pi pi-times"
-        @click="closeDialogTask"
-        class="p-button-text"
-      />
-
-      <Button
-        label="Lưu"
-        icon="pi pi-check"
-        @click="saveTask(!v$.$invalid)"
-      />
-    </template>
-  </Dialog>
-
-  <treeuser
-    v-if="displayDialogUser === true"
-    :headerDialog="headerDialogUser"
-    :displayDialog="displayDialogUser"
-    :one="is_one"
-    :selected="selectedUser"
-    :closeDialog="closeDialog"
-    :choiceUser="choiceTreeUser"
-  />
+  </DialogTask>
 </template>
 <style lang="scss" scoped>
 #toolbar_right .active {

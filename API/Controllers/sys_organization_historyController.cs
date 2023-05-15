@@ -77,14 +77,14 @@ namespace Controllers
                         fdOrganization_history = provider.FormData.GetValues("sys_organization_history").SingleOrDefault();
                         sys_organization_history Organization_history = JsonConvert.DeserializeObject<sys_organization_history>(fdOrganization_history);
 
-                        var intw = int.Parse(dvid);
-                        var checkBarcode = db.sys_organization_history.AsNoTracking().Where(a => a.decision_number == Organization_history.decision_number && a.organization_id == intw).FirstOrDefault();
+                        
+                        var checkBarcode = db.sys_organization_history.AsNoTracking().Where(a => a.decision_number == Organization_history.decision_number && a.organization_id == Organization_history.organization_id).FirstOrDefault();
                         if (checkBarcode != null)
                         {
                             return Request.CreateResponse(HttpStatusCode.OK, new { ms = "Số quyết định đã tồn tại! Vui lòng nhập lại.", err = "1" });
                         }
 
-                        Organization_history.organization_id = int.Parse(dvid);
+                      
                         Organization_history.created_by = uid;
                         Organization_history.created_date = DateTime.Now;
                         Organization_history.created_ip = ip;
@@ -152,7 +152,7 @@ namespace Controllers
                             hrm_File.status = true;
                             hrm_File.created_by = uid;
                             hrm_File.created_date = DateTime.Now;
-                            hrm_File.organization_id = int.Parse(dvid);
+                            hrm_File.organization_id = Organization_history.organization_id;
                             hrm_File.created_ip = ip;
                             hrm_File.created_token_id = tid;
                             db.hrm_file.Add(hrm_File);
@@ -239,7 +239,7 @@ namespace Controllers
 
 
 
-                        var intw = int.Parse(dvid);
+                
 
 
 
@@ -247,7 +247,7 @@ namespace Controllers
                         sys_organization_history Organization_history = JsonConvert.DeserializeObject<sys_organization_history>(fdOrganization_history);
 
                         var checkBarcode = db.sys_organization_history.AsNoTracking().Where(a => a.decision_number == Organization_history.decision_number && a.organization_history_id
-                  != Organization_history.organization_history_id && Organization_history.organization_id == intw).FirstOrDefault();
+                  != Organization_history.organization_history_id && Organization_history.organization_id == Organization_history.organization_id).FirstOrDefault();
                         if (checkBarcode != null)
                         {
                             return Request.CreateResponse(HttpStatusCode.OK, new { ms = "Số quyết định đã tồn tại! Vui lòng nhập lại", err = "1" });
@@ -349,7 +349,7 @@ namespace Controllers
                             hrm_File.status = true;
                             hrm_File.created_by = uid;
                             hrm_File.created_date = DateTime.Now;
-                            hrm_File.created_ip = ip; hrm_File.organization_id = int.Parse(dvid);
+                            hrm_File.created_ip = ip; hrm_File.organization_id = Organization_history.organization_id;
                             hrm_File.created_token_id = tid;
                             db.hrm_file.Add(hrm_File);
                             db.SaveChanges();

@@ -1254,6 +1254,9 @@ const initView1 = (rf) => {
             if (x["is_dependent"] != null && idx != -1) {
               x["dependent_name"] = dependents.value[idx]["title"];
             }
+            if (x["birthday"] != null) {
+              x["birthday"] = moment(new Date(x["birthday"])).format("YYYY");
+            }
           });
           datachilds.value[1] = tbs[1];
         } else {
@@ -2271,6 +2274,25 @@ const onPage = (event) => {
   options.value.pageNo = event.page + 1;
   initData();
 };
+const showExtraUser = ref(false);
+const showUserRelate = () => {
+  showExtraUser.value = !showExtraUser.value;
+};
+const formatViewNumber = (value, partDecimal) => {
+  if (partDecimal == null || partDecimal < 0) {
+    partDecimal = 0;
+  }
+  if (value != null) {
+    return value.toLocaleString('vi-VN', 
+      { 
+        style: "decimal", minimumFractionDigits: 0, maximumFractionDigits: partDecimal, 
+      }
+    );
+  }
+  else {
+    return "";
+  }
+}
 </script>
 <template>
   <div class="surface-100 p-2">
@@ -2359,7 +2381,7 @@ const onPage = (event) => {
       class="tabview"
       :style="{ borderTop: 'solid 1px rgba(0,0,0,.1) !important' }"
     >
-      <div class="tableview-nav-content">
+      <div class="tableview-nav-content" style="display:flex;">
         <ul class="tableview-nav nav">
           <li
             class="nav-item tableview-header"
@@ -2377,6 +2399,17 @@ const onPage = (event) => {
             </div>
           </li>
         </ul>
+        <Button class="p-button p-button-outlined p-button-text btn-extra-user"
+          :style="showExtraUser ? 'color: #316AB7 !important;' : ''"
+          @click="showUserRelate()"
+        >
+          <div class="mb-1">
+            <i class="pi pi-users" style="font-size:16px"></i>
+          </div>
+          <div>
+            <span> Xem thêm </span>
+          </div>
+        </Button>
       </div>
     </div>
     <div class="d-lang-table">
@@ -2554,7 +2587,7 @@ const onPage = (event) => {
                             <div class="row">
                               <div class="col-6 md:col-6">
                                 <div class="form-group m-0">
-                                  <label>
+                                  <label class="label-profileinfo">
                                     Mã nhân sự:
                                     <b
                                       class="m-0"
@@ -2566,7 +2599,7 @@ const onPage = (event) => {
                               </div>
                               <div class="col-6 md:col-6">
                                 <div class="form-group m-0">
-                                  <label
+                                  <label class="label-profileinfo"
                                     >Mã chấm công:
                                     <span class="description-2">{{
                                       profile.check_in_id
@@ -2576,7 +2609,7 @@ const onPage = (event) => {
                               </div>
                               <div class="col-6 md:col-6">
                                 <div class="form-group m-0">
-                                  <label
+                                  <label class="label-profileinfo"
                                     >Mã quản lý cấp trên:
                                     <span class="description-2">{{
                                       profile.superior_id
@@ -2586,7 +2619,7 @@ const onPage = (event) => {
                               </div>
                               <div class="col-6 md:col-6">
                                 <div class="form-group m-0">
-                                  <label
+                                  <label class="label-profileinfo"
                                     >Ngày tuyển dụng:
                                     <span class="description-2">{{
                                       profile.recruitment_date
@@ -2596,7 +2629,7 @@ const onPage = (event) => {
                               </div>
                               <div class="col-6 md:col-6">
                                 <div class="form-group m-0">
-                                  <label
+                                  <label class="label-profileinfo"
                                     >Họ và tên:
                                     <span class="description-2">{{
                                       profile.profile_user_name
@@ -2606,7 +2639,7 @@ const onPage = (event) => {
                               </div>
                               <div class="col-6 md:col-6">
                                 <div class="form-group m-0">
-                                  <label
+                                  <label class="label-profileinfo"
                                     >Tên gọi khác:
                                     <span class="description-2">{{
                                       profile.profile_nick_name
@@ -2616,7 +2649,7 @@ const onPage = (event) => {
                               </div>
                               <div class="col-6 md:col-6">
                                 <div class="form-group m-0">
-                                  <label
+                                  <label class="label-profileinfo"
                                     >Ngày sinh:
                                     <span class="description-2">{{
                                       profile.birthday
@@ -2626,7 +2659,7 @@ const onPage = (event) => {
                               </div>
                               <div class="col-6 md:col-6">
                                 <div class="form-group m-0">
-                                  <label
+                                  <label class="label-profileinfo"
                                     >Giới tính:
                                     <span class="description-2">{{
                                       profile.gender
@@ -2640,7 +2673,7 @@ const onPage = (event) => {
                       </div>
                       <div class="col-12 md:col-12">
                         <div class="form-group m-0">
-                          <label
+                          <label class="label-profileinfo"
                             >Nơi sinh:
                             <span class="description-2">{{
                               profile.select_birthplace
@@ -2650,7 +2683,7 @@ const onPage = (event) => {
                       </div>
                       <div class="col-12 md:col-12">
                         <div class="form-group m-0">
-                          <label
+                          <label class="label-profileinfo"
                             >Quê quán:
                             <span class="description-2">{{
                               profile.select_birthplace_origin
@@ -2660,7 +2693,7 @@ const onPage = (event) => {
                       </div>
                       <div class="col-12 md:col-12">
                         <div class="form-group m-0">
-                          <label
+                          <label class="label-profileinfo"
                             >Nơi đăng ký HKTT:
                             <span class="description-2">{{
                               profile.select_place_register_permanent
@@ -2672,7 +2705,7 @@ const onPage = (event) => {
                         <div class="row">
                           <div class="col-4 md:col-4">
                             <div class="form-group m-0">
-                              <label
+                              <label class="label-profileinfo"
                                 >Loại giấy tờ:
                                 <span class="description-2">{{
                                   profile.identity_papers_name
@@ -2682,7 +2715,7 @@ const onPage = (event) => {
                           </div>
                           <div class="col-4 md:col-4">
                             <div class="form-group m-0">
-                              <label
+                              <label class="label-profileinfo"
                                 >Số:
                                 <span class="description-2">{{
                                   profile.identity_papers_code
@@ -2692,7 +2725,7 @@ const onPage = (event) => {
                           </div>
                           <div class="col-4 md:col-4">
                             <div class="form-group m-0">
-                              <label
+                              <label class="label-profileinfo"
                                 >Ngày cấp:
                                 <span class="description-2">{{
                                   profile.identity_date_issue
@@ -2702,7 +2735,7 @@ const onPage = (event) => {
                           </div>
                           <div class="col-4 md:col-4">
                             <div class="form-group m-0">
-                              <label
+                              <label class="label-profileinfo"
                                 >Nơi cấp:
                                 <span class="description-2">{{
                                   profile.identity_papers_name
@@ -2712,7 +2745,7 @@ const onPage = (event) => {
                           </div>
                           <div class="col-4 md:col-4">
                             <div class="form-group m-0">
-                              <label
+                              <label class="label-profileinfo"
                                 >Quốc tịch:
                                 <span class="description-2">{{
                                   profile.nationality_name
@@ -2722,7 +2755,7 @@ const onPage = (event) => {
                           </div>
                           <div class="col-4 md:col-4">
                             <div class="form-group m-0">
-                              <label
+                              <label class="label-profileinfo"
                                 >Tình trạng hôn nhân:
                                 <span class="description-2">{{
                                   profile.marital_status
@@ -2732,7 +2765,7 @@ const onPage = (event) => {
                           </div>
                           <div class="col-4 md:col-4">
                             <div class="form-group m-0">
-                              <label
+                              <label class="label-profileinfo"
                                 >Dân tộc:
                                 <span class="description-2">{{
                                   profile.ethnic_name
@@ -2742,7 +2775,7 @@ const onPage = (event) => {
                           </div>
                           <div class="col-4 md:col-4">
                             <div class="form-group m-0">
-                              <label
+                              <label class="label-profileinfo"
                                 >Tôn giáo:
                                 <span class="description-2">{{
                                   profile.religion_name
@@ -2752,7 +2785,7 @@ const onPage = (event) => {
                           </div>
                           <div class="col-4 md:col-4">
                             <div class="form-group m-0">
-                              <label
+                              <label class="label-profileinfo"
                                 >Mã số thuế:
                                 <span class="description-2">{{
                                   profile.tax_code
@@ -2762,7 +2795,7 @@ const onPage = (event) => {
                           </div>
                           <div class="col-4 md:col-4">
                             <div class="form-group m-0">
-                              <label
+                              <label class="label-profileinfo"
                                 >Ngân hàng:
                                 <span class="description-2">{{
                                   profile.bank_name
@@ -2772,7 +2805,7 @@ const onPage = (event) => {
                           </div>
                           <div class="col-4 md:col-4">
                             <div class="form-group m-0">
-                              <label
+                              <label class="label-profileinfo"
                                 >Số tài khoản:
                                 <span class="description-2">{{
                                   profile.bank_number
@@ -2782,7 +2815,7 @@ const onPage = (event) => {
                           </div>
                           <div class="col-4 md:col-4">
                             <div class="form-group m-0">
-                              <label
+                              <label class="label-profileinfo"
                                 >Tên tài khoản:
                                 <span class="description-2">{{
                                   profile.bank_account
@@ -2805,7 +2838,7 @@ const onPage = (event) => {
                         <div class="row">
                           <div class="col-6 md:col-6">
                             <div class="form-group m-0">
-                              <label
+                              <label class="label-profileinfo"
                                 >Trình độ phổ thông:
                                 <span class="description-2">{{
                                   profile.cultural_level_name
@@ -2813,9 +2846,9 @@ const onPage = (event) => {
                               >
                             </div>
                           </div>
-                          <div class="col-6 md:col-6">
+                          <!-- <div class="col-6 md:col-6">
                             <div class="form-group m-0">
-                              <label
+                              <label class="label-profileinfo"
                                 >Trình độ học vấn cao nhất:
                                 <span class="description-2">{{
                                   profile.academic_level_name
@@ -2825,17 +2858,17 @@ const onPage = (event) => {
                           </div>
                           <div class="col-6 md:col-6">
                             <div class="form-group m-0">
-                              <label
+                              <label class="label-profileinfo"
                                 >Chuyên ngành học:
                                 <span class="description-2">{{
                                   profile.specialization_name
                                 }}</span></label
                               >
                             </div>
-                          </div>
+                          </div> -->
                           <div class="col-6 md:col-6">
                             <div class="form-group m-0">
-                              <label
+                              <label class="label-profileinfo"
                                 >Quản lý nhà nước:
                                 <span class="description-2">{{
                                   profile.management_state_name
@@ -2845,7 +2878,7 @@ const onPage = (event) => {
                           </div>
                           <div class="col-4 md:col-4">
                             <div class="form-group m-0">
-                              <label
+                              <label class="label-profileinfo"
                                 >Lý luận chính trị:
                                 <span class="description-2">{{
                                   profile.political_theory_name
@@ -2855,7 +2888,7 @@ const onPage = (event) => {
                           </div>
                           <div class="col-4 md:col-4">
                             <div class="form-group m-0">
-                              <label
+                              <label class="label-profileinfo"
                                 >Ngoại ngữ:
                                 <span class="description-2">{{
                                   profile.language_level_name
@@ -2865,7 +2898,7 @@ const onPage = (event) => {
                           </div>
                           <div class="col-4 md:col-4">
                             <div class="form-group m-0">
-                              <label
+                              <label class="label-profileinfo"
                                 >Tin học:
                                 <span class="description-2">{{
                                   profile.informatic_level_name
@@ -2888,7 +2921,7 @@ const onPage = (event) => {
                         <div class="row">
                           <div class="col-6 md:col-6">
                             <div class="form-group m-0">
-                              <label
+                              <label class="label-profileinfo"
                                 >Số điện thoại:
                                 <span class="description-2">{{
                                   profile.phone
@@ -2898,7 +2931,7 @@ const onPage = (event) => {
                           </div>
                           <div class="col-6 md:col-6">
                             <div class="form-group m-0">
-                              <label
+                              <label class="label-profileinfo"
                                 >Email:
                                 <span class="description-2">{{
                                   profile.email
@@ -2906,34 +2939,35 @@ const onPage = (event) => {
                               >
                             </div>
                           </div>
-                          <div class="col-12 md:col-12">
+                          <!-- <div class="col-12 md:col-12">
                             <div class="form-group m-0">
-                              <label
+                              <label class="label-profileinfo"
                                 >Thường trú:
                                 <span class="description-2">{{
                                   profile.place_permanent
                                 }}</span></label
                               >
                             </div>
-                          </div>
+                          </div> -->
                           <div class="col-12 md:col-12">
                             <div class="form-group m-0">
-                              <label
+                              <label class="label-profileinfo"
                                 >Chỗ ở hiện nay:
                                 <span class="description-2">{{
-                                  profile.place_residence
+                                  (profile.place_permanent || '') +
+                                  (profile.place_residence_name ? (", " + profile.place_residence_name) : '')                                  
                                 }}</span></label
                               >
                             </div>
                           </div>
                           <div class="col-12 md:col-12">
                             <div class="form-group m-0">
-                              <label class="m-0">Khi cần báo tin cho:</label>
+                              <label class="label-profileinfo m-0">Khi cần báo tin cho:</label>
                             </div>
                           </div>
                           <div class="col-6 md:col-6">
                             <div class="form-group m-0">
-                              <label
+                              <label class="label-profileinfo"
                                 >Họ và tên:
                                 <span class="description-2">{{
                                   profile.involved_name
@@ -2943,7 +2977,7 @@ const onPage = (event) => {
                           </div>
                           <div class="col-6 md:col-6">
                             <div class="form-group m-0">
-                              <label
+                              <label class="label-profileinfo"
                                 >Số điện thoại:
                                 <span class="description-2">{{
                                   profile.involved_phone
@@ -2953,7 +2987,7 @@ const onPage = (event) => {
                           </div>
                           <div class="col-12 md:col-12">
                             <div class="form-group m-0">
-                              <label
+                              <label class="label-profileinfo"
                                 >Địa chỉ:
                                 <span class="description-2">{{
                                   profile.involved_place
@@ -2987,7 +3021,7 @@ const onPage = (event) => {
                           :showGridlines="true"
                           scrollDirection="both"
                           style="display: grid"
-                          class="empty-full"
+                          class="empty-full tbl-detail-profile"
                         >
                           <Column
                             field="is_root"
@@ -3007,6 +3041,17 @@ const onPage = (event) => {
                                 v-tooltip.right="'Bổ sung'"
                                 ><i class="pi pi-pencil"></i
                               ></span>
+                            </template>
+                          </Column>
+                          <Column
+                            field="is_type"
+                            header="Gia đình"
+                            headerStyle="text-align:center;width:90px;height:50px"
+                            bodyStyle="text-align:center;width:90px;"
+                            class="align-items-center justify-content-center text-center"
+                          >
+                            <template #body="slotProps">
+                              <span>{{ slotProps.data.is_type == 1 ? 'Bản thân' : slotProps.data.is_type == 2 ? 'Bên vợ' : '' }}</span>
                             </template>
                           </Column>
                           <Column
@@ -3036,7 +3081,7 @@ const onPage = (event) => {
                             </template>
                           </Column>
                           <Column
-                            field="identification_date_issue"
+                            field="birthday"
                             header="Năm sinh"
                             headerStyle="text-align:center;width:120px;height:50px"
                             bodyStyle="text-align:center;width:120px;"
@@ -3044,7 +3089,7 @@ const onPage = (event) => {
                           >
                             <template #body="slotProps">
                               <span>{{
-                                slotProps.data.identification_date_issue
+                                slotProps.data.birthday
                               }}</span>
                             </template>
                           </Column>
@@ -3162,6 +3207,40 @@ const onPage = (event) => {
                               <span>{{ slotProps.data.note }}</span>
                             </template>
                           </Column>
+                          <Column
+                            field="is_company"
+                            header="Cùng cơ quan"
+                            headerStyle="text-align:center;width:120px;height:50px"
+                            bodyStyle="text-align:center;width:120px;"
+                            class="align-items-center justify-content-center text-center"
+                          >
+                            <template #body="slotProps">
+                              <div class="form-group m-0">
+                                <div class="flex justify-content-center"
+                                  style="height: 100%"
+                                >
+                                  <InputSwitch v-model="slotProps.data.is_company" :disabled="true" />
+                                </div>
+                              </div>
+                            </template>
+                          </Column>
+                          <Column
+                            field="is_die"
+                            header="Đã mất"
+                            headerStyle="text-align:center;width:90px;height:50px"
+                            bodyStyle="text-align:center;width:90px;"
+                            class="align-items-center justify-content-center text-center"
+                          >
+                            <template #body="slotProps">
+                              <div class="form-group m-0">
+                                <div class="flex justify-content-center"
+                                  style="height: 100%"
+                                >
+                                  <InputSwitch v-model="slotProps.data.is_die" :disabled="true" />
+                                </div>
+                              </div>
+                            </template>
+                          </Column>
                           <template #empty>
                             <div
                               class="align-items-center justify-content-center p-4 text-center m-auto"
@@ -3197,12 +3276,29 @@ const onPage = (event) => {
                             :showGridlines="true"
                             scrollDirection="both"
                             style="display: grid"
-                            class="empty-full"
+                            class="empty-full tbl-detail-profile"
                           >
+                            <Column
+                              field="is_man_degree"
+                              header="Bằng cấp chính"
+                              headerStyle="text-align:center;width:120px;height:50px;padding:1rem 0.5rem;"
+                              bodyStyle="text-align:center;width:120px;"
+                              class="align-items-center justify-content-center text-center"
+                            >
+                              <template #body="slotProps">
+                                <div class="form-group m-0">
+                                  <div class="flex justify-content-center"
+                                    style="height: 100%"
+                                  >
+                                    <InputSwitch v-model="slotProps.data.is_man_degree" :disabled="true" />
+                                  </div>
+                                </div>
+                              </template>
+                            </Column>
                             <Column
                               field="university_name"
                               header="Tên trường"
-                              headerStyle="text-align:center;width:180px;height:50px"
+                              headerStyle="text-align:center;width:180px;height:50px;"
                               bodyStyle="text-align:center;width:180px;"
                               class="align-items-center justify-content-center text-center"
                             >
@@ -3360,9 +3456,17 @@ const onPage = (event) => {
                           >
                         </Toolbar>
                       </template>
-                      <div class="col-12 md:col-12 p-0">
-                        <div>
-                          <DataTable
+                      <div class="col-12 md:col-12 p-3">
+                        <div class="form-group px-1">
+                          <div class="flex ml-3"
+                            style="height: 100%;align-items:center;"
+                          >
+                            <InputSwitch v-model="profile.is_partisan" :disabled="true" />
+                            <label class="label-profileinfo ml-2" for="binary">Là Đảng viên</label>
+                          </div>
+                        </div>
+                        <div class="row px-2" v-if="profile.is_partisan">
+                          <!-- <DataTable
                             :value="datachilds[3]"
                             :scrollable="true"
                             :lazy="true"
@@ -3446,7 +3550,119 @@ const onPage = (event) => {
                                 style="display: flex; width: 100%"
                               ></div>
                             </template>
-                          </DataTable>
+                          </DataTable> -->
+                          <div class="col-12 md:col-12">
+                            <div class="form-group m-0">
+                              <label class="label-profileinfo"><b>Thông tin Đảng</b></label>
+                            </div>
+                          </div>
+                          <div class="col-6 md:col-6">
+                            <div class="form-group m-0">
+                              <label class="label-profileinfo">Ngạch công chức (viên chức): 
+                                <span class="description-2">
+                                  {{ profile.civil_servant_rank_name }}
+                                </span>
+                              </label>
+                            </div>
+                          </div>
+                          <div class="col-6 md:col-6 format-center">
+                          </div>
+                          <div class="col-4 md:col-4">
+                            <div class="form-group m-0">
+                              <label class="label-profileinfo">Số thẻ Đảng: 
+                                <span class="description-2">
+                                  {{ profile.card_partisan || '' }}
+                                </span>
+                              </label>
+                            </div>
+                          </div>
+                          <div class="col-4 md:col-4">
+                            <div class="form-group m-0">
+                              <label class="label-profileinfo">Ngày vào Đảng: 
+                                <span class="description-2">
+                                  {{ profile.partisan_date ? moment(new Date(profile.partisan_date)).format('DD/MM/yyyy') : '' }}
+                                </span>
+                              </label>
+                            </div>
+                          </div>
+                          <div class="col-4 md:col-4">
+                            <div class="form-group m-0">
+                              <label class="label-profileinfo">Ngày vào Đảng chính thức: 
+                                <span class="description-2">
+                                  {{ profile.partisan_main_date ? moment(new Date(profile.partisan_main_date)).format('DD/MM/yyyy') : '' }}
+                                </span>
+                              </label>
+                            </div>
+                          </div>
+                          <div class="col-6 md:col-6">
+                            <div class="form-group m-0">
+                              <label class="label-profileinfo">Chị bộ sinh hoạt Đảng: 
+                                <span class="description-2">
+                                  {{ profile.partisan_branch || '' }}
+                                </span>
+                              </label>
+                            </div>
+                          </div>
+                          <div class="col-6 md:col-6">
+                            <div class="form-group m-0">
+                              <label class="label-profileinfo">Đảng bộ chính thức: 
+                                <span class="description-2">
+                                  {{ profile.partisan_official || '' }}
+                                </span>
+                              </label>
+                            </div>
+                          </div>
+                          <div class="col-6 md:col-6">
+                            <div class="form-group m-0">
+                              <label class="label-profileinfo">Ngày tham gia cách mạng: 
+                                <span class="description-2">
+                                  {{ profile.partisan_joindate ? moment(new Date(profile.partisan_joindate)).format('DD/MM/yyyy') : '' }}
+                                </span>
+                              </label>
+                            </div>
+                          </div>
+                          <div class="col-6 md:col-6">
+                            <div class="form-group m-0">
+                              <label class="label-profileinfo">Ngày tham gia tổ chức: 
+                                <span class="description-2">
+                                  {{ profile.organization_joindate ? moment(new Date(profile.organization_joindate)).format('DD/MM/yyyy') : '' }}
+                                </span>
+                              </label>
+                            </div>
+                          </div>
+                          <div class="col-12 md:col-12">
+                            <div class="form-group m-0">
+                              <label class="label-profileinfo">Công việc trong tổ chức: 
+                                <span class="description-2">
+                                  {{ profile.organization_task || '' }}
+                                </span>
+                              </label>
+                            </div>
+                          </div>
+                          <div class="col-6 md:col-6">
+                            <div class="flex" style="flex-direction:column;">
+                              <label class="label-profileinfo">Danh hiệu: </label>
+                              <Textarea class="w-full"
+                                :autoResize="true"
+                                rows="1"
+                                v-model="profile.appellation"
+                                :disabled="true"
+                                style="border:none;color:#606060 !important;line-height: 1.5;opacity:1;"
+                              />
+                            </div>
+                          </div>
+                          <div class="col-6 md:col-6">
+                            <div class="flex" style="flex-direction:column;">
+                              <label class="label-profileinfo">Huy hiệu: </label>
+                              <Textarea class="w-full"
+                                :autoResize="true"
+                                rows="1"
+                                v-model="profile.armorial"
+                                :disabled="true"
+                                style="border:none;color:#606060 !important;line-height: 1.5;opacity:1;"
+                              />
+                            </div>
+                          </div>
                         </div>
                       </div>
                     </AccordionTab>
@@ -3462,27 +3678,28 @@ const onPage = (event) => {
                         <div class="row">
                           <div class="col-6 md:col-6">
                             <div class="form-group m-0">
-                              <label
+                              <label class="label-profileinfo"
                                 >Ngày nhập ngũ:
-                                <span class="description-2">{{
-                                  profile.military_start_date
-                                }}</span></label
+                                <span class="description-2">
+                                  {{ profile.military_start_date ? moment(new Date(profile.military_start_date)).format('DD/MM/yyyy') : '' }}
+                                </span>
+                              </label
                               >
                             </div>
                           </div>
                           <div class="col-6 md:col-6">
                             <div class="form-group m-0">
-                              <label
+                              <label class="label-profileinfo"
                                 >Ngày xuất ngũ:
-                                <span class="description-2">{{
-                                  profile.military_end_date
-                                }}</span></label
+                                <span class="description-2">
+                                  {{ profile.military_end_date ? moment(new Date(profile.military_end_date)).format('DD/MM/yyyy') : ''}}
+                                </span></label
                               >
                             </div>
                           </div>
                           <div class="col-6 md:col-6">
                             <div class="form-group m-0">
-                              <label
+                              <label class="label-profileinfo"
                                 >Quân hàm cao nhất:
                                 <span class="description-2">{{
                                   profile.military_rank
@@ -3492,7 +3709,7 @@ const onPage = (event) => {
                           </div>
                           <div class="col-6 md:col-6">
                             <div class="form-group m-0">
-                              <label
+                              <label class="label-profileinfo"
                                 >Danh hiệu cao nhất:
                                 <span class="description-2">{{
                                   profile.military_title
@@ -3500,9 +3717,9 @@ const onPage = (event) => {
                               >
                             </div>
                           </div>
-                          <div class="col-6 md:col-6">
+                          <!-- <div class="col-6 md:col-6">
                             <div class="form-group m-0">
-                              <label
+                              <label class="label-profileinfo"
                                 >Sở trường công tác:
                                 <span class="description-2">{{
                                   profile.military_forte
@@ -3512,37 +3729,17 @@ const onPage = (event) => {
                           </div>
                           <div class="col-6 md:col-6">
                             <div class="form-group m-0">
-                              <label
+                              <label class="label-profileinfo"
                                 >Sức khỏe:
                                 <span class="description-2">{{
                                   profile.military_health
                                 }}</span></label
                               >
                             </div>
-                          </div>
-                          <div class="col-6 md:col-6">
-                            <div class="form-group m-0">
-                              <label
-                                >Khen thưởng:
-                                <span class="description-2">{{
-                                  profile.military_reward
-                                }}</span></label
-                              >
-                            </div>
-                          </div>
-                          <div class="col-6 md:col-6">
-                            <div class="form-group m-0">
-                              <label
-                                >Kỷ luật:
-                                <span class="description-2">{{
-                                  profile.military_discipline
-                                }}</span></label
-                              >
-                            </div>
-                          </div>
+                          </div> -->
                           <div class="col-6 md:col-6 m-0">
                             <div class="form-group m-0">
-                              <label
+                              <label class="label-profileinfo"
                                 >Thương binh hạng:
                                 <span class="description-2">{{
                                   profile.military_veterans_rank
@@ -3552,7 +3749,7 @@ const onPage = (event) => {
                           </div>
                           <div class="col-6 md:col-6 m-0">
                             <div class="form-group m-0">
-                              <label
+                              <label class="label-profileinfo"
                                 >Con gia đình chính sách:
                                 <span class="description-2">{{
                                   profile.military_policy_family
@@ -3589,8 +3786,8 @@ const onPage = (event) => {
                             <Column
                               field="start_date"
                               header="Từ tháng, năm"
-                              headerStyle="text-align:center;width:120px;height:50px"
-                              bodyStyle="text-align:center;width:120px;"
+                              headerStyle="text-align:center;width:130px;height:50px"
+                              bodyStyle="text-align:center;width:130px;"
                               class="align-items-center justify-content-center text-center"
                             >
                               <template #body="slotProps">
@@ -3600,8 +3797,8 @@ const onPage = (event) => {
                             <Column
                               field="end_date"
                               header="Đến tháng, năm"
-                              headerStyle="text-align:center;width:120px;height:50px"
-                              bodyStyle="text-align:center;width:120px;"
+                              headerStyle="text-align:center;width:130px;height:50px"
+                              bodyStyle="text-align:center;width:130px;"
                               class="align-items-center justify-content-center text-center"
                             >
                               <template #body="slotProps">
@@ -3611,8 +3808,8 @@ const onPage = (event) => {
                             <Column
                               field="company"
                               header="Công ty, đơn vị"
-                              headerStyle="text-align:center;width:180px;height:50px"
-                              bodyStyle="text-align:center;width:180px;"
+                              headerStyle="text-align:center;width:300px;height:50px;"
+                              bodyStyle="text-align:center;width:300px;"
                               class="align-items-center justify-content-center text-center"
                             >
                               <template #body="slotProps">
@@ -3622,8 +3819,8 @@ const onPage = (event) => {
                             <Column
                               field="role"
                               header="Vị trí"
-                              headerStyle="text-align:center;width:150px;height:50px"
-                              bodyStyle="text-align:center;width:150px;"
+                              headerStyle="text-align:center;width:250px;height:50px"
+                              bodyStyle="text-align:center;width:250px;"
                               class="align-items-center justify-content-center text-center"
                             >
                               <template #body="slotProps">
@@ -3633,8 +3830,8 @@ const onPage = (event) => {
                             <Column
                               field="reference_name"
                               header="Người tham chiếu"
-                              headerStyle="text-align:center;width:150px;height:50px"
-                              bodyStyle="text-align:center;width:150px;"
+                              headerStyle="text-align:center;width:200px;height:50px"
+                              bodyStyle="text-align:center;width:200px;"
                               class="align-items-center justify-content-center text-center"
                             >
                               <template #body="slotProps">
@@ -3644,8 +3841,8 @@ const onPage = (event) => {
                             <Column
                               field="reference_phone"
                               header="SĐT"
-                              headerStyle="text-align:center;width:120px;height:50px"
-                              bodyStyle="text-align:center;width:120px;"
+                              headerStyle="text-align:center;width:130px;height:50px"
+                              bodyStyle="text-align:center;width:130px;"
                               class="align-items-center justify-content-center text-center"
                             >
                               <template #body="slotProps">
@@ -3657,13 +3854,13 @@ const onPage = (event) => {
                             <Column
                               field="description-2"
                               header="Mô tả công việc"
-                              headerStyle="text-align:center;width:200px;height:50px"
-                              bodyStyle="text-align:center;width:200px;"
+                              headerStyle="text-align:center;width:250px;height:50px;flex:1;"
+                              bodyStyle="text-align:center;width:250px;flex:1;"
                               class="align-items-center justify-content-center text-center"
                             >
                               <template #body="slotProps">
                                 <span>{{
-                                  slotProps.data.description - 2
+                                  slotProps.data.description || ''
                                 }}</span>
                               </template>
                             </Column>
@@ -3686,43 +3883,236 @@ const onPage = (event) => {
                         <span>9. Đặc điểm lịch sử bản thân</span>
                       </template>
                       <div class="col-12 md:col-12">
-                        <div class="form-group m-0">
-                          <label
-                            >Thông tin 1:
-                            <span class="description-2">{{
-                              profile.biography_first
-                            }}</span></label
-                          >
-                        </div>
-                      </div>
-                      <div class="col-12 md:col-12">
-                        <div class="form-group m-0">
-                          <label
-                            >Thông tin 2:
-                            <span class="description-2">{{
-                              profile.biography_second
-                            }}</span></label
-                          >
-                        </div>
-                      </div>
-                      <div class="col-12 md:col-12">
-                        <div class="form-group m-0">
-                          <label
-                            >Thông tin 3:
-                            <span class="description-2">{{
-                              profile.biography_third
-                            }}</span></label
-                          >
+                        <div class="row">
+                          <div class="col-6 md:col-6">
+                            <div class="form-group m-0">
+                              <label class="label-profileinfo">Thành phần gia đình xuất thân:
+                                <span class="description-2">{{
+                                  profile.family_member
+                                }}</span></label
+                              >
+                            </div>
+                          </div>
+                          <div class="col-6 md:col-6">
+                            <div class="form-group m-0">
+                              <label class="label-profileinfo">Nghề nghiệp bản thân trước khi được tuyển dụng:
+                                <span class="description-2">{{
+                                  profile.job_before_recruitment
+                                }}</span></label
+                              >
+                            </div>
+                          </div>
+                          <div class="col-6 md:col-6">
+                            <div class="form-group m-0">
+                              <label class="label-profileinfo">Công việc đã làm lâu nhất:
+                                <span class="description-2">{{
+                                  profile.task_longest
+                                }}</span></label
+                              >
+                            </div>
+                          </div>
+                          <div class="col-6 md:col-6">
+                            <div class="form-group m-0">
+                              <label class="label-profileinfo">Sở trường công tác:
+                                <span class="description-2">{{
+                                  profile.mission_forte
+                                }}</span></label
+                              >
+                            </div>
+                          </div>                          
+                          <div class="col-6 md:col-6">
+                            <div class="form-group m-0">
+                              <label class="label-profileinfo mb-0">Khen thưởng: </label>                              
+                              <Textarea class="w-full"
+                                :autoResize="true"
+                                rows="1"
+                                v-model="profile.military_reward"
+                                :disabled="true"
+                                style="border:none;color:#606060 !important;line-height: 1.5;opacity:1;"
+                              />
+                            </div>
+                          </div>
+                          <div class="col-6 md:col-6">
+                            <div class="form-group m-0">
+                              <label class="label-profileinfo mb-0">Kỷ luật: </label>                             
+                              <Textarea class="w-full"
+                                :autoResize="true"
+                                rows="1"
+                                v-model="profile.military_discipline"
+                                :disabled="true"
+                                style="border:none;color:#606060 !important;line-height: 1.5;opacity:1;"
+                              />
+                            </div>
+                          </div>
+                          <div class="col-12 md:col-12">
+                            <div class="form-group m-0">
+                              <label class="label-profileinfo">Bị bắt, bị tù, bản thân có làm việc trong chế độ cũ: 
+                                <span class="description-2">{{
+                                  profile.biography_first
+                                }}</span></label
+                              >
+                            </div>
+                          </div>
+                          <div class="col-12 md:col-12">
+                            <div class="form-group m-0">
+                              <label class="label-profileinfo">Tham gia hoặc có quan hệ với các tổ chức chính trị, kinh tế, xã hội nào ở nước ngoài:
+                                <span class="description-2">{{
+                                  profile.biography_second
+                                }}</span></label
+                              >
+                            </div>
+                          </div>
+                          <div class="col-12 md:col-12">
+                            <div class="form-group m-0">
+                              <label class="label-profileinfo">Có thân nhân ở nước ngoài (làm gì, địa chỉ):
+                                <span class="description-2">{{
+                                  profile.biography_third
+                                }}</span></label
+                              >
+                            </div>
+                          </div>
+                          <div class="col-12 md:col-12">
+                            <div class="form-group m-0">
+                              <label class="label-profileinfo">Nhật xét, đánh giá của cơ quan, đơn vị quản lý và sử dụng cán bộ, công chức:
+                                <span class="description-2">{{
+                                  profile.note
+                                }}</span></label
+                              >
+                            </div>
+                          </div>
                         </div>
                       </div>
                     </AccordionTab>
                   </Accordion>
-                  <!-- 10.	Đính kèm khác (file số hóa liên quan) -->
+                  <!-- 10. Nguồn thu nhập chính của gia đình -->
                   <Accordion class="w-full mb-2" :activeIndex="0">
                     <AccordionTab>
                       <template #header>
                         <!-- <i class="pi pi-chart-line mr-2"></i> -->
-                        <span> 10. Đính kèm khác (file số hóa liên quan)</span>
+                        <span> 10. Nguồn thu nhập chính của gia đình</span>
+                      </template>
+                      <div class="col-12 md:col-12">
+                        <div class="row">
+                          <div class="col-6 md:col-6">
+                            <div class="form-group m-0">
+                              <label class="label-profileinfo"
+                                >Lương gia đình:
+                                <span class="description-2">{{
+                                  formatViewNumber(profile.salary_family, 0)
+                                }}</span></label
+                              >
+                            </div>
+                          </div>
+                          <div class="col-6 md:col-6">
+                            <div class="form-group m-0">
+                              <label class="label-profileinfo"
+                                >Nguồn khác:
+                                <span class="description-2">{{
+                                  formatViewNumber(profile.salary_orther, 0)
+                                }}</span></label
+                              >
+                            </div>
+                          </div>
+                          <div class="col-6 md:col-6">
+                            <div class="form-group m-0">
+                              <label class="label-profileinfo"
+                                >Được cấp, được thuê, loại nhà:
+                                <span class="description-2">{{
+                                  profile.type_rent
+                                }}</span></label
+                              >
+                            </div>
+                          </div>
+                          <div class="col-6 md:col-6">
+                            <div class="form-group m-0">
+                              <label class="label-profileinfo"
+                                >Diện tích nhà sử dụng:
+                                <span class="description-2">{{
+                                  formatViewNumber(profile.area_level, 0)
+                                }}</span></label
+                              >
+                            </div>
+                          </div>
+                          <div class="col-6 md:col-6">
+                            <div class="form-group m-0">
+                              <label class="label-profileinfo"
+                                >Nhà tự mua, loại nhà:
+                                <span class="description-2">{{
+                                  profile.type_house
+                                }}</span></label
+                              >
+                            </div>
+                          </div>
+                          <div class="col-6 md:col-6">
+                            <div class="form-group m-0">
+                              <label class="label-profileinfo"
+                                >Diện tích nhà mua:
+                                <span class="description-2">{{
+                                  formatViewNumber(profile.area_buy, 0)
+                                }}</span></label
+                              >
+                            </div>
+                          </div>
+                          <div class="col-6 md:col-6">
+                            <div class="form-group m-0">
+                              <label class="label-profileinfo"
+                                >Diện tích đất được cấp:
+                                <span class="description-2">{{
+                                  formatViewNumber(profile.area_granted, 0)
+                                }}</span></label
+                              >
+                            </div>
+                          </div>
+                          <div class="col-6 md:col-6">
+                            <div class="form-group m-0">
+                              <label class="label-profileinfo"
+                                >Diện tích đất tự mua:
+                                <span class="description-2">{{
+                                  formatViewNumber(profile.area_buy_yourself, 0)
+                                }}</span></label
+                              >
+                            </div>
+                          </div>
+                          <div class="col-4 md:col-4">
+                            <div class="form-group m-0">
+                              <label class="label-profileinfo"
+                                >Tổng diện tích:
+                                <span class="description-2">{{
+                                  formatViewNumber(profile.area_manufacture, 0)
+                                }}</span></label
+                              >
+                            </div>
+                          </div>
+                          <div class="col-4 md:col-4">
+                            <div class="form-group m-0">
+                              <label class="label-profileinfo"
+                                >Địa điểm ký:
+                                <span class="description-2">{{
+                                  profile.sign_address
+                                }}</span></label
+                              >
+                            </div>
+                          </div>
+                          <div class="col-4 md:col-4">
+                            <div class="form-group m-0">
+                              <label class="label-profileinfo"
+                                >Ngày ký:
+                                <span class="description-2">
+                                  {{ profile.sign_date ? moment(new Date(profile.sign_date)).format(' DD/MM/yyyy') : '' }}
+                                </span>
+                              </label>
+                            </div>
+                          </div>
+                        </div>
+                      </div>
+                    </AccordionTab>
+                  </Accordion>
+                  <!-- 11.	Đính kèm khác (file số hóa liên quan) -->
+                  <Accordion class="w-full mb-2" :activeIndex="0">
+                    <AccordionTab>
+                      <template #header>
+                        <!-- <i class="pi pi-chart-line mr-2"></i> -->
+                        <span> 11. Đính kèm khác (file số hóa liên quan)</span>
                       </template>
                       <div class="col-12 md:col-12">
                         <div class="form-group m-0">
@@ -3775,16 +4165,16 @@ const onPage = (event) => {
                     </AccordionTab>
                   </Accordion>
                 </div>
-                <div class="col-12 md:col-12 p-0 mt-2">
+                <!-- <div class="col-12 md:col-12 p-0 mt-2">
                   <div class="form-group">
-                    <label
+                    <label class="label-profileinfo"
                       >Ghi chú:
                       <span class="description-2">{{
                         profile.note
                       }}</span></label
                     >
                   </div>
-                </div>
+                </div> -->
               </div>
             </div>
             <div v-if="options.view === 2" class="f-full">
@@ -3972,7 +4362,7 @@ const onPage = (event) => {
                         <span>1. Thông tin chung</span>
                       </template>
                       <div class="col-12 md:col-12">
-                        <label
+                        <label class="label-profileinfo"
                           >Số sổ bảo hiểm:
                           <span class="description-2">{{
                             insurance.insurance_id
@@ -3980,7 +4370,7 @@ const onPage = (event) => {
                         >
                       </div>
                       <div class="col-12 md:col-12">
-                        <label
+                        <label class="label-profileinfo"
                           >Trạng thái:
                           <span class="description-2">{{
                             insurance.status_name
@@ -3988,7 +4378,7 @@ const onPage = (event) => {
                         >
                       </div>
                       <div class="col-12 md:col-12">
-                        <label
+                        <label class="label-profileinfo"
                           >Pháp nhân đóng:
                           <span class="description-2">{{
                             insurance.organization_name
@@ -3996,7 +4386,7 @@ const onPage = (event) => {
                         >
                       </div>
                       <div class="col-12 md:col-12">
-                        <label
+                        <label class="label-profileinfo"
                           >Số thẻ BHYT:
                           <span class="description-2">{{
                             insurance.insurance_code
@@ -4004,7 +4394,7 @@ const onPage = (event) => {
                         >
                       </div>
                       <div class="col-12 md:col-12">
-                        <label
+                        <label class="label-profileinfo"
                           >Mã tỉnh cấp:
                           <span class="description-2">{{
                             insurance.insurance_province_name
@@ -4012,7 +4402,7 @@ const onPage = (event) => {
                         >
                       </div>
                       <div class="col-12 md:col-12">
-                        <label
+                        <label class="label-profileinfo"
                           >Nơi đăng ký:
                           <span class="description-2">{{
                             insurance.hospital_name
@@ -4476,7 +4866,7 @@ const onPage = (event) => {
                             <div class="row">
                               <div class="col-12 md:col-12 p-0">
                                 <div class="form-group">
-                                  <label>Loại file</label>
+                                  <label class="label-profileinfo">Loại file</label>
                                   <MultiSelect
                                     :options="type_files"
                                     :filter="true"
@@ -4534,7 +4924,7 @@ const onPage = (event) => {
                               </div>
                               <div class="col-12 md:col-12 p-0">
                                 <div class="form-group">
-                                  <label>Vị trí file</label>
+                                  <label class="label-profileinfo">Vị trí file</label>
                                   <MultiSelect
                                     :options="is_type_files"
                                     :filter="true"
@@ -4792,8 +5182,8 @@ const onPage = (event) => {
                       </template>
                       <div class="row">
                         <div class="col-6 md:col-6">
-                          <div class="form-group">
-                            <label
+                          <div class="form-group m-0">
+                            <label class="label-profileinfo"
                               >Chiều cao:
                               <span class="description-2">{{
                                 health.height
@@ -4802,8 +5192,8 @@ const onPage = (event) => {
                           </div>
                         </div>
                         <div class="col-6 md:col-6">
-                          <div class="form-group">
-                            <label
+                          <div class="form-group m-0">
+                            <label class="label-profileinfo"
                               >Cân nặng:
                               <span class="description-2">{{
                                 health.weight
@@ -4812,8 +5202,8 @@ const onPage = (event) => {
                           </div>
                         </div>
                         <div class="col-6 md:col-6">
-                          <div class="form-group">
-                            <label
+                          <div class="form-group m-0">
+                            <label class="label-profileinfo"
                               >Nhóm máu:
                               <span class="description-2">{{
                                 health.blood_group
@@ -4822,8 +5212,8 @@ const onPage = (event) => {
                           </div>
                         </div>
                         <div class="col-6 md:col-6">
-                          <div class="form-group">
-                            <label
+                          <div class="form-group m-0">
+                            <label class="label-profileinfo"
                               >Huyết áp:
                               <span class="description-2">{{
                                 health.blood_pressure
@@ -4832,8 +5222,8 @@ const onPage = (event) => {
                           </div>
                         </div>
                         <div class="col-6 md:col-6">
-                          <div class="form-group">
-                            <label
+                          <div class="form-group m-0">
+                            <label class="label-profileinfo"
                               >Nhịp tim:
                               <span class="description-2">{{
                                 health.heartbeat
@@ -4841,14 +5231,26 @@ const onPage = (event) => {
                             >
                           </div>
                         </div>
-                        <div class="col-12 md:col-12">
-                          <div class="form-group">
-                            <label
-                              >Ghi chú:
+                        <div class="col-6 md:col-6">
+                          <div class="form-group m-0">
+                            <label class="label-profileinfo"
+                              >Tình trạng sức khỏe:
                               <span class="description-2">{{
-                                health.note
+                                health.military_health
                               }}</span></label
                             >
+                          </div>
+                        </div>
+                        <div class="col-12 md:col-12">
+                          <div class="flex" style="flex-direction:column;">
+                            <label class="label-profileinfo">Ghi chú: </label>
+                            <Textarea class="w-full"
+                              :autoResize="true"
+                              rows="1"
+                              v-model="health.note"
+                              :disabled="true"
+                              style="border:none;color:#606060 !important;line-height: 1.5;opacity:1;"
+                            />
                           </div>
                         </div>
                       </div>
@@ -4895,8 +5297,8 @@ const onPage = (event) => {
                           <Column
                             field="type_vaccine"
                             header="Loại vắc xin"
-                            headerStyle="text-align:center;width:250px;height:50px"
-                            bodyStyle="text-align:center;width:250px;"
+                            headerStyle="text-align:center;width:250px;height:50px;flex:1;"
+                            bodyStyle="text-align:center;width:250px;flex:1;"
                             class="align-items-center justify-content-center text-center"
                           >
                             <template #body="slotProps">
@@ -4919,8 +5321,8 @@ const onPage = (event) => {
                           <Column
                             field="vaccination_facility"
                             header="Cơ sở tiêm chủng"
-                            headerStyle="text-align:center;width:250px;height:50px"
-                            bodyStyle="text-align:center;width:250px;"
+                            headerStyle="text-align:center;width:250px;height:50px;flex:1;"
+                            bodyStyle="text-align:center;width:250px;flex:1;"
                             class="align-items-center justify-content-center text-center"
                           >
                             <template #body="slotProps">
@@ -4932,8 +5334,8 @@ const onPage = (event) => {
                           <Column
                             field="sign_user"
                             header="Người ký"
-                            headerStyle="text-align:center;width:200px;height:50px"
-                            bodyStyle="text-align:center;width:200px;"
+                            headerStyle="text-align:center;width:250px;height:50px"
+                            bodyStyle="text-align:center;width:250px;"
                             class="align-items-center justify-content-center text-center"
                           >
                             <template #body="slotProps">
@@ -4943,8 +5345,8 @@ const onPage = (event) => {
                           <Column
                             field="sign_user_position"
                             header="Chức vụ"
-                            headerStyle="text-align:center;width:200px;height:50px"
-                            bodyStyle="text-align:center;width:200px;"
+                            headerStyle="text-align:center;width:250px;height:50px"
+                            bodyStyle="text-align:center;width:250px;"
                             class="align-items-center justify-content-center text-center"
                           >
                             <template #body="slotProps">
@@ -4991,6 +5393,7 @@ const onPage = (event) => {
           </div>
         </div>
         <div
+          v-if="showExtraUser == true"
           :style="{
             width: '400px !important',
             borderLeft: 'solid 1px rgba(0, 0, 0, 0.1)',
@@ -5002,7 +5405,6 @@ const onPage = (event) => {
             <div class="col-12 md:col-12 p-0">
               <Accordion
                 class="w-full border-none padding-0 mb-2"
-                :activeIndex="0"
               >
                 <AccordionTab>
                   <template #header>
@@ -5092,7 +5494,6 @@ const onPage = (event) => {
               </Accordion>
               <Accordion
                 class="w-full border-none padding-0 mb-2"
-                :activeIndex="0"
               >
                 <AccordionTab>
                   <template #header>
@@ -5182,7 +5583,6 @@ const onPage = (event) => {
               </Accordion>
               <Accordion
                 class="w-full border-none padding-0 mb-2"
-                :activeIndex="0"
               >
                 <AccordionTab>
                   <template #header>
@@ -5375,10 +5775,31 @@ const onPage = (event) => {
 }
 .nav-item {
   padding: 5px 10px !important;
-  min-width: 80px;
+  min-width: 75px;
   text-align: center;
   display: grid;
   justify-content: center;
+}
+.description-2 {
+  color: #606060;
+  font-weight: normal;
+  font-size: 1rem;
+}
+.btn-extra-user {
+  display: grid; 
+  justify-content: center; 
+  background-color: #ffffff !important; 
+  color: #000000 !important; 
+  border-bottom: 2px solid #dee2e6 !important; 
+  font-weight: bold;
+  padding: 5px 10px;
+}
+.btn-extra-user:hover {
+  color: #316AB7 !important;
+}
+.label-profileinfo {
+  color: #6e6e6e;
+  font-weight: bold;
 }
 </style>
 <style lang="scss" scoped>
@@ -5458,6 +5879,11 @@ const onPage = (event) => {
   }
   .p-datatable-emptymessage .align-items-center{
     height: calc(100vh - 236px) !important;
+  }
+}
+::v-deep(.tbl-detail-profile) {
+  tbody {
+    max-height: 335px;
   }
 }
 </style>

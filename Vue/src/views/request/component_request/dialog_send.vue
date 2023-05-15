@@ -180,13 +180,11 @@ const initTudien = () => {
                 {
                     str: encr(
                         JSON.stringify({
-                            proc: "sys_config_approved_list_module",
+                            proc: "request_group_approved_all",
                             par: [
-                                { par: "pageno", va: 0 },
-                                { par: "pagesize", va: 100000 },
                                 { par: "user_id", va: store.getters.user.user_id },
                                 { par: "module_key", va: props.modelsend.module_key },
-                                { par: "status", va: null },
+                                { par: "request_id", va: props.dataSelected[0].request_id },
                             ],
                         }),
                         SecretKey,
@@ -208,21 +206,34 @@ const initTudien = () => {
                                         element["signusers"] = JSON.parse(element["signusers"]);
                                     }
                                     if (element["signusers"] != null) {
-                                        element["signusers"].forEach((ilem) => {
-                                            if (ilem.is_order == "") ilem.is_order = null;
-                                            else ilem.is_order = Number(ilem.is_order);
-                                            if (ilem.approved_users_id == "")
-                                                ilem.approved_users_id = null;
-                                            else
-                                                ilem.approved_users_id = Number(ilem.approved_users_id);
-                                            if (ilem.department_id == "") ilem.department_id = null;
-                                            else ilem.department_id = Number(ilem.department_id);
-                                            if (ilem.avatar == "") ilem.avatar = null;
+                                        element["signusers"].forEach((su) => {
+                                            if (su.is_order == "") {
+                                                su.is_order = null;
+                                            }
+                                            else {
+                                                su.is_order = Number(su.is_order);
+                                            }
+                                            if (su.approved_users_id == "") {
+                                                su.approved_users_id = null;
+                                            }
+                                            else {
+                                                su.approved_users_id = Number(su.approved_users_id);
+                                            }
+                                            if (su.department_id == "") {
+                                                su.department_id = null;
+                                            }
+                                            else {
+                                                su.department_id = Number(su.department_id);
+                                            }
+                                            if (su.avatar == "") {
+                                                su.avatar = null;
+                                            }
                                         });
 
                                         listAproved.value.push({
                                             name: element.approved_group_name,
                                             code: element.approved_groups_id,
+                                            approved_type_name: element.approved_type_name,
                                             data: element,
                                             signusers: element.signusers,
                                         });
@@ -361,13 +372,23 @@ const changeProcedure = (procedureform_id) => {
 const onTaskUserFilter = (item) => {
 
 };
-
+const removeMember = (user, arr, type) => {
+    if (type == null) {
+        var idx = arr.findIndex((x) => x["user_id"] === user["user_id"]);
+        if (idx != -1) {
+            arr.splice(idx, 1);
+        }
+    }
+};
 const submitted = ref(false);
 const send = () => {
+    if (submitted.value == true) {
+        return;
+    }
     submitted.value = true;
     if (!process.value.key_id) {
         swal.fire({
-            title: "Thông báo!",
+            title: "Thông báo",
             text: "Vui lòng điền đầy đủ thông tin trường bôi đỏ!",
             icon: "error",
             confirmButtonText: "OK",
@@ -396,7 +417,7 @@ const send = () => {
 
     formData.append("type_send", obj["type_send"]);
     formData.append("key_id", obj["key_id"]);
-    formData.append("type_module", obj["type_module"]);
+    //formData.append("type_module", obj["type_module"]);
     formData.append("content", obj["content"]);
     for (var i = 0; i < filesList.value.length; i++) {
         let file = filesList.value[i];
@@ -412,7 +433,7 @@ const send = () => {
     });
     axios
         .post(
-            baseURL + "/api/hrm_campage_process/add_hrm_campage_process",
+            baseURL + "/api/request/Send_Request",
             formData,
             config
         )
@@ -426,13 +447,14 @@ const send = () => {
                 });
                 return;
             }
-
+            
+            if (submitted.value) submitted.value = false;
             swal.close();
             toast.success("Gửi thành công!");
             props.closeDialog();
         })
         .catch((error) => {
-            console.log(error);
+            if (submitted.value) submitted.value = false;
             swal.close();
             swal.fire({
                 title: "Thông báo!",
@@ -441,7 +463,6 @@ const send = () => {
                 confirmButtonText: "OK",
             });
         });
-    if (submitted.value) submitted.value = false;
 };
 
 onMounted(() => {
@@ -463,15 +484,16 @@ onMounted(() => {
             <div class="grid formgrid m-2">
                 <div class="col-12 md-col-12">
                     <div class="form-group">
-                        <label>{{
-                            props.modelsend.type_send === 0
-                            ? "Quy trình"
-                            : props.modelsend.type_send === 1
-                                ? "Nhóm duyệt"
-                                : props.modelsend.type_send === 2
-                                    ? "Người duyệt"
-                                    : ""
-                        }}
+                        <label>
+                            {{
+                                props.modelsend.type_send === 0
+                                ? "Quy trình"
+                                : props.modelsend.type_send === 1
+                                    ? "Nhóm duyệt"
+                                    : props.modelsend.type_send === 2
+                                        ? "Người duyệt"
+                                        : ""
+                            }}
                             <span class="redsao">(*)</span>
                         </label>
                         <div>
@@ -517,7 +539,10 @@ onMounted(() => {
                                                                 ? basedomainURL + item.avatar
                                                                 : basedomainURL + '/Portals/Image/noimg.jpg'
                                                             " 
-                                                            v-tooltip.top="item.full_name"
+                                                            v-tooltip.top="{ 
+                                                                value: item.full_name + (item.position_name ? ('<br/>' + item.position_name) : '') + (item.department_name ? ('<br/>' + item.department_name) : ''),
+                                                                escape: true,
+                                                            }"
                                                             style="border: 2px solid white; color: white"
                                                             @click="onTaskUserFilter(item)" 
                                                             @error="basedomainURL + '/Portals/Image/noimg.jpg'" 
@@ -554,8 +579,11 @@ onMounted(() => {
                                         <div class="p-dropdown-car-value format-center w-full h-full"
                                             v-if="slotProps.value">
                                             <div>
-                                                <div class="font-bold p-2 px-0">
-                                                    {{ slotProps.value.name }}
+                                                <div class="p-2 px-0">
+                                                    <span class="font-bold">{{ slotProps.value.name }}</span>
+                                                    <span class="ml-2" v-if="slotProps.value.approved_type_name != null">
+                                                        ({{ slotProps.value.approved_type_name }})
+                                                    </span>
                                                 </div>
 
                                                 <div class="flex px-2 format-center py-0">
@@ -569,7 +597,7 @@ onMounted(() => {
                                                                     : basedomainURL + '/Portals/Image/noimg.jpg'
                                                                 " 
                                                                 v-tooltip.bottom="{
-                                                                    value: elen.full_name + '<br/>' + elen.position_name + '<br/>' + elen.department_name,
+                                                                    value: elen.full_name + (elen.position_name ? ('<br/>' + elen.position_name) : '') + (elen.department_name ? ('<br/>' + elen.department_name) : ''),
                                                                     escape: true,
                                                                 }" 
                                                                 style="
@@ -604,8 +632,11 @@ onMounted(() => {
                                     <template #option="slotProps">
                                         <div class="p-dropdown-car-option format-center">
                                             <div>
-                                                <div class="font-bold p-2 px-0">
-                                                    {{ slotProps.option.name }}
+                                                <div class="p-2 px-0">
+                                                    <span class="font-bold">{{ slotProps.option.name }}</span>
+                                                    <span class="ml-2" v-if="slotProps.option.approved_type_name != null">
+                                                        ({{ slotProps.option.approved_type_name }})
+                                                    </span>
                                                 </div>
 
                                                 <div class="flex px-2 py-0 format-center">
@@ -619,7 +650,7 @@ onMounted(() => {
                                                                     : basedomainURL + '/Portals/Image/noimg.jpg'
                                                                 " 
                                                                 v-tooltip.bottom="{
-                                                                    value: elen.full_name + '<br/>' + elen.position_name + '<br/>' + elen.department_name,
+                                                                    value: elen.full_name + (elen.position_name ? ('<br/>' + elen.position_name) : '') + (elen.department_name ? ('<br/>' + elen.department_name) : ''),
                                                                     escape: true,
                                                                 }"  
                                                                 style="
@@ -659,21 +690,63 @@ onMounted(() => {
                                         :class="{ 'p-invalid': process.key_id == null && submitted }" 
                                         v-model="process.key_id" 
                                         optionLabel="full_name" 
-                                        optionValue="user_id" 
+                                        optioncode="user_id" 
                                         display="chip"
                                         placeholder="Chọn người duyệt" 
                                         class="ip36 mb-2"
                                         style="height: auto; min-height: 36px"
                                     >
+                                        <template #value="slotProps">
+                                            <ul class="p-ulchip"
+                                                v-if="slotProps.value && slotProps.value.length > 0"
+                                            >
+                                                <li class="p-lichip"
+                                                    v-for="(value, index) in slotProps.value"
+                                                    :key="index"
+                                                >
+                                                    <Chip class="mr-2 mb-2 pl-0"
+                                                        :image="value.avatar"
+                                                        :label="value.full_name"                                        
+                                                    >
+                                                        <div class="flex">
+                                                            <div class="format-flex-center">
+                                                                <Avatar
+                                                                    v-bind:label="value.avatar ? '' : (value.last_name ?? 'A').substring(0, 1)"
+                                                                    v-bind:image="
+                                                                        value.avatar
+                                                                        ? basedomainURL + value.avatar
+                                                                        : basedomainURL + '/Portals/Image/noimg.jpg'
+                                                                    "
+                                                                    style="background-color: #2196f3; color: #ffffff; width: 2rem; height: 2rem;"
+                                                                    :style="{ background: bgColor[index % 7], }"
+                                                                    class="mr-2 text-avatar"
+                                                                    size="xlarge"
+                                                                    shape="circle"
+                                                                />
+                                                            </div>
+                                                            <div class="format-flex-center">
+                                                                <span>{{ value.full_name }}</span>
+                                                            </div>
+                                                            <span tabindex="0"
+                                                                class="p-chip-remove-icon pi pi-times-circle format-flex-center"
+                                                                @click="removeMember(value, process.key_id)"
+                                                            ></span>
+                                                        </div>
+                                                    </Chip>
+                                                </li>
+                                            </ul>
+                                            <span v-else> {{ slotProps.placeholder }} </span>
+                                        </template>
                                         <template #option="slotProps">
                                             <div v-if="slotProps.option" class="flex">
-                                                <div class="format-center">
-                                                    <Avatar style="color: #ffffff" 
+                                                <div class="format-center ml-1">
+                                                    <Avatar
                                                         v-bind:label="slotProps.option.avatar
                                                             ? ''
                                                             : slotProps.option.last_name.substring(0, 1)
                                                         " 
                                                         :image="basedomainURL + slotProps.option.avatar" 
+                                                        style="color: #ffffff; width: 2rem; height: 2rem;margin-top: 0;"
                                                         :style="slotProps.option.avatar
                                                             ? 'background-color: #2196f3'
                                                             : 'background:' + bgColor[slotProps.option.full_name.length % 7]
@@ -682,11 +755,13 @@ onMounted(() => {
                                                         @error="$event.target.src = basedomainURL + '/Portals/Image/nouser1.png'" 
                                                     />
                                                 </div>
-                                                <div class="ml-3">
+                                                <div class="ml-3 flex" style="flex-direction: column; justify-content: center;">
                                                     <div class="mb-1">{{ slotProps.option.full_name }}</div>
                                                     <div class="description">
-                                                        <div>{{ slotProps.option.position_name || "" }}</div>
-                                                        <div>
+                                                        <div v-if="slotProps.option.position_name">
+                                                            {{ slotProps.option.position_name || "" }}
+                                                        </div>
+                                                        <div v-if="slotProps.option.department_name">
                                                             {{ slotProps.option.department_name || "" }}
                                                         </div>
                                                     </div>
@@ -700,7 +775,7 @@ onMounted(() => {
                     </div>
                 </div>
 
-                <div class="col-12 md:col-12">
+                <div class="col-12 md:col-12" v-if="props.modelsend.type_send == 2">
                     <div class="form-group">
                         <label>Loại duyệt</label>
                         <Dropdown 
@@ -717,35 +792,53 @@ onMounted(() => {
                 </div>
                 <div class="col-12 p-0 field" v-if="process.aprroved_type == 2">
                     <div class="col-12  field">
-                        <OrderList v-model="process.key_id" listStyle="height:auto" class="w-full" dataKey="id">
+                        <OrderList v-model="process.key_id" 
+                            listStyle="height:auto" 
+                            class="w-full order-approver-request" 
+                            dataKey="id"
+                        >
                             <template #header>Thứ tự duyệt </template>
                             <template #item="slotProps">
                                 <Toolbar class="surface-0 m-0 p-0 border-0 w-full">
                                     <template #start>
                                         <div class="flex align-items-center">
                                             <div class="format-flex-center">
-                                                <b class="p-3">{{ slotProps.index + 1 }} </b>
+                                                <b class="px-3" 
+                                                    style="padding-top: 0.75rem; padding-bottom: 0.75rem;"
+                                                >
+                                                    {{ slotProps.index + 1 }}
+                                                </b>
                                             </div>
                                             <div class="flex">
                                                 <Avatar 
                                                     v-bind:label="slotProps.item.avatar
                                                         ? ''
-                                                        : slotProps.item.name.substring(
-                                                            slotProps.item.name.lastIndexOf(' ') + 1,
-                                                            slotProps.item.name.lastIndexOf(' ') + 2
+                                                        : (slotProps.item.last_name 
+                                                            ? slotProps.item.last_name.substring(0, 1) 
+                                                            : 'A'
                                                         )
                                                     " 
                                                     :image="basedomainURL + slotProps.item.avatar" 
-                                                    class="w-2rem h-2rem"
+                                                    style="width: 2rem; height: 2rem; font-size: 1rem !important;"
                                                     :style="slotProps.item.avatar
                                                         ? 'background-color: #2196f3'
-                                                        : 'background:' + bgColor[slotProps.item.name.length % 7]
+                                                        : 'background:' + bgColor[slotProps.item.full_name.length % 7]
                                                     " 
                                                     shape="circle" 
                                                     @error="$event.target.src = basedomainURL + '/Portals/Image/nouser1.png'" 
                                                 />
-                                                <div class="pt-1 pl-2">
-                                                    {{ slotProps.item.name }}
+                                                <div class="ml-3 flex" style="flex-direction: column; justify-content: center;">
+                                                    <div class="mb-1">
+                                                        {{ slotProps.item.full_name }}
+                                                    </div>
+                                                    <div class="description">
+                                                        <div v-if="slotProps.item.position_name">
+                                                            {{ slotProps.item.position_name || "" }}
+                                                        </div>
+                                                        <div v-if="slotProps.item.department_name">
+                                                            {{ slotProps.item.department_name || "" }}
+                                                        </div>
+                                                    </div>
                                                 </div>
                                             </div>
                                         </div>
@@ -837,6 +930,19 @@ onMounted(() => {
     ::v-deep(.is-close) {
         .p-panel-header {
             color: red;
+        }
+    }
+
+    ::v-deep(.order-approver-request) {
+        .p-orderlist-list {
+            max-height: 18rem;
+        }
+        .p-orderlist-list .p-orderlist-item {
+            padding: 0.5rem;
+        }
+        .p-orderlist-list .p-orderlist-item:hover {
+            background: #e9ecef;
+            color: #495057;
         }
     }
 </style>

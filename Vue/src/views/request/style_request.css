@@ -330,3 +330,9 @@ span.rqxoa, span.uutien2 {
 .td-table-render:first-child {
     border-left: 1px solid #ccc;
 }
+.label-form {
+    font-weight: bold;
+}
+.label-dayoff {
+    margin-bottom: 0.5rem;
+}

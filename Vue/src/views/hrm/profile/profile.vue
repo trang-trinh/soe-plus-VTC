@@ -199,17 +199,17 @@ const changeView = (view) => {
 const menuButs = ref();
 const itemButs = ref([
   {
-    label: "Import dữ liệu từ Excel",
-    icon: "pi pi-file-excel",
-    command: (event) => {
-      importExcel(event);
-    },
-  },
-  {
     label: "Export dữ liệu ra Excel",
     icon: "pi pi-file-excel",
     command: (event) => {
       exportData("ExportExcel");
+    },
+  },
+  {
+    label: "Import dữ liệu từ Excel",
+    icon: "pi pi-file-excel",
+    command: (event) => {
+      importExcel(event);
     },
   },
 ]);
@@ -444,6 +444,7 @@ const openAddDialog = (str) => {
   files.value = [];
   headerDialog.value = str;
   displayDialog.value = true;
+  datachilds.value = [];
 };
 const closeDialog = () => {
   displayDialog.value = false;
@@ -543,6 +544,12 @@ const editItem = (item, str) => {
               model.value.military_end_date
             );
           }
+          if (model.value["sign_date"] != null) {
+            model.value["sign_date"] = new Date(model.value["sign_date"]);
+          }
+          if (model.value["partisan_main_date"] != null) {
+            model.value["partisan_main_date"] = new Date(model.value["partisan_main_date"]);
+          }
         }
         if (tbs[1] != null && tbs[1].length > 0) {
           tbs[1].forEach((x) => {
@@ -556,6 +563,9 @@ const editItem = (item, str) => {
             }
             if (x["end_date"] != null) {
               x["end_date"] = new Date(x["end_date"]);
+            }
+            if (x["birthday"] != null) {
+              x["birthday"] = new Date(x["birthday"]);
             }
           });
           datachilds.value[1] = tbs[1];
@@ -1026,6 +1036,83 @@ const closeDialogMatchAccount = () => {
   displayDialogMatchAccount.value = false;
 };
 
+//import
+const linkformimport = "/Portals/Mau Excel/Mẫu Excel Phép năm.xlsx";
+const importFiles = ref([]);
+const displayImport = ref(false);
+const importExcel = (type) => {
+  importFiles.value = [];
+  displayImport.value = true;
+};
+const closeDialogImport = () => {
+  displayImport.value = false;
+};
+const chooseImportFile = (id) => {
+  document.getElementById(id).click();
+};
+const removeImportFile = (event) => {
+  importFiles.value = [];
+};
+const handleImportFile = (event) => {
+  importFiles.value = event.target.files;
+};
+const uploading = ref(false);
+const uploadProgress = ref(0);
+const execImportExcel = () => {
+  if (!importFiles.value || importFiles.value.length === 0) {
+    swal.fire({
+      title: "Thông báo!",
+      text: "Bạn chưa tải file dữ liệu lên!",
+      icon: "error",
+      confirmButtonText: "OK",
+    });
+    return;
+  }
+  uploading.value = true;
+  displayImport.value = false;
+  let formData = new FormData();
+  for (var i = 0; i < importFiles.value.length; i++) {
+    let file = importFiles.value[i];
+    formData.append("files", file);
+  }
+  axios
+    .post(baseURL + "/api/hrm_profile/import_excel_profile", formData, {
+      headers: {
+        Authorization: `Bearer ${store.getters.token}`,
+        // "Content-Type": "multipart/form-data",
+      },
+      progress(progressEvent) {
+        uploadProgress.value = Math.round(
+          (progressEvent.loaded / progressEvent.total) * 100
+        );
+        debugger
+      },
+      onUploadProgress: (progressEvent) => {
+        uploadProgress.value = Math.round(
+          (progressEvent.loaded / progressEvent.total) * 100
+        );
+        debugger
+      },
+    })
+    .then((response) => {
+      uploading.value = false;
+      uploadProgress.value = 0;
+      toast.success("Nhập dữ liệu thành công");
+      initData(true);
+      initCount();
+    })
+    .catch((error) => {
+      swal.close();
+      swal.fire({
+        title: "Thông báo!",
+        text: "Có lỗi xảy ra, vui lòng kiểm tra lại!",
+        icon: "error",
+        confirmButtonText: "OK",
+      });
+      return;
+    });
+};
+
 //Init
 const initPlace = () => {
   axios
@@ -1199,13 +1286,8 @@ const initCountFilter = () => {
       .join(",");
   }
   var titles = null;
-  if (
-    options.value.titles != null &&
-    options.value.titles.length > 0
-  ) {
-    titles = options.value.titles
-      .map((x) => x["title_id"])
-      .join(",");
+  if (options.value.titles != null && options.value.titles.length > 0) {
+    titles = options.value.titles.map((x) => x["title_id"]).join(",");
   }
   var professional_works = null;
   if (
@@ -1374,13 +1456,8 @@ const initDataFilter = () => {
       .join(",");
   }
   var titles = null;
-  if (
-    options.value.titles != null &&
-    options.value.titles.length > 0
-  ) {
-    titles = options.value.titles
-      .map((x) => x["title_id"])
-      .join(",");
+  if (options.value.titles != null && options.value.titles.length > 0) {
+    titles = options.value.titles.map((x) => x["title_id"]).join(",");
   }
   var professional_works = null;
   if (
@@ -1919,18 +1996,13 @@ onMounted(() => {
                                 <Chip class="mr-2 mb-2 px-3 py-2">
                                   <div class="flex">
                                     <div>
-                                      <span>{{
-                                        value.title_name
-                                      }}</span>
+                                      <span>{{ value.title_name }}</span>
                                     </div>
                                     <span
                                       tabindex="0"
                                       class="p-chip-remove-icon pi pi-times-circle format-flex-center"
                                       @click="
-                                        removeFilter(
-                                          index,
-                                          options.titles
-                                        );
+                                        removeFilter(index, options.titles);
                                         $event.stopPropagation();
                                       "
                                       v-tooltip.top="'Xóa'"
@@ -2975,6 +3047,31 @@ onMounted(() => {
     </div>
   </div>
 
+  <Dialog
+    header="Đang tải dữ liệu ..."
+    v-model:visible="uploading"
+    :style="{ width: '30vw' }"
+    :closable="false"
+    :modal="false"
+  >
+    <ProgressBar
+      :value="uploadProgress"
+      :style="{
+        borderBottomLeftRadius: '0 !important',
+        borderBottomRightRadius: '0 !important',
+      }"
+    />
+    <ProgressBar
+      v-if="uploadProgress < 100"
+      mode="indeterminate"
+      :style="{
+        borderTopLeftRadius: '0 !important',
+        borderTopRightRadius: '0 !important',
+        height: '.5em',
+      }"
+    />
+  </Dialog>
+
   <!-- Dialog -->
   <dilogprofile
     :key="componentKey['0']"
@@ -3079,6 +3176,155 @@ onMounted(() => {
     :model="itemButMoresPlus"
     :popup="true"
   />
+
+  <Dialog
+    header="Tải lên file Excel"
+    v-model:visible="displayImport"
+    :style="{ width: '50vw' }"
+    :closable="true"
+    :modal="true"
+  >
+    <div class="grid formgrid mb-3">
+      <div class="col-4 md:col-4">
+        <div class="card">
+          <div
+            class="card-body button-custom zoom"
+            :style="{ backgroundColor: '#89c83e', borderColor: '#89c83e' }"
+          >
+            <div>
+              <div class="text-center mb-2">
+                <i class="pi pi-arrow-down" :style="{ fontSize: '25px' }"></i>
+              </div>
+              <div :style="{ fontSize: '15px' }">Tải file mẫu xuống</div>
+            </div>
+          </div>
+        </div>
+      </div>
+      <div class="col-4 md:col-4">
+        <div class="card">
+          <div
+            @click="chooseImportFile('importFile')"
+            class="card-body button-custom zoom"
+            :style="{ backgroundColor: '#E9C25C', borderColor: '#E9C25C' }"
+          >
+            <div>
+              <div class="text-center mb-2">
+                <i class="pi pi-arrow-up" :style="{ fontSize: '25px' }"></i>
+              </div>
+              <div :style="{ fontSize: '15px' }">Tải file dữ liệu lên</div>
+            </div>
+          </div>
+        </div>
+      </div>
+      <div class="col-4 md:col-4">
+        <div class="card">
+          <div
+            @click="execImportExcel()"
+            class="card-body button-custom"
+            :class="{ 'zoom filter': importFiles.length > 0 }"
+            :style="{
+              backgroundColor: '#D4673B',
+              borderColor: '#D4673B',
+              filter: 'opacity(0.3)',
+            }"
+          >
+            <div>
+              <div class="text-center mb-2">
+                <i class="pi pi-caret-right" :style="{ fontSize: '25px' }"></i>
+              </div>
+              <div :style="{ fontSize: '15px' }">Thực hiện</div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+    <div>
+      <DataView
+        :lazy="true"
+        :value="importFiles"
+        :rowHover="true"
+        :scrollable="true"
+        class="w-full h-full ptable p-datatable-sm flex flex-column"
+        layout="list"
+        responsiveLayout="scroll"
+      >
+        <template #list="slotProps">
+          <div class="w-full">
+            <Toolbar class="w-full">
+              <template #start>
+                <div
+                  @click="goFile(slotProps.data)"
+                  class="flex align-items-center"
+                >
+                  <img
+                    class="mr-2"
+                    :src="
+                      basedomainURL +
+                      '/Portals/Image/file/' +
+                      slotProps.data.name.split('.').at(-1) +
+                      '.png'
+                    "
+                    style="object-fit: contain"
+                    width="40"
+                    height="40"
+                  />
+                  <span style="line-height: 1.5">
+                    {{ slotProps.data.name }}</span
+                  >
+                </div>
+              </template>
+              <template #end>
+                <Button
+                  icon="pi pi-times"
+                  class="p-button-rounded p-button-danger"
+                  @click="
+                    removeImportFile(slotProps.data, slotProps.data.index)
+                  "
+                />
+              </template>
+            </Toolbar>
+          </div>
+        </template>
+      </DataView>
+      <div class="mt-3">
+        <b :style="{ fontSize: '15px' }"
+          ><i class="pi pi-comment"></i> Chú ý:</b
+        >
+        <div :style="{ fontSize: '14px' }">
+          <ul>
+            <li>
+              Bước 1: Trước khi import dữ liệu vào hệ thống bạn phải
+              <b>"Tải file mẫu xuống"</b>, sau đó cập nhật thông tin về nhân sự
+              vào file mẫu Excel.
+            </li>
+            <li>
+              Bước 2: Sau khi cập nhật thông tin nhân sự xong, bạn chọn
+              <b>"Tải file dữ liệu lên"</b>.
+            </li>
+            <li>
+              Bước 3: Sau khi tải file dữ liệu lên thành công, bạn chọn
+              <b>"Thực hiện"</b> để hệ thống Import dữ liệu vào.
+            </li>
+          </ul>
+        </div>
+      </div>
+      <input
+        id="importFile"
+        type="file"
+        accept=".xls,.xlsx"
+        @change="handleImportFile"
+        style="display: none"
+      />
+    </div>
+    <template #footer>
+      <Button
+        label="Đóng"
+        icon="pi pi-times"
+        @click="closeDialogImport()"
+        class="p-button-text"
+      />
+    </template>
+  </Dialog>
 </template>
 <style scoped>
 @import url(../profile/component/stylehrm.css);
@@ -3101,6 +3347,30 @@ onMounted(() => {
 }
 .tr-list:hover td {
   background-color: aliceblue;
+}
+.button-custom {
+  height: 100px;
+  border: solid 1px;
+  border-radius: 5px;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  color: #fff;
+}
+.zoom {
+  cursor: pointer;
+  border-radius: 0.25rem;
+  /* box-shadow: 0 2px 4px rgb(0 0 0 / 23%); */
+  transition: transform 0.3s !important;
+}
+.zoom:hover {
+  transform: scale(0.9) !important;
+  /* box-shadow: 10px 10px 15px rgb(0 0 0 / 23%) !important; */
+  cursor: pointer !important;
+}
+
+.filter {
+  filter: opacity(1) !important;
 }
 </style>
 <style lang="scss" scoped>

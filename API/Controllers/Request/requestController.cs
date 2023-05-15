@@ -224,7 +224,7 @@ namespace API.Controllers.Request
                                 File.Move(ffileData.LocalFileName, root + pathEdit_1);
                                 listPathFileUp.Add(ffileData.LocalFileName);
                                 //helper.UploadFileToDestination(jwtcookie, root, ffileData, pathEdit_1, 360, 360);
-
+                                /*
                                 var Portals = ConfigurationManager.AppSettings["Portals"];
                                 sys_file_mapping fm = new sys_file_mapping();
                                 fm.file_key_id = helper.GenKey();
@@ -261,6 +261,7 @@ namespace API.Controllers.Request
                                 fm.created_token_id = tid;
                                 db.sys_file_mapping.Add(fm);
                                 //});
+                                */
                             }
                         }
 
@@ -665,8 +666,8 @@ namespace API.Controllers.Request
                                     request_log log = new request_log();
                                     log.log_type = 2;
                                     log.title = "Xóa đề xuất: " + da.request_name;
-                                    log.log_content = JsonConvert.SerializeObject(new { requestDel = JsonConvert.SerializeObject(da, new JsonSerializerSettings() { ReferenceLoopHandling = ReferenceLoopHandling.Ignore }) }); ;
-                                    log.log_module = "M12";
+                                    log.log_content = JsonConvert.SerializeObject(new { requestDel = JsonConvert.SerializeObject(da, new JsonSerializerSettings() { ReferenceLoopHandling = ReferenceLoopHandling.Ignore }) });
+                                    log.log_module = "request_master";
                                     log.id_key = da.request_id;
                                     log.created_date = DateTime.Now;
                                     log.created_by = uid;
@@ -734,6 +735,299 @@ namespace API.Controllers.Request
             }
 
         }
+
+        [HttpPost]
+        public async Task<HttpResponseMessage> Send_Request()
+        {
+            var identity = User.Identity as ClaimsIdentity;
+            if (identity == null)
+            {
+                return Request.CreateResponse(HttpStatusCode.OK, new { ms = "Bạn không có quyền truy cập chức năng này!", err = "1" });
+            }
+
+            IEnumerable<Claim> claims = identity.Claims;
+            string ip = getipaddress();
+            string name = claims.Where(p => p.Type == "fname").FirstOrDefault()?.Value;
+            string tid = claims.Where(p => p.Type == "tid").FirstOrDefault()?.Value;
+            string dvid = claims.Where(p => p.Type == "dvid").FirstOrDefault()?.Value;
+            string uid = claims.Where(p => p.Type == "uid").FirstOrDefault()?.Value;
+            bool super = claims.Where(p => p.Type == "super").FirstOrDefault()?.Value == "True";
+            string domainurl = HttpContext.Current.Request.Url.Scheme + "://" + HttpContext.Current.Request.Url.Host + ":" + HttpContext.Current.Request.Url.Port + "/";
+
+            try
+            {
+                using (DBEntities db = new DBEntities())
+                {
+                    if (!Request.Content.IsMimeMultipartContent())
+                    {
+                        throw new HttpResponseException(HttpStatusCode.UnsupportedMediaType);
+                    }
+
+                    string root = HttpContext.Current.Server.MapPath("~/");
+                    var provider = new MultipartFormDataStreamProvider(root + "/Portals");
+
+                    // Read the form data and return an async task.
+                    var task = Request.Content.ReadAsMultipartAsync(provider).
+                    ContinueWith<HttpResponseMessage>(t =>
+                    {
+                        if (t.IsFaulted || t.IsCanceled)
+                        {
+                            Request.CreateErrorResponse(HttpStatusCode.InternalServerError, t.Exception);
+                        }
+                        // type_send = 0: Chuyển theo quy trình , 1: Chuyển đến nhóm duyệt, 2: Chuyển đích danh
+                        int type_send = int.Parse(provider.FormData.GetValues("type_send").SingleOrDefault());
+                        var key_id = int.Parse(provider.FormData.GetValues("key_id").SingleOrDefault());
+                        string content = provider.FormData.GetValues("content").SingleOrDefault();
+                        string request_obj = provider.FormData.GetValues("request_obj").SingleOrDefault();
+                        List<request_master> listRequest = JsonConvert.DeserializeObject<List<request_master>>(request_obj);
+
+                        #region Xử lý request
+                        if (type_send == 0)
+                        {
+
+                        }
+                        else if (type_send == 1)
+                        {
+
+                        }
+                        else if (type_send == 2)
+                        {
+
+                        }
+                        foreach(var item_request in listRequest)
+                        {
+                            var request = db.request_master.Find(item_request.request_id);
+                            if (request != null)
+                            {
+                                //Send Message
+                                List<string> sendUsers = new List<string>();
+                                string sendTitle = "Đề xuất";
+                                string sendContent = "Vừa gửi đến bạn đề xuất chờ duyệt: \"" + request.request_name + "\".";
+                                //Log
+                                request_log log = new request_log();
+
+                                request.is_type_send = type_send;
+                                request.status = 1;
+                                request.status_processing = 1;
+                                request.modified_by = uid;
+                                request.modified_date = DateTime.Now;
+                                request.modified_ip = ip;
+                                request.modified_token_id = tid;
+
+                                #region file
+                                string path = root + "/Portals/" + request.organization_id + "/Request/" + request.request_id;
+                                // Format path
+                                var pathFormatRoot = Regex.Replace(path.Replace("\\", "/"), @"\.*/+", "/");
+                                var listPathRoot = pathFormatRoot.Split('/');
+                                var pathConfigRoot = "";
+                                var sttPartPath = 1;
+                                foreach (var item in listPathRoot)
+                                {
+                                    if (item.Trim() != "")
+                                    {
+                                        if (sttPartPath == 1)
+                                        {
+                                            pathConfigRoot += (item);
+                                        }
+                                        else
+                                        {
+                                            pathConfigRoot += "/" + Path.GetFileName(item);
+                                        }
+                                    }
+                                    sttPartPath++;
+                                }
+                                bool exists = Directory.Exists(pathConfigRoot);
+                                if (!exists)
+                                    Directory.CreateDirectory(pathConfigRoot);
+                                List<request_master_file> dfs = new List<request_master_file>();
+                                foreach (MultipartFileData fileData in provider.FileData)
+                                {
+                                    string org_name_file = fileData.Headers.ContentDisposition.FileName;
+                                    if (org_name_file.StartsWith("\"") && org_name_file.EndsWith("\""))
+                                    {
+                                        org_name_file = org_name_file.Trim('"');
+                                    }
+                                    if (org_name_file.Contains(@"/") || org_name_file.Contains(@"\"))
+                                    {
+                                        org_name_file = System.IO.Path.GetFileName(org_name_file);
+                                    }
+                                    string name_file = org_name_file;
+                                    string rootPath = pathConfigRoot + "/" + name_file;
+                                    string Duongdan = "/Portals/" + request.organization_id + "/Request/" + request.request_id + "/" + name_file;
+                                    string Dinhdang = helper.GetFileExtension(fileData.Headers.ContentDisposition.FileName);
+                                    if (rootPath.Length > 350)
+                                    {
+                                        name_file = name_file.Substring(0, name_file.LastIndexOf('.') - 1);
+                                        int le = 350 - (pathConfigRoot.Length + 1) - Dinhdang.Length;
+                                        name_file = name_file.Substring(0, le) + Dinhdang;
+                                    }
+                                    if (File.Exists(rootPath))
+                                    {
+                                        File.Delete(rootPath);
+                                    }
+                                    File.Move(fileData.LocalFileName, rootPath);
+                                    //File.Copy(fileData.LocalFileName, rootPathFile, true);
+                                    var df = new request_master_file();
+                                    df.request_file_id = helper.GenKey();
+                                    df.request_id = request.request_id;
+                                    df.file_name = name_file;
+                                    df.file_path = Duongdan;
+                                    df.file_type = Dinhdang;
+                                    var file_info = new FileInfo(rootPath);
+                                    df.file_size = file_info.Length;
+                                    df.is_image = helper.IsImageFileName(name_file);
+                                    if (df.is_image == true)
+                                    {
+                                        //helper.ResizeImage(rootPathFile, 1024, 768, 90);
+                                    }
+                                    df.is_type = 2;
+                                    df.is_delete = false;
+                                    df.created_by = uid;
+                                    df.created_date = DateTime.Now;
+                                    df.created_ip = ip;
+                                    df.created_token_id = tid;
+                                    dfs.Add(df);
+                                }
+                                if (dfs.Count > 0)
+                                {
+                                    db.request_master_file.AddRange(dfs);
+                                }
+                                #endregion
+
+                                #region log
+                                if (helper.wlog)
+                                {
+                                    log.title = "Trình duyệt đề xuất: " + request.request_code + " : " + request.request_name; 
+                                    log.log_type = 3;
+                                    log.log_content = JsonConvert.SerializeObject(new { data = JsonConvert.SerializeObject(request, new JsonSerializerSettings() { ReferenceLoopHandling = ReferenceLoopHandling.Ignore }) });
+                                    log.id_key = request.request_id;
+                                    log.log_module = "request_master";
+                                    log.created_by = uid;
+                                    log.created_date = DateTime.Now;
+                                    log.created_ip = ip;
+                                    log.created_token_id = tid;
+                                    db.request_log.Add(log);
+                                }
+                                #endregion
+
+                                #region Send Message
+                                List<Notification> notifications = new List<Notification>();
+                                if (sendUsers.Count > 0)
+                                {
+                                    send_message(uid, request.request_id, sendUsers, sendTitle, sendContent, 0);
+                                    notifications.Add(new Notification()
+                                    {
+                                        request_id = request.request_id,
+                                        uids = sendUsers,
+                                        title = sendTitle,
+                                        text = sendContent,
+                                    });
+                                }
+                                #endregion
+                            }
+                        }
+                        #endregion
+                        db.SaveChanges();
+                        return Request.CreateResponse(HttpStatusCode.OK, new { err = "0" });
+                    });
+                    return await task;
+                }
+            }
+            catch (DbEntityValidationException e)
+            {
+                string contents = helper.getCatchError(e, null);
+                helper.saveLog(uid, name, JsonConvert.SerializeObject(new { data = "", contents }), domainurl + "request/Send_Request", ip, tid, "Lỗi khi gửi xử lý đề xuất", 0, "request");
+                if (!helper.debug)
+                {
+                    contents = "";
+                }
+                Log.Error(contents);
+                return Request.CreateResponse(HttpStatusCode.OK, new { ms = contents, err = "1" });
+            }
+            catch (Exception e)
+            {
+                string contents = helper.ExceptionMessage(e);
+                helper.saveLog(uid, name, JsonConvert.SerializeObject(new { data = "", contents }), domainurl + "request/Send_Request", ip, tid, "Lỗi khi gửi xử lý đề xuất", 0, "request");
+                if (!helper.debug)
+                {
+                    contents = "";
+                }
+                Log.Error(contents);
+                return Request.CreateResponse(HttpStatusCode.OK, new { ms = contents, err = "1" });
+            }
+        }
+
+        #region Send Message
+        public void send_message(string user_send, string id_key, [System.Web.Mvc.Bind(Include = "")][FromBody] List<string> users, string title, string content, int is_type)
+        {
+            System.Threading.Tasks.Task.Run(async () =>
+            {
+                try
+                {
+                    using (DBEntities db = new DBEntities())
+                    {
+                        #region Sendhub
+                        List<sys_sendhub> sendhubs = new List<sys_sendhub>();
+                        users = users.Where(x => x != user_send).ToList();
+                        foreach (String user_id in users)
+                        {
+                            sys_sendhub sh = new sys_sendhub();
+                            sh.senhub_id = helper.GenKey();
+                            sh.module_key = "M12";
+                            sh.user_send = user_send;
+                            sh.receiver = user_id;
+                            sh.title = title;
+                            sh.contents = content;
+                            sh.type = 7; // Phê duyệt đề xuất
+                            sh.is_type = is_type;
+                            sh.seen = false;
+                            sh.date_send = DateTime.Now;
+                            sh.id_key = id_key;
+                            sh.created_by = user_send;
+                            sh.created_date = DateTime.Now;
+                            sendhubs.Add(sh);
+                        }
+                        if (sendhubs.Count > 0)
+                        {
+                            db.sys_sendhub.AddRange(sendhubs);
+                            await db.SaveChangesAsync();
+                        }
+                        #endregion
+                        #region SendSocket
+                        //send socket
+                        var message = new Dictionary<string, dynamic>
+                        {
+                            { "event", "sendNotify" },
+                            { "user_id", user_send },
+                            { "title", title },
+                            { "contents", content },
+                            { "date", DateTime.Now },
+                            { "uids", users },
+                        };
+                        if (helper.socketClient != null && helper.socketClient.Connected == true)
+                        {
+                            try
+                            {
+                                await helper.socketClient.EmitAsync("sendData", message);
+                            }
+                            catch { };
+                        }
+                        #endregion
+                    }
+                }
+                catch { }
+            });
+        }
+
+        public class Notification
+        {
+
+            public string request_id { get; set; }
+            public List<string> uids { get; set; }
+            public string title { get; set; }
+            public string text { get; set; }
+        }
+        #endregion
 
         #region CallProc
         [HttpPost]

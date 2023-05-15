@@ -4,9 +4,11 @@ import { useToast } from "vue-toastification";
 import { required } from "@vuelidate/validators";
 import { useVuelidate } from "@vuelidate/core";
 import { FilterMatchMode, FilterOperator } from "primevue/api";
-import { encr, checkURL } from "../../../util/function.js";
+import { encr, checkURL, decr } from "../../../util/function.js";
 import DropdownUser from "../component/DropdownProfile.vue";
 import DropdownUsers from "../component/DropdownUsers.vue";
+import DocComponent from "./components/DocComponent.vue";
+import { useRoute } from "vue-router";
 //Khai báo
 const emitter = inject("emitter");
 const cryoptojs = inject("cryptojs");
@@ -14,6 +16,7 @@ const axios = inject("axios");
 const store = inject("store");
 const swal = inject("$swal");
 const isDynamicSQL = ref(false);
+const route = useRoute();
 const config = {
   headers: { Authorization: `Bearer ${store.getters.token}` },
 };
@@ -23,7 +26,12 @@ const filters = ref({
     operator: FilterOperator.AND,
     constraints: [{ value: null, matchMode: FilterMatchMode.STARTS_WITH }],
   },
+  report_group: {
+    operator: FilterOperator.AND,
+    constraints: [{ value: null, matchMode: FilterMatchMode.CONTAINS }],
+  },
 });
+const visibleSidebarDoc = ref(false);
 const rules = {
   report_name: {
     required,
@@ -36,8 +44,59 @@ const rules = {
     ],
   },
 };
+const getProfileUser = (user, obj) => {
+  if (obj) {
+    smart_report.value[user] = obj.profile_id;
+  } else {
+    smart_report.value[user] = null;
+  }
+};
 
+const execSQL = async (id) => {
+  const axResponse = await axios.post(
+    baseURL + "/api/HRM_SQL/getData",
+    {
+      str: encr(
+        JSON.stringify({
+          proc: "smart_report_get",
+          par: [{ par: "report_id", va: id }],
+        }),
+        SecretKey,
+        cryoptojs
+      ).toString(),
+    },
+    config
+  );
+
+  return axResponse;
+};
+const configBaocao = async (row) => {
+  axios;
+
+  swal.fire({
+    width: 110,
+    didOpen: () => {
+      swal.showLoading();
+    },
+  });
+  const axResponse = await execSQL(row.report_id);
+
+  if (axResponse.status == 200) {
+    if (axResponse.data.error) {
+      toast.error("Không mở được bản ghi");
+    } else {
+      smart_report.value = JSON.parse(axResponse.data.data)[0][0];
+
+      if (smart_report.value.proc_name)
+        smart_report.value.proc_name1 =
+          smart_report.value.proc_name.split(" ")[0];
+      visibleSidebarDoc.value = true;
+    }
+  }
+  swal.close();
+};
 //Lấy số bản ghi
+
 const loadCount = () => {
   axios
     .post(
@@ -68,75 +127,113 @@ const loadCount = () => {
 };
 //Lấy dữ liệu smart_report
 const loadData = (rf) => {
+  if (isDynamicSQL.value) {
+    loadDataSQL();
+    return false;
+  }
   if (rf) {
-    if (isDynamicSQL.value) {
-      loadDataSQL();
-      return false;
+    if (options.value.PageNo == 0) {
+      loadCount();
     }
-    if (rf) {
-      if (options.value.PageNo == 0) {
-        loadCount();
-      }
-    }
-    axios
-      .post(
-        baseURL + "/api/hrm_ca_SQL/getData",
-        {
-          str: encr(
-            JSON.stringify({
-              proc: "smart_report_list",
-              par: [
-                { par: "pageno", va: options.value.PageNo },
-                { par: "pagesize", va: options.value.PageSize },
-                { par: "user_id", va: store.getters.user.user_id },
-                { par: "status", va: null },
-              ],
-            }),
-            SecretKey,
-            cryoptojs
-          ).toString(),
-        },
-        config
-      )
-      .then((response) => {
-        let data = JSON.parse(response.data.data)[0];
-        if (isFirst.value) isFirst.value = false;
+  }
+  axios
+    .post(
+      baseURL + "/api/hrm_ca_SQL/getData",
+      {
+        str: encr(
+          JSON.stringify({
+            proc: "smart_report_list",
+            par: [
+              { par: "pageno", va: options.value.PageNo },
+              { par: "pagesize", va: options.value.PageSize },
+              { par: "user_id", va: store.getters.user.user_id },
+              { par: "status", va: null },
+            ],
+          }),
+          SecretKey,
+          cryoptojs
+        ).toString(),
+      },
+      config
+    )
+    .then((response) => {
+      let data = JSON.parse(response.data.data)[0];
+      if (isFirst.value) isFirst.value = false;
 
-        expandedRowGroups.value = [];
-        data.forEach((element, i) => {
-          element.STT = options.value.PageNo * options.value.PageSize + i + 1;
-          expandedRowGroups.value.push(element.report_group);
+      expandedRowGroups.value = [];
+      data.forEach((element, i) => {
+        element.STT = options.value.PageNo * options.value.PageSize + i + 1;
+        expandedRowGroups.value.push(element.report_group);
 
-          if (element.report_group) {
-            if (
-              !liReportGroup.value.find((x) => x.name == element.report_group)
-            ) {
-              liReportGroup.value.push({
-                name: element.report_group,
-              });
-            }
+        if (element.report_group) {
+          if (
+            !liReportGroup.value.find(
+              (x) => x.name == element.report_group.trim()
+            )
+          ) {
+            liReportGroup.value.push({
+              name: element.report_group,
+            });
           }
-        });
-        datalists.value = data;
-
-        options.value.loading = false;
-      })
-      .catch((error) => {
-        toast.error("Tải dữ liệu không thành công!");
-        options.value.loading = false;
-
-        if (error && error.status === 401) {
-          swal.fire({
-            text: "Mã token đã hết hạn hoặc không hợp lệ, vui lòng đăng nhập lại!",
-            confirmButtonText: "OK",
-          });
         }
       });
-  }
+      datalists.value = data;
+
+      options.value.loading = false;
+    })
+    .catch((error) => {
+      toast.error("Tải dữ liệu không thành công!");
+      options.value.loading = false;
+
+      if (error && error.status === 401) {
+        swal.fire({
+          text: "Mã token đã hết hạn hoặc không hợp lệ, vui lòng đăng nhập lại!",
+          confirmButtonText: "OK",
+        });
+      }
+    });
 };
 const onRowGroupExpand = (event) => {
   console.log(event, expandedRowGroups.value);
 };
+
+const initBaocao = async (id) => {
+  let strSQL = {
+    query: false,
+    proc: "report_get_key",
+    par: [
+      {
+        par: "report_key",
+        va: id,
+      },
+    ],
+  };
+  swal.fire({
+    width: 110,
+    didOpen: () => {
+      swal.showLoading();
+    },
+  });
+  const axResponse = await axios.post(
+    baseURL + "api/Proc/PostProc",
+    encr(JSON.stringify(strSQL), SecretKey, cryoptojs).toString(),
+    config
+  );
+
+  if (axResponse.status == 200) {
+    if (axResponse.data.error) {
+      toast.error("Không mở được báo cáo");
+    } else {
+      smart_report.value = JSON.parse(axResponse.data.data)[0][0];
+    }
+  }
+  swal.close();
+};
+const onRowClickTable = (data) => {
+  configBaocao(data.data);
+ 
+};
+
 //Phân trang dữ liệu
 const onPage = (event) => {
   if (event.rows != options.value.PageSize) {
@@ -153,8 +250,7 @@ const onPage = (event) => {
   } else if (event.page > options.value.PageNo) {
     //Trang sau
 
-    options.value.id =
-      datalists.value[datalists.value.length - 1].report_id;
+    options.value.id = datalists.value[datalists.value.length - 1].report_id;
     options.value.IsNext = true;
   } else if (event.page < options.value.PageNo) {
     //Trang trước
@@ -199,7 +295,7 @@ const checkDelList = ref(false);
 
 const options = ref({
   IsNext: true,
-  sort: "created_date",
+  sort: "report_group",
   SearchText: "",
   PageNo: 0,
   PageSize: 20,
@@ -207,6 +303,7 @@ const options = ref({
   totalRecords: null,
   totalRecordView: 0,
   totalRecordProc: 0,
+  report_group_filter: [],
 });
 
 //Hiển thị dialog
@@ -254,6 +351,7 @@ const openBasicWRP = (wrt) => {
   headerDialog.value = "Thêm báo cáo";
   displayBasic.value = true;
 };
+const pars = ref([]);
 const closeDialog = () => {
   smart_report.value = {
     report_name: "",
@@ -300,6 +398,7 @@ const saveData = (isFormValid) => {
       swal.showLoading();
     },
   });
+
   if (!isSaveTem.value) {
     axios
       .post(baseURL + "/api/smart_report/add_smart_report", formData, config)
@@ -471,6 +570,36 @@ const editTem = (dataTem) => {
       }
     });
 };
+const callbackFun = (obj) => {
+  Object.keys(obj).forEach((k) => {
+    smart_report.value[k] = obj[k];
+  });
+  let formData = new FormData();
+  formData.append("smart_report", JSON.stringify(smart_report.value));
+  axios
+    .put(baseURL + "/api/smart_report/update_smart_report", formData, config)
+    .then((response) => {
+      if (response.data.err != "1") {
+        swal.close();
+      } else {
+        swal.fire({
+          title: "Error!",
+          text: response.data.ms,
+          icon: "error",
+          confirmButtonText: "OK",
+        });
+      }
+    })
+    .catch((error) => {
+      swal.close();
+      swal.fire({
+        title: "Error!",
+        text: "Có lỗi xảy ra, vui lòng kiểm tra lại!",
+        icon: "error",
+        confirmButtonText: "OK",
+      });
+    });
+};
 //Xóa bản ghi
 const delTem = (Tem) => {
   swal
@@ -553,7 +682,7 @@ const loadDataSQL = () => {
 
   let data = {
     id: "report_id DESC",
-    sqlS: filterTrangthai.value != null ? filterTrangthai.value : null,
+    sqlS:   null,
     sqlO: options.value.sort,
     Search: options.value.SearchText,
     PageNo: options.value.PageNo,
@@ -615,7 +744,7 @@ const searchStamp = (event) => {
 };
 const refreshStamp = () => {
   options.value.SearchText = null;
-  filterTrangthai.value = null;
+ 
   options.value.loading = true;
   selectedStamps.value = [];
   isDynamicSQL.value = false;
@@ -725,120 +854,17 @@ const onCheckBox = (value, check, checkIsmain) => {
   }
 };
 //Xóa nhiều
-const deleteList = () => {
-  let listId = new Array(selectedStamps.value.length);
-  let checkD = false;
-  selectedStamps.value.forEach((item) => {
-    if (item.is_default) {
-      toast.error("Không được xóa báo cáo mặc định!");
-      checkD = true;
-      return;
-    }
-  });
-  if (!checkD) {
-    swal
-      .fire({
-        title: "Thông báo",
-        text: "Bạn có muốn xoá báo cáo này không!",
-        icon: "warning",
-        showCancelButton: true,
-        confirmButtonColor: "#3085d6",
-        cancelButtonColor: "#d33",
-        confirmButtonText: "Có",
-        cancelButtonText: "Không",
-      })
-      .then((result) => {
-        if (result.isConfirmed) {
-          swal.fire({
-            width: 110,
-            didOpen: () => {
-              swal.showLoading();
-            },
-          });
 
-          selectedStamps.value.forEach((item) => {
-            listId.push(item.report_id);
-          });
-          axios
-            .delete(baseURL + "/api/smart_report/delete_smart_report", {
-              headers: { Authorization: `Bearer ${store.getters.token}` },
-              data: listId != null ? listId : 1,
-            })
-            .then((response) => {
-              swal.close();
-              if (response.data.err != "1") {
-                swal.close();
-                toast.success("Xoá báo cáo thành công!");
-                checkDelList.value = false;
-
-                loadData(true);
-              } else {
-                swal.fire({
-                  title: "Error!",
-                  text: response.data.ms,
-                  icon: "error",
-                  confirmButtonText: "OK",
-                });
-              }
-            })
-            .catch((error) => {
-              swal.close();
-              if (error.status === 401) {
-                swal.fire({
-                  title: "Error!",
-                  text: "Mã token đã hết hạn hoặc không hợp lệ, vui lòng đăng nhập lại!",
-                  icon: "error",
-                  confirmButtonText: "OK",
-                });
-              }
-            });
-        }
-      });
-  }
-};
 const expandedRowGroups = ref([1, 2]);
 //Filter
-const trangThai = ref([
-  { name: "Hiển thị", code: 1 },
-  { name: "Không hiển thị", code: 0 },
-]);
 
-const filterTrangthai = ref();
-
-const reFilterEmail = () => {
-  filterTrangthai.value = null;
-  isDynamicSQL.value = false;
-  checkFilter.value = false;
-  filterSQL.value = [];
-  options.value.SearchText = null;
-  op.value.hide();
-  loadData(true);
-};
-const filterFileds = () => {
-  filterSQL.value = [];
-  checkFilter.value = true;
-  let filterS = {
-    filterconstraints: [{ value: filterTrangthai.value, matchMode: "equals" }],
-    filteroperator: "and",
-    key: "status",
-  };
-  filterSQL.value.push(filterS);
-  loadDataSQL();
-};
-watch(selectedStamps, () => {
-  if (selectedStamps.value.length > 0) {
-    checkDelList.value = true;
-  } else {
-    checkDelList.value = false;
-  }
-});
 const op = ref();
 const toggle = (event) => {
   op.value.toggle(event);
 };
 
 const filesList = ref([]);
- 
+
 const onUpFile = (file) => {
   let formData = new FormData();
   formData.append("fileupload", file);
@@ -852,7 +878,6 @@ const onUpFile = (file) => {
   })
     .then((response) => {
       if (response.data.err != "1") {
-        
         smart_report.value.report_template = response.data.htmls[0];
         checkUploadFile.value = true;
         checkDisabled.value = false;
@@ -871,7 +896,7 @@ const checkUploadFile = ref(false);
 const onUploadFile = (event) => {
   checkDisabled.value = true;
   checkUploadFile.value = false;
- 
+
   filesList.value = [];
 
   var ms = false;
@@ -954,8 +979,8 @@ const initTuDien = () => {
 
       data.forEach((element, i) => {
         listProcDropdown.value.push({
-          name: element.proc_name,
-          code: element.id,
+          name: element.proc_title,
+          code: element.proc_name,
         });
       });
     })
@@ -986,7 +1011,6 @@ emitter.on("emitData", (obj) => {
 
     case "submitDropdownUsers":
       if (obj.data) {
-       
         if (obj.data.type == 1) {
           smart_report.value.user_access_fake = [];
 
@@ -1029,6 +1053,25 @@ emitter.on("emitData", (obj) => {
       break;
   }
 });
+const onFilterReportGr = () => {
+  if (options.value.report_group_filter.length > 0) {
+    filterSQL.value = [];
+    let filterS1 = {
+      filterconstraints: [],
+      filteroperator: "or",
+      key: "report_group",
+    };
+    options.value.report_group_filter.forEach((element) => {
+      var addr = { value: element, matchMode: "contains" };
+      filterS1.filterconstraints.push(addr);
+    });
+
+    filterSQL.value.push(filterS1);
+    loadDataSQL();
+  } else {
+    loadData();
+  }
+};
 onMounted(() => {
   loadData(true);
   initTuDien();
@@ -1047,7 +1090,6 @@ onMounted(() => {
     searchStamp,
     onCheckBox,
     selectedStamps,
-    deleteList,
   };
 });
 </script>
@@ -1077,7 +1119,6 @@ onMounted(() => {
       :paginator="true"
       dataKey="report_id"
       responsiveLayout="scroll"
-      v-model:selection="selectedStamps"
       :row-hover="true"
       rowGroupMode="subheader"
       groupRowsBy="report_group"
@@ -1086,7 +1127,10 @@ onMounted(() => {
       sortMode="single"
       sortField="report_group"
       :sortOrder="1"
+      selectionMode="single"
+      v-model:selection="selectedStamps"
       @rowgroup-expand="onRowGroupExpand($event)"
+      @row-click="onRowClickTable($event)"
     >
       <template #header>
         <h3 class="module-title mt-0 ml-1 mb-2">
@@ -1096,85 +1140,38 @@ onMounted(() => {
         </h3>
         <Toolbar class="w-full custoolbar">
           <template #start>
-            <span class="p-input-icon-left">
-              <i class="pi pi-search" />
-              <InputText
-                v-model="options.SearchText"
-                @keyup="searchStamp"
-                type="text"
-                spellcheck="false"
-                placeholder="Tìm kiếm"
-              />
-              <Button
-                type="button"
-                class="ml-2"
-                icon="pi pi-filter"
-                @click="toggle"
-                aria:haspopup="true"
-                aria-controls="overlay_panel"
-                v-tooltip="'Bộ lọc'"
-                :class="
-                  filterTrangthai != null && checkFilter
-                    ? ''
-                    : 'p-button-secondary p-button-outlined'
-                "
-              />
-              <OverlayPanel
-                ref="op"
-                appendTo="body"
-                class="p-0 m-0"
-                :showCloseIcon="false"
-                id="overlay_panel"
-                style="width: 300px"
-              >
-                <div class="grid formgrid m-0">
-                  <div class="flex field col-12 p-0">
-                    <div
-                      class="col-4 text-left pt-2 p-0"
-                      style="text-align: left"
-                    >
-                      Trạng thái
-                    </div>
-                    <div class="col-8">
-                      <Dropdown
-                        class="col-12 p-0 m-0"
-                        v-model="filterTrangthai"
-                        :options="trangThai"
-                        optionLabel="name"
-                        optionValue="code"
-                        placeholder="Trạng thái"
-                      />
-                    </div>
-                  </div>
-                  <div class="flex col-12 p-0">
-                    <Toolbar
-                      class="border-none surface-0 outline-none pb-0 w-full"
-                    >
-                      <template #start>
-                        <Button
-                          @click="reFilterEmail"
-                          class="p-button-outlined"
-                          label="Xóa"
-                        ></Button>
-                      </template>
-                      <template #end>
-                        <Button @click="filterFileds" label="Lọc"></Button>
-                      </template>
-                    </Toolbar>
-                  </div>
-                </div>
-              </OverlayPanel>
-            </span>
+            <div class="align-items-center flex">
+              <span class="p-input-icon-left">
+                <i class="pi pi-search" />
+                <InputText
+                  v-model="options.SearchText"
+                  @keyup="searchStamp"
+                  type="text"
+                  spellcheck="false"
+                  placeholder="Tìm kiếm"
+                />
+
+                   </span>
+
+              <div class="p-inputgroup flex-1 ml-2">
+                <span class="p-inputgroup-addon">
+                  <i class="pi pi-filter"></i>
+                </span>
+                <MultiSelect
+                  v-model="options.report_group_filter"
+                  :options="liReportGroup"
+                  optionLabel="name"
+                  optionValue="name"
+                  spellcheck="false"
+                  style="min-width: 13rem"
+                  placeholder="Chọn nhóm báo báo"
+                  @change="onFilterReportGr"
+                />
+              </div>
+            </div>
           </template>
 
           <template #end>
-            <Button
-              v-if="checkDelList"
-              @click="deleteList()"
-              label="Xóa"
-              icon="pi pi-trash"
-              class="mr-2 p-button-danger"
-            />
             <Button
               @click="openBasic('Thêm báo cáo')"
               label="Thêm mới"
@@ -1252,7 +1249,6 @@ onMounted(() => {
         </template>
       </Column>
       <Column
-     
         header="Template"
         class="align-items-center justify-content-center text-center"
         headerStyle="text-align:center;max-width:120px;height:50px"
@@ -1265,7 +1261,6 @@ onMounted(() => {
             ></i></div></template
       ></Column>
       <Column
-      
         header="Sử dụng"
         class="align-items-center justify-content-center text-center"
         headerStyle="text-align:center;max-width:120px;height:50px"
@@ -1279,7 +1274,6 @@ onMounted(() => {
           </div> </template
       ></Column>
       <Column
- 
         header="Public"
         class="align-items-center justify-content-center text-center"
         headerStyle="text-align:center;max-width:120px;height:50px"
@@ -1292,7 +1286,6 @@ onMounted(() => {
             ></i></div></template
       ></Column>
       <Column
-       
         field="status"
         header="Trạng thái"
         headerStyle="text-align:center;max-width:120px;height:50px"
@@ -1326,6 +1319,7 @@ onMounted(() => {
             type="button"
             icon="pi pi-cog"
             v-tooltip.left="'Cấu hình báo cáo'"
+            @click="configBaocao(Tem.data)"
           ></Button>
           <Button
             @click="copyTem(Tem.data)"
@@ -1377,7 +1371,25 @@ onMounted(() => {
       </template>
     </DataTable>
   </div>
-
+  <Sidebar
+    v-model:visible="visibleSidebarDoc"
+    position="full"
+    class="d-sidebar-full"
+  >
+    <template #header>
+      <h2 class="p-0 m-0">
+        <i class="pi pi-cog mr-2"></i>{{ smart_report.report_name }}
+      </h2>
+    </template>
+    <div style="padding: 0 20px">
+      <DocComponent
+        :isedit="true"
+        :report="smart_report"
+        :callbackFun="callbackFun"
+        :pars="pars"
+      ></DocComponent>
+    </div>
+  </Sidebar>
   <Dialog
     :header="headerDialog"
     v-model:visible="displayBasic"
@@ -1454,7 +1466,6 @@ onMounted(() => {
               class="w-4rem lck-checked ml-3"
             />
           </div>
-       
         </div>
         <div class="col-12 field md:col-12 flex align-items-center">
           <div class="col-6 field md:col-6 p-0 flex align-items-center">
@@ -1488,18 +1499,14 @@ onMounted(() => {
               ></i>
             </div>
           </div>
-          <div
-            class="col-3 field md:col-3 p-0 flex align-items-center pl-1"
-          >
+          <div class="col-3 field md:col-3 p-0 flex align-items-center pl-1">
             <div class="text-left p-0">Kích hoạt</div>
             <InputSwitch
               v-model="smart_report.status"
               class="w-4rem lck-checked ml-3"
             />
           </div>
-          <div
-            class="col-3 field md:col-3 p-0 flex align-items-center  "
-          >
+          <div class="col-3 field md:col-3 p-0 flex align-items-center">
             <div class="text-left p-0">Template</div>
             <InputSwitch
               v-model="smart_report.is_temp"
@@ -1524,30 +1531,31 @@ onMounted(() => {
             <div class="col-12 field md:col-12 flex">
               <div class="col-6 md:col-6 p-0 align-items-center pr-1">
                 <div class="col-12 text-left p-0 pb-2">Thủ tục lấy dữ liệu</div>
-                <div class="col-12 p-0  h-full ">
-                <Dropdown
-                  v-model="smart_report.proc_name"
-                  :options="listProcDropdown"
-                  optionLabel="name"
-                  optionValue="code"
-                  class="w-full p-0"
-                  style="height: auto; min-height: 36px"
-                />
+                <div class="col-12 p-0 h-full">
+                  <Dropdown
+                    v-model="smart_report.proc_name"
+                    :options="listProcDropdown"
+                    optionLabel="name"
+                    optionValue="code"
+                    class="w-full p-0"
+                    style="height: auto; min-height: 36px"
+                  />
                 </div>
               </div>
               <div class="col-6 md:col-6 p-0 align-items-center pl-1">
                 <div class="col-12 text-left p-0 pb-2">Chọn nhân sự mẫu</div>
                 <div class="col-12 p-0">
                   <DropdownUser
-                  :model="smart_report.profile_id"
-                  :placeholder="'Chọn nhân sự'"
-                  :class="'w-full p-0'"
-                  :editable="false"
-                  optionLabel="profile_user_name"
-                optionValue="code"
-                />
+                    :model="smart_report.profile_id"
+                    :placeholder="'Chọn nhân sự'"
+                    :class="'w-full p-0'"
+                    :editable="false"
+                    optionLabel="profile_user_name"
+                    optionValue="code"
+                    :callbackFun="getProfileUser"
+                    :key_user="'profile_id'"
+                  />
                 </div>
-            
               </div>
             </div>
             <div class="col-12 field md:col-12">
@@ -1608,7 +1616,7 @@ onMounted(() => {
     </form>
     <template #footer>
       <Button
-      v-if="isSaveTem==true"
+        v-if="isSaveTem == true"
         label="Xóa cấu hình"
         icon="pi pi-cog"
         @click="closeDialog"

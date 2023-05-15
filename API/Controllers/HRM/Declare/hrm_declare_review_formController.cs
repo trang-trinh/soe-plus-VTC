@@ -19,11 +19,10 @@ using Helper;
 using Microsoft.ApplicationBlocks.Data;
 using Newtonsoft.Json;
 using Newtonsoft.Json.Linq;
-
-namespace API.Controllers.HRM.Campaign
+namespace API.Controllers.HRM.Declare
 {
     [Authorize(Roles = "login")]
-    public class hrm_campaignController : ApiController
+    public class hrm_declare_review_formController : ApiController
     {
         public string getipaddress()
         {
@@ -32,14 +31,14 @@ namespace API.Controllers.HRM.Campaign
 
 
         [HttpPost]
-        public async Task<HttpResponseMessage> add_hrm_campaign()
+        public async Task<HttpResponseMessage> add_hrm_declare_review_form()
         {
             var identity = User.Identity as ClaimsIdentity;
             if (identity == null)
             {
                 return Request.CreateResponse(HttpStatusCode.OK, new { ms = "Bạn không có quyền truy cập chức năng này!", err = "1" });
             }
-            string fdhrm_Campaign = "";
+            string fdhrm_ReviewForm = "";
             IEnumerable<Claim> claims = identity.Claims;
             string ip = getipaddress();
             string name = claims.Where(p => p.Type == "fname").FirstOrDefault()?.Value;
@@ -60,7 +59,7 @@ namespace API.Controllers.HRM.Campaign
 
                     string root = HttpContext.Current.Server.MapPath("~/Portals");
 
-                    string strPath = root + "/" + dvid + "/Campaign";
+                    string strPath = root + "/" + dvid + "/ReviewForm";
                     bool exists = Directory.Exists(strPath);
                     if (!exists)
                         Directory.CreateDirectory(strPath);
@@ -74,26 +73,21 @@ namespace API.Controllers.HRM.Campaign
                         {
                             Request.CreateErrorResponse(HttpStatusCode.InternalServerError, t.Exception);
                         }
-                        fdhrm_Campaign = provider.FormData.GetValues("hrm_campaign").SingleOrDefault();
-                        hrm_campaign hrm_Campaign = JsonConvert.DeserializeObject<hrm_campaign>(fdhrm_Campaign);
+                        fdhrm_ReviewForm = provider.FormData.GetValues("hrm_declare_review_form").SingleOrDefault();
+                        hrm_declare_review_form hrm_ReviewForm = JsonConvert.DeserializeObject<hrm_declare_review_form>(fdhrm_ReviewForm);
 
                         var intw = int.Parse(dvid);
-                        var checkBarcode = db.hrm_campaign.AsNoTracking().Where(a => a.campaign_code == hrm_Campaign.campaign_code && a.organization_id == intw).FirstOrDefault();
-                        if (checkBarcode != null)
-                        {
-                            return Request.CreateResponse(HttpStatusCode.OK, new { ms = "Mã chiến dịch đã tồn tại! Vui lòng nhập lại", err = "1" });
-                        }
 
-                        hrm_Campaign.organization_id = int.Parse(dvid);
-                        hrm_Campaign.created_by = uid;
-                        hrm_Campaign.created_date = DateTime.Now;
-                        hrm_Campaign.created_ip = ip;
-                        hrm_Campaign.created_token_id = tid;
-                        hrm_Campaign.modified_by = uid;
-                        hrm_Campaign.modified_date = DateTime.Now;
-                        hrm_Campaign.modified_ip = ip;
-                        hrm_Campaign.modified_token_id = tid;
-                        db.hrm_campaign.Add(hrm_Campaign);
+                        hrm_ReviewForm.organization_id = int.Parse(dvid);
+                        hrm_ReviewForm.created_by = uid;
+                        hrm_ReviewForm.created_date = DateTime.Now;
+                        hrm_ReviewForm.created_ip = ip;
+                        hrm_ReviewForm.created_token_id = tid;
+                        hrm_ReviewForm.modified_by = uid;
+                        hrm_ReviewForm.modified_date = DateTime.Now;
+                        hrm_ReviewForm.modified_ip = ip;
+                        hrm_ReviewForm.modified_token_id = tid;
+                        db.hrm_declare_review_form.Add(hrm_ReviewForm);
                         db.SaveChanges();
 
 
@@ -118,11 +112,11 @@ namespace API.Controllers.HRM.Campaign
                             {
                                 fileName = Path.GetFileName(fileName);
                             }
-                            newFileName = Path.Combine(root + "/" + dvid + "/Campaign", fileName);
+                            newFileName = Path.Combine(root + "/" + dvid + "/ReviewForm", fileName);
                             fileInfo = new FileInfo(newFileName);
 
-                            newFileName = Path.Combine(root + "/" + dvid + "/Campaign",
-                            helper.newFileName(fileInfo, root + "/" + dvid + "/Campaign", newFileName, 1, root, int.Parse(dvid)));
+                            newFileName = Path.Combine(root + "/" + dvid + "/ReviewForm",
+                            helper.newFileName(fileInfo, root + "/" + dvid + "/ReviewForm", newFileName, 1, root, int.Parse(dvid)));
                             ffileData = fileData;
                             if (fileInfo != null)
                             {
@@ -135,8 +129,8 @@ namespace API.Controllers.HRM.Campaign
                             }
                             hrm_file hrm_File = new hrm_file();
                             hrm_File.file_name = Path.GetFileName(newFileName);
-                            hrm_File.key_id = hrm_Campaign.campaign_id.ToString();
-                            hrm_File.file_path = "/Portals/" + dvid + "/Campaign/" + fileName;
+                            hrm_File.key_id = hrm_ReviewForm.review_form_id.ToString();
+                            hrm_File.file_path = "/Portals/" + dvid + "/ReviewForm/" + fileName;
                             hrm_File.file_type = helper.GetFileExtension(fileName);
                             var file_info = new FileInfo(strPath + "/" + fileName);
                             hrm_File.file_size = file_info.Length;
@@ -148,7 +142,7 @@ namespace API.Controllers.HRM.Campaign
                             {
                                 hrm_File.is_image = false;
                             }
-                            hrm_File.is_type = 3;
+                            hrm_File.is_type = 11;
                             hrm_File.status = true;
                             hrm_File.created_by = uid;
                             hrm_File.created_date = DateTime.Now;
@@ -166,11 +160,11 @@ namespace API.Controllers.HRM.Campaign
                         if (helper.wlog)
                         {
                             hrm_log log = new hrm_log();
-                            log.title = "Thêm chiến dịch tuyển dụng " + hrm_Campaign.campaign_name;
+                            log.title = "Thêm mẫu biểu đánh giá " + hrm_ReviewForm.review_form_name;
 
-                            log.log_module = "hrm_Campaign";
+                            log.log_module = "hrm_ReviewForm";
                             log.log_type = 0;
-                            log.id_key = hrm_Campaign.campaign_id.ToString();
+                            log.id_key = hrm_ReviewForm.review_form_id.ToString();
                             log.created_date = DateTime.Now;
                             log.created_by = uid;
                             log.created_token_id = tid;
@@ -188,7 +182,7 @@ namespace API.Controllers.HRM.Campaign
             catch (DbEntityValidationException e)
             {
                 string contents = helper.getCatchError(e, null);
-                helper.saveLog(uid, name, JsonConvert.SerializeObject(new { data = fdhrm_Campaign, contents }), domainurl + "hrm_campaign/Add_hrm_Campaign", ip, tid, "Lỗi khi thêm chiến dịch", 0, "chiến dịch");
+                helper.saveLog(uid, name, JsonConvert.SerializeObject(new { data = fdhrm_ReviewForm, contents }), domainurl + "hrm_declare_review_form/Add_hrm_ReviewForm", ip, tid, "Lỗi khi thêm chiến dịch", 0, "chiến dịch");
                 if (!helper.debug)
                 {
                     contents = "";
@@ -199,7 +193,7 @@ namespace API.Controllers.HRM.Campaign
             catch (Exception e)
             {
                 string contents = helper.ExceptionMessage(e);
-                helper.saveLog(uid, name, JsonConvert.SerializeObject(new { data = fdhrm_Campaign, contents }), domainurl + "hrm_campaign/Add_hrm_Campaign", ip, tid, "Lỗi khi thêm chiến dịch", 0, "chiến dịch  ");
+                helper.saveLog(uid, name, JsonConvert.SerializeObject(new { data = fdhrm_ReviewForm, contents }), domainurl + "hrm_declare_review_form/Add_hrm_ReviewForm", ip, tid, "Lỗi khi thêm chiến dịch", 0, "chiến dịch  ");
                 if (!helper.debug)
                 {
                     contents = "";
@@ -209,14 +203,14 @@ namespace API.Controllers.HRM.Campaign
             }
         }
         [HttpPut]
-        public async Task<HttpResponseMessage> update_hrm_campaign()
+        public async Task<HttpResponseMessage> update_hrm_declare_review_form()
         {
             var identity = User.Identity as ClaimsIdentity;
             if (identity == null)
             {
                 return Request.CreateResponse(HttpStatusCode.OK, new { ms = "Bạn không có quyền truy cập chức năng này!", err = "1" });
             }
-            string fdhrm_Campaign = "";
+            string fdhrm_ReviewForm = "";
             IEnumerable<Claim> claims = identity.Claims;
             string ip = getipaddress();
             string name = claims.Where(p => p.Type == "fname").FirstOrDefault()?.Value;
@@ -239,7 +233,7 @@ namespace API.Controllers.HRM.Campaign
 
                     string root = HttpContext.Current.Server.MapPath("~/Portals");
 
-                    string strPath = root + "/" + dvid + "/Campaign";
+                    string strPath = root + "/" + dvid + "/ReviewForm";
                     bool exists = Directory.Exists(strPath);
                     if (!exists)
                         Directory.CreateDirectory(strPath);
@@ -261,22 +255,17 @@ namespace API.Controllers.HRM.Campaign
 
 
 
-                        fdhrm_Campaign = provider.FormData.GetValues("hrm_campaign").SingleOrDefault();
-                        hrm_campaign hrm_Campaign = JsonConvert.DeserializeObject<hrm_campaign>(fdhrm_Campaign);
+                        fdhrm_ReviewForm = provider.FormData.GetValues("hrm_declare_review_form").SingleOrDefault();
+                        hrm_declare_review_form hrm_ReviewForm = JsonConvert.DeserializeObject<hrm_declare_review_form>(fdhrm_ReviewForm);
 
-                        var checkBarcode = db.hrm_campaign.AsNoTracking().Where(a => a.campaign_code == hrm_Campaign.campaign_code && a.campaign_id
-                  != hrm_Campaign.campaign_id && hrm_Campaign.organization_id == intw).FirstOrDefault();
-                        if (checkBarcode != null)
-                        {
-                            return Request.CreateResponse(HttpStatusCode.OK, new { ms = "Mã chiến dịch đã tồn tại! Vui lòng nhập lại", err = "1" });
-                        }
 
-                        hrm_Campaign.modified_by = uid;
-                        hrm_Campaign.modified_date = DateTime.Now;
-                        hrm_Campaign.modified_ip = ip;
-                        hrm_Campaign.modified_token_id = tid;
 
-                        db.Entry(hrm_Campaign).State = EntityState.Modified;
+                        hrm_ReviewForm.modified_by = uid;
+                        hrm_ReviewForm.modified_date = DateTime.Now;
+                        hrm_ReviewForm.modified_ip = ip;
+                        hrm_ReviewForm.modified_token_id = tid;
+
+                        db.Entry(hrm_ReviewForm).State = EntityState.Modified;
 
                         db.SaveChanges();
 
@@ -284,9 +273,9 @@ namespace API.Controllers.HRM.Campaign
                         List<string> paths = new List<string>();
                         hrm_Files = provider.FormData.GetValues("hrm_files").SingleOrDefault();
                         List<hrm_file> hrm_File_S = JsonConvert.DeserializeObject<List<hrm_file>>(hrm_Files);
-                        var id = hrm_Campaign.campaign_id.ToString();
+                        var id = hrm_ReviewForm.review_form_id.ToString();
                         var hrmfile_Delete = new List<hrm_file>();
-                        var hrm_file_Olds = db.hrm_file.Where(s => s.is_type == 3 && s.key_id == id).ToArray<hrm_file>();
+                        var hrm_file_Olds = db.hrm_file.Where(s => s.is_type == 11 && s.key_id == id).ToArray<hrm_file>();
                         foreach (var item in hrm_file_Olds)
                         {
                             var check = false;
@@ -326,17 +315,17 @@ namespace API.Controllers.HRM.Campaign
                             {
                                 fileName = Path.GetFileName(fileName);
                             }
-                            newFileName = Path.Combine(root + "/" + dvid + "/Campaign", fileName);
+                            newFileName = Path.Combine(root + "/" + dvid + "/ReviewForm", fileName);
                             fileInfo = new FileInfo(newFileName);
                             // if (fileInfo.Exists)
                             // {
                             //     fileName = fileInfo.Name.Replace(fileInfo.Extension, "");
                             //     fileName = fileName + (helper.ranNumberFile()) + fileInfo.Extension;
 
-                            //     newFileName = Path.Combine(root + "/" + dvid + "/Campaign", fileName);
+                            //     newFileName = Path.Combine(root + "/" + dvid + "/ReviewForm", fileName);
                             // }
-                            newFileName = Path.Combine(root + "/" + dvid + "/Campaign",
-                       helper.newFileName(fileInfo, root + "/" + dvid + "/Campaign", newFileName, 1, root, int.Parse(dvid)));
+                            newFileName = Path.Combine(root + "/" + dvid + "/ReviewForm",
+                       helper.newFileName(fileInfo, root + "/" + dvid + "/ReviewForm", newFileName, 1, root, int.Parse(dvid)));
                             ffileData = fileData;
                             if (fileInfo != null)
                             {
@@ -349,9 +338,9 @@ namespace API.Controllers.HRM.Campaign
                             }
 
                             hrm_file hrm_File = new hrm_file();
-                            hrm_File.key_id = hrm_Campaign.campaign_id.ToString();
+                            hrm_File.key_id = hrm_ReviewForm.review_form_id.ToString();
                             hrm_File.file_name = Path.GetFileName(newFileName);
-                            hrm_File.file_path = "/Portals/" + dvid + "/Campaign/" + fileName;
+                            hrm_File.file_path = "/Portals/" + dvid + "/ReviewForm/" + fileName;
                             hrm_File.file_type = helper.GetFileExtension(fileName);
                             var file_info = new FileInfo(strPath + "/" + fileName);
                             hrm_File.file_size = file_info.Length;
@@ -363,7 +352,7 @@ namespace API.Controllers.HRM.Campaign
                             {
                                 hrm_File.is_image = false;
                             }
-                            hrm_File.is_type = 3;
+                            hrm_File.is_type = 11;
                             hrm_File.status = true;
                             hrm_File.created_by = uid;
                             hrm_File.created_date = DateTime.Now;
@@ -378,11 +367,11 @@ namespace API.Controllers.HRM.Campaign
                         if (helper.wlog)
                         {
                             hrm_log log = new hrm_log();
-                            log.title = "Sửa chiến dịch tuyển dụng " + hrm_Campaign.campaign_name;
+                            log.title = "Sửa mẫu biểu đánh giá " + hrm_ReviewForm.review_form_name;
 
-                            log.log_module = "hrm_Campaign";
+                            log.log_module = "hrm_ReviewForm";
                             log.log_type = 0;
-                            log.id_key = hrm_Campaign.campaign_id.ToString();
+                            log.id_key = hrm_ReviewForm.review_form_id.ToString();
                             log.created_date = DateTime.Now;
                             log.created_by = uid;
                             log.created_token_id = tid;
@@ -395,9 +384,9 @@ namespace API.Controllers.HRM.Campaign
                         foreach (string strP in paths)
                         {
 
-                            bool exists = File.Exists(root + "/" + dvid + "/Campaign/" + Path.GetFileName(strP));
+                            bool exists = File.Exists(root + "/" + dvid + "/ReviewForm/" + Path.GetFileName(strP));
                             if (exists)
-                                System.IO.File.Delete(root + "/" + dvid + "/Campaign/" + Path.GetFileName(strP));
+                                System.IO.File.Delete(root + "/" + dvid + "/ReviewForm/" + Path.GetFileName(strP));
                         }
                         return Request.CreateResponse(HttpStatusCode.OK, new { err = "0" });
                     });
@@ -408,7 +397,7 @@ namespace API.Controllers.HRM.Campaign
             catch (DbEntityValidationException e)
             {
                 string contents = helper.getCatchError(e, null);
-                helper.saveLog(uid, name, JsonConvert.SerializeObject(new { data = fdhrm_Campaign, contents }), domainurl + "hrm_campaign/Update_hrm_Campaign", ip, tid, "Lỗi khi cập nhật hrm_Campaign", 0, "hrm_Campaign");
+                helper.saveLog(uid, name, JsonConvert.SerializeObject(new { data = fdhrm_ReviewForm, contents }), domainurl + "hrm_declare_review_form/Update_hrm_ReviewForm", ip, tid, "Lỗi khi cập nhật hrm_ReviewForm", 0, "hrm_ReviewForm");
                 if (!helper.debug)
                 {
                     contents = "";
@@ -419,7 +408,7 @@ namespace API.Controllers.HRM.Campaign
             catch (Exception e)
             {
                 string contents = helper.ExceptionMessage(e);
-                helper.saveLog(uid, name, JsonConvert.SerializeObject(new { data = fdhrm_Campaign, contents }), domainurl + "hrm_campaign/Update_hrm_Campaign", ip, tid, "Lỗi khi cập nhật hrm_Campaign", 0, "hrm_Campaign");
+                helper.saveLog(uid, name, JsonConvert.SerializeObject(new { data = fdhrm_ReviewForm, contents }), domainurl + "hrm_declare_review_form/Update_hrm_ReviewForm", ip, tid, "Lỗi khi cập nhật hrm_ReviewForm", 0, "hrm_ReviewForm");
                 if (!helper.debug)
                 {
                     contents = "";
@@ -432,7 +421,7 @@ namespace API.Controllers.HRM.Campaign
 
 
         [HttpDelete]
-        public async Task<HttpResponseMessage> delete_hrm_campaign([System.Web.Mvc.Bind(Include = "")][FromBody] List<int> id)
+        public async Task<HttpResponseMessage> delete_hrm_declare_review_form([System.Web.Mvc.Bind(Include = "")][FromBody] List<int> id)
         {
             var identity = User.Identity as ClaimsIdentity;
             if (identity == null)
@@ -454,12 +443,12 @@ namespace API.Controllers.HRM.Campaign
                 {
                     using (DBEntities db = new DBEntities())
                     {
-                        var das = await db.hrm_campaign.Where(a => id.Contains(a.campaign_id)).ToListAsync();
+                        var das = await db.hrm_declare_review_form.Where(a => id.Contains(a.review_form_id)).ToListAsync();
                         string root = HttpContext.Current.Server.MapPath("~/Portals");
                         List<string> paths = new List<string>();
                         if (das != null)
                         {
-                            List<hrm_campaign> del = new List<hrm_campaign>();
+                            List<hrm_declare_review_form> del = new List<hrm_declare_review_form>();
                             foreach (var da in das)
                             {
                                 del.Add(da);
@@ -470,7 +459,7 @@ namespace API.Controllers.HRM.Campaign
                                 {
                                     arr.Add(item.ToString());
                                 }
-                                var das3 = await db.hrm_file.Where(a => arr.Contains(a.key_id) && a.is_type == 3).ToListAsync();
+                                var das3 = await db.hrm_file.Where(a => arr.Contains(a.key_id) && a.is_type == 11).ToListAsync();
 
 
                                 foreach (var item in das3)
@@ -488,11 +477,11 @@ namespace API.Controllers.HRM.Campaign
                                 {
 
                                     hrm_log log = new hrm_log();
-                                    log.title = "Xóa chiến dịch " + da.campaign_name;
+                                    log.title = "Xóa chiến dịch " + da.review_form_name;
 
-                                    log.log_module = "hrm_Campaign";
+                                    log.log_module = "hrm_ReviewForm";
                                     log.log_type = 2;
-                                    log.id_key = da.campaign_id.ToString();
+                                    log.id_key = da.review_form_id.ToString();
                                     log.created_date = DateTime.Now;
                                     log.created_by = uid;
                                     log.created_token_id = tid;
@@ -505,16 +494,16 @@ namespace API.Controllers.HRM.Campaign
                                 foreach (string strP in paths)
                                 {
 
-                                    bool exists = File.Exists(root + "/" + dvid + "/Campaign/" + Path.GetFileName(strP));
+                                    bool exists = File.Exists(root + "/" + dvid + "/ReviewForm/" + Path.GetFileName(strP));
                                     if (exists)
-                                        System.IO.File.Delete(root + "/" + dvid + "/Campaign/" + Path.GetFileName(strP));
+                                        System.IO.File.Delete(root + "/" + dvid + "/ReviewForm/" + Path.GetFileName(strP));
                                 }
                             }
                             if (del.Count == 0)
                             {
                                 return Request.CreateResponse(HttpStatusCode.OK, new { err = "1", ms = "Bạn không có quyền xóa dữ liệu." });
                             }
-                            db.hrm_campaign.RemoveRange(del);
+                            db.hrm_declare_review_form.RemoveRange(del);
                         }
                         await db.SaveChangesAsync();
 
@@ -524,7 +513,7 @@ namespace API.Controllers.HRM.Campaign
                 catch (DbEntityValidationException e)
                 {
                     string contents = helper.getCatchError(e, null);
-                    helper.saveLog(uid, name, JsonConvert.SerializeObject(new { data = id, contents }), domainurl + "hrm_campaign/Delete_hrm_Campaign", ip, tid, "Lỗi khi xoá chiến dịch", 0, "hrm_Campaign");
+                    helper.saveLog(uid, name, JsonConvert.SerializeObject(new { data = id, contents }), domainurl + "hrm_declare_review_form/Delete_hrm_ReviewForm", ip, tid, "Lỗi khi xoá chiến dịch", 0, "hrm_ReviewForm");
                     if (!helper.debug)
                     {
                         contents = "";
@@ -535,7 +524,7 @@ namespace API.Controllers.HRM.Campaign
                 catch (Exception e)
                 {
                     string contents = helper.ExceptionMessage(e);
-                    helper.saveLog(uid, name, JsonConvert.SerializeObject(new { data = id, contents }), domainurl + "hrm_campaign/Delete_hrm_Campaign", ip, tid, "Lỗi khi xoá chiến dịch", 0, "hrm_Campaign");
+                    helper.saveLog(uid, name, JsonConvert.SerializeObject(new { data = id, contents }), domainurl + "hrm_declare_review_form/Delete_hrm_ReviewForm", ip, tid, "Lỗi khi xoá chiến dịch", 0, "hrm_ReviewForm");
                     if (!helper.debug)
                     {
                         contents = "";
@@ -553,7 +542,7 @@ namespace API.Controllers.HRM.Campaign
 
 
         [HttpPut]
-        public async Task<HttpResponseMessage> update_s_hrm_campaign([System.Web.Mvc.Bind(Include = "IntID,BitTrangthai")] Trangthai trangthai)
+        public async Task<HttpResponseMessage> update_s_hrm_declare_review_form([System.Web.Mvc.Bind(Include = "IntID,BitTrangthai")] Trangthai trangthai)
         {
             var identity = User.Identity as ClaimsIdentity;
             if (identity == null)
@@ -575,14 +564,14 @@ namespace API.Controllers.HRM.Campaign
                     using (DBEntities db = new DBEntities())
                     {
                         var int_id = int.Parse(trangthai.IntID.ToString());
-                        var das = db.hrm_campaign.Where(a => (a.campaign_id == int_id)).FirstOrDefault<hrm_campaign>();
+                        var das = db.hrm_declare_review_form.Where(a => (a.review_form_id == int_id)).FirstOrDefault<hrm_declare_review_form>();
                         if (das != null)
                         {
                             das.modified_by = uid;
                             das.modified_date = DateTime.Now;
                             das.modified_ip = ip;
                             das.modified_token_id = tid;
-                            das.status = trangthai.IntTrangthai;
+                            das.status = trangthai.BitTrangthai;
 
 
                             #region add hrm_log
@@ -590,11 +579,11 @@ namespace API.Controllers.HRM.Campaign
                             {
 
                                 hrm_log log = new hrm_log();
-                                log.title = "Sửa chiến dịch " + das.campaign_name;
+                                log.title = "Sửa chiến dịch " + das.review_form_name;
 
-                                log.log_module = "hrm_Campaign";
+                                log.log_module = "hrm_ReviewForm";
                                 log.log_type = 1;
-                                log.id_key = das.campaign_id.ToString();
+                                log.id_key = das.review_form_id.ToString();
                                 log.created_date = DateTime.Now;
                                 log.created_by = uid;
                                 log.created_token_id = tid;
@@ -614,7 +603,7 @@ namespace API.Controllers.HRM.Campaign
                 catch (DbEntityValidationException e)
                 {
                     string contents = helper.getCatchError(e, null);
-                    helper.saveLog(uid, name, JsonConvert.SerializeObject(new { data = trangthai.IntID, contents }), domainurl + "hrm_campaign/Update_Trangthaihrm_Campaign", ip, tid, "Lỗi khi cập nhật trạng thái chiến dịch", 0, "hrm_campaign");
+                    helper.saveLog(uid, name, JsonConvert.SerializeObject(new { data = trangthai.IntID, contents }), domainurl + "hrm_declare_review_form/Update_Trangthaihrm_ReviewForm", ip, tid, "Lỗi khi cập nhật trạng thái chiến dịch", 0, "hrm_declare_review_form");
                     if (!helper.debug)
                     {
                         contents = "";
@@ -625,7 +614,7 @@ namespace API.Controllers.HRM.Campaign
                 catch (Exception e)
                 {
                     string contents = helper.ExceptionMessage(e);
-                    helper.saveLog(uid, name, JsonConvert.SerializeObject(new { data = trangthai.IntID, contents }), domainurl + "hrm_campaign/Update_Trangthaihrm_Campaign", ip, tid, "Lỗi khi cập nhật trạng thái chiến dịch", 0, "hrm_campaign");
+                    helper.saveLog(uid, name, JsonConvert.SerializeObject(new { data = trangthai.IntID, contents }), domainurl + "hrm_declare_review_form/Update_Trangthaihrm_ReviewForm", ip, tid, "Lỗi khi cập nhật trạng thái chiến dịch", 0, "hrm_declare_review_form");
                     if (!helper.debug)
                     {
                         contents = "";

@@ -34,6 +34,59 @@ const rules = {
 };
 const v$ = useVuelidate(rules, module);
 //Khai báo biến
+
+const groupedPermissions = ref([
+    {
+        label: 'Thêm mới',
+        items: [
+            { label: 'Thêm mới', value: 1 },
+        ]
+    },
+    {
+        label: 'Chỉnh sửa',
+        items: [
+            { label: 'Chỉnh sửa phòng ban', value: 2 },
+            { label: 'Chỉnh sửa đơn vị', value: 3 },
+            { label: 'Chỉnh sửa tất cả', value: 4 },
+        ]
+    },
+    {
+        label: 'Xem',
+        items: [
+            { label: 'Xem phòng ban', value: 5 },
+            { label: 'Xem đơn vị', value: 6 },
+            { label: 'Xem tất cả', value: 7 },
+        ]
+    },
+    {
+        label: 'Duyệt',
+        items: [
+            { label: 'Duyệt', value: 8 }
+        ]
+    }
+]);
+const tdQuyens = [
+  { value: 1, text: "Tất cả các quyền" },
+  { value: 2, text: "Xem cá nhân" },
+  { value: 3, text: "Xem phòng ban" },
+  { value: 4, text: "Xem công ty" },
+  { value: 5, text: "Xem tất cả" },
+  { value: 6, text: "Chỉnh sửa (thêm, sửa, xóa)" },
+  { value: 7, text: "Chỉnh sửa cá nhân" },
+  { value: 8, text: "Duyệt chỉnh sửa hồ sơ" },
+  { value: 9, text: "Thiết lập ban đầu" },
+  { value: 10, text: "Duyệt đề xuất" },
+  { value: 11, text: "Lập đề xuất" },
+  { value: 12, text: "Phê duyệt" },
+  { value: 13, text: "Chiến dịch tuyển dụng" },
+  { value: 14, text: "Ứng viên" },
+  { value: 15, text: "Lịch phỏng vấn" },
+  { value: 16, text: "Tạo đánh giá" },
+  { value: 17, text: "Duyệt đánh giá" },
+  { value: 18, text: "Quản trị người dùng" },
+  { value: 19, text: "Quản trị người dùng đơn vị" },
+  { value: 20, text: "Backup dữ liệu" },
+].reverse();
 const store = inject("store");
 const selectCapcha = ref();
 const selectedKey = ref();
@@ -130,7 +183,14 @@ const onChangeParent = (item) => {
     .post(
       baseURL + "/api/Modules/GetDataProc",
       {
-        str: encr(JSON.stringify({}), SecretKey, cryoptojs).toString(),
+        str: encr(
+          JSON.stringify({
+            proc: "sys_module_get_order_pemission",
+            par: [{ par: "module_id", va: module_id }],
+          }),
+          SecretKey,
+          cryoptojs,
+        ).toString(),
       },
       config
     )
@@ -138,6 +198,7 @@ const onChangeParent = (item) => {
       let data = JSON.parse(response.data.data);
       if (data.length > 0) {
         module.value.is_order = data[0][0].c + 1;
+        module.value.permission =  convertIntToArray(data[1][0].permission);
       }
     });
 };
@@ -154,6 +215,7 @@ const showModalAddModule = () => {
     is_stand: [{ value: "Menuleft", text: "Menu trái" }],
     is_size: "720px",
     is_view_parent: true,
+    permission: [1,2,3,4,5,6,7],
   };
   displayAddModule.value = true;
 };
@@ -317,6 +379,9 @@ const editModule = (md) => {
             data[0][0].is_stand.includes(x.value)
           );
         }
+        if (data[0][0].permission) {
+          data[0][0].permission = convertIntToArray(data[0][0].permission);
+        }
         module.value = data[0][0];
         selectCapcha.value = {};
         selectCapcha.value[module.value.parent_id || "-1"] = true;
@@ -349,6 +414,7 @@ const handleSubmit = (isFormValid) => {
       module.value.organization_id = null;
     }
   }
+  if(module.value.permission) module.value.permission = module.value.permission.join(",");
   addModule();
 };
 const addTreeModule = (md) => {
@@ -370,8 +436,7 @@ const addTreeModule = (md) => {
     is_stand: [{ value: "Menuleft", text: "Menu trái" }],
     is_size: "720px",
   };
-  submitted.value = false;
-  displayAddModule.value = true;
+  loadParentPemission(md.data.module_id);
 };
 const addModule = () => {
   let or = arrroutes.value.find((x) => x.path == module.value.is_link);
@@ -422,6 +487,32 @@ const addModule = () => {
       });
     });
 };
+const loadParentPemission = (id)=>{
+  axios
+    .post(
+      baseURL + "/api/Modules/GetDataProc",
+      {
+        str: encr(
+          JSON.stringify({
+            proc: "sys_module_get_order_pemission",
+            par: [{ par: "module_id", va: id }],
+          }),
+          SecretKey,
+          cryoptojs,
+        ).toString(),
+      },
+      config
+    )
+    .then((response) => {
+      let data = JSON.parse(response.data.data);
+      if (data.length > 0) {
+        module.value.permission = convertIntToArray(data[1][0].permission);
+        //module.value.permission = data[1][0].permission.split("");
+      }
+      submitted.value = false;
+      displayAddModule.value = true;
+    });
+}
 const delModule = (md) => {
   swal
     .fire({
@@ -530,6 +621,15 @@ const exportModule = (method) => {
       }
     });
 };
+const convertIntToArray = (str)=>{
+  var arrs = [];
+  if(str != null){
+    str.toString().split(",").forEach((item)=>{
+    arrs.push(parseInt(item));
+    })
+  }
+  return arrs;
+}
 const filteredItems = ref([]);
 const searchItems = (event) => {
   //in a real application, make a request to a remote url with the query and return filtered results, for demo we filter at client side
@@ -784,9 +884,9 @@ onMounted(() => {
   <Dialog
     header="Cập nhật Module"
     v-model:visible="displayAddModule"
-    :style="{ width: '40vw', zIndex: 1000 }"
+    :style="{ width: '40vw' }"
     :maximizable="true"
-    :autoZIndex="false"
+    :autoZIndex="true"
   >
     <form @submit.prevent="handleSubmit(!v$.$invalid)">
       <div class="grid formgrid m-2">
@@ -915,6 +1015,33 @@ onMounted(() => {
             optionLabel="data.organization_name"
             optionValue="data.organization_id"
           ></TreeSelect>
+        </div>
+        <!-- <div class="field col-12 md:col-12">
+          <label class="col-2 text-left">Quyền</label>
+          <MultiSelect
+            :filter="true"
+            class="col-10"
+            v-model="module.permission"
+            :options="tdQuyens.sort((a, b) => a.value - b.value)"
+            optionLabel="text"
+            optionValue="value"
+            placeholder="Chọn quyền"
+            display="chip"
+          />
+        </div> -->
+        <div class="field col-12 md:col-12">
+          <label class="col-2 text-left">Quyền</label>
+          <MultiSelect v-model="module.permission" :options="groupedPermissions" optionLabel="label"
+           optionGroupLabel="label" optionGroupChildren="items" display="chip"  optionValue="value"
+           placeholder="Chọn quyền" class="col-10"
+           :filter="true"
+           >
+            <template #optiongroup="slotProps">
+                <div class="flex align-items-center">
+                    <div>{{ slotProps.option.label }}</div>
+                </div>
+            </template>
+        </MultiSelect>
         </div>
         <div class="field col-12 md:col-12">
           <label style="vertical-align: text-left" class="col-2"

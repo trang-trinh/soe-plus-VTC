@@ -340,11 +340,24 @@ onMounted(() => {
                 field="file_path"
                 header="File backup"
                 class="align-items-center justify-content-center text-center"
-                headerStyle="text-align:center;max-width:350px;height:50px"
-                bodyStyle="text-align:center;max-width:350px;"
+                headerStyle="text-align:center;max-width:300px;height:50px"
+                bodyStyle="justify-content:left !important;max-width:300px;"
             >
                 <template #body="data">
-                    <span>{{ data.data.file_path }}</span>
+                    <span class="flex" style="align-items: center;">
+                        <img
+                          class="cursor-pointer"
+                          style="height: 32px; object-fit: contain"
+                          v-bind:src="
+                            basedomainURL + '/Portals/file/' +
+                            (data.data.file_backup_path != null ? data.data.file_backup_path.substring(data.data.file_backup_path.lastIndexOf('.') + 1) : '')
+                            + '.png'
+                          "
+                          @error="$event.target.src = basedomainURL + '/Portals/Image/noimg.jpg'"
+                          @click=""
+                        />
+                        <span class="flex-1 ml-2" style="word-break: break-word;">{{ data.data.file_backup_path }}</span>
+                    </span>
                 </template>
             </Column>
             <Column
@@ -388,7 +401,7 @@ onMounted(() => {
                             class="p-button-rounded p-button-secondary p-button-outlined mx-1"
                             type="button"
                             icon="pi pi-download"
-                            v-tooltip="'Download'"
+                            v-tooltip.top="'Download'"
                         ></Button>
                     </div>
                 </template>
