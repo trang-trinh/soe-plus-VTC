@@ -155,15 +155,13 @@ const loadUsers = () => {
       {
         str: encr(
           JSON.stringify({
-            proc: "[sys_user_list_tree]",
+            proc: "sys_user_list_tree_task",
             par: [
               { par: "user_id", va: store.getters.user.user_id },
               {
                 par: "filter_organization_id",
                 va: options.value.filter_organization_id,
               },
-              { par: "page_no", va: options.value.pageNo },
-              { par: "page_size", va: options.value.pageSize },
               { par: "search", va: options.value.search },
             ],
           }),
@@ -359,8 +357,6 @@ onMounted(() => {
     :maximizable="true"
     @hide="props.closeDialog"
   >
-    {{ props }}
-    {{ selectedNodeUser }}
     <form class="flex col-12">
       <div class="col-5 md:col-5">
         <Toolbar
