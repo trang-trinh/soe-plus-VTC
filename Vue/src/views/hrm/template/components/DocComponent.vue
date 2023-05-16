@@ -3765,7 +3765,7 @@ export default {
           selectionMode="single"
           :metaKeySelection="false"
           scrollable
-          :scrollHeight="'calc(100vh - ' + (isUrlReport ? 120 : 190) + 'px)'"
+          :scrollHeight="'calc(100vh - ' + (isUrlReport ? 149 : 200) + 'px)'"
           class="p-datatable-sm"
           v-model:expandedRowGroups="expandedRowGroups"
           expandableRowGroups
@@ -3799,20 +3799,20 @@ export default {
             :bodyStyle="
               'max-width:' +
               (col.includes('Ảnh') || col == 'ok'
-                ? '50pt'
+                ? '50pt;text-align:center'
                 : (col.includes('Mã nhân sự') || col.includes('Số hợp đồng')  || col.includes('Ngày tạo') || col.includes('Ngày ký')  ) 
-                ? '80pt'
+                ? '80pt;text-align:center'
                 : 'auto') +
-              ';text-align:center;height:60px'
+              ';height:60px'
             "
             :headerStyle="
               'max-width:' +
               (col.includes('Ảnh') || col == 'ok'
-                ? '50pt'
+                ? '50pt;text-align:center'
                 : (col.includes('Mã nhân sự') || col.includes('Số hợp đồng')  || col.includes('Ngày tạo') || col.includes('Ngày ký')  ) 
-                ? '80pt'
+                ? '80pt;text-align:center'
                 : 'auto') +
-              ';text-align:center;height:60px'
+              ';height:60px'
             "
             v-for="col of dtColumns"
             :key="col"
@@ -3855,6 +3855,8 @@ export default {
                   <i v-if="dt.data[col]" class="pi pi-check text-green-500"></i>
                 </div>
                 <div v-else v-html="dt.data[col]"></div>
+                
+                
               </div>
             </template>
           </Column>
