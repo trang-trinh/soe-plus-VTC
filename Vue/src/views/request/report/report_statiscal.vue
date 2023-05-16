@@ -23,7 +23,7 @@ const config = {
 
 const options = ref({
     loading: true,
-    search: '',
+    search: "",
     pageNo: 1,
     pageSize: 20,
     total: 0,
@@ -67,6 +67,8 @@ const loadData = (rf) => {
                 count_all_request_choduyet.value = data[3][0].count_all_request_choduyet;
                 count_all_request_moitao.value = data[2][0].count_all_request_moitao;
                 count_all_request_hoanthanh.value = data[4][0].count_all_request_hoanthanh;
+                count_all_request_quahan_choduyet.value = data[5][0].count_all_request_quahan_choduyet;
+                count_all_request_quahan_daduyet.value = data[6][0].count_all_request_quahan_daduyet;
                 datalists.value.forEach((d)=>{
                     d.is_show = d.lv == 0 ? true : false;
                 })
@@ -75,7 +77,6 @@ const loadData = (rf) => {
             if (options.value.loading) options.value.loading = false;
         })
         .catch((error) => {
-            debugger
             toast.error("Tải dữ liệu không thành công!");
             options.value.loading = false;
             if (error && error.status === 401) {
@@ -199,7 +200,7 @@ const ChangeIsShowTeam = () => {
                         <th class="text-center" width="100">{{ count_all_request_hoanthanh }}</th>
                         <th class="text-center" width="100">{{ count_all_request_quahan_choduyet }}</th>
                         <th class="text-center" width="100">{{ count_all_request_quahan_daduyet }}</th>
-                        <th class="text-center" width="100">{{ count_all_request_quahan }}</th>
+                        <th class="text-center" width="100">{{ count_all_request_quahan_choduyet + count_all_request_quahan_daduyet }}</th>
                     </tr>
                 </thead>
                 <tbody v-for="(d, index) in datalists" :key="index">
@@ -211,7 +212,7 @@ const ChangeIsShowTeam = () => {
                         <td align="center">{{ d.count_all_request_hoanthanh }}</td>
                         <td align="center">{{ d.count_all_request_quahan_choduyet }}</td>
                         <td align="center">{{ d.count_all_request_quahan_daduyet }}</td>
-                        <td align="center">{{ d.count_all_request_quahan }}</td>
+                        <td align="center">{{ d.count_all_request_quahan_choduyet + d.count_all_request_quahan_daduyet }}</td>
                     </tr>
                 </tbody>
             </table>

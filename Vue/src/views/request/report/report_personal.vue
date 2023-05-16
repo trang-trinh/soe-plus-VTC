@@ -30,6 +30,15 @@ const options = ref({
     is_team: false,
 });
 
+const listStatusRequests = ref([
+    { id: 0,  text: "Mới lập", value: 0, class: "rqlap", bg:"rgb(116, 185, 255)" },
+    { id: 1,  text: "Chờ duyệt", value: 0, class: "rqchoduyet", bg:"rgb(51, 201, 220)" },
+    { id: 2,  text: "Hoàn thành", value: 0, classclass: "rqchapthuan", bg:"rgb(109, 210, 48)" },
+    { id: -2, text: "Từ chối", value: 0, class: "rqtuchoi", bg:"rgb(241, 122, 199)" },
+    { id: -1, text: "Quá hạn", value: 0, class: "rqhuy", bg:"rgb(255, 139, 78)" },
+    { id: 3,  text: "Xử lý đánh giá", value: 0, class: "rqthuhoi", bg:"rgb(245, 176, 65)" },
+]);
+
 const datalists = ref();
 
 const loadData = (rf) => {
@@ -104,12 +113,15 @@ onMounted(() => {
                     label="Tải lại" />
             </template>
         </Toolbar>
-        <div class="flex" style="width: 100%;height: 50px;justify-content: center;align-items: center;font-weight: bold;font-size: 14px;">
+        <div class="flex"
+            style="width: 100%;height: 50px;justify-content: center;align-items: center;font-weight: bold;font-size: 14px;background-color: #fff;">
             BÁO CÁO ĐỀ XUẤT CÁ NHÂN
         </div>
-        <div class="field col-12 md:col-12 algn-items-center flex p-0">
-            <div class="col-3 text-left flex p-0" style="align-items:center;">
-                
+        <div class="field col-12 md:col-12 algn-items-center flex p-0" style="margin-top: 10px;">
+            <div v-for="l in listStatusRequests" class="col-2 text-center p-0" style="align-items:center;">
+                <div style="margin: 0px 10px;color: #fff;font-size: 15px;" :style="'background-color:' + l.bg" class="zoom">
+                    {{ l.text }} ({{ l.value }})
+                </div>
             </div>
         </div>
         <!-- <div class="flex" style="width: 100%;height: 50px;justify-content: center;align-items: center;font-weight: bold;font-size: 14px;background-color: #fff;">
@@ -164,5 +176,20 @@ onMounted(() => {
     .p-toolbar-group-left {
         width: 70%;
     }
+}
+.zoom {
+    cursor: pointer;
+    border-radius: 0.25rem;
+    box-shadow: 0 2px 4px rgb(0 0 0 / 23%);
+    transition: transform 0.3s !important;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    height: 40px;
+}
+.zoom:hover {
+    transform: scale(0.9) !important;
+    /* box-shadow: 10px 10px 15px rgb(0 0 0 / 23%) !important; */
+    cursor: pointer !important;
 }
 </style>
