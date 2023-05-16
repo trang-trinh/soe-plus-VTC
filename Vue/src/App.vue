@@ -118,12 +118,13 @@ const passModuleToSidebar = () => {
         "/tasks/taskmaintype",
         "/tasks/aa",
       ];
-      if (
-        data[1].filter((x) => x.is_link == root_path).length == 0 &&
-        !path_system.includes(root_path)
-      )
-        route.push({ path: "/" });
-      else if (data[0].length > 0) {
+      // if (
+      //   data[1].filter((x) => x.is_link == root_path).length == 0 &&
+      //   !path_system.includes(root_path)
+      // )
+      //   route.push({ path: "/" });
+      // else
+       if (data[0].length > 0) {
         cookies.set("max_length_file", data[0][0].max_length_file);
         emitter.emit("emitData", { type: "moduleFromUrl", data: data[0][0] });
       }
