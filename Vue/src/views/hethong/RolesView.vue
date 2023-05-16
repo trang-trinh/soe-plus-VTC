@@ -1271,9 +1271,8 @@ onMounted(() => {
       <Column field="count_users" header="Người dùng" class="align-items-center justify-content-center text-center"
         headerStyle="text-align:center;max-width:100px" bodyStyle="text-align:center;max-width:100px">
         <template #body="md">
-
           <Chip class="chip1" style="background-color: #005c9e;" @click="goUser(md.data.role_id)">{{
-          md.data.count_users
+          md.data.count_users ? md.data.count_users : '0'
           }}</Chip>
         </template>
       </Column>

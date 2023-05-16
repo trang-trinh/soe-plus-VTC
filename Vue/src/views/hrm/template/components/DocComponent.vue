@@ -3042,13 +3042,13 @@ export default {
     const initProfile = async (r) => {
       let dts = await goProc(
         true,
-          `profile_info`,
-          [{ par: "user_id", va: store.getters.user.user_id },
-          { par: "profile_id", va: r.profile_id }
-        
+        `profile_info`,
+        [
+          { par: "user_id", va: store.getters.user.user_id },
+          { par: "profile_id", va: r.profile_id },
         ],
-          false,
-          true
+        false,
+        true
       );
       if (dts.length > 0) {
         dtProfile = dts[0];
@@ -3184,14 +3184,13 @@ export default {
 
       dts = await goProc(
         true,
-          `profile_info`,
-          [{ par: "user_id", va: store.getters.user.user_id },
-          { par: "profile_id", va: r.profile_id }
-        
+        `profile_info`,
+        [
+          { par: "user_id", va: store.getters.user.user_id },
+          { par: "profile_id", va: r.profile_id },
         ],
-          true,
-          true
-         
+        true,
+        true
       );
       if (dts.length > 0) {
         dtProfile = dts[0][0];
@@ -3632,7 +3631,7 @@ export default {
     <div
       class="tool flex w-full p-2"
       v-if="isUrlReport || readonly"
-      :style="'height:' + (isUrlReport || readonly ? '40pt' : '')"
+     
     >
       <Button
         v-if="!readonly"
@@ -3766,7 +3765,7 @@ export default {
           selectionMode="single"
           :metaKeySelection="false"
           scrollable
-          :scrollHeight="'calc(100vh - ' + (isUrlReport ? 120 : 190) + 'px)'"
+          :scrollHeight="'calc(100vh - ' + (isUrlReport ? 149 : 200) + 'px)'"
           class="p-datatable-sm"
           v-model:expandedRowGroups="expandedRowGroups"
           expandableRowGroups
@@ -3797,27 +3796,39 @@ export default {
             </div>
           </template>
           <Column
-          :bodyStyle="
-             
-                'max-width:' +
-                (col.includes('Ảnh') || col == 'ok' ? '50pt' : (col.includes('Mã nhân sự')|| col.includes('Ngày tạo'))?'80pt'  :    'auto')+';text-align:center;height:60px'
-              "
-                  :headerStyle="
-             
-             'max-width:' +
-             (col.includes('Ảnh') || col == 'ok' ? '50pt' : (col.includes('Mã nhân sự')|| col.includes('Ngày tạo'))?'80pt'  :    'auto')+';text-align:center;height:60px'
-           "
+            :bodyStyle="
+              'max-width:' +
+              (col.includes('Ảnh') || col == 'ok'
+                ? '50pt;text-align:center'
+                : (col.includes('Mã nhân sự') || col.includes('Số hợp đồng')  || col.includes('Ngày tạo') || col.includes('Ngày ký')  ) 
+                ? '80pt;text-align:center'
+                : 'auto') +
+              ';height:60px'
+            "
+            :headerStyle="
+              'max-width:' +
+              (col.includes('Ảnh') || col == 'ok'
+                ? '50pt;text-align:center'
+                : (col.includes('Mã nhân sự') || col.includes('Số hợp đồng')  || col.includes('Ngày tạo') || col.includes('Ngày ký')  ) 
+                ? '80pt;text-align:center'
+                : 'auto') +
+              ';height:60px'
+            "
             v-for="col of dtColumns"
             :key="col"
             :field="col"
             :header="col != 'ok' && !col.includes('_') ? col : ''"
-            :bodyClass="   
-                (col.includes('Ảnh') || col == 'ok' ? 'format-center':'') "
-         
-           headerClass="align-items-center justify-content-center text-center"
+            :bodyClass="
+             ( col.includes('Ảnh') || col.includes('Số hợp đồng') ||  col.includes('Mã nhân sự') || col.includes('Ngày tạo') || col.includes('Ngày ký')  ) || col == 'ok' ? 'format-center' : ''
+            "
+            :headerClass="
+               ( col.includes('Ảnh') || col.includes('Số hợp đồng') ||  col.includes('Mã nhân sự') || col.includes('Ngày tạo') || col.includes('Ngày ký')  ) || col == 'ok'
+                ? 'align-items-center justify-content-center text-center'
+                : ''
+            "
           >
             <template #body="dt">
-              <div v-if="col.includes('Ảnh')" >
+              <div v-if="col.includes('Ảnh')">
                 <Avatar
                   v-if="(dt.data[col] || '').includes('.')"
                   :image="dt.data[col]"
@@ -3844,6 +3855,8 @@ export default {
                   <i v-if="dt.data[col]" class="pi pi-check text-green-500"></i>
                 </div>
                 <div v-else v-html="dt.data[col]"></div>
+                
+                
               </div>
             </template>
           </Column>
@@ -5061,8 +5074,6 @@ export default {
   td {
     overflow: hidden;
   }
-
- 
 
   .p-panel-content {
     overflow-x: auto;

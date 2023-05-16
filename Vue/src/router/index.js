@@ -305,6 +305,8 @@ const Hrm_Recruitment_Process = () =>
   import("../views/hrm/recruitment/hrm_process.vue");
 const HRM_Report_Config = () =>
   import("../views/hrm/config/ConfigReportForm.vue");
+  const ReportDetail = () =>
+  import("../views/hrm/template/ReportDetail.vue");
 //end
 // TV
 const ConfigScreenTV = () => import("../views/tivi/tivi_screen_config.vue");
@@ -831,6 +833,7 @@ const router = createRouter({
       name: "/news/direct/details",
       component: NewDetails,
     },
+
     {
       path: "/news/direct/keywords/:name",
       name: "newskeywords",
@@ -2101,7 +2104,11 @@ const router = createRouter({
       name: "Hrm_config_approved",
       component: Hrm_config_approved,
     },
-
+    {
+      path: "/hrm/template/smart_report/:name",
+      name: "/hrm/template/smartdetails",
+      component: ReportDetail,
+    },
     // Request
     {
       path: "/request/dashboard",
