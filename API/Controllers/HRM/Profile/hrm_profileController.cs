@@ -1943,13 +1943,26 @@ namespace API.Controllers.HRM.Profile
                                                                 break;
                                                             case "34":
                                                                 var olds = value.ToString().Split(',').ToList();
-                                                                if (olds.Count > 0)
+                                                                if (olds.Count > 1)
                                                                 {
-                                                                    var yearold = olds[0]?.ToLower().Trim().Replace("năm", "").Trim() ?? "0";
-                                                                    var monthold = olds[1]?.ToLower().Trim().Replace("tháng", "").Trim() ?? "0";
-
-                                                                    profile.seniority_year = int.Parse(yearold);
-                                                                    profile.seniority_month = int.Parse(monthold);
+                                                                    var yearold = (olds?[0] ?? "0").ToLower().Trim().Replace("năm", "").Trim();
+                                                                    if (!string.IsNullOrEmpty(yearold))
+                                                                    {
+                                                                        profile.seniority_year = int.Parse(yearold);
+                                                                    }
+                                                                    var monthold = (olds?[1] ?? "0").ToLower().Trim().Replace("tháng", "").Trim();
+                                                                    if (!string.IsNullOrEmpty(monthold))
+                                                                    {
+                                                                        profile.seniority_month = int.Parse(monthold);
+                                                                    }
+                                                                }
+                                                                else if (olds.Count > 0)
+                                                                {
+                                                                    var yearold = (olds?[0] ?? "0").ToLower().Trim().Replace("năm", "").Trim();
+                                                                    if (!string.IsNullOrEmpty(yearold))
+                                                                    {
+                                                                        profile.seniority_year = int.Parse(yearold);
+                                                                    }
                                                                 }
                                                                 break;
                                                             case "35":
