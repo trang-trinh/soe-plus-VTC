@@ -21,6 +21,7 @@ using System.Threading.Tasks;
 using System.Web;
 using System.Web.Http;
 using System.Web.Services.Description;
+using System.Xml;
 
 namespace API.Controllers.Request
 {
@@ -776,33 +777,79 @@ namespace API.Controllers.Request
                         }
                         // type_send = 0: Chuyển theo quy trình , 1: Chuyển đến nhóm duyệt, 2: Chuyển đích danh
                         int type_send = int.Parse(provider.FormData.GetValues("type_send").SingleOrDefault());
-                        var key_id = int.Parse(provider.FormData.GetValues("key_id").SingleOrDefault());
+                        var key_id = provider.FormData.GetValues("key_id").SingleOrDefault();
                         string content = provider.FormData.GetValues("content").SingleOrDefault();
                         string request_obj = provider.FormData.GetValues("request_obj").SingleOrDefault();
+                        string request_form_id_send = provider.FormData.GetValues("request_form_id_send").SingleOrDefault();
                         List<request_master> listRequest = JsonConvert.DeserializeObject<List<request_master>>(request_obj);
 
+
+                        List<request_ca_form_sign> signforms = new List<request_ca_form_sign>(); // Nhóm duyệt theo loại form đề xuất
+                        List<request_form_sign_user> signuserforms = new List<request_form_sign_user>(); // Người duyệt trong nhóm của form đề xuất
+                        sys_config_process processSystem = new sys_config_process(); // Quy trình hệ thống dùng chung
+                        List<sys_approved_groups> signformsSystem = new List<sys_approved_groups>(); // Nhóm duyệt hệ thống dùng chung
+                        List<sys_approved_users> signuserformsSystem = new List<sys_approved_users>(); // Người duyệt trong nhóm hệ thống dùng chung
                         #region Xử lý request
-                        if (type_send == 0)
+                        foreach (var item_request in listRequest)
                         {
+                            #region hide code
+                            //if (type_send == 0)
+                            //{
+                            //    if (key_id == "0")
+                            //    {
+                            //        signforms = db.request_ca_form_sign.AsNoTracking().Where(x => x.request_form_id == item_request.request_form_id && x.status == true).OrderBy(x => x.is_order).ToList();
+                            //        var signform_ids = signforms.Select(x => x.request_form_sign_id).ToList();
+                            //        signuserforms = db.request_form_sign_user.AsNoTracking().Where(x => signform_ids.Contains(x.request_form_sign_id) && x.status == true && x.user_id != uid).OrderBy(x => x.STT).ToList();
+                            //    }
+                            //    else
+                            //    {
+                            //        processSystem = db.sys_config_process.AsNoTracking().FirstOrDefault(x => x.config_process_id == int.Parse(key_id));
+                            //        if (processSystem != null)
+                            //        {
+                            //            var listGroupLink = db.sys_process_link_approved.AsNoTracking().Where(x => x.config_process_id == processSystem.config_process_id).OrderBy(x => x.is_order).ToList();
+                            //            foreach (var item in listGroupLink)
+                            //            {
+                            //                var groupSys = db.sys_approved_groups.AsNoTracking().FirstOrDefault(x => x.approved_groups_id == item.approved_groups_id);
+                            //                if (groupSys != null)
+                            //                {
+                            //                    signformsSystem.Add(groupSys);
+                            //                }
+                            //            }
+                            //            var signformsSystem_ids = signformsSystem.Select(x => x.approved_groups_id).ToList();
+                            //            signuserformsSystem = db.sys_approved_users.AsNoTracking().Where(x => signformsSystem_ids.Contains(x.approved_groups_id) && x.user_id != uid).ToList();
+                            //        }
+                            //    }
+                            //}
+                            //else if (type_send == 1)
+                            //{
+                            //    if (request_form_id_send != "")
+                            //    {
+                            //        signforms = db.request_ca_form_sign.AsNoTracking().Where(x => x.request_form_sign_id == key_id).ToList();
+                            //        var signform_ids = signforms.Select(x => x.request_form_sign_id).ToList();
+                            //        signuserforms = db.request_form_sign_user.AsNoTracking().Where(x => signform_ids.Contains(x.request_form_sign_id) && x.status == true && x.user_id != uid).OrderBy(x => x.STT).ToList();
+                            //    }
+                            //    else
+                            //    {
+                            //        signformsSystem = db.sys_approved_groups.AsNoTracking().Where(x => x.approved_groups_id == int.Parse(key_id)).ToList();
+                            //        var signformsSystem_ids = signformsSystem.Select(x => x.approved_groups_id).ToList();
+                            //        signuserformsSystem = db.sys_approved_users.AsNoTracking().Where(x => signformsSystem_ids.Contains(x.approved_groups_id) && x.user_id != uid).ToList();
+                            //    }
+                            //}
+                            //else if (type_send == 2)
+                            //{
+                            //    signuserforms = new List<request_form_sign_user>();
+                            //}
+                            #endregion
+                            #region quy trinh cu
 
-                        }
-                        else if (type_send == 1)
-                        {
-
-                        }
-                        else if (type_send == 2)
-                        {
-
-                        }
-                        foreach(var item_request in listRequest)
-                        {
+                            #endregion
                             var request = db.request_master.Find(item_request.request_id);
                             if (request != null)
                             {
                                 //Send Message
                                 List<string> sendUsers = new List<string>();
                                 string sendTitle = "Đề xuất";
-                                string sendContent = "Vừa gửi đến bạn đề xuất chờ duyệt: \"" + request.request_name + "\".";
+                                string sendContent = (name ?? "") + "vừa gửi đến bạn đề xuất chờ duyệt: \"" + request.request_name + "\".";
                                 //Log
                                 request_log log = new request_log();
 
@@ -813,6 +860,506 @@ namespace API.Controllers.Request
                                 request.modified_date = DateTime.Now;
                                 request.modified_ip = ip;
                                 request.modified_token_id = tid;
+
+                                #region Gen quy trinh
+                                if (type_send == 0) // gửi đến quy trình
+                                {
+                                    request_master_procedure procedure = new request_master_procedure();
+                                    procedure.procedure_id = helper.GenKey();
+                                    procedure.request_id = request.request_id;
+                                    // Nhóm duyệt
+                                    List<request_master_sign> signs = new List<request_master_sign>();
+                                    List<request_master_signuser> signusers = new List<request_master_signuser>();
+                                    int is_stepsign = 0;
+                                    if (key_id == "0")
+                                    {
+                                        signforms = db.request_ca_form_sign.AsNoTracking().Where(x => x.request_form_id == item_request.request_form_id && x.status == true).OrderBy(x => x.is_order).ToList();
+                                        var signform_ids = signforms.Select(x => x.request_form_sign_id).ToList();
+                                        signuserforms = db.request_form_sign_user.AsNoTracking().Where(x => signform_ids.Contains(x.request_form_sign_id) && x.status == true && x.user_id != uid).OrderBy(x => x.STT).ToList();
+                                        // Quy trình
+                                        var name_type_request = db.request_ca_form.FirstOrDefault(x => x.request_form_id == request.request_form_id)?.request_form_name ?? "";
+                                        procedure.procedure_name = "Quy trình duyệt loại đề xuất: " + name_type_request;
+                                        int approved_type = int.Parse(provider.FormData.GetValues("approved_type").SingleOrDefault());
+                                        procedure.is_type = approved_type;
+                                        procedure.is_order = 0;
+                                        procedure.organization_id = db.request_ca_form.AsNoTracking().Where(x => x.request_form_id == item_request.request_form_id).FirstOrDefault()?.organization_id;
+                                        is_stepsign = 0;
+                                        foreach (var sf in signforms)
+                                        {
+                                            is_stepsign++;
+                                            request_master_sign sign = new request_master_sign();
+                                            sign.sign_id = helper.GenKey();
+                                            sign.request_id = request.request_id;
+                                            sign.procedure_id = procedure.procedure_id;
+                                            sign.sign_name = sf.group_name;
+                                            sign.is_order = sf.is_order;
+                                            sign.is_type = sf.type_process;
+                                            sign.is_sign = false;
+                                            sign.is_skip = false;
+                                            switch (procedure.is_type)
+                                            {
+                                                case 0: // Duyệt tuần tự
+                                                    sign.status = false;
+                                                    if (is_stepsign == 1 || signusers.Count == 1)
+                                                    {
+                                                        sign.status = true;
+                                                    }
+                                                    break;
+                                                case 1: // Duyệt một nhiều
+                                                    sign.status = true;
+                                                    break;
+                                                case 2: // Duyệt ngẫu nhiên
+
+                                                    break;
+                                            }
+                                            sign.created_by = uid;
+                                            sign.created_date = DateTime.Now;
+                                            sign.created_ip = ip;
+                                            sign.created_token_id = tid;
+                                            sign.organization_id = procedure.organization_id;
+                                            signs.Add(sign);
+
+                                            // Người lập
+                                            request_master_signuser signusercreate = new request_master_signuser();
+                                            if (sign.is_order == 1)
+                                            {
+                                                signusercreate.signuser_id = helper.GenKey();
+                                                signusercreate.request_id = request.request_id;
+                                                signusercreate.sign_id = sign.sign_id;
+                                                signusercreate.user_id = uid;
+                                                signusercreate.is_order = 0;
+                                                signusercreate.is_type = 1; //Người lập
+                                                signusercreate.is_sign = 2;
+                                                signusercreate.sign_date = DateTime.Now;
+                                                signusercreate.sign_content = content;
+                                                signusercreate.read_date = DateTime.Now;
+                                                signusercreate.status = true;
+                                                signusercreate.created_by = uid;
+                                                signusercreate.created_date = DateTime.Now;
+                                                signusercreate.created_ip = ip;
+                                                signusercreate.created_token_id = tid;
+                                                signusers.Add(signusercreate);
+                                            }
+                                            //Người duyệt
+                                            var signuserformfilters = signuserforms.Where(x => x.request_form_sign_id == sf.request_form_sign_id).ToList();
+                                            int is_stepsignuser = 0;
+                                            foreach (var signuserform in signuserformfilters)
+                                            {
+                                                is_stepsignuser++;
+                                                request_master_signuser signuser = new request_master_signuser();
+                                                signuser.signuser_id = helper.GenKey();
+                                                signuser.request_id = request.request_id;
+                                                signuser.sign_id = sign.sign_id;
+                                                signuser.user_id = signuserform.user_id;
+                                                signuser.is_order = signuserform.STT;
+                                                signuser.is_type = signuserform.IsType;
+                                                signuser.is_sign = 0;
+                                                if (sign.status == true)
+                                                {
+                                                    switch (sign.is_type)
+                                                    {
+                                                        case 0:
+                                                            signuser.status = false;
+                                                            if (is_stepsignuser == 1)
+                                                            {
+                                                                signuser.status = true;
+                                                            }
+                                                            break;
+                                                        case 1:
+                                                            signuser.status = true;
+                                                            break;
+                                                        case 2:
+
+                                                            break;
+                                                    }
+                                                }
+                                                else
+                                                {
+                                                    signuser.status = false;
+                                                }
+                                                signuser.created_by = uid;
+                                                signuser.created_date = DateTime.Now;
+                                                signuser.created_ip = ip;
+                                                signuser.created_token_id = tid;
+                                                signusers.Add(signuser);
+                                            }
+                                            if (signusers.Count > 0)
+                                            {
+                                                db.request_master_signuser.AddRange(signusers);
+                                            }
+                                        }
+                                    }
+                                    else
+                                    {
+                                        processSystem = db.sys_config_process.AsNoTracking().FirstOrDefault(x => x.config_process_id == int.Parse(key_id));
+                                        if (processSystem != null)
+                                        {
+                                            var listGroupLink = db.sys_process_link_approved.AsNoTracking().Where(x => x.config_process_id == processSystem.config_process_id).OrderBy(x => x.is_order).ToList();
+                                            foreach (var item in listGroupLink)
+                                            {
+                                                var groupSys = db.sys_approved_groups.AsNoTracking().FirstOrDefault(x => x.approved_groups_id == item.approved_groups_id);
+                                                if (groupSys != null)
+                                                {
+                                                    signformsSystem.Add(groupSys);
+                                                }
+                                            }
+                                            var signformsSystem_ids = signformsSystem.Select(x => x.approved_groups_id).ToList();
+                                            signuserformsSystem = db.sys_approved_users.AsNoTracking().Where(x => signformsSystem_ids.Contains(x.approved_groups_id) && x.user_id != uid).ToList();
+                                            // Quy trình
+                                            procedure.procedure_name = processSystem.config_process_name;
+                                            procedure.is_type = processSystem.config_process_type == 1 ? 1 : (processSystem.config_process_type == 2 ? 0 : 2);
+                                            procedure.is_order = processSystem.is_order;
+                                            procedure.organization_id = processSystem.organization_id;
+                                            is_stepsign = 0;
+                                            var orderGroup = 1;
+                                            foreach (var sf in signformsSystem)
+                                            {
+                                                is_stepsign++;
+                                                request_master_sign sign = new request_master_sign();
+                                                sign.sign_id = helper.GenKey();
+                                                sign.request_id = request.request_id;
+                                                sign.procedure_id = procedure.procedure_id;
+                                                sign.sign_name = sf.approved_group_name;
+                                                sign.is_order = orderGroup;
+                                                sign.is_type = sf.approved_type == 1 ? 1 : (sf.approved_type == 2 ? 0 : 2);
+                                                sign.is_sign = false;
+                                                sign.is_skip = false;
+                                                orderGroup++;
+                                                switch (procedure.is_type)
+                                                {
+                                                    case 0: // Duyệt tuần tự
+                                                        sign.status = false;
+                                                        if (is_stepsign == 1 || signusers.Count == 1)
+                                                        {
+                                                            sign.status = true;
+                                                        }
+                                                        break;
+                                                    case 1: // Duyệt một nhiều
+                                                        sign.status = true;
+                                                        break;
+                                                    case 2: // Duyệt ngẫu nhiên
+
+                                                        break;
+                                                }
+                                                sign.created_by = uid;
+                                                sign.created_date = DateTime.Now;
+                                                sign.created_ip = ip;
+                                                sign.created_token_id = tid;
+                                                sign.organization_id = procedure.organization_id;
+                                                signs.Add(sign);
+
+                                                // Người lập
+                                                request_master_signuser signusercreate = new request_master_signuser();
+                                                if (sign.is_order == 1)
+                                                {
+                                                    signusercreate.signuser_id = helper.GenKey();
+                                                    signusercreate.request_id = request.request_id;
+                                                    signusercreate.sign_id = sign.sign_id;
+                                                    signusercreate.user_id = uid;
+                                                    signusercreate.is_order = 0;
+                                                    signusercreate.is_type = 1; //Người lập
+                                                    signusercreate.is_sign = 2;
+                                                    signusercreate.sign_date = DateTime.Now;
+                                                    signusercreate.sign_content = content;
+                                                    signusercreate.read_date = DateTime.Now;
+                                                    signusercreate.status = true;
+                                                    signusercreate.created_by = uid;
+                                                    signusercreate.created_date = DateTime.Now;
+                                                    signusercreate.created_ip = ip;
+                                                    signusercreate.created_token_id = tid;
+                                                    signusers.Add(signusercreate);
+                                                }
+                                                //Người duyệt
+                                                var signuserformfilters = signuserformsSystem.Where(x => x.approved_groups_id == sf.approved_groups_id).ToList();
+                                                int is_stepsignuser = 0;
+                                                foreach (var signuserform in signuserformfilters)
+                                                {
+                                                    is_stepsignuser++;
+                                                    request_master_signuser signuser = new request_master_signuser();
+                                                    signuser.signuser_id = helper.GenKey();
+                                                    signuser.request_id = request.request_id;
+                                                    signuser.sign_id = sign.sign_id;
+                                                    signuser.user_id = signuserform.user_id;
+                                                    signuser.is_order = signuserform.is_order;
+                                                    signuser.is_type = 0; // Người duyệt bình thường
+                                                    signuser.is_sign = 0;
+                                                    if (sign.status == true)
+                                                    {
+                                                        switch (sign.is_type)
+                                                        {
+                                                            case 0: // Duyệt tuần tự
+                                                                signuser.status = false;
+                                                                if (is_stepsignuser == 1)
+                                                                {
+                                                                    signuser.status = true;
+                                                                }
+                                                                break;
+                                                            case 1: // Duyệt một nhiều
+                                                                signuser.status = true;
+                                                                break;
+                                                            case 2: // Duyệt ngẫu nhiên
+
+                                                                break;
+                                                        }
+                                                    }
+                                                    else
+                                                    {
+                                                        signuser.status = false;
+                                                    }
+                                                    signuser.created_by = uid;
+                                                    signuser.created_date = DateTime.Now;
+                                                    signuser.created_ip = ip;
+                                                    signuser.created_token_id = tid;
+                                                    signusers.Add(signuser);
+                                                }
+                                                if (signusers.Count > 0)
+                                                {
+                                                    db.request_master_signuser.AddRange(signusers);
+                                                }
+                                            }
+                                        }
+                                    }
+                                    procedure.status = true;
+                                    procedure.created_by = uid;
+                                    procedure.created_date = DateTime.Now;
+                                    procedure.created_ip = ip;
+                                    procedure.created_token_id = tid;
+                                    db.request_master_procedure.Add(procedure);
+                                    
+                                    if (signs.Count > 0)
+                                    {
+                                        db.request_master_sign.AddRange(signs);
+                                    }
+                                    //send users
+                                    sendUsers = signusers.Where(x => x.status == true && (x.is_sign == 0 || x.is_sign == 1)).Select(x => x.user_id).ToList();
+                                }
+                                else if (type_send == 1) // Gửi tới nhóm
+                                {
+                                    //Nhóm duyệt
+                                    List<request_master_sign> signs = new List<request_master_sign>();
+                                    List<request_master_signuser> signusers = new List<request_master_signuser>();
+                                    if (request_form_id_send != "")
+                                    {
+                                        signforms = db.request_ca_form_sign.AsNoTracking().Where(x => x.request_form_sign_id == key_id).ToList();
+                                        var signform_ids = signforms.Select(x => x.request_form_sign_id).ToList();
+                                        signuserforms = db.request_form_sign_user.AsNoTracking().Where(x => signform_ids.Contains(x.request_form_sign_id) && x.status == true && x.user_id != uid).OrderBy(x => x.STT).ToList();
+                                        
+                                        foreach (var sf in signforms)
+                                        {
+                                            request_master_sign sign = new request_master_sign();
+                                            sign.sign_id = helper.GenKey();
+                                            sign.request_id = request.request_id;
+                                            sign.sign_name = sf.group_name;
+                                            sign.is_order = sf.is_order;
+                                            sign.is_type = sf.type_process;
+                                            sign.is_sign = false;
+                                            sign.is_skip = false;
+                                            sign.status = true;
+                                            sign.created_by = uid;
+                                            sign.created_date = DateTime.Now;
+                                            sign.created_ip = ip;
+                                            sign.created_token_id = tid;
+                                            sign.organization_id = db.request_ca_form.AsNoTracking().Where(x => x.request_form_id == request.request_form_id).FirstOrDefault()?.organization_id;
+                                            signs.Add(sign);
+
+                                            //Người lập
+                                            request_master_signuser signusercreate = new request_master_signuser();
+                                            signusercreate.signuser_id = helper.GenKey();
+                                            signusercreate.request_id = request.request_id;
+                                            signusercreate.sign_id = sign.sign_id;
+                                            signusercreate.user_id = uid;
+                                            signusercreate.is_order = 0;
+                                            signusercreate.is_type = 1;
+                                            signusercreate.is_sign = 2;
+                                            signusercreate.sign_date = DateTime.Now;
+                                            signusercreate.sign_content = content;
+                                            signusercreate.read_date = DateTime.Now;
+                                            signusercreate.status = true;
+                                            signusercreate.created_by = uid;
+                                            signusercreate.created_date = DateTime.Now;
+                                            signusercreate.created_ip = ip;
+                                            signusercreate.created_token_id = tid;
+                                            signusers.Add(signusercreate);
+                                            //Người duyệt
+                                            var signuserformfilters = signuserforms.Where(x => x.request_form_sign_id == sf.request_form_sign_id).ToList();
+                                            int is_stepsignuser = 0;
+                                            foreach (var signuserform in signuserformfilters)
+                                            {
+                                                is_stepsignuser++;
+                                                request_master_signuser signuser = new request_master_signuser();
+                                                signuser.signuser_id = helper.GenKey();
+                                                signuser.request_id = request.request_id;
+                                                signuser.sign_id = sign.sign_id;
+                                                signuser.user_id = signuserform.user_id;
+                                                signuser.is_order = signuserform.STT;
+                                                signuser.is_type = signuserform.IsType;
+                                                signuser.is_sign = 0;
+                                                switch (sign.is_type)
+                                                {
+                                                    case 0: // Duyệt tuần tự
+                                                        signuser.status = false;
+                                                        if (is_stepsignuser == 1)
+                                                        {
+                                                            signuser.status = true;
+                                                        }
+                                                        break;
+                                                    case 1: // Duyệt một nhiều
+                                                        signuser.status = true;
+                                                        break;
+                                                    case 2: // Duyệt ngẫu nhiên
+
+                                                        break;
+                                                }
+                                                signuser.created_by = uid;
+                                                signuser.created_date = DateTime.Now;
+                                                signuser.created_ip = ip;
+                                                signuser.created_token_id = tid;
+                                                signusers.Add(signuser);
+                                            }
+                                            if (signusers.Count > 0)
+                                            {
+                                                db.request_master_signuser.AddRange(signusers);
+                                            }
+                                        }
+                                    }
+                                    else
+                                    {
+                                        signformsSystem = db.sys_approved_groups.AsNoTracking().Where(x => x.approved_groups_id == int.Parse(key_id)).ToList();
+                                        var signformsSystem_ids = signformsSystem.Select(x => x.approved_groups_id).ToList();
+                                        signuserformsSystem = db.sys_approved_users.AsNoTracking().Where(x => signformsSystem_ids.Contains(x.approved_groups_id) && x.user_id != uid).ToList();
+                                        var sttGroup = db.request_master_sign.AsNoTracking().Count(x => x.request_id == request.request_id) > 0
+                                                        ? (db.request_master_sign.AsNoTracking().Where(x => x.request_id == request.request_id).Max(x => x.is_order) + 1)
+                                                        : 1;
+                                        foreach (var sf in signformsSystem)
+                                        {
+                                            request_master_sign sign = new request_master_sign();
+                                            sign.sign_id = helper.GenKey();
+                                            sign.request_id = request.request_id;
+                                            sign.sign_name = sf.approved_group_name;
+                                            sign.is_order = sttGroup;
+                                            sign.is_type = sf.approved_type == 1 ? 1 : (sf.approved_type == 2 ? 0 : 2);
+                                            sign.is_sign = false;
+                                            sign.is_skip = false;
+                                            sign.status = true;
+                                            sign.created_by = uid;
+                                            sign.created_date = DateTime.Now;
+                                            sign.created_ip = ip;
+                                            sign.created_token_id = tid;
+                                            sign.organization_id = sf.organization_id;
+                                            signs.Add(sign);
+                                            sttGroup++;
+                                            //Người lập
+                                            request_master_signuser signusercreate = new request_master_signuser();
+                                            signusercreate.signuser_id = helper.GenKey();
+                                            signusercreate.request_id = request.request_id;
+                                            signusercreate.sign_id = sign.sign_id;
+                                            signusercreate.user_id = uid;
+                                            signusercreate.is_order = 0;
+                                            signusercreate.is_type = 1;
+                                            signusercreate.is_sign = 2;
+                                            signusercreate.sign_date = DateTime.Now;
+                                            signusercreate.sign_content = content;
+                                            signusercreate.read_date = DateTime.Now;
+                                            signusercreate.status = true;
+                                            signusercreate.created_by = uid;
+                                            signusercreate.created_date = DateTime.Now;
+                                            signusercreate.created_ip = ip;
+                                            signusercreate.created_token_id = tid;
+                                            signusers.Add(signusercreate);
+                                            //Người duyệt
+                                            var signuserformfilters = signuserformsSystem.Where(x => x.approved_groups_id == sf.approved_groups_id).ToList();
+                                            int is_stepsignuser = 0;
+                                            foreach (var signuserform in signuserformfilters)
+                                            {
+                                                is_stepsignuser++;
+                                                request_master_signuser signuser = new request_master_signuser();
+                                                signuser.signuser_id = helper.GenKey();
+                                                signuser.request_id = request.request_id;
+                                                signuser.sign_id = sign.sign_id;
+                                                signuser.user_id = signuserform.user_id;
+                                                signuser.is_order = signuserform.is_order;
+                                                signuser.is_type = 0;
+                                                signuser.is_sign = 0;
+                                                switch (sign.is_type)
+                                                {
+                                                    case 0: // Duyệt tuần tự
+                                                        signuser.status = false;
+                                                        if (is_stepsignuser == 1)
+                                                        {
+                                                            signuser.status = true;
+                                                        }
+                                                        break;
+                                                    case 1: // Duyệt một nhiều
+                                                        signuser.status = true;
+                                                        break;
+                                                    case 2: // Duyệt ngẫu nhiên
+
+                                                        break;
+                                                }
+                                                signuser.created_by = uid;
+                                                signuser.created_date = DateTime.Now;
+                                                signuser.created_ip = ip;
+                                                signuser.created_token_id = tid;
+                                                signusers.Add(signuser);
+                                            }
+                                            if (signusers.Count > 0)
+                                            {
+                                                db.request_master_signuser.AddRange(signusers);
+                                            }
+                                        }
+                                    }
+                                    if (signs.Count > 0)
+                                    {
+                                        db.request_master_sign.AddRange(signs);
+                                    }
+                                    //send
+                                    sendUsers = signusers.Where(x => x.status == true && (x.is_sign == 0 || x.is_sign == 1)).Select(x => x.user_id).ToList();
+                                }
+                                else if (type_send == 2) // Gửi đích danh
+                                {
+                                    signuserforms = new List<request_form_sign_user>();
+                                    //Người lập
+                                    List<request_master_signuser> signusers = new List<request_master_signuser>();
+                                    request_master_signuser signusercreate = new request_master_signuser();
+                                    signusercreate.signuser_id = helper.GenKey();
+                                    signusercreate.request_id = request.request_id;
+                                    signusercreate.user_id = uid;
+                                    signusercreate.is_order = 0;
+                                    signusercreate.is_type = 1;
+                                    signusercreate.is_sign = 2;
+                                    signusercreate.sign_date = DateTime.Now;
+                                    signusercreate.sign_content = content;
+                                    signusercreate.read_date = DateTime.Now;
+                                    signusercreate.status = true;
+                                    signusercreate.created_by = uid;
+                                    signusercreate.created_date = DateTime.Now;
+                                    signusercreate.created_ip = ip;
+                                    signusercreate.created_token_id = tid;
+                                    signusers.Add(signusercreate);
+
+                                    //Người duyệt
+                                    request_master_signuser signuser = new request_master_signuser();
+                                    signuser.signuser_id = helper.GenKey();
+                                    signuser.request_id = request.request_id;
+                                    signuser.user_id = key_id;
+                                    signuser.is_order = 1;
+                                    signuser.is_type = 0;
+                                    signuser.is_sign = 0;
+                                    signuser.status = true;
+                                    signuser.created_by = uid;
+                                    signuser.created_date = DateTime.Now;
+                                    signuser.created_ip = ip;
+                                    signuser.created_token_id = tid;
+                                    signusers.Add(signuser);
+
+                                    if (signusers.Count > 0)
+                                    {
+                                        db.request_master_signuser.AddRange(signusers);
+                                    }
+                                    //send
+                                    sendUsers = signusers.Where(x => x.status == true && (x.is_sign == 0 || x.is_sign == 1)).Select(x => x.user_id).ToList();
+                                }
+                                #endregion
 
                                 #region file
                                 string path = root + "/Portals/" + request.organization_id + "/Request/" + request.request_id;
@@ -897,7 +1444,7 @@ namespace API.Controllers.Request
                                 #region log
                                 if (helper.wlog)
                                 {
-                                    log.title = "Trình duyệt đề xuất: " + request.request_code + " : " + request.request_name; 
+                                    log.title = "Xử lý đề xuất: " + request.request_code + " : " + request.request_name + " : " + content; 
                                     log.log_type = 3;
                                     log.log_content = JsonConvert.SerializeObject(new { data = JsonConvert.SerializeObject(request, new JsonSerializerSettings() { ReferenceLoopHandling = ReferenceLoopHandling.Ignore }) });
                                     log.id_key = request.request_id;
@@ -1095,7 +1642,7 @@ namespace API.Controllers.Request
                     }
                     #endregion
                     string JSONresult = JsonConvert.SerializeObject(tables);
-                    return Request.CreateResponse(HttpStatusCode.OK, new { data = JSONresult, err = "0" });
+                    return Request.CreateResponse(HttpStatusCode.OK, new { data = JSONresult, err = "0", proc_name = (helper.debug ? proc.proc : "") });
                 }
                 catch (DbEntityValidationException e)
                 {

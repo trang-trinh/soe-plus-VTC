@@ -121,32 +121,32 @@ span.rqlap {
     color: #fff;
 }
 
-span.rqchoduyet {
+.rqchoduyet {
     background-color: #33c9dc;
     color: #fff
 }
 
-span.rqhuy {
+.rqhuy {
     background-color: red;
     color: #fff
 }
 
-span.rqtuchoi {
+.rqtuchoi {
     background-color: #ff8b4e;
     color: #fff
 }
 
-span.rqchapthuan {
+.rqchapthuan {
     background-color: #6dd230 !important;
     color: #fff
 }
 
-span.rqthuhoi, span.uutien1 {
+.rqthuhoi, span.uutien1 {
     background-color: #f17ac7;
     color: #fff
 }
 
-span.rqxoa, span.uutien2 {
+.rqxoa, span.uutien2 {
     background-color: red;
     color: #fff
 }
