@@ -486,7 +486,9 @@ const saveTask = (isFormValid) => {
             " công việc thành công!",
         );
         closeDialogTask();
-        props.afterSave();
+
+        let id = response.data.data;
+        props.afterSave(id);
       } else {
         swal.fire({
           title: "Error!",
@@ -544,6 +546,7 @@ const OpenAddDialogTask = () => {
   Task.value.work_user_ids = listDropdownUser.value.filter(
     (x) => x.user_id == user.user_id,
   );
+  if (props.is_template == true) Task.value.is_template = true;
   if (Task.value.is_template != true) {
     rules.value = {
       task_name: {
@@ -1004,8 +1007,16 @@ onMounted(() => {
             />
           </div>
 
-          <label class="col-3 text-left p-0"> Công việc mẫu </label>
-          <div class="col-3">
+          <label
+            class="col-3 text-left p-0"
+            v-if="props.is_template == 'dp'"
+          >
+            Công việc mẫu
+          </label>
+          <div
+            class="col-3"
+            v-if="props.is_template == 'dp'"
+          >
             <InputSwitch
               v-model="Task.is_template"
               @update:modelValue="

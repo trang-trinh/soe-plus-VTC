@@ -1436,7 +1436,7 @@ onMounted(() => {
         :isedit="true"
         :report="smart_report"
         :callbackFun="callbackFun"
-        :pars="pars"
+       
       ></DocComponent>
     </div>
   </Sidebar>

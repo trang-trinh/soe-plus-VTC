@@ -4,8 +4,9 @@ import { required } from "@vuelidate/validators";
 import { useToast } from "vue-toastification";
 import { encr } from "../../../util/function.js";
 import moment from "moment";
-import TaskFollowDetailVue from "./follow/TaskFollowDetail.vue";
-import DetailedWork from "../DetailedWork.vue";
+import TaskFollowDetailVue from "../../../components/task_origin/Detail_Task/follow/TaskFollowDetail.vue";
+import DetailedWork from "../../../components/task_origin/DetailedWork.vue";
+import DialogTask from "../../../components/task_origin/DialogTask.vue";
 import useVuelidate from "@vuelidate/core";
 const cryoptojs = inject("cryptojs");
 const emitter = inject("emitter");
@@ -19,7 +20,6 @@ const config = {
   headers: { Authorization: `Bearer ${store.getters.token}` },
 };
 
-const width1 = window.screen.width;
 const bgColor = ref([
   "#F4B2A3",
   "#F8E69A",
@@ -34,17 +34,6 @@ let user = store.state.user;
 const datalists = ref([]);
 const options = ref({
   loading: true,
-});
-
-const props = defineProps({
-  componentKey: Intl,
-  id: String,
-  pj_id: String,
-  listChild: Array,
-  member: Array,
-  data: Object,
-  isClose: Boolean,
-  openAddTask: Function,
 });
 
 const DialogVisible = ref();
@@ -66,11 +55,12 @@ const taskfollow = ref({
   description: null,
   start_date: null,
   end_date: null,
-  start_real_date: null,
-  end_real_date: null,
   type: null,
   weight: null,
   status: null,
+  is_template: true,
+  process_time: null,
+  organization_id: user.organization_id,
 });
 const rules = {
   follow_name: {
@@ -142,18 +132,21 @@ const openDialog = () => {
   submitted.value = false;
   isEdit.value = false;
   taskfollow.value = {
-    task_id: props.id,
-    follow_name: null,
+    follow_id: null,
+    task_id: null,
+    project_id: null,
+    follow_name: "",
     description: null,
     start_date: null,
     end_date: null,
-    start_real_date: null,
-    end_real_date: null,
     type: 0,
     weight: 0,
     status: 0,
-    is_step: 1,
+    is_template: true,
+    process_time: null,
+    organization_id: user.organization_id,
   };
+
   DialogVisible.value = true;
   listTask.value = [];
   headerDialog.value = "Tạo quy trình công việc";
@@ -174,6 +167,12 @@ const saveData = (isFormValid) => {
   submitted.value = true;
   if (!isFormValid) {
     return;
+  }
+  if (taskfollow.value.is_template == true) {
+    taskfollow.value.process_time =
+      (taskfollow.value.day != null ? taskfollow.value.day : 0) * 24 * 60 +
+      (taskfollow.value.hour != null ? taskfollow.value.hour : 0) * 60 +
+      (taskfollow.value.minutes != null ? taskfollow.value.minutes : 0);
   }
   let formData = new FormData();
   formData.append("task_follow", JSON.stringify(taskfollow.value));
@@ -218,7 +217,129 @@ const saveData = (isFormValid) => {
       });
     });
 };
+const listDropdownStatus = ref([
+  {
+    value: 0,
+    text: "Chưa bắt đầu",
+    bg_color: "#bbbbbb",
+    text_color: "#FFFFFF",
+  },
+  { value: 1, text: "Đang làm", bg_color: "#2196f3", text_color: "#FFFFFF" },
+  { value: 2, text: "Tạm ngừng", bg_color: "#d87777", text_color: "#FFFFFF" },
+  { value: 3, text: "Đã đóng", bg_color: "#d87777", text_color: "#FFFFFF" },
+  { value: 4, text: "HT đúng hạn", bg_color: "#04D215", text_color: "#FFFFFF" },
+  {
+    value: 5,
+    text: "Chờ đánh giá",
+    bg_color: "#33c9dc",
+    text_color: "#FFFFFF",
+  },
+  { value: 6, text: "Bị trả lại", bg_color: "#ffa500", text_color: "#FFFFFF" },
+  { value: 7, text: "HT sau hạn", bg_color: "#ff8b4e", text_color: "#FFFFFF" },
+  { value: 8, text: "Đã đánh giá", bg_color: "#51b7ae", text_color: "#FFFFFF" },
+  { value: 9, text: "Xin gia hạn", bg_color: "#F18636", text_color: "#FFFFFF" },
+  { value: -1, text: "Bị xóa", bg_color: "red", text_color: "#FFFFFF" },
+]);
+const listChild = ref([]);
+const loadChildTaskOrigin = (listid) => {
+  axios
+    .post(
+      baseURL + "/api/TaskProc/getTaskData",
+      {
+        str: encr(
+          JSON.stringify({
+            proc: "Task_Origin_children_list_template",
+            par: [{ par: "list_id", va: listid }],
+          }),
+          SecretKey,
+          cryoptojs,
+        ).toString(),
+      },
+      config,
+    )
+    .then((response) => {
+      let listChildjson = JSON.parse(response.data.data)[0];
+      let listUser = JSON.parse(response.data.data)[1];
 
+      listChildjson.forEach((c) => {
+        c.users = [];
+        let sttus = listDropdownStatus.value.filter((a) => a.value == c.status);
+        c.status_display = {
+          text: sttus[0].text,
+          bg_color: sttus[0].bg_color,
+          text_color: sttus[0].text_color,
+        };
+        let sttgv = 0;
+        let sttth = 0;
+        let sttdth = 0;
+        let stttd = 0;
+        listUser.forEach((u) => {
+          if (c.task_id == u.task_id) {
+            c.progress = c.progress != null ? c.progress : 0;
+            u.tooltip =
+              (u.is_type == 0
+                ? "Người giao việc"
+                : u.is_type == 1
+                ? "Người xử lý chính"
+                : u.is_type == 2
+                ? "Người đồng xử lý"
+                : u.is_type == 3
+                ? "Người theo dõi"
+                : "") +
+              "<br/>" +
+              u.full_name +
+              "<br/>" +
+              (u.positions ?? "") +
+              "<br/>" +
+              (u.department_name != null
+                ? u.department_name
+                : u.organiztion_name);
+            c.users.push(u);
+          }
+        });
+        c.users.forEach((u) => {
+          if (u.is_type == 0) {
+            u.STTGV = sttgv;
+            sttgv++;
+          }
+          if (u.is_type == 1) {
+            u.STTTH = sttth;
+            sttth++;
+          }
+          if (u.is_type == 2) {
+            u.STTDTH = sttdth;
+            sttdth++;
+          }
+          if (u.is_type == 3) {
+            u.STTTD = stttd;
+            stttd++;
+          }
+        });
+        var byDate = c.users.slice(0);
+        byDate.sort(function (a, b) {
+          return a.is_type - b.is_type;
+        });
+        c.users = byDate;
+      });
+
+      listChild.value = [];
+      listChild.value = JSON.parse(JSON.stringify(listChildjson));
+      listTask.value = JSON.parse(JSON.stringify(listChildjson));
+      return listChildjson;
+    })
+    .catch((error) => {
+      // toast.error("Tải dữ liệu không thành công4!");
+      options.value.loading = false;
+
+      if (error && error.status === 401) {
+        swal.fire({
+          text: "Mã token đã hết hạn hoặc không hợp lệ, vui lòng đăng nhập lại!",
+          confirmButtonText: "OK",
+        });
+        store.commit("gologout");
+      }
+    });
+};
 const loadData = () => {
   indexSelected.value = 0;
   swal.fire({
@@ -233,10 +354,10 @@ const loadData = () => {
       {
         str: encr(
           JSON.stringify({
-            proc: "task_follow_list",
+            proc: "task_follow_list_template",
             par: [
-              { par: "task_id", va: props.id },
-              { par: "user_id", va: null },
+              { par: "task_id", va: null },
+              { par: "user_id", va: user.user_id },
             ],
           }),
           SecretKey,
@@ -248,6 +369,69 @@ const loadData = () => {
     .then((response) => {
       datalists.value = [];
       let data = JSON.parse(response.data.data)[0];
+      let listChildjson = JSON.parse(response.data.data)[1];
+      let listUser = JSON.parse(response.data.data)[2];
+
+      listChildjson.forEach((c) => {
+        c.users = [];
+        let sttus = listDropdownStatus.value.filter((a) => a.value == c.status);
+        c.status_display = {
+          text: sttus[0].text,
+          bg_color: sttus[0].bg_color,
+          text_color: sttus[0].text_color,
+        };
+        let sttgv = 0;
+        let sttth = 0;
+        let sttdth = 0;
+        let stttd = 0;
+        listUser.forEach((u) => {
+          if (c.task_id == u.task_id) {
+            c.progress = c.progress != null ? c.progress : 0;
+            u.tooltip =
+              (u.is_type == 0
+                ? "Người giao việc"
+                : u.is_type == 1
+                ? "Người xử lý chính"
+                : u.is_type == 2
+                ? "Người đồng xử lý"
+                : u.is_type == 3
+                ? "Người theo dõi"
+                : "") +
+              "<br/>" +
+              u.full_name +
+              "<br/>" +
+              (u.positions ?? "") +
+              "<br/>" +
+              (u.department_name != null
+                ? u.department_name
+                : u.organiztion_name);
+            c.users.push(u);
+          }
+        });
+        c.users.forEach((u) => {
+          if (u.is_type == 0) {
+            u.STTGV = sttgv;
+            sttgv++;
+          }
+          if (u.is_type == 1) {
+            u.STTTH = sttth;
+            sttth++;
+          }
+          if (u.is_type == 2) {
+            u.STTDTH = sttdth;
+            sttdth++;
+          }
+          if (u.is_type == 3) {
+            u.STTTD = stttd;
+            stttd++;
+          }
+        });
+        var byDate = c.users.slice(0);
+        byDate.sort(function (a, b) {
+          return a.is_type - b.is_type;
+        });
+        c.users = byDate;
+      });
       if (data.length > 0) {
         data.forEach((x) => {
           let type = listDrdType.value.filter((xz) => xz.value == x.type)[0];
@@ -292,7 +476,7 @@ const loadData = () => {
               y.task_info = [];
               if (y.task_id_follow != null) {
                 y.task_id_follow.forEach((z) => {
-                  let k = props.listChild.filter(
+                  let k = listChildjson.filter(
                     (a) => a.task_id == z.task_id_follow,
                   );
                   if (k.length > 0) {
@@ -303,7 +487,7 @@ const loadData = () => {
               }
             });
           } else {
-            x.task_follow_step = null;
+            x.task_follow_step = [];
           }
         });
         datalists.value = data;
@@ -313,6 +497,7 @@ const loadData = () => {
       } else {
         datalists.value = [];
       }
+      options.value.totalRecords = data.length;
       swal.close();
     })
     .catch((error) => {
@@ -488,6 +673,7 @@ const DeleteStep = (vl) => {
             if (response.data.err != "1") {
               swal.close();
               toast.success("Xoá bước thành công!");
+
               loadData();
             } else {
               swal.fire({
@@ -527,8 +713,7 @@ const rulesStep = {
   step_name: { required },
 };
 const vStep$ = useVuelidate(rulesStep, taskStep);
-const tempMinDate = ref();
-const tempMaxDate = ref();
+
 const StepDialogVisible = ref(false);
 const headerStepDialog = ref();
 const openStepDialog = (e) => {
@@ -536,17 +721,15 @@ const openStepDialog = (e) => {
   isEdit.value = false;
   taskStep.value = {
     follow_id: "",
-    task_id: props.id,
+    task_id: null,
     step_name: "",
     description: "",
-    start_date: "",
-    end_date: "",
+    start_date: null,
+    end_date: null,
     type: 0,
     status: 0,
     is_step: 1,
   };
-  tempMinDate.value = e.start_date ? e.start_date : props.data.start_date;
-  tempMaxDate.value = e.end_date ? e.end_date : props.data.end_date;
   taskStep.value.follow_id = e.follow_id;
   taskStep.value.is_step = e.countStep > 0 ? e.countStep + 1 : 1;
   StepDialogVisible.value = true;
@@ -558,16 +741,11 @@ const openEditStepDialog = (e, f) => {
   isEdit.value = true;
   let template = JSON.parse(JSON.stringify(e));
   taskStep.value = template;
-  tempMinDate.value = f.start_date ? f.start_date : props.data.start_date;
-  tempMaxDate.value = f.end_date ? f.end_date : props.data.end_date;
-
   StepDialogVisible.value = true;
   listTask.value = [];
   e.task_info.forEach((x) => {
-    let k = props.listChild.filter((a) => a.task_id == x.task_id_follow);
-    if (k != null) {
-      listTask.value = listTask.value.concat(k);
-    }
+    listTask.value.push(x);
+    listChild.value.push(x);
   });
   headerStepDialog.value = "Cập nhật bước";
 };
@@ -580,6 +758,27 @@ const checklength2 = () => {
   }
   return length2.value;
 };
+const DeleteTask = (x) => {
+  var listId = [];
+  listId.push(x);
+  axios
+    .delete(baseURL + "/api/task_origin/Delete_task_origin", {
+      headers: { Authorization: `Bearer ${store.getters.token}` },
+      data: listId,
+    })
+    .then((response) => {})
+    .catch((error) => {
+      swal.close();
+      if (error.status === 401) {
+        swal.fire({
+          title: "Thông báo!",
+          text: "Mã token đã hết hạn hoặc không hợp lệ, vui lòng đăng nhập lại!",
+          icon: "error",
+          confirmButtonText: "OK",
+        });
+      }
+    });
+};
 const saveStep = (isFormValid) => {
   submitted.value = true;
   if (!isFormValid) {
@@ -587,10 +786,19 @@ const saveStep = (isFormValid) => {
   }
   let formData = new FormData();
   let listID = [];
+  let dontUseID = listChild.value.filter((x) => {
+    listTask.value.includes(x) != true;
+  });
   listTask.value.forEach((x) => {
     listID.push({ task_id_follow: x.task_id });
   });
-
+  taskStep.value.is_template = true;
+  if (taskStep.value.is_template == true) {
+    taskStep.value.process_time =
+      (taskStep.value.day != null ? taskStep.value.day : 0) * 24 * 60 +
+      (taskStep.value.hour != null ? taskStep.value.hour : 0) * 60 +
+      (taskStep.value.minutes != null ? taskStep.value.minutes : 0);
+  }
   formData.append("task_step", JSON.stringify(taskStep.value));
   formData.append("task_follow_task", JSON.stringify(listID));
   axios({
@@ -632,147 +840,13 @@ const saveStep = (isFormValid) => {
         confirmButtonText: "OK",
       });
     });
-};
-const items = ref([
-  {
-    value: 0,
-    label: "Chưa bắt đầu",
-    bg_color: "#bbbbbb",
-    text_color: "#FFFFFF",
-    command: () => {},
-  },
-  {
-    value: 1,
-    label: "Đang làm",
-    bg_color: "#2196f3",
-    text_color: "#FFFFFF",
-    command: () => {},
-  },
-  {
-    value: 2,
-    label: "Hoàn thành đúng hạn",
-    bg_color: "#04D215",
-    text_color: "#FFFFFF",
-    command: () => {},
-  },
-  {
-    value: 3,
-    label: "Hoàn thành sau hạn",
-    bg_color: "#ff8b4e",
-    text_color: "#FFFFFF",
-    command: () => {},
-  },
-  {
-    value: 4,
-    label: "Tạm ngưng",
-    bg_color: "#d87777",
-    text_color: "#FFFFFF",
-    command: () => {},
-  },
-  {
-    value: 5,
-    label: "Đóng",
-    bg_color: "#d87777",
-    text_color: "#FFFFFF",
-    command: () => {},
-  },
-]);
-const menu = ref();
-const menuPos = ref();
-const menuData = ref();
-const toggle = (event, e, data) => {
-  menu.value.toggle(event);
-  menuPos.value = e;
-  menuData.value = data;
-};
-const changeStatus = (e) => {
-  if (menuData.value.status == e) {
-    toast.success(
-      "Quy trình đang có trạng thái: " +
-        listDrdStatus.value.filter((z) => z.value == e)[0].label,
-    );
-    return;
-  } else {
-    if (e == 5) {
-      if (menuData.value.status == 3) {
-        toast.success(
-          menuPos.value == 1
-            ? "Quy trình đang đóng!"
-            : "Bước thực hiện đang đóng",
-        );
-        return;
-      }
-      swal
-        .fire({
-          title: "Thông báo",
-          html:
-            "Bạn có chắc chắn muốn đóng " +
-            (menuPos.value == 1 ? "quy trình" : "bước thực hiện") +
-            " này không!<br/>(Hành động này sẽ đóng tất cả " +
-            (menuPos.value == 1 ? "quy trình" : "bước thực hiện") +
-            " thuộc bước hiện tại!)",
-          icon: "warning",
-          showCancelButton: true,
-          confirmButtonColor: "#3085d6",
-          cancelButtonColor: "#d33",
-          confirmButtonText: "Có",
-          cancelButtonText: "Không",
-        })
-        .then((result) => {
-          if (result.isConfirmed) {
-            swal.fire({
-              width: 110,
-              didOpen: () => {
-                swal.showLoading();
-              },
-            });
-            UpdateStatusTaksFunc(e);
-          }
-        });
-    } else {
-      UpdateStatusTaksFunc(e);
-    }
+  if (dontUseID.length > 0) {
+    dontUseID.forEach((x) => {
+      DeleteTask(x.task_id);
+    });
   }
 };
-const UpdateStatusTaksFunc = (e) => {
-  let formData = new FormData();
-  menuData.value.status = e;
-  formData.append("model", JSON.stringify(menuData.value));
-  axios
-    .put(
-      baseURL +
-        "/api/" +
-        (menuPos.value == 1 ? "task_follow/" : "task_follow_step/") +
-        (menuPos.value == 1 ? "Update_Status_Follow" : "Update_Status_Step"),
-      formData,
-      config,
-    )
-    .then((response) => {
-      if (response.data.err != "1") {
-        menu.value.hide();
-        swal.close();
-        toast.success("Cập nhật trạng thái công việc thành công!");
-        loadData(true);
-      } else {
-        let ms = response.data.ms;
-        swal.fire({
-          title: "Thông báo!",
-          html: ms,
-          icon: "error",
-          confirmButtonText: "OK",
-        });
-      }
-    })
-    .catch((error) => {
-      swal.close();
-      swal.fire({
-        title: "Thông báo",
-        text: "Có lỗi xảy ra, vui lòng kiểm tra lại!" + error,
-        icon: "error",
-        confirmButtonText: "OK",
-      });
-    });
-};
+
 // 0: tạo/giao 1,2: làm, 3:theo dõi
 const TypeMember = ref();
 
@@ -788,28 +862,7 @@ onBeforeMount(() => {
   loadData();
 });
 
-onMounted(() => {
-  let type = [];
-  props.member.forEach((x) => {
-    if (x.user_id == user.user_id) {
-      type.push(x.is_type);
-    }
-  });
-  if (
-    props.data.created_by == user.user_id ||
-    type.filter((x) => x == 0) != null
-  ) {
-    TypeMember.value = 0;
-  } else if (type.filter((x) => x == 1) != null) {
-    TypeMember.value = 1;
-  } else if (type.filter((x) => x == 2) != null) {
-    TypeMember.value = 1;
-  } else if (type.filter((x) => x == 3) != null) {
-    TypeMember.value = 3;
-  } else {
-    TypeMember.value = 4;
-  }
-});
+onMounted(() => {});
 const expandedRows = ref([]);
 
 const selectStep = (e, i) => {
@@ -820,43 +873,104 @@ const closeDetail = () => {
   selectedTaskID.value = null;
   loadData();
 };
+const headerAddTask = ref("Tạo công việc mẫu");
+const displayTask = ref(false);
+const is_Add = ref(true);
+const is_Template = ref(true);
+const DialogData = ref();
+const closeDialogTask = () => {
+  displayTask.value = false;
+};
+const list_id = ref("");
+const afterSave = (e) => {
+  debugger;
+  list_id.value += e + ",";
+  if (list_id.value != "") {
+    loadChildTaskOrigin(list_id.value);
+  }
+};
+const openAddTask = () => {
+  displayTask.value = true;
+};
 </script>
 <template>
-  <div class="h-custom">
+  <div class="main-layout true flex-grow-1 p-2">
     <DataTable
       :value="datalists"
       scrollable
       scrollHeight="flex"
       dataKey="follow_id"
       v-model:expandedRows="expandedRows"
+      showGridlines
+      responsiveLayout="scroll"
+      :rowHover="true"
+      :globalFilterFields="['full_name', 'user_id']"
     >
-      <Toolbar class="w-full custoolbar">
-        <template #end>
-          <Button
-            icon="pi pi-plus"
-            label="Thêm quy trình"
-            @click="openDialog()"
-            v-if="
-              (user.is_admin == true || TypeMember == 0) &&
-              props.isClose != true
-            "
-          ></Button>
-        </template>
-      </Toolbar>
+      <template #header>
+        <h3 class="module-title mt-0 ml-1 mb-2">
+          <i class="pi pi-sliders-v"></i> Danh sách quy trình mẫu ({{
+            options.totalRecords
+          }})
+        </h3>
+        <Toolbar class="w-full custoolbar">
+          <!-- <template #start>
+            <span class="p-input-icon-left">
+              <i class="pi pi-search" />
+              <InputText
+                v-model="options.SearchText"
+                @keyup.enter="loadData()"
+                type="text"
+                spellcheck="false"
+                placeholder="Tìm kiếm"
+              />
+            </span>
+            <Button
+              type="button"
+              class="ml-2 p-button-outlined p-button-secondary"
+              icon="pi pi-filter"
+              @click="toggle"
+              aria:haspopup="true"
+              aria-controls="overlay_panel"
+              v-tooltip.bottom="'Bộ lọc'"
+              :style="[styleObj]"
+            />
+            <OverlayPanel
+              ref="op"
+              appendTo="body"
+              class="w-30rem p-0 m-0"
+              :showCloseIcon="false"
+              id="overlay_panel"
+              style="z-index: 999"
+            >
+            </OverlayPanel>
+          </template> -->
+
+          <template #end>
+            <Button
+              icon="pi pi-plus"
+              label="Thêm quy trình"
+              @click="openDialog()"
+              v-if="user.is_admin == true || TypeMember == 0"
+              class="mx-2"
+            ></Button>
+          </template>
+        </Toolbar>
+      </template>
+
       <Column
         expander
-        class="max-w-3rem"
+        class="justify-content-center align-items-center text-center max-w-4rem"
       />
       <Column
         header="Tên quy trình"
         field="follow_name"
-        headerClass="justify-content-center align-items-center text-center "
-        bodyClass="word-break-break-all"
+        headerClass="justify-content-center align-items-center text-center w-custom  "
+        bodyClass="word-break-break-all w-custom "
       ></Column>
       <Column
         header="Bước"
         field="follow_name"
-        class="justify-content-center align-items-center max-w-10rem"
+        class="justify-content-center align-items-center max-w-14rem"
       >
         <template #body="data">
           <div
@@ -865,15 +979,6 @@ const closeDetail = () => {
             <div>
               {{ data.data.countStepFinished }} / {{ data.data.countStep }}
             </div>
-            <div v-if="data.data.StepProgress > 0">
-              <ProgressBar :value="data.data.StepProgress" />
-            </div>
-            <div
-              class="pt-2"
-              v-else
-            >
-              0%
-            </div>
           </div>
         </template>
       </Column>
@@ -881,7 +986,7 @@ const closeDetail = () => {
       <Column
         header="Công việc"
         field="follow_name"
-        class="justify-content-center align-items-center max-w-8rem"
+        class="justify-content-center align-items-center max-w-14rem"
       >
         <template #body="data">
           <div
@@ -890,49 +995,19 @@ const closeDetail = () => {
             <div>
               {{ data.data.countTaskFinished }} / {{ data.data.countTask }}
             </div>
-            <div v-if="data.data.TaskProgress > 0">
-              <ProgressBar :value="data.data.TaskProgress" />
-            </div>
-            <div
-              class="pt-2"
-              v-else
-            >
-              0%
-            </div>
           </div>
         </template>
       </Column>
       <Column
-        header="Trạng thái"
-        field=""
-        class="justify-content-center align-items-center max-w-13rem"
+        header="Thời gian xử lý"
+        field="process_time_string"
+        class="justify-content-center align-items-center max-w-20rem"
       >
-        <template #body="data">
-          <span
-            :style="{
-              background: data.data.status_display.bg_color,
-              color: data.data.status_display.text_color,
-              padding: '5px 10px',
-              border: '1px solid' + data.data.status_display.bg_color,
-              borderRadius: '5px',
-            }"
-            @click="
-              toggle($event, 1, {
-                follow_id: data.data.follow_id,
-                status: data.data.status,
-              })
-            "
-            aria-haspopup="true"
-            aria-controls="overlay_menu"
-          >
-            {{ data.data.status_display.label }}
-          </span>
-        </template>
       </Column>
       <Column
         header="Chức năng"
         field=""
-        class="justify-content-center align-items-center max-w-12rem"
+        class="justify-content-center align-items-center max-w-15rem"
       >
         <template #body="data">
           <div class="flex">
@@ -941,9 +1016,7 @@ const closeDetail = () => {
               icon="pi pi-plus"
               v-tooltip="'Thêm bước'"
               v-if="
-                (user.is_admin == true || TypeMember == 0) &&
-                data.data != null &&
-                props.isClose != true
+                (user.is_admin == true || TypeMember == 0) && data.data != null
               "
               @click="openStepDialog(data.data)"
             ></Button>
@@ -961,10 +1034,7 @@ const closeDetail = () => {
               icon="pi pi-pencil"
               v-tooltip="'Sửa'"
               @click="OpenEditDialog(data.data)"
-              v-if="
-                (user.is_admin == true || TypeMember == 0) &&
-                props.isClose != true
-              "
+              v-if="user.is_admin == true || TypeMember == 0"
             >
             </Button>
             <Button
@@ -973,10 +1043,7 @@ const closeDetail = () => {
               type="button"
               v-tooltip="'Xóa'"
               icon="pi pi-trash"
-              v-if="
-                (user.is_admin == true || TypeMember == 0) &&
-                props.isClose != true
-              "
+              v-if="user.is_admin == true || TypeMember == 0"
             ></Button>
           </div>
         </template>
@@ -993,29 +1060,20 @@ const closeDetail = () => {
         </div>
       </template>
       <template #expansion="slotProps">
-        <div>
-          <div v-if="slotProps.data.task_follow_step.length > 0">
+        <div class="w-full">
+          <div
+            class="w-full"
+            v-if="slotProps.data.task_follow_step.length > 0"
+          >
             <div class="multi-step numbered">
               <div class="buttonfunc">
-                <!-- <Button
-                  class="mx-1"
-                  icon="pi pi-plus"
-                  v-tooltip="'Thêm bước'"
-                  v-if="
-                    (user.is_admin == true || TypeMember == 0) &&
-                    slotProps.data != null &&
-                    props.isClose != true
-                  "
-                  @click="openStepDialog(slotProps.data)"
-                ></Button> -->
                 <Button
                   class="mx-1 p-button-outlined p-button-rounded"
                   icon="pi pi-pencil"
                   v-tooltip="'Sửa bước đang chọn'"
                   v-if="
                     (user.is_admin == true || TypeMember == 0) &&
-                    indexSelected != null &&
-                    props.isClose != true
+                    indexSelected != null
                   "
                   @click="
                     openEditStepDialog(
@@ -1030,8 +1088,7 @@ const closeDetail = () => {
                   v-tooltip="'Xóa bước đang chọn'"
                   v-if="
                     (user.is_admin == true || TypeMember == 0) &&
-                    indexSelected != null &&
-                    props.isClose != true
+                    indexSelected != null
                   "
                   @click="
                     DeleteStep(
@@ -1041,32 +1098,35 @@ const closeDetail = () => {
                   "
                 ></Button>
               </div>
-              <ul class="multi-step-list">
-                <li
+              <div class="multi-step-list">
+                <div
                   class="multi-step-item active"
                   v-for="(item, index) in slotProps.data.task_follow_step"
                   :key="index"
                   :class="[{ current: index == indexSelected }]"
                   @click="selectStep(item, index)"
+                  v-tooltip.bottom="{ value: item.step_name }"
                 >
                   <div
                     class="item-wrap flex align-items-center justify-content-center"
                   >
                     <p class="item-title text-center">{{ item.step_name }}</p>
                   </div>
-                </li>
-              </ul>
+                </div>
+              </div>
             </div>
           </div>
           <div
             v-else
-            class="top-50 block row col-12 align-items-center justify-content-center p-4 text-center"
+            class="w-full col-12 align-items-center justify-content-center p-4 text-center flex"
           >
-            <img
-              src="../../../assets/background/nodata.png"
-              height="144"
-            />
-            <h3 class="m-1">Quy trình chưa có các bước thực hiện!</h3>
+            <div class="block">
+              <img
+                src="../../../assets/background/nodata.png"
+                height="144"
+              />
+              <h3 class="m-1">Quy trình chưa có các bước thực hiện!</h3>
+            </div>
           </div>
           <div
             v-if="
@@ -1087,13 +1147,14 @@ const closeDetail = () => {
                 ].task_info"
                 :key="index2"
               >
-                {{ item2 }}
                 <Card
                   class="bg-bluegray-50 w-30rem card-hover"
                   @click="onNodeSelect(item2.task_id)"
                 >
                   <template #title>
-                    <span class="font-bold text-xl">
+                    <span
+                      class="flex justify-content-center align-items-center text-center font-bold text-xl"
+                    >
                       Công việc:
                       <span class="text-blue-700"> {{ item2.task_name }}</span>
                     </span>
@@ -1145,13 +1206,7 @@ const closeDetail = () => {
                       </span>
                     </div>
                   </template>
-                  <template #footer>
-                    <div
-                      v-if="item2.progress != 0"
-                      style="width: 100%"
-                    >
-                      <ProgressBar :value="item2.progress ?? 0" /></div
-                  ></template>
+                  <template #footer> </template>
                 </Card>
 
                 <icon
@@ -1264,36 +1319,37 @@ const closeDetail = () => {
         />
       </div>
       <div class="col-12 flex">
-        <div class="col-4 flex align-items-center">Ngày bắt đầu</div>
-        <Calendar
-          v-model="taskfollow.start_date"
-          :showIcon="true"
-          :showTime="true"
-          class="col-3 px-0"
-          :manualInput="false"
-          :minDate="new Date(props.data.start_date)"
-          :maxDate="new Date(props.data.end_date)"
-          showButtonBar
-        >
-        </Calendar>
-        <div class="col-2 flex align-items-center justify-content-center">
-          Ngày kết thúc
+        <div class="col-4 flex align-items-center">Thời gian xử lý</div>
+        <div class="col-8 p-0 flex align-items-center">
+          <InputNumber
+            class="col-4 pl-0"
+            suffix=" ngày"
+            mode="decimal"
+            :min="0"
+            :useGrouping="false"
+            placeholder="ngày"
+            v-model="taskfollow.day"
+          ></InputNumber>
+
+          <InputNumber
+            class="col-4"
+            suffix=" giờ"
+            :min="0"
+            :max="23"
+            :useGrouping="false"
+            placeholder="giờ"
+            v-model="taskfollow.hour"
+          ></InputNumber>
+          <InputNumber
+            class="col-4 pr-0"
+            suffix=" phút"
+            :min="0"
+            :max="59"
+            :useGrouping="false"
+            placeholder="phút"
+            v-model="taskfollow.minutes"
+          ></InputNumber>
         </div>
-        <Calendar
-          v-model="taskfollow.end_date"
-          :showIcon="true"
-          :showTime="true"
-          class="col-3 px-0"
-          :manualInput="false"
-          :minDate="
-            taskfollow.start_date != null
-              ? new Date(taskfollow.start_date)
-              : new Date()
-          "
-          :maxDate="new Date(props.data.end_date)"
-          showButtonBar
-        >
-        </Calendar>
       </div>
       <div class="col-12 flex">
         <div class="col-4 flex align-items-center">Trình tự thực hiện</div>
@@ -1301,20 +1357,6 @@ const closeDetail = () => {
           :filter="true"
           v-model="taskfollow.type"
           :options="listDrdType"
-          optionLabel="label"
-          placeholder="Chọn trình tự"
-          panelClass="d-design-dropdown"
-          class="col-8 py-0"
-          optionValue="value"
-        >
-        </Dropdown>
-      </div>
-      <div class="col-12 flex">
-        <div class="col-4 flex align-items-center">Trạng thái</div>
-        <Dropdown
-          :filter="true"
-          v-model="taskfollow.status"
-          :options="listDrdStatus"
           optionLabel="label"
           placeholder="Chọn trình tự"
           panelClass="d-design-dropdown"
@@ -1401,31 +1443,36 @@ const closeDetail = () => {
       </div>
       <div class="col-12 flex">
         <div class="col-4 flex align-items-center">Ngày bắt đầu</div>
-        <Calendar
-          v-model="taskStep.start_date"
-          :showIcon="true"
-          :showTime="true"
-          class="col-3 px-0"
-          :manualInput="false"
-          :minDate="new Date(tempMinDate)"
-          :maxDate="new Date(tempMaxDate)"
-          showButtonBar
-        >
-        </Calendar>
-        <div class="col-2 flex align-items-center justify-content-center">
-          Ngày kết thúc
+        <div class="col-8 p-0 flex align-items-center">
+          <InputNumber
+            class="col-4 pl-0"
+            suffix=" ngày"
+            mode="decimal"
+            :min="0"
+            :useGrouping="false"
+            v-model="taskStep.day"
+            placeholder="ngày"
+          ></InputNumber>
+
+          <InputNumber
+            class="col-4"
+            suffix=" giờ"
+            :min="0"
+            :max="23"
+            :useGrouping="false"
+            placeholder="giờ"
+            v-model="taskStep.hour"
+          ></InputNumber>
+          <InputNumber
+            class="col-4 pr-0"
+            suffix=" phút"
+            :min="0"
+            :max="59"
+            :useGrouping="false"
+            v-model="taskStep.minutes"
+            placeholder="phút"
+          ></InputNumber>
         </div>
-        <Calendar
-          v-model="taskStep.end_date"
-          :showIcon="true"
-          :showTime="true"
-          class="col-3 px-0"
-          :manualInput="false"
-          showButtonBar
-          :minDate="new Date(tempMinDate)"
-          :maxDate="new Date(tempMaxDate)"
-        >
-        </Calendar>
       </div>
       <div class="col-12 flex">
         <div class="col-4 flex align-items-center">Trình tự thực hiện</div>
@@ -1441,27 +1488,14 @@ const closeDetail = () => {
         >
         </Dropdown>
       </div>
-      <div class="col-12 flex">
-        <div class="col-4 flex align-items-center">Trạng thái</div>
-        <Dropdown
-          :filter="true"
-          v-model="taskStep.status"
-          :options="listDrdStatus"
-          optionLabel="label"
-          placeholder="Chọn trình tự"
-          panelClass="d-design-dropdown"
-          class="col-8 py-0"
-          optionValue="value"
-        >
-        </Dropdown>
-      </div>
+
       <div class="col-12 flex">
         <div class="col-4 flex align-items-center">Chọn công việc</div>
         <div class="col-7 p-0">
           <MultiSelect
             :filter="true"
             v-model="listTask"
-            :options="props.listChild"
+            :options="listChild"
             placeholder="Chọn công việc"
             display="chip"
             optionLabel="task_name"
@@ -1637,7 +1671,7 @@ const closeDetail = () => {
             icon="pi pi-plus"
             class="p-button-raised"
             v-tooltip="'Tạo công việc con'"
-            @click="openAddTask(props.data)"
+            @click="openAddTask()"
           >
           </Button>
         </div>
@@ -1830,33 +1864,7 @@ const closeDetail = () => {
       </div>
     </template>
   </Dialog>
-  <Menu
-    ref="menu"
-    id="overlay_menu"
-    :model="items"
-    :popup="true"
-  >
-    <template #item="{ item }">
-      <div
-        class="w-full p-2"
-        @click="changeStatus(item.value)"
-      >
-        <span>
-          <i
-            class="pi pi-circle"
-            style="
-              border: 1px hidden #ffffff;
-              border-radius: 50%;
-              color: #ffffff;
-              border-style: hidden;
-            "
-            :style="{ background: item.bg_color }"
-          />
-          {{ item.label }}
-        </span>
-      </div>
-    </template></Menu
-  >
+
   <DetailedWork
     v-if="showDetail === true"
     :id="selectedTaskID"
@@ -1864,341 +1872,23 @@ const closeDetail = () => {
     :closeDetail="closeDetail"
   >
   </DetailedWork>
+  <DialogTask
+    v-if="displayTask == true"
+    :header="headerAddTask"
+    :visible="displayTask"
+    :is_add="is_Add"
+    :is_template="is_Template"
+    :data="DialogData"
+    :closeDialogTask="closeDialogTask"
+    :afterSave="afterSave"
+  >
+  </DialogTask>
 </template>
-
 <style lang="scss" scoped>
-.h-custom {
-  height: calc(100vh - 5rem);
-}
+@import "./style/followTemplate.scss";
 </style>
 <style lang="scss" scoped>
-// Variables
-$base-margin: 2em;
-$base-padding: 1em;
-$base-border-radius: 0.2em;
-$screen-xs-max: 786px;
-
-$screen-qHD: 2048px;
-$screen-fHD: 1920px;
-$screen-Mac: 1440px;
-$screen-HD: 1366px;
-
-$text-color: #263238;
-$text-color-inverted: #fff;
-$clickable-hover: #d8f1ff;
-
-$brand-primary: #2196f3;
-$brand-success: #26a25f;
-$brand-danger: #f82502;
-
-$accent-dark: #2196f3;
-$accent-light: #2196f3;
-$accent-lighter: #ffffff;
-
-$icon-danger: "!";
-$icon-success: "✓";
-
-$animation-time: 0.5s;
-
-.multi-step {
-  margin: 0;
-}
-
-.multi-step-list {
-  position: relative;
-  display: flex;
-  flex-direction: row;
-  justify-content: flex-start;
-  list-style-type: none;
-  padding: 10px 10px 0px 10px;
-  overflow: auto;
-  background: #efefef;
-
-  @media only screen and (max-width: $screen-qHD) {
-    max-width: 46.9vw;
-  }
-  @media only screen and (max-width: $screen-fHD) {
-    max-width: 46.9vw;
-  }
-  @media only screen and (max-width: $screen-Mac) {
-    max-width: 54vw;
-  }
-  @media only screen and (max-width: $screen-HD) {
-    max-width: 53.9vw;
-  }
-  .multi-step-item:first-child {
-    margin-left: 0;
-  }
-  .multi-step-item:last-child {
-    margin-right: 0;
-  }
-}
-
-// Defaults for each 'step'
-.multi-step-item {
-  position: relative;
-  width: 100%;
-  margin: 0 calc($base-margin / 6);
-  @media only screen and (max-width: $screen-xs-max) {
-    margin: 0 calc($base-margin / 6);
-  }
-  z-index: 2;
-  border-radius: $base-border-radius;
-
-  // Step title and subtitle defaults
-  .item-title,
-  .item-subtitle {
-    position: relative;
-    margin: 0;
-    z-index: 2;
-  }
-  @media only screen and (max-width: $screen-xs-max) {
-    .item-subtitle {
-      display: none;
-    }
-  }
-  .item-title {
-    color: #72777a;
-    font-weight: 600;
-    margin: 0;
-    white-space: nowrap;
-    max-width: 10rem;
-    overflow: hidden;
-    text-overflow: ellipsis;
-  }
-
-  // Different step states [ active, current, completed, error]
-  &.active:hover {
-    cursor: pointer;
-  }
-  &.current .item-title,
-  &.current .item-subtitle {
-    color: $text-color-inverted;
-  }
-  &.active.current:hover .item-title,
-  &.active.current:hover .item-subtitle {
-    color: $brand-primary;
-  }
-  &.error:after {
-    position: absolute;
-    top: 50%;
-    z-index: 2;
-    transform: translateY(-50%);
-    right: 0.5em;
-
-    content: $icon-danger;
-    color: $brand-danger;
-  }
-  :hover .item-title {
-    color: $brand-primary;
-    font-weight: 600;
-    margin: 0;
-    white-space: nowrap;
-    max-width: max-content;
-  }
-}
-
-.item-wrap {
-  padding: $base-padding;
-  position: relative;
-  height: 100%;
-  &:before,
-  &:after {
-    position: absolute;
-    left: 0;
-    content: " ";
-    width: 100%;
-    height: 50.5%;
-    z-index: 1;
-    background-color: $accent-lighter;
-  }
-
-  // Top of the arrow
-  &:before {
-    top: 0;
-    transform: skew(20deg);
-    border-radius: 0.2em 0.2em 0 0;
-  }
-  // Bottom of the arrow
-  &:after {
-    bottom: 0;
-    transform: skew(-20deg);
-    border-radius: 0 0 0.2em 0.2em;
-  }
-}
-
-// Changing arrow colors based on state
-.current .item-wrap:before,
-.current .item-wrap:after {
-  background-color: $brand-primary;
-}
-
-.active:hover .item-wrap:before,
-.active:hover .item-wrap:after {
-  background-color: $clickable-hover;
-}
-
-.multi-step-item.error {
-  .item-title,
-  .item-subtitle {
-    padding-right: ($base-padding * 2);
-  }
-}
-
-// Changing step styles based on :first/:last step
-.multi-step-item:first-child .item-wrap,
-.multi-step-item:last-child .item-wrap {
-  width: 100%;
-  border-radius: $base-border-radius;
-  &:before,
-  &:after {
-    width: 50%;
-  }
-}
-
-// If first step, only point on the right
-.multi-step-item:first-child .item-wrap {
-  background: linear-gradient(to right, $accent-lighter 95%, transparent 5%);
-  &:before,
-  &:after {
-    left: 50%;
-  }
-}
-.active.multi-step-item:first-child:hover .item-wrap {
-  background: linear-gradient(to right, $clickable-hover 95%, transparent 5%);
-}
-.current.multi-step-item:first-child .item-wrap {
-  background: linear-gradient(to right, $brand-primary 95%, transparent 5%);
-}
-
-// If last step, only indent on the left
-.multi-step-item:last-child .item-wrap {
-  background: linear-gradient(to left, $accent-lighter 95%, transparent 5%);
-  &:before,
-  &:after {
-    right: 50%;
-  }
-}
-.active.multi-step-item:last-child:hover .item-wrap {
-  background: linear-gradient(to left, $clickable-hover 95%, transparent 5%);
-}
-.current.multi-step-item:last-child .item-wrap {
-  background: linear-gradient(to left, $brand-primary 95%, transparent 5%);
-}
-
-// MSI Checked & Complete
-.checked .multi-step-item.completed:after {
-  position: absolute;
-  top: 50%;
-  z-index: 2;
-  transform: translateY(-50%);
-  right: 0.5em;
-  content: $icon-success;
-  color: $brand-success;
-}
-
-// MSI Numbered
-.numbered .multi-step-item {
-  counter-increment: step-counter;
-  max-width: max-content;
-  .item-wrap {
-    padding-left: ($base-padding * 5);
-  }
-
-  // Adds number to step
-  &:before {
-    content: counter(step-counter);
-    position: absolute;
-    top: 50%;
-    left: 0.75em;
-    transform: translateY(-50%);
-    min-width: fit-content;
-    padding: calc($base-padding / 2) $base-padding;
-    z-index: 2;
-    font-size: 0.85em;
-    //background-color: $accent-light;
-    //color: $text-color-inverted;
-    background-color: $accent-light;
-    color: $text-color-inverted;
-    font-weight: 600;
-    text-align: unset;
-    border-radius: $base-border-radius;
-  }
-}
-
-// MSI w/ badge counts
-.item-wrap .badge {
-  position: absolute;
-  right: 0.5em;
-  top: 50%;
-  transform: translateY(-50%);
-  z-index: 3;
-}
-.error .item-wrap .badge {
-  right: 2em;
-  ~ .item-title,
-  ~ .item-subtitle {
-    padding-right: 3em;
-  }
-}
-
-// MSI CSS Loader
-.multi-step-loading {
-  opacity: 0.75;
-}
-
-.current.multi-step-loading:before {
-  border-color: $text-color-inverted;
-  border-top-color: transparent;
-  opacity: 1;
-}
-
-.busy-css {
-  z-index: 3;
-  content: "";
-  position: absolute;
-  top: 50%;
-  left: 50%;
-  margin-top: -0.5em;
-  margin-left: -0.5em;
-  border-radius: 50%;
-  width: 1em;
-  height: 1em;
-  border: 0.25em solid $accent-dark;
-  border-top-color: transparent;
-  animation: spin ($animation-time * 2) infinite linear;
-}
-
-@keyframes spin {
-  from {
-    transform: rotate(0deg);
-  }
-  to {
-    transform: rotate(360deg);
-  }
-}
-::-webkit-scrollbar-thumb {
-  background-color: #fff;
-}
-.p-card :hover {
-  background: #c5e5ff !important;
-}
-.buttonfunc {
-  position: absolute;
-  right: 0px;
-  max-width: 12rem;
-  z-index: 100;
-  display: none;
-  padding: 0 0.5rem 0 0;
-}
-.multi-step {
-  .multi-step-list {
-    padding-top: 3rem;
-  }
-}
-.multi-step:hover {
-  .buttonfunc {
-    display: unset;
-  }
+.w-custom {
+  max-width: calc(100% - 67rem);
 }
 </style>

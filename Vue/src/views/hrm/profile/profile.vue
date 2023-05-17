@@ -516,6 +516,11 @@ const editItem = (item, str) => {
               model.value["identity_date_issue"]
             );
           }
+          if (model.value["identity_end_date_issue"] != null) {
+            model.value["identity_end_date_issue"] = new Date(
+              model.value["identity_end_date_issue"]
+            );
+          }
           if (model.value["partisan_date"] != null) {
             model.value["partisan_date"] = new Date(
               model.value["partisan_date"]
