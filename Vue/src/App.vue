@@ -122,7 +122,11 @@ const passModuleToSidebar = () => {
         data[1].filter((x) => x.is_link == root_path).length == 0 
         && !path_system.includes(root_path)
         && (data[1].filter((x) => x.is_link == '/hrm/template/smart_report').length == 0 || !root_path.includes('/hrm/template/smart_report'))
-      )
+        && (data[1].filter((x) => x.is_link == '/hrm/profile').length == 0 || !root_path.includes('/hrm/profile/report'))
+        && (data[1].filter((x) => x.is_link == '/hrm/payroll/hrm_payroll').length == 0 || !root_path.includes('/hrm/payroll/hrm_payroll/details'))
+
+     
+        )
         route.push({ path: "/" });
       else if (data[0].length > 0) {
         cookies.set("max_length_file", data[0][0].max_length_file);
