@@ -20,7 +20,7 @@ const LoginView = () => import("../views/LoginView.vue");
 const Error = () => import("../error/404.vue");
 const ConfigAprrovedGroups = () =>
   import("../views/hethong/process/ConfigAprrovedGroups.vue");
-
+const FollowTemplate = () => import("../views/tasks/config/FollowTemplate.vue");
 const ConfigProcess = () =>
   import("../views/hethong/process/ConfigProcess.vue");
 
@@ -473,6 +473,7 @@ const BackupFile = () => import("../views/backup/backup_schedule.vue");
 const BackupHistory = () => import("../views/backup/backup_history.vue");
 //Báo cáo Công việc
 const ProjectReport = () => import("../views/task_report/ProjectReport.vue");
+
 const router = createRouter({
   history: createWebHistory(import.meta.env.BASE_URL),
   routes: [
@@ -1495,6 +1496,11 @@ const router = createRouter({
       path: "/tasks/config/point",
       name: "memberPoint",
       component: memberPoint,
+    },
+    {
+      path: "/tasks/config/prctemplate",
+      name: "FollowTemplate",
+      component: FollowTemplate,
     },
     {
       path: "/task/total_reports",

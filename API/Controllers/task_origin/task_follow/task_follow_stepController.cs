@@ -74,24 +74,27 @@ namespace API.Controllers
                         task_Follow.created_date = DateTime.Now;
                         task_Follow.created_ip = ip;
                         task_Follow.created_token_id = tid;
-                        if (task_Follow.start_date <= DateTime.Now && task_Follow.status==0)
+                        string ssid = task_Follow.is_template == true?task_Follow.task_id:null;
+                        if (task_Follow.is_template != true)
                         {
-                            task_Follow.start_real_date = DateTime.Now;
-                            task_Follow.status = 1;
-                        }
+                            if (task_Follow.start_date <= DateTime.Now && task_Follow.status == 0)
+                            {
+                                task_Follow.start_real_date = DateTime.Now;
+                                task_Follow.status = 1;
+                            }
 
-                        db.task_follow_step.Add(task_Follow);
 
-                        //Noti
-                        string ssid = task_Follow.task_id;
-                        var listuser = db.task_member.Where(x => x.task_id == ssid).Select(x => x.user_id).Distinct().ToList();
-                        string task_name = db.task_origin.Where(x => x.task_id == ssid).Select(x => x.task_name).FirstOrDefault().ToString();
-                        listuser.Remove(uid);
+                            //Noti
+                          
+                            var listuser = db.task_member.Where(x => x.task_id == ssid).Select(x => x.user_id).Distinct().ToList();
+                            string task_name = db.task_origin.Where(x => x.task_id == ssid).Select(x => x.task_name).FirstOrDefault().ToString();
+                            listuser.Remove(uid);
 
-                        foreach (var l in listuser)
-                        {
-                            helper.saveNotify(uid, l, null, "Công việc", "Thêm bước trong quy trình công việc: " + (task_name.Length > 100 ? task_name.Substring(0, 97) + "..." : task_name),
-                                null, 2, -1, false, module_key, ssid, null, null, tid, ip);
+                            foreach (var l in listuser)
+                            {
+                                helper.saveNotify(uid, l, null, "Công việc", "Thêm bước trong quy trình công việc: " + (task_name.Length > 100 ? task_name.Substring(0, 97) + "..." : task_name),
+                                    null, 2, -1, false, module_key, ssid, null, null, tid, ip);
+                            }
                         }
                         //Logs
                         if (helper.wlog)
@@ -109,6 +112,7 @@ namespace API.Controllers
                             db.task_logs.Add(log);
                             db.SaveChanges();
                         }
+                        db.task_follow_step.Add(task_Follow);
                         temp2 = provider.FormData.GetValues("task_follow_task").SingleOrDefault();
                         List<task_follow_task> task_Follow_Task = JsonConvert.DeserializeObject<List<task_follow_task>>(temp2);
                         List<task_follow_task> task_ADd= new List<task_follow_task>();
@@ -127,6 +131,7 @@ namespace API.Controllers
                             task_ADd.Add(model);
                         }    
                         db.task_follow_task.AddRange(task_ADd);
+                     
                         db.SaveChanges();
                         return Request.CreateResponse(HttpStatusCode.OK, new { err = "0" });
                     });
@@ -344,6 +349,7 @@ namespace API.Controllers
                     }
                     if (das.Count > 0)
                     {
+                        if(das[0].is_template!=true) {
                         string ssid = das[0].task_id;
 
                         var listuser = db.task_member.Where(x => x.task_id == ssid).Select(x => x.user_id).Distinct().ToList();
@@ -354,7 +360,7 @@ namespace API.Controllers
                         {
                             helper.saveNotify(uid, l, null, "Công việc", "Xóa quy trình công việc: " + (task_name.Length > 100 ? task_name.Substring(0, 97) + "..." : task_name),
                                 null, 2, -1, false, module_key, ssid, null, null, tid, ip);
-                        }
+                        } }
                     }
                     if (del.Count == 0)
                     {

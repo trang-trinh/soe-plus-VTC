@@ -6159,20 +6159,59 @@ const CloseVisible = () => {
       <div
         class="overflow-hidden w-full"
         style="
-          display: grid;
-          align-content: center;
-          justify-content: center;
-          align-items: center;
-          justify-items: center;
+          display: flex;
+
           height: 98vh;
+
+          align-items: center;
+          width: 100%;
+
+          flex-direction: column;
         "
         v-else
       >
-        <img
-          src="../../assets/background/nodata.png"
-          height="300"
-        />
-        <h2 class="m-1">Công việc bảo mật, đã bị xóa hoặc không tồn tại.</h2>
+        <div class="col-12 p-0 m-0 flex left-0 top-0">
+          <Button
+            v-if="props.turn == 0"
+            icon="pi pi-times"
+            class="p-button-rounded p-button-text"
+            v-tooltip="{ value: 'Đóng' }"
+            @click="CloseVisible()"
+          />
+          <Button
+            v-if="props.turn > 0"
+            icon="pi pi-times"
+            class="p-button-rounded p-button-text"
+            @click="props.closeChildDetail"
+            v-tooltip="{ value: 'Quay lại công việc trước' }"
+          />
+          <Button
+            icon="pi pi-window-maximize"
+            class="p-button-rounded p-button-text"
+            v-tooltip="{ value: 'Phóng to' }"
+            @click="MaxMin('full')"
+            v-if="PositionSideBar == 'right'"
+          />
+
+          <Button
+            icon="pi pi-window-minimize"
+            class="p-button-rounded p-button-text"
+            v-tooltip="{ value: 'Thu nhỏ' }"
+            @click="MaxMin('right')"
+            v-if="PositionSideBar == 'full'"
+          />
+        </div>
+        <div class="row col-12 w-full px-0 mx-0 format-center">
+          <div class="block">
+            <img
+              src="../../assets/background/nodata.png"
+              height="300"
+            />
+            <h2 class="m-1">
+              Công việc bảo mật, đã bị xóa hoặc không tồn tại.
+            </h2>
+          </div>
+        </div>
       </div>
     </div>
   </Sidebar>

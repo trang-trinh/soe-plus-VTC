@@ -208,8 +208,9 @@ namespace API.Controllers
                             db.task_logs.Add(log);
                             db.SaveChanges();
                         }
-                        #endregion
-
+                    #endregion
+                    if (task_origin.is_template != true)
+                    {
                         #region add sendhub
                         if (helper.wlog)
                         {
@@ -219,7 +220,7 @@ namespace API.Controllers
                                 var contentNoti = "Thêm công việc: " + (task_origin.task_name.Length > 100 ? task_origin.task_name.Substring(0, 97) + "..." : task_origin.task_name);
                                 foreach (var item in members)
                                 {
-                                    if(listsendhubs.Where(x=>x.receiver == item.user_id).ToList().Count == 0 && item.user_id != uid)
+                                    if (listsendhubs.Where(x => x.receiver == item.user_id).ToList().Count == 0 && item.user_id != uid)
                                     {
                                         var ns_sh = db.sys_users.Find(item.user_id);
                                         var created_by = db.sys_users.Find(uid);
@@ -308,10 +309,10 @@ namespace API.Controllers
                             }
                         }
                         #endregion
-
-                        
+                    }
+                    var id = task_origin.task_id;
                         db.SaveChanges();
-                        return Request.CreateResponse(HttpStatusCode.OK, new { err = "0" });
+                    return Request.CreateResponse(HttpStatusCode.OK, new { err = "0", data= id }); ;
                     });
                     return await task;
                 }
