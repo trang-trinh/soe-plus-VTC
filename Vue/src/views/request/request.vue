@@ -463,10 +463,12 @@ const countRequest = () => {
                     }
                 });
                 tabOthers.value.forEach((el) => {
-                    let statusExist = countRequestTabs.value.find(x => x.status_value == el.status);
-                    if (statusExist != null) {
-                        el.total = statusExist.count;
-                    }
+                    el.items.forEach((t) => {                        
+                        let statusExist = countRequestTabs.value.find(x => x.status_value == t.status);
+                        if (statusExist != null) {
+                            t.total = statusExist.count;
+                        }
+                    });
                 });
             }
         }
