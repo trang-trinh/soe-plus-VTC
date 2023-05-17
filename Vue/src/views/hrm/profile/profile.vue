@@ -553,7 +553,9 @@ const editItem = (item, str) => {
             model.value["sign_date"] = new Date(model.value["sign_date"]);
           }
           if (model.value["partisan_main_date"] != null) {
-            model.value["partisan_main_date"] = new Date(model.value["partisan_main_date"]);
+            model.value["partisan_main_date"] = new Date(
+              model.value["partisan_main_date"]
+            );
           }
         }
         if (tbs[1] != null && tbs[1].length > 0) {
@@ -1090,18 +1092,27 @@ const execImportExcel = () => {
         uploadProgress.value = Math.round(
           (progressEvent.loaded / progressEvent.total) * 100
         );
-        debugger
+        debugger;
       },
       onUploadProgress: (progressEvent) => {
         uploadProgress.value = Math.round(
           (progressEvent.loaded / progressEvent.total) * 100
         );
-        debugger
+        debugger;
       },
     })
     .then((response) => {
       uploading.value = false;
       uploadProgress.value = 0;
+      if (response.data.err === "1") {
+        swal.fire({
+          title: "Thông báo!",
+          text: response.data.ms,
+          icon: "error",
+          confirmButtonText: "OK",
+        });
+        return;
+      }
       toast.success("Nhập dữ liệu thành công");
       initData(true);
       initCount();
