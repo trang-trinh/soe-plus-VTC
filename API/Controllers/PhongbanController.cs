@@ -104,6 +104,10 @@ namespace Controllers
                         }
                         fdmodel = provider.FormData.GetValues("model").SingleOrDefault();
                         sys_organization model = JsonConvert.DeserializeObject<sys_organization>(fdmodel);
+                        if (db.sys_organization.Count(a => a.organization_key == model.organization_key) > 0)
+                        {
+                            return Request.CreateResponse(HttpStatusCode.OK, new { ms = "Đã tồn tại mã đơn vị này trong hệ thống, vui lòng nhập lại!", err = "2" });
+                        }
                         // This illustrates how to get thefile names.
                         FileInfo fileInfo = null;
                         string newFileName = "";
@@ -263,6 +267,10 @@ namespace Controllers
                         }
                         fdmodel = provider.FormData.GetValues("model").SingleOrDefault();
                         sys_organization model = JsonConvert.DeserializeObject<sys_organization>(fdmodel);
+                        if (db.sys_organization.Count(a => a.organization_key == model.organization_key) > 0)
+                        {
+                            return Request.CreateResponse(HttpStatusCode.OK, new { ms = "Đã tồn tại mã đơn vị này trong hệ thống, vui lòng nhập lại!", err = "2" });
+                        }
                         // This illustrates how to get thefile names.
                         FileInfo fileInfo = null;
                         string newFileName = "";
