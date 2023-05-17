@@ -73,7 +73,6 @@ const execSQL = async (id) => {
 };
 const configBaocao = async (row) => {
   axios;
-
   swal.fire({
     width: 110,
     didOpen: () => {
@@ -1436,7 +1435,7 @@ onMounted(() => {
         :isedit="true"
         :report="smart_report"
         :callbackFun="callbackFun"
-        :pars="pars"
+       
       ></DocComponent>
     </div>
   </Sidebar>

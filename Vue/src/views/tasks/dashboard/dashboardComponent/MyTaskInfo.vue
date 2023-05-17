@@ -204,6 +204,7 @@ const LoadActive = () => {
       listDate2.forEach((z) => {
         listActive.value.push(z);
       });
+      console.log(listActive.value);
     })
     .catch((error) => {
       toast.error("Tải dữ liệu không thành công!");
@@ -545,14 +546,22 @@ onMounted(() => {
                 <div class="col-4 format-right">
                   <Button
                     :style="{
-                      'background-color': item.status_display.bg_color,
-                      color: item.status_display.text_color,
+                      'background-color':
+                        item.status_display == null
+                          ? '#fff'
+                          : item.status_display.bg_color,
+                      color:
+                        item.status_display == null
+                          ? '#2196F3'
+                          : item.status_display.text_color,
                     }"
                     class=""
                     :label="
-                      item.task_name.length > 18
-                        ? item.task_name.substring(0, 25) + '...'
-                        : item.task_name
+                      item.task_name != null
+                        ? item.task_name.length > 18
+                          ? item.task_name.substring(0, 25) + '...'
+                          : item.task_name
+                        : ''
                     "
                     @click="ViewTask(item.task_id)"
                   ></Button>

@@ -1,0 +1,583 @@
+<?xml version="1.0" encoding="utf-8"?>
+<edmx:Edmx Version="3.0" xmlns:edmx="http://schemas.microsoft.com/ado/2009/11/edmx">
+ <!-- EF Designer content (DO NOT EDIT MANUALLY BELOW HERE) -->
+  <edmx:Designer xmlns="http://schemas.microsoft.com/ado/2009/11/edmx">
+    <!-- Diagram content (shape and connector positions) -->
+    <edmx:Diagrams>
+      <Diagram DiagramId="1d4f49a8739e409089896e5e954b3136" Name="Diagram1">
+        <EntityTypeShape EntityType="soeModel.api_bug" Width="1.5" PointX="54.75" PointY="57.25" />
+        <EntityTypeShape EntityType="soeModel.api_category" Width="1.5" PointX="38" PointY="42.5" />
+        <EntityTypeShape EntityType="soeModel.api_col" Width="1.5" PointX="40.25" PointY="49.875" />
+        <EntityTypeShape EntityType="soeModel.api_commentbug" Width="1.5" PointX="57" PointY="61" />
+        <EntityTypeShape EntityType="soeModel.api_commentbug_emotes" Width="1.5" PointX="5.75" PointY="8.5" />
+        <EntityTypeShape EntityType="soeModel.api_parameters" Width="1.5" PointX="42.5" PointY="39.75" />
+        <EntityTypeShape EntityType="soeModel.api_plugin" Width="1.5" PointX="40.25" PointY="44.875" />
+        <EntityTypeShape EntityType="soeModel.api_project" Width="1.5" PointX="35.75" PointY="40" />
+        <EntityTypeShape EntityType="soeModel.api_service" Width="1.5" PointX="40.25" PointY="39.25" />
+        <EntityTypeShape EntityType="soeModel.api_table" Width="1.5" PointX="38" PointY="50.25" />
+        <EntityTypeShape EntityType="soeModel.backup_history" Width="1.5" PointX="7.75" PointY="8.5" />
+        <EntityTypeShape EntityType="soeModel.backup_schedule" Width="1.5" PointX="5.75" PointY="12.5" />
+        <EntityTypeShape EntityType="soeModel.birthday_cmt" Width="1.5" PointX="7.75" PointY="12.5" />
+        <EntityTypeShape EntityType="soeModel.birthday_gif" Width="1.5" PointX="7.75" PointY="16.5" />
+        <EntityTypeShape EntityType="soeModel.booking_meal" Width="1.5" PointX="59.75" PointY="63.75" />
+        <EntityTypeShape EntityType="soeModel.booking_user_date" Width="1.5" PointX="62" PointY="64.25" />
+        <EntityTypeShape EntityType="soeModel.ca_place_details" Width="1.5" PointX="5.75" PointY="19.5" />
+        <EntityTypeShape EntityType="soeModel.ca_places" Width="1.5" PointX="15.75" PointY="20.5" />
+        <EntityTypeShape EntityType="soeModel.ca_positions" Width="1.5" PointX="5.75" PointY="24.5" />
+        <EntityTypeShape EntityType="soeModel.ca_rank" Width="1.5" PointX="24.75" PointY="23.5" />
+        <EntityTypeShape EntityType="soeModel.calendar_attend" Width="1.5" PointX="27.25" PointY="13.125" />
+        <EntityTypeShape EntityType="soeModel.calendar_ca_boardroom" Width="1.5" PointX="22.75" PointY="8.25" />
+        <EntityTypeShape EntityType="soeModel.calendar_ca_car" Width="1.5" PointX="25.75" PointY="17.5" />
+        <EntityTypeShape EntityType="soeModel.calendar_ca_mission" Width="1.5" PointX="26.75" PointY="22.5" />
+        <EntityTypeShape EntityType="soeModel.calendar_ca_position" Width="1.5" PointX="27.75" PointY="17.5" />
+        <EntityTypeShape EntityType="soeModel.calendar_coincide" Width="1.5" PointX="27.25" PointY="9.375" />
+        <EntityTypeShape EntityType="soeModel.calendar_comment" Width="1.5" PointX="29.75" PointY="3.5" />
+        <EntityTypeShape EntityType="soeModel.calendar_duty" Width="1.5" PointX="30.75" PointY="44.875" />
+        <EntityTypeShape EntityType="soeModel.calendar_duty_coincide" Width="1.5" PointX="33" PointY="40.75" />
+        <EntityTypeShape EntityType="soeModel.calendar_duty_person" Width="1.5" PointX="33" PointY="55.875" />
+        <EntityTypeShape EntityType="soeModel.calendar_duty_procedure" Width="1.5" PointX="33" PointY="35.75" />
+        <EntityTypeShape EntityType="soeModel.calendar_duty_procedureform" Width="1.5" PointX="54.75" PointY="14" />
+        <EntityTypeShape EntityType="soeModel.calendar_duty_sign" Width="1.5" PointX="33" PointY="44.5" />
+        <EntityTypeShape EntityType="soeModel.calendar_duty_signform" Width="1.5" PointX="57" PointY="13.75" />
+        <EntityTypeShape EntityType="soeModel.calendar_duty_signuser" Width="1.5" PointX="33" PointY="50.125" />
+        <EntityTypeShape EntityType="soeModel.calendar_duty_signuserform" Width="1.5" PointX="59.25" PointY="14" />
+        <EntityTypeShape EntityType="soeModel.calendar_duty_sunday" Width="1.5" PointX="29.75" PointY="9.5" />
+        <EntityTypeShape EntityType="soeModel.calendar_file" Width="1.5" PointX="5.75" PointY="35.5" />
+        <EntityTypeShape EntityType="soeModel.calendar_leader" Width="1.5" PointX="10.75" PointY="34.5" />
+        <EntityTypeShape EntityType="soeModel.calendar_log" Width="1.5" PointX="13.75" PointY="39.5" />
+        <EntityTypeShape EntityType="soeModel.calendar_member" Width="1.5" PointX="27.25" PointY="4.125" />
+        <EntityTypeShape EntityType="soeModel.calendar_procedure" Width="1.5" PointX="5.75" PointY="40.5" />
+        <EntityTypeShape EntityType="soeModel.calendar_procedureform" Width="1.5" PointX="51.75" PointY="36" />
+        <EntityTypeShape EntityType="soeModel.calendar_sign" Width="1.5" PointX="5.75" PointY="46.5" />
+        <EntityTypeShape EntityType="soeModel.calendar_signform" Width="1.5" PointX="54" PointY="35.75" />
+        <EntityTypeShape EntityType="soeModel.calendar_signuser" Width="1.5" PointX="47.75" PointY="3.5" />
+        <EntityTypeShape EntityType="soeModel.calendar_signuserform" Width="1.5" PointX="56.25" PointY="36" />
+        <EntityTypeShape EntityType="soeModel.calendar_week" Width="1.5" PointX="25" PointY="6" />
+        <EntityTypeShape EntityType="soeModel.chat_favourite" Width="1.5" PointX="22.75" PointY="15.5" />
+        <EntityTypeShape EntityType="soeModel.chat_file" Width="1.5" PointX="49.25" PointY="31.125" />
+        <EntityTypeShape EntityType="soeModel.chat_group" Width="1.5" PointX="44.75" PointY="28.5" />
+        <EntityTypeShape EntityType="soeModel.chat_logs" Width="1.5" PointX="47" PointY="26.625" />
+        <EntityTypeShape EntityType="soeModel.chat_member" Width="1.5" PointX="47" PointY="22.375" />
+        <EntityTypeShape EntityType="soeModel.chat_message" Width="1.5" PointX="47" PointY="32.5" />
+        <EntityTypeShape EntityType="soeModel.chat_stick" Width="1.5" PointX="49.25" PointY="36.375" />
+        <EntityTypeShape EntityType="soeModel.cms_lang" Width="1.5" PointX="44.75" PointY="39.5" />
+        <EntityTypeShape EntityType="soeModel.cms_logs" Width="1.5" PointX="2.75" PointY="35.5" />
+        <EntityTypeShape EntityType="soeModel.cms_news" Width="1.5" PointX="50" PointY="61.625" />
+        <EntityTypeShape EntityType="soeModel.cms_news_users" Width="1.5" PointX="52.25" PointY="63" />
+        <EntityTypeShape EntityType="soeModel.cms_slideshow" Width="1.5" PointX="50" PointY="56.125" />
+        <EntityTypeShape EntityType="soeModel.cms_slideshow_image" Width="1.5" PointX="52.25" PointY="56.125" />
+        <EntityTypeShape EntityType="soeModel.cms_topic" Width="1.5" PointX="47.75" PointY="59.875" />
+        <EntityTypeShape EntityType="soeModel.cms_topic_flag" Width="1.5" PointX="5.75" PointY="52.5" />
+        <EntityTypeShape EntityType="soeModel.config_groups" Width="1.5" PointX="7.75" PointY="52.5" />
+        <EntityTypeShape EntityType="soeModel.decision_appoint" Width="1.5" PointX="19.75" PointY="38.5" />
+        <EntityTypeShape EntityType="soeModel.device_approved_department_group" Width="1.5" PointX="25.75" PointY="47.5" />
+        <EntityTypeShape EntityType="soeModel.device_approved_department_user" Width="1.5" PointX="27.75" PointY="47.5" />
+        <EntityTypeShape EntityType="soeModel.device_approved_group" Width="1.5" PointX="61.75" PointY="3.5" />
+        <EntityTypeShape EntityType="soeModel.device_card" Width="1.5" PointX="28.25" PointY="26.375" />
+        <EntityTypeShape EntityType="soeModel.device_config_number" Width="1.5" PointX="61.75" PointY="10.5" />
+        <EntityTypeShape EntityType="soeModel.device_groups" Width="1.5" PointX="61.75" PointY="16.5" />
+        <EntityTypeShape EntityType="soeModel.device_handover" Width="1.5" PointX="13.75" PointY="64.5" />
+        <EntityTypeShape EntityType="soeModel.device_handover_attach" Width="1.5" PointX="15.75" PointY="64.5" />
+        <EntityTypeShape EntityType="soeModel.device_handover_files" Width="1.5" PointX="61.75" PointY="21.5" />
+        <EntityTypeShape EntityType="soeModel.device_inventory_details" Width="1.5" PointX="61.75" PointY="26.5" />
+        <EntityTypeShape EntityType="soeModel.device_inventory_files" Width="1.5" PointX="61.75" PointY="43.5" />
+        <EntityTypeShape EntityType="soeModel.device_inventory_personnel" Width="1.5" PointX="35.75" PointY="65.5" />
+        <EntityTypeShape EntityType="soeModel.device_inventory_slip" Width="1.5" PointX="37.75" PointY="65.5" />
+        <EntityTypeShape EntityType="soeModel.device_log" Width="1.5" PointX="54.75" PointY="65.5" />
+        <EntityTypeShape EntityType="soeModel.device_main" Width="1.5" PointX="26" PointY="30" />
+        <EntityTypeShape EntityType="soeModel.device_manufacturer" Width="1.5" PointX="56.75" PointY="65.5" />
+        <EntityTypeShape EntityType="soeModel.device_process" Width="1.5" PointX="63.75" PointY="3.5" />
+        <EntityTypeShape EntityType="soeModel.device_process_files" Width="1.5" PointX="63.75" PointY="11.5" />
+        <EntityTypeShape EntityType="soeModel.device_process_log" Width="1.5" PointX="29.75" PointY="40.5" />
+        <EntityTypeShape EntityType="soeModel.device_provider" Width="1.5" PointX="63.75" PointY="17.5" />
+        <EntityTypeShape EntityType="soeModel.device_recall" Width="1.5" PointX="63.75" PointY="25.5" />
+        <EntityTypeShape EntityType="soeModel.device_recall_details" Width="1.5" PointX="63.75" PointY="32.5" />
+        <EntityTypeShape EntityType="soeModel.device_recall_files" Width="1.5" PointX="39.75" PointY="66.5" />
+        <EntityTypeShape EntityType="soeModel.device_repair" Width="1.5" PointX="63.75" PointY="43.5" />
+        <EntityTypeShape EntityType="soeModel.device_repair_details" Width="1.5" PointX="41.75" PointY="66.5" />
+        <EntityTypeShape EntityType="soeModel.device_repair_files" Width="1.5" PointX="43.75" PointY="66.5" />
+        <EntityTypeShape EntityType="soeModel.device_status" Width="1.5" PointX="45.75" PointY="66.5" />
+        <EntityTypeShape EntityType="soeModel.device_type" Width="1.5" PointX="23.75" PointY="48" />
+        <EntityTypeShape EntityType="soeModel.device_unit" Width="1.5" PointX="23.75" PointY="18.5" />
+        <EntityTypeShape EntityType="soeModel.device_user_follows" Width="1.5" PointX="40.75" PointY="56.5" />
+        <EntityTypeShape EntityType="soeModel.device_warehouse" Width="1.5" PointX="25.75" PointY="67.5" />
+        <EntityTypeShape EntityType="soeModel.device_warehouse_stocker" Width="1.5" PointX="58.75" PointY="9.5" />
+        <EntityTypeShape EntityType="soeModel.discuss" Width="1.5" PointX="38" PointY="60.25" />
+        <EntityTypeShape EntityType="soeModel.discuss_file" Width="1.5" PointX="27.75" PointY="67.5" />
+        <EntityTypeShape EntityType="soeModel.discuss_member" Width="1.5" PointX="38" PointY="56" />
+        <EntityTypeShape EntityType="soeModel.discuss_project" Width="1.5" PointX="35.75" PointY="57.75" />
+        <EntityTypeShape EntityType="soeModel.doc_ca_dispatch_books" Width="1.5" PointX="64.75" PointY="51.5" />
+        <EntityTypeShape EntityType="soeModel.doc_ca_email_groups" Width="1.5" PointX="30.75" PointY="64" />
+        <EntityTypeShape EntityType="soeModel.doc_ca_emails" Width="1.5" PointX="33" PointY="63.75" />
+        <EntityTypeShape EntityType="soeModel.doc_ca_emotes" Width="1.5" PointX="64.75" PointY="38.5" />
+        <EntityTypeShape EntityType="soeModel.doc_ca_fields" Width="1.5" PointX="64.75" PointY="58.5" />
+        <EntityTypeShape EntityType="soeModel.doc_ca_group_departments" Width="1.5" PointX="62" PointY="58.25" />
+        <EntityTypeShape EntityType="soeModel.doc_ca_groups" Width="1.5" PointX="59.75" PointY="57.75" />
+        <EntityTypeShape EntityType="soeModel.doc_ca_issue_places" Width="1.5" PointX="64.75" PointY="63.5" />
+        <EntityTypeShape EntityType="soeModel.doc_ca_positions" Width="1.5" PointX="61.75" PointY="67.5" />
+        <EntityTypeShape EntityType="soeModel.doc_ca_receive_places" Width="1.5" PointX="65.75" PointY="3.5" />
+        <EntityTypeShape EntityType="soeModel.doc_ca_role_group_department" Width="1.5" PointX="54" PointY="30.375" />
+        <EntityTypeShape EntityType="soeModel.doc_ca_role_group_users" Width="1.5" PointX="54" PointY="26" />
+        <EntityTypeShape EntityType="soeModel.doc_ca_role_groups" Width="1.5" PointX="51.75" PointY="27.625" />
+        <EntityTypeShape EntityType="soeModel.doc_ca_security" Width="1.5" PointX="65.75" PointY="8.5" />
+        <EntityTypeShape EntityType="soeModel.doc_ca_send_ways" Width="1.5" PointX="65.75" PointY="13.5" />
+        <EntityTypeShape EntityType="soeModel.doc_ca_signers" Width="1.5" PointX="65.75" PointY="18.5" />
+        <EntityTypeShape EntityType="soeModel.doc_ca_stamps" Width="1.5" PointX="65.75" PointY="24.5" />
+        <EntityTypeShape EntityType="soeModel.doc_ca_status" Width="1.5" PointX="65.75" PointY="29.5" />
+        <EntityTypeShape EntityType="soeModel.doc_ca_tags" Width="1.5" PointX="65.75" PointY="43.5" />
+        <EntityTypeShape EntityType="soeModel.doc_ca_types" Width="1.5" PointX="58.75" PointY="68.5" />
+        <EntityTypeShape EntityType="soeModel.doc_ca_urgency" Width="1.5" PointX="17.75" PointY="69.5" />
+        <EntityTypeShape EntityType="soeModel.doc_codes" Width="1.5" PointX="23" PointY="36.125" />
+        <EntityTypeShape EntityType="soeModel.doc_codes_master" Width="1.5" PointX="20.75" PointY="47.5" />
+        <EntityTypeShape EntityType="soeModel.doc_codes_use" Width="1.5" PointX="23" PointY="56.625" />
+        <EntityTypeShape EntityType="soeModel.doc_completed_confirms" Width="1.5" PointX="3" PointY="57.875" />
+        <EntityTypeShape EntityType="soeModel.doc_connect" Width="1.5" PointX="62" PointY="52.75" />
+        <EntityTypeShape EntityType="soeModel.doc_decision_form_views" Width="1.5" PointX="22.25" PointY="61.125" />
+        <EntityTypeShape EntityType="soeModel.doc_decision_forms" Width="1.5" PointX="20" PointY="60.25" />
+        <EntityTypeShape EntityType="soeModel.doc_email_sent" Width="1.5" PointX="3" PointY="30.625" />
+        <EntityTypeShape EntityType="soeModel.doc_file_search" Width="1.5" PointX="3" PointY="55.375" />
+        <EntityTypeShape EntityType="soeModel.doc_files" Width="1.5" PointX="3" PointY="44.5" />
+        <EntityTypeShape EntityType="soeModel.doc_follows" Width="1.5" PointX="3" PointY="11.25" />
+        <EntityTypeShape EntityType="soeModel.doc_logs" Width="1.5" PointX="3" PointY="50.375" />
+        <EntityTypeShape EntityType="soeModel.doc_master" Width="1.5" PointX="0.75" PointY="23.75" />
+        <EntityTypeShape EntityType="soeModel.doc_organization_connect" Width="1.5" PointX="59.75" PointY="52.75" />
+        <EntityTypeShape EntityType="soeModel.doc_related" Width="1.5" PointX="3" PointY="26.375" />
+        <EntityTypeShape EntityType="soeModel.doc_reservation_number" Width="1.5" PointX="19.75" PointY="69.5" />
+        <EntityTypeShape EntityType="soeModel.doc_sign_approval" Width="1.5" PointX="3" PointY="39.875" />
+        <EntityTypeShape EntityType="soeModel.doc_tags" Width="1.5" PointX="3" PointY="8.5" />
+        <EntityTypeShape EntityType="soeModel.doc_title_docs" Width="1.5" PointX="16" PointY="55" />
+        <EntityTypeShape EntityType="soeModel.doc_title_users" Width="1.5" PointX="16" PointY="59.25" />
+        <EntityTypeShape EntityType="soeModel.doc_titles" Width="1.5" PointX="13.75" PointY="56.75" />
+        <EntityTypeShape EntityType="soeModel.doc_views" Width="1.5" PointX="3" PointY="21.875" />
+        <EntityTypeShape EntityType="soeModel.doc_workflow_groups" Width="1.5" PointX="62" PointY="39.625" />
+        <EntityTypeShape EntityType="soeModel.doc_workflows" Width="1.5" PointX="59.75" PointY="38.75" />
+        <EntityTypeShape EntityType="soeModel.file_folder" Width="1.5" PointX="42.75" PointY="49" />
+        <EntityTypeShape EntityType="soeModel.file_folder_share" Width="1.5" PointX="45" PointY="55.75" />
+        <EntityTypeShape EntityType="soeModel.file_folder_share_user" Width="1.5" PointX="45" PointY="45.25" />
+        <EntityTypeShape EntityType="soeModel.file_info" Width="1.5" PointX="45" PointY="48.625" />
+        <EntityTypeShape EntityType="soeModel.file_info_share" Width="1.5" PointX="47.25" PointY="50" />
+        <EntityTypeShape EntityType="soeModel.file_log" Width="1.5" PointX="29.75" PointY="69.5" />
+        <EntityTypeShape EntityType="soeModel.file_module_organization" Width="1.5" PointX="54" PointY="8.25" />
+        <EntityTypeShape EntityType="soeModel.file_module_share" Width="1.5" PointX="66.75" PointY="34.5" />
+        <EntityTypeShape EntityType="soeModel.file_module_user" Width="1.5" PointX="54" PointY="4" />
+        <EntityTypeShape EntityType="soeModel.file_modules" Width="1.5" PointX="51.75" PointY="5.875" />
+        <EntityTypeShape EntityType="soeModel.file_share" Width="1.5" PointX="31.75" PointY="69.5" />
+        <EntityTypeShape EntityType="soeModel.help_content" Width="1.5" PointX="28" PointY="62.875" />
+        <EntityTypeShape EntityType="soeModel.help_title" Width="1.5" PointX="25.75" PointY="62.75" />
+        <EntityTypeShape EntityType="soeModel.hrm_allowance" Width="1.5" PointX="13.25" PointY="15.25" />
+        <EntityTypeShape EntityType="soeModel.hrm_allowance_detail" Width="1.5" PointX="15.5" PointY="14.875" />
+        <EntityTypeShape EntityType="soeModel.hrm_ca_academic_level" Width="1.5" PointX="66.75" PointY="48.5" />
+        <EntityTypeShape EntityType="soeModel.hrm_ca_allowance" Width="1.5" PointX="47.75" PointY="69.5" />
+        <EntityTypeShape EntityType="soeModel.hrm_ca_allowance_formality" Width="1.5" PointX="49.75" PointY="69.5" />
+        <EntityTypeShape EntityType="soeModel.hrm_ca_allowance_wage" Width="1.5" PointX="66.75" PointY="53.5" />
+        <EntityTypeShape EntityType="soeModel.hrm_ca_bank" Width="1.5" PointX="51.75" PointY="69.5" />
+        <EntityTypeShape EntityType="soeModel.hrm_ca_certificate" Width="1.5" PointX="66.75" PointY="59.5" />
+        <EntityTypeShape EntityType="soeModel.hrm_ca_civil_servant_rank" Width="1.5" PointX="61" PointY="32.75" />
+        <EntityTypeShape EntityType="soeModel.hrm_ca_classification" Width="1.5" PointX="66.75" PointY="64.5" />
+        <EntityTypeShape EntityType="soeModel.hrm_ca_classroom" Width="1.5" PointX="63.75" PointY="69.5" />
+        <EntityTypeShape EntityType="soeModel.hrm_ca_coef_salary" Width="1.5" PointX="65.75" PointY="69.5" />
+        <EntityTypeShape EntityType="soeModel.hrm_ca_cultural_level" Width="1.5" PointX="67.75" PointY="3.5" />
+        <EntityTypeShape EntityType="soeModel.hrm_ca_degree" Width="1.5" PointX="0.75" PointY="70.5" />
+        <EntityTypeShape EntityType="soeModel.hrm_ca_discipline" Width="1.5" PointX="67.75" PointY="8.5" />
+        <EntityTypeShape EntityType="soeModel.hrm_ca_discipline_level" Width="1.5" PointX="67.75" PointY="13.5" />
+        <EntityTypeShape EntityType="soeModel.hrm_ca_enecting_group" Width="1.5" PointX="67.75" PointY="18.5" />
+        <EntityTypeShape EntityType="soeModel.hrm_ca_ethnic" Width="1.5" PointX="67.75" PointY="23.5" />
+        <EntityTypeShape EntityType="soeModel.hrm_ca_evaluation_criteria" Width="1.5" PointX="67.75" PointY="28.5" />
+        <EntityTypeShape EntityType="soeModel.hrm_ca_experience" Width="1.5" PointX="67.75" PointY="39.5" />
+        <EntityTypeShape EntityType="soeModel.hrm_ca_faculty" Width="1.5" PointX="53.75" PointY="70.5" />
+        <EntityTypeShape EntityType="soeModel.hrm_ca_form_traning" Width="1.5" PointX="67.75" PointY="69.5" />
+        <EntityTypeShape EntityType="soeModel.hrm_ca_formality" Width="1.5" PointX="68.75" PointY="33.5" />
+        <EntityTypeShape EntityType="soeModel.hrm_ca_holiday_type" Width="1.5" PointX="33.75" PointY="71.5" />
+        <EntityTypeShape EntityType="soeModel.hrm_ca_hospital" Width="1.5" PointX="68.75" PointY="44.5" />
+        <EntityTypeShape EntityType="soeModel.hrm_ca_identity_papers" Width="1.5" PointX="43.75" PointY="71.5" />
+        <EntityTypeShape EntityType="soeModel.hrm_ca_identity_place" Width="1.5" PointX="68.75" PointY="49.5" />
+        <EntityTypeShape EntityType="soeModel.hrm_ca_informatic_level" Width="1.5" PointX="68.75" PointY="54.5" />
+        <EntityTypeShape EntityType="soeModel.hrm_ca_insurance_province" Width="1.5" PointX="55.75" PointY="71.5" />
+        <EntityTypeShape EntityType="soeModel.hrm_ca_insurance_type_mode" Width="1.5" PointX="68.75" PointY="59.5" />
+        <EntityTypeShape EntityType="soeModel.hrm_ca_interview_round" Width="1.5" PointX="68.75" PointY="64.5" />
+        <EntityTypeShape EntityType="soeModel.hrm_ca_language_level" Width="1.5" PointX="69.75" PointY="3.5" />
+        <EntityTypeShape EntityType="soeModel.hrm_ca_learning_place" Width="1.5" PointX="69.75" PointY="8.5" />
+        <EntityTypeShape EntityType="soeModel.hrm_ca_leaving_reason" Width="1.5" PointX="69.75" PointY="13.5" />
+        <EntityTypeShape EntityType="soeModel.hrm_ca_management_major" Width="1.5" PointX="69.75" PointY="19.5" />
+        <EntityTypeShape EntityType="soeModel.hrm_ca_management_state" Width="1.5" PointX="69.75" PointY="25.5" />
+        <EntityTypeShape EntityType="soeModel.hrm_ca_nationality" Width="1.5" PointX="25.75" PointY="72.5" />
+        <EntityTypeShape EntityType="soeModel.hrm_ca_note" Width="1.5" PointX="69.75" PointY="38.5" />
+        <EntityTypeShape EntityType="soeModel.hrm_ca_personel_groups" Width="1.5" PointX="60.75" PointY="72.5" />
+        <EntityTypeShape EntityType="soeModel.hrm_ca_personnel_level" Width="1.5" PointX="69.75" PointY="69.5" />
+        <EntityTypeShape EntityType="soeModel.hrm_ca_political_theory" Width="1.5" PointX="70.75" PointY="30.5" />
+        <EntityTypeShape EntityType="soeModel.hrm_ca_professional_work" Width="1.5" PointX="35.75" PointY="73.5" />
+        <EntityTypeShape EntityType="soeModel.hrm_ca_receipt" Width="1.5" PointX="37.75" PointY="73.5" />
+        <EntityTypeShape EntityType="soeModel.hrm_ca_relationship" Width="1.5" PointX="39.75" PointY="73.5" />
+        <EntityTypeShape EntityType="soeModel.hrm_ca_religion" Width="1.5" PointX="70.75" PointY="43.5" />
+        <EntityTypeShape EntityType="soeModel.hrm_ca_reward_level" Width="1.5" PointX="70.75" PointY="48.5" />
+        <EntityTypeShape EntityType="soeModel.hrm_ca_reward_title" Width="1.5" PointX="70.75" PointY="53.5" />
+        <EntityTypeShape EntityType="soeModel.hrm_ca_single_form" Width="1.5" PointX="70.75" PointY="58.5" />
+        <EntityTypeShape EntityType="soeModel.hrm_ca_specialization" Width="1.5" PointX="57.75" PointY="73.5" />
+        <EntityTypeShape EntityType="soeModel.hrm_ca_symbol" Width="1.5" PointX="70.75" PointY="63.5" />
+        <EntityTypeShape EntityType="soeModel.hrm_ca_tags" Width="1.5" PointX="11.75" PointY="4.125" />
+        <EntityTypeShape EntityType="soeModel.hrm_ca_title" Width="1.5" PointX="71.75" PointY="3.5" />
+        <EntityTypeShape EntityType="soeModel.hrm_ca_training_groups" Width="1.5" PointX="2.75" PointY="74.5" />
+        <EntityTypeShape EntityType="soeModel.hrm_ca_type_contract" Width="1.5" PointX="0.75" PointY="10.25" />
+        <EntityTypeShape EntityType="soeModel.hrm_ca_type_decision" Width="1.5" PointX="71.75" PointY="8.5" />
+        <EntityTypeShape EntityType="soeModel.hrm_ca_vacancy" Width="1.5" PointX="71.75" PointY="14.5" />
+        <EntityTypeShape EntityType="soeModel.hrm_ca_wage" Width="1.5" PointX="15.75" PointY="74.5" />
+        <EntityTypeShape EntityType="soeModel.hrm_ca_wage_groups" Width="1.5" PointX="58.75" PointY="33" />
+        <EntityTypeShape EntityType="soeModel.hrm_ca_work_position" Width="1.5" PointX="71.75" PointY="19.5" />
+        <EntityTypeShape EntityType="soeModel.hrm_campaign" Width="1.5" PointX="49.75" PointY="74.5" />
+        <EntityTypeShape EntityType="soeModel.hrm_candidate" Width="1.5" PointX="62.75" PointY="74.5" />
+        <EntityTypeShape EntityType="soeModel.hrm_candidate_academic" Width="1.5" PointX="71.75" PointY="24.5" />
+        <EntityTypeShape EntityType="soeModel.hrm_candidate_experience" Width="1.5" PointX="71.75" PointY="35.5" />
+        <EntityTypeShape EntityType="soeModel.hrm_candidate_family" Width="1.5" PointX="64.75" PointY="74.5" />
+        <EntityTypeShape EntityType="soeModel.hrm_class_schedule" Width="1.5" PointX="71.75" PointY="68.5" />
+        <EntityTypeShape EntityType="soeModel.hrm_config_approved" Width="1.5" PointX="40.75" PointY="60.75" />
+        <EntityTypeShape EntityType="soeModel.hrm_config_approved_form" Width="1.5" PointX="52" PointY="47.875" />
+        <EntityTypeShape EntityType="soeModel.hrm_config_approved_users" Width="1.5" PointX="43" PointY="61.125" />
+        <EntityTypeShape EntityType="soeModel.hrm_config_approved_users_form" Width="1.5" PointX="54.25" PointY="48.75" />
+        <EntityTypeShape EntityType="soeModel.hrm_config_contact" Width="1.5" PointX="66.75" PointY="74.5" />
+        <EntityTypeShape EntityType="soeModel.hrm_config_contract" Width="1.5" PointX="0.75" PointY="3.75" />
+        <EntityTypeShape EntityType="soeModel.hrm_config_contract_order" Width="1.5" PointX="68.75" PointY="74.5" />
+        <EntityTypeShape EntityType="soeModel.hrm_config_contract_symbol" Width="1.5" PointX="3" PointY="3.75" />
+        <EntityTypeShape EntityType="soeModel.hrm_config_email" Width="1.5" PointX="10.75" PointY="75.5" />
+        <EntityTypeShape EntityType="soeModel.hrm_config_holidays" Width="1.5" PointX="12.75" PointY="75.5" />
+        <EntityTypeShape EntityType="soeModel.hrm_config_insurance_rate" Width="1.5" PointX="17.75" PointY="75.5" />
+        <EntityTypeShape EntityType="soeModel.hrm_config_process" Width="1.5" PointX="19.75" PointY="75.5" />
+        <EntityTypeShape EntityType="soeModel.hrm_config_process_form" Width="1.5" PointX="49.75" PointY="48.375" />
+        <EntityTypeShape EntityType="soeModel.hrm_config_usercode" Width="1.5" PointX="20" PointY="54.625" />
+        <EntityTypeShape EntityType="soeModel.hrm_config_work_location" Width="1.5" PointX="27.75" PointY="75.5" />
+        <EntityTypeShape EntityType="soeModel.hrm_contract" Width="1.5" PointX="11" PointY="12.25" />
+        <EntityTypeShape EntityType="soeModel.hrm_decision" Width="1.5" PointX="29.75" PointY="75.5" />
+        <EntityTypeShape EntityType="soeModel.hrm_decision_allowace" Width="1.5" PointX="35.75" PointY="29.5" />
+        <EntityTypeShape EntityType="soeModel.hrm_declare" Width="1.5" PointX="56.75" PointY="27.25" />
+        <EntityTypeShape EntityType="soeModel.hrm_declare_paycheck" Width="1.5" PointX="72.75" PointY="30.5" />
+        <EntityTypeShape EntityType="soeModel.hrm_declare_review_form" Width="1.5" PointX="72.75" PointY="41.5" />
+        <EntityTypeShape EntityType="soeModel.hrm_declare_shift" Width="1.5" PointX="72.75" PointY="46.5" />
+        <EntityTypeShape EntityType="soeModel.hrm_file" Width="1.5" PointX="56.75" PointY="47.75" />
+        <EntityTypeShape EntityType="soeModel.hrm_file_log" Width="1.5" PointX="59" PointY="48.625" />
+        <EntityTypeShape EntityType="soeModel.hrm_health_vaccine" Width="1.5" PointX="13.25" PointY="23.875" />
+        <EntityTypeShape EntityType="soeModel.hrm_holiday_dates" Width="1.5" PointX="45.75" PointY="75.5" />
+        <EntityTypeShape EntityType="soeModel.hrm_insurance" Width="1.5" PointX="25.75" PointY="54.5" />
+        <EntityTypeShape EntityType="soeModel.hrm_insurance_pay" Width="1.5" PointX="28" PointY="52" />
+        <EntityTypeShape EntityType="soeModel.hrm_insurance_resolve" Width="1.5" PointX="28" PointY="57.875" />
+        <EntityTypeShape EntityType="soeModel.hrm_leave" Width="1.5" PointX="72.75" PointY="52.5" />
+        <EntityTypeShape EntityType="soeModel.hrm_leave_profile" Width="1.5" PointX="51.75" PointY="75.5" />
+        <EntityTypeShape EntityType="soeModel.hrm_leave_year" Width="1.5" PointX="72.75" PointY="58.5" />
+        <EntityTypeShape EntityType="soeModel.hrm_log" Width="1.5" PointX="72.75" PointY="63.5" />
+        <EntityTypeShape EntityType="soeModel.hrm_management_state" Width="1.5" PointX="70.75" PointY="75.5" />
+        <EntityTypeShape EntityType="soeModel.hrm_matchaccount" Width="1.5" PointX="72.75" PointY="75.5" />
+        <EntityTypeShape EntityType="soeModel.hrm_paycheck" Width="1.5" PointX="59" PointY="26.75" />
+        <EntityTypeShape EntityType="soeModel.hrm_paycheck_form" Width="1.5" PointX="56.75" PointY="20.375" />
+        <EntityTypeShape EntityType="soeModel.hrm_paycheck_form_details" Width="1.5" PointX="59" PointY="19.875" />
+        <EntityTypeShape EntityType="soeModel.hrm_payroll" Width="1.5" PointX="56.75" PointY="3.875" />
+        <EntityTypeShape EntityType="soeModel.hrm_payroll_user" Width="1.5" PointX="59" PointY="4.75" />
+        <EntityTypeShape EntityType="soeModel.hrm_profile" Width="1.5" PointX="8.75" PointY="21.25" />
+        <EntityTypeShape EntityType="soeModel.hrm_profile_assignment" Width="1.5" PointX="73.75" PointY="3.5" />
+        <EntityTypeShape EntityType="soeModel.hrm_profile_clan_history" Width="1.5" PointX="11" PointY="50.875" />
+        <EntityTypeShape EntityType="soeModel.hrm_profile_edit" Width="1.5" PointX="11" PointY="60" />
+        <EntityTypeShape EntityType="soeModel.hrm_profile_experience" Width="1.5" PointX="11" PointY="28.875" />
+        <EntityTypeShape EntityType="soeModel.hrm_profile_header" Width="1.5" PointX="28.75" PointY="23.5" />
+        <EntityTypeShape EntityType="soeModel.hrm_profile_health" Width="1.5" PointX="11" PointY="23" />
+        <EntityTypeShape EntityType="soeModel.hrm_profile_receipt" Width="1.5" PointX="11" PointY="55.375" />
+        <EntityTypeShape EntityType="soeModel.hrm_profile_relate" Width="1.5" PointX="11" PointY="8.75" />
+        <EntityTypeShape EntityType="soeModel.hrm_profile_relative" Width="1.5" PointX="11" PointY="43.25" />
+        <EntityTypeShape EntityType="soeModel.hrm_profile_skill" Width="1.5" PointX="4.75" PointY="76.5" />
+        <EntityTypeShape EntityType="soeModel.hrm_profile_status" Width="1.5" PointX="11" PointY="38.75" />
+        <EntityTypeShape EntityType="soeModel.hrm_profile_tags" Width="1.5" PointX="14" PointY="34.125" />
+        <EntityTypeShape EntityType="soeModel.hrm_rec_calendar" Width="1.5" PointX="6.75" PointY="76.5" />
+        <EntityTypeShape EntityType="soeModel.hrm_rec_candidate" Width="1.5" PointX="73.75" PointY="11.5" />
+        <EntityTypeShape EntityType="soeModel.hrm_recruitment_proposal" Width="1.5" PointX="73.75" PointY="16.5" />
+        <EntityTypeShape EntityType="soeModel.hrm_review_form_users" Width="1.5" PointX="5.75" PointY="58.5" />
+        <EntityTypeShape EntityType="soeModel.hrm_reward" Width="1.5" PointX="41.75" PointY="76.5" />
+        <EntityTypeShape EntityType="soeModel.hrm_smartreport_link" Width="1.5" PointX="73.75" PointY="35.5" />
+        <EntityTypeShape EntityType="soeModel.hrm_timekeep" Width="1.5" PointX="53.75" PointY="76.5" />
+        <EntityTypeShape EntityType="soeModel.hrm_training_class" Width="1.5" PointX="73.75" PointY="68.5" />
+        <EntityTypeShape EntityType="soeModel.hrm_training_emps" Width="1.5" PointX="74.75" PointY="26.5" />
+        <EntityTypeShape EntityType="soeModel.hrm_users_training" Width="1.5" PointX="31.75" PointY="77.5" />
+        <EntityTypeShape EntityType="soeModel.hrm_work_schedule" Width="1.5" PointX="74.75" PointY="40.5" />
+        <EntityTypeShape EntityType="soeModel.law_comment" Width="1.5" PointX="33" PointY="24.75" />
+        <EntityTypeShape EntityType="soeModel.law_comment_emotes" Width="1.5" PointX="35.25" PointY="25.25" />
+        <EntityTypeShape EntityType="soeModel.law_doc_fields" Width="1.5" PointX="74.75" PointY="47.5" />
+        <EntityTypeShape EntityType="soeModel.law_doc_issue_places" Width="1.5" PointX="74.75" PointY="52.5" />
+        <EntityTypeShape EntityType="soeModel.law_doc_language" Width="1.5" PointX="74.75" PointY="57.5" />
+        <EntityTypeShape EntityType="soeModel.law_doc_related" Width="1.5" PointX="33" PointY="5" />
+        <EntityTypeShape EntityType="soeModel.law_doc_replace" Width="1.5" PointX="33" PointY="29.75" />
+        <EntityTypeShape EntityType="soeModel.law_doc_signers" Width="1.5" PointX="74.75" PointY="62.5" />
+        <EntityTypeShape EntityType="soeModel.law_doc_types" Width="1.5" PointX="59.75" PointY="77.5" />
+        <EntityTypeShape EntityType="soeModel.law_documents" Width="1.5" PointX="30.75" PointY="15.5" />
+        <EntityTypeShape EntityType="soeModel.law_files" Width="1.5" PointX="33" PointY="14.25" />
+        <EntityTypeShape EntityType="soeModel.law_logs" Width="1.5" PointX="33" PointY="9" />
+        <EntityTypeShape EntityType="soeModel.law_user_visitor" Width="1.5" PointX="33" PointY="19.875" />
+        <EntityTypeShape EntityType="soeModel.news_category" Width="1.5" PointX="17.75" PointY="40" />
+        <EntityTypeShape EntityType="soeModel.news_comment" Width="1.5" PointX="22.25" PointY="42.875" />
+        <EntityTypeShape EntityType="soeModel.news_main" Width="1.5" PointX="20" PointY="30" />
+        <EntityTypeShape EntityType="soeModel.news_main_files" Width="1.5" PointX="74.75" PointY="73.5" />
+        <EntityTypeShape EntityType="soeModel.news_users_visitor" Width="1.5" PointX="75.75" PointY="3.5" />
+        <EntityTypeShape EntityType="soeModel.project_main" Width="1.5" PointX="38" PointY="14.875" />
+        <EntityTypeShape EntityType="soeModel.report_module_organization" Width="1.5" PointX="16" PointY="45" />
+        <EntityTypeShape EntityType="soeModel.report_module_user" Width="1.5" PointX="16" PointY="49.25" />
+        <EntityTypeShape EntityType="soeModel.report_modules" Width="1.5" PointX="13.75" PointY="46.75" />
+        <EntityTypeShape EntityType="soeModel.request_ca_form" Width="1.5" PointX="49.75" PointY="17.75" />
+        <EntityTypeShape EntityType="soeModel.request_ca_form_sign" Width="1.5" PointX="52" PointY="20.375" />
+        <EntityTypeShape EntityType="soeModel.request_ca_form_team" Width="1.5" PointX="52" PointY="16.875" />
+        <EntityTypeShape EntityType="soeModel.request_ca_formd" Width="1.5" PointX="75.75" PointY="7.5" />
+        <EntityTypeShape EntityType="soeModel.request_ca_group" Width="1.5" PointX="75.75" PointY="13.5" />
+        <EntityTypeShape EntityType="soeModel.request_ca_group_team" Width="1.5" PointX="37.75" PointY="22.125" />
+        <EntityTypeShape EntityType="soeModel.request_ca_team" Width="1.5" PointX="40" PointY="21.75" />
+        <EntityTypeShape EntityType="soeModel.request_comment" Width="1.5" PointX="24.75" PointY="42.75" />
+        <EntityTypeShape EntityType="soeModel.request_follow" Width="1.5" PointX="75.75" PointY="18.5" />
+        <EntityTypeShape EntityType="soeModel.request_form_sign_user" Width="1.5" PointX="54.25" PointY="20.875" />
+        <EntityTypeShape EntityType="soeModel.request_job" Width="1.5" PointX="21.75" PointY="78.5" />
+        <EntityTypeShape EntityType="soeModel.request_job_task" Width="1.5" PointX="23.75" PointY="78.5" />
+        <EntityTypeShape EntityType="soeModel.request_log" Width="1.5" PointX="75.75" PointY="33.5" />
+        <EntityTypeShape EntityType="soeModel.request_master" Width="1.5" PointX="42.75" PointY="6.625" />
+        <EntityTypeShape EntityType="soeModel.request_master_detail" Width="1.5" PointX="45" PointY="4.375" />
+        <EntityTypeShape EntityType="soeModel.request_master_file" Width="1.5" PointX="45" PointY="16" />
+        <EntityTypeShape EntityType="soeModel.request_master_procedure" Width="1.5" PointX="45" PointY="10.375" />
+        <EntityTypeShape EntityType="soeModel.request_master_sign" Width="1.5" PointX="47.25" PointY="10.125" />
+        <EntityTypeShape EntityType="soeModel.request_master_signuser" Width="1.5" PointX="49.5" PointY="10.125" />
+        <EntityTypeShape EntityType="soeModel.request_number" Width="1.5" PointX="33.75" PointY="78.5" />
+        <EntityTypeShape EntityType="soeModel.request_relate" Width="1.5" PointX="35.75" PointY="78.5" />
+        <EntityTypeShape EntityType="soeModel.request_setting" Width="1.5" PointX="37.75" PointY="78.5" />
+        <EntityTypeShape EntityType="soeModel.request_sign_user" Width="1.5" PointX="55.75" PointY="78.5" />
+        <EntityTypeShape EntityType="soeModel.request_status_form" Width="1.5" PointX="35.75" PointY="3.5" />
+        <EntityTypeShape EntityType="soeModel.request_stick" Width="1.5" PointX="27" PointY="43.125" />
+        <EntityTypeShape EntityType="soeModel.request_team_user" Width="1.5" PointX="42.25" PointY="22.125" />
+        <EntityTypeShape EntityType="soeModel.shows_comment" Width="1.5" PointX="75.75" PointY="67.5" />
+        <EntityTypeShape EntityType="soeModel.shows_main" Width="1.5" PointX="74.75" PointY="78.5" />
+        <EntityTypeShape EntityType="soeModel.shows_users_visitor" Width="1.5" PointX="0.75" PointY="79.5" />
+        <EntityTypeShape EntityType="soeModel.smart_proc" Width="1.5" PointX="12.75" PointY="79.5" />
+        <EntityTypeShape EntityType="soeModel.smart_report" Width="1.5" PointX="14.75" PointY="79.5" />
+        <EntityTypeShape EntityType="soeModel.sql_log" Width="1.5" PointX="76.75" PointY="24.5" />
+        <EntityTypeShape EntityType="soeModel.statistical_parameter" Width="1.5" PointX="76.75" PointY="38.5" />
+        <EntityTypeShape EntityType="soeModel.statistical_procedure" Width="1.5" PointX="76.75" PointY="43.5" />
+        <EntityTypeShape EntityType="soeModel.sys_app_menus" Width="1.5" PointX="5.75" PointY="3.75" />
+        <EntityTypeShape EntityType="soeModel.sys_approved_groups" Width="1.5" PointX="13.75" PointY="5.5" />
+        <EntityTypeShape EntityType="soeModel.sys_approved_users" Width="1.5" PointX="16" PointY="10" />
+        <EntityTypeShape EntityType="soeModel.sys_config_file_public" Width="1.5" PointX="37.75" PointY="27.5" />
+        <EntityTypeShape EntityType="soeModel.sys_config_process" Width="1.5" PointX="13.75" PointY="28.125" />
+        <EntityTypeShape EntityType="soeModel.sys_file_mapping" Width="1.5" PointX="76.75" PointY="48.5" />
+        <EntityTypeShape EntityType="soeModel.sys_fire_base" Width="1.5" PointX="23" PointY="0.75" />
+        <EntityTypeShape EntityType="soeModel.sys_functions_module" Width="1.5" PointX="39.75" PointY="27.5" />
+        <EntityTypeShape EntityType="soeModel.sys_group" Width="1.5" PointX="54.75" PointY="41.75" />
+        <EntityTypeShape EntityType="soeModel.sys_group_type" Width="1.5" PointX="76.75" PointY="53.5" />
+        <EntityTypeShape EntityType="soeModel.sys_group_users" Width="1.5" PointX="57" PointY="42.125" />
+        <EntityTypeShape EntityType="soeModel.sys_log_all" Width="1.5" PointX="76.75" PointY="58.5" />
+        <EntityTypeShape EntityType="soeModel.sys_log_proc" Width="1.5" PointX="51.75" PointY="13.5" />
+        <EntityTypeShape EntityType="soeModel.sys_logs" Width="1.5" PointX="66.75" PointY="79.5" />
+        <EntityTypeShape EntityType="soeModel.sys_modules" Width="1.5" PointX="20" PointY="22.125" />
+        <EntityTypeShape EntityType="soeModel.sys_organization" Width="1.5" PointX="17.75" PointY="27.125" />
+        <EntityTypeShape EntityType="soeModel.sys_organization_app_menus" Width="1.5" PointX="8" PointY="3.875" />
+        <EntityTypeShape EntityType="soeModel.sys_organization_config_group" Width="1.5" PointX="76.75" PointY="72.5" />
+        <EntityTypeShape EntityType="soeModel.sys_organization_history" Width="1.5" PointX="76.75" PointY="77.5" />
+        <EntityTypeShape EntityType="soeModel.sys_organization_log" Width="1.5" PointX="77.75" PointY="3.5" />
+        <EntityTypeShape EntityType="soeModel.sys_organization_merger" Width="1.5" PointX="77.75" PointY="8.5" />
+        <EntityTypeShape EntityType="soeModel.sys_organization_report" Width="1.5" PointX="77.75" PointY="14.5" />
+        <EntityTypeShape EntityType="soeModel.sys_process_link_approved" Width="1.5" PointX="16" PointY="5.25" />
+        <EntityTypeShape EntityType="soeModel.sys_role_modules" Width="1.5" PointX="22.25" PointY="23.375" />
+        <EntityTypeShape EntityType="soeModel.sys_roles" Width="1.5" PointX="20" PointY="16.25" />
+        <EntityTypeShape EntityType="soeModel.sys_sendhub" Width="1.5" PointX="23" PointY="66.125" />
+        <EntityTypeShape EntityType="soeModel.sys_table_des" Width="1.5" PointX="77.75" PointY="30.5" />
+        <EntityTypeShape EntityType="soeModel.sys_tables" Width="1.5" PointX="77.75" PointY="64.5" />
+        <EntityTypeShape EntityType="soeModel.sys_token" Width="1.5" PointX="23" PointY="52.75" />
+        <EntityTypeShape EntityType="soeModel.sys_users" Width="1.5" PointX="20.75" PointY="4.125" />
+        <EntityTypeShape EntityType="soeModel.sys_users_sub" Width="1.5" PointX="23" PointY="30.75" />
+        <EntityTypeShape EntityType="soeModel.sys_web_acess" Width="1.5" PointX="23" PointY="72.625" />
+        <EntityTypeShape EntityType="soeModel.task_browse_group" Width="1.5" PointX="68.75" PointY="80.5" />
+        <EntityTypeShape EntityType="soeModel.task_bugcomment" Width="1.5" PointX="57" PointY="55" />
+        <EntityTypeShape EntityType="soeModel.task_ca_projectgroup" Width="1.5" PointX="35.75" PointY="15.625" />
+        <EntityTypeShape EntityType="soeModel.task_ca_taskgroup" Width="1.5" PointX="1.5" PointY="65.375" />
+        <EntityTypeShape EntityType="soeModel.task_category" Width="1.5" PointX="38" PointY="33" />
+        <EntityTypeShape EntityType="soeModel.task_checklists" Width="1.5" PointX="77.75" PointY="19.5" />
+        <EntityTypeShape EntityType="soeModel.task_comment" Width="1.5" PointX="42.5" PointY="35.375" />
+        <EntityTypeShape EntityType="soeModel.task_comments" Width="1.5" PointX="70.75" PointY="80.5" />
+        <EntityTypeShape EntityType="soeModel.task_department_configuration" Width="1.5" PointX="20" PointY="66.25" />
+        <EntityTypeShape EntityType="soeModel.task_extend" Width="1.5" PointX="6" PointY="62" />
+        <EntityTypeShape EntityType="soeModel.task_file" Width="1.5" PointX="8.75" PointY="81.5" />
+        <EntityTypeShape EntityType="soeModel.task_follow" Width="1.5" PointX="6" PointY="69.5" />
+        <EntityTypeShape EntityType="soeModel.task_follow_step" Width="1.5" PointX="8.25" PointY="69.5" />
+        <EntityTypeShape EntityType="soeModel.task_follow_task" Width="1.5" PointX="10.5" PointY="70.375" />
+        <EntityTypeShape EntityType="soeModel.task_linkdoc" Width="1.5" PointX="6" PointY="30.625" />
+        <EntityTypeShape EntityType="soeModel.task_log" Width="1.5" PointX="41.75" PointY="27.5" />
+        <EntityTypeShape EntityType="soeModel.task_logs" Width="1.5" PointX="78.75" PointY="24.5" />
+        <EntityTypeShape EntityType="soeModel.task_main" Width="1.5" PointX="40.25" PointY="31" />
+        <EntityTypeShape EntityType="soeModel.Task_Marks" Width="1.5" PointX="7.75" PointY="58.5" />
+        <EntityTypeShape EntityType="soeModel.task_member" Width="1.5" PointX="25.75" PointY="81.5" />
+        <EntityTypeShape EntityType="soeModel.task_notify" Width="1.5" PointX="78.75" PointY="36.5" />
+        <EntityTypeShape EntityType="soeModel.task_origin" Width="1.5" PointX="3.75" PointY="62.25" />
+        <EntityTypeShape EntityType="soeModel.Task_Person_Config" Width="1.5" PointX="78.75" PointY="41.5" />
+        <EntityTypeShape EntityType="soeModel.task_person_report" Width="1.5" PointX="78.75" PointY="45.5" />
+        <EntityTypeShape EntityType="soeModel.task_person_report_processing" Width="1.5" PointX="43.75" PointY="81.5" />
+        <EntityTypeShape EntityType="soeModel.task_reportprogress" Width="1.5" PointX="45.75" PointY="81.5" />
+        <EntityTypeShape EntityType="soeModel.task_review" Width="1.5" PointX="78.75" PointY="51.5" />
+        <EntityTypeShape EntityType="soeModel.task_review_member_config" Width="1.5" PointX="78.75" PointY="56.5" />
+        <EntityTypeShape EntityType="soeModel.task_test" Width="1.5" PointX="42.5" PointY="30.75" />
+        <EntityTypeShape EntityType="soeModel.task_weights" Width="1.5" PointX="78.75" PointY="72.5" />
+        <EntityTypeShape EntityType="soeModel.test_case" Width="1.5" PointX="47.75" PointY="40.875" />
+        <EntityTypeShape EntityType="soeModel.test_step" Width="1.5" PointX="52.25" PointY="41.5" />
+        <EntityTypeShape EntityType="soeModel.test_times" Width="1.5" PointX="50" PointY="41.75" />
+        <EntityTypeShape EntityType="soeModel.tivi_log" Width="1.5" PointX="78.75" PointY="77.5" />
+        <EntityTypeShape EntityType="soeModel.tivi_screen" Width="1.5" PointX="35.75" PointY="7.125" />
+        <EntityTypeShape EntityType="soeModel.tivi_screen_config" Width="1.5" PointX="78.75" PointY="81.5" />
+        <EntityTypeShape EntityType="soeModel.tivi_screen_detail" Width="1.5" PointX="38" PointY="6" />
+        <EntityTypeShape EntityType="soeModel.tivi_screen_image" Width="1.5" PointX="40.25" PointY="9" />
+        <EntityTypeShape EntityType="soeModel.tivi_screen_propaganda" Width="1.5" PointX="40.25" PointY="4" />
+        <EntityTypeShape EntityType="soeModel.tivi_user_access" Width="1.5" PointX="79.75" PointY="3.5" />
+        <EntityTypeShape EntityType="soeModel.trace" Width="1.5" PointX="79.75" PointY="7.5" />
+        <EntityTypeShape EntityType="soeModel.video_comment" Width="1.5" PointX="79.75" PointY="12.5" />
+        <EntityTypeShape EntityType="soeModel.video_main" Width="1.5" PointX="79.75" PointY="17.5" />
+        <EntityTypeShape EntityType="soeModel.video_users_visitor" Width="1.5" PointX="79.75" PointY="30.5" />
+        <EntityTypeShape EntityType="soeModel.temp" Width="1.5" PointX="27.75" PointY="82.5" />
+        <AssociationConnector Association="soeModel.FK_api_commentbug_api_bug" />
+        <AssociationConnector Association="soeModel.FK_task_bugcomment_bug_id" />
+        <AssociationConnector Association="soeModel.FK_api_category_api_project" />
+        <AssociationConnector Association="soeModel.FK_api_plugin_api_category" />
+        <AssociationConnector Association="soeModel.FK_api_service_api_category" />
+        <AssociationConnector Association="soeModel.FK_api_col_api_table" />
+        <AssociationConnector Association="soeModel.FK_api_parameters_api_service" />
+        <AssociationConnector Association="soeModel.FK_api_table_api_project" />
+        <AssociationConnector Association="soeModel.FK_task_category_project_id" />
+        <AssociationConnector Association="soeModel.FK_booking_user_date_booking_meal" />
+        <AssociationConnector Association="soeModel.FK_calendar_attend_calendar_week" />
+        <AssociationConnector Association="soeModel.FK_calendar_week_calendar_ca_boardroom" />
+        <AssociationConnector Association="soeModel.FK_calendar_coincide_calendar_week" />
+        <AssociationConnector Association="soeModel.FK_calendar_duty_coincide_calendar_duty" />
+        <AssociationConnector Association="soeModel.FK_calendar_duty_person_calendar_duty" />
+        <AssociationConnector Association="soeModel.FK_calendar_duty_procedure_calendar_duty" />
+        <AssociationConnector Association="soeModel.FK_calendar_duty_sign_calendar_duty" />
+        <AssociationConnector Association="soeModel.FK_calendar_duty_signuser_calendar_duty" />
+        <AssociationConnector Association="soeModel.FK_calendar_duty_sigform_calendar_duty_procedureform" />
+        <AssociationConnector Association="soeModel.FK_calendar_duty_signuserform_calendar_duty_sigform" />
+        <AssociationConnector Association="soeModel.FK_calendar_member_calendar_week" />
+        <AssociationConnector Association="soeModel.FK_calendar_sigform_calendar_procedureform" />
+        <AssociationConnector Association="soeModel.FK_calendar_signuserform_calendar_sigform" />
+        <AssociationConnector Association="soeModel.FK_chat_file_chat_message" />
+        <AssociationConnector Association="soeModel.FK_chat_logs_chat_group" />
+        <AssociationConnector Association="soeModel.FK_chat_member_chat_group" />
+        <AssociationConnector Association="soeModel.FK_chat_message_chat_group" />
+        <AssociationConnector Association="soeModel.FK_chat_stick_chat_message" />
+        <AssociationConnector Association="soeModel.FK_CMS_News_CMS_Topic" />
+        <AssociationConnector Association="soeModel.FK_CMS_NewsUser_CMS_News" />
+        <AssociationConnector Association="soeModel.FK_cms_slideshow_topic_id" />
+        <AssociationConnector Association="soeModel.FK_CMS_SlideShowImage_CMS_SlideShow" />
+        <AssociationConnector Association="soeModel.FK_device_card_device_id" />
+        <AssociationConnector Association="soeModel.FK_device_card_device_type_id" />
+        <AssociationConnector Association="soeModel.FK_device_main_device_type_id" />
+        <AssociationConnector Association="soeModel.FK_device_main_device_unit_id" />
+        <AssociationConnector Association="soeModel.FK_device_main_organization_id" />
+        <AssociationConnector Association="soeModel.FK_discuss_discuss_project" />
+        <AssociationConnector Association="soeModel.FK_discuss_member_discuss_project" />
+        <AssociationConnector Association="soeModel.FK_doc_ca_emails_email_group_id" />
+        <AssociationConnector Association="soeModel.FK_doc_ca_group_departments_doc_ca_group_departments" />
+        <AssociationConnector Association="soeModel.FK_doc_ca_role_group_department_doc_ca_role_groups" />
+        <AssociationConnector Association="soeModel.FK_doc_ca_role_group_users_doc_ca_role_groups" />
+        <AssociationConnector Association="soeModel.FK_doc_codes_doc_codes_master" />
+        <AssociationConnector Association="soeModel.FK_doc_codes_organization_id" />
+        <AssociationConnector Association="soeModel.FK_doc_codes_use_doc_codes_use" />
+        <AssociationConnector Association="soeModel.FK_doc_completed_confirms_doc_master" />
+        <AssociationConnector Association="soeModel.FK_doc_connect_doc_organization_connect" />
+        <AssociationConnector Association="soeModel.FK_doc_decision_form_views_doc_decision_forms" />
+        <AssociationConnector Association="soeModel.FK_doc_decision_forms_organization_id" />
+        <AssociationConnector Association="soeModel.FK_doc_email_sent_doc_master" />
+        <AssociationConnector Association="soeModel.FK_doc_file_search_doc_master" />
+        <AssociationConnector Association="soeModel.FK_doc_files_doc_master" />
+        <AssociationConnector Association="soeModel.FK_doc_follows_doc_master" />
+        <AssociationConnector Association="soeModel.FK_doc_logs_doc_master" />
+        <AssociationConnector Association="soeModel.FK_doc_related_doc_master" />
+        <AssociationConnector Association="soeModel.FK_doc_related_doc_master1" />
+        <AssociationConnector Association="soeModel.FK_doc_sign_approval_doc_master" />
+        <AssociationConnector Association="soeModel.FK_doc_tags_doc_master" />
+        <AssociationConnector Association="soeModel.FK_doc_views_doc_master" />
+        <AssociationConnector Association="soeModel.FK_task_linkdoc_doc_master" />
+        <AssociationConnector Association="soeModel.FK_doc_title_docs_doc_titles" />
+        <AssociationConnector Association="soeModel.FK_doc_title_users_doc_titles" />
+        <AssociationConnector Association="soeModel.FK_doc_workflow_groups_doc_workflows" />
+        <AssociationConnector Association="soeModel.FK_file_folder_share_file_folder" />
+        <AssociationConnector Association="soeModel.FK_file_folder_share_user_file_folder" />
+        <AssociationConnector Association="soeModel.FK_file_infor_folder_id" />
+        <AssociationConnector Association="soeModel.FK_file_info_share_file_info" />
+        <AssociationConnector Association="soeModel.FK_file_module_organization_file_modules" />
+        <AssociationConnector Association="soeModel.FK_file_module_user_file_modules" />
+        <AssociationConnector Association="soeModel.FK_help_content_help_content" />
+        <AssociationConnector Association="soeModel.FK_hrm_allwance_hrm_contract" />
+        <AssociationConnector Association="soeModel.FK_hrm_alwance_detail_hrm_allwance" />
+        <AssociationConnector Association="soeModel.FK_hrm_ca_civil_servant_rank_wage_groups_id" />
+        <AssociationConnector Association="soeModel.FK_hrm_profile_tags_hrm_ca_tags" />
+        <AssociationConnector Association="soeModel.FK_hrm_config_contract_symbol_type_contract_id" />
+        <AssociationConnector Association="soeModel.FK_hrm_config_approved_users_config_approved_id" />
+        <AssociationConnector Association="soeModel.FK_hrm_config_approved_form_config_process_form_id" />
+        <AssociationConnector Association="soeModel.FK_hrm_config_approved_users_form_config_approved_form_id" />
+        <AssociationConnector Association="soeModel.FK_hrm_config_contract_symbol_config_contract_id" />
+        <AssociationConnector Association="soeModel.FK_hrm_config_usercode_organization_id" />
+        <AssociationConnector Association="soeModel.FK_hrm_contract_hrm_profile" />
+        <AssociationConnector Association="soeModel.FK_hrm_paycheck_declare_id" />
+        <AssociationConnector Association="soeModel.FK_hrm_file_log_hrm_file" />
+        <AssociationConnector Association="soeModel.FK_hrm_helth_vaccine_hrm_profile_helth" />
+        <AssociationConnector Association="soeModel.FK_hrm_insurance_pay_hrm_insurance" />
+        <AssociationConnector Association="soeModel.FK_hrm_insurance_resolve_hrm_insurance" />
+        <AssociationConnector Association="soeModel.FK_hrm_paycheck_form_details_paycheck_form_id" />
+        <AssociationConnector Association="soeModel.FK_hrm_payroll_user_payroll_id" />
+        <AssociationConnector Association="soeModel.FK_hrm_profile_clan_history_hrm_profile" />
+        <AssociationConnector Association="soeModel.FK_hrm_profile_edit_hrm_profile" />
+        <AssociationConnector Association="soeModel.FK_hrm_profile_experience_hrm_profile" />
+        <AssociationConnector Association="soeModel.FK_hrm_profile_helth_hrm_profile" />
+        <AssociationConnector Association="soeModel.FK_hrm_profile_relate_hrm_profile" />
+        <AssociationConnector Association="soeModel.FK_hrm_profile_relative_hrm_profile" />
+        <AssociationConnector Association="soeModel.FK_hrm_profile_status_hrm_profile" />
+        <AssociationConnector Association="soeModel.FK_hrm_profile_tags_hrm_profile" />
+        <AssociationConnector Association="soeModel.FK_hrm_receipt_profile_hrm_profile" />
+        <AssociationConnector Association="soeModel.FK_law_comment_emotes_law_comment" />
+        <AssociationConnector Association="soeModel.FK_law_comment_law_comment" />
+        <AssociationConnector Association="soeModel.FK_law_docs_related_law_documents" />
+        <AssociationConnector Association="soeModel.FK_law_docs_replace_law_documents" />
+        <AssociationConnector Association="soeModel.FK_law_files_law_documents" />
+        <AssociationConnector Association="soeModel.FK_law_logs_law_documents" />
+        <AssociationConnector Association="soeModel.FK_law_user_visitor_law_documents" />
+        <AssociationConnector Association="soeModel.FK_news_main_category_id" />
+        <AssociationConnector Association="soeModel.FK_news_comment_news_id" />
+        <AssociationConnector Association="soeModel.FK_news_main_organization_id" />
+        <AssociationConnector Association="soeModel.FK_project_main_task_ca_projectgroup" />
+        <AssociationConnector Association="soeModel.FK_report_module_organization_report_module_organization" />
+        <AssociationConnector Association="soeModel.FK_report_module_user_report_modules" />
+        <AssociationConnector Association="soeModel.FK_request_ca_form_sign_request_ca_form" />
+        <AssociationConnector Association="soeModel.FK_request_ca_from_team_request_ca_form" />
+        <AssociationConnector Association="soeModel.FK_request_form_sign_user_request_ca_form_sign" />
+        <AssociationConnector Association="soeModel.FK_request_ca_team_request_ca_group_team" />
+        <AssociationConnector Association="soeModel.FK_request_team_user_request_ca_team" />
+        <AssociationConnector Association="soeModel.FK_request_stick_request_comment" />
+        <AssociationConnector Association="soeModel.FK_request_master_detail_request_master" />
+        <AssociationConnector Association="soeModel.FK_request_master_file_request_master" />
+        <AssociationConnector Association="soeModel.FK_request_master_procedure_request_master" />
+        <AssociationConnector Association="soeModel.FK_request_master_sign_request_master_procedure" />
+        <AssociationConnector Association="soeModel.FK_request_master_signuser_request_master_sign" />
+        <AssociationConnector Association="soeModel.FK_sys_unit_app_menus_sys_app_menus" />
+        <AssociationConnector Association="soeModel.FK_sys_approved_users_approved_groups_id" />
+        <AssociationConnector Association="soeModel.FK_sys_process_link_approved_approved_groups_id" />
+        <AssociationConnector Association="soeModel.FK_sys_process_link_approved_config_process_id" />
+        <AssociationConnector Association="soeModel.FK_sys_fire_base_sys_users" />
+        <AssociationConnector Association="soeModel.FK_sys_group_users_group_id" />
+        <AssociationConnector Association="soeModel.FK_sys_modules_organization_id" />
+        <AssociationConnector Association="soeModel.FK_sys_role_modules_sys_modules" />
+        <AssociationConnector Association="soeModel.FK_sys_users_sub_sys_organization" />
+        <AssociationConnector Association="soeModel.FK_task_department_configuration_sys_organization" />
+        <AssociationConnector Association="soeModel.FK_sys_role_modules_sys_roles1" />
+        <AssociationConnector Association="soeModel.FK_sys_sendhub_sys_users" />
+        <AssociationConnector Association="soeModel.FK_sys_token_sys_users" />
+        <AssociationConnector Association="soeModel.FK_sys_users_sub_sys_users" />
+        <AssociationConnector Association="soeModel.FK_sys_web_acess_sys_users" />
+        <AssociationConnector Association="soeModel.FK_task_origin_task_ca_taskgroup" />
+        <AssociationConnector Association="soeModel.FK_task_main_category_id" />
+        <AssociationConnector Association="soeModel.FK_task_comment_task_id" />
+        <AssociationConnector Association="soeModel.FK_task_extend_task_origin" />
+        <AssociationConnector Association="soeModel.FK__task_foll__follo__7E1003C9" />
+        <AssociationConnector Association="soeModel.FK_task_follow_task_id" />
+        <AssociationConnector Association="soeModel.FK__task_foll__follo__3B191209" />
+        <AssociationConnector Association="soeModel.FK_task_linkdoc_task_origin" />
+        <AssociationConnector Association="soeModel.FK_task_test_task_main" />
+        <AssociationConnector Association="soeModel.FK_Test_Lan_Test_Case" />
+        <AssociationConnector Association="soeModel.FK_test_step_times_id" />
+        <AssociationConnector Association="soeModel.FK_tivi_screen_detail_tivi_screen" />
+        <AssociationConnector Association="soeModel.FK_tivi_screen_image_tivi_screen_detail" />
+        <AssociationConnector Association="soeModel.FK_tivi_screen_propaganda_tivi_screen_detail" />
+      </Diagram>
+    </edmx:Diagrams>
+  </edmx:Designer>
+</edmx:Edmx>

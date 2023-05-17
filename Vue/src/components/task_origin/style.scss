@@ -488,3 +488,10 @@ body {
 
 @include generateSlice();
 
+.p-button.p-button-success,
+.p-buttonset.p-button-success>.p-button,
+.p-splitbutton.p-button-success>.p-button {
+    color: #ffffff;
+    background: #689F38;
+    border: 0px solid #689F38;
+}

@@ -220,6 +220,7 @@ const saveData = (isFormValid) => {
 };
 
 const loadData = () => {
+  indexSelected.value = 0;
   swal.fire({
     width: 110,
     didOpen: () => {
@@ -233,7 +234,10 @@ const loadData = () => {
         str: encr(
           JSON.stringify({
             proc: "task_follow_list",
-            par: [{ par: "task_id", va: props.id }],
+            par: [
+              { par: "task_id", va: props.id },
+              { par: "user_id", va: null },
+            ],
           }),
           SecretKey,
           cryoptojs,
@@ -291,7 +295,6 @@ const loadData = () => {
                   let k = props.listChild.filter(
                     (a) => a.task_id == z.task_id_follow,
                   );
-
                   if (k.length > 0) {
                     let obj = Object.assign({}, z, k[0]);
                     y.task_info.push(obj);
@@ -300,7 +303,7 @@ const loadData = () => {
               }
             });
           } else {
-            x.task_follow_step = [];
+            x.task_follow_step = null;
           }
         });
         datalists.value = data;
@@ -323,7 +326,7 @@ const loadData = () => {
       }
     });
 };
-const indexSelected = ref();
+const indexSelected = ref(0);
 const expandAll = (e) => {
   let dataFilter = e.filter((x) => x.status == 1)[0];
   if (dataFilter != null) {
@@ -334,7 +337,7 @@ const expandAll = (e) => {
       });
       if (findIndex >= 0) {
         indexSelected.value = findIndex;
-      } else indexSelected.value = null;
+      } else indexSelected.value = 0;
     }
     add.push(dataFilter);
     expandedRows.value = add;
@@ -1065,7 +1068,12 @@ const closeDetail = () => {
             />
             <h3 class="m-1">Quy trình chưa có các bước thực hiện!</h3>
           </div>
-          <div v-if="slotProps.data.task_follow_step.length > 0">
+          <div
+            v-if="
+              slotProps.data.task_follow_step != [] &&
+              slotProps.data.task_follow_step.length > 0
+            "
+          >
             <div
               v-if="
                 slotProps.data.task_follow_step[indexSelected].task_info
@@ -1079,6 +1087,7 @@ const closeDetail = () => {
                 ].task_info"
                 :key="index2"
               >
+                {{ item2 }}
                 <Card
                   class="bg-bluegray-50 w-30rem card-hover"
                   @click="onNodeSelect(item2.task_id)"

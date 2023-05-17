@@ -26,10 +26,7 @@ const bgColor = ref([
   "#CCADD7",
   "#FF88D3",
 ]);
-const model = ref({
-  point: "",
-  comments: "",
-});
+const model = ref([]);
 const configMember = ref();
 const user = store.getters.user;
 const loadConfig = () => {
@@ -208,6 +205,16 @@ const LoadMember = (type) => {
         element.STTDTH = null;
         element.STTTD = null;
         element.tooltip =
+          (element.is_type == 0
+            ? "Người giao việc"
+            : element.is_type == 1
+            ? "Người xử lý chính"
+            : element.is_type == 2
+            ? "Người đồng xử lý"
+            : element.is_type == 3
+            ? "Người theo dõi"
+            : "") +
+          "<br/>" +
           element.full_name +
           ("<br/>" + (element.positions ?? "") != "<br/>"
             ? "<br/>" + (element.positions ?? "")
@@ -507,29 +514,64 @@ const headerDialog = ref();
 const visibleDialog = ref(false);
 const Point = (e) => {
   visibleDialog.value = true;
+  is_multiple.value = true;
   headerDialog.value = "Đánh giá thành viên";
-  model.value = JSON.parse(JSON.stringify(e));
-  if (model.value.is_type == 1) {
-    model.value.point = configMember.value.executors;
-  }
-  if (model.value.is_type == 2) {
-    model.value.point = configMember.value.co_executors;
-  }
-  if (model.value.is_type == 3) {
-    model.value.point = configMember.value.supervisor;
-  }
+  model.value = JSON.parse(JSON.stringify(members.value.filter((x) => x == e)));
+  model.value.forEach((z) => {
+    if (z.is_type == 1) {
+      z.point = z.point != null ? z.point : configMember.value.executors;
+    }
+    if (z.is_type == 2) {
+      z.point = z.point != null ? z.point : configMember.value.co_executors;
+    }
+    if (z.is_type == 3) {
+      z.point = z.point != null ? z.point : configMember.value.supervisor;
+    }
+  });
 };
 onMounted(() => {
   Switch(props.isType ? props.isType : 1);
   loadConfig();
 });
+const is_multiple = ref(false);
+const OpenMultiple = () => {
+  visibleDialog.value = true;
+  headerDialog.value = "Đánh giá thành viên";
+  is_multiple.value = true;
+  model.value = [];
+  model.value = JSON.parse(
+    JSON.stringify(
+      members.value.filter(
+        (x) => x.is_type == 1 || x.is_type == 2 || x.is_type == 3,
+      ),
+    ),
+  );
+  model.value.forEach((z) => {
+    if (z.is_type == 1) {
+      z.point = z.point != null ? z.point : configMember.value.executors;
+    }
+    if (z.is_type == 2) {
+      z.point = z.point != null ? z.point : configMember.value.co_executors;
+    }
+    if (z.is_type == 3) {
+      z.point = z.point != null ? z.point : configMember.value.supervisor;
+    }
+  });
+};
 </script>
 <template>
   <div>
-    <div class="grid">
+    <div class="grid relative">
+      <Button
+        class="right-0 absolute z-5 my-2 mx-3"
+        label="Đánh giá"
+        icon="pi pi-user-edit"
+        @click="OpenMultiple()"
+      ></Button>
+
       <TabView
         @tab-change="changeTab($event.index)"
-        class="w-full"
+        class="w-full px-3"
       >
         <TabPanel
           v-for="(item, index) in tabs"
@@ -670,8 +712,9 @@ onMounted(() => {
                   class="col-2 format-center"
                   v-if="
                     props.isClose == false &&
-                    !TatCa &&
+                    m.is_type != 0 &&
                     !NguoiQuanLy &&
+                    !NguoiTheoDoi &&
                     (memberType == 0 ||
                       memberType1 == 0 ||
                       memberType2 == 0 ||
@@ -714,9 +757,9 @@ onMounted(() => {
     modal
     :closable="false"
     dismissableMask
-    style="width: 40vw"
+    style="width: 50vw"
   >
-    <form>
+    <form v-if="is_multiple == false">
       <div class="col-12 flex">
         <div class="col-4 flex align-items-center">Điểm đánh giá</div>
         <InputNumber
@@ -738,6 +781,97 @@ onMounted(() => {
             class="w-full"
             autoResize
             v-model="model.comments"
+          ></Textarea>
+        </div>
+      </div>
+    </form>
+    <form v-else>
+      <div
+        class="row col-12 flex p-0 m-0"
+        style="border-bottom: 1px solid #ccc"
+      >
+        <div class="col-1 format-center p-0 m-0"></div>
+        <div class="col-6 text-center">Thông tin thành viên</div>
+        <div class="col-2 text-center">Điểm đánh giá</div>
+        <div class="col-3 text-center">Nội dung đánh giá</div>
+      </div>
+      <div
+        class="row col-12 flex p-0 m-0 my-div"
+        v-for="(m, index) in model"
+        :key="m"
+        style="border-bottom: 1px solid #ccc"
+      >
+        <div class="col-1 format-center p-0 m-0">
+          <Avatar
+            @error="
+              $event.target.src = basedomainURL + '/Portals/Image/nouser1.png'
+            "
+            v-tooltip.right="{
+              value: m.tooltip,
+              escape: true,
+              fitContent: true,
+            }"
+            v-bind:label="
+              m.avt ? '' : m.full_name.split(' ').at(-1).substring(0, 1)
+            "
+            v-bind:image="basedomainURL + m.avt"
+            style="color: #ffffff; cursor: pointer"
+            :style="{
+              background: bgColor[index % 7],
+              border: '2px solid' + bgColor[index % 7],
+            }"
+            class="col-2 p-0 m-0"
+            size="large"
+            shape="circle"
+          />
+        </div>
+        <div class="col-6">
+          <div class="col-12">
+            <span class="font-bold text-xl text-indigo-700">{{
+              m.full_name
+            }}</span>
+            <span class="text-500 font-300">
+              {{
+                " " +
+                moment(new Date(m.created_date)).format("HH:mm DD/MM/YYYY")
+              }}
+            </span>
+          </div>
+          <div class="col-12 pt-0">{{ m.positions }}</div>
+          <div class="col-12 pt-0">
+            {{ m.department_name ? m.department_name : m.organiztion_name }}
+          </div>
+          <div class="col-12 pt-0">
+            {{
+              m.is_type == 0
+                ? "Người giao việc"
+                : m.is_type == 1
+                ? "Người xử lý chính"
+                : m.is_type == 2
+                ? "Người đồng xử lý"
+                : m.is_type == 3
+                ? "Người theo dõi"
+                : ""
+            }}
+          </div>
+        </div>
+
+        <InputNumber
+          class="col-2 format-center"
+          suffix=" %"
+          mode="decimal"
+          :minFractionDigits="2"
+          :useGrouping="false"
+          v-model="m.point"
+          v-tooltip="'Mức hoàn thành công việc'"
+        >
+        </InputNumber>
+
+        <div class="col-3 format-center">
+          <Textarea
+            class="w-full h-full"
+            autoResize
+            v-model="m.comments"
           ></Textarea>
         </div>
       </div>
