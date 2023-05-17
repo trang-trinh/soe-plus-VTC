@@ -14,5 +14,6 @@
   "apiBHBQP": "https://home.soe.vn/",
   "tokenBHBQP": "3CAB0CC9-CE13-4948-866B-124F25352A57",
   "keycodeBHBQP": "1012198815021989",
-  "socketUrl": "https://socket2.soe.vn/"
+  "socketUrl": "https://socket2.soe.vn/",
+  "docOnlineUrl": "https://doconline.soe.vn/"
 }

@@ -2634,7 +2634,7 @@ namespace API.Controllers.HRM.Profile
                                             break;
                                         case "Học vấn":
                                             List<hrm_profile_skill> skills = new List<hrm_profile_skill>();
-                                            for (int r = 4; r <= sheet.Dimension.End.Row; r++)
+                                            for (int r = 3; r <= sheet.Dimension.End.Row; r++)
                                             {
                                                 error_row = r;
                                                 if (sheet.Cells[r, 2].Value == null)
@@ -2644,11 +2644,11 @@ namespace API.Controllers.HRM.Profile
                                                 hrm_profile_skill skill = new hrm_profile_skill();
                                                 for (int c = 2; c <= sheet.Dimension.End.Column; c++)
                                                 {
-                                                    if (sheet.Cells[3, c].Value == null)
+                                                    if (sheet.Cells[2, c].Value == null)
                                                     {
                                                         break;
                                                     }
-                                                    var column = sheet.Cells[3, c].Value;
+                                                    var column = sheet.Cells[2, c].Value;
                                                     error_column = int.Parse(column.ToString() ?? c.ToString());
                                                     var vl = sheet.Cells[r, c].Value;
                                                     if (vl != null)
