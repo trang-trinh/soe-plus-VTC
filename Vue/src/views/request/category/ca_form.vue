@@ -35,8 +35,8 @@ const options = ref({
 	SearchText: ''
 });
 const listDropdownTypeProcess = ref([
-	{ value: 0, text: "Một trong nhiều" },
-	{ value: 1, text: "Duyệt lần lượt" },
+	{ value: 0, text: "Duyệt tuần tự" },
+	{ value: 1, text: "Duyệt một nhiều" },
 	{ value: 2, text: "Duyệt ngẫu nhiên" },
 ])
 const bgColor = ref([

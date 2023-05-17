@@ -111,6 +111,8 @@ const options = ref({
     end_completed: null,
     is_func: false,
     request_form_id: null,
+    is_in: true,
+    is_out: false,
 });
 
 const isFilter = ref(false);
@@ -281,7 +283,7 @@ const filterTab = ref();
 const activeTab = (tab, event) => {
     if (tab.status != null) {
         options.value.tab = tab.status;
-        if (tab.status > 7) {
+        if (tab.status > 7 && tab.status < 100) {
             filterTab.value.toggle(event);
         }
         listRequest(true);
@@ -821,11 +823,13 @@ const itemsFuncByStatus = () => {
 const selectedNodes = ref([]);
 const toggleMores = (event, item) => {
     request_select.value = item;
-    item.is_check = true;
-    selectedNodes.value.forEach((el) => {
-        el.is_check = false;
-    });
+    if (selectedNodes.value.length > 0) {
+        selectedNodes.value.forEach((el) => {
+            el.is_check = false;
+        });
+    }
     selectedNodes.value = [];
+    item.is_check = true;
     selectedNodes.value.push(item);
     menuButMores.value.toggle(event);
 };
@@ -1156,7 +1160,11 @@ onMounted(() => {
                                     ? basedomainURL + slotProps.data.avatar
                                     : basedomainURL + '/Portals/Image/noimg.jpg'
                                 "
-                                v-tooltip.top="{ value: (slotProps.data.full_name + '<br/>' + slotProps.data.position_name + '<br/>' + slotProps.data.department_name), escape: true }"
+                                v-tooltip.top="{ value: (slotProps.data.full_name + 
+                                                    (slotProps.data.position_name ? ('<br/>' + slotProps.data.position_name) : '') +
+                                                    (slotProps.data.department_name ? ('<br/>' + slotProps.data.department_name) : '')), 
+                                    escape: true 
+                                }"
                                 style="color: #ffffff; width: 2rem; height: 2rem; font-size: 1rem !important;"
                                 :style="{ background: bgColor[slotProps.index % 7], }"
                                 size="xlarge"
