@@ -26,6 +26,8 @@ const config = {
 };
 const options = ref({
     loading: true,
+    tab: null,
+    type_tab: null,
 });
 const bgColor = ref([
     "#F8E69A",
@@ -90,13 +92,26 @@ const list_qua_hans = ref([]);
 const showSidebarRequest = ref(false);
 // const PositionSideBar = ref('right');
 // component request
+const goToView = (tab, type) => {
+    showSidebarRequest.value = true;
+    options.value.tab = tab;
+    options.value.type_tab = type;
+}
+emitter.on("SideBarListRequest", (obj) => {
+    showSidebarRequest.value = false;
+});
+const goRouter = () => {}
 emitter.on("SideBarRequest", (obj) => {
     showDetailRequest.value = false;
     selectedRequestID.value = null;
 });
 const PositionSideBar = ref('right');
+const PositionSideBar1 = ref('right');
 emitter.on("psbRequest", (obj) => {
     PositionSideBar.value = obj;
+});
+emitter.on("psbRequest1", (obj) => {
+    PositionSideBar1.value = obj;
 });
 const cpnDetailRequest = ref(0);
 const forceRerenderDetail = () => {
@@ -153,7 +168,6 @@ const loadRequestDashBoardCount = () => {
                 counts.value.count_toi_theo_doi = data[0][5].count;
                 counts.value.count_da_hoan_thanh = data[0][3].count;
                 counts.value.count_da_qua_han = data[0][4].count;
-
                 let data1 = 0;
                 let data2 = 0;
                 let data3 = 0;
@@ -251,23 +265,23 @@ const loadRequestDashBoardList = () => {
         .then((response) => {
             if (response != null && response.data != null) {
                 let data = JSON.parse(response.data.data);
-                // list_cho_duyets.value = data[0].filter(x => x.type_request == 1);
-                // list_hoan_thanhs.value = data[0].filter(x => x.type_request == 2);
-                // list_qua_hans.value = data[0].filter(x => x.type_request == 3);
+                list_cho_duyets.value = data[0].filter(x => x.type_request == 1);
+                list_hoan_thanhs.value = data[0].filter(x => x.type_request == 2);
+                list_qua_hans.value = data[0].filter(x => x.type_request == 3);
                 //fake data
-                list_cho_duyets.value = [
-                    {
-                        request_code: '123', request_id: '0A28D5C3352D480CB6FBD0708FF47E94', request_name: 'Đơn xin nghỉ', content: 'Nội dung', created_date: new Date(), Members: [
-                            { user_id: '123', full_name: 'Trịnh Văn Tráng', last_name: 'Tráng', avatar: null },
-                            { user_id: '1234', full_name: 'Trịnh Văn A', last_name: 'A', avatar: null },
-                            { user_id: '12345', full_name: 'Trịnh Văn B', last_name: 'B', avatar: null },
-                            { user_id: '123456', full_name: 'Trịnh Văn C', last_name: 'C', avatar: null },
-                            { user_id: '1234567', full_name: 'Trịnh Văn D', last_name: 'D', avatar: null },
-                            { user_id: '12345678', full_name: 'Trịnh Văn E', last_name: 'E', avatar: null },
-                            { user_id: '123456789', full_name: 'Trịnh Văn F', last_name: 'F', avatar: null }
-                        ]
-                    }
-                ];
+                // list_cho_duyets.value = [
+                //     {
+                //         request_code: '123', request_id: '0A28D5C3352D480CB6FBD0708FF47E94', request_name: 'Đơn xin nghỉ', content: 'Nội dung', created_date: new Date(), Members: [
+                //             { user_id: '123', full_name: 'Trịnh Văn Tráng', last_name: 'Tráng', avatar: null },
+                //             { user_id: '1234', full_name: 'Trịnh Văn A', last_name: 'A', avatar: null },
+                //             { user_id: '12345', full_name: 'Trịnh Văn B', last_name: 'B', avatar: null },
+                //             { user_id: '123456', full_name: 'Trịnh Văn C', last_name: 'C', avatar: null },
+                //             { user_id: '1234567', full_name: 'Trịnh Văn D', last_name: 'D', avatar: null },
+                //             { user_id: '12345678', full_name: 'Trịnh Văn E', last_name: 'E', avatar: null },
+                //             { user_id: '123456789', full_name: 'Trịnh Văn F', last_name: 'F', avatar: null }
+                //         ]
+                //     }
+                // ];
                 list_cho_duyets.value.forEach((element) => {
                     element.MemberShows = [];
                     if (element.Members.length > 5) {
@@ -276,19 +290,19 @@ const loadRequestDashBoardList = () => {
                         element.MemberShows = [...element.Members];
                     }
                 })
-                list_hoan_thanhs.value = [
-                    {
-                        request_code: '123', request_id: '0A28D5C3352D480CB6FBD0708FF47E94', request_name: 'Đơn xin nghỉ', content: 'Nội dung', created_date: new Date(), Members: [
-                            { user_id: '123', full_name: 'Trịnh Văn Tráng', last_name: 'Tráng', avatar: null },
-                            { user_id: '1234', full_name: 'Trịnh Văn A', last_name: 'A', avatar: null },
-                            { user_id: '12345', full_name: 'Trịnh Văn B', last_name: 'B', avatar: null },
-                            { user_id: '123456', full_name: 'Trịnh Văn C', last_name: 'C', avatar: null },
-                            { user_id: '1234567', full_name: 'Trịnh Văn D', last_name: 'D', avatar: null },
-                            { user_id: '12345678', full_name: 'Trịnh Văn E', last_name: 'E', avatar: null },
-                            { user_id: '123456789', full_name: 'Trịnh Văn F', last_name: 'F', avatar: null }
-                        ]
-                    }
-                ];
+                // list_hoan_thanhs.value = [
+                //     {
+                //         request_code: '123', request_id: '0A28D5C3352D480CB6FBD0708FF47E94', request_name: 'Đơn xin nghỉ', content: 'Nội dung', created_date: new Date(), Members: [
+                //             { user_id: '123', full_name: 'Trịnh Văn Tráng', last_name: 'Tráng', avatar: null },
+                //             { user_id: '1234', full_name: 'Trịnh Văn A', last_name: 'A', avatar: null },
+                //             { user_id: '12345', full_name: 'Trịnh Văn B', last_name: 'B', avatar: null },
+                //             { user_id: '123456', full_name: 'Trịnh Văn C', last_name: 'C', avatar: null },
+                //             { user_id: '1234567', full_name: 'Trịnh Văn D', last_name: 'D', avatar: null },
+                //             { user_id: '12345678', full_name: 'Trịnh Văn E', last_name: 'E', avatar: null },
+                //             { user_id: '123456789', full_name: 'Trịnh Văn F', last_name: 'F', avatar: null }
+                //         ]
+                //     }
+                // ];
                 list_hoan_thanhs.value.forEach((element) => {
                     element.MemberShows = [];
                     if (element.Members.length > 5) {
@@ -297,19 +311,19 @@ const loadRequestDashBoardList = () => {
                         element.MemberShows = [...element.Members];
                     }
                 })
-                list_qua_hans.value = [
-                    {
-                        request_code: '123', request_id: '0A28D5C3352D480CB6FBD0708FF47E94', request_name: 'Đơn xin nghỉ', content: 'Nội dung', created_date: new Date(), Members: [
-                            { user_id: '123', full_name: 'Trịnh Văn Tráng', last_name: 'Tráng', avatar: null },
-                            { user_id: '1234', full_name: 'Trịnh Văn A', last_name: 'A', avatar: null },
-                            { user_id: '12345', full_name: 'Trịnh Văn B', last_name: 'B', avatar: null },
-                            { user_id: '123456', full_name: 'Trịnh Văn C', last_name: 'C', avatar: null },
-                            { user_id: '1234567', full_name: 'Trịnh Văn D', last_name: 'D', avatar: null },
-                            { user_id: '12345678', full_name: 'Trịnh Văn E', last_name: 'E', avatar: null },
-                            { user_id: '123456789', full_name: 'Trịnh Văn F', last_name: 'F', avatar: null }
-                        ]
-                    }
-                ];
+                // list_qua_hans.value = [
+                //     {
+                //         request_code: '123', request_id: '0A28D5C3352D480CB6FBD0708FF47E94', request_name: 'Đơn xin nghỉ', content: 'Nội dung', created_date: new Date(), Members: [
+                //             { user_id: '123', full_name: 'Trịnh Văn Tráng', last_name: 'Tráng', avatar: null },
+                //             { user_id: '1234', full_name: 'Trịnh Văn A', last_name: 'A', avatar: null },
+                //             { user_id: '12345', full_name: 'Trịnh Văn B', last_name: 'B', avatar: null },
+                //             { user_id: '123456', full_name: 'Trịnh Văn C', last_name: 'C', avatar: null },
+                //             { user_id: '1234567', full_name: 'Trịnh Văn D', last_name: 'D', avatar: null },
+                //             { user_id: '12345678', full_name: 'Trịnh Văn E', last_name: 'E', avatar: null },
+                //             { user_id: '123456789', full_name: 'Trịnh Văn F', last_name: 'F', avatar: null }
+                //         ]
+                //     }
+                // ];
                 list_qua_hans.value.forEach((element) => {
                     element.title_quahan = "Quá hạn 2 giờ";
                     element.MemberShows = [];
@@ -353,7 +367,7 @@ onMounted(() => {
                             <div class="card m-1" style="height: 98%;">
                                 <div class="card-body p-0" style="height: max-content">
                                     <div class="d-grid formgrid" style="height: 100%;">
-                                        <div class="col-4 md:col-4" @click="goToView()">
+                                        <div class="col-4 md:col-4" @click="goToView(2,1)">
                                             <div class="card zoom" style="background-color: #33c9dc; color: #fff;"
                                                 @click="goRouter('calendarenact')">
                                                 <div class="card-body">
@@ -366,7 +380,7 @@ onMounted(() => {
                                                 </div>
                                             </div>
                                         </div>
-                                        <div class="col-4 md:col-4" @click="goToView()">
+                                        <div class="col-4 md:col-4" @click="goToView(101)">
                                             <div class="card zoom" style="background-color: #f5b041; color: #fff"
                                                 @click="goRouter('docreceive')">
                                                 <div class="card-body">
@@ -379,7 +393,7 @@ onMounted(() => {
                                                 </div>
                                             </div>
                                         </div>
-                                        <div class="col-4 md:col-4" @click="goToView()">
+                                        <div class="col-4 md:col-4" @click="goToView(2,2)">
                                             <div class="card zoom" style="background-color: #33c9dc; color: #fff"
                                                 @click="goRouter('taskmain')">
                                                 <div class="card-body">
@@ -392,7 +406,7 @@ onMounted(() => {
                                                 </div>
                                             </div>
                                         </div>
-                                        <div class="col-4 md:col-4" @click="goToView()">
+                                        <div class="col-4 md:col-4" @click="goToView(3)">
                                             <div class="card zoom" style="background-color: #2196f3; color: #fff"
                                                 @click="goRouter('bookingmeal')">
                                                 <div class="card-body">
@@ -405,7 +419,7 @@ onMounted(() => {
                                                 </div>
                                             </div>
                                         </div>
-                                        <div class="col-4 md:col-4" @click="goToView()">
+                                        <div class="col-4 md:col-4" @click="goToView(100)">
                                             <div class="card zoom" style="background-color: #74b9ff; color: #fff"
                                                 @click="goRouter('chat_message')">
                                                 <div class="card-body">
@@ -418,7 +432,7 @@ onMounted(() => {
                                                 </div>
                                             </div>
                                         </div>
-                                        <div class="col-4 md:col-4" @click="goToView()">
+                                        <div class="col-4 md:col-4" @click="goToView(4)">
                                             <div class="card zoom" style="background-color: #f17ac7; color: #fff"
                                                 @click="goRouter('lawmain')">
                                                 <div class="card-body">
@@ -431,7 +445,7 @@ onMounted(() => {
                                                 </div>
                                             </div>
                                         </div>
-                                        <div class="col-4 md:col-4" @click="goToView()">
+                                        <div class="col-4 md:col-4" @click="goToView(16)">
                                             <div class="card zoom" style="background-color: blueviolet; color: #fff"
                                                 @click="goRouter('lawmain')">
                                                 <div class="card-body">
@@ -444,7 +458,7 @@ onMounted(() => {
                                                 </div>
                                             </div>
                                         </div>
-                                        <div class="col-4 md:col-4" @click="goToView()">
+                                        <div class="col-4 md:col-4" @click="goToView(5)">
                                             <div class="card zoom" style="background-color: #6dd230; color: #fff"
                                                 @click="goRouter('lawmain')">
                                                 <div class="card-body">
@@ -457,7 +471,7 @@ onMounted(() => {
                                                 </div>
                                             </div>
                                         </div>
-                                        <div class="col-4 md:col-4" @click="goToView()">
+                                        <div class="col-4 md:col-4" @click="goToView(6)">
                                             <div class="card zoom" style="background-color: #ff8b4e; color: #fff"
                                                 @click="goRouter('lawmain')">
                                                 <div class="card-body">
@@ -804,18 +818,18 @@ onMounted(() => {
         </div>
     </div>
 
-    <!-- <Sidebar class="sidebar-request" v-model:visible="isShowSidebar" :position="PositionSideBar" :style="{
+    <Sidebar class="sidebar-request" v-model:visible="showSidebarRequest" :position="PositionSideBar1" :style="{
         width:
-            PositionSideBar == 'right'
+            PositionSideBar1 == 'right'
                 ? width1 > 1800
                     ? ' 60vw'
                     : '80vw'
                 : '100vw',
         'height': '101vh !important',
     }" :showCloseIcon="false">
-        <SidebarViewRequest :isShow="showSidebarRequest" :turn="0">
+        <SidebarViewRequest :isShow="showSidebarRequest" :turn="0" :counts="counts" :tab="options.tab" :type_tab="options.type_tab">
         </SidebarViewRequest>
-    </Sidebar> -->
+    </Sidebar>
     <Sidebar class="sidebar-request" v-model:visible="showDetailRequest" :position="'right'" :style="{
         width: PositionSideBar == 'right' ? (widthWindow > 1800 ? '65vw' : '75vw') : '100%',
         'min-height': '100vh !important',
