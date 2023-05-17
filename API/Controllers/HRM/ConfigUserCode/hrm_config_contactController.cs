@@ -146,7 +146,7 @@ namespace API.Controllers.HRM.ConfigUserCode
                         hrm_config_contact hrm_Config_Usercode = JsonConvert.DeserializeObject<hrm_config_contact>(fdca_certificate);
                         var checkCer = db.hrm_config_contact.AsNoTracking().Where(p => p.organization_id == dv && p.year == hrm_Config_Usercode.year ).FirstOrDefault();
 
-                        var checkActive = db.hrm_config_contact.Where(p => p.organization_id == dv && p.is_active == true).FirstOrDefault();
+                        var checkActive = db.hrm_config_contact.Where(p => p.organization_id == dv && p.is_active == true && p.config_contact_id != hrm_Config_Usercode.config_contact_id).FirstOrDefault();
                         if (checkActive != null)
                         {
                             checkActive.is_active = false;

@@ -110,7 +110,12 @@ const loadOrganization = (value) => {
         str: encr(
           JSON.stringify({
             proc: "hrm_config_contact_get",
-            par: [{ par: "user_id", va: store.getters.user.user_id }],
+            par: [{ par: "user_id", va: store.getters.user.user_id },
+            { par: "is_active", va: true},
+            { par: "year", va: null }
+          
+          
+          ],
           }),
           SecretKey,
           cryoptojs
@@ -121,8 +126,48 @@ const loadOrganization = (value) => {
     .then((response) => {
       let data = JSON.parse(response.data.data)[0];
       if (data.length > 0) {
+       
         config_contact.value = data[0];
-        debugger;
+        if( config_contact.value.year){
+          config_contact.value.year_fake= new Date('01/01/'+ config_contact.value.year);
+        }
+      
+      }
+    })
+    .catch((error) => {
+      options.value.loading = false;
+    });
+};
+const onChangeOrganization = () => {
+  axios
+    .post(
+      baseURL + "/api/device_card/getData",
+      {
+        str: encr(
+          JSON.stringify({
+            proc: "hrm_config_contact_get",
+            par: [{ par: "user_id", va: store.getters.user.user_id },
+            { par: "is_active", va: null},
+            { par: "year", va: config_contact.value.year_fake.getFullYear() }
+          
+          
+          ],
+          }),
+          SecretKey,
+          cryoptojs
+        ).toString(),
+      },
+      config
+    )
+    .then((response) => {
+      let data = JSON.parse(response.data.data)[0];
+      if (data.length > 0) {
+       
+        config_contact.value = data[0];
+        if( config_contact.value.year){
+          config_contact.value.year_fake= new Date('01/01/'+ config_contact.value.year);
+        }
+      
       }
     })
     .catch((error) => {
@@ -133,7 +178,9 @@ const config_contact = ref({});
 
 const saveDeConfig = () => {
   let formData = new FormData();
-
+  if(config_contact.value.year_fake){
+    config_contact.value.year=config_contact.value.year_fake.getFullYear();
+  }
   formData.append("hrm_config_contact", JSON.stringify(config_contact.value));
 
   axios
@@ -188,7 +235,7 @@ onMounted(() => {
                   class="d-design-calendar"
                   view="year"
                   dateFormat="yy"
-                  @date-select="loadContract()"
+                  @date-select="onChangeOrganization()"
                 />
               </div>
             </template>
@@ -216,7 +263,7 @@ onMounted(() => {
               <div>
                 <InputNumber
                   class="w-full d-design-inputnumber"
-                  v-model="config_contact.num_seniority"
+                  v-model="config_contact.male_retirement"
                   mode="decimal"
                   :useGrouping="false"
                 />
@@ -235,7 +282,7 @@ onMounted(() => {
               <div>
                 <InputNumber
                   class="w-full d-design-inputnumber"
-                  v-model="config_contact.num_seniority"
+                  v-model="config_contact.female_retirement"
                   mode="decimal"
                   :useGrouping="false"
                 />

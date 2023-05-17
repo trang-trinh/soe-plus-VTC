@@ -486,9 +486,7 @@ const loadDataMain = () => {
     
     });
 };
-onMounted(() => {  if (!checkURL(window.location.pathname, store.getters.listModule)) {
-     //router.back();
-  }
+onMounted(() => {   
   loadDataMain();
   loadDataNotify();
   loadData();
