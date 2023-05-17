@@ -319,16 +319,21 @@ namespace API.Controllers.Task_Origin1
                         }
                         ///Get data from FrontEnd
                         string tempID = provider.FormData.GetValues("member").SingleOrDefault();
-                        task_member listprocess_id = JsonConvert.DeserializeObject<task_member>(tempID);
-                        listprocess_id.modified_by = uid;
-                        listprocess_id.modified_date = DateTime.Now;
-                        listprocess_id.modified_ip = ip; ;
-                        listprocess_id.modified_token_id = tid;
-                        db.Entry(listprocess_id).State = EntityState.Modified;
-                        db.SaveChanges();
+                        List<task_member> listprocess_id = JsonConvert.DeserializeObject<List<task_member>>(tempID);
+                        foreach (var item in listprocess_id)
+                        {
+                            item.modified_by = uid;
+                            item.modified_date = DateTime.Now;
+                            item.modified_ip = ip; ;
+                            item.modified_token_id = tid;
+                        db.Entry(item).State = EntityState.Modified;
+                       
                         #region add tasklog
-                        helper.saveLog(uid, name, JsonConvert.SerializeObject(new { data = listprocess_id }), domainurl + "/task_Member/Update_Member_Info", ip, tid, "Cập nhật thành viên công việc", 1, "Công việc");
+                        helper.saveLog(uid, name, JsonConvert.SerializeObject(new { data = item }), domainurl + "/task_Member/Update_Member_Info", ip, tid, "Cập nhật thành viên công việc", 1, "Công việc");
                         #endregion
+                        }
+                      
+                        db.SaveChanges();
                         return Request.CreateResponse(HttpStatusCode.OK, new { err = "0" });
                     });
                     return await task;
