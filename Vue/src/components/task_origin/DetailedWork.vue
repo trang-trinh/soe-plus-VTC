@@ -15,6 +15,7 @@ import taskExtendsVue from "./Detail_Task/taskExtends.vue";
 import FileInfoVue from "./Detail_Task/FileInfo.vue";
 import Task_FollowVue from "./Detail_Task/Task_Follow.vue";
 import TaskCheckListDetailVue from "./Detail_Task/TaskCheckListDetail.vue";
+import DialogTask from "./DialogTask.vue";
 import { encr } from "../../util/function.js";
 import moment from "moment";
 import DocLinkTaskVue from "./Detail_Task/DocTask.vue";
@@ -54,8 +55,6 @@ const bgColor = ref([
   "#CCADD7",
 ]);
 
-const listOrganization = ref([]);
-const listDropdownorganization = ref([]);
 const listCheckList = ref();
 const listTaskCheckList = ref();
 const countChecklists = ref();
@@ -82,113 +81,6 @@ const props = defineProps({
 const addLog = (log) => {
   axios.post(baseURL + "/api/Proc/AddLog", log, config);
 };
-//Load Main Task Detail
-const listtreeOrganization = () => {
-  axios
-    .post(
-      baseURL + "/api/TaskProc/getTaskData",
-      {
-        str: encr(
-          JSON.stringify({
-            proc: "task_origin_list_pb",
-            par: [{ par: "user_id", va: store.getters.user.user_id }],
-          }),
-          SecretKey,
-          cryoptojs,
-        ).toString(),
-      },
-      config,
-    )
-    .then((response) => {
-      let data = JSON.parse(response.data.data)[0];
-      let obj = renderTreeDV(
-        data.filter((x) => x.organization_type != 0),
-        "organization_id",
-        "organization_name",
-        "phòng ban",
-      );
-      listOrganization.value = data;
-      listDropdownorganization.value = obj.arrtreeChils;
-      let id = parseInt(Object.keys(selectcapcha.value)[0]);
-      if (id != -1) {
-        listOrganization.value
-          .filter((x) => x.organization_id == id)
-          .forEach((t) => {
-            if (t.user_id) {
-              Task.value.assign_user_id.push(store.state.user.user_id);
-              Task.value.work_user_ids.push(t.user_id);
-            } else {
-              selectcapcha.value = [];
-              selectcapcha.value[-1] = true;
-              Task.value.assign_user_id.push(store.state.user.user_id);
-              Task.value.work_user_ids.push(store.state.user.user_id);
-              swal.fire({
-                title: "Thông báo!",
-                text: "Phòng ban này chưa tồn tại người chủ trì!",
-                icon: "info",
-                confirmButtonText: "OK",
-              });
-            }
-          });
-      }
-    })
-    .catch((error) => {
-      //// toast.error("Tải dữ liệu không thành công!");
-      options.value.loading = false;
-
-      if (error && error.status === 401) {
-        swal.fire({
-          text: "Mã token đã hết hạn hoặc không hợp lệ, vui lòng đăng nhập lại!",
-          confirmButtonText: "OK",
-        });
-        store.commit("gologout");
-      }
-    });
-};
-const renderTreeDV = (data, id, name, title) => {
-  let arrChils = [];
-  let arrtreeChils = [];
-  // .filter((x) => x.parent_id == null)
-  data.forEach((m, i) => {
-    m.IsOrder = i + 1;
-    let om = { key: m[id], data: m };
-    const rechildren = (mm, pid) => {
-      let dts = data.filter((x) => x.parent_id == pid);
-      if (dts.length > 0) {
-        if (!mm.children) mm.children = [];
-        dts.forEach((em) => {
-          let om1 = { key: em[id], data: em };
-          rechildren(om1, em[id]);
-          mm.children.push(om1);
-        });
-      }
-    };
-    rechildren(om, m[id]);
-    arrChils.push(om);
-    //
-    om = { key: m[id], data: m[id], label: m[name] };
-    const retreechildren = (mm, pid) => {
-      let dts = data.filter((x) => x.parent_id == pid);
-      if (dts.length > 0) {
-        if (!mm.children) mm.children = [];
-        dts.forEach((em) => {
-          let om1 = { key: em[id], data: em[id], label: em[name] };
-          retreechildren(om1, em[id]);
-          mm.children.push(om1);
-        });
-      }
-    };
-    retreechildren(om, m[id]);
-    arrtreeChils.push(om);
-  });
-  arrtreeChils.unshift({
-    key: -1,
-    data: -1,
-    label: "-----Chọn " + title + "----",
-  });
-  return { arrChils: arrChils, arrtreeChils: arrtreeChils };
-};
-
 const listFile = ref();
 const countAllFile = ref();
 const loadFile = () => {
@@ -281,6 +173,9 @@ const loadTaskMain = () => {
         is_viewSecurityTask.value = false;
         return;
       } else {
+        if (data[0].is_template == true) {
+          isClose.value = true;
+        }
         is_viewSecurityTask.value = true;
       }
       let data1 = JSON.parse(response.data.data)[1];
@@ -1398,94 +1293,21 @@ const cancel = (str) => {
     loadTaskCheckList();
   }
 };
-const selectcapcha = ref({});
-//ChildTask
-const ruleChildTask = {
-  task_name: {
-    required,
-    $errors: [
-      {
-        $property: "task_name",
-        $validator: "required",
-        $message: "Tên công việc không được để trống!",
-      },
-    ],
-  },
-  assign_user_id: {
-    required,
-    $errors: [
-      {
-        $property: "assign_user_id",
-        $validator: "required",
-        $message: "Người giao việc không được để trống!",
-      },
-    ],
-  },
-  work_user_ids: {
-    required,
-    $errors: [
-      {
-        $property: "work_user_ids",
-        $validator: "required",
-        $message: "Người thực hiện không được để trống!",
-      },
-    ],
-  },
-  end_date: {
-    required,
-    $errors: [
-      {
-        $property: "end_date",
-        $validator: "required",
-        $message: "Ngày kết thúc không được để trống!",
-      },
-    ],
-  },
-};
-let files = [];
-const v3$ = useVuelidate(ruleChildTask, Task);
+
 const headerAddTask = ref();
 const displayTask = ref(false);
+const is_Add = ref(true);
+const is_Template = ref(false);
+const DialogData = ref();
 const addNewChildTaskOrigin = (task) => {
-  sbm.value = false;
+  DialogData.value = task;
   headerAddTask.value = "Thêm công việc con";
-  Task.value = {
-    project_id: task.project_id,
-    task_name: "",
-    assign_user_id: [],
-    works_user_ids: [],
-    work_user_ids: [],
-    follow_user_ids: [],
-    is_prioritize: false,
-    is_deadline: true,
-    is_review: true,
-    is_security: false,
-    weight: 0,
-    start_date: new Date(),
-    end_date: null,
-    description: null,
-    status: 0,
-    target: null,
-    request: null,
-    organization_id: store.state.user.organization_id,
-    files: [],
-  };
-  Task.value.parent_id = task.task_id;
-  if (task.department_id && task.department_id != -1) {
-    Task.value.is_department = true;
-  }
-  selectcapcha.value[task.department_id || -1] = true;
-  listtreeOrganization();
-  listProjectMain();
-  Task.value.assign_user_id.push(store.state.user.user_id);
-  Task.value.work_user_ids.push(store.state.user.user_id);
-  isAdd.value = true;
+  is_Add.value = true;
   displayTask.value = true;
 };
 //loadDropdown
 const listDropdownUser = ref([]);
-const listDropdownProject = ref([]);
-const listDropdownTaskGroup = ref([]);
+
 const listDropdownStatus = ref([
   {
     value: 0,
@@ -1582,224 +1404,10 @@ const closeDialogTask = () => {
   displayTask.value = false;
   loadTaskMain();
 };
-
-const listProjectMain = () => {
-  axios
-    .post(
-      baseURL + "/api/TaskProc/getTaskData",
-      {
-        str: encr(
-          JSON.stringify({
-            proc: "task_origin_get_list_init",
-            par: [
-              {
-                par: "user_id",
-                va: store.getters.user.user_id,
-              },
-            ],
-          }),
-          SecretKey,
-          cryoptojs,
-        ).toString(),
-      },
-      config,
-    )
-    .then((response) => {
-      let data = JSON.parse(response.data.data);
-      listDropdownProject.value = data[0];
-      listDropdownTaskGroup.value = data[1];
-      listDropdownweight.value = data[2];
-    })
-    .catch((error) => {
-      console.log(error);
-      toast.error("Tải dữ liệu không thành công!");
-
-      if (error && error.status === 401) {
-        swal.fire({
-          text: "Mã token đã hết hạn hoặc không hợp lệ, vui lòng đăng nhập lại!",
-          confirmButtonText: "OK",
-        });
-        store.commit("gologout");
-      }
-    });
-};
-const onUploadFile = (event) => {
-  files = [];
-  event.files.forEach((element) => {
-    files.push(element);
-  });
-};
-const removeFile = (event) => {
-  files = files.filter((a) => a != event.file);
+const afterSave = () => {
+  loadData(true);
 };
 
-const TaskMembers = ref([]);
-const sbm = ref(false);
-const issaveTask = ref(false);
-const isAdd = ref(false);
-const ChangeTaskDepartment = () => {
-  let id = parseInt(Object.keys(selectcapcha.value)[0]);
-  Task.value.assign_user_id = [];
-  Task.value.work_user_ids = [];
-  if (id != -1) {
-    listOrganization.value
-      .filter((x) => x.organization_id == id)
-      .forEach((t) => {
-        if (t.user_id) {
-          Task.value.assign_user_id.push(store.state.user.user_id);
-          Task.value.work_user_ids.push(t.user_id);
-        } else {
-          selectcapcha.value = [];
-          selectcapcha.value[-1] = true;
-          Task.value.assign_user_id.push(store.state.user.user_id);
-          Task.value.work_user_ids.push(store.state.user.user_id);
-          swal.fire({
-            title: "Thông báo!",
-            text: "Phòng ban này chưa tồn tại người chủ trì!",
-            icon: "info",
-            confirmButtonText: "OK",
-          });
-        }
-      });
-  }
-};
-const ChangeIsDepartment = (model) => {
-  selectcapcha.value = [];
-  Task.value.assign_user_id = [];
-  Task.value.work_user_ids = [];
-  selectcapcha.value[-1] = true;
-  if (store.state.user.is_super) {
-    Task.value.organization_id = 0;
-  } else {
-    Task.value.organization_id = store.state.user.organization_id;
-  }
-  Task.value.assign_user_id.push(store.state.user.user_id);
-  Task.value.work_user_ids.push(store.state.user.user_id);
-};
-const saveTask = (isFormValid) => {
-  sbm.value = true;
-  if (Task.value.is_deadline) {
-    if (!isFormValid) {
-      return;
-    }
-  }
-  if (!selectcapcha.value) {
-    selectcapcha.value = [];
-  }
-  TaskMembers.value = [];
-  Task.value.department_id = parseInt(Object.keys(selectcapcha.value)[0]);
-  let formData = new FormData();
-  for (var i = 0; i < files.length; i++) {
-    let file = files[i];
-    formData.append("url", file);
-  }
-  if (Task.value.assign_user_id.length > 0) {
-    Task.value.assign_user_id.forEach((t) => {
-      let member = {
-        project_id: null,
-        task_id: null,
-        user_id: t,
-        is_type: 0,
-        status: true,
-      };
-      member.user_id = t;
-      TaskMembers.value.push(member);
-    });
-  }
-  if (Task.value.work_user_ids.length > 0) {
-    Task.value.work_user_ids.forEach((t) => {
-      let member1 = {
-        project_id: null,
-        task_id: null,
-        user_id: t,
-        is_type: 1,
-        status: true,
-      };
-      member1.user_id = t;
-      TaskMembers.value.push(member1);
-    });
-  }
-  if (Task.value.works_user_ids.length > 0) {
-    Task.value.works_user_ids.forEach((t) => {
-      let member2 = {
-        project_id: null,
-        task_id: null,
-        user_id: t,
-        is_type: 2,
-        status: true,
-      };
-      TaskMembers.value.push(member2);
-    });
-  }
-  if (Task.value.follow_user_ids.length > 0) {
-    Task.value.follow_user_ids.forEach((t) => {
-      let member3 = {
-        project_id: null,
-        task_id: null,
-        user_id: t,
-        is_type: 3,
-        status: true,
-      };
-      TaskMembers.value.push(member3);
-    });
-  }
-  if (isAdd.value == false) {
-    if (Task.value.created_date) {
-      Task.value.created_date = new Date(Task.value.created_date);
-    }
-    if (Task.value.update_date) {
-      Task.value.update_date = new Date(Task.value.update_date);
-    }
-    if (Task.value.start_date) {
-      Task.value.start_date = new Date(Task.value.start_date);
-    }
-    if (Task.value.end_date) {
-      Task.value.end_date = new Date(Task.value.end_date);
-    }
-  }
-  formData.append("isXML", JSON.stringify(Task.value.is_XML));
-  formData.append("taskmember", JSON.stringify(TaskMembers.value));
-  formData.append("taskOrigin", JSON.stringify(Task.value));
-  if (!issaveTask.value) {
-    axios
-      .post(
-        baseURL +
-          "/api/task_origin/" +
-          (isAdd.value == true ? "Add_TaskOrigin" : "Update_TaskOrigin"),
-        formData,
-        config,
-      )
-      .then((response) => {
-        if (response.data.err != "1") {
-          swal.close();
-          toast.success(
-            isAdd.value == true
-              ? "Thêm công việc thành công!"
-              : "Chỉnh sửa công việc thành công!",
-          );
-          displayTask.value = false;
-          // loadData(true);
-          loadChildTaskOrigin(0);
-        } else {
-          swal.fire({
-            title: "Error!",
-            text: response.data.ms,
-            icon: "error",
-            confirmButtonText: "OK",
-          });
-        }
-      })
-      .catch(() => {
-        swal.close();
-        swal.fire({
-          title: "Error!",
-          text: "Có lỗi xảy ra, vui lòng kiểm tra lại!",
-          icon: "error",
-          confirmButtonText: "OK",
-        });
-      });
-  }
-}; //recall component
 const showDetail1 = ref(false);
 const selectedTaskID = ref();
 const componentKey = ref(0);
@@ -1884,143 +1492,10 @@ const DelTask = (task) => {
 };
 //Edit Task
 const EditTask = (task) => {
-  listProjectMain();
-  listtreeOrganization();
-  // listUser();
-  Task.value = {
-    STT: null,
-    task_code: null,
-    parent_id: null,
-    project_id: null,
-    checklist_id: null,
-    department_id: null,
-    group_id: null,
-    task_name: null,
-    task_name_en: null,
-    description: null,
-    keywords: null,
-    start_date: null,
-    end_date: null,
-    start_real_date: null,
-    end_real_date: null,
-    weight: null,
-    difficult: null,
-    target: null,
-    result: null,
-    request: null,
-    is_prioritize: null,
-    is_deadline: null,
-    is_review: null,
-    progress: null,
-    is_todo: null,
-    is_public: null,
-    is_security: null,
-    close_by: null,
-    close_date: null,
-    status: null,
-    is_order: null,
-    organization_id: null,
-    assign_user_id: [],
-    work_user_ids: [],
-    works_user_ids: [],
-    follow_user_ids: [],
-  };
-  selectcapcha.value = [];
-  //Task.value = task;
-  // members.value.forEach((x) => {
-  //   if (x.is_type == 0) {
-  //     Task.value.assign_user_id.push(x.user_id);
-  //   }
-  //   if (x.is_type == 1) {
-  //     Task.value.work_user_ids.push(x.user_id);
-  //   }
-  //   if (x.is_type == 2) {
-  //     Task.value.works_user_ids.push(x.user_id);
-  //   }
-  //   if (x.is_type == 3) {
-  //     Task.value.follow_user_ids.push(x.user_id);
-  //   }
-  // });
-
-  axios
-    .post(
-      baseURL + "/api/TaskProc/getTaskData",
-      {
-        str: encr(
-          JSON.stringify({
-            proc: "task_origin_get_edit",
-            par: [{ par: "task_id", va: props.id }],
-          }),
-          SecretKey,
-          cryoptojs,
-        ).toString(),
-      },
-      config,
-    )
-    .then((response) => {
-      let data = JSON.parse(response.data.data);
-      if (data.length > 0) {
-        data[0].forEach((element, i) => {
-          element.Thanhviens = element.Thanhviens
-            ? JSON.parse(element.Thanhviens)
-            : [];
-          element.files = element.files ? JSON.parse(element.files) : [];
-          element.files = element.files ? element.files : [];
-        });
-      }
-      Task.value = data[0][0];
-      Task.value.is_XML = false;
-      selectcapcha.value[Task.value.department_id || -1] = true;
-      Task.value.is_department =
-        Task.value.department_id && Task.value.department_id != -1
-          ? true
-          : false;
-      Task.value.start_date = Task.value.start_date
-        ? new Date(Task.value.start_date)
-        : null;
-      Task.value.end_date = Task.value.end_date
-        ? new Date(Task.value.end_date)
-        : null;
-      Task.value.assign_user_id = [];
-      Task.value.work_user_ids = [];
-      Task.value.works_user_ids = [];
-      Task.value.follow_user_ids = [];
-      if (Task.value.Thanhviens.length > 0) {
-        Task.value.Thanhviens.forEach((t) => {
-          if (t.is_type == "0") {
-            Task.value.assign_user_id.push(t.user_id);
-          } else if (t.is_type == "1") {
-            Task.value.work_user_ids.push(t.user_id);
-          } else if (t.is_type == "2") {
-            Task.value.works_user_ids.push(t.user_id);
-          } else if (t.is_type == "3") {
-            Task.value.follow_user_ids.push(t.user_id);
-          }
-        });
-      }
-      Task.value.is_order = Task.value.STT;
-      headerAddTask.value = "Sửa công việc";
-      issaveTask.value = false;
-      displayTask.value = true;
-      Task.value.organization_id = store.state.user.organization_id;
-    })
-    .catch((error) => {
-      addLog({
-        title: "Lỗi Console loadData",
-        controller: "LogsView.vue",
-        log_content: error.message,
-        loai: 2,
-      });
-      if (error && error.status === 401) {
-        swal.fire({
-          text: "Mã token đã hết hạn hoặc không hợp lệ, vui lòng đăng nhập lại!",
-          confirmButtonText: "OK",
-        });
-        store.commit("gologout");
-      }
-    });
+  is_Add.value = false;
+  DialogData.value = task;
+  headerAddTask.value = "Cập nhật thông tin";
   displayTask.value = true;
-  headerAddTask.value = "Chỉnh sửa công việc";
 };
 ///Hide and seek right side
 const ThongTinChung = ref(true);
@@ -2337,66 +1812,6 @@ const isViewTask = (e) => {
     });
 };
 
-const deleteFile = (datafile) => {
-  swal
-    .fire({
-      title: "Thông báo",
-      text: "Bạn có muốn xoá file này không!",
-      icon: "warning",
-      showCancelButton: true,
-      confirmButtonColor: "#3085d6",
-      cancelButtonColor: "#d33",
-      confirmButtonText: "Có",
-      cancelButtonText: "Không",
-    })
-    .then((result) => {
-      if (result.isConfirmed) {
-        swal.fire({
-          width: 110,
-          didOpen: () => {
-            swal.showLoading();
-          },
-        });
-        axios
-          .delete(baseURL + "/api/task_origin/Delete_file", {
-            headers: { Authorization: `Bearer ${store.getters.token}` },
-            data: [datafile.file_id],
-          })
-          .then((response) => {
-            swal.close();
-            if (response.data.err != "1") {
-              swal.close();
-              //  toast.success("Xoá file thành công!");
-              var idx = Task.value.files.findIndex(
-                (x) => x.file_id == datafile.file_id,
-              );
-              if (idx != -1) {
-                Task.value.files.splice(idx, 1);
-              }
-              emitter.emit("deleteFile", true);
-            } else {
-              swal.fire({
-                title: "Thông báo!",
-                text: response.data.ms,
-                icon: "error",
-                confirmButtonText: "OK",
-              });
-            }
-          })
-          .catch((error) => {
-            swal.close();
-            if (error.status === 401) {
-              swal.fire({
-                title: "Thông báo!",
-                text: "Mã token đã hết hạn hoặc không hợp lệ, vui lòng đăng nhập lại!",
-                icon: "error",
-                confirmButtonText: "OK",
-              });
-            }
-          });
-      }
-    });
-};
 const headerAddLinkTask = ref();
 const displayLinkTask = ref(false);
 const listTaskLink = ref();
@@ -3326,37 +2741,7 @@ const headerDialogUser = ref();
 const displayDialogUser = ref();
 const is_one = ref();
 const is_type = ref();
-const OpenDialogTreeUser = (one, type) => {
-  selectedUser.value = [];
-  if (type == 1) {
-    Task.value.assign_user_id.forEach((t) => {
-      let select = { user_id: t };
-      selectedUser.value.push(select);
-    });
-    headerDialogUser.value = "Chọn người giao việc";
-  } else if (type == 2) {
-    Task.value.work_user_ids.forEach((t) => {
-      let select = { user_id: t };
-      selectedUser.value.push(select);
-    });
-    headerDialogUser.value = "Chọn người thực hiện";
-  } else if (type == 3) {
-    Task.value.works_user_ids.forEach((t) => {
-      let select = { user_id: t };
-      selectedUser.value.push(select);
-    });
-    headerDialogUser.value = "Chọn người đồng thực hiện";
-  } else if (type == 4) {
-    Task.value.follow_user_ids.forEach((t) => {
-      let select = { user_id: t };
-      selectedUser.value.push(select);
-    });
-    headerDialogUser.value = "Chọn người theo dõi";
-  }
-  displayDialogUser.value = true;
-  is_one.value = one;
-  is_type.value = type;
-};
+
 const closeDialogUser = () => {
   displayDialogUser.value = false;
 };
@@ -4462,7 +3847,10 @@ const CloseVisible = () => {
                           >
                             <div
                               class="p-0 m-0 p-1"
-                              v-tooltip="{ value: c.description }"
+                              v-tooltip="{
+                                value: c.description,
+                                disabled: c.description != null ? true : false,
+                              }"
                             >
                               {{ c.checklist_name }} ({{ c.totalRecords }})
                             </div>
@@ -6771,20 +6159,59 @@ const CloseVisible = () => {
       <div
         class="overflow-hidden w-full"
         style="
-          display: grid;
-          align-content: center;
-          justify-content: center;
-          align-items: center;
-          justify-items: center;
+          display: flex;
+
           height: 98vh;
+
+          align-items: center;
+          width: 100%;
+
+          flex-direction: column;
         "
         v-else
       >
-        <img
-          src="../../assets/background/nodata.png"
-          height="300"
-        />
-        <h2 class="m-1">Công việc bảo mật, đã bị xóa hoặc không tồn tại.</h2>
+        <div class="col-12 p-0 m-0 flex left-0 top-0">
+          <Button
+            v-if="props.turn == 0"
+            icon="pi pi-times"
+            class="p-button-rounded p-button-text"
+            v-tooltip="{ value: 'Đóng' }"
+            @click="CloseVisible()"
+          />
+          <Button
+            v-if="props.turn > 0"
+            icon="pi pi-times"
+            class="p-button-rounded p-button-text"
+            @click="props.closeChildDetail"
+            v-tooltip="{ value: 'Quay lại công việc trước' }"
+          />
+          <Button
+            icon="pi pi-window-maximize"
+            class="p-button-rounded p-button-text"
+            v-tooltip="{ value: 'Phóng to' }"
+            @click="MaxMin('full')"
+            v-if="PositionSideBar == 'right'"
+          />
+
+          <Button
+            icon="pi pi-window-minimize"
+            class="p-button-rounded p-button-text"
+            v-tooltip="{ value: 'Thu nhỏ' }"
+            @click="MaxMin('right')"
+            v-if="PositionSideBar == 'full'"
+          />
+        </div>
+        <div class="row col-12 w-full px-0 mx-0 format-center">
+          <div class="block">
+            <img
+              src="../../assets/background/nodata.png"
+              height="300"
+            />
+            <h2 class="m-1">
+              Công việc bảo mật, đã bị xóa hoặc không tồn tại.
+            </h2>
+          </div>
+        </div>
       </div>
     </div>
   </Sidebar>
@@ -6965,916 +6392,6 @@ const CloseVisible = () => {
         label="Lưu"
         icon="pi pi-check"
         @click="saveTaskCheckList(!v1$.$invalid, $event)"
-      />
-    </template>
-  </Dialog>
-
-  <Dialog
-    :header="headerAddTask"
-    style="z-index: 10"
-    v-model:visible="displayTask"
-    :closable="true"
-    :maximizable="true"
-    :style="{ width: '700px' }"
-  >
-    <form>
-      <div class="grid formgrid m-2">
-        <div class="field col-12 md:col-12">
-          <label class="col-3 text-left p-0"
-            >Tên công việc<span class="redsao"> (*) </span></label
-          >
-          <InputText
-            v-model="Task.task_name"
-            spellcheck="false"
-            class="col-9 ip36 px-2"
-            :class="{ 'p-invalid': v3$.task_name.$invalid && sbm }"
-          />
-        </div>
-        <div
-          style="display: flex"
-          class="field col-12 md:col-12"
-        >
-          <div class="col-3 text-left"></div>
-          <small
-            v-if="
-              (v3$.task_name.$invalid && sbm) ||
-              v3$.task_name.$pending.$response
-            "
-            class="col-9 p-error p-0"
-          >
-            <span class="col-12 p-0">{{
-              v3$.task_name.required.$message
-                .replace("Value", "Tên công việc")
-                .replace("is required", "không được để trống")
-            }}</span>
-          </small>
-        </div>
-        <!-- update tráng -->
-        <div
-          class="field col-12 md:col-12"
-          style="position: relative"
-        >
-          <label class="col-3 text-left p-0">Công việc của phòng</label>
-          <InputSwitch
-            @change="ChangeIsDepartment(Task.is_department)"
-            class="col-6"
-            style="position: absolute; top: 0px; left: 200px"
-            v-model="Task.is_department"
-          />
-          <!-- <TreeSelect class="col-9" v-model="selectcapcha" :options="listDropdownorganization" :showClear="true"
-            :max-height="200" placeholder="" optionLabel="organization_name" optionValue="department_id"
-            @change="ChangeTaskDepartment()" /> -->
-        </div>
-        <div
-          class="field col-12 md:col-12"
-          v-if="Task.is_department"
-        >
-          <label class="col-3 text-left p-0">Phòng ban</label>
-          <TreeSelect
-            class="col-9"
-            v-model="selectcapcha"
-            :options="listDropdownorganization"
-            :showClear="true"
-            :max-height="200"
-            placeholder=""
-            optionLabel="organization_name"
-            optionValue="department_id"
-            @change="ChangeTaskDepartment()"
-          />
-        </div>
-        <!-- end -->
-        <div class="field col-12 md:col-12">
-          <label class="col-3 text-left p-0">Thuộc dự án</label>
-          <Dropdown
-            :filter="true"
-            v-model="Task.project_id"
-            panelClass="d-design-dropdown"
-            selectionLimit="1"
-            :options="listDropdownProject"
-            optionLabel="project_name"
-            optionValue="project_id"
-            spellcheck="false"
-            class="col-9 ip36 p-0"
-          >
-            <template #option="slotProps">
-              <div class="country-item flex">
-                <div class="pt-1">{{ slotProps.option.project_name }}</div>
-              </div>
-            </template>
-          </Dropdown>
-        </div>
-        <div class="field col-12 md:col-12">
-          <label class="col-3 text-left p-0"
-            >Người giao việc
-            <span
-              @click="OpenDialogTreeUser(true, 1)"
-              class="choose-user"
-              ><i class="pi pi-user-plus"></i></span
-            ><span class="redsao"> (*) </span></label
-          >
-          <MultiSelect
-            :filter="true"
-            v-model="Task.assign_user_id"
-            :options="listDropdownUser"
-            optionValue="code"
-            optionLabel="name"
-            class="col-9 ip36 p-0"
-            placeholder="Người giao việc"
-            @change="changeNguoiGaoViec($event)"
-            :class="{
-              'p-invalid': Task.assign_user_id.length == 0 && sbm,
-            }"
-            display="chip"
-          >
-            <template #option="slotProps">
-              <div
-                class="country-item flex"
-                style="align-items: center; margin-left: 10px"
-              >
-                <Avatar
-                  @error="
-                    $event.target.src =
-                      basedomainURL + '/Portals/Image/nouser1.png'
-                  "
-                  v-bind:label="
-                    slotProps.option.avatar
-                      ? ''
-                      : (slotProps.option.name ?? '').substring(0, 1)
-                  "
-                  v-bind:image="basedomainURL + slotProps.option.avatar"
-                  style="
-                    background-color: #2196f3;
-                    color: #ffffff;
-                    width: 32px;
-                    height: 32px;
-                    font-size: 15px !important;
-                    margin-left: -10px;
-                  "
-                  :style="{
-                    background: bgColor[slotProps.index % 7] + '!important',
-                  }"
-                  class="cursor-pointer"
-                  size="xlarge"
-                  shape="circle"
-                />
-                <div
-                  class="pt-1"
-                  style="padding-left: 10px"
-                >
-                  {{ slotProps.option.name }}
-                </div>
-              </div>
-            </template>
-          </MultiSelect>
-        </div>
-        <div
-          v-if="!Task.is_department"
-          class="field col-12 md:col-12"
-        >
-          <label class="col-3 text-left p-0"
-            >Người thực hiện
-            <span
-              @click="OpenDialogTreeUser(false, 2)"
-              class="choose-user"
-              ><i class="pi pi-user-plus"></i></span
-            ><span class="redsao"> (*) </span></label
-          >
-          <MultiSelect
-            :filter="true"
-            v-model="Task.work_user_ids"
-            :options="listDropdownUser"
-            optionValue="code"
-            optionLabel="name"
-            class="col-9 ip36 p-0"
-            placeholder="Người thực hiện"
-            :class="{
-              'p-invalid': Task.work_user_ids.length == 0 && sbm,
-            }"
-            display="chip"
-          >
-            <template #option="slotProps">
-              <div
-                class="country-item flex"
-                style="align-items: center; margin-left: 10px"
-              >
-                <Avatar
-                  @error="
-                    $event.target.src =
-                      basedomainURL + '/Portals/Image/nouser1.png'
-                  "
-                  v-bind:label="
-                    slotProps.option.avatar
-                      ? ''
-                      : (slotProps.option.name ?? '').substring(0, 1)
-                  "
-                  v-bind:image="basedomainURL + slotProps.option.avatar"
-                  style="
-                    background-color: #2196f3;
-                    color: #ffffff;
-                    width: 32px;
-                    height: 32px;
-                    font-size: 15px !important;
-                    margin-left: -10px;
-                  "
-                  :style="{
-                    background: bgColor[slotProps.index % 7] + '!important',
-                  }"
-                  class="cursor-pointer"
-                  size="xlarge"
-                  shape="circle"
-                />
-                <div
-                  class="pt-1"
-                  style="padding-left: 10px"
-                >
-                  {{ slotProps.option.name }}
-                </div>
-              </div>
-            </template>
-          </MultiSelect>
-        </div>
-        <div
-          v-if="!Task.is_department"
-          style="display: flex"
-          class="field col-12 md:col-12"
-        >
-          <div class="col-3 text-left"></div>
-          <small
-            v-if="
-              (v3$.work_user_ids.$invalid && sbm) ||
-              v3$.work_user_ids.$pending.$response
-            "
-            class="col-9 p-error p-0"
-          >
-            <span class="col-12 p-0">{{
-              v3$.work_user_ids.required.$message
-                .replace("Value", "Người thực hiện")
-                .replace("is required", "không được để trống")
-            }}</span>
-          </small>
-        </div>
-        <div
-          v-if="!Task.is_department"
-          class="field col-12 md:col-12"
-        >
-          <label class="col-3 text-left p-0"
-            >Người đồng thực hiện
-            <span
-              @click="OpenDialogTreeUser(false, 3)"
-              class="choose-user"
-              ><i class="pi pi-user-plus"></i></span
-          ></label>
-          <MultiSelect
-            :filter="true"
-            v-model="Task.works_user_ids"
-            :options="listDropdownUser"
-            optionValue="code"
-            optionLabel="name"
-            class="col-9 ip36 p-0"
-            display="chip"
-          >
-            <template #option="slotProps">
-              <div
-                class="country-item flex"
-                style="align-items: center; padding-left: 10px"
-              >
-                <Avatar
-                  @error="
-                    $event.target.src =
-                      basedomainURL + '/Portals/Image/nouser1.png'
-                  "
-                  v-bind:label="
-                    slotProps.option.avatar
-                      ? ''
-                      : (slotProps.option.name ?? '').substring(0, 1)
-                  "
-                  v-bind:image="basedomainURL + slotProps.option.avatar"
-                  style="
-                    background-color: #2196f3;
-                    color: #ffffff;
-                    width: 32px;
-                    height: 32px;
-                    font-size: 15px !important;
-                    margin-left: -10px;
-                  "
-                  :style="{
-                    background: bgColor[slotProps.index % 7] + '!important',
-                  }"
-                  class="cursor-pointer"
-                  size="xlarge"
-                  shape="circle"
-                />
-                <div
-                  class="pt-1"
-                  style="padding-left: 10px"
-                >
-                  {{ slotProps.option.name }}
-                </div>
-              </div>
-            </template>
-          </MultiSelect>
-        </div>
-        <div
-          v-if="!Task.is_department"
-          class="field col-12 md:col-12"
-        >
-          <label class="col-3 text-left p-0"
-            >Người theo dõi
-            <span
-              @click="OpenDialogTreeUser(false, 4)"
-              class="choose-user"
-              ><i class="pi pi-user-plus"></i></span
-          ></label>
-          <MultiSelect
-            :filter="true"
-            v-model="Task.follow_user_ids"
-            :options="listDropdownUser"
-            optionValue="code"
-            optionLabel="name"
-            class="col-9 ip36 p-0"
-            display="chip"
-          >
-            <template #option="slotProps">
-              <div
-                class="country-item flex"
-                style="align-items: center; padding-left: 10px"
-              >
-                <Avatar
-                  @error="
-                    $event.target.src =
-                      basedomainURL + '/Portals/Image/nouser1.png'
-                  "
-                  v-bind:label="
-                    slotProps.option.avatar
-                      ? ''
-                      : (slotProps.option.name ?? '').substring(0, 1)
-                  "
-                  v-bind:image="basedomainURL + slotProps.option.avatar"
-                  style="
-                    background-color: #2196f3;
-                    color: #ffffff;
-                    width: 32px;
-                    height: 32px;
-                    font-size: 15px !important;
-                    margin-left: -10px;
-                  "
-                  :style="{
-                    background: bgColor[slotProps.index % 7] + '!important',
-                  }"
-                  class="cursor-pointer"
-                  size="xlarge"
-                  shape="circle"
-                />
-                <div
-                  class="pt-1"
-                  style="padding-left: 10px"
-                >
-                  {{ slotProps.option.name }}
-                </div>
-              </div>
-            </template>
-          </MultiSelect>
-        </div>
-        <div class="field col-12 md:col-12">
-          <label class="col-3 text-left p-0">Nhóm</label>
-          <Dropdown
-            :filter="true"
-            v-model="Task.group_id"
-            panelClass="d-design-dropdown"
-            selectionLimit="1"
-            :options="listDropdownTaskGroup"
-            optionLabel="group_name"
-            optionValue="group_id"
-            spellcheck="false"
-            class="col-9 ip36 p-0"
-          >
-            <template #option="slotProps">
-              <div class="country-item flex">
-                <div class="pt-1">{{ slotProps.option.group_name }}</div>
-              </div>
-            </template>
-          </Dropdown>
-        </div>
-        <div
-          class="field col-12 md:col-12"
-          style="display: flex"
-        >
-          <div class="col-3"></div>
-          <div
-            class="col-9"
-            style="display: flex"
-          >
-            <div class="col-5">
-              <Checkbox
-                style="margin-right: 5px"
-                v-model="Task.is_review"
-                :binary="true"
-              />
-              YC đánh giá công việc
-            </div>
-            <div class="col-4">
-              <Checkbox
-                style="margin-right: 5px"
-                v-model="Task.is_deadline"
-                :binary="true"
-              />
-              Có hạn xử lý
-            </div>
-            <div class="col-3">
-              <Checkbox
-                style="margin-right: 5px"
-                v-model="Task.is_prioritize"
-                :binary="true"
-              />
-              Ưu tiên
-            </div>
-          </div>
-        </div>
-        <div
-          class="field col-12 md:col-12"
-          style="display: flex; align-items: center"
-        >
-          <label class="col-3 text-left p-0">Ngày bắt đầu</label>
-          <div
-            class="col-9"
-            style="display: flex; padding: 0px; align-items: center"
-          >
-            <Calendar
-              :manualInput="true"
-              :showIcon="true"
-              class="col-5 ip36 title-lable"
-              style="margin-top: 5px; padding: 0px"
-              id="time1"
-              autocomplete="on"
-              :showTime="true"
-              v-model="Task.start_date"
-            />
-            <div
-              class="col-7"
-              style="display: flex; padding: 0px; align-items: center"
-            >
-              <label class="col-5 text-center">Ngày kết thúc</label>
-              <Calendar
-                :manualInput="true"
-                :showIcon="true"
-                class="col-7 ip36 title-lable"
-                style="margin-top: 5px; padding: 0px"
-                id="time2"
-                placeholder="dd/MM/yy"
-                autocomplete="on"
-                v-model="Task.end_date"
-                :showTime="true"
-                :class="{
-                  'p-invalid': v3$.end_date.$invalid && sbm && Task.is_deadline,
-                }"
-                @date-select="CheckDate($event)"
-              />
-            </div>
-          </div>
-        </div>
-        <div
-          style="display: flex"
-          class="field col-12 md:col-12"
-        >
-          <div class="col-3 text-left"></div>
-          <small
-            v-if="
-              (v3$.end_date.$invalid && sbm && Task.is_deadline) ||
-              (v3$.end_date.$pending.$response && Task.is_deadline)
-            "
-            class="col-9 p-error p-0"
-          >
-            <span class="col-12 p-0">{{
-              v3$.end_date.required.$message
-                .replace("Value", "Ngày kết thúc")
-                .replace("is required", "không được để trống")
-            }}</span>
-          </small>
-        </div>
-        <div
-          class="field col-12 md:col-12"
-          style="display: flex; align-items: center"
-        >
-          <label class="col-3 text-left p-0">STT</label>
-          <div
-            class="col-9"
-            style="display: flex; padding: 0px; align-items: center"
-          >
-            <InputText
-              style="margin-top: 5px"
-              v-model="Task.is_order"
-              spellcheck="false"
-              class="col-4 ip36 px-2"
-            />
-            <div
-              class="col-8"
-              style="
-                display: flex;
-                padding: 0px;
-                align-items: center;
-                position: relative;
-              "
-            >
-              <label class="col-6 text-center">Kích hoạt bảo mật</label>
-              <InputSwitch
-                class="col-6"
-                style="position: absolute; top: 0px; left: 200px"
-                v-model="Task.is_security"
-              />
-            </div>
-          </div>
-        </div>
-        <div class="field col-12 md:col-12">
-          <label class="col-3 text-left p-0">Trạng thái công việc</label>
-          <Dropdown
-            :filter="true"
-            style="margin-top: 5px"
-            panelClass="d-design-dropdown"
-            v-model="Task.status"
-            :options="listDropdownStatus"
-            optionLabel="text"
-            optionValue="value"
-            placeholder="Trạng thái công việc"
-            spellcheck="false"
-            class="col-9 ip36 p-0"
-          >
-            <template #option="slotProps">
-              <div class="country-item flex">
-                <div class="pt-1">{{ slotProps.option.text }}</div>
-              </div>
-            </template>
-          </Dropdown>
-        </div>
-        <div
-          class="field col-12 md:col-12"
-          style="
-            display: flex;
-            /* padding: 0px; */
-            align-items: center;
-            position: relative;
-          "
-        >
-          <label class="col-3 text-left p-0">Xuất XML</label>
-          <InputSwitch
-            class="col-9"
-            style="position: absolute; top: 0px; left: 160px"
-            v-model="Task.is_XML"
-          />
-        </div>
-        <div class="field col-12 md:col-12">
-          <Accordion :multiple="true">
-            <AccordionTab header="THÔNG TIN KHÁC">
-              <div
-                v-if="Task.is_department"
-                class="field col-12 md:col-12"
-              >
-                <label class="col-3 text-left p-0"
-                  >Người thực hiện
-                  <span
-                    @click="OpenDialogTreeUser(false, 2)"
-                    class="choose-user"
-                    ><i class="pi pi-user-plus"></i></span
-                ></label>
-                <MultiSelect
-                  :filter="true"
-                  v-model="Task.work_user_ids"
-                  :options="listDropdownUser"
-                  optionValue="code"
-                  optionLabel="name"
-                  class="col-9 ip36 p-0"
-                  placeholder="Người thực hiện"
-                  display="chip"
-                >
-                  <template #option="slotProps">
-                    <div
-                      class="country-item flex"
-                      style="align-items: center; margin-left: 10px"
-                    >
-                      <Avatar
-                        @error="
-                          $event.target.src =
-                            basedomainURL + '/Portals/Image/nouser1.png'
-                        "
-                        v-bind:label="
-                          slotProps.option.avatar
-                            ? ''
-                            : (slotProps.option.name ?? '').substring(0, 1)
-                        "
-                        v-bind:image="basedomainURL + slotProps.option.avatar"
-                        style="
-                          background-color: #2196f3;
-                          color: #ffffff;
-                          width: 32px;
-                          height: 32px;
-                          font-size: 15px !important;
-                          margin-left: -10px;
-                        "
-                        :style="{
-                          background:
-                            bgColor[slotProps.index % 7] + '!important',
-                        }"
-                        class="cursor-pointer"
-                        size="xlarge"
-                        shape="circle"
-                      />
-                      <div
-                        class="pt-1"
-                        style="padding-left: 10px"
-                      >
-                        {{ slotProps.option.name }}
-                      </div>
-                    </div>
-                  </template>
-                </MultiSelect>
-              </div>
-              <div
-                v-if="Task.is_department"
-                class="field col-12 md:col-12"
-              >
-                <label class="col-3 text-left p-0"
-                  >Người đồng thực hiện
-                  <span
-                    @click="OpenDialogTreeUser(false, 3)"
-                    class="choose-user"
-                    ><i class="pi pi-user-plus"></i></span
-                ></label>
-                <MultiSelect
-                  :filter="true"
-                  v-model="Task.works_user_ids"
-                  :options="listDropdownUser"
-                  optionValue="code"
-                  optionLabel="name"
-                  class="col-9 ip36 p-0"
-                  display="chip"
-                >
-                  <template #option="slotProps">
-                    <div
-                      class="country-item flex"
-                      style="align-items: center; padding-left: 10px"
-                    >
-                      <Avatar
-                        @error="
-                          $event.target.src =
-                            basedomainURL + '/Portals/Image/nouser1.png'
-                        "
-                        v-bind:label="
-                          slotProps.option.avatar
-                            ? ''
-                            : (slotProps.option.name ?? '').substring(0, 1)
-                        "
-                        v-bind:image="basedomainURL + slotProps.option.avatar"
-                        style="
-                          background-color: #2196f3;
-                          color: #ffffff;
-                          width: 32px;
-                          height: 32px;
-                          font-size: 15px !important;
-                          margin-left: -10px;
-                        "
-                        :style="{
-                          background:
-                            bgColor[slotProps.index % 7] + '!important',
-                        }"
-                        class="cursor-pointer"
-                        size="xlarge"
-                        shape="circle"
-                      />
-                      <div
-                        class="pt-1"
-                        style="padding-left: 10px"
-                      >
-                        {{ slotProps.option.name }}
-                      </div>
-                    </div>
-                  </template>
-                </MultiSelect>
-              </div>
-              <div
-                v-if="Task.is_department"
-                class="field col-12 md:col-12"
-              >
-                <label class="col-3 text-left p-0"
-                  >Người theo dõi
-                  <span
-                    @click="OpenDialogTreeUser(false, 4)"
-                    class="choose-user"
-                    ><i class="pi pi-user-plus"></i></span
-                ></label>
-                <MultiSelect
-                  :filter="true"
-                  v-model="Task.follow_user_ids"
-                  :options="listDropdownUser"
-                  optionValue="code"
-                  optionLabel="name"
-                  class="col-9 ip36 p-0"
-                  display="chip"
-                >
-                  <template #option="slotProps">
-                    <div
-                      class="country-item flex"
-                      style="align-items: center; padding-left: 10px"
-                    >
-                      <Avatar
-                        @error="
-                          $event.target.src =
-                            basedomainURL + '/Portals/Image/nouser1.png'
-                        "
-                        v-bind:label="
-                          slotProps.option.avatar
-                            ? ''
-                            : (slotProps.option.name ?? '').substring(0, 1)
-                        "
-                        v-bind:image="basedomainURL + slotProps.option.avatar"
-                        style="
-                          background-color: #2196f3;
-                          color: #ffffff;
-                          width: 32px;
-                          height: 32px;
-                          font-size: 15px !important;
-                          margin-left: -10px;
-                        "
-                        :style="{
-                          background:
-                            bgColor[slotProps.index % 7] + '!important',
-                        }"
-                        class="cursor-pointer"
-                        size="xlarge"
-                        shape="circle"
-                      />
-                      <div
-                        class="pt-1"
-                        style="padding-left: 10px"
-                      >
-                        {{ slotProps.option.name }}
-                      </div>
-                    </div>
-                  </template>
-                </MultiSelect>
-              </div>
-              <div class="field col-12 md:col-12">
-                <label class="col-3 text-left p-0">Chọn trọng số</label>
-                <Dropdown
-                  :filter="true"
-                  v-model="Task.weight"
-                  panelClass="d-design-dropdown"
-                  selectionLimit="1"
-                  :options="listDropdownweight"
-                  optionLabel="weight_name"
-                  optionValue="weight_id"
-                  spellcheck="false"
-                  class="col-9 ip36 p-0"
-                >
-                  <template #option="slotProps">
-                    <div class="country-item flex">
-                      <div class="pt-1">{{ slotProps.option.weight_name }}</div>
-                    </div>
-                  </template>
-                </Dropdown>
-              </div>
-              <div
-                class="field col-12 md:col-12"
-                style="display: flex; align-items: center"
-              >
-                <label class="col-3 text-left p-0">Mô tả</label>
-                <Textarea
-                  style="margin-top: 5px; padding: 5px; min-height: 100px"
-                  v-model="Task.description"
-                  class="col-9 ip36"
-                  :autoResize="true"
-                  rows="5"
-                  cols="30"
-                />
-              </div>
-              <div
-                class="field col-12 md:col-12"
-                style="display: flex; align-items: center"
-              >
-                <label class="col-3 text-left p-0">Mục tiêu</label>
-                <Textarea
-                  style="margin-top: 5px; padding: 5px; min-height: 100px"
-                  v-model="Task.target"
-                  class="col-9 ip36"
-                  :autoResize="true"
-                  rows="5"
-                  cols="30"
-                />
-              </div>
-              <div
-                class="field col-12 md:col-12"
-                style="display: flex; align-items: center"
-              >
-                <label class="col-3 text-left p-0">Khó khăn vướng mắc</label>
-                <Textarea
-                  style="margin-top: 5px; padding: 5px; min-height: 100px"
-                  v-model="Task.difficult"
-                  class="col-9 ip36"
-                  :autoResize="true"
-                  rows="5"
-                  cols="30"
-                />
-              </div>
-              <div
-                class="field col-12 md:col-12"
-                style="display: flex; align-items: center"
-              >
-                <label class="col-3 text-left p-0">Đề xuất</label>
-                <Textarea
-                  style="margin-top: 5px; padding: 5px; min-height: 50px"
-                  v-model="Task.request"
-                  class="col-9 ip36"
-                  :autoResize="true"
-                  rows="5"
-                  cols="30"
-                />
-              </div>
-              <div
-                class="field col-12 md:col-12"
-                id="task_file"
-                style="display: flex"
-              >
-                <label class="col-3 text-left p-0">File</label>
-                <div class="col-9 p-0">
-                  <FileUpload
-                    chooseLabel="Chọn File"
-                    style="margin-top: 5px !important"
-                    :showUploadButton="false"
-                    :showCancelButton="false"
-                    :multiple="true"
-                    accept=""
-                    :maxFileSize="10000000"
-                    @select="onUploadFile"
-                    @remove="removeFile"
-                  />
-                  <div
-                    class="col-12 p-0"
-                    style="border: 1px solid #e1e1e1; margin-top: -1px"
-                    v-if="Task.files != null && Task.files.length > 0 && !isAdd"
-                  >
-                    <DataView
-                      :lazy="true"
-                      :value="Task.files"
-                      :rowHover="true"
-                      :scrollable="true"
-                      class="w-full h-full ptable p-datatable-sm flex flex-column col-10 ip36 p-0"
-                      layout="list"
-                      responsiveLayout="scroll"
-                    >
-                      <template #list="slotProps">
-                        <Toolbar
-                          class="w-full"
-                          style="display: flex"
-                        >
-                          <template #start>
-                            <div class="flex align-items-center task-file-list">
-                              <img
-                                class="mr-2"
-                                :src="
-                                  basedomainURL +
-                                  '/Portals/Image/file/' +
-                                  slotProps.data.file_type +
-                                  '.png'
-                                "
-                                style="object-fit: contain"
-                                width="40"
-                                height="40"
-                              />
-                              <span
-                                style="line-height: 1.5; word-break: break-all"
-                              >
-                                {{ slotProps.data.file_name }}</span
-                              >
-                            </div>
-                          </template>
-                          <template #end>
-                            <Button
-                              icon="pi pi-times"
-                              class="p-button-rounded p-button-danger"
-                              @click="deleteFile(slotProps.data)"
-                            />
-                          </template>
-                        </Toolbar>
-                      </template>
-                    </DataView>
-                  </div>
-                </div>
-              </div>
-            </AccordionTab>
-          </Accordion>
-        </div>
-      </div>
-    </form>
-    <template #footer>
-      <Button
-        label="Hủy"
-        icon="pi pi-times"
-        @click="closeDialogTask"
-        class="p-button-text"
-      />
-
-      <Button
-        label="Lưu"
-        icon="pi pi-check"
-        @click="saveTask(!v3$.$invalid)"
       />
     </template>
   </Dialog>
@@ -8414,6 +6931,17 @@ const CloseVisible = () => {
       />
     </template>
   </Dialog>
+  <DialogTask
+    v-if="displayTask == true"
+    :header="headerAddTask"
+    :visible="displayTask"
+    :is_add="is_Add"
+    :is_template="is_Template"
+    :data="DialogData"
+    :closeDialogTask="closeDialogTask"
+    :afterSave="afterSave"
+  >
+  </DialogTask>
 </template>
 
 <style lang="scss" scoped>

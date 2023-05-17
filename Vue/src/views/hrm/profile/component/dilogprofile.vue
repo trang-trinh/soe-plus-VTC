@@ -862,7 +862,7 @@ onMounted(() => {
                             spellcheck="false"
                             class="ip36"
                             v-model="props.model.bank_account"
-                            maxLength="50"
+                            maxLength="250"
                           />
                         </div>
                       </div>
@@ -3952,7 +3952,6 @@ onMounted(() => {
             />
           </div>
         </div>
-
         <div class="col-6 md:col-6 format-center">
           <div class="form-group m-0">
             <div

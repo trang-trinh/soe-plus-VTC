@@ -91,15 +91,17 @@ const getDates = (startDate, endDate) => {
     var date = new Date();
     var currentYear = date.getFullYear();
     var currentMonth = date.getMonth() + 1;
+
     dateArray.push({
       DayN: moment(currentDate).format("DD"),
       DW: d.getDay(),
       Day: parseInt(moment(currentDate).format("DD")),
       DayName: WeekDay.value.filter(
-        (x) => x.value == d.toLocaleString("default", { weekday: "long" }),
-      )[0].text,
+        (x) => x.value == d.toLocaleString("en-us", { weekday: "long" }),
+      )[0]["text"],
+
       bg: WeekDay.value.filter(
-        (x) => x.value == d.toLocaleString("default", { weekday: "long" }),
+        (x) => x.value == d.toLocaleString("en-us", { weekday: "long" }),
       )[0].bg,
       color:
         parseInt(moment(currentDate).format("DD/MM/YYYY")) ==
@@ -265,7 +267,7 @@ const loadData = (rf) => {
             element.status != null
               ? listDropdownStatus.value.filter(
                   (x) => x.value == element.status,
-                )[0].text
+                )[0]["text"]
               : "";
           element.status_name =
             element.count_extend > 0 ? "Xin gia hạn" : element.status_name;
@@ -380,7 +382,8 @@ const loadData = (rf) => {
       }
     })
     .catch((error) => {
-      toast.error("Tải dữ liệu không thành công!");
+      toast.error("Tải dữ liệu không thành công!" + error.message + "1");
+      console.log(error);
       opition.value.loading = false;
       addLog({
         title: "Lỗi Console loadData",
@@ -786,7 +789,7 @@ onMounted(() => {
   left: 450px;
 }
 </style>
-<style>
+<style scoped>
 #project-calendar .table thead tr th .p-calendar-w-btn .p-inputtext {
   border: none !important;
   background-color: #f8f9fa;
