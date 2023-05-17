@@ -1763,6 +1763,8 @@ namespace API.Controllers.HRM.Profile
                     FileInfo temp = new FileInfo(fpath);
                     using (ExcelPackage pck = new ExcelPackage(temp))
                     {
+                        int? error_row = null;
+                        int? error_column = null;
                         try
                         {
                             List<ExcelWorksheet> sheets = pck.Workbook.Worksheets.ToList();
@@ -1776,17 +1778,19 @@ namespace API.Controllers.HRM.Profile
                                         case "Hồ sơ nhân sự":
                                             List<hrm_profile> profiles = new List<hrm_profile>();
                                             List<hrm_profile_health> healths = new List<hrm_profile_health>();
+                                            int number_profile = db.hrm_profile.Count(x => x.organization_id == user_now.organization_id) + 1;
                                             for (int r = 5; r <= sheet.Dimension.End.Row; r++)
                                             {
+                                                error_row = r;
                                                 if (sheet.Cells[r, 2].Value == null)
                                                 {
                                                     break;
                                                 }
                                                 hrm_profile profile = new hrm_profile();
                                                 hrm_profile_health health = new hrm_profile_health();
-                                                int number_profile = db.hrm_profile.Count(x=>x.organization_id == user_now.organization_id);
                                                 for (int c = 2; c <= sheet.Dimension.End.Column; c++)
                                                 {
+                                                    error_column = c;
                                                     if (sheet.Cells[4, c].Value == null)
                                                     {
                                                         break;
@@ -1799,7 +1803,7 @@ namespace API.Controllers.HRM.Profile
                                                         {
                                                             case "2":
                                                                 profile.profile_code = value.ToString();
-                                                                profile.is_order = number_profile + 1;
+                                                                profile.is_order = number_profile ++;
                                                                 var p = await db.hrm_profile.FirstOrDefaultAsync(x => x.profile_code == profile.profile_code);
                                                                 if (p != null)
                                                                 {
@@ -2788,13 +2792,12 @@ namespace API.Controllers.HRM.Profile
                         }
                         catch (DbEntityValidationException e)
                         {
-                            return Request.CreateResponse(HttpStatusCode.OK, new { err = "1" + e.Message });
+                            return Request.CreateResponse(HttpStatusCode.OK, new { err = "1", ms = e.Message });
                         }
                         catch (Exception e)
                         {
-                            return Request.CreateResponse(HttpStatusCode.OK, new { err = "1" + e });
+                            return Request.CreateResponse(HttpStatusCode.OK, new { err = "1", ms = $"Lỗi định dạng dữ liệu tại dòng thứ {error_row}, cột thứ {error_column}" });
                         }
-
                     }
                 }
                 catch (DbEntityValidationException e)
