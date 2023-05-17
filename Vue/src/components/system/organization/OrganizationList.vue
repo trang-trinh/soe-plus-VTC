@@ -41,12 +41,17 @@ const rules = {
     required,
     maxLength: maxLength(500),
   },
+  organization_key: {
+    required,
+    maxLength: maxLength(50),
+  },
   mail: {
     email,
   },
 };
 const v$ = useVuelidate(rules, donvi);
 //Khai báo biến
+const isAdd = ref(true);
 const expandedKeys = ref({});
 const displayPhongban = ref(false);
 const isDisplayAvt = ref(false);
@@ -164,6 +169,7 @@ const showModalAddDonvi = () => {
   files = [];
   submitted.value = false;
   selectCapcha.value = {};
+  isAdd.value = true;
   // selectCapcha.value[store.getters.user.parent_id] = true;
   donvi.value = {
     organization_name: "",
@@ -326,6 +332,7 @@ const expandNode = (node) => {
   }
 };
 const editDonvi = (md) => {
+  isAdd.value = false;
   submitted.value = false;
   swal.fire({
     width: 110,
@@ -442,16 +449,24 @@ const addDonvi = () => {
     },
   })
     .then((response) => {
-      if (response.data.err != "1") {
+      if (response.data.err != "1" && response.data.err != "2") {
         swal.close();
         donvi.value.organization_type == 0
           ? toast.success("Cập nhật đơn vị thành công!")
           : toast.success("Cập nhật phòng ban thành công!");
-          if(layout.value == 'list')
-                  loadDonvi();
-                  else initTreeDV()
-        closedisplayAddDonvi();
-      } else {
+          if(layout.value == 'list') loadDonvi();
+          else initTreeDV()
+          closedisplayAddDonvi();
+      }
+      else if( response.data.err == "2"){
+        swal.fire({
+          title: "Thông báo!",
+          text: response.data.ms,
+          icon: "error",
+          confirmButtonText: "OK",
+        });
+      }
+       else {
         swal.fire({
           title: "Thông báo!",
           text: "Có lỗi xảy ra, vui lòng kiểm tra lại!",
@@ -696,6 +711,7 @@ watch(layout, () => {
 //tree
 
 const initTreeDV = (rf) => {
+  debugger
   axios
     .post(
       baseURL + "/api/Phongban/GetDataProc",
@@ -954,7 +970,7 @@ onMounted(() => {
         </template>
       </Column>
       <Column
-        field="organization_id"
+        field="organization_key"
         header="Mã đơn vị"
         class="align-items-center justify-content-center text-center"
         headerStyle="text-align:center;max-width:130px"
@@ -967,7 +983,7 @@ onMounted(() => {
               md.node.data.parent_id ? '' : 'font-weight:bold',
               md.node.data.status ? '' : 'color:red !important',
             ]"
-            >{{ md.node.data.organization_id }}</span
+            >{{ md.node.data.organization_key }}</span
           >
         </template>
       </Column>
@@ -1143,7 +1159,6 @@ onMounted(() => {
           </div>
         </SplitterPanel>
         <SplitterPanel :size="60">
-          <div class="d-lang-table-r">
             <div class="p-3" v-if="datalistsDetails">
               <h3 class="module-title m-0">
                 <i class="pi pi-book"></i> {{ department_name }} ({{
@@ -1228,7 +1243,6 @@ onMounted(() => {
                 </div>
               </template>
             </TreeTable>
-          </div>
         </SplitterPanel>
       </Splitter>
     </div>
@@ -1313,10 +1327,63 @@ onMounted(() => {
           </div>
         </small>
         <div class="field col-12 md:col-12">
+          <label class="col-2 text-left">Mã đơn vị <span class="redsao">(*)</span></label>
+          <InputText
+            spellcheck="false"
+            class="col-4 ip36"
+            v-model="donvi.organization_key"
+            :class="{ 'p-invalid': v$.organization_key.$invalid && submitted }"
+          />
+          <label class="col-2 text-left pl-4">Tên viết tắt </label>
+          <InputText
+            spellcheck="false"
+            class="col-4 ip36"
+            v-model="donvi.short_name"
+          />
+        </div>
+        <small
+          v-if="
+            (v$.organization_key.required.$invalid && submitted) ||
+            v$.organization_key.required.$pending.$response
+          "
+          class="col-10 p-error"
+        >
+          <div class="field col-12 md:col-12">
+            <label class="col-2"></label>
+            <span
+              class="col-4 pl-4"
+              >{{
+                v$.organization_key.required.$message
+                  .replace("Value", "Mã đơn vị")
+                  .replace("is required", "không được để trống")
+              }}</span
+            >
+           
+          </div>
+        </small>
+        <small
+          v-if="v$.organization_key.maxLength.$invalid && submitted"
+          class="col-10 p-error"
+        >
+          <div class="field col-12 md:col-12">
+            <label class="col-2"></label>
+            <span
+              class="col-10 pl-4"
+              >{{
+                v$.organization_key.maxLength.$message.replace(
+                  "The maximum length allowed is",
+                  "Mã đơn vị không được vượt quá",
+                )
+              }}
+              ký tự</span
+            >
+          </div>
+        </small>
+        <div class="field col-12 md:col-12">
           <label class="col-2 text-left">Cấp quản lý</label>
           <TreeSelect
             @change="onChangeParent"
-            class="col-10"
+            class="col-10 ip36"
             v-model="selectCapcha"
             :options="treedonvis"
             :showClear="true"
@@ -1336,7 +1403,7 @@ onMounted(() => {
             v-model="donvi.organization_name_en"
           />
         </div>
-        <div
+        <!-- <div
           class="field col-12 md:col-12"
         >
           <label class="col-2 text-left">Tên viết tắt</label>
@@ -1345,7 +1412,7 @@ onMounted(() => {
             class="col-10 ip36"
             v-model="donvi.short_name"
           />
-        </div>
+        </div> -->
         <div class="field col-12 md:col-12">
           <label class="col-2 text-left">Phân loại</label>
           <Dropdown
