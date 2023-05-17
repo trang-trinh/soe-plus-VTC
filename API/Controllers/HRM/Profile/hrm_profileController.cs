@@ -2225,6 +2225,7 @@ namespace API.Controllers.HRM.Profile
                                             List<hrm_profile_assignment> assignments = new List<hrm_profile_assignment>();
                                             for (int r = 4; r <= sheet.Dimension.End.Row; r++)
                                             {
+                                                error_row = r;
                                                 if (sheet.Cells[r, 2].Value == null)
                                                 {
                                                     break;
@@ -2237,6 +2238,7 @@ namespace API.Controllers.HRM.Profile
                                                         break;
                                                     }
                                                     var column = sheet.Cells[3, c].Value;
+                                                    error_column = int.Parse(column.ToString() ?? c.ToString());
                                                     var vl = sheet.Cells[r, c].Value;
                                                     if (vl != null)
                                                     {
@@ -2335,6 +2337,7 @@ namespace API.Controllers.HRM.Profile
                                             List<hrm_contract> contracts = new List<hrm_contract>();
                                             for (int r = 4; r <= sheet.Dimension.End.Row; r++)
                                             {
+                                                error_row = r;
                                                 if (sheet.Cells[r, 2].Value == null)
                                                 {
                                                     break;
@@ -2347,6 +2350,7 @@ namespace API.Controllers.HRM.Profile
                                                         break;
                                                     }
                                                     var column = sheet.Cells[3, c].Value;
+                                                    error_column = int.Parse(column.ToString() ?? c.ToString());
                                                     var vl = sheet.Cells[r, c].Value;
                                                     if (vl != null)
                                                     {
@@ -2447,6 +2451,7 @@ namespace API.Controllers.HRM.Profile
                                             List<hrm_profile_relative> relatives = new List<hrm_profile_relative>();
                                             for (int r = 4; r <= sheet.Dimension.End.Row; r++)
                                             {
+                                                error_row = r;
                                                 if (sheet.Cells[r, 2].Value == null)
                                                 {
                                                     break;
@@ -2459,6 +2464,7 @@ namespace API.Controllers.HRM.Profile
                                                         break;
                                                     }
                                                     var column = sheet.Cells[3, c].Value;
+                                                    error_column = int.Parse(column.ToString() ?? c.ToString());
                                                     var vl = sheet.Cells[r, c].Value;
                                                     if (vl != null)
                                                     {
@@ -2528,6 +2534,7 @@ namespace API.Controllers.HRM.Profile
                                             List<hrm_profile_skill> skills = new List<hrm_profile_skill>();
                                             for (int r = 4; r <= sheet.Dimension.End.Row; r++)
                                             {
+                                                error_row = r;
                                                 if (sheet.Cells[r, 2].Value == null)
                                                 {
                                                     break;
@@ -2540,6 +2547,7 @@ namespace API.Controllers.HRM.Profile
                                                         break;
                                                     }
                                                     var column = sheet.Cells[3, c].Value;
+                                                    error_column = int.Parse(column.ToString() ?? c.ToString());
                                                     var vl = sheet.Cells[r, c].Value;
                                                     if (vl != null)
                                                     {
@@ -2628,6 +2636,7 @@ namespace API.Controllers.HRM.Profile
                                             List<hrm_profile_experience> experiences = new List<hrm_profile_experience>();
                                             for (int r = 4; r <= sheet.Dimension.End.Row; r++)
                                             {
+                                                error_row = r;
                                                 if (sheet.Cells[r, 2].Value == null)
                                                 {
                                                     break;
@@ -2640,6 +2649,7 @@ namespace API.Controllers.HRM.Profile
                                                         break;
                                                     }
                                                     var column = sheet.Cells[3, c].Value;
+                                                    error_column = int.Parse(column.ToString() ?? c.ToString());
                                                     var vl = sheet.Cells[r, c].Value;
                                                     if (vl != null)
                                                     {
@@ -2711,6 +2721,7 @@ namespace API.Controllers.HRM.Profile
                                             List<hrm_reward> rewards = new List<hrm_reward>();
                                             for (int r = 4; r <= sheet.Dimension.End.Row; r++)
                                             {
+                                                error_row = r;
                                                 if (sheet.Cells[r, 2].Value == null)
                                                 {
                                                     break;
@@ -2723,6 +2734,7 @@ namespace API.Controllers.HRM.Profile
                                                         break;
                                                     }
                                                     var column = sheet.Cells[3, c].Value;
+                                                    error_column = int.Parse(column.ToString() ?? c.ToString());
                                                     var vl = sheet.Cells[r, c].Value;
                                                     if (vl != null)
                                                     {
