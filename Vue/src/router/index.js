@@ -307,6 +307,13 @@ const HRM_Report_Config = () =>
   import("../views/hrm/config/ConfigReportForm.vue");
   const ReportDetail = () =>
   import("../views/hrm/template/ReportDetail.vue");
+  const ProfileDetail = () =>
+  import("../views/hrm/template/ProfileDetails.vue");
+  const PayrollDetails = () =>
+  import("../views/hrm/payroll/PayrollDetails.vue");
+  
+
+  
 //end
 // TV
 const ConfigScreenTV = () => import("../views/tivi/tivi_screen_config.vue");
@@ -2108,6 +2115,16 @@ const router = createRouter({
       path: "/hrm/template/smart_report/:name",
       name: "/hrm/template/smartdetails",
       component: ReportDetail,
+    },
+    {
+      path: "/report/:id",
+      name: "/report/profiledetails",
+      component: ProfileDetail,
+    },
+    {
+      path: "/hrm/payroll/details/:id",
+      name: "/payroll/payrolldetails",
+      component: PayrollDetails,
     },
     // Request
     {

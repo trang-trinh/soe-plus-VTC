@@ -10,22 +10,21 @@ import DropdownUser from "../component/DropdownProfiles.vue";
 import { encr, checkURL } from "../../../util/function.js";
 import moment from "moment";
 
-const getProfileUsers=(user,obj)=>{
-   
-   if (user=="profile_id_fake") {
+const getProfileUsers = (user, obj) => {
+  if (user == "profile_id_fake") {
     payroll.value[user] = [];
-           obj.forEach((element) => {
-            payroll.value[user].push(element.profile_id);
-           });
-         } else {
-           options.value.list_profile_id = [];
-           obj.forEach((element) => {
-             options.value.list_profile_id.push(element.profile_id);
-           });
-         }
-  
- }
+    obj.forEach((element) => {
+      payroll.value[user].push(element.profile_id);
+    });
+  } else {
+    options.value.list_profile_id = [];
+    obj.forEach((element) => {
+      options.value.list_profile_id.push(element.profile_id);
+    });
+  }
+};
 //Khai báo
+const router = inject("router");
 const emitter = inject("emitter");
 const cryoptojs = inject("cryptojs");
 const axios = inject("axios");
@@ -226,7 +225,7 @@ const payroll = ref({
   emote_file: "",
   status: true,
   is_order: 1,
-  profile_id_fake:[]
+  profile_id_fake: [],
 });
 
 const selectedStamps = ref();
@@ -261,7 +260,7 @@ const openBasic = (str) => {
     is_order: sttStamp.value,
     organization_id: store.getters.user.organization_id,
     is_system: store.getters.user.is_super ? true : false,
-    profile_id_fake:[]
+    profile_id_fake: [],
   };
   listFilesS.value = [];
   checkIsmain.value = false;
@@ -269,8 +268,6 @@ const openBasic = (str) => {
   headerDialog.value = str;
   displayBasic.value = true;
 };
-
-
 
 const openBasicWRP = (id) => {
   submitted.value = false;
@@ -281,15 +278,14 @@ const openBasicWRP = (id) => {
     is_order: sttStamp.value,
     organization_id: store.getters.user.organization_id,
     is_system: store.getters.user.is_super ? true : false,
-    declare_paycheck_id:id
+    declare_paycheck_id: id,
   };
   listFilesS.value = [];
   checkIsmain.value = false;
   isSaveTem.value = false;
-  headerDialog.value = 'Thêm mới bảng lương';
+  headerDialog.value = "Thêm mới bảng lương";
   displayBasic.value = true;
 };
-
 
 const closeDialog = () => {
   payroll.value = {
@@ -320,9 +316,7 @@ const saveData = (isFormValid) => {
   }
 
   if (payroll.value.profile_id_fake) {
-  
-    payroll.value.list_profile_id =  
-    payroll.value.profile_id_fake.toString();
+    payroll.value.list_profile_id = payroll.value.profile_id_fake.toString();
   }
   if (payroll.value.payroll_name.length > 250) {
     swal.fire({
@@ -400,6 +394,27 @@ const saveData = (isFormValid) => {
   }
 };
 const checkIsmain = ref(true);
+
+const viewTem = (data) => {
+  let o = {
+    id: data.report_key,
+    par: { profile_id: data.li_profile_id },
+  };
+
+  let url = encodeURIComponent(
+    encr(JSON.stringify(o), SecretKey, cryoptojs).toString()
+  );
+  url =
+    "/hrm/payroll/details/" +
+    url.replaceAll("%", "==") +
+    "?v=" +
+    new Date().getTime().toString();
+     
+  if (router)
+    router.push({
+      path: url,
+    });
+};
 //Sửa bản ghi
 const editTem = (dataTem) => {
   submitted.value = false;
@@ -408,7 +423,7 @@ const editTem = (dataTem) => {
   if (payroll.value.listUsers) {
     payroll.value.profile_id_fake = [];
     payroll.value.listUsers.forEach((element) => {
-      payroll.value.profile_id_fake.push(element.profile_id );
+      payroll.value.profile_id_fake.push(element.profile_id);
     });
   }
 
@@ -667,7 +682,7 @@ const onCheckBox = (value, check) => {
         if (response.data.err != "1") {
           swal.close();
           toast.success("Sửa trạng thái bảng lương thành công!");
-          loadData(true);
+        
           closeDialog();
         } else {
           swal.fire({
@@ -819,9 +834,8 @@ const toggle = (event) => {
 
 const listTypeContractSave = ref([]);
 const listDeclarePaycheck = ref([]);
- 
+
 const initTuDien = () => {
-   
   axios
     .post(
       baseURL + "/api/hrm_ca_SQL/getData",
@@ -942,13 +956,13 @@ const choiceUser = () => {
     });
   closeDialogUser();
 };
-const getProfileUser=(user,obj)=>{
+const getProfileUser = (user, obj) => {
   if (obj) {
-    payroll.value[user]=obj;
-      } else {
-        payroll.value.sign_user = null;
-      }
-}
+    payroll.value[user] = obj;
+  } else {
+    payroll.value.sign_user = null;
+  }
+};
 emitter.on("emitData", (obj) => {
   switch (obj.type) {
     case "submitDropdownUser":
@@ -977,7 +991,7 @@ emitter.on("emitData", (obj) => {
       break;
   }
 });
-const onChangeUsersReceive=(  declare_paycheck_id)=>{
+const onChangeUsersReceive = (declare_paycheck_id) => {
   axios
     .post(
       baseURL + "/api/hrm_ca_SQL/getData",
@@ -985,10 +999,7 @@ const onChangeUsersReceive=(  declare_paycheck_id)=>{
         str: encr(
           JSON.stringify({
             proc: "hrm_user_de_paycheck_get",
-            par: [
-              { par: "declare_paycheck_id", va: declare_paycheck_id } 
-             
-            ],
+            par: [{ par: "declare_paycheck_id", va: declare_paycheck_id }],
           }),
           SecretKey,
           cryoptojs
@@ -998,13 +1009,9 @@ const onChangeUsersReceive=(  declare_paycheck_id)=>{
     )
     .then((response) => {
       let data = JSON.parse(response.data.data)[0];
-      payroll.value.profile_id_fake=[];
+      payroll.value.profile_id_fake = [];
       data.forEach((element, i) => {
-        payroll.value.profile_id_fake.push({
-          profile_id: element.profile_id,
-            profile_user_name: element.profile_user_name,
-            avatar: element.avatar
-        });
+        payroll.value.profile_id_fake.push(element.profile_id);
       });
     })
     .catch((error) => {
@@ -1012,9 +1019,13 @@ const onChangeUsersReceive=(  declare_paycheck_id)=>{
 
       store.commit("gologout");
     });
-}
+};
+const onRowClckTable = (data) => {
+  selectedStamps.value = [];
 
-  
+  selectedStamps.value.push(data.data);
+};
+
 onMounted(() => {
   initTuDien();
 
@@ -1067,6 +1078,7 @@ onMounted(() => {
       v-model:selection="selectedStamps"
       rowGroupMode="subheader"
       groupRowsBy="declare_paycheck_name"
+      @row-click="onRowClckTable"
     >
       <template #header>
         <h3 class="module-title mt-0 ml-1 mb-2">
@@ -1116,7 +1128,7 @@ onMounted(() => {
                       :placeholder="'Chọn nhân sự'"
                       :type="2"
                       :callbackFun="getProfileUsers"
-                :key_user="'list_profile_id'"
+                      :key_user="'list_profile_id'"
                     />
                   </div>
                   <div class="field col-12 p-0">
@@ -1203,7 +1215,6 @@ onMounted(() => {
           style="padding: 5px"
           @click="openBasicWRP(slotProps.data.declare_paycheck_id)"
           icon="pi pi-plus-circle"
-     
           class="ml-1 p-button-text p-button-rounded"
         />
       </template>
@@ -1384,18 +1395,26 @@ onMounted(() => {
         bodyStyle="text-align:center;max-width:150px"
       >
         <template #body="Tem">
-          <div>
+          <div
+            v-if="
+              store.state.user.is_super == true ||
+              store.state.user.user_id == Tem.data.created_by ||
+              store.state.user.is_admin
+            "
+          >
+            <Button
+              @click="viewTem(Tem.data)"
+              class="p-button-rounded p-button-secondary p-button-outlined mx-1"
+              type="button"
+              icon="pi pi-eye"
+              v-tooltip.top="'Xem'"
+            ></Button>
             <Button
               @click="editTem(Tem.data)"
               class="p-button-rounded p-button-secondary p-button-outlined mx-1"
               type="button"
               icon="pi pi-pencil"
               v-tooltip.top="'Sửa'"
-              v-if="
-                store.state.user.is_super == true ||
-                store.state.user.user_id == Tem.data.created_by ||
-                store.state.user.is_admin
-              "
             ></Button>
             <Button
               class="p-button-rounded p-button-secondary p-button-outlined mx-1"
@@ -1403,12 +1422,6 @@ onMounted(() => {
               icon="pi pi-trash"
               @click="delTem(Tem.data)"
               v-tooltip.top="'Xóa'"
-              v-if="
-                store.state.user.is_super == true ||
-                store.state.user.user_id == Tem.data.created_by ||
-                (store.state.user.role_id == 'admin' &&
-                  store.state.user.organization_id == Tem.data.organization_id)
-              "
             ></Button>
           </div>
         </template>
@@ -1444,7 +1457,7 @@ onMounted(() => {
       <div class="grid formgrid m-2 my-0">
         <div class="field col-12 md:col-12">
           <div class="col-3 text-left p-0 pb-2">
-            Mẫu bảng lương <span class="redsao">(*)</span>
+            Mẫu phiếu lương <span class="redsao">(*)</span>
           </div>
           <Dropdown
             v-model="payroll.declare_paycheck_id"
@@ -1458,7 +1471,7 @@ onMounted(() => {
             :class="{
               'p-invalid': payroll.declare_paycheck_id == null && submitted,
             }"
-            @change="onChangeUsersReceive( payroll.declare_paycheck_id)"
+            @change="onChangeUsersReceive(payroll.declare_paycheck_id)"
           />
         </div>
         <div
@@ -1549,18 +1562,15 @@ onMounted(() => {
           <div class="col-6 md:col-6 p-0 align-items-center pl-3">
             <div class="col-12 text-left p-0 pb-2">Người ký</div>
             <div class="col-12 p-0">
-            
               <DropdownProfile
-              :model="payroll.sign_user"
-                 
-                  :class="'w-full p-0'"
-                  :editable="true"
-                  optionLabel="profile_user_name"
+                :model="payroll.sign_user"
+                :class="'w-full p-0'"
+                :editable="true"
+                optionLabel="profile_user_name"
                 optionValue="profile_user_name"
                 :callbackFun="getProfileUser"
                 :key_user="'sign_user'"
               />
-               
             </div>
           </div>
         </div>
@@ -1601,9 +1611,9 @@ onMounted(() => {
               :class="{
                 'p-invalid': payroll.profile_id_fake == null && submitted,
               }"
-                :callbackFun="getProfileUsers"
-                :key_user="'profile_id_fake'"
-                    :type="1"
+              :callbackFun="getProfileUsers"
+              :key_user="'profile_id_fake'"
+              :type="1"
             />
           </div>
         </div>

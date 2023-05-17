@@ -103,7 +103,9 @@ const loadData = (rf) => {
           element.STT = options.value.PageNo * options.value.PageSize + i + 1;
 
           if(element.report_key){
-            element.report_key_name= listTypeContractSave.value.find(x=>x.report_key==element.report_key).report_name;
+            var ais=listTypeContractSave.value.find(x=>x.report_key==element.report_key);
+            if(ais)
+            element.report_key_name=ais.report_name;
           }
         });
         datalists.value = data;
@@ -113,7 +115,7 @@ const loadData = (rf) => {
       .catch((error) => {
         toast.error("Tải dữ liệu không thành công!");
         options.value.loading = false;
-
+        console.log(error);
         if (error && error.status === 401) {
           swal.fire({
             text: "Mã token đã hết hạn hoặc không hợp lệ, vui lòng đăng nhập lại!",
@@ -810,7 +812,7 @@ const initTuDien = () => {
     .catch((error) => {
       toast.error("Tải dữ liệu không thành công!");
       options.value.loading = false;
-
+console.log(error);
       if (error && error.status === 401) {
         swal.fire({
           text: "Mã token đã hết hạn hoặc không hợp lệ, vui lòng đăng nhập lại!",
