@@ -1763,6 +1763,7 @@ namespace API.Controllers.HRM.Profile
                     FileInfo temp = new FileInfo(fpath);
                     using (ExcelPackage pck = new ExcelPackage(temp))
                     {
+                        int? error_sheet = null;
                         int? error_row = null;
                         int? error_column = null;
                         try
@@ -1770,6 +1771,7 @@ namespace API.Controllers.HRM.Profile
                             List<ExcelWorksheet> sheets = pck.Workbook.Worksheets.ToList();
                             for (int s = 0; s < sheets.Count; s++)
                             {
+                                error_sheet = s + 1;
                                 if (sheets[s] != null)
                                 {
                                     ExcelWorksheet sheet = sheets[s];
@@ -1790,20 +1792,21 @@ namespace API.Controllers.HRM.Profile
                                                 hrm_profile_health health = new hrm_profile_health();
                                                 for (int c = 2; c <= sheet.Dimension.End.Column; c++)
                                                 {
-                                                    error_column = c;
                                                     if (sheet.Cells[4, c].Value == null)
                                                     {
                                                         break;
                                                     }
                                                     var column = sheet.Cells[4, c].Value;
-                                                    var value = sheet.Cells[r, c].Value;
-                                                    if (value != null)
+                                                    error_column = int.Parse(column.ToString() ?? c.ToString());
+                                                    var vl = sheet.Cells[r, c].Value;
+                                                    if (vl != null)
                                                     {
+                                                        string value = vl.ToString().Trim();
                                                         switch (column)
                                                         {
                                                             case "2":
-                                                                profile.profile_code = value.ToString();
-                                                                profile.is_order = number_profile ++;
+                                                                profile.profile_code = value;
+                                                                profile.is_order = number_profile++;
                                                                 var p = await db.hrm_profile.FirstOrDefaultAsync(x => x.profile_code == profile.profile_code);
                                                                 if (p != null)
                                                                 {
@@ -1811,22 +1814,22 @@ namespace API.Controllers.HRM.Profile
                                                                 }
                                                                 break;
                                                             case "3":
-                                                                profile.profile_name = value.ToString();
+                                                                profile.profile_name = value;
                                                                 profile.profile_name_en = helper.convertToUnSign3(profile.profile_name);
                                                                 profile.profile_last_name = profile.profile_name.Split(' ').Last();
-                                                                profile.profile_user_name = value.ToString();
+                                                                profile.profile_user_name = value;
                                                                 break;
                                                             case "4":
-                                                                profile.identity_papers_code = value.ToString();
+                                                                profile.identity_papers_code = value;
                                                                 break;
                                                             case "5":
-                                                                profile.identity_date_issue = DateTime.ParseExact(value.ToString(), "dd/MM/yyyy", CultureInfo.InvariantCulture);
+                                                                profile.identity_date_issue = DateTime.ParseExact(value, "dd/MM/yyyy", CultureInfo.InvariantCulture);
                                                                 break;
                                                             case "6":
-                                                                profile.identity_end_date_issue = DateTime.ParseExact(value.ToString(), "dd/MM/yyyy", CultureInfo.InvariantCulture);
+                                                                profile.identity_end_date_issue = DateTime.ParseExact(value, "dd/MM/yyyy", CultureInfo.InvariantCulture);
                                                                 break;
                                                             case "7":
-                                                                var identity_place_name = value.ToString();
+                                                                var identity_place_name = value;
                                                                 var identity_place_exists = await db.hrm_ca_identity_place.FirstOrDefaultAsync(x => x.identity_place_name.Contains(identity_place_name));
                                                                 if (identity_place_exists != null)
                                                                 {
@@ -1834,16 +1837,16 @@ namespace API.Controllers.HRM.Profile
                                                                 }
                                                                 break;
                                                             case "8":
-                                                                profile.tax_code = value.ToString();
+                                                                profile.tax_code = value;
                                                                 break;
                                                             case "9":
-                                                                profile.gender = value.ToString().ToLower().Contains("nam") ? 1 : value.ToString().ToLower().Contains("nữ") ? 2 : 3;
+                                                                profile.gender = value.ToLower().Contains("nam") ? 1 : value.ToLower().Contains("nữ") ? 2 : 3;
                                                                 break;
                                                             case "10":
-                                                                profile.birthday = DateTime.ParseExact(value.ToString(), "dd/MM/yyyy", CultureInfo.InvariantCulture);
+                                                                profile.birthday = DateTime.ParseExact(value, "dd/MM/yyyy", CultureInfo.InvariantCulture);
                                                                 break;
                                                             case "11":
-                                                                var ethnic_name = value.ToString();
+                                                                var ethnic_name = value;
                                                                 var ethnic_exists = await db.hrm_ca_ethnic.FirstOrDefaultAsync(x => x.ethnic_name.Contains(ethnic_name));
                                                                 if (ethnic_exists != null)
                                                                 {
@@ -1851,7 +1854,7 @@ namespace API.Controllers.HRM.Profile
                                                                 }
                                                                 break;
                                                             case "12":
-                                                                var religion_name = value.ToString();
+                                                                var religion_name = value;
                                                                 var religio_exists = await db.hrm_ca_religion.FirstOrDefaultAsync(x => x.religion_name.Contains(religion_name));
                                                                 if (religio_exists != null)
                                                                 {
@@ -1859,7 +1862,7 @@ namespace API.Controllers.HRM.Profile
                                                                 }
                                                                 break;
                                                             case "13":
-                                                                var nationality_name = value.ToString();
+                                                                var nationality_name = value;
                                                                 var nationality_exists = await db.hrm_ca_nationality.FirstOrDefaultAsync(x => x.nationality_name.Contains(nationality_name));
                                                                 if (nationality_exists != null)
                                                                 {
@@ -1870,7 +1873,7 @@ namespace API.Controllers.HRM.Profile
 
                                                                 break;
                                                             case "15":
-                                                                var marital_status = value.ToString();
+                                                                var marital_status = value;
                                                                 if (marital_status.ToLower().Contains("đã"))
                                                                 {
                                                                     profile.marital_status = 1;
@@ -1885,7 +1888,7 @@ namespace API.Controllers.HRM.Profile
                                                                 }
                                                                 break;
                                                             case "16":
-                                                                var bank_name = value.ToString();
+                                                                var bank_name = value;
                                                                 var bank_exists = await db.hrm_ca_bank.FirstOrDefaultAsync(x => x.bank_name.Contains(bank_name));
                                                                 if (bank_exists != null)
                                                                 {
@@ -1893,42 +1896,42 @@ namespace API.Controllers.HRM.Profile
                                                                 }
                                                                 break;
                                                             case "17":
-                                                                profile.bank_number = value.ToString();
+                                                                profile.bank_number = value;
                                                                 break;
                                                             case "18":
-                                                                profile.bank_account = value.ToString();
+                                                                profile.bank_account = value;
                                                                 break;
                                                             case "19":
                                                                 break;
                                                             case "20":
-                                                                profile.place_permanent = value.ToString();
+                                                                profile.place_permanent = value;
                                                                 break;
                                                             case "21":
-                                                                profile.place_residence_name = value.ToString();
+                                                                profile.place_residence_name = value;
                                                                 break;
                                                             case "22":
-                                                                profile.birthplace_name = value.ToString();
+                                                                profile.birthplace_name = value;
                                                                 break;
                                                             case "23":
-                                                                profile.birthplace_origin_name = value.ToString();
+                                                                profile.birthplace_origin_name = value;
                                                                 break;
                                                             case "24":
-                                                                profile.place_register_permanent_first = value.ToString();
+                                                                profile.place_register_permanent_first = value;
                                                                 break;
                                                             case "25":
-                                                                profile.place_register_permanent_name = value.ToString();
+                                                                profile.place_register_permanent_name = value;
                                                                 break;
                                                             case "26":
-                                                                profile.involved_name = value.ToString();
+                                                                profile.involved_name = value;
                                                                 break;
                                                             case "27":
-                                                                profile.involved_phone = value.ToString();
+                                                                profile.involved_phone = value;
                                                                 break;
                                                             case "28":
-                                                                profile.involved_place = value.ToString();
+                                                                profile.involved_place = value;
                                                                 break;
                                                             case "29":
-                                                                var relationship_name = value.ToString();
+                                                                var relationship_name = value;
                                                                 var relationship_exists = await db.hrm_ca_relationship.FirstOrDefaultAsync(x => x.relationship_name.Contains(relationship_name));
                                                                 if (relationship_exists != null)
                                                                 {
@@ -1936,19 +1939,19 @@ namespace API.Controllers.HRM.Profile
                                                                 }
                                                                 break;
                                                             case "30":
-                                                                profile.profile_nick_name = value.ToString();
+                                                                profile.profile_nick_name = value;
                                                                 break;
                                                             case "31":
 
                                                                 break;
                                                             case "32":
-                                                                profile.email = value.ToString();
+                                                                profile.email = value;
                                                                 break;
                                                             case "33":
-                                                                profile.phone = value.ToString();
+                                                                profile.phone = value;
                                                                 break;
                                                             case "34":
-                                                                var olds = value.ToString().Split(',').ToList();
+                                                                var olds = value.Split(',').ToList();
                                                                 if (olds.Count > 1)
                                                                 {
                                                                     var yearold = olds[0].ToLower().Trim().Replace("năm", "").Trim();
@@ -1977,10 +1980,10 @@ namespace API.Controllers.HRM.Profile
                                                                 }
                                                                 break;
                                                             case "35":
-                                                                profile.recruitment_date = DateTime.ParseExact(value.ToString(), "dd/MM/yyyy", CultureInfo.InvariantCulture);
+                                                                profile.recruitment_date = DateTime.ParseExact(value, "dd/MM/yyyy", CultureInfo.InvariantCulture);
                                                                 break;
                                                             case "36":
-                                                                var cultural_level_name = value.ToString();
+                                                                var cultural_level_name = value;
                                                                 var cultural_level_exists = await db.hrm_ca_cultural_level.FirstOrDefaultAsync(x => x.cultural_level_name.Contains(cultural_level_name));
                                                                 if (cultural_level_exists != null)
                                                                 {
@@ -1988,7 +1991,7 @@ namespace API.Controllers.HRM.Profile
                                                                 }
                                                                 break;
                                                             case "37":
-                                                                var political_theory_name = value.ToString();
+                                                                var political_theory_name = value;
                                                                 var political_theory_exists = await db.hrm_ca_political_theory.FirstOrDefaultAsync(x => x.political_theory_name.Contains(political_theory_name));
                                                                 if (political_theory_exists != null)
                                                                 {
@@ -1996,7 +1999,7 @@ namespace API.Controllers.HRM.Profile
                                                                 }
                                                                 break;
                                                             case "38":
-                                                                var informatic_level_name = value.ToString();
+                                                                var informatic_level_name = value;
                                                                 var informatic_level_exists = await db.hrm_ca_informatic_level.FirstOrDefaultAsync(x => x.informatic_level_name.Contains(informatic_level_name));
                                                                 if (informatic_level_exists != null)
                                                                 {
@@ -2004,7 +2007,7 @@ namespace API.Controllers.HRM.Profile
                                                                 }
                                                                 break;
                                                             case "39":
-                                                                var language_level_name = value.ToString();
+                                                                var language_level_name = value;
                                                                 var language_level_exists = await db.hrm_ca_language_level.FirstOrDefaultAsync(x => x.language_level_name.Contains(language_level_name));
                                                                 if (language_level_exists != null)
                                                                 {
@@ -2012,7 +2015,7 @@ namespace API.Controllers.HRM.Profile
                                                                 }
                                                                 break;
                                                             case "40":
-                                                                var management_state_name = value.ToString();
+                                                                var management_state_name = value;
                                                                 var management_state_exists = await db.hrm_ca_management_state.FirstOrDefaultAsync(x => x.management_state_name.Contains(management_state_name));
                                                                 if (management_state_exists != null)
                                                                 {
@@ -2020,102 +2023,102 @@ namespace API.Controllers.HRM.Profile
                                                                 }
                                                                 break;
                                                             case "41":
-                                                                profile.is_partisan = value.ToString().ToLower() == "x" ? true : false;
+                                                                profile.is_partisan = value.ToLower() == "x" ? true : false;
                                                                 break;
                                                             case "42":
-                                                                profile.card_partisan = value.ToString();
+                                                                profile.card_partisan = value;
                                                                 break;
                                                             case "43":
-                                                                profile.partisan_date = DateTime.ParseExact(value.ToString(), "dd/MM/yyyy", CultureInfo.InvariantCulture);
+                                                                profile.partisan_date = DateTime.ParseExact(value, "dd/MM/yyyy", CultureInfo.InvariantCulture);
                                                                 break;
                                                             case "44":
-                                                                profile.partisan_main_date = DateTime.ParseExact(value.ToString(), "dd/MM/yyyy", CultureInfo.InvariantCulture);
+                                                                profile.partisan_main_date = DateTime.ParseExact(value, "dd/MM/yyyy", CultureInfo.InvariantCulture);
                                                                 break;
                                                             case "45":
                                                                 break;
                                                             case "46":
-                                                                profile.partisan_branch = value.ToString();
+                                                                profile.partisan_branch = value;
                                                                 break;
                                                             case "47":
                                                                 break;
                                                             case "48":
                                                                 break;
                                                             case "49":
-                                                                profile.military_start_date = DateTime.ParseExact(value.ToString(), "dd/MM/yyyy", CultureInfo.InvariantCulture);
+                                                                profile.military_start_date = DateTime.ParseExact(value, "dd/MM/yyyy", CultureInfo.InvariantCulture);
                                                                 break;
                                                             case "50":
-                                                                profile.military_end_date = DateTime.ParseExact(value.ToString(), "dd/MM/yyyy", CultureInfo.InvariantCulture);
+                                                                profile.military_end_date = DateTime.ParseExact(value, "dd/MM/yyyy", CultureInfo.InvariantCulture);
                                                                 break;
                                                             case "51":
-                                                                profile.military_rank = value.ToString();
+                                                                profile.military_rank = value;
                                                                 break;
                                                             case "52":
-                                                                profile.military_title = value.ToString();
+                                                                profile.military_title = value;
                                                                 break;
                                                             case "53":
-                                                                profile.military_veterans_rank = value.ToString();
+                                                                profile.military_veterans_rank = value;
                                                                 break;
                                                             case "54":
-                                                                health.military_health = value.ToString();
+                                                                health.military_health = value;
                                                                 break;
                                                             case "55":
-                                                                health.height = value.ToString();
+                                                                health.height = value;
                                                                 break;
                                                             case "56":
-                                                                health.weight = value.ToString();
+                                                                health.weight = value;
                                                                 break;
                                                             case "57":
-                                                                health.blood_group = value.ToString();
+                                                                health.blood_group = value;
                                                                 break;
                                                             case "58":
-                                                                health.heartbeat = value.ToString();
+                                                                health.heartbeat = value;
                                                                 break;
                                                             case "59":
-                                                                health.blood_pressure = value.ToString();
+                                                                health.blood_pressure = value;
                                                                 break;
                                                             case "60":
-                                                                health.note = value.ToString();
+                                                                health.note = value;
                                                                 break;
                                                             case "61":
-                                                                profile.mission_forte = value.ToString();
+                                                                profile.mission_forte = value;
                                                                 break;
                                                             case "62":
-                                                                profile.biography_first = value.ToString();
+                                                                profile.biography_first = value;
                                                                 break;
                                                             case "63":
-                                                                profile.biography_second = value.ToString();
+                                                                profile.biography_second = value;
                                                                 break;
                                                             case "64":
-                                                                profile.biography_third = value.ToString();
+                                                                profile.biography_third = value;
                                                                 break;
                                                             case "65":
-                                                                profile.salary_family = double.Parse(value.ToString());
+                                                                profile.salary_family = double.Parse(value);
                                                                 break;
                                                             case "66":
-                                                                profile.salary_orther = double.Parse(value.ToString());
+                                                                profile.salary_orther = double.Parse(value);
                                                                 break;
                                                             case "67":
-                                                                profile.type_rent = value.ToString();
+                                                                profile.type_rent = value;
                                                                 break;
                                                             case "68":
-                                                                profile.area_level = double.Parse(value.ToString());
+                                                                profile.area_level = double.Parse(value);
                                                                 break;
                                                             case "69":
-                                                                profile.type_house = value.ToString();
+                                                                profile.type_house = value;
                                                                 break;
                                                             case "70":
-                                                                profile.area_buy = double.Parse(value.ToString());
+                                                                profile.area_buy = double.Parse(value);
                                                                 break;
                                                             case "71":
-                                                                profile.area_granted = double.Parse(value.ToString());
+                                                                profile.area_granted = double.Parse(value);
                                                                 break;
                                                             case "72":
-                                                                profile.area_buy_yourself = double.Parse(value.ToString());
+                                                                profile.area_buy_yourself = double.Parse(value);
                                                                 break;
                                                             case "73":
                                                                 break;
                                                             case "74":
-                                                                profile.note = value.ToString();
+                                                                profile.note = value;
                                                                 break;
                                                         }
                                                     }
@@ -2222,6 +2225,7 @@ namespace API.Controllers.HRM.Profile
                                             List<hrm_profile_assignment> assignments = new List<hrm_profile_assignment>();
                                             for (int r = 4; r <= sheet.Dimension.End.Row; r++)
                                             {
+                                                error_row = r;
                                                 if (sheet.Cells[r, 2].Value == null)
                                                 {
                                                     break;
@@ -2234,13 +2238,15 @@ namespace API.Controllers.HRM.Profile
                                                         break;
                                                     }
                                                     var column = sheet.Cells[3, c].Value;
-                                                    var value = sheet.Cells[r, c].Value;
-                                                    if (value != null)
+                                                    error_column = int.Parse(column.ToString() ?? c.ToString());
+                                                    var vl = sheet.Cells[r, c].Value;
+                                                    if (vl != null)
                                                     {
+                                                        string value = vl.ToString().Trim();
                                                         switch (column)
                                                         {
                                                             case "2":
-                                                                var p = await db.hrm_profile.FirstOrDefaultAsync(x => x.profile_code == value.ToString());
+                                                                var p = await db.hrm_profile.FirstOrDefaultAsync(x => x.profile_code == value);
                                                                 if (p != null)
                                                                 {
                                                                     assignment.profile_id = p.profile_id;
@@ -2250,7 +2256,7 @@ namespace API.Controllers.HRM.Profile
 
                                                                 break;
                                                             case "4":
-                                                                var department_name = value.ToString();
+                                                                var department_name = value;
                                                                 var department_exists = await db.sys_organization.FirstOrDefaultAsync(x => x.short_name == department_name && x.organization_type == 1);
                                                                 if (department_exists != null)
                                                                 {
@@ -2258,7 +2264,7 @@ namespace API.Controllers.HRM.Profile
                                                                 }
                                                                 break;
                                                             case "5":
-                                                                var position_name = value.ToString();
+                                                                var position_name = value;
                                                                 var position_exists = await db.ca_positions.FirstOrDefaultAsync(x => x.position_name == position_name);
                                                                 if (position_exists != null)
                                                                 {
@@ -2266,7 +2272,7 @@ namespace API.Controllers.HRM.Profile
                                                                 }
                                                                 break;
                                                             case "6":
-                                                                var title_name = value.ToString();
+                                                                var title_name = value;
                                                                 var title_exists = await db.hrm_ca_title.FirstOrDefaultAsync(x => x.title_name == title_name);
                                                                 if (title_exists != null)
                                                                 {
@@ -2274,7 +2280,7 @@ namespace API.Controllers.HRM.Profile
                                                                 }
                                                                 break;
                                                             case "7":
-                                                                var personel_groups_name = value.ToString();
+                                                                var personel_groups_name = value;
                                                                 var personel_groups_exists = await db.hrm_ca_personel_groups.FirstOrDefaultAsync(x => x.personel_groups_name == personel_groups_name);
                                                                 if (personel_groups_exists != null)
                                                                 {
@@ -2282,7 +2288,7 @@ namespace API.Controllers.HRM.Profile
                                                                 }
                                                                 break;
                                                             case "8":
-                                                                var professional_work_name = value.ToString();
+                                                                var professional_work_name = value;
                                                                 var professional_work_exists = await db.hrm_ca_professional_work.FirstOrDefaultAsync(x => x.professional_work_name == professional_work_name);
                                                                 if (professional_work_exists != null)
                                                                 {
@@ -2290,16 +2296,16 @@ namespace API.Controllers.HRM.Profile
                                                                 }
                                                                 break;
                                                             case "9":
-                                                                assignment.is_active = value.ToString().ToLower().Contains("x") ? true : false;
+                                                                assignment.is_active = value.ToLower().Contains("x") ? true : false;
                                                                 break;
                                                             case "10":
-                                                                assignment.is_experiment = value.ToString().ToLower().Contains("x") ? true : false;
+                                                                assignment.is_experiment = value.ToLower().Contains("x") ? true : false;
                                                                 break;
                                                             case "11":
-                                                                assignment.start_date = DateTime.ParseExact(value.ToString(), "dd/MM/yyyy", CultureInfo.InvariantCulture);
+                                                                assignment.start_date = DateTime.ParseExact(value, "dd/MM/yyyy", CultureInfo.InvariantCulture);
                                                                 break;
                                                             case "12":
-                                                                assignment.end_date = DateTime.ParseExact(value.ToString(), "dd/MM/yyyy", CultureInfo.InvariantCulture);
+                                                                assignment.end_date = DateTime.ParseExact(value, "dd/MM/yyyy", CultureInfo.InvariantCulture);
                                                                 break;
                                                             case "13":
                                                                 break;
@@ -2331,6 +2337,7 @@ namespace API.Controllers.HRM.Profile
                                             List<hrm_contract> contracts = new List<hrm_contract>();
                                             for (int r = 4; r <= sheet.Dimension.End.Row; r++)
                                             {
+                                                error_row = r;
                                                 if (sheet.Cells[r, 2].Value == null)
                                                 {
                                                     break;
@@ -2343,13 +2350,15 @@ namespace API.Controllers.HRM.Profile
                                                         break;
                                                     }
                                                     var column = sheet.Cells[3, c].Value;
-                                                    var value = sheet.Cells[r, c].Value;
-                                                    if (value != null)
+                                                    error_column = int.Parse(column.ToString() ?? c.ToString());
+                                                    var vl = sheet.Cells[r, c].Value;
+                                                    if (vl != null)
                                                     {
+                                                        string value = vl.ToString().Trim();
                                                         switch (column)
                                                         {
                                                             case "2":
-                                                                var p = await db.hrm_profile.FirstOrDefaultAsync(x => x.profile_code == value.ToString());
+                                                                var p = await db.hrm_profile.FirstOrDefaultAsync(x => x.profile_code == value);
                                                                 if (p != null)
                                                                 {
                                                                     contract.profile_id = p.profile_id;
@@ -2359,10 +2368,10 @@ namespace API.Controllers.HRM.Profile
 
                                                                 break;
                                                             case "4":
-                                                                contract.contract_code = value.ToString();
+                                                                contract.contract_code = value;
                                                                 break;
                                                             case "5":
-                                                                var department_name = value.ToString();
+                                                                var department_name = value;
                                                                 var department_exists = await db.sys_organization.FirstOrDefaultAsync(x => x.short_name == department_name && x.organization_type == 1);
                                                                 if (department_exists != null)
                                                                 {
@@ -2370,7 +2379,7 @@ namespace API.Controllers.HRM.Profile
                                                                 }
                                                                 break;
                                                             case "6":
-                                                                var position_name = value.ToString();
+                                                                var position_name = value;
                                                                 var position_exists = await db.ca_positions.FirstOrDefaultAsync(x => x.position_name == position_name);
                                                                 if (position_exists != null)
                                                                 {
@@ -2378,7 +2387,7 @@ namespace API.Controllers.HRM.Profile
                                                                 }
                                                                 break;
                                                             case "7":
-                                                                var title_name = value.ToString();
+                                                                var title_name = value;
                                                                 var title_exists = await db.hrm_ca_title.FirstOrDefaultAsync(x => x.title_name == title_name);
                                                                 if (title_exists != null)
                                                                 {
@@ -2386,7 +2395,7 @@ namespace API.Controllers.HRM.Profile
                                                                 }
                                                                 break;
                                                             case "8":
-                                                                var personel_groups_name = value.ToString();
+                                                                var personel_groups_name = value;
                                                                 var personel_groups_exists = await db.hrm_ca_personel_groups.FirstOrDefaultAsync(x => x.personel_groups_name == personel_groups_name);
                                                                 if (personel_groups_exists != null)
                                                                 {
@@ -2394,7 +2403,7 @@ namespace API.Controllers.HRM.Profile
                                                                 }
                                                                 break;
                                                             case "9":
-                                                                var type_contract_name = value.ToString();
+                                                                var type_contract_name = value;
                                                                 var type_contract_exists = await db.hrm_ca_type_contract.FirstOrDefaultAsync(x => x.type_contract_name == type_contract_name);
                                                                 if (type_contract_exists != null)
                                                                 {
@@ -2404,23 +2413,23 @@ namespace API.Controllers.HRM.Profile
                                                             case "10":
                                                                 break;
                                                             case "11":
-                                                                contract.start_date = DateTime.ParseExact(value.ToString(), "dd/MM/yyyy", CultureInfo.InvariantCulture);
+                                                                contract.start_date = DateTime.ParseExact(value, "dd/MM/yyyy", CultureInfo.InvariantCulture);
                                                                 break;
                                                             case "12":
-                                                                contract.end_date = DateTime.ParseExact(value.ToString(), "dd/MM/yyyy", CultureInfo.InvariantCulture);
+                                                                contract.end_date = DateTime.ParseExact(value, "dd/MM/yyyy", CultureInfo.InvariantCulture);
                                                                 break;
                                                             case "13":
-                                                                contract.sign_date = DateTime.ParseExact(value.ToString(), "dd/MM/yyyy", CultureInfo.InvariantCulture);
+                                                                contract.sign_date = DateTime.ParseExact(value, "dd/MM/yyyy", CultureInfo.InvariantCulture);
                                                                 break;
                                                             case "14":
-                                                                var ps = await db.hrm_profile.FirstOrDefaultAsync(x => x.profile_code == value.ToString());
+                                                                var ps = await db.hrm_profile.FirstOrDefaultAsync(x => x.profile_code == value);
                                                                 if (ps != null)
                                                                 {
                                                                     contract.sign_user_id = ps.profile_id;
                                                                 }
                                                                 break;
                                                             case "15":
-                                                                contract.sign_address = value.ToString();
+                                                                contract.sign_address = value;
                                                                 break;
                                                             default:
                                                                 break;
@@ -2442,6 +2451,7 @@ namespace API.Controllers.HRM.Profile
                                             List<hrm_profile_relative> relatives = new List<hrm_profile_relative>();
                                             for (int r = 4; r <= sheet.Dimension.End.Row; r++)
                                             {
+                                                error_row = r;
                                                 if (sheet.Cells[r, 2].Value == null)
                                                 {
                                                     break;
@@ -2454,13 +2464,15 @@ namespace API.Controllers.HRM.Profile
                                                         break;
                                                     }
                                                     var column = sheet.Cells[3, c].Value;
-                                                    var value = sheet.Cells[r, c].Value;
-                                                    if (value != null)
+                                                    error_column = int.Parse(column.ToString() ?? c.ToString());
+                                                    var vl = sheet.Cells[r, c].Value;
+                                                    if (vl != null)
                                                     {
+                                                        string value = vl.ToString().Trim();
                                                         switch (column)
                                                         {
                                                             case "2":
-                                                                var p = await db.hrm_profile.FirstOrDefaultAsync(x => x.profile_code == value.ToString());
+                                                                var p = await db.hrm_profile.FirstOrDefaultAsync(x => x.profile_code == value);
                                                                 if (p != null)
                                                                 {
                                                                     relative.profile_id = p.profile_id;
@@ -2470,37 +2482,37 @@ namespace API.Controllers.HRM.Profile
 
                                                                 break;
                                                             case "4":
-                                                                relative.is_type = value.ToString().ToLower().Contains("chồng") ? 1 : value.ToString().ToLower().Contains("vợ") ? 2 : 1;
+                                                                relative.is_type = value.ToLower().Contains("chồng") ? 1 : value.ToLower().Contains("vợ") ? 2 : 1;
                                                                 break;
                                                             case "5":
-                                                                relative.relative_name = value.ToString();
+                                                                relative.relative_name = value;
                                                                 break;
                                                             case "6":
-                                                                relative.birthday = value.ToString();
+                                                                relative.birthday = value;
                                                                 break;
                                                             case "7":
-                                                                relative.address = value.ToString();
+                                                                relative.address = value;
                                                                 break;
                                                             case "8":
-                                                                relative.countryside = value.ToString();
+                                                                relative.countryside = value;
                                                                 break;
                                                             case "9":
-                                                                relative.occupation = value.ToString();
+                                                                relative.occupation = value;
                                                                 break;
                                                             case "10":
-                                                                relative.company = value.ToString();
+                                                                relative.company = value;
                                                                 break;
                                                             case "11":
-                                                                relative.organization = value.ToString();
+                                                                relative.organization = value;
                                                                 break;
                                                             case "12":
-                                                                relative.is_company = value.ToString().ToLower() == "x" ? true : false;
+                                                                relative.is_company = value.ToLower() == "x" ? true : false;
                                                                 break;
                                                             case "13":
-                                                                relative.is_dependent = value.ToString().ToLower() == "x" ? 1 : 0;
+                                                                relative.is_dependent = value.ToLower() == "x" ? 1 : 0;
                                                                 break;
                                                             case "14":
-                                                                relative.is_die = value.ToString().ToLower() == "x" ? true : false;
+                                                                relative.is_die = value.ToLower() == "x" ? true : false;
                                                                 break;
                                                             default:
                                                                 break;
@@ -2522,6 +2534,7 @@ namespace API.Controllers.HRM.Profile
                                             List<hrm_profile_skill> skills = new List<hrm_profile_skill>();
                                             for (int r = 4; r <= sheet.Dimension.End.Row; r++)
                                             {
+                                                error_row = r;
                                                 if (sheet.Cells[r, 2].Value == null)
                                                 {
                                                     break;
@@ -2534,13 +2547,15 @@ namespace API.Controllers.HRM.Profile
                                                         break;
                                                     }
                                                     var column = sheet.Cells[3, c].Value;
-                                                    var value = sheet.Cells[r, c].Value;
-                                                    if (value != null)
+                                                    error_column = int.Parse(column.ToString() ?? c.ToString());
+                                                    var vl = sheet.Cells[r, c].Value;
+                                                    if (vl != null)
                                                     {
+                                                        string value = vl.ToString().Trim();
                                                         switch (column)
                                                         {
                                                             case "2":
-                                                                var p = await db.hrm_profile.FirstOrDefaultAsync(x => x.profile_code == value.ToString());
+                                                                var p = await db.hrm_profile.FirstOrDefaultAsync(x => x.profile_code == value);
                                                                 if (p != null)
                                                                 {
                                                                     skill.profile_id = p.profile_id;
@@ -2550,16 +2565,16 @@ namespace API.Controllers.HRM.Profile
 
                                                                 break;
                                                             case "4":
-                                                                
+
                                                                 break;
                                                             case "5":
-                                                                skill.start_date = DateTime.ParseExact(value.ToString(), "dd/MM/yyyy", CultureInfo.InvariantCulture);
+                                                                skill.start_date = DateTime.ParseExact(value, "dd/MM/yyyy", CultureInfo.InvariantCulture);
                                                                 break;
                                                             case "6":
-                                                                skill.end_date = DateTime.ParseExact(value.ToString(), "dd/MM/yyyy", CultureInfo.InvariantCulture);
+                                                                skill.end_date = DateTime.ParseExact(value, "dd/MM/yyyy", CultureInfo.InvariantCulture);
                                                                 break;
                                                             case "7":
-                                                                var specialization_name = value.ToString();
+                                                                var specialization_name = value;
                                                                 var specialization_exists = await db.hrm_ca_specialization.FirstOrDefaultAsync(x => x.specialization_name == specialization_name);
                                                                 if (specialization_exists != null)
                                                                 {
@@ -2567,7 +2582,7 @@ namespace API.Controllers.HRM.Profile
                                                                 }
                                                                 break;
                                                             case "8":
-                                                                var form_traning_name = value.ToString();
+                                                                var form_traning_name = value;
                                                                 var form_traning_exists = await db.hrm_ca_form_traning.FirstOrDefaultAsync(x => x.form_traning_name == form_traning_name);
                                                                 if (form_traning_exists != null)
                                                                 {
@@ -2575,16 +2590,16 @@ namespace API.Controllers.HRM.Profile
                                                                 }
                                                                 break;
                                                             case "9":
-                                                                skill.university_name = value.ToString();
+                                                                skill.university_name = value;
                                                                 break;
                                                             case "10":
-                                                                skill.rating = value.ToString();
+                                                                skill.rating = value;
                                                                 break;
                                                             case "11":
-                                                                skill.is_man_degree = value.ToString().ToLower() == "x" ? true : false;
+                                                                skill.is_man_degree = value.ToLower() == "x" ? true : false;
                                                                 break;
                                                             case "12":
-                                                                var certificate_name = value.ToString();
+                                                                var certificate_name = value;
                                                                 var certificat_exists = await db.hrm_ca_certificate.FirstOrDefaultAsync(x => x.certificate_name == certificate_name);
                                                                 if (certificat_exists != null)
                                                                 {
@@ -2596,10 +2611,10 @@ namespace API.Controllers.HRM.Profile
                                                             case "14":
                                                                 break;
                                                             case "15":
-                                                                skill.certificate_start_date = DateTime.ParseExact(value.ToString(), "dd/MM/yyyy", CultureInfo.InvariantCulture);
+                                                                skill.certificate_start_date = DateTime.ParseExact(value, "dd/MM/yyyy", CultureInfo.InvariantCulture);
                                                                 break;
                                                             case "16":
-                                                                skill.certificate_end_date = DateTime.ParseExact(value.ToString(), "dd/MM/yyyy", CultureInfo.InvariantCulture);
+                                                                skill.certificate_end_date = DateTime.ParseExact(value, "dd/MM/yyyy", CultureInfo.InvariantCulture);
                                                                 break;
                                                             default:
                                                                 break;
@@ -2621,6 +2636,7 @@ namespace API.Controllers.HRM.Profile
                                             List<hrm_profile_experience> experiences = new List<hrm_profile_experience>();
                                             for (int r = 4; r <= sheet.Dimension.End.Row; r++)
                                             {
+                                                error_row = r;
                                                 if (sheet.Cells[r, 2].Value == null)
                                                 {
                                                     break;
@@ -2633,13 +2649,15 @@ namespace API.Controllers.HRM.Profile
                                                         break;
                                                     }
                                                     var column = sheet.Cells[3, c].Value;
-                                                    var value = sheet.Cells[r, c].Value;
-                                                    if (value != null)
+                                                    error_column = int.Parse(column.ToString() ?? c.ToString());
+                                                    var vl = sheet.Cells[r, c].Value;
+                                                    if (vl != null)
                                                     {
+                                                        string value = vl.ToString().Trim();
                                                         switch (column)
                                                         {
                                                             case "2":
-                                                                var p = await db.hrm_profile.FirstOrDefaultAsync(x => x.profile_code == value.ToString());
+                                                                var p = await db.hrm_profile.FirstOrDefaultAsync(x => x.profile_code == value);
                                                                 if (p != null)
                                                                 {
                                                                     experience.profile_id = p.profile_id;
@@ -2649,37 +2667,37 @@ namespace API.Controllers.HRM.Profile
 
                                                                 break;
                                                             case "4":
-                                                                experience.company = value.ToString();
+                                                                experience.company = value;
                                                                 break;
                                                             case "5":
-                                                                experience.address = value.ToString();
+                                                                experience.address = value;
                                                                 break;
                                                             case "6":
-                                                                experience.start_date = DateTime.ParseExact(value.ToString(), "dd/MM/yyyy", CultureInfo.InvariantCulture);
+                                                                experience.start_date = DateTime.ParseExact(value, "dd/MM/yyyy", CultureInfo.InvariantCulture);
                                                                 break;
                                                             case "7":
-                                                                experience.end_date = DateTime.ParseExact(value.ToString(), "dd/MM/yyyy", CultureInfo.InvariantCulture);
+                                                                experience.end_date = DateTime.ParseExact(value, "dd/MM/yyyy", CultureInfo.InvariantCulture);
                                                                 break;
                                                             case "8":
-                                                                experience.title = value.ToString();
+                                                                experience.title = value;
                                                                 break;
                                                             case "9":
-                                                                experience.wage = value.ToString();
+                                                                experience.wage = value;
                                                                 break;
                                                             case "10":
-                                                                experience.description = value.ToString();
+                                                                experience.description = value;
                                                                 break;
                                                             case "11":
-                                                                experience.reason = value.ToString();
+                                                                experience.reason = value;
                                                                 break;
                                                             case "12":
-                                                                experience.wage = value.ToString();
+                                                                experience.wage = value;
                                                                 break;
                                                             case "13":
-                                                                experience.reference_name = value.ToString();
+                                                                experience.reference_name = value;
                                                                 break;
                                                             case "14":
-                                                                experience.reference_phone = value.ToString();
+                                                                experience.reference_phone = value;
                                                                 break;
                                                             case "15":
                                                                 break;
@@ -2703,6 +2721,7 @@ namespace API.Controllers.HRM.Profile
                                             List<hrm_reward> rewards = new List<hrm_reward>();
                                             for (int r = 4; r <= sheet.Dimension.End.Row; r++)
                                             {
+                                                error_row = r;
                                                 if (sheet.Cells[r, 2].Value == null)
                                                 {
                                                     break;
@@ -2715,14 +2734,16 @@ namespace API.Controllers.HRM.Profile
                                                         break;
                                                     }
                                                     var column = sheet.Cells[3, c].Value;
-                                                    var value = sheet.Cells[r, c].Value;
-                                                    if (value != null)
+                                                    error_column = int.Parse(column.ToString() ?? c.ToString());
+                                                    var vl = sheet.Cells[r, c].Value;
+                                                    if (vl != null)
                                                     {
+                                                        string value = vl.ToString().Trim();
                                                         switch (column)
                                                         {
                                                             case "2":
                                                                 reward.reward_type = 1;
-                                                                var p = await db.hrm_profile.FirstOrDefaultAsync(x => x.profile_code == value.ToString());
+                                                                var p = await db.hrm_profile.FirstOrDefaultAsync(x => x.profile_code == value);
                                                                 if (p != null)
                                                                 {
                                                                     reward.reward_name = p.profile_id;
@@ -2731,15 +2752,15 @@ namespace API.Controllers.HRM.Profile
                                                             case "3":
                                                                 break;
                                                             case "4":
-                                                                reward.decision_date = DateTime.ParseExact(value.ToString(), "dd/MM/yyyy", CultureInfo.InvariantCulture);
+                                                                reward.decision_date = DateTime.ParseExact(value, "dd/MM/yyyy", CultureInfo.InvariantCulture);
                                                                 break;
                                                             case "5":
                                                                 break;
                                                             case "6":
-                                                                reward.reward_number = value.ToString();
+                                                                reward.reward_number = value;
                                                                 break;
                                                             case "7":
-                                                                var reward_level_name = value.ToString();
+                                                                var reward_level_name = value;
                                                                 var reward_level_exists = await db.hrm_ca_reward_level.FirstOrDefaultAsync(x => x.reward_level_name == reward_level_name);
                                                                 if (reward_level_exists != null)
                                                                 {
@@ -2747,7 +2768,7 @@ namespace API.Controllers.HRM.Profile
                                                                 }
                                                                 break;
                                                             case "8":
-                                                                var reward_title_name = value.ToString();
+                                                                var reward_title_name = value;
                                                                 var reward_title_exists = await db.hrm_ca_reward_title.FirstOrDefaultAsync(x => x.reward_title_name == reward_title_name);
                                                                 if (reward_title_exists != null)
                                                                 {
@@ -2755,13 +2776,13 @@ namespace API.Controllers.HRM.Profile
                                                                 }
                                                                 break;
                                                             case "9":
-                                                                reward.reward_content = value.ToString();
+                                                                reward.reward_content = value;
                                                                 break;
                                                             case "10":
-                                                                reward.decision_place = value.ToString();
+                                                                reward.decision_place = value;
                                                                 break;
                                                             case "11":
-                                                                var ps = await db.hrm_profile.FirstOrDefaultAsync(x => x.profile_code == value.ToString());
+                                                                var ps = await db.hrm_profile.FirstOrDefaultAsync(x => x.profile_code == value);
                                                                 if (ps != null)
                                                                 {
                                                                     reward.signer = ps.profile_id;
@@ -2796,7 +2817,7 @@ namespace API.Controllers.HRM.Profile
                         }
                         catch (Exception e)
                         {
-                            return Request.CreateResponse(HttpStatusCode.OK, new { err = "1", ms = $"Lỗi định dạng dữ liệu tại dòng thứ {error_row}, cột thứ {error_column}" });
+                            return Request.CreateResponse(HttpStatusCode.OK, new { err = "1", ms = $"Lỗi định dạng dữ liệu tại trang thứ {error_sheet}, dòng thứ {error_row}, cột thứ {error_column}!", mss = e });
                         }
                     }
                 }
