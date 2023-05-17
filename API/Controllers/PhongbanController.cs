@@ -153,7 +153,7 @@ namespace Controllers
                         model.modified_date = DateTime.Now;
                         model.modified_ip = ip;
                         var parent = db.sys_organization.FirstOrDefault(x => x.organization_id == model.parent_id);
-                        if (parent == null && parent.is_level == null) model.is_level = 0;
+                        if (parent == null) model.is_level = 0;
                         else model.is_level = parent.is_level + 1;
                         db.sys_organization.Add(model);
                         db.SaveChanges();
