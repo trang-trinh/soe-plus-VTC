@@ -1,7 +1,7 @@
 <script setup>
 import { ref, inject, onMounted } from "vue";
 import { useToast } from "vue-toastification";
-import ClassicEditor from "@ckeditor/ckeditor5-build-classic";
+ 
 import { encr, checkURL } from "../../../util/function.js";
 //Khai báo
 const router = inject("router");
@@ -77,7 +77,7 @@ const loadOrg = () => {
 const listDropdownUser = ref();
 const listUsers = ref([]);
 
-const loadUser = () => {
+const updateData = () => {
   listUsers.value = [];
   listDropdownUser.value = [];
   axios
@@ -110,7 +110,12 @@ const loadOrganization = (value) => {
         str: encr(
           JSON.stringify({
             proc: "hrm_config_contact_get",
-            par: [{ par: "user_id", va: store.getters.user.user_id }],
+            par: [{ par: "user_id", va: store.getters.user.user_id },
+            { par: "is_active", va: true},
+            { par: "year", va: null }
+          
+          
+          ],
           }),
           SecretKey,
           cryoptojs
@@ -121,8 +126,48 @@ const loadOrganization = (value) => {
     .then((response) => {
       let data = JSON.parse(response.data.data)[0];
       if (data.length > 0) {
+       
         config_contact.value = data[0];
-        debugger
+        if( config_contact.value.year){
+          config_contact.value.year_fake= new Date('01/01/'+ config_contact.value.year);
+        }
+      
+      }
+    })
+    .catch((error) => {
+      options.value.loading = false;
+    });
+};
+const onChangeOrganization = () => {
+  axios
+    .post(
+      baseURL + "/api/device_card/getData",
+      {
+        str: encr(
+          JSON.stringify({
+            proc: "hrm_config_contact_get",
+            par: [{ par: "user_id", va: store.getters.user.user_id },
+            { par: "is_active", va: null},
+            { par: "year", va: config_contact.value.year_fake.getFullYear() }
+          
+          
+          ],
+          }),
+          SecretKey,
+          cryoptojs
+        ).toString(),
+      },
+      config
+    )
+    .then((response) => {
+      let data = JSON.parse(response.data.data)[0];
+      if (data.length > 0) {
+       
+        config_contact.value = data[0];
+        if( config_contact.value.year){
+          config_contact.value.year_fake= new Date('01/01/'+ config_contact.value.year);
+        }
+      
       }
     })
     .catch((error) => {
@@ -133,7 +178,9 @@ const config_contact = ref({});
 
 const saveDeConfig = () => {
   let formData = new FormData();
-
+  if(config_contact.value.year_fake){
+    config_contact.value.year=config_contact.value.year_fake.getFullYear();
+  }
   formData.append("hrm_config_contact", JSON.stringify(config_contact.value));
 
   axios
@@ -164,7 +211,7 @@ const saveDeConfig = () => {
 
 onMounted(() => {
   loadOrg();
-  loadUser();
+  updateData();
   return {
     isFirst,
     options,
@@ -175,28 +222,122 @@ onMounted(() => {
 <template>
   <div class="d-container p-0 w-full p-8 m-2" style="padding: 0 15% !important">
     <div class="form formgrid p-0 w-full">
-      <div class="col-12 p-0 flex align-items-center font-bold">Danh bạ</div>
-    </div>
-    <div class="col-12 field p-0 pt-4 flex align-items-center">
-      <div class="col-6 p-0">Không hiển thị ngày sinh của cá nhân</div>
-      <div class="col-6 p-0">
-        <InputSwitch
-          class="w-4rem lck-checked"
-          v-model="config_contact.is_date_of_birth"
-        />
+      <div class="col-12 p-0 pt-4   flex align-items-center">
+        <div class="col-8 p-0">
+          <Toolbar class="custoolbar">
+            <template #start>
+              <div class="font-bold ">Năm áp dụng</div>
+            </template>
+            <template #end>
+              <div> 
+                <Calendar
+                  v-model="config_contact.year_fake"
+                  class="d-design-calendar"
+                  view="year"
+                  dateFormat="yy"
+                  @date-select="onChangeOrganization()"
+                />
+              </div>
+            </template>
+          </Toolbar>
+        </div>
       </div>
-    </div>
-    <div class="col-12 field p-0  flex align-items-center">
-      <div class="col-6 p-0">Không hiển thị số điện thoại của cá nhân</div>
-      <div class="col-6 p-0">
-        <InputSwitch
-          class="w-4rem lck-checked"
-          v-model="config_contact.is_phone_number"
-        />
+      <div class="col-12 p-0 flex align-items-center">
+        <div class="col-8 p-0">
+          <Toolbar class="custoolbar">
+            <template #start>
+              <div class="font-bold">Độ tuổi quy định được nghỉ hưu</div>
+            </template>
+    
+          </Toolbar>
+        </div>
       </div>
-    </div>
-    <div class="col-12 style-vb-3 py-4 text-center format-center">
-      <Button @click="saveDeConfig()">Cập nhật</Button>
+ 
+      <div class="col-12 p-0 flex align-items-center">
+        <div class="col-8 p-0">
+          <Toolbar class="custoolbar">
+            <template #start>
+              <div>Nam giới</div>
+            </template>
+            <template #end>
+              <div>
+                <InputNumber
+                  class="w-full d-design-inputnumber"
+                  v-model="config_contact.male_retirement"
+                  mode="decimal"
+                  :useGrouping="false"
+                />
+              </div>
+            </template>
+          </Toolbar>
+        </div>
+      </div>
+      <div class="col-12 p-0 flex align-items-center">
+        <div class="col-8 p-0">
+          <Toolbar class="custoolbar">
+            <template #start>
+              <div>Nữ giới</div>
+            </template>
+            <template #end>
+              <div>
+                <InputNumber
+                  class="w-full d-design-inputnumber"
+                  v-model="config_contact.female_retirement"
+                  mode="decimal"
+                  :useGrouping="false"
+                />
+              </div>
+            </template>
+          </Toolbar>
+        </div>
+      </div>
+      <div class="col-12 p-0 flex align-items-center">
+        <div class="col-8 p-0">
+          <Toolbar class="custoolbar">
+            <template #start>
+              <div class="font-bold">Danh bạ</div>
+            </template>
+          </Toolbar>
+        </div>
+      </div>
+      <div class="col-12 p-0 flex align-items-center">
+        <div class="col-8 p-0">
+          <Toolbar class="custoolbar">
+            <template #start>
+              <div>Không hiển thị ngày sinh của cá nhân</div>
+            </template>
+            <template #end>
+              <div>
+                <InputSwitch
+                  class="w-4rem lck-checked"
+                  v-model="config_contact.is_date_of_birth"
+                />
+              </div>
+            </template>
+          </Toolbar>
+        </div>
+      </div>
+      <div class="col-12 p-0 flex align-items-center">
+        <div class="col-8 p-0">
+          <Toolbar class="custoolbar">
+            <template #start>
+              <div>Không hiển thị số điện thoại của cá nhân</div>
+            </template>
+            <template #end>
+              <div>
+                <InputSwitch
+                  class="w-4rem lck-checked"
+                  v-model="config_contact.is_phone_number"
+                />
+              </div>
+            </template>
+          </Toolbar>
+        </div>
+      </div>
+
+      <div class="col-12 style-vb-3 py-4 text-center format-center">
+        <Button @click="saveDeConfig()">Cập nhật</Button>
+      </div>
     </div>
   </div>
 </template>

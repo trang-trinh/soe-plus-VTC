@@ -789,7 +789,7 @@ onMounted(() => {
   left: 450px;
 }
 </style>
-<style>
+<style scoped>
 #project-calendar .table thead tr th .p-calendar-w-btn .p-inputtext {
   border: none !important;
   background-color: #f8f9fa;

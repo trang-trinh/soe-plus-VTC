@@ -26,7 +26,27 @@ const config = {
 };
 const options = ref({
     loading: true,
+    tab: null,
+    type_tab: null,
 });
+const bgColor = ref([
+    "#F8E69A",
+    "#AFDFCF",
+    "#F4B2A3",
+    "#9A97EC",
+    "#CAE2B0",
+    "#8BCFFB",
+    "#CCADD7",
+]);
+const listStatusRequests = ref([
+    { id: 0, text: "Mới lập", class: "rqlap" },
+    { id: 1, text: "Chờ duyệt", class: "rqchoduyet" },
+    { id: 2, text: "Chấp thuận", class: "rqchapthuan" },
+    { id: -2, text: "Từ chối", class: "rqtuchoi" },
+    { id: -1, text: "Hủy", class: "rqhuy" },
+    { id: 3, text: "Thu hồi", class: "rqthuhoi" },
+    { id: -3, text: "Xóa", class: "rqxoa" }
+]);
 const counts = ref({
     count_cho_toi_duyet: 0,
     count_so_phieu_danh_gia: 0,
@@ -69,26 +89,29 @@ const optionsChartPie2 = {
 const list_cho_duyets = ref([]);
 const list_hoan_thanhs = ref([]);
 const list_qua_hans = ref([]);
-const isShowSidebar = ref(false);
 const showSidebarRequest = ref(false);
 // const PositionSideBar = ref('right');
-const goToView = () => {
-    isShowSidebar.value = true;
-}
-const goToSidebarDetail = () => {
-    // isShowSidebarDetail.value = true;
-}
-const goRouter = () => {
-
-}
 // component request
+const goToView = (tab, type) => {
+    showSidebarRequest.value = true;
+    options.value.tab = tab;
+    options.value.type_tab = type;
+}
+emitter.on("SideBarListRequest", (obj) => {
+    showSidebarRequest.value = false;
+});
+const goRouter = () => {}
 emitter.on("SideBarRequest", (obj) => {
     showDetailRequest.value = false;
     selectedRequestID.value = null;
 });
 const PositionSideBar = ref('right');
+const PositionSideBar1 = ref('right');
 emitter.on("psbRequest", (obj) => {
     PositionSideBar.value = obj;
+});
+emitter.on("psbRequest1", (obj) => {
+    PositionSideBar1.value = obj;
 });
 const cpnDetailRequest = ref(0);
 const forceRerenderDetail = () => {
@@ -104,7 +127,8 @@ const hideall = () => {
             //router.go(0);
         });
     } else {
-        listRequest(true);
+        loadRequestDashBoardCount();
+        loadRequestDashBoardList();
     }
 };
 const openViewRequest = (dataRequest) => {
@@ -144,7 +168,6 @@ const loadRequestDashBoardCount = () => {
                 counts.value.count_toi_theo_doi = data[0][5].count;
                 counts.value.count_da_hoan_thanh = data[0][3].count;
                 counts.value.count_da_qua_han = data[0][4].count;
-
                 let data1 = 0;
                 let data2 = 0;
                 let data3 = 0;
@@ -243,13 +266,74 @@ const loadRequestDashBoardList = () => {
             if (response != null && response.data != null) {
                 let data = JSON.parse(response.data.data);
                 list_cho_duyets.value = data[0].filter(x => x.type_request == 1);
-                //fake data
-                list_cho_duyets.value = [
-                    {request_code:'123', request_name: 'Đơn xin nghỉ', content:'Nội dung', created_date: new Date(), Members:[]}
-                ]
-                //end
                 list_hoan_thanhs.value = data[0].filter(x => x.type_request == 2);
                 list_qua_hans.value = data[0].filter(x => x.type_request == 3);
+                //fake data
+                // list_cho_duyets.value = [
+                //     {
+                //         request_code: '123', request_id: '0A28D5C3352D480CB6FBD0708FF47E94', request_name: 'Đơn xin nghỉ', content: 'Nội dung', created_date: new Date(), Members: [
+                //             { user_id: '123', full_name: 'Trịnh Văn Tráng', last_name: 'Tráng', avatar: null },
+                //             { user_id: '1234', full_name: 'Trịnh Văn A', last_name: 'A', avatar: null },
+                //             { user_id: '12345', full_name: 'Trịnh Văn B', last_name: 'B', avatar: null },
+                //             { user_id: '123456', full_name: 'Trịnh Văn C', last_name: 'C', avatar: null },
+                //             { user_id: '1234567', full_name: 'Trịnh Văn D', last_name: 'D', avatar: null },
+                //             { user_id: '12345678', full_name: 'Trịnh Văn E', last_name: 'E', avatar: null },
+                //             { user_id: '123456789', full_name: 'Trịnh Văn F', last_name: 'F', avatar: null }
+                //         ]
+                //     }
+                // ];
+                list_cho_duyets.value.forEach((element) => {
+                    element.MemberShows = [];
+                    if (element.Members.length > 5) {
+                        element.MemberShows = element.Members.slice(0, 5);
+                    } else {
+                        element.MemberShows = [...element.Members];
+                    }
+                })
+                // list_hoan_thanhs.value = [
+                //     {
+                //         request_code: '123', request_id: '0A28D5C3352D480CB6FBD0708FF47E94', request_name: 'Đơn xin nghỉ', content: 'Nội dung', created_date: new Date(), Members: [
+                //             { user_id: '123', full_name: 'Trịnh Văn Tráng', last_name: 'Tráng', avatar: null },
+                //             { user_id: '1234', full_name: 'Trịnh Văn A', last_name: 'A', avatar: null },
+                //             { user_id: '12345', full_name: 'Trịnh Văn B', last_name: 'B', avatar: null },
+                //             { user_id: '123456', full_name: 'Trịnh Văn C', last_name: 'C', avatar: null },
+                //             { user_id: '1234567', full_name: 'Trịnh Văn D', last_name: 'D', avatar: null },
+                //             { user_id: '12345678', full_name: 'Trịnh Văn E', last_name: 'E', avatar: null },
+                //             { user_id: '123456789', full_name: 'Trịnh Văn F', last_name: 'F', avatar: null }
+                //         ]
+                //     }
+                // ];
+                list_hoan_thanhs.value.forEach((element) => {
+                    element.MemberShows = [];
+                    if (element.Members.length > 5) {
+                        element.MemberShows = element.Members.slice(0, 5);
+                    } else {
+                        element.MemberShows = [...element.Members];
+                    }
+                })
+                // list_qua_hans.value = [
+                //     {
+                //         request_code: '123', request_id: '0A28D5C3352D480CB6FBD0708FF47E94', request_name: 'Đơn xin nghỉ', content: 'Nội dung', created_date: new Date(), Members: [
+                //             { user_id: '123', full_name: 'Trịnh Văn Tráng', last_name: 'Tráng', avatar: null },
+                //             { user_id: '1234', full_name: 'Trịnh Văn A', last_name: 'A', avatar: null },
+                //             { user_id: '12345', full_name: 'Trịnh Văn B', last_name: 'B', avatar: null },
+                //             { user_id: '123456', full_name: 'Trịnh Văn C', last_name: 'C', avatar: null },
+                //             { user_id: '1234567', full_name: 'Trịnh Văn D', last_name: 'D', avatar: null },
+                //             { user_id: '12345678', full_name: 'Trịnh Văn E', last_name: 'E', avatar: null },
+                //             { user_id: '123456789', full_name: 'Trịnh Văn F', last_name: 'F', avatar: null }
+                //         ]
+                //     }
+                // ];
+                list_qua_hans.value.forEach((element) => {
+                    element.title_quahan = "Quá hạn 2 giờ";
+                    element.MemberShows = [];
+                    if (element.Members.length > 5) {
+                        element.MemberShows = element.Members.slice(0, 5);
+                    } else {
+                        element.MemberShows = [...element.Members];
+                    }
+                })
+                //end
             }
             swal.close();
             if (options.value.loading) options.value.loading = false;
@@ -283,7 +367,7 @@ onMounted(() => {
                             <div class="card m-1" style="height: 98%;">
                                 <div class="card-body p-0" style="height: max-content">
                                     <div class="d-grid formgrid" style="height: 100%;">
-                                        <div class="col-4 md:col-4" @click="goToView()">
+                                        <div class="col-4 md:col-4" @click="goToView(2,1)">
                                             <div class="card zoom" style="background-color: #33c9dc; color: #fff;"
                                                 @click="goRouter('calendarenact')">
                                                 <div class="card-body">
@@ -296,7 +380,7 @@ onMounted(() => {
                                                 </div>
                                             </div>
                                         </div>
-                                        <div class="col-4 md:col-4" @click="goToView()">
+                                        <div class="col-4 md:col-4" @click="goToView(101)">
                                             <div class="card zoom" style="background-color: #f5b041; color: #fff"
                                                 @click="goRouter('docreceive')">
                                                 <div class="card-body">
@@ -309,7 +393,7 @@ onMounted(() => {
                                                 </div>
                                             </div>
                                         </div>
-                                        <div class="col-4 md:col-4" @click="goToView()">
+                                        <div class="col-4 md:col-4" @click="goToView(2,2)">
                                             <div class="card zoom" style="background-color: #33c9dc; color: #fff"
                                                 @click="goRouter('taskmain')">
                                                 <div class="card-body">
@@ -322,7 +406,7 @@ onMounted(() => {
                                                 </div>
                                             </div>
                                         </div>
-                                        <div class="col-4 md:col-4" @click="goToView()">
+                                        <div class="col-4 md:col-4" @click="goToView(3)">
                                             <div class="card zoom" style="background-color: #2196f3; color: #fff"
                                                 @click="goRouter('bookingmeal')">
                                                 <div class="card-body">
@@ -335,7 +419,7 @@ onMounted(() => {
                                                 </div>
                                             </div>
                                         </div>
-                                        <div class="col-4 md:col-4" @click="goToView()">
+                                        <div class="col-4 md:col-4" @click="goToView(100)">
                                             <div class="card zoom" style="background-color: #74b9ff; color: #fff"
                                                 @click="goRouter('chat_message')">
                                                 <div class="card-body">
@@ -348,7 +432,7 @@ onMounted(() => {
                                                 </div>
                                             </div>
                                         </div>
-                                        <div class="col-4 md:col-4" @click="goToView()">
+                                        <div class="col-4 md:col-4" @click="goToView(4)">
                                             <div class="card zoom" style="background-color: #f17ac7; color: #fff"
                                                 @click="goRouter('lawmain')">
                                                 <div class="card-body">
@@ -361,7 +445,7 @@ onMounted(() => {
                                                 </div>
                                             </div>
                                         </div>
-                                        <div class="col-4 md:col-4" @click="goToView()">
+                                        <div class="col-4 md:col-4" @click="goToView(16)">
                                             <div class="card zoom" style="background-color: blueviolet; color: #fff"
                                                 @click="goRouter('lawmain')">
                                                 <div class="card-body">
@@ -374,7 +458,7 @@ onMounted(() => {
                                                 </div>
                                             </div>
                                         </div>
-                                        <div class="col-4 md:col-4" @click="goToView()">
+                                        <div class="col-4 md:col-4" @click="goToView(5)">
                                             <div class="card zoom" style="background-color: #6dd230; color: #fff"
                                                 @click="goRouter('lawmain')">
                                                 <div class="card-body">
@@ -387,7 +471,7 @@ onMounted(() => {
                                                 </div>
                                             </div>
                                         </div>
-                                        <div class="col-4 md:col-4" @click="goToView()">
+                                        <div class="col-4 md:col-4" @click="goToView(6)">
                                             <div class="card zoom" style="background-color: #ff8b4e; color: #fff"
                                                 @click="goRouter('lawmain')">
                                                 <div class="card-body">
@@ -468,22 +552,25 @@ onMounted(() => {
                                                                 <div class="col-12 md:col-12">
                                                                     <span
                                                                         style="padding: 2px 10px;border: 1px solid #0078d4;background-color: #0078d4;color: #fff;border-radius: 5px;">NP04.23.0539</span>
-                                                                    <label style="margin-left: 5px;font-weight: bold;">{{ l.request_name }}</label>
+                                                                    <label style="margin-left: 5px;font-weight: bold;">{{
+                                                                        l.request_name }}</label>
                                                                 </div>
                                                                 <div class="col-12 md:col-12"
                                                                     style="display: flex;align-items: center;padding-top: 0px !important;">
                                                                     <div
                                                                         style="display: flex; flex: 1;font-size: 12px;color: #98a9bc;">
-                                                                        <span>Ngày lập: {{ moment(new Date(l.created_date)).format("HH:mm DD/MM/YYYY") }}</span>
+                                                                        <span>Ngày lập: {{ moment(new
+                                                                            Date(l.created_date)).format("HH:mm DD/MM/YYYY")
+                                                                        }}</span>
                                                                     </div>
                                                                     <!-- <span
                                                                         style=" background-color: #ff8b4e;font-size: 10px;padding: 5px 5px;color: #fff;border-radius: 5px;height: fit-content;">Quá
                                                                         hạn 0 giờ</span> -->
                                                                 </div>
                                                             </div>
-                                                            <div v-if="l.Members.length > 0">
+                                                            <div v-if="l.MemberShows.length > 0" style="margin-left: 15px;">
                                                                 <AvatarGroup>
-                                                                    <div v-for="(value, index) in l.Members"
+                                                                    <div v-for="(value, index) in l.MemberShows"
                                                                         :key="index">
                                                                         <div>
                                                                             <Avatar v-tooltip.bottom="{
@@ -507,9 +594,9 @@ onMounted(() => {
 								                  }" class="cursor-pointer" size="xlarge" shape="circle" />
                                                                         </div>
                                                                     </div>
-                                                                    <Avatar v-if="l.requestGroup2.length > 0
+                                                                    <Avatar v-if="l.MemberShows.length > 0
                                                                         " :label="'+' +
-        (l.requestGroup2.length) +
+        (l.Members.length - l.MemberShows.length) +
         ''
         " class="cursor-pointer" shape="circle" style="
 								                background-color: #e9e9e9 !important;
@@ -552,28 +639,71 @@ onMounted(() => {
                                                 class="scroll-outer" v-if="list_hoan_thanhs.length > 0">
                                                 <div class="scroll-inner">
                                                     <ul>
-                                                        <li>
+                                                        <li v-for="l in list_hoan_thanhs">
                                                             <div>
                                                                 <div class="col-12 md:col-12">
                                                                     <span
                                                                         style="padding: 2px 10px;border: 1px solid #0078d4;background-color: #0078d4;color: #fff;border-radius: 5px;">NP04.23.0539</span>
-                                                                    <label style="margin-left: 5px;font-weight: bold;">Xin
-                                                                        nghỉ
-                                                                        phép</label>
+                                                                    <label style="margin-left: 5px;font-weight: bold;">{{
+                                                                        l.request_name }}</label>
                                                                 </div>
                                                                 <div class="col-12 md:col-12"
                                                                     style="display: flex;align-items: center;padding-top: 0px !important;">
                                                                     <div
                                                                         style="display: flex; flex: 1;font-size: 12px;color: #98a9bc;">
-                                                                        <span>Ngày lập: 10:17 02/02/2023</span>
+                                                                        <span>Ngày lập: {{ moment(new
+                                                                            Date(l.created_date)).format("HH:mm DD/MM/YYYY")
+                                                                        }}</span>
                                                                     </div>
-                                                                    <span
+                                                                    <!-- <span
                                                                         style=" background-color: #ff8b4e;font-size: 10px;padding: 5px 5px;color: #fff;border-radius: 5px;height: fit-content;">Quá
-                                                                        hạn 0 giờ</span>
+                                                                        hạn 0 giờ</span> -->
                                                                 </div>
                                                             </div>
-                                                            <div>
-
+                                                            <div v-if="l.MemberShows.length > 0"
+                                                                style="margin-left: 15px;display: flex;align-items: center;">
+                                                                <AvatarGroup>
+                                                                    <div v-for="(value, index) in l.MemberShows"
+                                                                        :key="index">
+                                                                        <div>
+                                                                            <Avatar v-tooltip.bottom="{
+                                                                                value:
+                                                                                    value.full_name +
+                                                                                    '<br/>' +
+                                                                                    (value.department_name || '') +
+                                                                                    '<br/>' +
+                                                                                    (value.position_name || ''),
+                                                                                escape: true,
+                                                                            }" v-bind:label="value.avatar ? '' : (value.last_name ?? '').substring(0, 1)
+    " v-bind:image="basedomainURL + value.avatar" style="
+								                    background-color: #2196f3;
+								                    color: #ffffff;
+								                    width: 32px;
+								                    height: 32px;
+								                    font-size: 15px !important;
+								                    margin-left: -10px;
+								                  " :style="{
+								                      background: bgColor[index % 7] + '!important',
+								                  }" class="cursor-pointer" size="xlarge" shape="circle" />
+                                                                        </div>
+                                                                    </div>
+                                                                    <Avatar v-if="l.MemberShows.length > 0
+                                                                        " :label="'+' +
+        (l.Members.length - l.MemberShows.length) +
+        ''
+        " class="cursor-pointer" shape="circle" style="
+								                background-color: #e9e9e9 !important;
+								                color: #98a9bc;
+								                font-size: 14px !important;
+								                width: 32px;
+								                margin-left: -10px;
+								                height: 32px;
+								              " />
+                                                                </AvatarGroup>
+                                                                <div style="width: 100px; margin-left: 10px;"
+                                                                    class="progressbar-hoanthanh">
+                                                                    <ProgressBar :value="100" />
+                                                                </div>
                                                             </div>
                                                         </li>
                                                     </ul>
@@ -606,28 +736,67 @@ onMounted(() => {
                                                 class="scroll-outer" v-if="list_qua_hans.length > 0">
                                                 <div class="scroll-inner">
                                                     <ul>
-                                                        <li @click="goToSidebarDetail()">
+                                                        <li v-for="l in list_qua_hans" @click="openViewRequest(l)">
                                                             <div>
                                                                 <div class="col-12 md:col-12">
                                                                     <span
                                                                         style="padding: 2px 10px;border: 1px solid #0078d4;background-color: #0078d4;color: #fff;border-radius: 5px;">NP04.23.0539</span>
-                                                                    <label style="margin-left: 5px;font-weight: bold;">Xin
-                                                                        nghỉ
-                                                                        phép</label>
+                                                                    <label style="margin-left: 5px;font-weight: bold;">{{
+                                                                        l.request_name }}</label>
                                                                 </div>
                                                                 <div class="col-12 md:col-12"
                                                                     style="display: flex;align-items: center;padding-top: 0px !important;">
                                                                     <div
                                                                         style="display: flex; flex: 1;font-size: 12px;color: #98a9bc;">
-                                                                        <span>Ngày lập: 10:17 02/02/2023</span>
+                                                                        <span>Ngày lập: {{ moment(new
+                                                                            Date(l.created_date)).format("HH:mm DD/MM/YYYY")
+                                                                        }}</span>
                                                                     </div>
                                                                     <span
-                                                                        style=" background-color: #ff8b4e;font-size: 10px;padding: 5px 5px;color: #fff;border-radius: 5px;height: fit-content;">Quá
-                                                                        hạn 0 giờ</span>
+                                                                        style=" background-color: #ff8b4e;font-size: 10px;padding: 5px 5px;color: #fff;border-radius: 5px;height: fit-content;">{{
+                                                                            l.title_quahan }}</span>
                                                                 </div>
                                                             </div>
-                                                            <div>
-
+                                                            <div v-if="l.MemberShows.length > 0"
+                                                                style="margin-left: 15px;display: flex;align-items: center;">
+                                                                <AvatarGroup>
+                                                                    <div v-for="(value, index) in l.MemberShows"
+                                                                        :key="index">
+                                                                        <div>
+                                                                            <Avatar v-tooltip.bottom="{
+                                                                                value:
+                                                                                    value.full_name +
+                                                                                    '<br/>' +
+                                                                                    (value.department_name || '') +
+                                                                                    '<br/>' +
+                                                                                    (value.position_name || ''),
+                                                                                escape: true,
+                                                                            }" v-bind:label="value.avatar ? '' : (value.last_name ?? '').substring(0, 1)
+    " v-bind:image="basedomainURL + value.avatar" style="
+								                    background-color: #2196f3;
+								                    color: #ffffff;
+								                    width: 32px;
+								                    height: 32px;
+								                    font-size: 15px !important;
+								                    margin-left: -10px;
+								                  " :style="{
+								                      background: bgColor[index % 7] + '!important',
+								                  }" class="cursor-pointer" size="xlarge" shape="circle" />
+                                                                        </div>
+                                                                    </div>
+                                                                    <Avatar v-if="l.MemberShows.length > 0
+                                                                        " :label="'+' +
+        (l.Members.length - l.MemberShows.length) +
+        ''
+        " class="cursor-pointer" shape="circle" style=" 
+								                background-color: #e9e9e9 !important;
+								                color: #98a9bc;
+								                font-size: 14px !important;
+								                width: 32px;
+								                margin-left: -10px;
+								                height: 32px;
+								              " />
+                                                                </AvatarGroup>
                                                             </div>
                                                         </li>
                                                     </ul>
@@ -649,16 +818,16 @@ onMounted(() => {
         </div>
     </div>
 
-    <Sidebar class="sidebar-request" v-model:visible="isShowSidebar" :position="PositionSideBar" :style="{
+    <Sidebar class="sidebar-request" v-model:visible="showSidebarRequest" :position="PositionSideBar1" :style="{
         width:
-            PositionSideBar == 'right'
+            PositionSideBar1 == 'right'
                 ? width1 > 1800
                     ? ' 60vw'
                     : '80vw'
                 : '100vw',
         'height': '101vh !important',
     }" :showCloseIcon="false">
-        <SidebarViewRequest :isShow="showSidebarRequest" :turn="0">
+        <SidebarViewRequest :isShow="showSidebarRequest" :turn="0" :counts="counts" :tab="options.tab" :type_tab="options.type_tab">
         </SidebarViewRequest>
     </Sidebar>
     <Sidebar class="sidebar-request" v-model:visible="showDetailRequest" :position="'right'" :style="{
@@ -670,6 +839,16 @@ onMounted(() => {
         </DetailedRequest>
     </Sidebar>
 </template>
+<style>
+.progressbar-hoanthanh .p-progressbar .p-progressbar-value {
+    background-color: #6dd230 !important;
+}
+
+.progressbar-hoanthanh .p-progressbar {
+    height: 1.2rem !important;
+    font-size: 11px;
+}
+</style>
 <style scoped>
 .dashboard {
     /* overflow: auto;

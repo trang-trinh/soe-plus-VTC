@@ -54,7 +54,7 @@ const loadCount = () => {
       {
         str: encr(
           JSON.stringify({
-            proc: "hrm_declare_count",
+            proc: "hrm_declare_review_form_count",
             par: [
               { par: "search", va: options.value.search },
               { par: "type", va: options.value.typeDeclare },
@@ -524,7 +524,7 @@ const saveData = (isFormValid) => {
 
   if (declare.value.countryside_fake)
     declare.value.countryside = declare.value.countryside_fake;
-  formData.append("hrm_declare", JSON.stringify(declare.value));
+  formData.append("hrm_declare_review_form", JSON.stringify(declare.value));
   swal.fire({
     width: 110,
     didOpen: () => {
@@ -533,12 +533,12 @@ const saveData = (isFormValid) => {
   });
   if (!isSaveTem.value) {
     axios
-      .post(baseURL + "/api/hrm_declare/add_hrm_declare", formData, config)
+      .post(baseURL + "/api/hrm_declare_review_form/add_hrm_declare_review_form", formData, config)
       .then((response) => {
         if (response.data.err != "1") {
           swal.close();
           toast.success("Thêm mẫu biểuthành công!");
-          loadData(true);
+         
 
           closeDialog();
         } else {
@@ -561,7 +561,7 @@ const saveData = (isFormValid) => {
       });
   } else {
     axios
-      .put(baseURL + "/api/hrm_declare/update_hrm_declare", formData, config)
+      .put(baseURL + "/api/hrm_declare_review_form/update_hrm_declare_review_form", formData, config)
       .then((response) => {
         if (response.data.err != "1") {
           swal.close();
@@ -660,7 +660,7 @@ const delTem = (Tem) => {
         });
 
         axios
-          .delete(baseURL + "/api/hrm_declare/delete_hrm_declare", {
+          .delete(baseURL + "/api/hrm_declare_review_form/delete_hrm_declare_review_form", {
             headers: { Authorization: `Bearer ${store.getters.token}` },
             data: Tem != null ? [Tem.review_form_id] : 1,
           })
@@ -730,7 +730,7 @@ const loadDataSQL = () => {
   };
   options.value.loading = true;
   axios
-    .post(baseURL + "/api/hrm_ca_SQL/Filter_hrm_declare", data, config)
+    .post(baseURL + "/api/hrm_ca_SQL/Filter_hrm_declare_review_form", data, config)
     .then((response) => {
       let dt = JSON.parse(response.data.data);
       let data = dt[0];
@@ -925,7 +925,7 @@ const deleteList = () => {
             listId.push(item.review_form_id);
           });
           axios
-            .delete(baseURL + "/api/hrm_declare/delete_hrm_declare", {
+            .delete(baseURL + "/api/hrm_declare_review_form/delete_hrm_declare_review_form", {
               headers: { Authorization: `Bearer ${store.getters.token}` },
               data: listId != null ? listId : 1,
             })
@@ -1251,7 +1251,7 @@ onMounted(() => {
   <div>
     <div class="p-3">
       <h2 class="module-title m-0">
-        <i class="pi pi-file-o text-lg"></i> Danh sách mẫu biểu
+        <i class="pi pi-file-o text-lg"></i> Danh sách mẫu biểu đánh giá
       </h2>
     </div>
     <div>
@@ -1608,33 +1608,34 @@ onMounted(() => {
     <Dialog
       :header="headerDialog"
       v-model:visible="displayBasic"
-      :style="{ width: '35vw' }"
+      :style="{ width: '45vw' }"
       :closable="true"
       :modal="true"
     >
       <form>
         <div class="grid formgrid m-2">
           <div class="field col-12 md:col-12">
-            <label class="col-3 text-left p-0"
+            <label class="w-10rem text-left p-0"
               >Tên mẫu biểu <span class="redsao">(*)</span></label
             >
             <InputText
               v-model="declare.review_form_name"
               spellcheck="false"
-              class="col-9 ip36 px-2"
+              style="width: calc(100% - 10rem);"
+              class=" p36 px-2"
               :class="{
                 'p-invalid': v$.review_form_name.$invalid && submitted,
               }"
             />
           </div>
-          <div style="display: flex" class="field col-12 md:col-12">
-            <div class="col-3 text-left"></div>
-            <small
-              v-if="
+          <div  class="field col-12 md:col-12 flex"    v-if="
                 (v$.review_form_name.$invalid && submitted) ||
                 v$.review_form_name.$pending.$response
-              "
-              class="col-9 p-error"
+              ">
+            <div class="w-10rem text-left"></div>
+            <small
+            style="width: calc(100% - 10rem);"
+              class="  p-error"
             >
               <span class="col-12 p-0">{{
                 v$.review_form_name.required.$message
@@ -1643,23 +1644,11 @@ onMounted(() => {
               }}</span>
             </small>
           </div>
-          <div class="col-12 field md:col-12 flex align-items-center">
-            <div class="col-3 text-left p-0">Loại phiếu</div>
-
-            <Dropdown
-              v-model="declare.declare_type"
-              :options="listDeclareType"
-              optionLabel="name"
-              optionValue="code"
-              placeholder="----- Chọn loại phiếu -----"
-              class="sel-placeholder col-9"
-              panelClass="d-design-dropdown"
-            />
-          </div>
+        
           <div class="col-12 field md:col-12 flex">
             <div class="field col-6 md:col-6 p-0 align-items-center flex">
-              <div class="col-6 text-left p-0">STT</div>
-              <InputNumber v-model="declare.is_order" class="col-6 ip36 p-0" />
+              <div class=" w-10rem text-left p-0">STT</div>
+              <InputNumber v-model="declare.is_order"   style="width: calc(100% - 10rem);" class=" ip36 p-0" />
             </div>
             <div class="field col-6 md:col-6 p-0 align-items-center flex">
               <div class="col-6 text-center p-0">Trạng thái</div>

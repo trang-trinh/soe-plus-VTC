@@ -434,10 +434,29 @@ const vaccines = ref([]);
 
 //data view 13
 const goPrint = (view) => {
-  forceRerender(3);
-  options.value.view = view;
-};
-
+  
+ 
+    let o = {
+      id: view == 13 ? 22 : view == 14 ? 20 : view == 15 ? 5 : 3,
+      par: { profile_id:  profile.value.profile_id },
+    };
+    let url = encodeURIComponent(
+      encr(JSON.stringify(o), SecretKey, cryoptojs).toString()
+    );
+    url =
+      "/report/" +
+      url.replaceAll("%", "==") +
+      "?v=" +
+      (new Date().getTime().toString());
+      if (router)
+    router.push({
+      path:
+        url,
+    });
+  // forceRerender(3);
+  // options.value.view = view;
+ 
+}
 //filter
 const goFile = (file) => {
   window.open(basedomainURL + file.file_path, "_blank");

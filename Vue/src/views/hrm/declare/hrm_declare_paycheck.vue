@@ -129,9 +129,11 @@ const loadData = (rf) => {
           element.STT = options.value.PageNo * options.value.PageSize + i + 1;
 
           if (element.report_key) {
-            element.report_key_name = listTypeContractSave.value.find(
+            var sec = listTypeContractSave.value.find(
               (x) => x.report_key == element.report_key
-            ).report_name;
+            );
+            if(sec)
+            element.report_key_name = sec.report_name;
           }
           if (element.listUsers) {
             element.listUsers = JSON.parse(element.listUsers);
@@ -180,7 +182,7 @@ const loadData = (rf) => {
       .catch((error) => {
         toast.error("Tải dữ liệu không thành công!");
         options.value.loading = false;
-
+        console.log(error);
         if (error && error.status === 401) {
           swal.fire({
             text: "Mã token đã hết hạn hoặc không hợp lệ, vui lòng đăng nhập lại!",
@@ -922,7 +924,7 @@ const initTuDien = () => {
     .catch((error) => {
       toast.error("Tải dữ liệu không thành công!");
       options.value.loading = false;
-
+console.log(error);
       if (error && error.status === 401) {
         swal.fire({
           text: "Mã token đã hết hạn hoặc không hợp lệ, vui lòng đăng nhập lại!",
@@ -1201,6 +1203,7 @@ onMounted(() => {
       >
         <template #body="data">
           <div>
+        
             <AvatarGroup>
               <Avatar
                 v-for="(item, index) in data.data.listUsers.slice(0, 4)"
@@ -1342,7 +1345,7 @@ onMounted(() => {
   <Dialog
     :header="headerDialog"
     v-model:visible="displayBasic"
-    :style="{ width: '35vw' }"
+    :style="{ width: '45vw' }"
     :closable="true"
     :modal="true"
   >

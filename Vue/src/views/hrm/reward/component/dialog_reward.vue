@@ -4,12 +4,21 @@ import { useToast } from "vue-toastification";
 import { required } from "@vuelidate/validators";
 import { useVuelidate } from "@vuelidate/core";
 import { encr, autoFillDate } from "../../../../util/function.js";
+import DropdownProfile from "../../component/DropdownProfile.vue";
 import moment from "moment";
 const cryoptojs = inject("cryptojs");
 const store = inject("store");
 const swal = inject("$swal");
 const axios = inject("axios");
 
+const getProfileUser=(user,obj)=>{
+ 
+ if (obj) {
+  reward.value[user]=obj.profile_id;
+     } else {
+      reward.value[user] = null;
+     }
+}
 const basedomainURL = baseURL;
 const config = {
   headers: {
@@ -739,6 +748,36 @@ onMounted(() => {
             >
           </small>
         </div>
+        <div class="col-12 field p-0 flex text-left align-items-center">
+          <div class="col-6 p-0 flex text-left align-items-center">
+            <div class="w-10rem">Người ký</div>
+            <div style="width: calc(100% - 10rem)">
+              <DropdownProfile
+                :model="reward.signer"
+                :placeholder="'Chọn người ký'"
+                :class="'w-full p-0'"
+                :editable="false"
+                optionLabel="profile_user_name"
+                optionValue="code"
+                :callbackFun="getProfileUser"
+                :key_user="'signer'"
+              />
+            </div>
+          </div>
+          <div
+            class="col-6 p-0 flex text-left align-items-center"
+            v-if="reward.reward_type != 3"
+          >
+            <div class="w-10rem pl-3">Nơi quyết định</div>
+            <div style="width: calc(100% - 10rem)">
+              <InputText
+                class="w-full"
+                v-model="reward.decision_place"
+               
+              />
+            </div>
+          </div>
+        </div>
         <div
           class="col-12 p-0"
           v-if="reward.reward_type == 1 || reward.reward_type == 3"
@@ -1107,6 +1146,7 @@ onMounted(() => {
             />
           </div>
         </div>
+        
         <div class="col-12 field p-0 text-lg font-bold">File đính kèm</div>
         <div class="w-full col-12 field p-0">
           <FileUpload
