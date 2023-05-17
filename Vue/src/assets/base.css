@@ -1351,9 +1351,9 @@ li.p-chips-token {
   height: unset !important;
 }
 /*Style chung cho min-w-Xrem*/
-.p-rowgroup-header,.p-datatable-thead{
+/* .p-rowgroup-header,.p-datatable-thead{
   display: none !important;
-}
+} */
 /* Style quan */
 .menu-request .red-text .p-menuitem-link .p-menuitem-icon,
 .menu-request .red-text .p-menuitem-link .p-menuitem-text {

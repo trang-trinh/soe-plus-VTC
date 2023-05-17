@@ -94,7 +94,10 @@ namespace API.Controllers.HRM
                         }
                         #endregion
                         string JSONresult = JsonConvert.SerializeObject(tables);
-                        return Request.CreateResponse(HttpStatusCode.OK, new { data = JSONresult, err = "0" });
+                        if(helper.debug)
+                        return Request.CreateResponse(HttpStatusCode.OK, new { data = JSONresult, err = "0", procname=proc.proc });
+                        else
+                            return Request.CreateResponse(HttpStatusCode.OK, new { data = JSONresult, err = "0"});
                     }
                     else { 
                     var sqlpas = new List<SqlParameter>();
@@ -140,7 +143,10 @@ namespace API.Controllers.HRM
                     }
                     #endregion
                     string JSONresult = JsonConvert.SerializeObject(tables);
-                    return Request.CreateResponse(HttpStatusCode.OK, new { data = JSONresult, err = "0" });
+                        if (helper.debug)
+                            return Request.CreateResponse(HttpStatusCode.OK, new { data = JSONresult, err = "0", procname = proc.proc });
+                        else
+                            return Request.CreateResponse(HttpStatusCode.OK, new { data = JSONresult, err = "0" });
                     }
                 }
                 catch (DbEntityValidationException e)
@@ -153,7 +159,10 @@ namespace API.Controllers.HRM
                         contents = helper.logCongtent;
                     }
                     Log.Error(contents);
-                    return Request.CreateResponse(HttpStatusCode.OK, new { ms = contents, err = "1" });
+                    if (helper.debug)
+                        return Request.CreateResponse(HttpStatusCode.OK, new { ms = contents, err = "1", procname = proc.proc });
+                    else
+                        return Request.CreateResponse(HttpStatusCode.OK, new { ms = contents, err = "1" });
                 }
                 catch (Exception e)
                 {
@@ -164,7 +173,11 @@ namespace API.Controllers.HRM
                         contents = helper.logCongtent;
                     }
                     Log.Error(contents);
-                    return Request.CreateResponse(HttpStatusCode.OK, new { ms = contents, err = "1" });
+                    if (helper.debug)
+                        return Request.CreateResponse(HttpStatusCode.OK, new { ms = contents, err = "1" , procname = proc.proc });
+                    else
+                        return Request.CreateResponse(HttpStatusCode.OK, new { ms = contents, err = "1" });
+            
                 }
             }
             catch (Exception)
@@ -242,7 +255,10 @@ namespace API.Controllers.HRM
                     }
                     #endregion
                     string JSONresult = JsonConvert.SerializeObject(tables);
-                    return Request.CreateResponse(HttpStatusCode.OK, new { data = JSONresult, err = "0" });
+                    if (helper.debug)
+                        return Request.CreateResponse(HttpStatusCode.OK, new { data = JSONresult, err = "0", procname = proc.proc });
+                    else
+                        return Request.CreateResponse(HttpStatusCode.OK, new { data = JSONresult, err = "0" });
                 }
                 catch (DbEntityValidationException e)
                 {
@@ -254,7 +270,12 @@ namespace API.Controllers.HRM
                         contents = helper.logCongtent;
                     }
                     Log.Error(contents);
-                    return Request.CreateResponse(HttpStatusCode.OK, new { ms = contents, err = "1" });
+
+                    if (helper.debug)
+                        return Request.CreateResponse(HttpStatusCode.OK, new { data = contents, err = "1", procname = proc.proc });
+                    else
+                        return Request.CreateResponse(HttpStatusCode.OK, new { data = contents, err = "1" });
+           
                 }
                 catch (Exception e)
                 {
@@ -265,7 +286,10 @@ namespace API.Controllers.HRM
                         contents = helper.logCongtent;
                     }
                     Log.Error(contents);
-                    return Request.CreateResponse(HttpStatusCode.OK, new { ms = contents, err = "1" });
+                    if (helper.debug)
+                        return Request.CreateResponse(HttpStatusCode.OK, new { data = contents, err = "1", procname = proc.proc });
+                    else
+                        return Request.CreateResponse(HttpStatusCode.OK, new { data = contents, err = "1" });
                 }
             }
             catch (Exception)

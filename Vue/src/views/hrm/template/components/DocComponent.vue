@@ -1505,7 +1505,7 @@ export default {
     let dtUser = {};
     const initDataTempAuto = async (tf) => {
       if (!isUrlReport.value) {
-        debugger
+        
         let dts = await goProc(
           false,
           `soe_user_info`,
@@ -2417,7 +2417,7 @@ export default {
       if (!objConfig.proc.name) {
         objConfig.proc.name = props.report.proc_name;
       }
-      debugger
+      
       dtDataReports.value = await goProc(
         objConfig.proc.issql,
         objConfig.proc.sql,
@@ -3188,7 +3188,7 @@ debugger
       isdataSidebar.value = true;
 
       dts = await goProc(
-        true,
+        false,
         `profile_info`,
         [
           { par: "user_id", va: store.getters.user.user_id },
@@ -3868,10 +3868,16 @@ debugger
           <Column
             class="text-center"
             v-if="readonly && isedit"
-            style="width: 50px"
-            headerStyle="text-align:center;height:50px"
-            bodyStyle="text-align:left "
-            headerClass="align-items-center justify-content-center text-center"
+             
+            bodyClass="
+           format-center
+            "
+           headerClass="
+                 align-items-center justify-content-center text-center
+              
+            "
+            bodyStyle=" max-width:120px "
+            headerStyle="  max-width:120px "
           >
             <template #header>
               <Button
@@ -4648,15 +4654,15 @@ debugger
   <Sidebar
     v-model:visible="isdataSidebar"
     position="right"
-    :class="'w-full' + (isfullSidebar ? '' : ' md:w-8 lg:w-8')"
+    :class="'w-full d-sidebar-full' + (isfullSidebar ? '' : ' md:w-8 lg:w-8')"
   >
     <template #header>
-      <div class="flex">
+      <div class="flex w-full">
         <Button
           @click="isfullSidebar = !isfullSidebar"
           :icon="'pi pi-window-' + (!isfullSidebar ? 'maximize' : 'minimize')"
-          text
-          class="p-button-outlined p-button-secondary"
+           
+          class="p-button-outlined p-button-secondary p-button-text"
         />
         <div class="text-center flex-1">
           <SelectButton

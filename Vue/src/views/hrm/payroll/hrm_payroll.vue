@@ -484,7 +484,7 @@ const configPayroll = async (row) => {
                     report.value.report_config = JSON.stringify(cg);
                     if(payroll.value.payroll_config)
                     report.value.is_config =JSON.parse(payroll.value.payroll_config);
-                    debugger
+                     
                     visibleSidebarDoc.value = true;
                 }
             }
@@ -493,6 +493,7 @@ const configPayroll = async (row) => {
         const callbackFun = (obj) => {
             if (obj.is_config) {
                 payroll.value.payroll_config = obj.is_config;
+                debugger
                 saveDGLuong();
                 return false;
             }
@@ -503,7 +504,7 @@ const configPayroll = async (row) => {
                 "query": false,
                 "proc": "hrm_payroll_user_add",
                 "par": [
-                    
+                { "par": "payroll_user_id", "va": payroll.value.payroll_user_id },
                     { "par": "payroll_id", "va": payroll.value.payroll_id },
                     { "par": "profile_id", "va": r.profile_id },
                     { "par": "is_data", "va": JSON.stringify(r.is_data) },
@@ -553,7 +554,7 @@ const configPayroll = async (row) => {
                     "query": false,
                     "proc": "hrm_payroll_add",
                     "par": [
-                     
+                    { "par": "payroll_id", "va": payroll.value.payroll_id },
                         { "par": "payroll_month", "va": payroll.value.payroll_month },
                         { "par": "payroll_year", "va": payroll.value.payroll_year },
                         { "par": "payroll_name", "va": payroll.value.payroll_name },
@@ -1643,7 +1644,7 @@ onMounted(() => {
         :isedit="true"
         :report="report"
         :callbackFun="callbackFun"
-     
+        :readonly="true"
       ></DocComponent>
     </div>
   </Sidebar>
