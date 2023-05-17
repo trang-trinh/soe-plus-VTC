@@ -1790,12 +1790,12 @@ namespace API.Controllers.HRM.Profile
                                                 hrm_profile_health health = new hrm_profile_health();
                                                 for (int c = 2; c <= sheet.Dimension.End.Column; c++)
                                                 {
-                                                    error_column = c;
                                                     if (sheet.Cells[4, c].Value == null)
                                                     {
                                                         break;
                                                     }
                                                     var column = sheet.Cells[4, c].Value;
+                                                    error_column = int.Parse(column.ToString() ?? c.ToString());
                                                     var value = sheet.Cells[r, c].Value;
                                                     if (value != null)
                                                     {
@@ -1820,10 +1820,10 @@ namespace API.Controllers.HRM.Profile
                                                                 profile.identity_papers_code = value.ToString();
                                                                 break;
                                                             case "5":
-                                                                profile.identity_date_issue = DateTime.ParseExact(value.ToString(), "dd/MM/yyyy", CultureInfo.InvariantCulture);
+                                                                profile.identity_date_issue = DateTime.ParseExact(value.ToString().Trim(), "dd/MM/yyyy", CultureInfo.InvariantCulture);
                                                                 break;
                                                             case "6":
-                                                                profile.identity_end_date_issue = DateTime.ParseExact(value.ToString(), "dd/MM/yyyy", CultureInfo.InvariantCulture);
+                                                                profile.identity_end_date_issue = DateTime.ParseExact(value.ToString().Trim(), "dd/MM/yyyy", CultureInfo.InvariantCulture);
                                                                 break;
                                                             case "7":
                                                                 var identity_place_name = value.ToString();
@@ -1840,7 +1840,7 @@ namespace API.Controllers.HRM.Profile
                                                                 profile.gender = value.ToString().ToLower().Contains("nam") ? 1 : value.ToString().ToLower().Contains("nữ") ? 2 : 3;
                                                                 break;
                                                             case "10":
-                                                                profile.birthday = DateTime.ParseExact(value.ToString(), "dd/MM/yyyy", CultureInfo.InvariantCulture);
+                                                                profile.birthday = DateTime.ParseExact(value.ToString().Trim(), "dd/MM/yyyy", CultureInfo.InvariantCulture);
                                                                 break;
                                                             case "11":
                                                                 var ethnic_name = value.ToString();
@@ -1977,7 +1977,7 @@ namespace API.Controllers.HRM.Profile
                                                                 }
                                                                 break;
                                                             case "35":
-                                                                profile.recruitment_date = DateTime.ParseExact(value.ToString(), "dd/MM/yyyy", CultureInfo.InvariantCulture);
+                                                                profile.recruitment_date = DateTime.ParseExact(value.ToString().Trim(), "dd/MM/yyyy", CultureInfo.InvariantCulture);
                                                                 break;
                                                             case "36":
                                                                 var cultural_level_name = value.ToString();
@@ -2026,10 +2026,10 @@ namespace API.Controllers.HRM.Profile
                                                                 profile.card_partisan = value.ToString();
                                                                 break;
                                                             case "43":
-                                                                profile.partisan_date = DateTime.ParseExact(value.ToString(), "dd/MM/yyyy", CultureInfo.InvariantCulture);
+                                                                profile.partisan_date = DateTime.ParseExact(value.ToString().Trim(), "dd/MM/yyyy", CultureInfo.InvariantCulture);
                                                                 break;
                                                             case "44":
-                                                                profile.partisan_main_date = DateTime.ParseExact(value.ToString(), "dd/MM/yyyy", CultureInfo.InvariantCulture);
+                                                                profile.partisan_main_date = DateTime.ParseExact(value.ToString().Trim(), "dd/MM/yyyy", CultureInfo.InvariantCulture);
                                                                 break;
                                                             case "45":
                                                                 break;
@@ -2041,10 +2041,10 @@ namespace API.Controllers.HRM.Profile
                                                             case "48":
                                                                 break;
                                                             case "49":
-                                                                profile.military_start_date = DateTime.ParseExact(value.ToString(), "dd/MM/yyyy", CultureInfo.InvariantCulture);
+                                                                profile.military_start_date = DateTime.ParseExact(value.ToString().Trim(), "dd/MM/yyyy", CultureInfo.InvariantCulture);
                                                                 break;
                                                             case "50":
-                                                                profile.military_end_date = DateTime.ParseExact(value.ToString(), "dd/MM/yyyy", CultureInfo.InvariantCulture);
+                                                                profile.military_end_date = DateTime.ParseExact(value.ToString().Trim(), "dd/MM/yyyy", CultureInfo.InvariantCulture);
                                                                 break;
                                                             case "51":
                                                                 profile.military_rank = value.ToString();
@@ -2296,10 +2296,10 @@ namespace API.Controllers.HRM.Profile
                                                                 assignment.is_experiment = value.ToString().ToLower().Contains("x") ? true : false;
                                                                 break;
                                                             case "11":
-                                                                assignment.start_date = DateTime.ParseExact(value.ToString(), "dd/MM/yyyy", CultureInfo.InvariantCulture);
+                                                                assignment.start_date = DateTime.ParseExact(value.ToString().Trim(), "dd/MM/yyyy", CultureInfo.InvariantCulture);
                                                                 break;
                                                             case "12":
-                                                                assignment.end_date = DateTime.ParseExact(value.ToString(), "dd/MM/yyyy", CultureInfo.InvariantCulture);
+                                                                assignment.end_date = DateTime.ParseExact(value.ToString().Trim(), "dd/MM/yyyy", CultureInfo.InvariantCulture);
                                                                 break;
                                                             case "13":
                                                                 break;
@@ -2404,13 +2404,13 @@ namespace API.Controllers.HRM.Profile
                                                             case "10":
                                                                 break;
                                                             case "11":
-                                                                contract.start_date = DateTime.ParseExact(value.ToString(), "dd/MM/yyyy", CultureInfo.InvariantCulture);
+                                                                contract.start_date = DateTime.ParseExact(value.ToString().Trim(), "dd/MM/yyyy", CultureInfo.InvariantCulture);
                                                                 break;
                                                             case "12":
-                                                                contract.end_date = DateTime.ParseExact(value.ToString(), "dd/MM/yyyy", CultureInfo.InvariantCulture);
+                                                                contract.end_date = DateTime.ParseExact(value.ToString().Trim(), "dd/MM/yyyy", CultureInfo.InvariantCulture);
                                                                 break;
                                                             case "13":
-                                                                contract.sign_date = DateTime.ParseExact(value.ToString(), "dd/MM/yyyy", CultureInfo.InvariantCulture);
+                                                                contract.sign_date = DateTime.ParseExact(value.ToString().Trim(), "dd/MM/yyyy", CultureInfo.InvariantCulture);
                                                                 break;
                                                             case "14":
                                                                 var ps = await db.hrm_profile.FirstOrDefaultAsync(x => x.profile_code == value.ToString());
@@ -2553,10 +2553,10 @@ namespace API.Controllers.HRM.Profile
                                                                 
                                                                 break;
                                                             case "5":
-                                                                skill.start_date = DateTime.ParseExact(value.ToString(), "dd/MM/yyyy", CultureInfo.InvariantCulture);
+                                                                skill.start_date = DateTime.ParseExact(value.ToString().Trim(), "dd/MM/yyyy", CultureInfo.InvariantCulture);
                                                                 break;
                                                             case "6":
-                                                                skill.end_date = DateTime.ParseExact(value.ToString(), "dd/MM/yyyy", CultureInfo.InvariantCulture);
+                                                                skill.end_date = DateTime.ParseExact(value.ToString().Trim(), "dd/MM/yyyy", CultureInfo.InvariantCulture);
                                                                 break;
                                                             case "7":
                                                                 var specialization_name = value.ToString();
@@ -2596,10 +2596,10 @@ namespace API.Controllers.HRM.Profile
                                                             case "14":
                                                                 break;
                                                             case "15":
-                                                                skill.certificate_start_date = DateTime.ParseExact(value.ToString(), "dd/MM/yyyy", CultureInfo.InvariantCulture);
+                                                                skill.certificate_start_date = DateTime.ParseExact(value.ToString().Trim(), "dd/MM/yyyy", CultureInfo.InvariantCulture);
                                                                 break;
                                                             case "16":
-                                                                skill.certificate_end_date = DateTime.ParseExact(value.ToString(), "dd/MM/yyyy", CultureInfo.InvariantCulture);
+                                                                skill.certificate_end_date = DateTime.ParseExact(value.ToString().Trim(), "dd/MM/yyyy", CultureInfo.InvariantCulture);
                                                                 break;
                                                             default:
                                                                 break;
@@ -2655,10 +2655,10 @@ namespace API.Controllers.HRM.Profile
                                                                 experience.address = value.ToString();
                                                                 break;
                                                             case "6":
-                                                                experience.start_date = DateTime.ParseExact(value.ToString(), "dd/MM/yyyy", CultureInfo.InvariantCulture);
+                                                                experience.start_date = DateTime.ParseExact(value.ToString().Trim(), "dd/MM/yyyy", CultureInfo.InvariantCulture);
                                                                 break;
                                                             case "7":
-                                                                experience.end_date = DateTime.ParseExact(value.ToString(), "dd/MM/yyyy", CultureInfo.InvariantCulture);
+                                                                experience.end_date = DateTime.ParseExact(value.ToString().Trim(), "dd/MM/yyyy", CultureInfo.InvariantCulture);
                                                                 break;
                                                             case "8":
                                                                 experience.title = value.ToString();
@@ -2731,7 +2731,7 @@ namespace API.Controllers.HRM.Profile
                                                             case "3":
                                                                 break;
                                                             case "4":
-                                                                reward.decision_date = DateTime.ParseExact(value.ToString(), "dd/MM/yyyy", CultureInfo.InvariantCulture);
+                                                                reward.decision_date = DateTime.ParseExact(value.ToString().Trim(), "dd/MM/yyyy", CultureInfo.InvariantCulture);
                                                                 break;
                                                             case "5":
                                                                 break;
@@ -2796,7 +2796,7 @@ namespace API.Controllers.HRM.Profile
                         }
                         catch (Exception e)
                         {
-                            return Request.CreateResponse(HttpStatusCode.OK, new { err = "1", ms = $"Lỗi định dạng dữ liệu tại dòng thứ {error_row}, cột thứ {error_column}" });
+                            return Request.CreateResponse(HttpStatusCode.OK, new { err = "1", ms = $"Lỗi định dạng dữ liệu tại dòng thứ {error_row}, cột thứ {error_column}!", mss = e });
                         }
                     }
                 }
