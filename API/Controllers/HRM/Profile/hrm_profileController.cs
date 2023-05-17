@@ -1784,6 +1784,7 @@ namespace API.Controllers.HRM.Profile
                                                 }
                                                 hrm_profile profile = new hrm_profile();
                                                 hrm_profile_health health = new hrm_profile_health();
+                                                int number_profile = db.hrm_profile.Count(x=>x.organization_id == user_now.organization_id);
                                                 for (int c = 2; c <= sheet.Dimension.End.Column; c++)
                                                 {
                                                     if (sheet.Cells[4, c].Value == null)
@@ -1798,6 +1799,7 @@ namespace API.Controllers.HRM.Profile
                                                         {
                                                             case "2":
                                                                 profile.profile_code = value.ToString();
+                                                                profile.is_order = number_profile + 1;
                                                                 var p = await db.hrm_profile.FirstOrDefaultAsync(x => x.profile_code == profile.profile_code);
                                                                 if (p != null)
                                                                 {
@@ -1945,12 +1947,12 @@ namespace API.Controllers.HRM.Profile
                                                                 var olds = value.ToString().Split(',').ToList();
                                                                 if (olds.Count > 1)
                                                                 {
-                                                                    var yearold = (olds?[0] ?? "0").ToLower().Trim().Replace("năm", "").Trim();
+                                                                    var yearold = olds[0].ToLower().Trim().Replace("năm", "").Trim();
                                                                     if (!string.IsNullOrEmpty(yearold))
                                                                     {
                                                                         profile.seniority_year = int.Parse(yearold);
                                                                     }
-                                                                    var monthold = (olds?[1] ?? "0").ToLower().Trim().Replace("tháng", "").Trim();
+                                                                    var monthold = olds[1].ToLower().Trim().Replace("tháng", "").Trim();
                                                                     if (!string.IsNullOrEmpty(monthold))
                                                                     {
                                                                         profile.seniority_month = int.Parse(monthold);
@@ -1958,9 +1960,14 @@ namespace API.Controllers.HRM.Profile
                                                                 }
                                                                 else if (olds.Count > 0)
                                                                 {
-                                                                    var yearold = (olds?[0] ?? "0").ToLower().Trim().Replace("năm", "").Trim();
-                                                                    if (!string.IsNullOrEmpty(yearold))
+                                                                    if (olds[0].ToLower().Contains("năm"))
                                                                     {
+                                                                        var yearold = olds[0].ToLower().Trim().Replace("năm", "").Trim();
+                                                                        profile.seniority_year = int.Parse(yearold);
+                                                                    }
+                                                                    else if (olds[0].ToLower().Contains("tháng"))
+                                                                    {
+                                                                        var yearold = olds[0].ToLower().Trim().Replace("tháng", "").Trim();
                                                                         profile.seniority_year = int.Parse(yearold);
                                                                     }
                                                                 }
