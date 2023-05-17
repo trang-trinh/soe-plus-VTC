@@ -71,6 +71,7 @@ namespace API.Controllers.HRM.Category
                         fdpayroll = provider.FormData.GetValues("hrm_payroll").SingleOrDefault();
                         hrm_payroll payroll = JsonConvert.DeserializeObject<hrm_payroll>(fdpayroll);
                         bool super = claims.Where(p => p.Type == "super").FirstOrDefault()?.Value == "True";
+
                         payroll.organization_id = int.Parse(dvid);
                         payroll.created_by = uid;
                         payroll.created_date = DateTime.Now;
@@ -78,11 +79,10 @@ namespace API.Controllers.HRM.Category
                         payroll.created_token_id = tid;
                         db.hrm_payroll.Add(payroll);
                         db.SaveChanges();
-
+               
                         #region add hrm_log
                         if (helper.wlog)
                         {
-
                             hrm_log log = new hrm_log();
                             log.title = "Thêm bảng lương " + payroll.payroll_name;
 

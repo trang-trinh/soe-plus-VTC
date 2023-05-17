@@ -1505,8 +1505,9 @@ export default {
     let dtUser = {};
     const initDataTempAuto = async (tf) => {
       if (!isUrlReport.value) {
+        debugger
         let dts = await goProc(
-          true,
+          false,
           `soe_user_info`,
           [{ par: "user_id", va: store.getters.user.user_id }],
           false,
@@ -1815,6 +1816,7 @@ export default {
     const IsOne = ref(false);
     const dbrow = ref({});
     const openCogDatabase = (row, f, o) => {
+       
       if (f) {
         if (row.isfor) {
           row.value = row.colname;
@@ -2371,8 +2373,9 @@ export default {
       if (props.report) {
         initTemplate();
       }
-
-      if (!dochtml) dochtml = iframeDoc.getElementById("dochtml");
+   
+      if (!dochtml)
+      if(iframeDoc) dochtml = iframeDoc.getElementById("dochtml");
       users.forEach((u) => {
         itemusers.value.push({
           label: u.name,
@@ -2383,6 +2386,7 @@ export default {
         });
       });
       if (!isUrlReport.value && !readonly.value) {
+        if(iframeDoc)
         iframeDoc.addEventListener("selectionchange", () => {
           let txt = getSelectionText();
           if (txt != "") {
@@ -2413,7 +2417,7 @@ export default {
       if (!objConfig.proc.name) {
         objConfig.proc.name = props.report.proc_name;
       }
-
+      debugger
       dtDataReports.value = await goProc(
         objConfig.proc.issql,
         objConfig.proc.sql,
@@ -2435,6 +2439,7 @@ export default {
       await initReportData();
     };
     const goProc = async (query, name, par, f, o) => {
+      
       let strSQL = {
         query: query,
         proc: name,
@@ -2446,9 +2451,9 @@ export default {
           swal.showLoading();
         },
       });
-
+debugger
       const axResponse = await axios.post(
-        baseURL + "/api/HRM_SQL/getData",
+        baseURL + "/api/HRM_SQL/PostProc",
         {
           str: encr(JSON.stringify(strSQL), SecretKey, cryoptojs).toString(),
         },
@@ -3041,7 +3046,7 @@ export default {
     let dtProfile = {};
     const initProfile = async (r) => {
       let dts = await goProc(
-        true,
+        false,
         `profile_info`,
         [
           { par: "user_id", va: store.getters.user.user_id },
