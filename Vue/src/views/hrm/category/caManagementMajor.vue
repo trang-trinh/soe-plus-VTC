@@ -64,6 +64,49 @@ const loadCount = () => {
     })
     .catch((error) => {});
 };
+const treemodules=ref();
+
+const renderTree = (data, id, name, title) => {
+  let arrChils = [];
+  let arrtreeChils = [];
+  data
+    .filter((x) => x.parent_id == null)
+    .forEach((m, i) => {
+      m.STT = i + 1;
+      let om = { key: m[id], data: m };
+      const rechildren = (mm, pid) => {
+        let dts = data.filter((x) => x.parent_id == pid);
+        if (dts.length > 0) {
+          if (!mm.children) mm.children = [];
+          dts.forEach((em, j) => {
+            em.STT = mm.data.STT + "." + (j + 1);
+            let om1 = { key: em[id], data: em };
+            rechildren(om1, em[id]);
+            mm.children.push(om1);
+          });
+        }
+      };
+      rechildren(om, m[id]);
+      arrChils.push(om);
+      //
+      om = { key: m[id], data: m[id], label: m[name] };
+      const retreechildren = (mm, pid) => {
+        let dts = data.filter((x) => x.parent_id == pid);
+        if (dts.length > 0) {
+          if (!mm.children) mm.children = [];
+          dts.forEach((em) => {
+            let om1 = { key: em[id], data: em[id], label: em[name] };
+            retreechildren(om1, em[id]);
+            mm.children.push(om1);
+          });
+        }
+      };
+      retreechildren(om, m[id]);
+      arrtreeChils.push(om);
+    });
+  return { arrChils: arrChils, arrtreeChils: arrtreeChils };
+};
+
 //Lấy dữ liệu management_major
 const loadData = (rf) => {
   if (rf) {
@@ -102,8 +145,15 @@ const loadData = (rf) => {
         data.forEach((element, i) => {
           element.STT = options.value.PageNo * options.value.PageSize + i + 1;
         });
-        datalists.value = data;
+        let obj = renderTree(
+          data,
+          "management_major_id",
+          "management_major_name",
+          "cấp cha"
+        );
+        treemodules.value = obj.arrtreeChils;
 
+        datalists.value = obj.arrChils;
         options.value.loading = false;
       })
       .catch((error) => {
@@ -136,7 +186,8 @@ const onPage = (event) => {
   } else if (event.page > options.value.PageNo) {
     //Trang sau
 
-    options.value.id = datalists.value[datalists.value.length - 1].management_major_id;
+    options.value.id =
+      datalists.value[datalists.value.length - 1].management_major_id;
     options.value.IsNext = true;
   } else if (event.page < options.value.PageNo) {
     //Trang trước
@@ -183,7 +234,8 @@ const openBasic = (str) => {
     emote_file: "",
     status: true,
     is_order: sttStamp.value,
-    organization_id: store.getters.user.organization_id, is_system: store.getters.user.is_super?true:false,
+    organization_id: store.getters.user.organization_id,
+    is_system: store.getters.user.is_super ? true : false,
   };
 
   checkIsmain.value = false;
@@ -222,11 +274,21 @@ const saveData = (isFormValid) => {
     });
     return;
   }
+  
   let formData = new FormData();
-
-  if (management_major.value.countryside_fake)
-    management_major.value.countryside = management_major.value.countryside_fake;
-  formData.append("hrm_ca_management_major", JSON.stringify(management_major.value));
+  let arw = null;
+  if (selectCapcha.value)
+    Object.keys(selectCapcha.value).forEach((key) => {
+      arw = key;
+      return;
+    });
+    management_major.value.parent_id = arw;
+  if ((arw = "" || arw == -1)) management_major.value.parent_id = null;
+ 
+  formData.append(
+    "hrm_ca_management_major",
+    JSON.stringify(management_major.value)
+  );
   swal.fire({
     width: 110,
     didOpen: () => {
@@ -235,7 +297,11 @@ const saveData = (isFormValid) => {
   });
   if (!isSaveTem.value) {
     axios
-      .post(baseURL + "/api/hrm_ca_management_major/add_hrm_ca_management_major", formData, config)
+      .post(
+        baseURL + "/api/hrm_ca_management_major/add_hrm_ca_management_major",
+        formData,
+        config
+      )
       .then((response) => {
         if (response.data.err != "1") {
           swal.close();
@@ -263,7 +329,11 @@ const saveData = (isFormValid) => {
       });
   } else {
     axios
-      .put(baseURL + "/api/hrm_ca_management_major/update_hrm_ca_management_major", formData, config)
+      .put(
+        baseURL + "/api/hrm_ca_management_major/update_hrm_ca_management_major",
+        formData,
+        config
+      )
       .then((response) => {
         if (response.data.err != "1") {
           swal.close();
@@ -295,17 +365,13 @@ const checkIsmain = ref(true);
 const editTem = (dataTem) => {
   submitted.value = false;
   management_major.value = dataTem;
-  if (management_major.value.countryside)
-    management_major.value.countryside_fake = management_major.value.countryside;
-  if (management_major.value.is_default) {
-    checkIsmain.value = false;
-  } else {
-    checkIsmain.value = true;
-  }
+   if(dataTem.parent_id){
+    selectCapcha.value={};
+  selectCapcha.value[dataTem.parent_id]=true;
+}
   headerDialog.value = "Sửa nghiệp vụ quản lý";
   isSaveTem.value = true;
   displayBasic.value = true;
- 
 };
 //Xóa bản ghi
 const delTem = (Tem) => {
@@ -330,10 +396,14 @@ const delTem = (Tem) => {
         });
 
         axios
-          .delete(baseURL + "/api/hrm_ca_management_major/delete_hrm_ca_management_major", {
-            headers: { Authorization: `Bearer ${store.getters.token}` },
-            data: Tem != null ? [Tem.management_major_id] : 1,
-          })
+          .delete(
+            baseURL +
+              "/api/hrm_ca_management_major/delete_hrm_ca_management_major",
+            {
+              headers: { Authorization: `Bearer ${store.getters.token}` },
+              data: Tem != null ? [Tem.management_major_id] : 1,
+            }
+          )
           .then((response) => {
             swal.close();
             if (response.data.err != "1") {
@@ -400,7 +470,11 @@ const loadDataSQL = () => {
   };
   options.value.loading = true;
   axios
-    .post(baseURL + "/api/hrm_ca_SQL/Filter_hrm_ca_management_major", data, config)
+    .post(
+      baseURL + "/api/hrm_ca_SQL/Filter_hrm_ca_management_major",
+      data,
+      config
+    )
     .then((response) => {
       let dt = JSON.parse(response.data.data);
       let data = dt[0];
@@ -501,7 +575,12 @@ const onCheckBox = (value, check, checkIsmain) => {
       BitTrangthai: value.status,
     };
     axios
-      .put(baseURL + "/api/hrm_ca_management_major/update_s_hrm_ca_management_major", data, config)
+      .put(
+        baseURL +
+          "/api/hrm_ca_management_major/update_s_hrm_ca_management_major",
+        data,
+        config
+      )
       .then((response) => {
         if (response.data.err != "1") {
           swal.close();
@@ -533,7 +612,11 @@ const onCheckBox = (value, check, checkIsmain) => {
       BitMain: value.is_default,
     };
     axios
-      .put(baseURL + "/api/hrm_ca_management_major/Update_DefaultStamp", data1, config)
+      .put(
+        baseURL + "/api/hrm_ca_management_major/Update_DefaultStamp",
+        data1,
+        config
+      )
       .then((response) => {
         if (response.data.err != "1") {
           swal.close();
@@ -596,10 +679,14 @@ const deleteList = () => {
             listId.push(item.management_major_id);
           });
           axios
-            .delete(baseURL + "/api/hrm_ca_management_major/delete_hrm_ca_management_major", {
-              headers: { Authorization: `Bearer ${store.getters.token}` },
-              data: listId != null ? listId : 1,
-            })
+            .delete(
+              baseURL +
+                "/api/hrm_ca_management_major/delete_hrm_ca_management_major",
+              {
+                headers: { Authorization: `Bearer ${store.getters.token}` },
+                data: listId != null ? listId : 1,
+              }
+            )
             .then((response) => {
               swal.close();
               if (response.data.err != "1") {
@@ -672,11 +759,22 @@ const op = ref();
 const toggle = (event) => {
   op.value.toggle(event);
 };
-
+const isChirlden = ref(false);
+const selectCapcha = ref();
+const onChangeParent = () => {
+  datalists.value;
+  let arw = null;
+  if (selectCapcha.value)
+    Object.keys(selectCapcha.value).forEach((key) => {
+      arw = key;
+      return;
+    });
+    management_major.value.is_order = arw
+    ? datalists.value.filter((x) => x.parent_id == arw).length + 1
+    : 1;
+};
 onMounted(() => {
-  if (!checkURL(window.location.pathname, store.getters.listModule)) {
-    //router.back();
-  }
+ 
   loadData(true);
   return {
     datalists,
@@ -699,33 +797,31 @@ onMounted(() => {
 </script>
     <template>
   <div class="main-layout true flex-grow-1 p-2 pb-0 pr-0">
-    <DataTable
+    <TreeTable
+      :value="datalists"
+      v-model:selectionKeys="selectedWarehouses"
+      :loading="options.loading"
+      @nodeSelect="onNodeSelect"
+      @nodeUnselect="onNodeUnselect"
+      :filters="filters"
+      :showGridlines="true"
+      selectionMode="checkbox"
+      filterMode="strict"
+      class="p-treetable-sm"
+      :paginator="true"
+      :rows="options.PageSize"
+      :rowHover="true"
+      responsiveLayout="scroll"
+      :lazy="true"
+      :scrollable="true"
+      scrollHeight="flex"
       @page="onPage($event)"
       @sort="onSort($event)"
       @filter="onFilter($event)"
-      v-model:filters="filters"
-      filterDisplay="menu"
-      filterMode="lenient"
-      :filters="filters"
-      :scrollable="true"
-      scrollHeight="flex"
-      :showGridlines="true"
-      columnResizeMode="fit"
-      :lazy="true"
       :totalRecords="options.totalRecords"
-      :loading="options.loading"
-      :reorderableColumns="true"
-      :value="datalists"
-      removableSort
-      v-model:rows="options.PageSize"
-      paginatorTemplate="FirstPageLink PrevPageLink PageLinks NextPageLink LastPageLink RowsPerPageDropdown"
-      :rowsPerPageOptions="[20, 30, 50, 100, 200]"
-      :paginator="true"
-      dataKey="management_major_id"
-      responsiveLayout="scroll"
-      v-model:selection="selectedStamps"
-      :row-hover="true"
+      filterDisplay="menu"
     >
+     
       <template #header>
         <h3 class="module-title mt-0 ml-1 mb-2">
           <i class="pi pi-arrows-h"></i> Danh sách nghiệp vụ quản lý ({{
@@ -848,7 +944,8 @@ onMounted(() => {
         class="align-items-center justify-content-center text-center"
         headerStyle="text-align:center;max-width:70px;height:50px"
         bodyStyle="text-align:center;max-width:70px"
-         selectionMode="multiple"  v-if="store.getters.user.is_super==true"
+        selectionMode="multiple"
+        v-if="store.getters.user.is_super == true"
       >
       </Column>
 
@@ -858,7 +955,7 @@ onMounted(() => {
         class="align-items-center justify-content-center text-center"
         headerStyle="text-align:center;max-width:70px;height:50px"
         bodyStyle="text-align:center;max-width:70px"
-        :sortable="true"
+        
       ></Column>
 
       <Column
@@ -867,15 +964,9 @@ onMounted(() => {
         :sortable="true"
         headerStyle="text-align:left;height:50px"
         bodyStyle="text-align:left"
+        :expander="true"
       >
-        <template #filter="{ filterModel }">
-          <InputText
-            type="text"
-            v-model="filterModel.value"
-            class="p-column-filter"
-            placeholder="Từ khoá"
-          />
-        </template>
+         
       </Column>
 
       <Column
@@ -890,14 +981,14 @@ onMounted(() => {
             :disabled="
               !(
                 store.state.user.is_super == true ||
-                store.state.user.user_id == data.data.created_by ||
+                store.state.user.user_id == data.node.data.created_by ||
                 (store.state.user.role_id == 'admin' &&
                   store.state.user.organization_id == data.data.organization_id)
               )
             "
             :binary="true"
-            v-model="data.data.status"
-            @click="onCheckBox(data.data, true, true)"
+            v-model="data.node.data.status"
+            @click="onCheckBox(data.node.data, true, true)"
           /> </template
       ></Column>
       <Column
@@ -908,7 +999,7 @@ onMounted(() => {
         class="align-items-center justify-content-center text-center"
       >
         <template #body="data">
-          <div v-if="data.data.is_system== true">
+          <div v-if="data.node.data.is_system == true">
             <i class="pi pi-check text-blue-400" style="font-size: 1.5rem"></i>
           </div>
           <div v-else></div>
@@ -920,17 +1011,17 @@ onMounted(() => {
         headerStyle="text-align:center;max-width:150px;height:50px"
         bodyStyle="text-align:center;max-width:150px"
       >
-        <template #body="Tem">
+        <template #body="data">
           <div
             v-if="
               store.state.user.is_super == true ||
-              store.state.user.user_id == Tem.data.created_by ||
+              store.state.user.user_id == data.node.data.created_by ||
               (store.state.user.role_id == 'admin' &&
-                store.state.user.organization_id == Tem.data.organization_id)
+                store.state.user.organization_id == data.node.data.organization_id)
             "
           >
             <Button
-              @click="editTem(Tem.data)"
+              @click="editTem(data.node.data)"
               class="p-button-rounded p-button-secondary p-button-outlined mx-1"
               type="button"
               icon="pi pi-pencil"
@@ -940,7 +1031,7 @@ onMounted(() => {
               class="p-button-rounded p-button-secondary p-button-outlined mx-1"
               type="button"
               icon="pi pi-trash"
-              @click="delTem(Tem.data)"
+              @click="delTem(data.node.data)"
               v-tooltip.top="'Xóa'"
             ></Button>
           </div>
@@ -948,31 +1039,41 @@ onMounted(() => {
       </Column>
       <template #empty>
         <div
-          class="
-            align-items-center
-            justify-content-center
-            p-4
-            text-center
-            m-auto
-          "
+          class="align-items-center justify-content-center p-4 text-center m-auto"
           v-if="!isFirst"
         >
           <img src="../../../assets/background/nodata.png" height="144" />
           <h3 class="m-1">Không có dữ liệu</h3>
         </div>
       </template>
-    </DataTable>
+    </TreeTable>>
   </div>
 
   <Dialog
     :header="headerDialog"
     v-model:visible="displayBasic"
-    :style="{ width: '35vw' }"
+    :style="{ width: '40vw' }"
     :closable="true"
     :modal="true"
   >
     <form>
       <div class="grid formgrid m-2">
+        <div class="field col-12 md:col-12">
+          <label class="col-3 text-left p-0"
+            >Nghiệp vụ cha </label
+          >
+          <TreeSelect
+                class="col-9 p-0"
+                @change="onChangeParent"
+                v-model="selectCapcha"
+                :options="treemodules"
+                :showClear="true"
+                placeholder=" Chọn cấp cha"
+                optionLabel="data.management_major_name"
+                optionValue="data.management_major_id"
+                panelClass="d-design-dropdown"
+              ></TreeSelect>
+        </div>
         <div class="field col-12 md:col-12">
           <label class="col-3 text-left p-0"
             >Tên nghiệp vụ <span class="redsao">(*)</span></label
@@ -986,15 +1087,15 @@ onMounted(() => {
             }"
           />
         </div>
-        <div style="display: flex" class="field col-12 md:col-12">
+        <div
+          class="field flex col-12 md:col-12"
+          v-if="
+            (v$.management_major_name.$invalid && submitted) ||
+            v$.management_major_name.$pending.$response
+          "
+        >
           <div class="col-3 text-left"></div>
-          <small
-            v-if="
-              (v$.management_major_name.$invalid && submitted) ||
-              v$.management_major_name.$pending.$response
-            "
-            class="col-9 p-error"
-          >
+          <small class="col-9 p-error">
             <span class="col-12 p-0">{{
               v$.management_major_name.required.$message
                 .replace("Value", "Tên nghiệp vụ quản lý")
@@ -1002,27 +1103,61 @@ onMounted(() => {
             }}</span>
           </small>
         </div>
-        <div class="col-12 field md:col-12 flex">
-          <div class="field col-4 md:col-4 p-0 align-items-center flex">
-            <div class="col-9 text-left p-0">STT</div>
-            <InputNumber
-              v-model="management_major.is_order"
-              class="col-3 ip36 p-0"
+
+        <div class="field col-12 md:col-12 flex align-items-center">
+          <label class="col-3 text-left p-0">Kết quả cần đạt</label>
+
+          <div class="col-9 p-0">
+            <Textarea
+              v-model="management_major.management_major_results"
+              spellcheck="false"
+              class="w-full"
+              rows="2"
+              cols="30"
+              :autoResize="true"
             />
           </div>
-          <div class="field col-4 md:col-4 p-0 align-items-center flex">
-            <div class="col-6 text-center p-0">Trạng thái</div>
-            <InputSwitch v-model="management_major.status" />
+        </div>
+        <div class="col-12 field md:col-12 flex">
+          <div class="field col-6 md:col-6 p-0 align-items-center flex">
+            <div class="col-6 text-left p-0">Trọng số</div>
+       
+            <InputNumber
+              v-model="management_major.management_major_weight"
+              class="col-6 ip36 p-0" 
+           
+            />
+          </div>
+          <div class="field col-6 md:col-6 p-0 align-items-center flex">
+            <div class="col-6 text-left p-0 pl-3">STT</div>
+            <InputNumber
+              v-model="management_major.is_order"
+              class="col-6 ip36 p-0"
+            />
+          </div>
+        
+         
+        </div>
+        <div class="col-12 field md:col-12 flex">
+          
+          <div class="field col-6 md:col-6 p-0 align-items-center flex">
+            <div class="col-6 text-left p-0">Trạng thái</div>
+            <InputSwitch
+              v-model="management_major.status"
+              class="lck-checked w-4rem"
+            />
           </div>
           <div
-            class="field col-4 md:col-4 p-0 align-items-center flex"
+            class="field col-6 md:col-6 p-0 align-items-center flex"
             v-if="store.getters.user.is_super"
           >
-            <div class="col-6 text-center p-0">Hệ thống</div>
-            <InputSwitch v-model="management_major.is_system" />
+            <div class="col-6 text-left p-0 pl-3">Hệ thống</div>
+            <InputSwitch
+              v-model="management_major.is_system"
+              class="lck-checked w-4rem"
+            />
           </div>
         </div>
-         
       </div>
     </form>
     <template #footer>

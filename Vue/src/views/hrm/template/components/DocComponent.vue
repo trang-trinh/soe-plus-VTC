@@ -449,12 +449,12 @@ export default {
           });
         }
       }
-    } 
+    }
     const eventDoc = () => {
-      if(dochtml)
-      isdoc.value =
-        dochtml.querySelector("title") != null &&
-        dochtml.querySelector("title").innerHTML != "landscape";
+      if (dochtml)
+        isdoc.value =
+          dochtml.querySelector("title") != null &&
+          dochtml.querySelector("title").innerHTML != "landscape";
       if (!isUrlReport.value && !readonly.value)
         dochtml.querySelectorAll("table").forEach((element) => {
           element.addEventListener("click", function (e) {
@@ -475,115 +475,118 @@ export default {
       //Nếu là excel
       if (isxls.value) {
         //let stt = 0;
-        if(dochtml)
-        dochtml.querySelectorAll("tr").forEach((element) => {
-          if (element.innerText.trim() == "" && element.children.length > 2) {
-            var css = window.getComputedStyle(element.children[2]);
-            if (
-              css.getPropertyValue("background-color") != "rgb(255, 255, 0)"
-            ) {
-              //stt++;
-              element.remove();
+        if (dochtml)
+          dochtml.querySelectorAll("tr").forEach((element) => {
+            if (element.innerText.trim() == "" && element.children.length > 2) {
+              var css = window.getComputedStyle(element.children[2]);
+              if (
+                css.getPropertyValue("background-color") != "rgb(255, 255, 0)"
+              ) {
+                //stt++;
+                element.remove();
+              }
             }
-          }
-        });
+          });
       }
-      if (!isxls.value)
-      {
-      if(dochtml)
-        dochtml.querySelectorAll("td").forEach((element) => {
-          element.style.setProperty("vertical-align", "middle");
-          element.style.setProperty("align-items", "center");
-        });
-      }
-      else  
+      if (!isxls.value) {
+        if (dochtml)
+          dochtml.querySelectorAll("td").forEach((element) => {
+            element.style.setProperty("vertical-align", "middle");
+            element.style.setProperty("align-items", "center");
+          });
+      } else
         dochtml.querySelectorAll("td").forEach((element) => {
           element.style.setProperty("padding", "5px");
         });
       let groups = [];
-      if(dochtml)
-      dochtml
-        .querySelectorAll(isxls.value ? "td" : "p>span")
-        .forEach((element) => {
-          let hasedid = false;
-          if (isxls.value) {
-            if (element.innerText.includes("data-")) {
-              let fdatas = element.innerText
-                .split("|")[1]
-                .replaceAll("]", "")
-                .replaceAll("[", "");
-              element.innerText = element.innerText.split("|")[0];
-              let xtr = element;
-              if (element.tagName == "TD") xtr = element.parentElement;
-              xtr.className = "for-data" + fdatas.replace("data-", "");
-            } else if (element.innerText.startsWith("(Sum")) {
-              let isum = element.innerText.substring(4, 5);
-              element.innerText = element.innerText.replace(/\(Sum\d\)/g, "");
-              element.parentElement.className = "sum-data-" + isum;
-            } else if (element.innerText.includes("|[")) {
-              let cname = "[" + element.innerText.split("|[")[1];
-              element.innerText = element.innerText.split("|[")[0];
-              let type = cname.includes("0;")
-                ? 0
-                : cname.includes("1;")
-                ? 1
-                : 2;
-              let etr = element;
-              if (type == 0) {
-                etr = element.parentElement;
+      if (dochtml)
+        dochtml
+          .querySelectorAll(isxls.value ? "td" : "p>span")
+          .forEach((element) => {
+            let hasedid = false;
+            if (isxls.value) {
+              if (element.innerText.includes("data-")) {
+                let fdatas = element.innerText
+                  .split("|")[1]
+                  .replaceAll("]", "")
+                  .replaceAll("[", "");
+                element.innerText = element.innerText.split("|")[0];
+                let xtr = element;
+                if (element.tagName == "TD") xtr = element.parentElement;
+                xtr.className = "for-data" + fdatas.replace("data-", "");
+              } else if (element.innerText.startsWith("(Sum")) {
+                let isum = element.innerText.substring(4, 5);
+                element.innerText = element.innerText.replace(/\(Sum\d\)/g, "");
+                element.parentElement.className = "sum-data-" + isum;
+              } else if (element.innerText.includes("|[")) {
+                let cname = "[" + element.innerText.split("|[")[1];
+                element.innerText = element.innerText.split("|[")[0];
+                let type = cname.includes("0;")
+                  ? 0
+                  : cname.includes("1;")
+                  ? 1
+                  : 2;
+                let etr = element;
+                if (type == 0) {
+                  etr = element.parentElement;
+                }
+                etr.setAttribute("config", cname);
               }
-              etr.setAttribute("config", cname);
+              // if (element.innerText.match(/{{.+}}/)) {
+              //     let tdtext = element.innerText;
+              //     element.innerText = tdtext.split("{{")[0];
+              //     let cls = tdtext.split("{{")[1].replaceAll("}}", "").trim();
+              //     element.id = cls.split(" ")[1];
+              //     element.classList.add(element.id);
+              //     hasedid = true;
+              // }
             }
-            // if (element.innerText.match(/{{.+}}/)) {
-            //     let tdtext = element.innerText;
-            //     element.innerText = tdtext.split("{{")[0];
-            //     let cls = tdtext.split("{{")[1].replaceAll("}}", "").trim();
-            //     element.id = cls.split(" ")[1];
-            //     element.classList.add(element.id);
-            //     hasedid = true;
-            // }
-          }
-          if (element.className && element.className.match(/os-span-edit-os/)) {
-            hasedid = true;
-            if (!element.id)
-              element.id = element.className.split("os-span-edit-os")[0].trim();
-            element.className = element.className.replace(
-              "os-span-edit-os",
-              " os-span-edit-os"
-            );
-          } else if (element.classList.length == 1 && !isxls.value) {
-            hasedid = true;
-            if (!element.id) element.id = element.className.trim();
-          }
-          const clone = element.cloneNode(true);
-          let osid = uid();
-          if (!clone.id) {
-            clone.id = osid;
-          } else if (hasedid) {
-            osid = clone.id;
-          }
-          spans.value.push({
-            element: clone.outerHTML,
-            id: osid,
-            version: 1,
-            historys: [],
+            if (
+              element.className &&
+              element.className.match(/os-span-edit-os/)
+            ) {
+              hasedid = true;
+              if (!element.id)
+                element.id = element.className
+                  .split("os-span-edit-os")[0]
+                  .trim();
+              element.className = element.className.replace(
+                "os-span-edit-os",
+                " os-span-edit-os"
+              );
+            } else if (element.classList.length == 1 && !isxls.value) {
+              hasedid = true;
+              if (!element.id) element.id = element.className.trim();
+            }
+            const clone = element.cloneNode(true);
+            let osid = uid();
+            if (!clone.id) {
+              clone.id = osid;
+            } else if (hasedid) {
+              osid = clone.id;
+            }
+            spans.value.push({
+              element: clone.outerHTML,
+              id: osid,
+              version: 1,
+              historys: [],
+            });
+            if (!element.id) {
+              element.id = osid;
+              if (!hasedid) element.classList.add(osid);
+            }
+            if (!isUrlReport.value && !readonly.value)
+              element.addEventListener("click", addClickSpan);
+            //Check group
+            let group = element.className.split("os-span-edit-osgroup-");
+            if (group.length > 1) {
+              let groupdataclass = group[1].trim().split(" ")[0];
+              if (groups.indexOf(groupdataclass) == -1) {
+                groups.push(groupdataclass);
+              }
+              element.parentElement.classList.add(groupdataclass);
+            }
           });
-          if (!element.id) {
-            element.id = osid;
-            if (!hasedid) element.classList.add(osid);
-          }
-          if (!isUrlReport.value && !readonly.value)
-            element.addEventListener("click", addClickSpan);
-          //Check group
-          let group = element.className.split("os-span-edit-osgroup-");
-          if (group.length > 1) {
-            let groupdataclass = group[1].trim().split(" ")[0];
-            if (groups.indexOf(groupdataclass) == -1) {
-              groups.push(groupdataclass);
-            }
-            element.parentElement.classList.add(groupdataclass);
-          }
-        });
       //set Groups
       groups.forEach((gr) => {
         let wrapper = document.querySelector(".for-data" + gr);
@@ -1501,9 +1504,7 @@ export default {
     };
     let dtUser = {};
     const initDataTempAuto = async (tf) => {
-       
       if (!isUrlReport.value) {
-        
         let dts = await goProc(
           true,
           `soe_user_info`,
@@ -1518,35 +1519,38 @@ export default {
       let obj = { stt: 0, key: 0, value: "data-" + stt, cols: [] };
       let tagps = [];
       objDataTemp.value = [];
-       if(dochtml)
-      dochtml
-        .querySelectorAll('[style*="background-color:#ffff00"]')
-        .forEach((el, i) => {
-          if (
-            !el.closest("td") ||
-            el.closest("td").style.backgroundColor != "rgb(255, 255, 0)"
-          ) {
+      if (dochtml)
+        dochtml
+          .querySelectorAll('[style*="background-color:#ffff00"]')
+          .forEach((el, i) => {
             if (
-              !(el.closest("p") && /\[.?\s*\[/g.test(el.closest("p").innerText))
+              !el.closest("td") ||
+              el.closest("td").style.backgroundColor != "rgb(255, 255, 0)"
             ) {
               if (
-                obj.cols.findIndex(
-                  (x) => x.value == removeTags(el.innerText)
-                ) == -1
+                !(
+                  el.closest("p") &&
+                  /\[.?\s*\[/g.test(el.closest("p").innerText)
+                )
               ) {
-                obj.cols.push({
-                  tid: stt,
-                  stt: i + 1,
-                  key: readonly.value ? "" : removeTags(el.innerText),
-                  value: removeTags(el.innerText),
-                });
+                if (
+                  obj.cols.findIndex(
+                    (x) => x.value == removeTags(el.innerText)
+                  ) == -1
+                ) {
+                  obj.cols.push({
+                    tid: stt,
+                    stt: i + 1,
+                    key: readonly.value ? "" : removeTags(el.innerText),
+                    value: removeTags(el.innerText),
+                  });
+                }
+              } else {
+                if (tagps.findIndex((x) => x == el.closest("p")) == -1)
+                  tagps.push(el.closest("p"));
               }
-            } else {
-              if (tagps.findIndex((x) => x == el.closest("p")) == -1)
-                tagps.push(el.closest("p"));
             }
-          }
-        });
+          });
       objDataTemp.value.push(obj);
       //For trong Word
       tagps.forEach((tp, i) => {
@@ -1591,26 +1595,26 @@ export default {
         objDataTemp.value.push(obj);
       });
       //
-      if(dochtml)
-      dochtml.querySelectorAll("table").forEach((etb, i) => {
-        if (
-          etb.querySelector("td").style.backgroundColor == "rgb(255, 255, 0)"
-        ) {
-          stt++;
-          let obj = { stt: i + 1, key: stt, value: "data-" + stt, cols: [] };
-          etb.classList.add("data-" + stt);
-          etb.querySelectorAll("tr>td").forEach((td, j) => {
-            if (/\[.+\]/g.test(td.innerText))
-              obj.cols.push({
-                tid: stt,
-                stt: j + 1,
-                key: readonly.value ? "" : removeTags(td.innerText),
-                value: removeTags(td.innerText),
-              });
-          });
-          objDataTemp.value.push(obj);
-        }
-      });
+      if (dochtml)
+        dochtml.querySelectorAll("table").forEach((etb, i) => {
+          if (
+            etb.querySelector("td").style.backgroundColor == "rgb(255, 255, 0)"
+          ) {
+            stt++;
+            let obj = { stt: i + 1, key: stt, value: "data-" + stt, cols: [] };
+            etb.classList.add("data-" + stt);
+            etb.querySelectorAll("tr>td").forEach((td, j) => {
+              if (/\[.+\]/g.test(td.innerText))
+                obj.cols.push({
+                  tid: stt,
+                  stt: j + 1,
+                  key: readonly.value ? "" : removeTags(td.innerText),
+                  value: removeTags(td.innerText),
+                });
+            });
+            objDataTemp.value.push(obj);
+          }
+        });
       expandedRows.value = objDataTemp.value.filter((x) => x.cols);
       if (
         tf != true &&
@@ -1618,12 +1622,11 @@ export default {
         props.report.report_config.trim() != ""
       ) {
         try {
-               
           objConfig = JSON.parse(props.report.report_config.trim());
-            
+
           if (isUrlReport.value && Object.keys(props.pars).length > 0) {
             await initURLReport();
-          } else if(Object.keys(objConfig.proc).length>0  ) {
+          } else if (Object.keys(objConfig.proc).length > 0) {
             await initReportData(objConfig);
           }
           if (objConfig.data) {
@@ -1708,7 +1711,7 @@ export default {
       if (props.report.report_template)
         isxls.value = props.report.report_template.startsWith("<!doctype");
       tempHTML = "";
-       
+
       if (props.report.report_template)
         initDocHTML(props.report.report_template);
       showLoadding.value = false;
@@ -1729,7 +1732,6 @@ export default {
       }
     };
     const initmutationObserver = () => {
-       
       var mutationObserver = new MutationObserver(function (mutations) {
         if (dochtml == iframeDoc.activeElement) {
           mutations.forEach(function (mutation) {
@@ -1748,7 +1750,6 @@ export default {
         attributeOldValue: true,
         characterDataOldValue: true,
       });
-       
     };
     const initMapData = () => {
       let obj = {};
@@ -1830,7 +1831,7 @@ export default {
       if (!row.value) row.value = row.name;
       dbrow.value = row;
       if (o != null) IsOne.value = o;
-       
+
       isDisplayDatabase.value = true;
     };
     const saveDatabase = () => {
@@ -2366,11 +2367,11 @@ export default {
         if (document.getElementById("app-body"))
           document.getElementById("app-body").classList.remove("p-2");
       }
-       
+
       if (props.report) {
         initTemplate();
       }
-       
+
       if (!dochtml) dochtml = iframeDoc.getElementById("dochtml");
       users.forEach((u) => {
         itemusers.value.push({
@@ -2392,7 +2393,6 @@ export default {
         //
         initmutationObserver();
         //mutationObserver.disconnect();
-         
       }
     });
     //Data cho Report
@@ -2413,7 +2413,7 @@ export default {
       if (!objConfig.proc.name) {
         objConfig.proc.name = props.report.proc_name;
       }
-      
+
       dtDataReports.value = await goProc(
         objConfig.proc.issql,
         objConfig.proc.sql,
@@ -2458,19 +2458,18 @@ export default {
       );
 
       let dts = [];
- 
+
       if (axResponse.status == 200) {
         if (axResponse.data.error) {
           //toast.error("Không mở được bản ghi");
         } else {
-             
           dts = JSON.parse(axResponse.data.data);
           if (!f) {
             dts = dts[0];
           }
         }
       }
-  
+
       swal.close();
       return dts;
     };
@@ -2542,8 +2541,8 @@ export default {
             par: pa.Parameter_name,
             va: objpar[pa.Parameter_name.replace("@", "")],
           });
-        }); 
-        
+        });
+
       let dts = await goProc(false, objConfig.proc.name, pas, true);
       //init với kiểu lưu
       let tbs = [];
@@ -3041,11 +3040,13 @@ export default {
 
     let dtProfile = {};
     const initProfile = async (r) => {
-      
       let dts = await goProc(
         true,
-        `profile_info '${store.getters.user.user_id}', '${r.profile_id}'`,
-        [],
+        `profile_info`,
+        [
+          { par: "user_id", va: store.getters.user.user_id },
+          { par: "profile_id", va: r.profile_id },
+        ],
         false,
         true
       );
@@ -3057,8 +3058,8 @@ export default {
     const editDataAll = async (objvalue) => {
       if (props.report.is_config) {
         objDataTemp.value = props.report.is_config;
-      } 
-      
+      }
+
       let dts = await goProc(true, props.report.proc_all, [], true);
       dtDataReports.value.forEach((dt) => {
         let tb = dts[0].find((x) => x.profile_id == dt.profile_id);
@@ -3157,8 +3158,8 @@ export default {
           par: pa.Parameter_name,
           va: r[pa.Parameter_name.replace("@", "")],
         });
-      }); 
-      
+      });
+
       let dts = await goProc(false, objConfig.proc.name, pas, true);
       objForm.value = dts[0][0];
       cForm.value = r;
@@ -3169,8 +3170,8 @@ export default {
             par: pa.Parameter_name,
             va: rcopy[pa.Parameter_name.replace("@", "")],
           });
-        }); 
-        
+        });
+
         let dts = await goProc(false, objConfig.proc.name, pas, true);
         if (dts.length > 0) {
           objForm.value.is_data = dts[0][0].is_data;
@@ -3180,11 +3181,14 @@ export default {
       //itemtypeInputs.value = itemtypeInputs.value.filter(x => !x.items);
       opTypeDB.value = optionTypeDBs.value[2];
       isdataSidebar.value = true;
-      
+
       dts = await goProc(
         true,
-        `profile_info '${store.getters.user.user_id}', '${r.profile_id}'`,
-        [],
+        `profile_info`,
+        [
+          { par: "user_id", va: store.getters.user.user_id },
+          { par: "profile_id", va: r.profile_id },
+        ],
         true,
         true
       );
@@ -3627,7 +3631,7 @@ export default {
     <div
       class="tool flex w-full p-2"
       v-if="isUrlReport || readonly"
-      :style="'height:' + (isUrlReport || readonly ? '40pt' : '')"
+     
     >
       <Button
         v-if="!readonly"
@@ -3761,7 +3765,7 @@ export default {
           selectionMode="single"
           :metaKeySelection="false"
           scrollable
-          :scrollHeight="'calc(100vh - ' + (isUrlReport ? 120 : 190) + 'px)'"
+          :scrollHeight="'calc(100vh - ' + (isUrlReport ? 149 : 200) + 'px)'"
           class="p-datatable-sm"
           v-model:expandedRowGroups="expandedRowGroups"
           expandableRowGroups
@@ -3792,13 +3796,36 @@ export default {
             </div>
           </template>
           <Column
-            :style="
-              'width:' + (col.includes('Ảnh') || col == 'ok' ? '50pt' : 'auto')
+            :bodyStyle="
+              'max-width:' +
+              (col.includes('Ảnh') || col == 'ok'
+                ? '50pt;text-align:center'
+                : (col.includes('Mã nhân sự') || col.includes('Số hợp đồng')  || col.includes('Ngày tạo') || col.includes('Ngày ký')  ) 
+                ? '80pt;text-align:center'
+                : 'auto') +
+              ';height:60px'
+            "
+            :headerStyle="
+              'max-width:' +
+              (col.includes('Ảnh') || col == 'ok'
+                ? '50pt;text-align:center'
+                : (col.includes('Mã nhân sự') || col.includes('Số hợp đồng')  || col.includes('Ngày tạo') || col.includes('Ngày ký')  ) 
+                ? '80pt;text-align:center'
+                : 'auto') +
+              ';height:60px'
             "
             v-for="col of dtColumns"
             :key="col"
             :field="col"
             :header="col != 'ok' && !col.includes('_') ? col : ''"
+            :bodyClass="
+             ( col.includes('Ảnh') || col.includes('Số hợp đồng') ||  col.includes('Mã nhân sự') || col.includes('Ngày tạo') || col.includes('Ngày ký')  ) || col == 'ok' ? 'format-center' : ''
+            "
+            :headerClass="
+               ( col.includes('Ảnh') || col.includes('Số hợp đồng') ||  col.includes('Mã nhân sự') || col.includes('Ngày tạo') || col.includes('Ngày ký')  ) || col == 'ok'
+                ? 'align-items-center justify-content-center text-center'
+                : ''
+            "
           >
             <template #body="dt">
               <div v-if="col.includes('Ảnh')">
@@ -3828,6 +3855,8 @@ export default {
                   <i v-if="dt.data[col]" class="pi pi-check text-green-500"></i>
                 </div>
                 <div v-else v-html="dt.data[col]"></div>
+                
+                
               </div>
             </template>
           </Column>
@@ -3835,6 +3864,9 @@ export default {
             class="text-center"
             v-if="readonly && isedit"
             style="width: 50px"
+            headerStyle="text-align:center;height:50px"
+            bodyStyle="text-align:left "
+            headerClass="align-items-center justify-content-center text-center"
           >
             <template #header>
               <Button
@@ -3870,45 +3902,7 @@ export default {
       <div v-else style="height: calc(100vh - 130px); overflow-y: auto">
         <div class="p-0">
           <!--<div class="flex" v-if="elementSpan.element">
-                                                                                                                                                                                                                                                                                                                                                                                                                                                                                    <div class="flex-1 p-0 m-0">
-                                                                                                                                                                                                                                                                                                                                                                                                                                                                                        <Button v-tooltip="'Hiển thị tất cả'" v-if="elementSpan.element" icon="pi pi-angle-left"
-                                                                                                                                                                                                                                                                                                                                                                                                                                                                                            class="p-button-rounded p-button-secondary p-button-outlined p-button-sm mr-1"
-                                                                                                                                                                                                                                                                                                                                                                                                                                                                                            @click="elementSpan = {}" />
-                                                                                                                                                                                                                                                                                                                                                                                                                                                                                        <Button v-tooltip="'Chỉnh sửa nâng cao'" v-if="elementSpan.element" icon="pi pi-file-edit"
-                                                                                                                                                                                                                                                                                                                                                                                                                                                                                            class="p-button-rounded p-button-success p-button-sm mr-1" @click="editSpan(true)" />
-                                                                                                                                                                                                                                                                                                                                                                                                                                                                                        <Button v-tooltip="'Thêm comment'" v-if="elementSpan.element" icon="pi pi-comments"
-                                                                                                                                                                                                                                                                                                                                                                                                                                                                                            class="p-button-rounded p-button-info p-button-sm mr-1" @click="editSpan(false)" />
-                                                                                                                                                                                                                                                                                                                                                                                                                                                                                    </div>
-                                                                                                                                                                                                                                                                                                                                                                                                                                                                                    <AvatarGroup class="ml-1 mr-1">
-                                                                                                                                                                                                                                                                                                                                                                                                                                                                                        <Avatar :style="{ border: filterUser.id == u.id ? '3px solid red' : 'none' }" @click="goUser(u)"
-                                                                                                                                                                                                                                                                                                                                                                                                                                                                                            v-for="u in reUsers" :image="u.img" size="large" shape="circle"
-                                                                                                                                                                                                                                                                                                                                                                                                                                                                                            :v-badge.danger="'u.badge'" />
-                                                                                                                                                                                                                                                                                                                                                                                                                                                                                    </AvatarGroup>
-                                                                                                                                                                                                                                                                                                                                                                                                                                                                                    <SplitButton class="p-button-sm" :label="user.name" icon="pi pi-user-edit" :model="itemusers">
-                                                                                                                                                                                                                                                                                                                                                                                                                                                                                    </SplitButton>
-                                                                                                                                                                                                                                                                                                                                                                                                                                                                                </div>
-                                                                                                                                                                                                                                                                                                                                                                                                                                                                                 <Divider v-if="elementSpan.element" />
-                                                                                                                                                                                                                                                                                                                                                                                                                                                                                <div class="history" v-if="elementSpan.element">
-                                                                                                                                                                                                                                                                                                                                                                                                                                                                                    <div @click="openHTML(sp.element)" :class="'history-row flex m-1 p-2 ' + sp.user.id" v-for="sp in elementSpan
-                                                                                                                                                                                                                                                                                                                                                                                                                                                                                        .historys">
-                                                                                                                                                                                                                                                                                                                                                                                                                                                                                        <Badge :severity="sp.version > 0 ? 'info' : 'success'"
-                                                                                                                                                                                                                                                                                                                                                                                                                                                                                            :value="sp.version > 0 ? sp.version : 'Gốc'" class="mr-1"></Badge>
-                                                                                                                                                                                                                                                                                                                                                                                                                                                                                        <Avatar :image="sp.user.img" shape="circle" />
-                                                                                                                                                                                                                                                                                                                                                                                                                                                                                        <div class="flex-1 ml-1 mr-1 text1line" v-html="sp.element"></div>
-                                                                                                                                                                                                                                                                                                                                                                                                                                                                                        <Chip :label="sp.date.toLocaleString('vi-VN')" class="ml-2" />
-                                                                                                                                                                                                                                                                                                                                                                                                                                                                                    </div>
-                                                                                                                                                                                                                                                                                                                                                                                                                                                                                </div>
-                                                                                                                                                                                                                                                                                                                                                                                                                                                                                <div class="history" v-if="!elementSpan.element">
-                                                                                                                                                                                                                                                                                                                                                                                                                                                                                    <div @click="elementSpan = sp; openHTML(sp.element)"
-                                                                                                                                                                                                                                                                                                                                                                                                                                                                                        :class="'history-row flex m-1 p-2 ' + (!sp.historys[sp.historys.length - 1] ? '' : sp.historys[sp.historys.length - 1].user.id)"
-                                                                                                                                                                                                                                                                                                                                                                                                                                                                                        v-for="sp in compSpans">
-                                                                                                                                                                                                                                                                                                                                                                                                                                                                                        <Badge :value="sp.version" class="mr-1"></Badge>
-                                                                                                                                                                                                                                                                                                                                                                                                                                                                                        <Avatar :image="sp.historys[sp.historys.length - 1].user.img" shape="circle" />
-                                                                                                                                                                                                                                                                                                                                                                                                                                                                                        <div class="flex-1 ml-1 mr-1 text1line" v-html="sp.historys[sp.historys.length - 1].element">
-                                                                                                                                                                                                                                                                                                                                                                                                                                                                                        </div>
-                                                                                                                                                                                                                                                                                                                                                                                                                                                                                        <Chip :label="sp.historys[sp.historys.length - 1].date.toLocaleString('vi-VN')" class="ml-2" />
-                                                                                                                                                                                                                                                                                                                                                                                                                                                                                    </div>
-                                                                                                                                                                                                                                                                                                                                                                                                                                                                                </div> -->
+                                                                                                                                                                                                                                                                                                                                                                                                                                                                               </div> -->
           <div class="flex m-2">
             <div class="flex-1 mr-2">
               <span class="p-input-icon-left w-full">
@@ -3919,7 +3913,7 @@ export default {
                   placeholder="Tìm kiếm"
                 />
               </span>
-            </div> 
+            </div>
             <Button
               @click="saveConfig()"
               icon="pi pi-save"
@@ -4122,15 +4116,26 @@ export default {
           >
             <Column expander />
             <Column
-              style="width: 100px; text-align: center"
-              headerClass="text-center"
+              columnKey=""
               class="text-center"
               field="colname"
               header="Dòng/Cột"
+              headerStyle="text-align:center;height:50px;max-width:100px"
+              bodyStyle="text-align:left; max-width:100px "
             >
             </Column>
-            <Column field="key" header="Trường"></Column>
-            <Column>
+            <Column
+              field="key"
+              header="Trường"
+              headerStyle="text-align:center;height:50px"
+              bodyStyle="text-align:left "
+              headerClass="align-items-center justify-content-center text-center"
+            ></Column>
+            <Column
+              headerStyle="text-align:center;height:50px"
+              bodyStyle="text-align:left "
+              headerClass="align-items-center justify-content-center text-center"
+            >
               <template #body="slotProps">
                 <Checkbox
                   v-tooltip="'Lấy tự động'"
@@ -4139,7 +4144,13 @@ export default {
                 />
               </template>
             </Column>
-            <Column field="inputtype" header="Nhập">
+            <Column
+              field="inputtype"
+              header="Nhập"
+              headerStyle="text-align:center;height:50px"
+              bodyStyle="text-align:left "
+              headerClass="align-items-center justify-content-center text-center"
+            >
               <template #body="slotProps">
                 <Dropdown
                   @change="changeInputType(slotProps.data)"
@@ -4161,9 +4172,10 @@ export default {
               </template>
             </Column>
             <Column
-              style="width: 140px; text-align: center"
-              headerClass="text-center"
               class="text-center"
+              headerStyle="text-align:center;height:50px;max-width:140px"
+              bodyStyle="text-align:left;max-width:140px "
+              headerClass="align-items-center justify-content-center text-center"
             >
               <template #body="slotProps">
                 <Button
@@ -4191,12 +4203,20 @@ export default {
                   :value="slotProps.data.cols"
                 >
                   <Column
-                    headerStyle="width: 50px;text-align: center;"
                     field="colname"
                     header="Cột"
+                    headerStyle="text-align:center;height:50px;max-width:50px"
+                    bodyStyle="text-align:left;max-width:50px "
+                    headerClass="align-items-center justify-content-center text-center"
                   >
                   </Column>
-                  <Column field="key" header="Trường dữ liệu"></Column>
+                  <Column
+                    field="key"
+                    header="Trường dữ liệu"
+                    headerStyle="text-align:center;height:50px "
+                    bodyStyle="text-align:left "
+                    headerClass="align-items-center justify-content-center text-center"
+                  ></Column>
                   <Column>
                     <template #body="slotProps">
                       <Checkbox
@@ -4206,7 +4226,13 @@ export default {
                       />
                     </template>
                   </Column>
-                  <Column field="inputtype" header="Nhập">
+                  <Column
+                    field="inputtype"
+                    header="Nhập"
+                    headerStyle="text-align:center;height:50px "
+                    bodyStyle="text-align:left  "
+                    headerClass="align-items-center justify-content-center text-center"
+                  >
                     <template #body="slotProps">
                       <Dropdown
                         @change="changeInputType(slotProps.data)"
@@ -4228,9 +4254,9 @@ export default {
                     </template>
                   </Column>
                   <Column
-                    style="width: 140px; text-align: center"
-                    headerClass="text-center"
-                    class="text-center"
+                    headerStyle="text-align:center;height:50px;max-width:140px"
+                    bodyStyle="text-align:left;max-width:140px "
+                    headerClass="align-items-center justify-content-center text-center"
                   >
                     <template #body="slotProps">
                       <Button
@@ -5047,11 +5073,6 @@ export default {
 
   td {
     overflow: hidden;
-  }
-
-  tr,
-  tr td {
-    height: fit-content !important;
   }
 
   .p-panel-content {

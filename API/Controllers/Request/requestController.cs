@@ -224,7 +224,7 @@ namespace API.Controllers.Request
                                 File.Move(ffileData.LocalFileName, root + pathEdit_1);
                                 listPathFileUp.Add(ffileData.LocalFileName);
                                 //helper.UploadFileToDestination(jwtcookie, root, ffileData, pathEdit_1, 360, 360);
-
+                                /*
                                 var Portals = ConfigurationManager.AppSettings["Portals"];
                                 sys_file_mapping fm = new sys_file_mapping();
                                 fm.file_key_id = helper.GenKey();
@@ -261,6 +261,7 @@ namespace API.Controllers.Request
                                 fm.created_token_id = tid;
                                 db.sys_file_mapping.Add(fm);
                                 //});
+                                */
                             }
                         }
 

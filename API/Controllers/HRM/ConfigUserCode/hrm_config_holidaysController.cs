@@ -32,9 +32,14 @@ namespace API.Controllers.HRM.ConfigUserCode
         {
             return HttpContext.Current.Request.UserHostAddress;
         }
+        public class modelC
+        {
+            public int num_seniority { get; set; }
+            public int organization_id { get; set; }
 
+        }
         [HttpPut]
-        public async Task<HttpResponseMessage> update_data()
+        public async Task<HttpResponseMessage> update_data(modelC model)
         {
             var identity = User.Identity as ClaimsIdentity;
             if (identity == null)
