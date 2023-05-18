@@ -868,7 +868,7 @@ namespace Controllers
                 string PortalsConfig = ConfigurationManager.AppSettings["Portals"];
                 //string PortalsConfig = "ftp://123.31.12.70:21/PublishSOE2020/Vue2022/VTCPLUS/api/Portals";
                 //string PortalsConfig = "https://apivtc.soe.vn";
-                return Request.CreateResponse(HttpStatusCode.OK, new { portF = Codec.EncryptString(PortalsConfig, helper.psKey), err = "0" });
+                return Request.CreateResponse(HttpStatusCode.OK, new { portF = (PortalsConfig != null && PortalsConfig.Trim() != "" ? Codec.EncryptString(PortalsConfig, helper.psKey) : ""), err = "0" });
             }
             catch (DbEntityValidationException e)
             {

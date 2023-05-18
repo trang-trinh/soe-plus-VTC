@@ -2667,10 +2667,10 @@ namespace API.Controllers.HRM.Profile
 
                                                                 break;
                                                             case "4":
-                                                                skill.start_date = DateTime.ParseExact(value, "dd/MM/yyyy", CultureInfo.InvariantCulture);
+                                                                skill.start_date = value;
                                                                 break;
                                                             case "5":
-                                                                skill.end_date = DateTime.ParseExact(value, "dd/MM/yyyy", CultureInfo.InvariantCulture);
+                                                                skill.end_date = value;
                                                                 break;
                                                             case "6":
                                                                 var academic_level_name = value;
@@ -2703,7 +2703,7 @@ namespace API.Controllers.HRM.Profile
                                                                 }
                                                                 break;
                                                             case "11":
-                                                                skill.graduation_year = DateTime.ParseExact(value, "dd/MM/yyyy", CultureInfo.InvariantCulture);
+                                                                skill.graduation_year = value;
                                                                 break;
                                                             case "12":
                                                                 skill.rating = value;
@@ -2726,6 +2726,7 @@ namespace API.Controllers.HRM.Profile
                                                 }
                                                 if (!string.IsNullOrEmpty(skill.profile_id))
                                                 {
+                                                    skill.profile_skill_id = helper.GenKey();
                                                     skills.Add(skill);
                                                 }
                                             }

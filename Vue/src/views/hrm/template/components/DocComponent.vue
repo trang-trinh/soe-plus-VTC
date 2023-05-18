@@ -43,6 +43,7 @@ export default {
     isedit: Boolean,
     readonly: Boolean,
     callbackFun: Function,
+    header:String
   },
   components: {
     Editor,
@@ -67,7 +68,7 @@ export default {
     //refChild
     const isedit = props.isedit || false;
     const onedata = props.onedata;
-
+    const header = props.header|| null;
     const isUrlReport = ref(props.pars ? true : false);
     const readonly = ref(props.readonly ? true : false);
     const isReportListView = ref(
@@ -1264,6 +1265,7 @@ export default {
               dr.ok = false;
               objt.is_data = null;
             }
+
             props.callbackFun(objt);
           });
           isdataSidebar.value = false;
@@ -1505,7 +1507,6 @@ export default {
     let dtUser = {};
     const initDataTempAuto = async (tf) => {
       if (!isUrlReport.value) {
-        
         let dts = await goProc(
           false,
           `soe_user_info`,
@@ -1706,6 +1707,7 @@ export default {
                 `
         );
         iframeDoc.querySelector("body").appendChild(divleftiframe);
+
         filename = change_unsigned(props.report.report_name, "_");
       }
       showLoadding.value = true;
@@ -1816,7 +1818,6 @@ export default {
     const IsOne = ref(false);
     const dbrow = ref({});
     const openCogDatabase = (row, f, o) => {
-       
       if (f) {
         if (row.isfor) {
           row.value = row.colname;
@@ -2373,9 +2374,9 @@ export default {
       if (props.report) {
         initTemplate();
       }
-   
+
       if (!dochtml)
-      if(iframeDoc) dochtml = iframeDoc.getElementById("dochtml");
+        if (iframeDoc) dochtml = iframeDoc.getElementById("dochtml");
       users.forEach((u) => {
         itemusers.value.push({
           label: u.name,
@@ -2386,13 +2387,13 @@ export default {
         });
       });
       if (!isUrlReport.value && !readonly.value) {
-        if(iframeDoc)
-        iframeDoc.addEventListener("selectionchange", () => {
-          let txt = getSelectionText();
-          if (txt != "") {
-            selectText = txt;
-          }
-        });
+        if (iframeDoc)
+          iframeDoc.addEventListener("selectionchange", () => {
+            let txt = getSelectionText();
+            if (txt != "") {
+              selectText = txt;
+            }
+          });
 
         //
         initmutationObserver();
@@ -2417,7 +2418,7 @@ export default {
       if (!objConfig.proc.name) {
         objConfig.proc.name = props.report.proc_name;
       }
-      
+
       dtDataReports.value = await goProc(
         objConfig.proc.issql,
         objConfig.proc.sql,
@@ -2439,7 +2440,6 @@ export default {
       await initReportData();
     };
     const goProc = async (query, name, par, f, o) => {
-      
       let strSQL = {
         query: query,
         proc: name,
@@ -2451,7 +2451,7 @@ export default {
           swal.showLoading();
         },
       });
-debugger
+
       const axResponse = await axios.post(
         baseURL + "/api/HRM_SQL/PostProc",
         {
@@ -3021,6 +3021,11 @@ debugger
       return dt.cols ? "has-child" : "no-child";
     };
     const goBack = () => {
+       
+      if(header!=null){
+       props.callbackFun();
+      }
+      else
       history.back();
     };
     //Cấu hình nguồn nhập dữ liệu
@@ -3492,6 +3497,7 @@ debugger
       nextDBrow,
       saveConfig,
       refershConfig,
+    
       //
       onCellEditComplete,
       dataDB,
@@ -3633,11 +3639,7 @@ debugger
         class="ml-1 mr-2"
       />
     </div>
-    <div
-      class="tool flex w-full p-2"
-      v-if="isUrlReport || readonly"
-     
-    >
+    <div class="tool flex w-full p-2" v-if="isUrlReport || readonly">
       <Button
         v-if="!readonly"
         v-tooltip="'Quay lại trang trước'"
@@ -3647,7 +3649,13 @@ debugger
       />
       <div class="flex-1">
         <h3 v-if="!readonly" class="p-2 m-0">
-          <i class="mr-1 pi pi-print"></i>{{ report.report_name }}
+          <i class="mr-1 pi pi-print"></i>  <span v-if="header">
+        {{    header }} ({{     report.report_name}})
+          </span>
+          <span v-else>
+            {{     report.report_name}}
+          </span>
+        
         </h3>
       </div>
       <ToggleButton
@@ -3805,7 +3813,10 @@ debugger
               'max-width:' +
               (col.includes('Ảnh') || col == 'ok'
                 ? '50pt;text-align:center'
-                : (col.includes('Mã nhân sự') || col.includes('Số hợp đồng')  || col.includes('Ngày tạo') || col.includes('Ngày ký')  ) 
+                : col.includes('Mã nhân sự') ||
+                  col.includes('Số hợp đồng') ||
+                  col.includes('Ngày tạo') ||
+                  col.includes('Ngày ký')
                 ? '80pt;text-align:center'
                 : 'auto') +
               ';height:60px'
@@ -3814,23 +3825,39 @@ debugger
               'max-width:' +
               (col.includes('Ảnh') || col == 'ok'
                 ? '50pt;text-align:center'
-                : (col.includes('Mã nhân sự') || col.includes('Số hợp đồng')  || col.includes('Ngày tạo') || col.includes('Ngày ký')  ) 
+                : col.includes('Mã nhân sự') ||
+                  col.includes('Số hợp đồng') ||
+                  col.includes('Ngày tạo') ||
+                  col.includes('Ngày ký')
                 ? '80pt;text-align:center'
                 : 'auto') +
               ';height:60px'
+            "
+            :bodyClass="
+              col.includes('Ảnh') ||
+              col.includes('Số hợp đồng') ||
+              col.includes('Mã nhân sự') ||
+              col.includes('Ngày tạo') ||
+              col.includes('Ngày ký') ||
+              col == 'ok'
+                ? 'format-center'
+                : ''
+            "
+            :headerClass="
+              col.includes('Ảnh') ||
+              col.includes('Số hợp đồng') ||
+              col.includes('Mã nhân sự') ||
+              col.includes('Ngày tạo') ||
+              col.includes('Ngày ký') ||
+              col == 'ok'
+                ? 'align-items-center justify-content-center text-center'
+                : ''
             "
             v-for="col of dtColumns"
             :key="col"
             :field="col"
             :header="col != 'ok' && !col.includes('_') ? col : ''"
-            :bodyClass="
-             ( col.includes('Ảnh') || col.includes('Số hợp đồng') ||  col.includes('Mã nhân sự') || col.includes('Ngày tạo') || col.includes('Ngày ký')  ) || col == 'ok' ? 'format-center' : ''
-            "
-            :headerClass="
-               ( col.includes('Ảnh') || col.includes('Số hợp đồng') ||  col.includes('Mã nhân sự') || col.includes('Ngày tạo') || col.includes('Ngày ký')  ) || col == 'ok'
-                ? 'align-items-center justify-content-center text-center'
-                : ''
-            "
+            
           >
             <template #body="dt">
               <div v-if="col.includes('Ảnh')">
@@ -3860,21 +3887,17 @@ debugger
                   <i v-if="dt.data[col]" class="pi pi-check text-green-500"></i>
                 </div>
                 <div v-else v-html="dt.data[col]"></div>
-                
-                
               </div>
             </template>
           </Column>
           <Column
             class="text-center"
             v-if="readonly && isedit"
-             
             bodyClass="
            format-center
             "
-           headerClass="
+            headerClass="
                  align-items-center justify-content-center text-center
-              
             "
             bodyStyle=" max-width:120px "
             headerStyle="  max-width:120px "
@@ -3887,7 +3910,7 @@ debugger
                 :icon="'pi pi-' + (isCopy ? 'check' : 'copy')"
                 v-tooltip.left="isCopy ? 'Dán' : 'Copy'"
                 text
-                class="p-button-outlined"
+                class="p-button-outlined p-button-text"
               />
               <Button
                 v-if="!onedata"
@@ -4654,14 +4677,13 @@ debugger
   <Sidebar
     v-model:visible="isdataSidebar"
     position="right"
-    :class="'w-full d-sidebar-full' + (isfullSidebar ? '' : ' md:w-8 lg:w-8')"
+    :class="'w-full d-sidebar-full' + (isfullSidebar ? '  ' : ' md:w-8 lg:w-8')"
   >
     <template #header>
       <div class="flex w-full">
         <Button
           @click="isfullSidebar = !isfullSidebar"
           :icon="'pi pi-window-' + (!isfullSidebar ? 'maximize' : 'minimize')"
-           
           class="p-button-outlined p-button-secondary p-button-text"
         />
         <div class="text-center flex-1">
@@ -4833,15 +4855,26 @@ debugger
         <DataTable class="p-datatable-sm" showGridlines :value="dtTables">
           <Column
             class="text-center"
-            headerStyle="width: 50px;text-align: center;"
+            :bodyStyle="
+              'max-width: 60px  '
+            "
+           
+            :headerStyle="
+              'max-width: 60px ;height:60px'
+            "
             field="index"
             header="STT"
           >
           </Column>
           <Column field="name" header="Tiêu đề"></Column>
           <Column
-            style="width: 140px; text-align: center"
-            headerClass="text-center"
+          :bodyStyle="
+              'max-width: 140px  '
+            "
+           
+            :headerStyle="
+              'max-width: 140px ;height:60px'
+            "
             class="text-center"
           >
             <template #body="slotProps">
@@ -4910,7 +4943,14 @@ debugger
             <Column
               field="stt"
               header="STT"
-              style="width: 60px; text-align: center"
+              :bodyStyle="
+              'max-width: 60px  '
+            "
+           
+            :headerStyle="
+              'max-width: 60px ;height:60px'
+            "
+            headerClass="align-items-center justify-content-center text-center"
             >
               <template #body="slotProps">
                 <InputNumber
@@ -4922,7 +4962,15 @@ debugger
             </Column>
             <Column
               v-for="c in dt.cols"
-              style="min-width: 100px; white-space: nowrap"
+              style="  white-space: nowrap"
+              :bodyStyle="
+              'max-width: 150px  '
+            "
+           
+            :headerStyle="
+              'max-width: 150px ;height:60px'
+            "
+           
             >
               <template #header>
                 {{ c.value.replace(/\[(.+)\]/g, "$1") }}
@@ -4972,7 +5020,12 @@ debugger
             expandableRowGroups
             rowGroupMode="subheader"
             groupRowsBy="group"
-            showGridlines
+     
+ 
+                :lazy="true"
+                :rowHover="true"
+                :showGridlines="true"
+                scrollDirection="both"
             :value="dtDataReports"
           >
             <template #groupheader="slotProps">
@@ -4997,19 +5050,62 @@ debugger
               </div>
             </template>
             <Column
-              frozen
-              :style="
-                'min-width:' +
-                (col.includes('Họ tên') ? '150pt' : 'unset') +
-                ';width:' +
-                (col.includes('Ảnh') || col == 'ok' ? '50pt' : 'auto')
-              "
+            frozen 
+            :headerClass="
+              
+              (col.includes('Ảnh') || col == 'ok'
+                ? 'format-center '
+                : col.includes('Mã nhân sự') ||
+                  col.includes('Số hợp đồng') ||
+                  col.includes('Ngày tạo') ||
+                  col.includes('Ngày ký')
+                ? 'format-center'
+                : '') 
+            
+            "
+             :bodyClass="
+              
+              (col.includes('Ảnh') || col == 'ok'
+                ? 'format-center '
+                : col.includes('Mã nhân sự') ||
+                  col.includes('Số hợp đồng') ||
+                  col.includes('Ngày tạo') ||
+                  col.includes('Ngày ký')
+                ? 'format-center'
+                : '') 
+            
+            "
+            :headerStyle="
+              
+              (col.includes('Ảnh') || col == 'ok'
+                ? 'text-align:center;width:70px;height:50px'
+                : col.includes('Mã nhân sự') ||
+                  col.includes('Số hợp đồng') ||
+                  col.includes('Ngày tạo') ||
+                  col.includes('Ngày ký')
+                ? 'text-align:center;width:200px;height:50px'
+                : ' width:250px;height:50px') 
+            
+            "
+              :bodyStyle="
+              
+              (col.includes('Ảnh') || col == 'ok'
+                ? 'text-align:center;width:70px;height:50px'
+                : col.includes('Mã nhân sự') ||
+                  col.includes('Số hợp đồng') ||
+                  col.includes('Ngày tạo') ||
+                  col.includes('Ngày ký')
+                ? 'text-align:center;width:200px;height:50px'
+                : ' width:250px;height:50px') 
+            
+            "
               v-for="col of dtColumns"
               :key="col"
               :field="col"
               :header="col != 'ok' && !col.includes('_') ? col : ''"
             >
               <template #body="dt">
+               
                 <div v-if="col.includes('Ảnh')">
                   <Avatar
                     v-if="(dt.data[col] || '').includes('.')"
@@ -5040,12 +5136,23 @@ debugger
                     ></i>
                   </div>
                   <div v-else v-html="dt.data[col]"></div>
+ 
                 </div>
               </template>
             </Column>
             <Column
               v-for="c in objDataTemp[0].cols"
               style="white-space: nowrap"
+              :headerStyle="
+              
+              ' width:150px;height:50px'  
+            
+            "
+              :bodyStyle="
+              
+            ' width:150px;height:50px' 
+            
+            "
             >
               <template #header>
                 {{ c.value.toString().replace(/\[(.+)\]/g, "$1") }}

@@ -42,7 +42,7 @@ const groups = ref([
   { view: 1, icon: "pi pi-list", title: "list" },
   { view: 2, icon: "pi pi-align-right", title: "tree" },
 ]);
-const insurance_pays = ref();
+const insurance_pays = ref([]);
 const insurance_resolves = ref();
 const dictionarys = ref();
 const datatrees = ref()
@@ -55,7 +55,7 @@ const forceRerender = () => {
 const loadCount = () => {
   axios
     .post(
-      baseURL + "/api/insurance/GetDataProc",
+      baseURL + "/api/hrm/callProc",
       {
         str: encr(
           JSON.stringify({
@@ -245,20 +245,20 @@ const openBasic = (str) => {
     insurance_province_id: null,
     hospital_name: null,
     organization_id: store.getters.user.organization_id,
-    profile_id: 1,
+    profile_id: 'DGC00004',
   };
-  insurance_pays.value = [
-    {
-      start_date: null,
-      payment_form: null,
-      reason: null,
-      end_date: null,
-      organization_payment: null,
-      total_payment: null,
-      company_payment: null,
-      member_payment: null,
-    },
-  ];
+  // insurance_pays.value = [
+  //   {
+  //     start_date: null,
+  //     payment_form: null,
+  //     reason: null,
+  //     end_date: null,
+  //     organization_payment: null,
+  //     total_payment: null,
+  //     company_payment: null,
+  //     member_payment: null,
+  //   },
+  // ];
   insurance_resolves.value = [
     {
       type_mode: null,
@@ -282,7 +282,6 @@ const closeDialog = () => {
 };
 
 //Thêm bản ghi
-
 const sttStamp = ref(1);
 const saveData = (isFormValid) => {
   submitted.value = true;
@@ -298,10 +297,12 @@ const saveData = (isFormValid) => {
       for (let j = i + 1; j < insurance_pays.value.length; j++) {
         if (
           !isEmpty(insurance_pays.value[i].start_date) &&
+          !isEmpty(insurance_pays.value[i].end_date) &&
           !isEmpty(insurance_pays.value[j].start_date) &&
+          !isEmpty(insurance_pays.value[j].end_date) &&
           isMonth(
-            insurance_pays.value[i].start_date,
-            insurance_pays.value[j].start_date
+            insurance_pays.value[i],
+            insurance_pays.value[j]
           )
         ) {
           insurance_pays.value[j].is_duplicate = true;
@@ -401,13 +402,34 @@ const editTem = (dataTem) => {
       swal.close();
       let data = JSON.parse(response.data.data);
       if (data.length > 0) {
+        if (data[0][0].birthday) {
+          var dt = new Date(data[0][0].birthday);
+          data[0][0].birthday = new Date(
+            dt.getFullYear(),
+            dt.getMonth(),
+            dt.getDate()
+          );
+        }
+        if (data[0][0].identity_date_issue) {
+          var dt = new Date(data[0][0].identity_date_issue);
+          data[0][0].identity_date_issue = new Date(
+            dt.getFullYear(),
+            dt.getMonth(),
+            dt.getDate()
+          );
+        }
         insurance.value = data[0][0];
+        insurance.value.birthplace_origin = insurance.value.birthplace_origin_name ? insurance.value.birthplace_origin_name:insurance.value.birthplace_origin_last;
+        insurance.value.place_register_permanent = insurance.value.place_register_permanent_last ? insurance.value.place_register_permanent_last:(insurance.value.place_register_permanent_first + ' '+ insurance.value.place_register_permanent_name);
         //get child
         if (data[1].length > 0) {
           insurance_pays.value = data[1];
           insurance_pays.value.forEach((item) => {
             if (item.start_date != null) {
               item.start_date = new Date(item.start_date);
+            }
+            if (item.end_date != null) {
+              item.end_date = new Date(item.end_date);
             }
           });
         } else insurance_pays.value = [];
@@ -997,11 +1019,21 @@ const itemButs = ref([
     },
   },
 ]);
-function isNotValidDate(d) {
-  // return d instanceof Date && !isNaN(d) ;
-  return d instanceof Date && (isNaN(d) || d.getFullYear() == 1900 || isEmpty(d))
-}
+
 //check empy object
+//check month  date
+function isMonth(data1, data2) {
+  let start1 = new Date(data1.start_date).getTime();
+  let end1 = new Date(data1.end_date).getTime();
+  let start2 = new Date(data2.start_date).getTime();
+  let end2 = new Date(data2.end_date).getTime();
+  return start1 < end2
+  || end1 > start2
+  || (start1> start2 && end1> end2)
+  || (start1< start2 && end1< end2)
+    ? true
+    : false;
+}
 function isEmpty(val) {
   return val === undefined || val == null || val.length <= 0 ? true : false;
 }
@@ -1258,13 +1290,15 @@ onMounted(() => {
         class="align-items-center justify-content-center text-center"
       >
       </Column> -->
-
+      <!-- <Column field="file_name" header="Tên file số hóa" headerStyle="text-align:left;height:50px"
+            bodyStyle="text-align:left;word-break:break-word">
+          </Column> -->
       <Column
         field="profile_user_name"
         header="Họ và tên"
-        headerStyle="text-align:center;height:50px"
-        bodyStyle="text-align:center"
-        class="align-items-center justify-content-center text-center"
+        headerStyle="text-align:center;height:50px;justify-content:center"
+        bodyStyle="text-align:left;justify-content:start"
+
       >
       <template #body="slotProps">
             <b @click="goProfile(slotProps.data)" class="hover cursor-pointer">{{
@@ -1483,8 +1517,8 @@ onMounted(() => {
               {{amount_paid_final!=0 ? formatNumber(amount_paid_final, 0, ".", "."):'' }}
             </td>
           </tr>
-        </tbody>
-      </table>
+    </tbody>
+    </table>
     </div>
 
   </div>
@@ -1558,6 +1592,11 @@ onMounted(() => {
   .dp__input_reg{
   border: 1px solid #607D8B;
   height: 31px;
+  }
+}
+::v-deep(.p-datatable) {
+  .p-datatable-tbody > tr > td{
+  word-break: break-word;
   }
 }
 </style>

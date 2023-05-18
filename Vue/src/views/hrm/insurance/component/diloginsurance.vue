@@ -69,6 +69,34 @@ const bgColor = ref([
 ]);
 const display = ref(props.displayDialog);
 //function
+const model = ref();
+const openAddRow = ()=>{
+  model.value ={
+    start_date: new Date(), 
+    end_date: null,
+    organization_name: null, 
+    title_name: null,
+    coef_salary: null,
+    coef_allowance: null,
+    payment_form: null,
+    total_payment: null,
+    company_payment: null,
+    member_payment: null,
+  }
+}
+const saveRowData = ()=>{
+  if(model.value.start_date == null){
+    swal.fire({
+      title: "Thông báo!",
+      text: "Vui lòng chọn tháng bắt đầu!",
+      icon: "error",
+      confirmButtonText: "OK",
+    });
+    return;
+  }
+  props.insurance_pays.push(model.value);
+  model.value = null;
+}
 const submitted = ref(false);
 const saveData = () => {
   submitted.value = true;
@@ -99,10 +127,12 @@ const saveData = () => {
       for (let j = i + 1; j < props.insurance_pays.length; j++) {
         if (
           !isEmpty(props.insurance_pays[i].start_date) &&
+          !isEmpty(props.insurance_pays[i].end_date) &&
           !isEmpty(props.insurance_pays[j].start_date) &&
+          !isEmpty(props.insurance_pays[j].end_date) &&
           isMonth(
-            props.insurance_pays[i].start_date,
-            props.insurance_pays[j].start_date
+            props.insurance_pays[i],
+            props.insurance_pays[j]
           )
         ) {
           props.insurance_pays[j].is_duplicate = true;
@@ -113,7 +143,7 @@ const saveData = () => {
       if (count_duplicate > 0) {
         swal.fire({
           title: "Thông báo!",
-          text: "Vui lòng nhập tháng đóng đóng bảo hiểm không được trùng nhau!",
+          text: "Vui lòng nhập tháng đóng bảo hiểm không được trùng nhau!",
           icon: "error",
           confirmButtonText: "OK",
         });
@@ -177,11 +207,15 @@ const saveData = () => {
   });
 };
 //check month  date
-function isMonth(date1, date2) {
-  let dt1 = new Date(date1);
-  let dt2 = new Date(date2);
-  return dt1.getMonth() == dt2.getMonth() &&
-    dt1.getFullYear() == dt2.getFullYear()
+function isMonth(data1, data2) {
+  let start1 = new Date(data1.start_date);
+  let end1 = new Date(data1.end_date);
+  let start2 = new Date(data2.start_date);
+  let end2 = new Date(data2.end_date);
+  return (start1 < end2 && end2< end1)
+  || (end1 > start2 && end1 < end2)
+  || (start1> start2 && end1< end2)
+  || (start1< start2 && end1> end2)
     ? true
     : false;
 }
@@ -197,7 +231,7 @@ onMounted(() => {
   <Dialog
     :header="props.headerDialog"
     v-model:visible="props.displayDialog"
-    :style="{ width: '55vw' }"
+    :style="{ width: '65vw', zIndex:100 }"
     :closable="true"
     :modal="true"
     :maximizable="true"
@@ -208,6 +242,121 @@ onMounted(() => {
         <div class="col-12 md:col-12">
           <div class="form-group">
             <h3 class="m-0">1. Thông tin chung</h3>
+          </div>
+        </div>
+        <div class="col-6 md:col-6">
+          <div class="form-group">
+            <label>Nhân sự</label>
+            <InputText
+              spellcheck="false"
+              class="ip36"
+              v-model="props.model.profile_user_name"
+              maxLength="50"
+              disabled="true"
+            />
+          </div>
+        </div>
+        <div class="col-6 md:col-6">
+          <div class="form-group">
+            <label>Giới tính</label>
+            <InputText
+              spellcheck="false"
+              class="ip36"
+              v-model="props.model.gender"
+              maxLength="50"
+              disabled="true"
+            />
+          </div>
+        </div>
+        <div class="col-6 md:col-6">
+          <div class="form-group">
+            <label>Đơn vị/ Phòng ban</label>
+            <InputText
+              spellcheck="false"
+              class="ip36"
+              v-model="props.model.departmant_name"
+              maxLength="50"
+              disabled="true"
+            />
+          </div>
+        </div>
+        <div class="col-6 md:col-6">
+          <div class="form-group">
+            <label>Ngày sinh</label>
+            <Calendar
+              class="ip36"
+              id="icon"
+              v-model="props.model.birthday"
+              :showIcon="true"
+              placeholder="dd/mm/yyyy"
+              disabled 
+            />
+          </div>
+        </div>
+        <div class="col-6 md:col-6">
+          <div class="form-group">
+            <label>Số CMT/ Số CCCD</label>
+            <InputText
+              spellcheck="false"
+              class="ip36"
+              v-model="props.model.identity_papers_code"
+              maxLength="50"
+              disabled="true"
+            />
+          </div>
+        </div>
+        <div class="col-6 md:col-6">
+          <div class="form-group">
+            <label>Nguyên quán</label>
+            <InputText
+              spellcheck="false"
+              class="ip36"
+              v-model="props.model.birthplace_origin"
+              maxLength="50"
+              disabled="true"
+            />
+          </div>
+        </div>
+        <div class="col-6 md:col-6">
+          <div class="form-group">
+            <label>Ngày cấp</label>
+            <Calendar
+              class="ip36"
+              id="icon"
+              v-model="props.model.identity_date_issue"
+              :showIcon="true"
+              placeholder="dd/mm/yyyy"
+              disabled 
+            />
+          </div>
+        </div>
+        <div class="col-6 md:col-6">
+          <div class="form-group">
+            <label>Nơi cấp</label>
+            <InputText
+              spellcheck="false"
+              class="ip36"
+              v-model="props.model.identity_place_name"
+              maxLength="50"
+              disabled="true"
+            />
+          </div>
+        </div>
+        <div class="col-12 md:col-12">
+          <div class="form-group">
+            <label>Hộ khẩu thường trú</label>
+            <InputText
+              spellcheck="false"
+              class="ip36"
+              v-model="props.model.place_register_permanent"
+              maxLength="50"
+              disabled="true"
+            />
+          </div>
+        </div>
+        <div class="col-12 md:col-12" autofocus>
+          <div class="form-group">
+            <h3 class="m-0">2. Thông tin hồ sơ</h3>
           </div>
         </div>
         <div class="col-6 md:col-6">
@@ -278,6 +427,7 @@ onMounted(() => {
           <div class="form-group">
             <label>Nơi đăng ký</label>
             <Dropdown
+              autofocus
               class="ip36"
               v-model="props.model.hospital_name"
               :options="dictionarys[2]"
@@ -292,12 +442,12 @@ onMounted(() => {
           <div class="form-group">
             <div class="flex justify-content-between">
               <div>
-                <h3 class="m-0">2. Lịch sử đóng bảo hiểm</h3>
+                <h3 class="m-0">3. Quá trình đóng</h3>
               </div>
               <div>
                 <a
                   @click="
-                    addRow(1);
+                    openAddRow();
                     $event.stopPropagation();
                   "
                   class="hover"
@@ -311,6 +461,157 @@ onMounted(() => {
                 </a>
               </div>
             </div>
+          </div>
+        </div>
+        <div v-if="model != null" class="grid formgrid m-0">
+          <div class="col-12 md:col-12">
+            <div class="form-group">
+              <label>Thời gian đóng bảo hiểm:</label>
+            </div>
+          </div>
+          <div class="col-3 md:col-3">
+            <div class="form-group">
+              <label>Từ tháng, năm <span class="redsao">(*)</span></label>
+              <Calendar
+                :showIcon="false"
+                view="month"
+                dateFormat="mm/yy"
+                class="ip36"
+                placeholder="mm/yyyy"
+                v-model="model.start_date"
+              />
+            </div>
+          </div>
+          <div class="col-3 md:col-3">
+            <div class="form-group">
+              <label>Đến tháng, năm</label>
+              <Calendar
+                :showIcon="false"
+                view="month"
+                dateFormat="mm/yy"
+                class="ip36"
+                placeholder="mm/yyyy"
+                v-model="model.end_date"
+              />
+            </div>
+          </div>
+          <div class="col-6 md:col-6">
+            <div class="form-group">
+              <label>Bậc lương</label>
+              <InputNumber
+               v-model="model.salary"
+                inputId="minmax"
+                :min="0"
+                class="ip36"
+              />
+            </div>
+          </div>
+          <div class="col-6 md:col-6">
+            <div class="form-group">
+              <label>Đơn vị đóng</label>
+              <Dropdown
+                class="ip36"
+                v-model="model.organization_name"
+                :options="dictionarys[4]"
+                optionLabel="organization_name"
+                optionValue="organization_name"
+                :editable="true"
+                placeholder="Chọn đơn vị"
+              />
+            </div>
+          </div>
+          <div class="col-6 md:col-6">
+            <div class="form-group">
+              <label>Hệ số lương</label>
+              <InputNumber
+                spellcheck="false"
+                class="ip36"
+                :min="0"
+                v-model="model.coef_salary"
+                maxLength="50"
+              />
+            </div>
+          </div>
+          <div class="col-6 md:col-6">
+            <div class="form-group">
+              <label>Chức danh</label>
+              <Dropdown
+                class="ip36"
+                v-model="model.title_name"
+                :options="dictionarys[5]"
+                optionLabel="title_name"
+                optionValue="title_name"
+                :editable="true"
+                placeholder="Chọn chức danh"
+              />
+            </div>
+          </div>
+          <div class="col-6 md:col-6">
+            <div class="form-group">
+              <label>Hệ số phụ cấp</label>
+              <InputNumber
+               v-model="model.coef_allowance"
+                inputId="minmax"
+                :min="0"
+                class="ip36"
+              />
+            </div>
+          </div>
+          <div class="col-6 md:col-6">
+            <div class="form-group">
+              <label>Hình thức đóng</label>
+              <Dropdown
+                :options="hinhthucs"
+                v-model="model.payment_form"
+                optionLabel="text"
+                optionValue="text"
+                placeholder="Chọn hình thức"
+                class="ip36"
+              />
+            </div>
+          </div>
+          <div class="col-6 md:col-6">
+            <div class="form-group">
+              <label>Mức đóng bảo hiểm</label>
+              <InputNumber
+                  spellcheck="false"
+                  mode="decimal"
+                  class="ip36 text-right input-money"
+                  v-model="model.total_payment"
+                  maxLength="250"
+                />
+            </div>
+          </div>
+          <div class="col-6 md:col-6">
+            <div class="form-group">
+              <label>Công ty đóng</label>
+              <InputNumber
+                  spellcheck="false"
+                  mode="decimal"
+                  class="ip36 text-right input-money"
+                  v-model="model.company_payment"
+                  maxLength="250"
+                />
+            </div>
+          </div>
+          <div class="col-6 md:col-6">
+            <div class="form-group">
+              <label>Nhân sự đóng</label>
+              <InputNumber
+                  spellcheck="false"
+                  mode="decimal"
+                  class="ip36 text-right input-money"
+                  v-model="model.member_payment"
+                  maxLength="250"
+                />
+            </div>
+          </div>
+          <div class="col-12 md:col-12 justify-content-end flex pb-3">
+            <Button 
+              label="Cập nhật"
+              icon="pi pi-check"
+              @click="saveRowData()"              
+            />
           </div>
         </div>
         <div class="col-12 md:col-12">
@@ -340,7 +641,7 @@ onMounted(() => {
             </Column>
             <Column
               field="start_date"
-              header="Từ tháng, năm"
+              header="Từ tháng"
               headerStyle="text-align:center;width:120px;height:50px"
               bodyStyle="text-align:center;width:120px;"
               class="align-items-center justify-content-center text-center"
@@ -357,8 +658,126 @@ onMounted(() => {
               </template>
             </Column>
             <Column
+              field="end_date"
+              header="Đến tháng"
+              headerStyle="text-align:center;width:120px;height:50px"
+              bodyStyle="text-align:center;width:120px;"
+              class="align-items-center justify-content-center text-center"
+            >
+              <template #body="slotProps">
+                <Calendar
+                  v-model="slotProps.data.end_date"
+                  :showIcon="false"
+                  view="month"
+                  dateFormat="mm/yy"
+                  class="ip36"
+                  placeholder="mm/yyyy"
+                />
+              </template>
+            </Column>
+            <Column
+              field="salary"
+              header="Bậc lương"
+              headerStyle="text-align:center;width:120px;height:50px"
+              bodyStyle="text-align:center;width:120px;"
+              class="align-items-center justify-content-center text-center"
+            >
+              <template #body="slotProps">
+                <InputNumber
+                  v-model="slotProps.data.salary"
+                  inputId="minmax"
+                  :min="0"
+                  class="ip36"
+                  />                
+              </template>
+            </Column>
+            <Column
+              field="organization_name"
+              header="Đơn vị"
+              headerStyle="text-align:center;width:150px;height:50px"
+              bodyStyle="text-align:center;width:150px;"
+              class="align-items-center justify-content-center text-center"
+            >
+              <template #body="slotProps">
+                <div class="form-group m-0">
+                  <Dropdown
+                    :options="dictionarys[4]"
+                    v-model="slotProps.data.organization_name"
+                    optionLabel="organization_name"
+                    optionValue="organization_name"
+                    placeholder="Chọn đơn vị đóng"
+                    :editable="true"
+                    class="ip36"
+                    :style="{
+                      whiteSpace: 'nowrap',
+                      overflow: 'hidden',
+                      textOverflow: 'ellipsis',
+                    }"
+                  />
+                </div>
+              </template>
+            </Column>
+            <Column
+              field="coef_salary"
+              header="Hệ số lương"
+              headerStyle="text-align:center;width:120px;height:50px"
+              bodyStyle="text-align:center;width:120px;"
+              class="align-items-center justify-content-center text-center"
+            >
+              <template #body="slotProps">
+                <InputNumber
+                  v-model="slotProps.data.coef_salary"
+                  inputId="minmax"
+                  :min="0"
+                  class="ip36"
+                  />                
+              </template>
+            </Column>
+            <Column
+              field="title_name"
+              header="Chức danh"
+              headerStyle="text-align:center;width:150px;height:50px"
+              bodyStyle="text-align:center;width:150px;"
+              class="align-items-center justify-content-center text-center"
+            >
+              <template #body="slotProps">
+                <div class="form-group m-0">
+                  <Dropdown
+                    :options="dictionarys[5]"
+                    v-model="slotProps.data.title_name"
+                    optionLabel="title_name"
+                    optionValue="title_name"
+                    placeholder="Chọn chức danh"
+                    :editable="true"
+                    class="ip36"
+                    :style="{
+                      whiteSpace: 'nowrap',
+                      overflow: 'hidden',
+                      textOverflow: 'ellipsis',
+                    }"
+                  />
+                </div>
+              </template>
+            </Column>
+            <Column
+              field="coef_allowance"
+              header="Hệ số phụ cấp"
+              headerStyle="text-align:center;width:120px;height:50px"
+              bodyStyle="text-align:center;width:120px;"
+              class="align-items-center justify-content-center text-center"
+            >
+              <template #body="slotProps">
+                <InputNumber
+                  v-model="slotProps.data.coef_allowance"
+                  inputId="minmax"
+                  :min="0"
+                  class="ip36"
+                  />                
+              </template>
+            </Column>
+            <Column
               field="payment_form"
-              header="Hình thức"
+              header="Hình thức đóng"
               headerStyle="text-align:center;width:150px;height:50px"
               bodyStyle="text-align:center;width:150px;"
               class="align-items-center justify-content-center text-center"
@@ -371,42 +790,6 @@ onMounted(() => {
                     optionLabel="text"
                     optionValue="text"
                     placeholder="Chọn hình thức"
-                    class="ip36"
-                  />
-                </div>
-              </template>
-            </Column>
-            <Column
-              field="reason"
-              header="Lý do"
-              headerStyle="text-align:center;width:150px;height:50px"
-              bodyStyle="text-align:center;width:150px;"
-              class="align-items-center justify-content-center text-center"
-            >
-              <template #body="slotProps">
-                <InputText
-                  spellcheck="false"
-                  class="ip36"
-                  v-model="slotProps.data.reason"
-                  maxLength="250"
-                />
-              </template>
-            </Column>
-            <Column
-              field="payment_form"
-              header="Công ty đóng"
-              headerStyle="text-align:center;width:150px;height:50px"
-              bodyStyle="text-align:center;width:150px;"
-              class="align-items-center justify-content-center text-center"
-            >
-              <template #body="slotProps">
-                <div class="form-group m-0">
-                  <Dropdown
-                    :options="dictionarys[0]"
-                    v-model="slotProps.data.organization_payment"
-                    optionLabel="organization_name"
-                    optionValue="organization_name"
-                    placeholder="Chọn pháp nhân"
                     class="ip36"
                     :style="{
                       whiteSpace: 'nowrap',
@@ -435,8 +818,27 @@ onMounted(() => {
               </template>
             </Column>
             <Column
-              field="reason"
+              field="payment_form"
               header="Công ty đóng"
+              headerStyle="text-align:center;width:150px;height:50px"
+              bodyStyle="text-align:center;width:150px;"
+              class="align-items-center justify-content-center text-center"
+            >
+              <template #body="slotProps">
+                <div class="form-group m-0">
+                  <InputNumber
+                  mode="decimal"
+                  spellcheck="false"
+                  class="ip36 text-right input-money"
+                  v-model="slotProps.data.organization_payment"
+                  maxLength="250"
+                />
+                </div>
+              </template>
+            </Column>
+            <Column
+              field="reason"
+              header="Nhân sự đóng"
               headerStyle="text-align:center;width:150px;height:50px"
               bodyStyle="text-align:center;width:150px;"
               class="align-items-center justify-content-center text-center"
@@ -446,22 +848,6 @@ onMounted(() => {
                   mode="decimal"
                   spellcheck="false"
                   class="ip36 text-right input-money"
-                  v-model="slotProps.data.company_payment"
-                  maxLength="250"
-                />
-              </template>
-            </Column>
-            <Column
-              field="reason"
-              header="NLĐ đóng"
-              headerStyle="text-align:center;width:150px;height:50px"
-              bodyStyle="text-align:center;width:150px;"
-              class="align-items-center justify-content-center text-center"
-            >
-              <template #body="slotProps">
-                <InputText
-                  spellcheck="false"
-                  class="ip36 text-right input-money"
                   v-model="slotProps.data.member_payment"
                   maxLength="250"
                 />
@@ -469,11 +855,11 @@ onMounted(() => {
             </Column>
           </DataTable>
         </div>
-        <div class="col-12 md:col-12">
+        <div class="col-12 md:col-12 pt-3">
           <div class="form-group">
             <div class="flex justify-content-between">
               <div>
-                <h3 class="m-0">3. Lịch sử giải quyết chế độ</h3>
+                <h3 class="m-0">4. Lịch sử giải quyết chế độ</h3>
               </div>
               <div>
                 <a
@@ -522,8 +908,8 @@ onMounted(() => {
             <Column
               field="payment_form"
               header="Loại chế độ"
-              headerStyle="text-align:center;width:150px;height:50px"
-              bodyStyle="text-align:center;width:150px;"
+              headerStyle="text-align:center;width:180px;height:50px"
+              bodyStyle="text-align:center;width:180px;"
               class="align-items-center justify-content-center text-center"
             >
               <template #body="slotProps">
@@ -542,8 +928,8 @@ onMounted(() => {
             <Column
               field="received_file_date"
               header="Ngày nhận hồ sơ"
-              headerStyle="text-align:center;width:150px;height:50px"
-              bodyStyle="text-align:center;width:150px;"
+              headerStyle="text-align:center;width:170px;height:50px"
+              bodyStyle="text-align:center;width:170px;"
               class="align-items-center justify-content-center text-center"
             >
               <template #body="slotProps">
@@ -558,8 +944,8 @@ onMounted(() => {
             <Column
               field="completed_date"
               header="Ngày hoàn thiện thủ tục"
-              headerStyle="text-align:center;width:160px;height:50px"
-              bodyStyle="text-align:center;width:160px;"
+              headerStyle="text-align:center;width:200px;height:50px"
+              bodyStyle="text-align:center;width:200px;"
               class="align-items-center justify-content-center text-center"
             >
               <template #body="slotProps">
@@ -574,8 +960,8 @@ onMounted(() => {
             <Column
               field="received_money_date"
               header="Ngày nhận tiền BH trả"
-              headerStyle="text-align:center;width:150px;height:50px"
-              bodyStyle="text-align:center;width:150px;"
+              headerStyle="text-align:center;width:200px;height:50px"
+              bodyStyle="text-align:center;width:200px;"
               class="align-items-center justify-content-center text-center"
             >
               <template #body="slotProps">
@@ -608,330 +994,26 @@ onMounted(() => {
         </div>
       </div>
     </form>
-    <!-- <form>
-      <div class="grid formgrid m-2">
-        <div class="field col-12 md:col-12">
-          <label class="col-2 text-left p-0"
-            >Số sổ bảo hiểm <span class="redsao">(*)</span></label
-          >
-          <InputText
-            v-model="props.model.insurance_id"
-            spellcheck="false"
-            class="col-10 ip33"
-          />
-        </div>
-
-        <div class="field col-12 md:col-12">
-          <label class="col-2 text-left p-0">Trạng thái</label>
-          <Dropdown
-            class="col-10 ip33"
-            v-model="props.model.status"
-            :options="statuss"
-            optionLabel="text"
-            optionValue="value"
-            placeholder="Trạng thái"
-            :showClear="true"
-          />
-        </div>
-        <div class="field col-12 md:col-12">
-          <label class="col-2 text-left p-0">Pháp nhân đóng</label>
-          <Dropdown
-            class="col-10 ip33"
-            v-model="props.model.organization_payment"
-            :options="props.dictionarys[0]"
-            optionLabel="organization_name"
-            optionValue="organization_name"
-            :editable="true"
-          />
-        </div>
-        <div class="field col-12 md:col-12">
-          <label class="col-2 text-left p-0"
-            >Số thẻ BHYT <span class="redsao">(*)</span></label
-          >
-          <InputText
-            v-model="props.model.insurance_code"
-            spellcheck="false"
-            class="col-10 ip33"
-          />
-        </div>
-        <div class="field col-12 md:col-12">
-          <label class="col-2 text-left p-0">Mã tỉnh cấp</label>
-          <Dropdown
-            class="col-10 ip33"
-            v-model="props.model.insurance_province_id"
-            :options="props.dictionarys[1]"
-            optionLabel="insurance_province_name"
-            optionValue="insurance_province_id"
-            placeholder="Mã tỉnh"
-            :showClear="true"
-          />
-        </div>
-        <div class="field col-12 md:col-12">
-          <label class="col-2 text-left p-0">Nơi đăng ký</label>
-          <Dropdown
-            class="col-10 ip33"
-            v-model="props.model.hospital_name"
-            :options="props.dictionarys[2]"
-            optionLabel="hospital_name"
-            optionValue="hospital_name"
-            :editable="true"
-          />
-        </div>
-        <div class="field col-12 md:col-12 flex m-0">
-          <div class="col-10 text-left p-0">
-            <h4>Lịch sử đóng bảo hiểm</h4>
-          </div>
-          <div class="col-2 p-0 format-center" style="justify-content:end">
-            <a @click="addRow(1)" class="cursor-pointer" v-tooltip.top="'Thêm'">
-              <i class="pi pi-plus-circle" style="font-size: 18px"></i>
-            </a>
-          </div>
-        </div>
-        <div style="overflow-x: scroll" class="scroll-outer">
-          <div class="scroll-inner">
-            <table
-              class="table table-condensed table-hover tbpad table-child"
-              style="table-layout: fixed"
-            >
-              <thead>
-                <tr>
-                  <th
-                    class="text-center row-bc sticky"
-                    style="width: 100px; left: 0px !important"
-                  ></th>
-                  <th class="text-center row-bc" style="width: 150px">
-                    Từ tháng
-                  </th>
-                  <th class="text-center row-bc" style="width: 150px">
-                    Hình thức
-                  </th>
-                  <th class="text-center row-bc" style="width: 150px">Lý do</th>
-                  <th class="text-center row-bc" style="width: 200px">
-                    Pháp nhân đóng
-                  </th>
-                  <th class="text-center row-bc" style="width: 150px">
-                    Mức đóng
-                  </th>
-                  <th class="text-center row-bc" style="width: 150px">
-                    Công ty đóng
-                  </th>
-                  <th class="text-center row-bc" style="width: 150px">
-                    NLĐ đóng
-                  </th>
-                </tr>
-              </thead>
-              <tbody>
-                <tr v-for="(item, index) in props.insurance_pays" :key="index">
-                  <td
-                    class="sticky" align="center"
-                    style="color: black;width: 100px;left: 0px !important;z-index: 100;  "
-                  >
-                    <a
-                      @click="props.deleteRow(index, 1)"
-                      class="hover"
-                      v-tooltip.top="'Xóa'"
-                    >
-                      <i class="pi pi-times-circle" style="font-size: 18px"></i>
-                    </a>
-                  </td>
-                  <td align="center">
-                    <Calendar
-                      v-model="item.start_date"
-                      view="month"
-                      dateFormat="mm/yy"
-                      class="ip33"
-                      style="width: 150px"
-                      placeholder="Bắt đầu"
-                      :class="{
-                        'p-invalid': insurance_pays[index].is_duplicate,
-                      }"
-                    />
-                  </td>
-                  <td align="center">
-                    <Dropdown
-                      class="ip33"
-                      v-model="item.payment_form"
-                      :options="props.hinhthucs"
-                      optionLabel="text"
-                      optionValue="text"
-                      style="width: 150px"
-                      :showClear="true"
-                    />
-                  </td>
-                  <td align="center">
-                    <InputText
-                      spellcheck="false"
-                      class="ip33"
-                      style="width: 150px"
-                      v-model="item.reason"
-                    />
-                  </td>
-                  <td align="center">
-                    <Dropdown
-                      class="ip33"
-                      v-model="item.organization_payment"
-                      :options="dictionarys[0]"
-                      optionLabel="organization_name"
-                      optionValue="organization_name"
-                      :editable="true"
-                      style="width: 200px"
-                    />
-                  </td>
-                  <td align="center">
-                    <InputNumber
-                      class="ip33 p-0 input-money"
-                      v-model="item.total_payment"
-                      style="witdh: 150px"
-                    />
-                  </td>
-                  <td align="center">
-                    <InputNumber
-                      class="ip33 p-0 input-money"
-                      v-model="item.company_payment"
-                      style="witdh: 150px"
-                    />
-                  </td>
-                  <td align="center">
-                    <InputNumber
-                      class="ip33 p-0 input-money"
-                      v-model="item.member_payment"
-                      style="witdh: 150px"
-                    />
-                  </td>
-                </tr>
-              </tbody>
-            </table>
-          </div>
-        </div>
-        <div class="field col-12 md:col-12 flex m-0">
-          <div class="col-10 text-left p-0">
-            <h4>Lịch sử giải quyết chế độ</h4>
-          </div>
-          <div class="col-2 p-0 format-center" style="justify-content:end">
-            <a @click="addRow(2)" class="cursor-pointer" v-tooltip.top="'Thêm'">
-              <i class="pi pi-plus-circle" style="font-size: 18px"></i>
-            </a>
-          </div>
-        </div>
-        <div style="overflow-x: auto" class="scroll-outer">
-          <div class="scroll-inner">
-            <table
-              class="table table-condensed table-hover tbpad table-child"
-              style="table-layout: fixed"
-            >
-              <thead>
-                <tr>
-                  <th
-                    class="text-center row-bc sticky"
-                    style="width: 100px; left: 0px !important"
-                  ></th>
-                  <th class="text-center row-bc" style="width: 200px">
-                    Loại chế độ
-                  </th>
-                  <th class="text-center row-bc" style="width: 150px">
-                    Ngày nhận hồ sơ
-                  </th>
-                  <th class="text-center row-bc" style="width: 150px">
-                    Ngày hoàn thiện thủ tục
-                  </th>
-                  <th class="text-center row-bc" style="width: 150px">
-                    Ngày nhận tiền BH trả
-                  </th>
-                  <th class="text-center row-bc" style="width: 150px">
-                    Số tiền
-                  </th>
-                </tr>
-              </thead>
-              <tbody>
-                <tr
-                  v-for="(item, index) in props.insurance_resolves"
-                  :key="index"
-                >
-                  <td
-                    class="sticky"
-                    align="center"
-                    style="
-                      color: black;
-                      width: 100px;
-                      left: 0px !important;
-                      z-index: 100;
-                    "
-                  >
-                    <a
-                      @click="props.deleteRow(index, 2)"
-                      class="hover"
-                      v-tooltip.top="'Xóa'"
-                    >
-                      <i class="pi pi-times-circle" style="font-size: 18px"></i>
-                    </a>
-                  </td>
-                  <td align="center">
-                    <Dropdown
-                      class="ip33"
-                      v-model="item.type_mode"
-                      :options="dictionarys[3]"
-                      optionLabel="insurance_type_mode_name"
-                      optionValue="insurance_type_mode_name"
-                      :editable="true"
-                      style="width: 200px"
-                    />
-                  </td>
-                  <td align="center">
-                    <Calendar
-                      style="width: 150px"
-                      class="ip33"
-                      id="icon"
-                      v-model="item.received_file_date"
-                      :showIcon="true"
-                    />
-                  </td>
-                  <td align="center">
-                    <Calendar
-                      style="width: 150px"
-                      class="ip33"
-                      id="icon"
-                      v-model="item.completed_date"
-                      :showIcon="true"
-                    />
-                  </td>
-                  <td align="center">
-                    <Calendar
-                      style="width: 150px"
-                      class="ip33"
-                      id="icon"
-                      v-model="item.received_money_date"
-                      :showIcon="true"
-                    />
-                  </td>
-                  <td align="center">
-                    <InputNumber
-                      class="ip33 p-0 input-money"
-                      v-model="item.money"
-                      style="witdh: 150px;"
-                    />
-                  </td>
-                </tr>
-              </tbody>
-            </table>
-          </div>
-        </div>
-      </div>
-    </form> -->
-    <template #footer>
+   <template #footer>
       <Button
         label="Hủy"
         icon="pi pi-times"
         @click="props.closeDialog()"
         class="p-button-outlined"
       />
-
       <Button 
-        v-if="datefilter == null"
         label="Lưu"
         icon="pi pi-check"
         @click="saveData()"
         autofocus
       />
+      <!-- <Button 
+        v-if="props.datefilter == null"
+        label="Lưu"
+        icon="pi pi-check"
+        @click="saveData()"
+        autofocus
+      /> -->
     </template>
   </Dialog>
 </template>
@@ -956,6 +1038,14 @@ onMounted(() => {
 ::v-deep(.input-money) {
   .p-inputnumber-input {
     text-align:right !important;
+  }
+}
+::v-deep(.p-datatable) {
+  .p-datatable-emptymessage {
+    height:50px;
+  }
+  .p-datatable-emptymessage td{
+    display:none !important;
   }
 }
 </style>

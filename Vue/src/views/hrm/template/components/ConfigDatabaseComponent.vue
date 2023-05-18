@@ -162,7 +162,7 @@ export default {
       // }
     };
     const listProc = async (s) => {
-      debugger
+       
       showLoadding.value = true;
       let strSQL = {
         query: false,
@@ -246,7 +246,7 @@ export default {
       });
     };
     onMounted(() => {
-      debugger
+       
       if (
         props.report.proc_name &&
         props.report.proc_name.toLowerCase().includes("select")
