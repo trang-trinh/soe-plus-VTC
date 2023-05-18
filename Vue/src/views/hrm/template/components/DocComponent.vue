@@ -43,6 +43,7 @@ export default {
     isedit: Boolean,
     readonly: Boolean,
     callbackFun: Function,
+    header:String
   },
   components: {
     Editor,
@@ -67,7 +68,7 @@ export default {
     //refChild
     const isedit = props.isedit || false;
     const onedata = props.onedata;
-
+    const header = props.header|| null;
     const isUrlReport = ref(props.pars ? true : false);
     const readonly = ref(props.readonly ? true : false);
     const isReportListView = ref(
@@ -1706,6 +1707,7 @@ export default {
                 `
         );
         iframeDoc.querySelector("body").appendChild(divleftiframe);
+
         filename = change_unsigned(props.report.report_name, "_");
       }
       showLoadding.value = true;
@@ -3019,6 +3021,11 @@ export default {
       return dt.cols ? "has-child" : "no-child";
     };
     const goBack = () => {
+       
+      if(header!=null){
+       props.callbackFun();
+      }
+      else
       history.back();
     };
     //Cấu hình nguồn nhập dữ liệu
@@ -3490,6 +3497,7 @@ export default {
       nextDBrow,
       saveConfig,
       refershConfig,
+    
       //
       onCellEditComplete,
       dataDB,
@@ -3641,7 +3649,13 @@ export default {
       />
       <div class="flex-1">
         <h3 v-if="!readonly" class="p-2 m-0">
-          <i class="mr-1 pi pi-print"></i>{{ report.report_name }}
+          <i class="mr-1 pi pi-print"></i>  <span v-if="header">
+        {{    header }} ({{     report.report_name}})
+          </span>
+          <span v-else>
+            {{     report.report_name}}
+          </span>
+        
         </h3>
       </div>
       <ToggleButton
@@ -4663,7 +4677,7 @@ export default {
   <Sidebar
     v-model:visible="isdataSidebar"
     position="right"
-    :class="'w-full d-sidebar-full' + (isfullSidebar ? ' md:w-8 lg:w-8' : ' md:w-8 lg:w-8')"
+    :class="'w-full d-sidebar-full' + (isfullSidebar ? '  ' : ' md:w-8 lg:w-8')"
   >
     <template #header>
       <div class="flex w-full">
@@ -5036,6 +5050,7 @@ export default {
               </div>
             </template>
             <Column
+            frozen 
             :headerClass="
               
               (col.includes('Ảnh') || col == 'ok'
@@ -5084,11 +5099,6 @@ export default {
                 : ' width:250px;height:50px') 
             
             "
-               
-          
-                  
-         
-            
               v-for="col of dtColumns"
               :key="col"
               :field="col"
