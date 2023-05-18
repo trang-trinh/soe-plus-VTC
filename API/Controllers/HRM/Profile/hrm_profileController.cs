@@ -2726,6 +2726,7 @@ namespace API.Controllers.HRM.Profile
                                                 }
                                                 if (!string.IsNullOrEmpty(skill.profile_id))
                                                 {
+                                                    skill.profile_skill_id = helper.GenKey();
                                                     skills.Add(skill);
                                                 }
                                             }
