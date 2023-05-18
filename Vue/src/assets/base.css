@@ -1350,7 +1350,9 @@ li.p-chips-token {
 .p-datatable.d-sidebar-full td {
   height: unset !important;
 }
-/*Style chung cho min-w-Xrem*/
+.p-rowgroup-header td{
+  width: 100%;
+}
  
 /* Style quan */
 .menu-request .red-text .p-menuitem-link .p-menuitem-icon,
