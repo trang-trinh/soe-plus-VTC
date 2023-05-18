@@ -35,8 +35,8 @@ const props = defineProps({
 	groups: Object,
 });
 const listDropdownTypeProcess = ref([
-	{ value: 0, text: "Một trong nhiều" },
-	{ value: 1, text: "Duyệt lần lượt" },
+	{ value: 0, text: "Duyệt tuần tự" },
+	{ value: 1, text: "Một trong nhiều" },
 	{ value: 2, text: "Duyệt ngẫu nhiên" },
 ])
 const listDropdownTypeUser = ref([
@@ -88,8 +88,8 @@ const listGroupTeams = ref(props.listGroupTeams);
 const listTeamUses = ref(props.listTeamUses);
 const v$ = useVuelidate(rules, request_form);
 const listTypeApproved = ref([
-	{ type: "Duyệt 1 trong nhiều", value: 0 },
-	{ type: "Duyệt lần lượt", value: 1 },
+	{ type: "Duyệt tuần tự", value: 0 },
+	{ type: "Duyệt một nhiều", value: 1 },
 	{ type: "Duyệt ngẫu nhiên", value: 2 },
 ]);
 const addGroupTeam = () => {

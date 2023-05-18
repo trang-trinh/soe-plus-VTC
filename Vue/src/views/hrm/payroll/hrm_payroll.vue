@@ -319,6 +319,15 @@ const saveData = (isFormValid) => {
   if (payroll.value.profile_id_fake) {
     payroll.value.list_profile_id = payroll.value.profile_id_fake.toString();
   }
+  if (payroll.value.payroll_month_fake) {
+    payroll.value.payroll_month= payroll.value.payroll_month_fake.getMonth()+1;
+  }
+  if (payroll.value.payroll_year_fake) {
+    payroll.value.payroll_year= payroll.value.payroll_year_fake.getFullYear() ;
+  }
+  if (payroll.value.profile_id_fake) {
+    payroll.value.list_profile_id = payroll.value.profile_id_fake.toString();
+  }
   if (payroll.value.payroll_name.length > 250) {
     swal.fire({
       title: "Error!",
@@ -493,19 +502,21 @@ const configPayroll = async (row) => {
         const callbackFun = (obj) => {
             if (obj.is_config) {
                 payroll.value.payroll_config = obj.is_config;
-                debugger
+                  
                 saveDGLuong();
                 return false;
             }
+             
             saveDGLuongUser(obj);
         }
         const saveDGLuongUser = async (r) => {
+           
             let strSQL = {
                 "query": false,
                 "proc": "hrm_payroll_user_add",
                 "par": [
-                { "par": "payroll_user_id", "va": payroll.value.payroll_user_id },
-                    { "par": "payroll_id", "va": payroll.value.payroll_id },
+                    { "par": "payroll_user_id", "va": r.payroll_user_id },
+                    { "par": "payroll_id", "va": r.payroll_id },
                     { "par": "profile_id", "va": r.profile_id },
                     { "par": "is_data", "va": JSON.stringify(r.is_data) },
                     { "par": "user_id", "va": store.getters.user.user_id },
@@ -613,9 +624,9 @@ const editTem = (dataTem) => {
   }
 
   if (payroll.value.payroll_month)
-    payroll.value.payroll_month = new Date(payroll.value.payroll_month);
+    payroll.value.payroll_month_fake = new Date('01/'+payroll.value.payroll_month+'/2023' ) ;
   if (payroll.value.payroll_year)
-    payroll.value.payroll_year = new Date(payroll.value.payroll_year);
+    payroll.value.payroll_year_fake = new Date("01/01/"+payroll.value.payroll_year);
   if (payroll.value.sign_date)
     payroll.value.sign_date = new Date(payroll.value.sign_date);
   headerDialog.value = "Sửa bảng lương";
@@ -1453,8 +1464,8 @@ onMounted(() => {
             {{
               moment(
                 new Date(
-                  new Date(slotProps.data.payroll_year).getFullYear(),
-                  new Date(slotProps.data.payroll_month).getMonth(),
+                  slotProps.data.payroll_year,
+                  slotProps.data.payroll_month,
                   1
                 )
               ).format("MM/YYYY")
@@ -1703,7 +1714,7 @@ onMounted(() => {
 
             <div class="col-12 p-0">
               <Calendar
-                v-model="payroll.payroll_month"
+                v-model="payroll.payroll_month_fake"
                 view="month"
                 dateFormat="mm"
                 class="w-full"
@@ -1717,7 +1728,7 @@ onMounted(() => {
             <div class="col-12 text-left p-0 pb-2">Năm</div>
             <div class="col-12 p-0">
               <Calendar
-                v-model="payroll.payroll_year"
+                v-model="payroll.payroll_year_fake"
                 view="year"
                 dateFormat="yy"
                 class="w-full"
