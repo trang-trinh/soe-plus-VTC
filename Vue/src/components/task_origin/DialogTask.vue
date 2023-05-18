@@ -290,6 +290,9 @@ const listProjectMain = () => {
       listDropdownProject.value = data[0];
       listDropdownTaskGroup.value = data[1];
       listDropdownweight.value = data[2];
+      listDropdownweight.value.forEach((x) => {
+        x.display_name = x.weight_name + " (" + x.weight + ")";
+      });
     })
     .catch((error) => {
       toast.error("Tải dữ liệu không thành công!");
@@ -1812,14 +1815,16 @@ onMounted(() => {
                   panelClass="d-design-dropdown"
                   selectionLimit="1"
                   :options="listDropdownweight"
-                  optionLabel="weight_name"
+                  optionLabel="display_name"
                   optionValue="weight_id"
                   spellcheck="false"
                   class="col-9 ip36 p-0"
                 >
                   <template #option="slotProps">
                     <div class="country-item flex">
-                      <div class="pt-1">{{ slotProps.option.weight_name }}</div>
+                      <div class="pt-1">
+                        {{ slotProps.option.display_name   }}
+                      </div>
                     </div>
                   </template>
                 </Dropdown>
