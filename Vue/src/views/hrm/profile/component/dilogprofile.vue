@@ -342,9 +342,10 @@ onMounted(() => {
 </script>
 <template>
   <Sidebar
-    :visible.sync="display"
+    v-model:visible="display"
     position="right"
     :modal="true"
+    :dismissable="true"
     :showCloseIcon="false"
     :autoZIndex="true"
     class="position-relative profile-edit"
