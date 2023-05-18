@@ -139,7 +139,7 @@ const options = ref({
   loading: true,
   filter_organization_id: store.getters.user.organization_id,
   user_filter_organization_id: store.getters.user.organization_id,
-  user_filter_month_id: 100,
+  user_filter_month_id: 1,
 });
 const datanewprofiles = ref([]);
 const databirthdays = ref([]);
