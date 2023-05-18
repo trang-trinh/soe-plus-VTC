@@ -105,7 +105,7 @@ export default {
         },
       });
       const axResponse = await axios.post(
-        baseURL + "/api/HRM_SQL/getData",
+        baseURL + "/api/HRM_SQL/PostProc",
         {
           str: encr(JSON.stringify(strSQL), SecretKey, cryoptojs).toString(),
         },
@@ -162,6 +162,7 @@ export default {
       // }
     };
     const listProc = async (s) => {
+       
       showLoadding.value = true;
       let strSQL = {
         query: false,
@@ -245,13 +246,14 @@ export default {
       });
     };
     onMounted(() => {
-         
+       
       if (
         props.report.proc_name &&
         props.report.proc_name.toLowerCase().includes("select")
       ) {
         mdTable.value = { stt: 0, tid: 0, cols: [], issql: true };
         txtSQL.value = props.report.proc_name;
+        
         goSQL(txtSQL.value);
       } else if (dtProcs.value.length == 0) {
         listProc();

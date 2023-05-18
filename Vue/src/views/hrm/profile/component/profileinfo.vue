@@ -444,7 +444,7 @@ const goPrint = (view) => {
       encr(JSON.stringify(o), SecretKey, cryoptojs).toString()
     );
     url =
-      "/report/" +
+      "/hrm/profile/report/" +
       url.replaceAll("%", "==") +
       "?v=" +
       (new Date().getTime().toString());
