@@ -1695,7 +1695,7 @@ onMounted(() => {
                                     </div>
                                 </div>
                                 
-                                <div class="row mt-2 mb-1">
+                                <div class="row mt-2 mb-1" v-if="RelateRequests.length > 0">
                                     <div class="t-r">
                                         <div class="flex" style="align-items: center;">
                                             <span class="cv-spicon flex" style="align-items:center;">
@@ -1941,7 +1941,7 @@ onMounted(() => {
                                 </div>                                
                             </form>
                             
-                            <div class="t-r mt-3">
+                            <div class="t-r mt-3" v-if="Comments.length > 0">
                                 <div class="flex" style="align-items:center;">
                                     <span class="cv-spicon" style="margin-top:-2px">
                                         <i class="pi pi-comments"></i>
@@ -1950,7 +1950,7 @@ onMounted(() => {
                                 </div>
                             </div>
                             
-                            <div class="task-comment" id="task-comment">
+                            <div class="task-comment" id="task-comment" v-if="Comments.length > 0">
                                 <div class="my-3"
                                     style="display:table;height:100%;width:100%;"
                                     v-if="Comments.length == 0"

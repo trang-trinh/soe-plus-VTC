@@ -11,6 +11,7 @@ const swal = inject("$swal");
 const axios = inject("axios");
 
 const basedomainURL = baseURL;
+const baseURLCheck = baseURL;
 const config = {
     headers: {
         Authorization: `Bearer ${store.getters.token}`,
@@ -29,7 +30,7 @@ const bgColor = ref([
 ]);
 const typeprocedures = ref([
     { value: 0, title: "Duyệt tuần tự" },
-    { value: 1, title: "Duyệt một trong nhiều" },
+    { value: 1, title: "Duyệt một nhiều" },
     //{ value: 2, title: "Duyệt ngẫu nhiên" },
 ]);
 
@@ -44,9 +45,12 @@ const props = defineProps({
 
 //Function
 const listTCard = ref([
+    // { name: "Duyệt một nhiều", code: 1 },
+    // { name: "Duyệt tuần tự", code: 2 },
+    // { name: "Duyệt ngẫu nhiên", code: 3 },    
+    { name: "Duyệt tuần tự", code: 0 },
     { name: "Duyệt một nhiều", code: 1 },
-    { name: "Duyệt tuần tự", code: 2 },
-    { name: "Duyệt ngẫu nhiên", code: 3 },
+    { name: "Duyệt ngẫu nhiên", code: 2 },
 ]);
 
 const displayDialog = ref(false);
@@ -108,10 +112,10 @@ const removeFile = (event) => {
 const process = ref({
     content: null,
     key_id: null,
-    aprroved_type: 3,
+    approved_type: 2,
 });
 const listProcess = ref([]);
-const listAproved = ref([]);
+const listApproved = ref([]);
 const listUsers = ref([]);
 const initTudien = () => {
     // Chuyển đến quy trình
@@ -173,7 +177,7 @@ const initTudien = () => {
     // Chuyển đến nhóm (coding ...)
     else if (props.modelsend.type_module == 0 && props.modelsend.type_send == 1) 
     {
-        listAproved.value = [];
+        listApproved.value = [];
         axios
             .post(
                 baseURL + "/api/request/getData",
@@ -230,12 +234,13 @@ const initTudien = () => {
                                             }
                                         });
 
-                                        listAproved.value.push({
+                                        listApproved.value.push({
                                             name: element.approved_group_name,
                                             code: element.approved_groups_id,
                                             approved_type_name: element.approved_type_name,
                                             data: element,
                                             signusers: element.signusers,
+                                            request_form_id: element.request_form_id,
                                         });
                                     }
                                 });
@@ -331,7 +336,7 @@ const changeProcedure = (procedureform_id) => {
             .then((response) => {
                 if (response != null && response.data != null) {
                     var data = response.data.data;
-
+                    
                     if (data != null) {
                         let tbs = JSON.parse(data);
                         if (tbs[0] != null && tbs[0].length > 0) {
@@ -348,6 +353,14 @@ const changeProcedure = (procedureform_id) => {
                             checkTimline.value = true;
                         } else {
                             signforms.value = [];
+                        }
+                        if (tbs[1] != null && tbs[1].length > 0) {
+                            if (procedureform_id == 0) {
+                                process.value.approved_type = tbs[1][0].type_procedure || 0;
+                            }
+                            else {
+                                process.value.approved_type = tbs[1][0].type_procedure == 1 ? 1 : (tbs[1][0].type_procedure == 2 ? 0 : 2);
+                            }
                         }
                     }
                 }
@@ -386,7 +399,7 @@ const send = () => {
         return;
     }
     submitted.value = true;
-    if (!process.value.key_id) {
+    if (process.value.key_id == null) {
         swal.fire({
             title: "Thông báo",
             text: "Vui lòng điền đầy đủ thông tin trường bôi đỏ!",
@@ -396,9 +409,10 @@ const send = () => {
         return;
     }
     var obj = { ...props.modelsend };
+    var request_form_id_send = "";
     let formData = new FormData();
     if (props.modelsend.type_send == 2) { // chuyen dich danh
-        formData.append("aprroved_type", process.value.aprroved_type);
+        formData.append("approved_type", process.value.approved_type);
         let strv = "", strc = "";
         process.value.key_id.forEach((element) => {
             strv += strc + element.code;
@@ -407,8 +421,15 @@ const send = () => {
         obj.key_id = strv;
     } else if (props.modelsend.type_send == 1) { // chuyen den nhom
         obj.key_id = process.value.key_id.code;
+        let groupChoose = listApproved.filter(x => x.code == process.value.key_id.code);
+        request_form_id_send = groupChoose.length > 0 ? groupChoose[0].request_form_id : "";
     } else { // chuyen theo quy trinh
         obj.key_id = process.value.key_id;
+        let processChoose = listProcess.value.filter(x => x.code == process.value.key_id);
+        request_form_id_send = processChoose.length > 0 ? processChoose[0].request_form_id : "";
+        if (process.value.key_id == 0) {
+            formData.append("approved_type", process.value.approved_type);
+        }
     }
     if (process.value.content)
         obj.content = process.value.content;
@@ -416,7 +437,7 @@ const send = () => {
         obj.content = "";
 
     formData.append("type_send", obj["type_send"]);
-    formData.append("key_id", obj["key_id"]);
+    formData.append("key_id", obj["key_id"].toString());
     //formData.append("type_module", obj["type_module"]);
     formData.append("content", obj["content"]);
     for (var i = 0; i < filesList.value.length; i++) {
@@ -424,6 +445,7 @@ const send = () => {
         formData.append("files", file);
     }
     formData.append("request_obj", JSON.stringify(props.dataSelected));
+    formData.append("request_form_id_send", request_form_id_send)
 
     swal.fire({
         width: 110,
@@ -433,7 +455,7 @@ const send = () => {
     });
     axios
         .post(
-            baseURL + "/api/request/Send_Request",
+            baseURLCheck + "/api/request/Send_Request",
             formData,
             config
         )
@@ -523,9 +545,9 @@ onMounted(() => {
                                                 </template>
                                                 <template #subtitle>
                                                     {{
-                                                        ((!slotProps.item.group_by_form && slotProps.item.approved_type == 1) || (slotProps.item.group_by_form && slotProps.item.type_process == 0))
+                                                        ((!slotProps.item.group_by_form && slotProps.item.approved_type == 1) || (slotProps.item.group_by_form && slotProps.item.type_process == 1))
                                                         ? "Duyệt một nhiều"
-                                                        : ((!slotProps.item.group_by_form && slotProps.item.approved_type == 2) || (slotProps.item.group_by_form && slotProps.item.type_process == 1))
+                                                        : ((!slotProps.item.group_by_form && slotProps.item.approved_type == 2) || (slotProps.item.group_by_form && slotProps.item.type_process == 0))
                                                         ? "Duyệt tuần tự"
                                                         : "Duyệt ngẫu nhiên"
                                                     }}
@@ -567,7 +589,7 @@ onMounted(() => {
                             </div>
                             <div v-if="props.modelsend.type_send === 1" class="col-12 md:col-12 p-0 flex">
                                 <Dropdown v-model="process.key_id" 
-                                    :options="listAproved" 
+                                    :options="listApproved" 
                                     optionLabel="name" 
                                     :filter="true"
                                     panelClass="d-design-dropdown" 
@@ -775,11 +797,11 @@ onMounted(() => {
                     </div>
                 </div>
 
-                <div class="col-12 md:col-12" v-if="props.modelsend.type_send == 2">
+                <div class="col-12 md:col-12" v-if="props.modelsend.type_send == 2 || (props.modelsend.type_send == 0 && process.key_id == 0)">
                     <div class="form-group">
                         <label>Loại duyệt</label>
                         <Dropdown 
-                            v-model="process.aprroved_type" 
+                            v-model="process.approved_type" 
                             panelClass="d-design-dropdown" 
                             :options="listTCard"
                             :filter="true" 
@@ -790,7 +812,7 @@ onMounted(() => {
                         </Dropdown>
                     </div>
                 </div>
-                <div class="col-12 p-0 field" v-if="process.aprroved_type == 2">
+                <div class="col-12 p-0 field" v-if="process.approved_type == 2">
                     <div class="col-12  field">
                         <OrderList v-model="process.key_id" 
                             listStyle="height:auto" 
@@ -852,7 +874,7 @@ onMounted(() => {
                 <div class="col-12 md:col-12">
                     <div class="form-group">
                         <label>Nội dung</label>
-                        <Textarea v-model="process.content" :autoResize="true" rows="4" cols="30" />
+                        <Textarea v-model="process.content" :autoResize="true" rows="4" cols="30" spellcheck="false" />
                     </div>
                 </div>
                 <div class="col-12 md-col-12">

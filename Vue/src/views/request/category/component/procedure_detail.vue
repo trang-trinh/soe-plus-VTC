@@ -19,8 +19,8 @@ const config = {
   headers: { Authorization: `Bearer ${store.getters.token}` },
 };
 const listDropdownTypeProcess = ref([
-  { value: 0, text: "Một trong nhiều" },
-  { value: 1, text: "Duyệt lần lượt" },
+  { value: 0, text: "Duyệt tuần tự" },
+  { value: 1, text: "Duyệt một nhiều" },
   { value: 2, text: "Duyệt ngẫu nhiên" },
 ])
 const props = defineProps({
@@ -154,8 +154,8 @@ const rules = {
 };
 const v$ = useVuelidate(rules, request_form_sign);
 const listTypeApproved = ref([
-  { type: "Duyệt 1 trong nhiều", value: 0 },
-  { type: "Duyệt lần lượt", value: 1 },
+  { type: "Duyệt tuần tự", value: 0 },
+  { type: "Duyệt một nhiều", value: 1 },
   { type: "Duyệt ngẫu nhiên", value: 2 },
 ]);
 const listTypeGroup = ref([
@@ -701,12 +701,14 @@ onMounted(() => {
         <div class="field col-12 md:col-12 algn-items-center flex p-0">
           <Button label="Chọn nhân sự" icon="pi pi-users" @click="OpenDialogTreeUser()" autofocus />
         </div>
-        <div class="field col-12 md:col-12 algn-items-center flex p-0">
+        <div class="field col-12 md:col-12 algn-items-center p-0">
           <DataTable class="table-ca-request-procedure-form-sign-user" :value="listSelectUsers" :paginator="false"
             :scrollable="true" scrollDirection="both" scrollHeight="flex" :lazy="true" dataKey="request_form_sign_user_id"
-            :rowHover="true">
-            <Column field="" header="Nhân sự" headerStyle="width:15rem;height:50px;border-left:none;border-right:none;"
-              bodyStyle="height:50px;;width:15rem;border-left:none;border-right:none;position:relative">
+            :rowHover="true"
+            style="display: grid">
+            <Column field="" header="Nhân sự" 
+              headerStyle="width:15rem;height:50px;border-left:none;border-right:none;flex:1;"
+              bodyStyle="height:50px;width:15rem;border-left:none;border-right:none;position:relative;flex:1;">
               <template #body="data">
                 <div style="display: flex;align-items: center;">
                   <Avatar v-tooltip.bottom="{
@@ -740,7 +742,7 @@ onMounted(() => {
             </Column>
             <Column field="IsSLA" header="Số giờ tối đa"
               headerStyle="text-align:center;width:10rem;height:50px;border-left:none;border-right:none;"
-              bodyStyle="text-align:center;height:50px;;width:10rem;border-left:none;border-right:none;position:relative"
+              bodyStyle="text-align:center;height:50px;width:10rem;border-left:none;border-right:none;position:relative"
               class="align-items-center justify-content-center text-center">
               <template #body="data">
                 <InputNumber v-model="data.data.IsSLA" style="text-align: center;" class="col-12 ip36 p-0" />
@@ -748,7 +750,7 @@ onMounted(() => {
             </Column>
             <Column field="IsType" header="Vai trò"
               headerStyle="text-align:center;width:15rem;height:50px;border-left:none;border-right:none;"
-              bodyStyle="text-align:center;height:50px;;width:15rem;border-left:none;border-right:none;position:relative"
+              bodyStyle="text-align:center;height:50px;width:15rem;border-left:none;border-right:none;position:relative"
               class="align-items-center justify-content-center text-center">
               <template #body="data">
                 <Dropdown :options="listDropdownTypeUser" :filter="true" :showClear="true" :editable="false"
@@ -759,15 +761,15 @@ onMounted(() => {
             </Column>
             <Column field="status" header="Trạng thái"
               headerStyle="text-align:center;width:7rem;height:50px;border-left:none;border-right:none;"
-              bodyStyle="text-align:center;height:50px;;width:7rem;border-left:none;border-right:none;position:relative"
+              bodyStyle="text-align:center;height:50px;width:7rem;border-left:none;border-right:none;position:relative"
               class="align-items-center justify-content-center text-center">
               <template #body="data">
                 <Checkbox disabled :binary="true" v-model="data.data.status" />
               </template>
             </Column>
             <Column field="" header=""
-              headerStyle="text-align:center;width:10rem;height:50px;border-left:none;border-right:none;"
-              bodyStyle="text-align:center;height:50px;;width:10rem;border-left:none;border-right:none;position:relative"
+              headerStyle="text-align:center;width:7rem;height:50px;border-left:none;border-right:none;"
+              bodyStyle="text-align:center;height:50px;width:7rem;border-left:none;border-right:none;position:relative"
               class="align-items-center justify-content-center text-center">
               <template #body="Tem">
                 <div v-if="store.state.user.is_super == true || store.state.user.user_id == Tem.data.created_by ||
