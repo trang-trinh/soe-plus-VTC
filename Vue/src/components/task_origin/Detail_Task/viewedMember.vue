@@ -367,8 +367,8 @@ onMounted(() => {
             <ScrollPanel
               :style="
                 height1 < 1000
-                  ? 'height: calc(85vh) !important'
-                  : 'height: calc(87vh) !important'
+                  ? 'height: calc(78vh) !important'
+                  : 'height: calc(80vh) !important'
               "
               v-if="isHaveData == true"
             >

@@ -652,6 +652,7 @@ const OpenMultiple = () => {
               placeholder="@ để thêm người"
               :panelClass="'my-panel'"
               :dropdown="true"
+              scrollHeight="700px"
               @item-select="addMember($event)"
               v-if="
                 props.isClose == false &&
@@ -716,8 +717,8 @@ const OpenMultiple = () => {
             <ScrollPanel
               :style="
                 height1 < 1000
-                  ? 'height: calc(85vh) !important'
-                  : 'height: calc(87vh) !important'
+                  ? 'height: calc(78vh) !important'
+                  : 'height: calc(80vh) !important'
               "
               v-if="isHaveData == true"
             >
