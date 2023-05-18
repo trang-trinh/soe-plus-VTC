@@ -757,7 +757,6 @@ onMounted(() => {
               color: '#fff',
               height: '80px !important',
             }"
-            @click="goRouter('calendarenact')"
           >
             <div
               class="card-body h-full"
@@ -813,7 +812,7 @@ onMounted(() => {
           </div>
           <div
             class="card-body carousel-hidden-p-link"
-            style="min-height: 415px"
+            :style="{ height: '433px'}"
           >
             <div
               v-show="
@@ -830,10 +829,9 @@ onMounted(() => {
                 :data="academics"
                 :options="basicOptions"
                 :plugins="plugins"
-                class="w-full"
                 :style="{
-                  width: '100% !important',
-                  height: '100% !important',
+                  width: '100%',
+                  height: '100%',
                   display: 'flex',
                   alignItems: 'center',
                 }"
@@ -860,7 +858,7 @@ onMounted(() => {
           </div>
           <div
             class="card-body carousel-hidden-p-link"
-            style="min-height: 378px"
+            style="height: 378px"
           >
             <div
               v-show="
@@ -1442,5 +1440,11 @@ span.online {
   .p-datatable-table tr td {
     padding: 0.5rem 1rem !important;
   }
+}
+::v-deep(#chart32){
+  canvas{
+    height: 100% !important;
+  }
+  
 }
 </style>
