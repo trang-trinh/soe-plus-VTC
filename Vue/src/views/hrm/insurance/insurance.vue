@@ -1,7 +1,7 @@
 <script setup>
 import { ref, inject, onMounted, watch } from "vue";
 import { useToast } from "vue-toastification";
-import diloginsurance from "../insurance/component/diloginsurance.vue";
+import diloginsurance from "./component/diloginsurance.vue";
 import { FilterMatchMode, FilterOperator } from "primevue/api";
 import { encr, checkURL } from "../../../util/function.js";
 import VueDatePicker from '@vuepic/vue-datepicker';
@@ -42,7 +42,7 @@ const groups = ref([
   { view: 1, icon: "pi pi-list", title: "list" },
   { view: 2, icon: "pi pi-align-right", title: "tree" },
 ]);
-const insurance_pays = ref();
+const insurance_pays = ref([]);
 const insurance_resolves = ref();
 const dictionarys = ref();
 const datatrees = ref()
@@ -55,7 +55,7 @@ const forceRerender = () => {
 const loadCount = () => {
   axios
     .post(
-      baseURL + "/api/insurance/GetDataProc",
+      baseURL + "/api/hrm/callProc",
       {
         str: encr(
           JSON.stringify({
@@ -236,7 +236,7 @@ const options = ref({
 //Hiển thị dialog
 const headerDialog = ref();
 const displayBasic = ref(false);
-const openBasic = (str) => {
+const openBasic = () => {
   forceRerender();
   submitted.value = false;
   insurance.value = {
@@ -245,20 +245,21 @@ const openBasic = (str) => {
     insurance_province_id: null,
     hospital_name: null,
     organization_id: store.getters.user.organization_id,
-    profile_id: 1,
+    profile_id: null,
   };
-  insurance_pays.value = [
-    {
-      start_date: null,
-      payment_form: null,
-      reason: null,
-      end_date: null,
-      organization_payment: null,
-      total_payment: null,
-      company_payment: null,
-      member_payment: null,
-    },
-  ];
+  insurance_pays.value = [];
+  // insurance_pays.value = [
+  //   {
+  //     start_date: null,
+  //     payment_form: null,
+  //     reason: null,
+  //     end_date: null,
+  //     organization_payment: null,
+  //     total_payment: null,
+  //     company_payment: null,
+  //     member_payment: null,
+  //   },
+  // ];
   insurance_resolves.value = [
     {
       type_mode: null,
@@ -271,7 +272,7 @@ const openBasic = (str) => {
   ];
   checkIsmain.value = false;
   isAdd.value = true;
-  headerDialog.value = str;
+  headerDialog.value = 'Thêm mới bảo hiểm';
   displayBasic.value = true;
 };
 
@@ -282,7 +283,6 @@ const closeDialog = () => {
 };
 
 //Thêm bản ghi
-
 const sttStamp = ref(1);
 const saveData = (isFormValid) => {
   submitted.value = true;
@@ -298,10 +298,12 @@ const saveData = (isFormValid) => {
       for (let j = i + 1; j < insurance_pays.value.length; j++) {
         if (
           !isEmpty(insurance_pays.value[i].start_date) &&
+          !isEmpty(insurance_pays.value[i].end_date) &&
           !isEmpty(insurance_pays.value[j].start_date) &&
+          !isEmpty(insurance_pays.value[j].end_date) &&
           isMonth(
-            insurance_pays.value[i].start_date,
-            insurance_pays.value[j].start_date
+            insurance_pays.value[i],
+            insurance_pays.value[j]
           )
         ) {
           insurance_pays.value[j].is_duplicate = true;
@@ -401,13 +403,30 @@ const editTem = (dataTem) => {
       swal.close();
       let data = JSON.parse(response.data.data);
       if (data.length > 0) {
+        if (data[0][0].birthday) {
+          data[0][0].birthday = new Date(data[0][0].birthday);
+        }
+        if (data[0][0].identity_date_issue) {
+          data[0][0].identity_date_issue = new Date(data[0][0].identity_date_issue);
+        }
         insurance.value = data[0][0];
+        insurance.value.profile = {
+          profile_id : insurance.value.profile_id,
+          profile_code : insurance.value.profile_code,
+          profile_user_name : insurance.value.profile_user_name,
+          is_order : insurance.value.is_order,
+        }
+        insurance.value.birthplace_origin = insurance.value.birthplace_origin_name ? insurance.value.birthplace_origin_name:insurance.value.birthplace_origin_last;
+        insurance.value.place_register_permanent = insurance.value.place_register_permanent_last ? insurance.value.place_register_permanent_last:((insurance.value.place_register_permanent_first||'') + ' '+ (insurance.value.place_register_permanent_name||''));
         //get child
         if (data[1].length > 0) {
           insurance_pays.value = data[1];
           insurance_pays.value.forEach((item) => {
             if (item.start_date != null) {
               item.start_date = new Date(item.start_date);
+            }
+            if (item.end_date != null) {
+              item.end_date = new Date(item.end_date);
             }
           });
         } else insurance_pays.value = [];
@@ -997,11 +1016,21 @@ const itemButs = ref([
     },
   },
 ]);
-function isNotValidDate(d) {
-  // return d instanceof Date && !isNaN(d) ;
-  return d instanceof Date && (isNaN(d) || d.getFullYear() == 1900 || isEmpty(d))
-}
+
 //check empy object
+//check month  date
+function isMonth(data1, data2) {
+  let start1 = new Date(data1.start_date).getTime();
+  let end1 = new Date(data1.end_date).getTime();
+  let start2 = new Date(data2.start_date).getTime();
+  let end2 = new Date(data2.end_date).getTime();
+  return start1 < end2
+  || end1 > start2
+  || (start1> start2 && end1> end2)
+  || (start1< start2 && end1< end2)
+    ? true
+    : false;
+}
 function isEmpty(val) {
   return val === undefined || val == null || val.length <= 0 ? true : false;
 }
@@ -1111,6 +1140,7 @@ onMounted(() => {
             <span class="p-input-icon-left">
               <i class="pi pi-search" />
               <InputText
+                style="height:31px"
                 v-model="options.searchStamp"
                 v-on:keyup.enter="initData(true)"
                 type="text"
@@ -1118,14 +1148,11 @@ onMounted(() => {
                 placeholder="Tìm kiếm"
               />            
             </span>
-          </template>
-
-          <template #end>
-            
+                        
            <VueDatePicker
            v-if="options.view == 2"
               @closed="onFilterMonth(2,true)"
-              class="mr-2 datepicker"
+              class="ml-2 datepicker"
               locale="vi"
               selectText="Lọc"
               cancelText="Hủy"
@@ -1147,7 +1174,7 @@ onMounted(() => {
             <Datepicker
             v-if="options.view == 1"
               @closed="onFilterMonth(1)"
-              class="mr-2 datepicker"
+              class="ml-2 datepicker"
               locale="vi"
               selectText="Lọc"
               cancelText="Hủy"
@@ -1166,12 +1193,15 @@ onMounted(() => {
                 <Button icon="pi pi-calendar" class="p-button-text" />
               </template>
             </Datepicker>
-            <!-- <Button
-               @click="openBasic('Cập nhật thẻ bảo hiểm')"
+          </template>
+
+          <template #end>
+            <Button
+               @click="openBasic()"
               label="Thêm mới"
               icon="pi pi-plus"
               class="mr-2"
-            />  -->
+            /> 
             <Button
               @click="onRefresh"
               class="mr-2 p-button-outlined p-button-secondary"
@@ -1258,13 +1288,15 @@ onMounted(() => {
         class="align-items-center justify-content-center text-center"
       >
       </Column> -->
-
+      <!-- <Column field="file_name" header="Tên file số hóa" headerStyle="text-align:left;height:50px"
+            bodyStyle="text-align:left;word-break:break-word">
+          </Column> -->
       <Column
         field="profile_user_name"
         header="Họ và tên"
-        headerStyle="text-align:center;height:50px"
-        bodyStyle="text-align:center"
-        class="align-items-center justify-content-center text-center"
+        headerStyle="text-align:center;height:50px;justify-content:center"
+        bodyStyle="text-align:left;justify-content:start"
+
       >
       <template #body="slotProps">
             <b @click="goProfile(slotProps.data)" class="hover cursor-pointer">{{
@@ -1483,8 +1515,8 @@ onMounted(() => {
               {{amount_paid_final!=0 ? formatNumber(amount_paid_final, 0, ".", "."):'' }}
             </td>
           </tr>
-        </tbody>
-      </table>
+    </tbody>
+    </table>
     </div>
 
   </div>
@@ -1558,6 +1590,11 @@ onMounted(() => {
   .dp__input_reg{
   border: 1px solid #607D8B;
   height: 31px;
+  }
+}
+::v-deep(.p-datatable) {
+  .p-datatable-tbody > tr > td{
+  word-break: break-word;
   }
 }
 </style>
