@@ -718,8 +718,8 @@ onMounted(() => {
               </template>
             </Column>
             <Column
-              field="salary"
-              header="Bậc lương"
+              field="coef_salary"
+              header="Hệ số lương"
               headerStyle="text-align:center;width:120px;height:50px"
               bodyStyle="text-align:center;width:120px;"
               class="align-items-center justify-content-center text-center"
@@ -908,8 +908,8 @@ onMounted(() => {
             <Column
               field="payment_form"
               header="Loại chế độ"
-              headerStyle="text-align:center;width:150px;height:50px"
-              bodyStyle="text-align:center;width:150px;"
+              headerStyle="text-align:center;width:180px;height:50px"
+              bodyStyle="text-align:center;width:180px;"
               class="align-items-center justify-content-center text-center"
             >
               <template #body="slotProps">
@@ -928,8 +928,8 @@ onMounted(() => {
             <Column
               field="received_file_date"
               header="Ngày nhận hồ sơ"
-              headerStyle="text-align:center;width:150px;height:50px"
-              bodyStyle="text-align:center;width:150px;"
+              headerStyle="text-align:center;width:170px;height:50px"
+              bodyStyle="text-align:center;width:170px;"
               class="align-items-center justify-content-center text-center"
             >
               <template #body="slotProps">
@@ -944,8 +944,8 @@ onMounted(() => {
             <Column
               field="completed_date"
               header="Ngày hoàn thiện thủ tục"
-              headerStyle="text-align:center;width:160px;height:50px"
-              bodyStyle="text-align:center;width:160px;"
+              headerStyle="text-align:center;width:200px;height:50px"
+              bodyStyle="text-align:center;width:200px;"
               class="align-items-center justify-content-center text-center"
             >
               <template #body="slotProps">
@@ -960,8 +960,8 @@ onMounted(() => {
             <Column
               field="received_money_date"
               header="Ngày nhận tiền BH trả"
-              headerStyle="text-align:center;width:150px;height:50px"
-              bodyStyle="text-align:center;width:150px;"
+              headerStyle="text-align:center;width:200px;height:50px"
+              bodyStyle="text-align:center;width:200px;"
               class="align-items-center justify-content-center text-center"
             >
               <template #body="slotProps">

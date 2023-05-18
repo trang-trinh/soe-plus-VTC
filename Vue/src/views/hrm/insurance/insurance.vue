@@ -1198,12 +1198,12 @@ onMounted(() => {
                 <Button icon="pi pi-calendar" class="p-button-text" />
               </template>
             </Datepicker>
-            <Button
+            <!-- <Button
                @click="openBasic('Cập nhật thẻ bảo hiểm')"
               label="Thêm mới"
               icon="pi pi-plus"
               class="mr-2"
-            /> 
+            />  -->
             <Button
               @click="onRefresh"
               class="mr-2 p-button-outlined p-button-secondary"
