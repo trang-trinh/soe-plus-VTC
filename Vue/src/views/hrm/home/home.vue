@@ -1345,6 +1345,7 @@ onMounted(() => {
                         height: 100%;
                         object-fit: contain;
                         border-radius: 3px;
+                        transform: scale(2);
                       "
                     />
                   </div>
