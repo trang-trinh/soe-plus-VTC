@@ -90,8 +90,8 @@ const listPriorityLevel = ref([
     { name: 'Rất gấp', code: 2 },
 ]);
 const list_type_process = ref([
-    { name: 'Một trong nhiều', code: 0 },
-    { name: 'Duyệt tuần tự'  , code: 1 },
+    { name: 'Duyệt tuần tự'  , code: 0 },
+    { name: 'Một trong nhiều', code: 1 },
     { name: 'Duyệt đồng thời', code: 2 }
 ]);
 const list_type_dayoff = ref([
@@ -712,7 +712,10 @@ const removeRow = (pi, i) => {
 const openRelate = (dataRelate, module, type) => {
     
 };
-
+const clickAction = () => {
+    debugger;
+    var x = 'action';
+};
 onMounted(() => {
     if (props.dataForm.request_id != null) {
         loadRequestDetail(props.dataForm);
@@ -1224,6 +1227,7 @@ onMounted(() => {
                             optionValue="request_team_id" 
                             :filter="true"
                             placeholder="-- Chọn team --"
+                            @optionSelect="clickAction()"
                         >
                         </Dropdown>
                     </div>
