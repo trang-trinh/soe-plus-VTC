@@ -91,7 +91,7 @@ const loadMainData = () => {
             {
                 str: encr(
                     JSON.stringify({
-                        proc: "request_master_list_Team",
+                        proc: "report_request_overdue_list",
                         par: [
                             { par: "user_id", va: store.getters.user.user_id },
                             { par: "optionView", va: options.value.active_group },
@@ -320,7 +320,7 @@ onMounted(() => {
         </Toolbar>
         <div class="flex"
             style="width: 100%;height: 50px;justify-content: center;align-items: center;font-weight: bold;font-size: 14px;background-color: #fff;">
-            BÁO CÁO TỔNG HỢP ĐỀ XUẤT
+            BÁO CÁO ĐỀ XUẤT QUÁ HẠN
         </div>
         <div class="d-lang-table">
             <DataTable v-if="options.active_group != 3" :value="datalists" :paginator="true" :rows="options.pageSize"
@@ -335,7 +335,7 @@ onMounted(() => {
                 :groupRowsBy="group != null ? group : ''" @page="onPage">
                 <template #empty>
                     <div class="w-full align-items-center justify-content-center p-4 text-center">
-                        <img src="../../assets/background/nodata.png" height="144" />
+                        <img src="/src/assets/background/nodata.png" height="144" />
                         <h3 class="m-1">Không có dữ liệu</h3>
                     </div>
                 </template>
