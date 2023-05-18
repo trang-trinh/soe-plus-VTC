@@ -1037,6 +1037,7 @@ onMounted(() => {
             style="height: 400px"
           >
             <DataTable
+              v-if="notes && notes.length > 0"
               :value="notes"
               :scrollable="true"
               :lazy="true"
@@ -1128,7 +1129,7 @@ onMounted(() => {
               </Column>
             </DataTable>
             <div
-              v-show="datanews == null || datanews.length == 0"
+              v-else-if="datanews == null || datanews.length == 0"
               class="w-full h-full format-flex-center"
             >
               <span class="description">Hiện chưa có dữ liệu</span>
@@ -1239,6 +1240,7 @@ onMounted(() => {
             style="height: 400px"
           >
             <DataTable
+              v-if="datanewprofiles && datanewprofiles.length > 0"
               :value="datanewprofiles"
               :scrollable="true"
               :lazy="true"
@@ -1316,7 +1318,7 @@ onMounted(() => {
               </Column>
             </DataTable>
             <div
-              v-show="datanewprofiles == null || datanewprofiles.length == 0"
+              v-else-if="datanewprofiles == null || datanewprofiles.length == 0"
               class="w-full h-full format-flex-center"
             >
               <span class="description">Hiện chưa có dữ liệu</span>
