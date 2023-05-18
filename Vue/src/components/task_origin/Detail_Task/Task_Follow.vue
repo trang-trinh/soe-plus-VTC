@@ -307,13 +307,14 @@ const loadData = () => {
           }
         });
         datalists.value = data;
-        swal.close();
+
         if (datalists.value.length > 0) {
           expandAll(datalists.value);
         }
       } else {
         datalists.value = [];
       }
+      swal.close();
     })
     .catch((error) => {
       options.value.loading = false;
