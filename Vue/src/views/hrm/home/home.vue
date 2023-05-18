@@ -138,7 +138,10 @@ const addToArray = (temp, array, id, lv, od) => {
 const options = ref({
   loading: true,
   filter_organization_id: store.getters.user.organization_id,
+  user_filter_organization_id: store.getters.user.organization_id,
+  user_filter_month_id: 1,
 });
+const datanewprofiles = ref([]);
 const databirthdays = ref([]);
 const dataphonebooks = ref([]);
 const organizations = ref([]);
@@ -191,6 +194,7 @@ const colors = ref([
   "#999999",
   "#999999",
 ]);
+const selectedNodes = ref({});
 
 // Total
 const animateNumber = (
@@ -293,11 +297,32 @@ const renderAcademic = (chart, data) => {
 const changeOrganization = () => {
   initAcademicLevel(true);
 };
-
 const goRouter = (name, params) => {
   if (name != null) {
     router.push({ name: name, params: params || {} });
   }
+};
+
+const opfilter = ref();
+const toggleFilter = (event) => {
+  opfilter.value.toggle(event);
+};
+
+const opfilter2 = ref();
+const toggleFilter2 = (event) => {
+  opfilter2.value.toggle(event);
+};
+
+const changeNewProfile = () => {
+  initNewProfile(true);
+};
+
+const goProfile = (profile) => {
+  router.push({
+    name: "profileinfo",
+    params: { id: profile.key_id },
+    query: { id: profile.profile_id },
+  });
 };
 
 //init
@@ -622,10 +647,68 @@ const initNote = (ref) => {
       }
     });
 };
+const initNewProfile = (ref) => {
+  if (ref) {
+    swal.fire({
+      width: 110,
+      didOpen: () => {
+        swal.showLoading();
+      },
+    });
+  }
+  datanewprofiles.value = [];
+  axios
+    .post(
+      baseURL + "/api/hrm/callProc",
+      {
+        str: encr(
+          JSON.stringify({
+            proc: "hrm_home_profile_new",
+            par: [
+              {
+                par: "user_filter_organization_id",
+                va: options.value.user_filter_organization_id,
+              },
+              {
+                par: "user_filter_month_id",
+                va: options.value.user_filter_month_id,
+              },
+            ],
+          }),
+          SecretKey,
+          cryoptojs
+        ).toString(),
+      },
+      config
+    )
+    .then((response) => {
+      if (response != null && response.data != null) {
+        var data = response.data.data;
+        if (data != null) {
+          let tbn = JSON.parse(data);
+          if (tbn[0] != null && tbn[0].length > 0) {
+            tbn[0].forEach((item, i) => {
+              if (item["recruitment_date"] != null) {
+                item["recruitment_date"] = moment(
+                  new Date(item["recruitment_date"])
+                ).format("DD/MM/YYYY");
+              }
+            });
+            datanewprofiles.value = tbn[0];
+          }
+        }
+      }
+      swal.close();
+      if (options.value.loading) options.value.loading = false;
+    })
+    .catch((error) => {
+      console.log(error);
+    });
+};
 const initBirthday = () => {
   axios
     .post(
-      baseURL + "/api/calendar/get_datas",
+      baseURL + "/api/hrm/callProc",
       {
         str: encr(
           JSON.stringify({
@@ -741,6 +824,7 @@ onMounted(() => {
   initAcademicLevel();
   initGender();
   initNote();
+  initNewProfile();
   initBirthday();
   initDictionary();
 });
@@ -788,31 +872,68 @@ onMounted(() => {
                 ></template
               >
               <template #end>
-                <div class="form-group m-0">
-                  <Dropdown
-                    :options="dictionarys[0]"
-                    :filter="true"
-                    :showClear="false"
-                    :editable="false"
-                    v-model="options.filter_organization_id"
-                    @change="changeOrganization()"
-                    optionLabel="newname"
-                    optionValue="organization_id"
-                    placeholder="Chọn đơn vị"
-                    class="ip36"
-                    :style="{
-                      whiteSpace: 'nowrap',
-                      overflow: 'hidden',
-                      textOverflow: 'ellipsis',
-                    }"
-                  />
-                </div>
+                <Button
+                  @click="toggleFilter($event)"
+                  type="button"
+                  class="p-button-outlined p-button-secondary ip36"
+                  aria:haspopup="true"
+                  aria-controls="overlay_panel"
+                  v-tooltip.top="'Lọc dữ liệu'"
+                >
+                  <div>
+                    <span><i class="pi pi-filter"></i></span>
+                  </div>
+                </Button>
+                <OverlayPanel
+                  :showCloseIcon="false"
+                  ref="opfilter"
+                  appendTo="body"
+                  class="p-0 m-0"
+                  id="overlay_panel"
+                  style="width: 400px"
+                >
+                  <div class="grid formgrid m-0">
+                    <div
+                      class="col-12 md:col-12 p-0"
+                      :style="{
+                        minHeight: 'unset',
+                        maxheight: 'calc(100vh - 300px)',
+                        overflow: 'auto',
+                      }"
+                    >
+                      <div class="row">
+                        <div class="col-12 md:col-12 p-0">
+                          <div class="form-group">
+                            <label>Đơn vị</label>
+                            <Dropdown
+                              :options="dictionarys[0]"
+                              :filter="true"
+                              :showClear="false"
+                              :editable="false"
+                              v-model="options.filter_organization_id"
+                              @change="changeOrganization()"
+                              optionLabel="newname"
+                              optionValue="organization_id"
+                              placeholder="Chọn đơn vị"
+                              class="ip36"
+                              :style="{
+                                whiteSpace: 'nowrap',
+                                overflow: 'hidden',
+                                textOverflow: 'ellipsis',
+                              }"
+                            />
+                          </div>
+                        </div>
+                      </div>
+                    </div>
+                  </div>
+                </OverlayPanel>
               </template>
             </Toolbar>
           </div>
           <div
             class="card-body carousel-hidden-p-link"
-            :style="{ height: '433px'}"
+            :style="{ height: '433px' }"
           >
             <div
               v-show="
@@ -834,6 +955,7 @@ onMounted(() => {
                   height: '100%',
                   display: 'flex',
                   alignItems: 'center',
+                  justifyContent: 'center',
                 }"
               />
             </div>
@@ -856,10 +978,7 @@ onMounted(() => {
           <div class="card-header" style="cursor: pointer">
             <span>Thống kê nhân sự theo độ tuổi</span>
           </div>
-          <div
-            class="card-body carousel-hidden-p-link"
-            style="height: 378px"
-          >
+          <div class="card-body carousel-hidden-p-link" style="height: 378px">
             <div
               v-show="
                 !options.loading &&
@@ -875,8 +994,13 @@ onMounted(() => {
                 :data="yearOlds"
                 :options="lightOptions"
                 :plugins="plugins"
-                class="w-full"
-                :style="{ width: '75% !important' }"
+                :style="{
+                  width: '85%',
+                  //height: '100%',
+                  display: 'flex',
+                  alignItems: 'center',
+                  justifyContent: 'center',
+                }"
               />
             </div>
             <div
@@ -913,6 +1037,7 @@ onMounted(() => {
             style="height: 400px"
           >
             <DataTable
+              v-if="notes && notes.length > 0"
               :value="notes"
               :scrollable="true"
               :lazy="true"
@@ -1004,7 +1129,7 @@ onMounted(() => {
               </Column>
             </DataTable>
             <div
-              v-show="datanews == null || datanews.length == 0"
+              v-else-if="datanews == null || datanews.length == 0"
               class="w-full h-full format-flex-center"
             >
               <span class="description">Hiện chưa có dữ liệu</span>
@@ -1014,73 +1139,186 @@ onMounted(() => {
       </div>
       <div class="col-4 md:col-4">
         <div class="card m-1">
-          <div class="card-header" style="cursor: pointer">
-            <span>.</span>
-          </div>
-          <div class="card-body carousel-hidden-p-link" style="height: 400px">
-            <Carousel
-              v-show="[].length > 0"
-              :value="[]"
-              :numVisible="4"
-              :numScroll="4"
-              :circular="false"
-              orientation="vertical"
-              verticalViewPortHeight="400px"
-            >
-              <template #item="slotProps">
-                <div
-                  class="grid-item carousel-item"
-                  @click="
-                    goRouter('/news/direct/details', {
-                      name: '-orient-' + slotProps.data.news_id,
-                    })
-                  "
+          <div
+            class="card-header"
+            :style="{ cursor: 'pointer', padding: '4px 4px 4px 1rem' }"
+          >
+            <Toolbar class="outline-none surface-0 border-none p-0">
+              <template #start
+                ><span :style="{ fontSize: '15px', fontWeight: 'bold' }"
+                  >Nhân sự mới</span
+                ></template
+              >
+              <template #end>
+                <Button
+                  @click="toggleFilter2($event)"
+                  type="button"
+                  class="p-button-outlined p-button-secondary ip36"
+                  aria:haspopup="true"
+                  aria-controls="overlay_panel2"
+                  v-tooltip.top="'Lọc dữ liệu'"
                 >
-                  <div class="d-grid formgrid px-2">
-                    <div class="col-12 md:col-12 p-0 pl-0">
-                      <div class="d-grid formgrid">
-                        <div class="col-12 md:col-12 p-0 flex pb-2">
-                          <div>
-                            <img
-                              v-if="slotProps.data.is_hot"
-                              style="
-                                width: 40px;
-                                height: 20px;
-                                margin-right: 12px;
-                              "
-                              :src="basedomainURL + '/Portals/News/new.jpg'"
-                              alt="new"
+                  <div>
+                    <span><i class="pi pi-filter"></i></span>
+                  </div>
+                </Button>
+                <OverlayPanel
+                  :showCloseIcon="false"
+                  ref="opfilter2"
+                  appendTo="body"
+                  class="p-0 m-0"
+                  id="overlay_panel2"
+                  style="width: 400px"
+                >
+                  <div class="grid formgrid m-0">
+                    <div
+                      class="col-12 md:col-12 p-0"
+                      :style="{
+                        minHeight: 'unset',
+                        maxheight: 'calc(100vh - 300px)',
+                        overflow: 'auto',
+                      }"
+                    >
+                      <div class="row">
+                        <div class="col-12 md:col-12 p-0">
+                          <div class="form-group">
+                            <label>Đơn vị</label>
+                            <Dropdown
+                              :options="dictionarys[0]"
+                              :filter="true"
+                              :showClear="false"
+                              :editable="false"
+                              v-model="options.user_filter_organization_id"
+                              @change="changeNewProfile()"
+                              optionLabel="newname"
+                              optionValue="organization_id"
+                              placeholder="Chọn đơn vị"
+                              class="ip36"
+                              :style="{
+                                whiteSpace: 'nowrap',
+                                overflow: 'hidden',
+                                textOverflow: 'ellipsis',
+                              }"
                             />
-                          </div>
-                          <div>
-                            <span
-                              class="limit-line"
-                              :class="slotProps.data.is_hot ? 'font-bold' : ''"
-                              >{{ slotProps.data.title }}</span
-                            >
                           </div>
                         </div>
                         <div class="col-12 md:col-12 p-0">
-                          <div class="description">
-                            <i class="pi pi-clock"></i>
-                            <span class="ml-2">{{
-                              slotProps.data.approved_date
-                            }}</span>
+                          <div class="form-group">
+                            <label>Thời gian</label>
+                            <Dropdown
+                              :options="[
+                                { value: 1, title: 'Tháng hiện tại' },
+                                { value: 2, title: '1 Tháng trước' },
+                                { value: 3, title: '2 Tháng trước' },
+                              ]"
+                              :filter="true"
+                              :showClear="false"
+                              :editable="false"
+                              v-model="options.user_filter_month_id"
+                              @change="changeNewProfile()"
+                              optionLabel="title"
+                              optionValue="value"
+                              placeholder="Chọn thời gian"
+                              class="ip36"
+                              :style="{
+                                whiteSpace: 'nowrap',
+                                overflow: 'hidden',
+                                textOverflow: 'ellipsis',
+                              }"
+                            />
                           </div>
                         </div>
                       </div>
                     </div>
-                    <div class="col-12 md:col-12 p-0 pt-2">
-                      <div class="description">
-                        <span class="limit-line">{{ slotProps.data.des }}</span>
+                  </div>
+                </OverlayPanel>
+              </template>
+            </Toolbar>
+          </div>
+          <div
+            class="d-lang-table card-body carousel-hidden-p-link p-0"
+            style="height: 400px"
+          >
+            <DataTable
+              v-if="datanewprofiles && datanewprofiles.length > 0"
+              :value="datanewprofiles"
+              :scrollable="true"
+              :lazy="true"
+              :rowHover="true"
+              :showGridlines="false"
+              dataKey="profile_id"
+              scrollHeight="flex"
+              filterDisplay="menu"
+              filterMode="lenient"
+              paginatorTemplate="FirstPageLink PrevPageLink PageLinks NextPageLink LastPageLink RowsPerPageDropdown"
+              responsiveLayout="scroll"
+              class="border-none padding-new header-none"
+            >
+              <Column field="note_name" header="" headerStyle="max-width:auto;">
+                <template #body="slotProps">
+                  <div class="flex">
+                    <div class="mr-3">
+                      <Avatar
+                        v-bind:label="
+                          slotProps.data.avatar
+                            ? ''
+                            : slotProps.data.profile_last_name.substring(0, 1)
+                        "
+                        v-bind:image="
+                          slotProps.data.avatar
+                            ? basedomainURL + slotProps.data.avatar
+                            : basedomainURL + '/Portals/Image/noimg.jpg'
+                        "
+                        :key="slotProps.data.profile_id"
+                        @error="basedomainURL + '/Portals/Image/noimg.jpg'"
+                        size="large"
+                        shape="circle"
+                        class="cursor-pointer"
+                        :style="{
+                          backgroundColor:
+                            bgColors[slotProps.data.is_order % 7],
+                          color: 'white',
+                          width: '4rem',
+                          height: '4rem',
+                          fontSize: '1.3rem !important',
+                        }"
+                      />
+                    </div>
+                    <div class="format-center text-left">
+                      <div>
+                        <div class="mb-2">
+                          <b>{{ slotProps.data.profile_user_name }}</b>
+                        </div>
+                        <div>{{ slotProps.data.department_name }}</div>
+                        <div>
+                          {{ slotProps.data.phone }}
+                          <span
+                            v-if="slotProps.data.phone && slotProps.data.email"
+                            >|</span
+                          >
+                          {{ slotProps.data.email }}
+                        </div>
                       </div>
                     </div>
                   </div>
-                </div>
-              </template>
-            </Carousel>
+                </template>
+              </Column>
+              <Column
+                field="note_name"
+                header="Ngày vào"
+                headerStyle="text-align:center;max-width:90px;width:90px;height:50px"
+                bodyStyle="text-align:center;max-width:90px;width:90px;"
+                class="align-items-center justify-content-center text-center"
+              >
+                <template #body="slotProps">
+                  <span class="description">{{
+                    slotProps.data.recruitment_date
+                  }}</span>
+                </template>
+              </Column>
+            </DataTable>
             <div
-              v-show="datanews == null || datanews.length == 0"
+              v-else-if="datanewprofiles == null || datanewprofiles.length == 0"
               class="w-full h-full format-flex-center"
             >
               <span class="description">Hiện chưa có dữ liệu</span>
@@ -1109,6 +1347,7 @@ onMounted(() => {
                         height: 100%;
                         object-fit: contain;
                         border-radius: 3px;
+                        transform: scale(2);
                       "
                     />
                   </div>
@@ -1441,10 +1680,23 @@ span.online {
     padding: 0.5rem 1rem !important;
   }
 }
-::v-deep(#chart32){
-  canvas{
+::v-deep(.header-none) {
+  thead {
+    display: none !important;
+  }
+}
+::v-deep(#chart32) {
+  canvas {
     height: 100% !important;
   }
-  
+}
+::v-deep(#chart1) {
+  canvas {
+    width: 90% !important;
+    height: 90% !important;
+    text-align: center !important;
+    display: flex;
+    justify-content: center;
+  }
 }
 </style>
