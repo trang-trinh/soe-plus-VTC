@@ -156,6 +156,7 @@ const forms = ref([
 ]);
 const dictionarys = ref([]);
 const datachilds = ref([]);
+const reports = ref([]);
 
 //data view 2
 const task = ref({});
@@ -529,9 +530,9 @@ const health = ref({});
 const vaccines = ref([]);
 
 //data view 13
-const goPrint = (view) => {
+const goPrint = (key) => {
   let o = {
-    id: view == 13 ? 22 : view == 14 ? 20 : view == 15 ? 5 : 3,
+    id: key,
     par: { profile_id: profile.value.profile_id },
   };
   let url = encodeURIComponent(
@@ -2489,13 +2490,55 @@ const initData = () => {
     initDictionary12();
   }
 };
+const initDictionary = () => {
+  reports.value = [];
+  itemButPrints.value = [];
+  axios
+    .post(
+      baseURL + "/api/hrm/callProc",
+      {
+        str: encr(
+          JSON.stringify({
+            proc: "hrm_organization_report_list",
+            par: [{ par: "user_id", va: store.getters.user.user_id }],
+          }),
+          SecretKey,
+          cryoptojs
+        ).toString(),
+      },
+      config
+    )
+    .then((response) => {
+      if (response != null && response.data != null) {
+        var data = response.data.data;
+        if (data != null) {
+          let tbs = JSON.parse(data);
+          if (tbs[0] && tbs[0].length > 0) {
+            reports.value = tbs[0];
+            tbs[0].forEach((item) => {
+              let obj = {
+                view: 13,
+                label: item.report_title,
+                icon: "fa-regular fa-file",
+                command: (event) => {
+                  goPrint(item.report_key);
+                },
+              };
+              itemButPrints.value.push(obj);
+            });
+          }
+        }
+      }
+    });
+};
 onMounted(() => {
   if (route.params.id != null) {
     options.value["key_id"] = route.params.id;
     options.value["profile_id"] = route.query.id;
+    initData();
     initRelate();
     //initDictionaryInsurance();
-    initData();
+    initDictionary();
   } else {
     router.back();
     return;
