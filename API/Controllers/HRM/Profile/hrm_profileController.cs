@@ -2653,78 +2653,79 @@ namespace API.Controllers.HRM.Profile
                                                     var column = sheet.Cells[2, c].Value;
                                                     error_column = int.Parse(column.ToString() ?? c.ToString());
                                                     var vl = sheet.Cells[r, c].Value;
-                                                    if (vl != null)
-                                                    {
-                                                        string value = vl.ToString().Trim();
-                                                        switch (column)
-                                                        {
-                                                            case "2":
-                                                                var p = await db.hrm_profile.FirstOrDefaultAsync(x => x.profile_code == value);
-                                                                if (p != null)
-                                                                {
-                                                                    skill.profile_id = p.profile_id;
-                                                                }
-                                                                break;
-                                                            case "3":
+                                                    //if (vl != null)
+                                                    //{
+                                                    //    string value = vl.ToString().Trim();
+                                                    //    switch (column)
+                                                    //    {
+                                                    //        case "2":
+                                                    //            var p = await db.hrm_profile.FirstOrDefaultAsync(x => x.profile_code == value);
+                                                    //            if (p != null)
+                                                    //            {
+                                                    //                skill.profile_id = p.profile_id;
+                                                    //            }
+                                                    //            break;
+                                                    //        case "3":
 
-                                                                break;
-                                                            case "4":
-                                                                skill.start_date = value;
-                                                                break;
-                                                            case "5":
-                                                                skill.end_date = value;
-                                                                break;
-                                                            case "6":
-                                                                var academic_level_name = value;
-                                                                var academic_level_exists = await db.hrm_ca_academic_level.FirstOrDefaultAsync(x => x.academic_level_name == academic_level_name);
-                                                                if (academic_level_exists != null)
-                                                                {
-                                                                    skill.academic_level_id = academic_level_exists.academic_level_id;
-                                                                }
-                                                                break;
-                                                            case "7":
-                                                                skill.branch = value;
-                                                                break;
-                                                            case "8":
-                                                                var specialization_name = value;
-                                                                var specialization_exists = await db.hrm_ca_specialization.FirstOrDefaultAsync(x => x.specialization_name == specialization_name);
-                                                                if (specialization_exists != null)
-                                                                {
-                                                                    skill.specialized = specialization_exists.specialization_id;
-                                                                }
-                                                                break;
-                                                            case "9":
-                                                                skill.university_name = value;
-                                                                break;
-                                                            case "10":
-                                                                var form_traning_name = value;
-                                                                var form_traning_exists = await db.hrm_ca_form_traning.FirstOrDefaultAsync(x => x.form_traning_name == form_traning_name);
-                                                                if (form_traning_exists != null)
-                                                                {
-                                                                    skill.form_traning_id = form_traning_exists.form_traning_id;
-                                                                }
-                                                                break;
-                                                            case "11":
-                                                                skill.graduation_year = value;
-                                                                break;
-                                                            case "12":
-                                                                skill.rating = value;
-                                                                break;
-                                                            case "13":
-                                                                var certificate_name = value;
-                                                                var certificat_exists = await db.hrm_ca_certificate.FirstOrDefaultAsync(x => x.certificate_name == certificate_name);
-                                                                if (certificat_exists != null)
-                                                                {
-                                                                    skill.certificate_id = certificat_exists.certificate_id;
-                                                                }
-                                                                break;
-                                                            case "14":
-                                                                skill.is_man_degree = value.ToLower() == "x" ? true : false;
-                                                                break;
-                                                            default:
-                                                                break;
-                                                        }
-                                                    }
+                                                    //            break;
+                                                    //        case "4":
+                                                    //            skill.start_date = value;
+                                                    //            break;
+                                                    //        case "5":
+                                                    //            skill.end_date = value;
+                                                    //            break;
+                                                    //        case "6":
+                                                    //            var academic_level_name = value;
+                                                    //            var academic_level_exists = await db.hrm_ca_academic_level.FirstOrDefaultAsync(x => x.academic_level_name == academic_level_name);
+                                                    //            if (academic_level_exists != null)
+                                                    //            {
+                                                    //                skill.academic_level_id = academic_level_exists.academic_level_id;
+                                                    //            }
+                                                    //            break;
+                                                    //        case "7":
+                                                    //            skill.branch = value;
+                                                    //            break;
+                                                    //        case "8":
+                                                    //            var specialization_name = value;
+                                                    //            var specialization_exists = await db.hrm_ca_specialization.FirstOrDefaultAsync(x => x.specialization_name == specialization_name);
+                                                    //            if (specialization_exists != null)
+                                                    //            {
+                                                    //                skill.specialized = specialization_exists.specialization_id;
+                                                    //            }
+                                                    //            break;
+                                                    //        case "9":
+                                                    //            skill.university_name = value;
+                                                    //            break;
+                                                    //        case "10":
+                                                    //            var form_traning_name = value;
+                                                    //            var form_traning_exists = await db.hrm_ca_form_traning.FirstOrDefaultAsync(x => x.form_traning_name == form_traning_name);
+                                                    //            if (form_traning_exists != null)
+                                                    //            {
+                                                    //                skill.form_traning_id = form_traning_exists.form_traning_id;
+                                                    //            }
+                                                    //            break;
+                                                    //        case "11":
+                                                    //            skill.graduation_year = value;
+                                                    //            break;
+                                                    //        case "12":
+                                                    //            skill.rating = value;
+                                                    //            break;
+                                                    //        case "13":
+                                                    //            var certificate_name = value;
+                                                    //            var certificat_exists = await db.hrm_ca_certificate.FirstOrDefaultAsync(x => x.certificate_name == certificate_name);
+                                                    //            if (certificat_exists != null)
+                                                    //            {
+                                                    //                skill.certificate_id = certificat_exists.certificate_id;
+                                                    //            }
+                                                    //            break;
+                                                    //        case "14":
+                                                    //            skill.is_man_degree = value.ToLower() == "x" ? true : false;
+                                                    //            break;
+                                                    //        default:
+                                                    //            break;
+                                                    //    }
+                                                    //}
+                                               
                                                 }
                                                 if (!string.IsNullOrEmpty(skill.profile_id))
                                                 {

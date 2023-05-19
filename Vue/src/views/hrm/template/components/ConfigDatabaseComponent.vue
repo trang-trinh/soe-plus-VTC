@@ -38,6 +38,7 @@ export default {
       mdTable.value = tb;
     };
     const goProc = async () => {
+      debugger
       let strSQL = {
         query: false,
         proc: "proc_get_info",
@@ -190,7 +191,7 @@ export default {
             headers: { Authorization: `Bearer ${store.getters.token}` },
           }
         );
-  
+  debugger
         if (axResponse.status == 200) {
           if (axResponse.data.error) {
             toast.error("Không tải được dữ liệu");
@@ -208,6 +209,7 @@ export default {
                 txtSQL.value = objConfig.proc.sql;
                 goProc();
               } else {
+
                 goProc();
               }
             } else {
