@@ -206,13 +206,14 @@ onMounted(() => {
 }*/
 .active {
   background-color: #f18636;
+  border: 1px solid #f18636;
 }
 
 ::v-deep(.p-splitbutton-item) {
   .p-button:enabled {
     background: #f18636;
     color: #ffffff;
-    border-color: #0b7ad1;
+    border-color: #f18636;
     font-weight: 700;
   }
 }

@@ -87,8 +87,7 @@ const configBaocao = async (row) => {
       smart_report.value = JSON.parse(axResponse.data.data)[0][0];
  
       if (smart_report.value.proc_name)
-        smart_report.value.proc_name =
-          smart_report.value.proc_name.split(" ")[0];
+      smart_report.value.proc_name1=smart_report.value.proc_name.split(" ")[0];
       visibleSidebarDoc.value = true;
     }
   }
@@ -431,7 +430,9 @@ const saveData = (isFormValid) => {
     return;
   }
   let formData = new FormData();
-
+  if (smart_report.value.profile_id) {
+    smart_report.value.proc_name=smart_report.value.proc_name1+" '"+smart_report.value.profile_id+"'";
+                }
   if (smart_report.value.user_access_fake.length > 0)
     smart_report.value.user_access =
       smart_report.value.user_access_fake.toString();
@@ -591,7 +592,7 @@ const editTem = (dataTem) => {
         checkUploadFile.value = true;
         checkDisabled.value = false;
       }
-
+      smart_report.value.proc_name1=data.proc_name.split(" ")[0];
       if (data.user_access)
         smart_report.value.user_access_fake = data.user_access.split(",");
       else smart_report.value.user_access_fake = [];
@@ -608,7 +609,7 @@ const editTem = (dataTem) => {
     .catch((error) => {
       toast.error("Tải dữ liệu không thành công!");
       options.value.loading = false;
-
+      console.log(error);
       if (error && error.status === 401) {
         swal.fire({
           text: "Mã token đã hết hạn hoặc không hợp lệ, vui lòng đăng nhập lại!",
@@ -1581,7 +1582,7 @@ onMounted(() => {
                 <div class="col-12 text-left p-0 pb-2">Thủ tục lấy dữ liệu</div>
                 <div class="col-12 p-0 h-full">
                   <Dropdown
-                    v-model="smart_report.proc_name"
+                    v-model="smart_report.proc_name1"
                     :options="listProcDropdown"
                     optionLabel="name"
                     optionValue="code"
