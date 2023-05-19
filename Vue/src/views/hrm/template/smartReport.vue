@@ -78,17 +78,16 @@ const configBaocao = async (row) => {
     didOpen: () => {
       swal.showLoading();
     },
-  });
-  const axResponse = await execSQL(row.report_id);
+  });  const axResponse = await execSQL(row.report_id);
 
   if (axResponse.status == 200) {
     if (axResponse.data.error) {
       toast.error("Không mở được bản ghi");
     } else {
       smart_report.value = JSON.parse(axResponse.data.data)[0][0];
-
+ 
       if (smart_report.value.proc_name)
-        smart_report.value.proc_name1 =
+        smart_report.value.proc_name =
           smart_report.value.proc_name.split(" ")[0];
       visibleSidebarDoc.value = true;
     }
@@ -543,8 +542,8 @@ const copyTem = (dataTem) => {
       if (data.user_deny)
         smart_report.value.user_deny_fake = data.user_deny.split(",");
       else smart_report.value.user_deny_fake = [];
-      smart_report.value.proc_get = Number(data.proc_get);
-      smart_report.value.proc_name = Number(data.proc_name);
+      smart_report.value.proc_get =data.proc_get;
+      smart_report.value.proc_name = data.proc_name;
       smart_report.value.report_name = null;
       headerDialog.value = "Thêm báo cáo";
       isSaveTem.value = false;
@@ -599,8 +598,8 @@ const editTem = (dataTem) => {
       if (data.user_deny)
         smart_report.value.user_deny_fake = data.user_deny.split(",");
       else smart_report.value.user_deny_fake = [];
-      smart_report.value.proc_get = Number(data.proc_get);
-      smart_report.value.proc_name = Number(data.proc_name);
+      smart_report.value.proc_get = data.proc_get;
+      smart_report.value.proc_name = data.proc_name;
       headerDialog.value = "Sửa báo cáo";
       isSaveTem.value = true;
 
