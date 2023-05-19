@@ -80,7 +80,7 @@ export default {
             let dfs = props.report.proc_name
               ? props.report.proc_name.split(" ")
               : [];
-            if (dfs.length > 1)
+            if (dfs.length > 0)
               dts.forEach((dt, i) => {
                 sql += dfs[i + 1];
               });
