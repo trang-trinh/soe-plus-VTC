@@ -1464,10 +1464,3 @@ li.p-chips-token {
 .justify-content-right {
   justify-content: right !important;
 }
-
-.profile-edit .p-sidebar-header .p-sidebar-header-content {
-  width: 100% !important;
-}
-.profile-edit .p-sidebar-content {
-  padding-bottom: 0 !important;
-}

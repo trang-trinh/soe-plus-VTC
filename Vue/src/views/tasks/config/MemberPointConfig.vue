@@ -29,7 +29,6 @@ const addLog = (log) => {
   axios.post(baseURL + "/api/Proc/AddLog", log, config);
 };
 const configMember = ref({
-  manager: 0,
   executors: 0,
   co_executors: 0,
   supervisor: 0,
@@ -138,19 +137,6 @@ onMounted(() => {
         <div class="font-bold">Thiết lập đánh giá thành viên công việc</div>
       </div>
 
-      <div class="col-6 col-offset-3 flex align-items-center">
-        <div class="col-4">Người quản lý</div>
-        <InputNumber
-          class="col-8"
-          suffix=" %"
-          mode="decimal"
-          :minFractionDigits="2"
-          :useGrouping="false"
-          v-model="configMember.manager"
-          v-tooltip="'Mức hoàn thành công việc'"
-        >
-        </InputNumber>
-      </div>
       <div class="col-6 col-offset-3 flex align-items-center">
         <div class="col-4">Người thực hiện</div>
         <InputNumber

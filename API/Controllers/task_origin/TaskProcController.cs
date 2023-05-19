@@ -42,7 +42,6 @@ namespace API.Controllers
             IEnumerable<Claim> claims = identity.Claims;
             string dataProc = data["str"].ToObject<string>();
             string des = Codec.DecryptString(dataProc, helper.psKey);
-            string procname;
             sqlProc proc = JsonConvert.DeserializeObject<sqlProc>(des);
                 string Connection = System.Configuration.ConfigurationManager.ConnectionStrings["Connection"].ConnectionString;
                 string ip = getipaddress();
@@ -53,83 +52,75 @@ namespace API.Controllers
                 {
                     return Request.CreateResponse(HttpStatusCode.OK, new { ms = "Bạn không có quyền truy cập chức năng này!", err = "1" });
                 }
-            try
-            {
-                var sqlpas = new List<SqlParameter>();
-                if (proc != null && proc.par != null)
+                try
                 {
-                   
-                    foreach (sqlPar p in proc.par)
+                    var sqlpas = new List<SqlParameter>();
+                    if (proc != null && proc.par != null)
                     {
-                        sqlpas.Add(new SqlParameter("@" + p.par, p.va));
+                        foreach (sqlPar p in proc.par)
+                        {
+                            sqlpas.Add(new SqlParameter("@" + p.par, p.va));
+                        }
                     }
-                }
-                var arrpas = sqlpas.ToArray();
-                DateTime sdate = DateTime.Now;
-                procname = proc.proc;
-                var task = System.Threading.Tasks.Task.Run(() => SqlHelper.ExecuteDataset(Connection, proc.proc, arrpas).Tables);
-                var tables = await task;
-                DateTime edate = DateTime.Now;
-                #region add SQLLog
-                if (helper.wlog)
-                {
-                    using (DBEntities db = new DBEntities())
+                    var arrpas = sqlpas.ToArray();
+                    DateTime sdate = DateTime.Now;
+                    var task = System.Threading.Tasks.Task.Run(() => SqlHelper.ExecuteDataset(Connection, proc.proc, arrpas).Tables);
+                    var tables = await task;
+                    DateTime edate = DateTime.Now;
+                    #region add SQLLog
+                    if (helper.wlog)
                     {
-                        sql_log log = new sql_log();
-                        log.controller = domainurl + "TaskProc/getTaskData";
-                        log.start_date = sdate;
-                        log.end_date = edate;
-                        log.milliseconds = (int)Math.Ceiling((edate - sdate).TotalMilliseconds);
-                        log.user_id = uid;
-                        log.token_id = tid;
-                        log.created_ip = ip;
-                        log.created_date = DateTime.Now;
-                        log.created_by = uid;
-                        log.created_token_id = tid;
-                        log.modified_ip = ip;
-                        log.modified_date = DateTime.Now;
-                        log.modified_by = uid;
-                        log.modified_token_id = tid;
-                        log.full_name = name;
-                        log.title = proc.proc;
-                        log.log_content = JsonConvert.SerializeObject(new { data = proc });
-                        db.sql_log.Add(log);
-                        await db.SaveChangesAsync();
+                        using (DBEntities db = new DBEntities())
+                        {
+                            sql_log log = new sql_log();
+                            log.controller = domainurl + "TaskProc/getTaskData";
+                            log.start_date = sdate;
+                            log.end_date = edate;
+                            log.milliseconds = (int)Math.Ceiling((edate - sdate).TotalMilliseconds);
+                            log.user_id = uid;
+                            log.token_id = tid;
+                            log.created_ip = ip;
+                            log.created_date = DateTime.Now;
+                            log.created_by = uid;
+                            log.created_token_id = tid;
+                            log.modified_ip = ip;
+                            log.modified_date = DateTime.Now;
+                            log.modified_by = uid;
+                            log.modified_token_id = tid;
+                            log.full_name = name;
+                            log.title = proc.proc;
+                            log.log_content = JsonConvert.SerializeObject(new { data = proc });
+                            db.sql_log.Add(log);
+                            await db.SaveChangesAsync();
+                        }
                     }
-                }
-                #endregion
-                string JSONresult = JsonConvert.SerializeObject(tables);
-                if (helper.debug == true) { return Request.CreateResponse(HttpStatusCode.OK, new { data = JSONresult, err = "0", prname = procname }); }
-                else
-                {
+                    #endregion
+                    string JSONresult = JsonConvert.SerializeObject(tables);
                     return Request.CreateResponse(HttpStatusCode.OK, new { data = JSONresult, err = "0" });
                 }
-
-
-            }
-            catch (DbEntityValidationException e)
-            {
-                string contents = helper.getCatchError(e, null);
-                helper.saveLog(uid, name, JsonConvert.SerializeObject(new { data = proc, contents }), domainurl + "TaskProc/getTaskData", ip, tid, "Lỗi khi gọi proc", 0, "TaskProc");
-                if (!helper.debug)
+                catch (DbEntityValidationException e)
                 {
-                    contents = helper.logCongtent;
+                    string contents = helper.getCatchError(e, null);
+                    helper.saveLog(uid, name, JsonConvert.SerializeObject(new { data = proc, contents }), domainurl + "TaskProc/getTaskData", ip, tid, "Lỗi khi gọi proc", 0, "TaskProc");
+                    if (!helper.debug)
+                    {
+                        contents = helper.logCongtent;
+                    }
+                    Log.Error(contents);
+                    return Request.CreateResponse(HttpStatusCode.OK, new { ms = contents, err = "1" });
                 }
-                Log.Error(contents);
-                return Request.CreateResponse(HttpStatusCode.OK, new { ms = contents, err = "1" });
-            }
-            catch (Exception e)
-            {
-                string contents = helper.ExceptionMessage(e);
-                helper.saveLog(uid, name, JsonConvert.SerializeObject(new { data = proc, contents }), domainurl + "TaskProc/getTaskData", ip, tid, "Lỗi khi gọi proc", 0, "TaskProc");
-                if (!helper.debug)
+                catch (Exception e)
                 {
-                    contents = helper.logCongtent;
-                }
-                Log.Error(contents);
+                    string contents = helper.ExceptionMessage(e);
+                    helper.saveLog(uid, name, JsonConvert.SerializeObject(new { data = proc, contents }), domainurl + "TaskProc/getTaskData", ip, tid, "Lỗi khi gọi proc", 0, "TaskProc");
+                    if (!helper.debug)
+                    {
+                        contents = helper.logCongtent;
+                    }
+                    Log.Error(contents);
 
-                return Request.CreateResponse(HttpStatusCode.OK, new { ms = contents, err = "1" });
-            }
+                    return Request.CreateResponse(HttpStatusCode.OK, new { ms = contents, err = "1" });
+                }
             }
         
     }

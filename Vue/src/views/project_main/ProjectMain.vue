@@ -531,9 +531,11 @@ const addProjectMain = (str) => {
     managers: [],
     participants: [],
   };
-
-  ProjectMain.value.organization_id = store.state.user.organization_id;
-
+  if (store.state.user.is_super) {
+    ProjectMain.value.organization_id = 0;
+  } else {
+    ProjectMain.value.organization_id = store.state.user.organization_id;
+  }
   selectcapcha.value[-1] = true;
   isAdd.value = true;
   issaveProjectMain.value = false;
@@ -557,8 +559,11 @@ const addTreeProjectMain = (p) => {
     managers: [],
     participants: [],
   };
-
-  ProjectMain.value.organization_id = store.state.user.organization_id;
+  if (store.state.user.is_super) {
+    ProjectMain.value.organization_id = 0;
+  } else {
+    ProjectMain.value.organization_id = store.state.user.organization_id;
+  }
   selectcapcha.value[p.project_id || -1] = true;
   isAdd.value = true;
   issaveProjectMain.value = false;
@@ -638,7 +643,11 @@ const editProjectMain = (dataProjectMain) => {
       headerAddProjectMain.value = "Sửa dự án";
       issaveProjectMain.value = false;
       displayProjectMain.value = true;
-      ProjectMain.value.organization_id = store.state.user.organization_id;
+      if (store.state.user.is_super) {
+        ProjectMain.value.organization_id = 0;
+      } else {
+        ProjectMain.value.organization_id = store.state.user.organization_id;
+      }
     })
     .catch((error) => {
       toast.error("Tải dữ liệu không thành công!");

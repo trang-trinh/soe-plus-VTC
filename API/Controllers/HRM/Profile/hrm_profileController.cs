@@ -95,7 +95,8 @@ namespace API.Controllers.HRM.Profile
                     else
                     {
                         var old = await db.hrm_profile.AsNoTracking().FirstOrDefaultAsync(a => a.profile_id == uid);
-                        if (old != null && old.profile_id != model.profile_id) {
+                        if (old != null && old.profile_id != model.profile_id)
+                        {
                             if (db.hrm_profile.Count(a => a.profile_id == model.profile_id) > 0)
                             {
                                 return Request.CreateResponse(HttpStatusCode.OK, new { ms = "Đã tồn tại mã nhân sự này trong hệ thống!", err = "1" });
@@ -754,7 +755,7 @@ namespace API.Controllers.HRM.Profile
                     if (tags != null)
                     {
                         List<hrm_profile_tags> new_receipts = new List<hrm_profile_tags>();
-                        
+
                         var stt = 0;
                         foreach (var tags_id in tags)
                         {
@@ -982,7 +983,7 @@ namespace API.Controllers.HRM.Profile
                         var updates = relative_olds.Where(x => remove_ids.Contains(x.profile_relative_id)).ToList();
                         if (updates.Count > 0)
                         {
-                            foreach(var item in updates)
+                            foreach (var item in updates)
                             {
                                 var update = relatives.FirstOrDefault(x => x.profile_relative_id == item.profile_relative_id);
                                 if (update != null)
@@ -1010,7 +1011,7 @@ namespace API.Controllers.HRM.Profile
                     }
                     int stt = 0;
                     int is_bout = db.hrm_profile_relative.Max(x => x.is_bout) ?? 0;
-                    
+
                     foreach (var rl in relative_news)
                     {
                         hrm_profile_relative relative = new hrm_profile_relative();
@@ -1451,7 +1452,8 @@ namespace API.Controllers.HRM.Profile
             }
         }
 
-        class obj {
+        class obj
+        {
             public int status { get; set; }
             public DateTime? start_date { get; set; }
             public DateTime? end_date { get; set; }
@@ -1525,7 +1527,7 @@ namespace API.Controllers.HRM.Profile
                     }
                     if (de_datas != null)
                     {
-                        foreach(var item in de_datas)
+                        foreach (var item in de_datas)
                         {
                             hrm_profile_status status = new hrm_profile_status();
                             status.profile_id = profile_id;
@@ -1651,7 +1653,7 @@ namespace API.Controllers.HRM.Profile
                             user.full_name_en = helper.convertToUnSign(profile.profile_user_name);
                             user.last_name = (user.full_name ?? "").Split(' ').Last();
                             user.organization_id = profile.organization_id;
-                            user.organization_parent_id = db.sys_organization.FirstOrDefault(x=>x.organization_id == user.organization_id)?.parent_id ?? user.organization_id;
+                            user.organization_parent_id = db.sys_organization.FirstOrDefault(x => x.organization_id == user.organization_id)?.parent_id ?? user.organization_id;
                             user.position_id = db.hrm_contract.FirstOrDefault(x => x.profile_id == profile_id && x.is_active == true)?.position_id;
                             user.birthday = profile.birthday;
                             user.phone = profile.phone;
@@ -2257,7 +2259,7 @@ namespace API.Controllers.HRM.Profile
                                                                 break;
                                                             case "4":
                                                                 var department_name = value;
-                                                                var department_exists = await db.sys_organization.FirstOrDefaultAsync(x => x.short_name == department_name && x.organization_type == 1);
+                                                                var department_exists = await db.sys_organization.FirstOrDefaultAsync(x => x.organization_key == department_name && x.organization_type == 1);
                                                                 if (department_exists != null)
                                                                 {
                                                                     assignment.department_id = department_exists.organization_id;

@@ -84,6 +84,8 @@ const bgColor = ref([
     "#CCADD7",
 ]);
 const loadData = (rf) => {
+    let is_in = options.value.tab == 2 ? options.value.type_tab == 1 ? true : false : true;
+    let is_out = options.value.tab == 2 ? options.value.type_tab == 2 ? true : false : false;
     axios
         .post(
             baseURL + "/api/request/getData",
@@ -97,6 +99,8 @@ const loadData = (rf) => {
                             { par: "pageNo", va: options.value.pageNo },
                             { par: "pageSize", va: options.value.pageSize },
                             { par: "tab", va: options.value.tab },
+                            { par: "is_in", va: is_in  },
+                            { par: "is_out", va: is_out },
                         ],
                     }),
                     SecretKey,
