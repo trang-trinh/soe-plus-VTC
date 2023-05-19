@@ -8,7 +8,6 @@ using System;
 using System.Collections.Generic;
 using System.Configuration;
 using System.Data.Entity;
-using System.Data.Entity.Core.Metadata.Edm;
 using System.Data.Entity.Validation;
 using System.Data.SqlClient;
 using System.IO;
@@ -20,8 +19,6 @@ using System.Text.RegularExpressions;
 using System.Threading.Tasks;
 using System.Web;
 using System.Web.Http;
-using System.Web.Services.Description;
-using System.Xml;
 
 namespace API.Controllers.Request
 {
@@ -738,6 +735,189 @@ namespace API.Controllers.Request
         }
 
         [HttpPost]
+        public async Task<HttpResponseMessage> UploadFileAttach()
+        {
+            var identity = User.Identity as ClaimsIdentity;
+            IEnumerable<Claim> claims = identity.Claims;
+            string ip = getipaddress();
+            string name = claims.Where(p => p.Type == "fname").FirstOrDefault()?.Value;
+            string tid = claims.Where(p => p.Type == "tid").FirstOrDefault()?.Value;
+            string uid = claims.Where(p => p.Type == "uid").FirstOrDefault()?.Value;
+            string fname = claims.Where(p => p.Type == "fname").FirstOrDefault()?.Value;
+
+            string domainurl = HttpContext.Current.Request.Url.Scheme + "://" + HttpContext.Current.Request.Url.Host + ":" + HttpContext.Current.Request.Url.Port + "/"; if (identity == null)
+            {
+                return Request.CreateResponse(HttpStatusCode.OK, new { ms = "Bạn không có quyền truy cập chức năng này!", err = "1" });
+            }
+
+            try
+            {
+                using (DBEntities db = new DBEntities())
+                {
+
+                    if (!Request.Content.IsMimeMultipartContent())
+                    {
+                        throw new HttpResponseException(HttpStatusCode.UnsupportedMediaType);
+                    }
+
+                    string root = HttpContext.Current.Server.MapPath("~/");
+
+                    var provider = new MultipartFormDataStreamProvider(root + "/Portals");
+
+                    // Read the form data and return an async task.
+                    var task = Request.Content.ReadAsMultipartAsync(provider).
+                    ContinueWith<HttpResponseMessage>(t =>
+                    {
+                        if (t.IsFaulted || t.IsCanceled)
+                        {
+                            Request.CreateErrorResponse(HttpStatusCode.InternalServerError, t.Exception);
+                        }
+                        string request_id_str = provider.FormData.GetValues("request_id").SingleOrDefault();
+                        string request_id = JsonConvert.DeserializeObject<string>(request_id_str);
+                        // This illustrates how to get thefile names.
+                        FileInfo fileInfo = null;
+                        MultipartFileData ffileData = null;
+                        string newFileName = "";
+                        var request = db.request_master.AsNoTracking().Where(x => x.request_id == request_id).FirstOrDefault();
+                        var file = provider.FileData;
+
+                        if (file.Count > 0)
+                        {
+                            #region file
+                            string path = root + "/Portals/" + request.organization_id + "/Request/" + request.request_id + "/";
+                            bool exists = Directory.Exists(path);
+                            if (!exists)
+                            {
+                                Directory.CreateDirectory(path);
+                            }
+
+                            List<request_master_file> dfs = new List<request_master_file>();
+                            foreach (MultipartFileData fileData in provider.FileData)
+                            {
+                                string org_name_file = fileData.Headers.ContentDisposition.FileName;
+                                if (org_name_file.StartsWith("\"") && org_name_file.EndsWith("\""))
+                                {
+                                    org_name_file = org_name_file.Trim('"');
+                                }
+                                if (org_name_file.Contains(@"/") || org_name_file.Contains(@"\"))
+                                {
+                                    org_name_file = System.IO.Path.GetFileName(org_name_file);
+                                }
+                                string name_file = "";
+                                if (org_name_file.Length > 500)
+                                {
+                                    name_file = helper.UniqueFileName(org_name_file);
+                                }
+                                else
+                                {
+                                    name_file = (org_name_file);
+                                }
+                                string rootPath = path + "/" + name_file;
+                                string Duongdan = "/Portals/" + request.organization_id + "/Request/" + request.request_id + "/" + name_file;
+
+                                string Dinhdang = helper.GetFileExtension(fileData.Headers.ContentDisposition.FileName).Replace("\"", "");
+                                if (rootPath.Length > 500)
+                                {
+                                    name_file = name_file.Substring(0, name_file.LastIndexOf('.') - 1);
+                                    int le = 500 - (path.Length + 1) - Dinhdang.Length;
+                                    name_file = name_file.Substring(0, le) + Dinhdang;
+                                }
+                                if (File.Exists(rootPath))
+                                {
+                                    File.Delete(rootPath);
+                                }
+
+                                File.Move(fileData.LocalFileName, rootPath);
+                                File.Delete(fileData.LocalFileName);
+                                //File.Copy(fileData.LocalFileName, rootPathFile, true);
+                                var df = new request_master_file();
+                                df.request_file_id = helper.GenKey();
+                                df.request_id = request.request_id;
+                                df.file_name = name_file;
+                                df.file_path = Duongdan;
+                                df.file_type = Dinhdang;
+                                var file_info = new FileInfo(rootPath);
+                                df.file_size = file_info.Length;
+                                df.is_type = 0;
+                                df.is_image = helper.IsImageFileName(name_file);
+                                if (df.is_image == true)
+                                {
+                                    //helper.ResizeImage(rootPathFile, 1024, 768, 90);
+                                }
+                                df.is_delete = false;
+                                df.created_by = uid;
+                                df.created_date = DateTime.Now;
+                                df.created_ip = ip;
+                                df.created_token_id = tid;
+                                dfs.Add(df);
+                            }
+                            if (dfs.Count > 0)
+                            {
+                                db.request_master_file.AddRange(dfs);
+                            }
+                            #endregion
+                        }
+                        db.SaveChanges();
+                        //notify
+                        var listfollower = db.request_follow.Where(x => x.request_id == request.request_id).Select(x => x.user_id).Distinct().ToList();
+                        var listUserSign = db.request_master_signuser.Where(x => x.request_id == request.request_id && x.status == true).Select(x => x.user_id).Distinct().ToList();
+                        listfollower.Remove(uid);
+                        listUserSign.Remove(uid);
+                        var listuser = listfollower.Union(listUserSign);
+                        foreach (var us in listuser)
+                        {
+                            helper.saveNotify(uid, us, null, "Đề xuất", "Thêm tệp tài liệu đính kèm đề xuất " + (request.request_name.Length > 100 ? request.request_name.Substring(0, 97) + "..." : request.request_name),
+                                null, 7, 0, false, "M12", request.request_id, null, null, tid, ip);
+                        }
+
+                        #region add request_log
+                        if (helper.wlog)
+                        {
+                            request_log log = new request_log();
+                            log.id_key = request_id;
+                            log.title = fname + " đã thêm tệp tài liệu";
+                            log.log_type = 0;
+                            log.log_content = JsonConvert.SerializeObject(new { data = JsonConvert.SerializeObject(request, new JsonSerializerSettings() { ReferenceLoopHandling = ReferenceLoopHandling.Ignore }) });
+                            log.log_module = "request_master_file";
+                            log.created_date = DateTime.Now;
+                            log.created_by = uid;
+                            log.created_token_id = tid;
+                            log.created_ip = ip;
+                            db.request_log.Add(log);
+                            db.SaveChanges();
+                        }
+                        #endregion
+                        return Request.CreateResponse(HttpStatusCode.OK, new { err = "0", });
+                    });
+                    return await task;
+                }
+
+            }
+            catch (DbEntityValidationException e)
+            {
+                string contents = helper.getCatchError(e, null);
+                helper.saveLog(uid, name, JsonConvert.SerializeObject(new { data = contents }), domainurl + "request/UploadFileAttach", ip, tid, "Lỗi khi thêm tệp tài liệu", 0, "request");
+                if (!helper.debug)
+                {
+                    contents = "";
+                }
+                Log.Error(contents);
+                return Request.CreateResponse(HttpStatusCode.OK, new { ms = contents, err = "1" });
+            }
+            catch (Exception e)
+            {
+                string contents = helper.ExceptionMessage(e);
+                helper.saveLog(uid, name, JsonConvert.SerializeObject(new { data = contents }), domainurl + "request/UploadFileAttach", ip, tid, "Lỗi khi thêm tệp tài liệu", 0, "request");
+                {
+                    contents = "";
+                }
+                Log.Error(contents);
+
+                return Request.CreateResponse(HttpStatusCode.OK, new { ms = contents, err = "1" });
+            }
+        }
+
+        [HttpPost]
         public async Task<HttpResponseMessage> Send_Request()
         {
             var identity = User.Identity as ClaimsIdentity;
@@ -1405,7 +1585,7 @@ namespace API.Controllers.Request
                                     if (rootPath.Length > 350)
                                     {
                                         name_file = name_file.Substring(0, name_file.LastIndexOf('.') - 1);
-                                        int le = 350 - (pathConfigRoot.Length + 1) - Dinhdang.Length;
+                                        int le = 500 - (pathConfigRoot.Length + 1) - Dinhdang.Length;
                                         name_file = name_file.Substring(0, le) + Dinhdang;
                                     }
                                     if (File.Exists(rootPath))

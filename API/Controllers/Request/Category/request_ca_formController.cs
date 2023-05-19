@@ -790,7 +790,9 @@ namespace API.Controllers.Request.Category
                         }
                         fdca_formd = provider.FormData.GetValues("request_ca_formd").SingleOrDefault();
                         List<request_ca_formd> obj_datas = JsonConvert.DeserializeObject<List<request_ca_formd>>(fdca_formd);
-
+                        string request_form_id = provider.FormData.GetValues("request_form_id").SingleOrDefault();
+                        var listFormdData = db.request_ca_formd.AsNoTracking().Where(x => x.request_form_id == request_form_id).ToList();
+                        var listFormdDel = listFormdData.Where(x => obj_datas.Count(y => y.request_formd_id == x.request_formd_id) == 0).ToList();
                         bool super = claims.Where(p => p.Type == "super").FirstOrDefault()?.Value == "True";
 
                         var STT = 0;
@@ -824,6 +826,23 @@ namespace API.Controllers.Request.Category
                                 db.request_ca_formd.Add(fs);
                             }
                             STT++;
+                        }
+                        // formd del
+                        if (listFormdDel.Count > 0)
+                        {
+                            List<request_ca_formd> delFormD = new List<request_ca_formd>();
+                            foreach(var item in listFormdDel)
+                            {
+                                var delD = db.request_ca_formd.FirstOrDefault(x => x.request_formd_id == item.request_formd_id);
+                                if (delD != null)
+                                {
+                                    delFormD.Add(delD);
+                                }
+                            }
+                            if (delFormD.Count > 0)
+                            {
+                                db.request_ca_formd.RemoveRange(delFormD);
+                            }
                         }
                         db.SaveChanges();
                         return Request.CreateResponse(HttpStatusCode.OK, new { err = "0" });
