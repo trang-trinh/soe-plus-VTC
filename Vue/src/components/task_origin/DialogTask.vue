@@ -291,7 +291,7 @@ const listProjectMain = () => {
       listDropdownTaskGroup.value = data[1];
       listDropdownweight.value = data[2];
       listDropdownweight.value.forEach((x) => {
-        x.display_name = x.weight_name + " (" + x.weight + ")";
+        x.display_name = x.weight_name + " (" + x.progress + ")";
       });
     })
     .catch((error) => {
@@ -1823,7 +1823,7 @@ onMounted(() => {
                   <template #option="slotProps">
                     <div class="country-item flex">
                       <div class="pt-1">
-                        {{ slotProps.option.display_name   }}
+                        {{ slotProps.option.display_name }}
                       </div>
                     </div>
                   </template>
