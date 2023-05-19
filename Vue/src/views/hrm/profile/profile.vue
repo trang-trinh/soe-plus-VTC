@@ -583,18 +583,6 @@ const editItem = (item, str) => {
         }
         if (tbs[2] != null && tbs[2].length > 0) {
           tbs[2].forEach((x) => {
-            if (x["start_date"] != null) {
-              x["start_date"] = new Date(x["start_date"]);
-            }
-            if (x["end_date"] != null) {
-              x["end_date"] = new Date(x["end_date"]);
-            }
-            if (x["degree_date"] != null) {
-              x["degree_date"] = new Date(x["degree_date"]);
-            }
-            if (x["graduation_year"] != null) {
-              x["graduation_year"] = new Date(x["graduation_year"]);
-            }
             if (x["certificate_start_date"] != null) {
               x["certificate_start_date"] = new Date(
                 x["certificate_start_date"]
@@ -2510,6 +2498,21 @@ const loadMoreRow = (data) => {
       </div>
     </div>
     <div v-if="options.view === 1" id="buffered-scroll" class="d-lang-table">
+      <!-- <DataTable
+        @rowSelect="
+          (event) => {
+            goProfile(event.data);
+          }
+        "
+        :value="datas"
+        :virtualScrollerOptions="{ itemSize: 78 }"
+        :scrollable="true"
+        v-model:selection="selectedNodes"
+        selectionMode="single"
+        dataKey="profile_id"
+        scrollHeight="calc(100vh - 170px)"
+        class="disable-header"
+      > -->
       <DataTable
         @rowSelect="
           (event) => {

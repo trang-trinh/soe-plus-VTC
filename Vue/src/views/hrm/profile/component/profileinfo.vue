@@ -4835,7 +4835,7 @@ const formatViewNumber = (value, partDecimal) => {
                           v-if="!isFirst"
                         >
                           <img
-                            src="../../../assets/background/nodata.png"
+                            src="../../../../assets/background/nodata.png"
                             height="144"
                           />
                           <h3 class="m-1">Không có dữ liệu</h3>
