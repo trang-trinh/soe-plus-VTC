@@ -73,24 +73,21 @@ const execSQL = async (id) => {
 };
 const configBaocao = async (row) => {
   axios;
-
   swal.fire({
     width: 110,
     didOpen: () => {
       swal.showLoading();
     },
-  });
-  const axResponse = await execSQL(row.report_id);
+  });  const axResponse = await execSQL(row.report_id);
 
   if (axResponse.status == 200) {
     if (axResponse.data.error) {
       toast.error("Không mở được bản ghi");
     } else {
       smart_report.value = JSON.parse(axResponse.data.data)[0][0];
-
+ 
       if (smart_report.value.proc_name)
-        smart_report.value.proc_name1 =
-          smart_report.value.proc_name.split(" ")[0];
+      smart_report.value.proc_name1=smart_report.value.proc_name.split(" ")[0];
       visibleSidebarDoc.value = true;
     }
   }
@@ -433,7 +430,9 @@ const saveData = (isFormValid) => {
     return;
   }
   let formData = new FormData();
-
+  if (smart_report.value.profile_id) {
+    smart_report.value.proc_name=smart_report.value.proc_name1+" '"+smart_report.value.profile_id+"'";
+                }
   if (smart_report.value.user_access_fake.length > 0)
     smart_report.value.user_access =
       smart_report.value.user_access_fake.toString();
@@ -544,8 +543,8 @@ const copyTem = (dataTem) => {
       if (data.user_deny)
         smart_report.value.user_deny_fake = data.user_deny.split(",");
       else smart_report.value.user_deny_fake = [];
-      smart_report.value.proc_get = Number(data.proc_get);
-      smart_report.value.proc_name = Number(data.proc_name);
+      smart_report.value.proc_get =data.proc_get;
+      smart_report.value.proc_name = data.proc_name;
       smart_report.value.report_name = null;
       headerDialog.value = "Thêm báo cáo";
       isSaveTem.value = false;
@@ -593,15 +592,15 @@ const editTem = (dataTem) => {
         checkUploadFile.value = true;
         checkDisabled.value = false;
       }
-
+      smart_report.value.proc_name1=data.proc_name.split(" ")[0];
       if (data.user_access)
         smart_report.value.user_access_fake = data.user_access.split(",");
       else smart_report.value.user_access_fake = [];
       if (data.user_deny)
         smart_report.value.user_deny_fake = data.user_deny.split(",");
       else smart_report.value.user_deny_fake = [];
-      smart_report.value.proc_get = Number(data.proc_get);
-      smart_report.value.proc_name = Number(data.proc_name);
+      smart_report.value.proc_get = data.proc_get;
+      smart_report.value.proc_name = data.proc_name;
       headerDialog.value = "Sửa báo cáo";
       isSaveTem.value = true;
 
@@ -610,7 +609,7 @@ const editTem = (dataTem) => {
     .catch((error) => {
       toast.error("Tải dữ liệu không thành công!");
       options.value.loading = false;
-
+      console.log(error);
       if (error && error.status === 401) {
         swal.fire({
           text: "Mã token đã hết hạn hoặc không hợp lệ, vui lòng đăng nhập lại!",
@@ -1583,7 +1582,7 @@ onMounted(() => {
                 <div class="col-12 text-left p-0 pb-2">Thủ tục lấy dữ liệu</div>
                 <div class="col-12 p-0 h-full">
                   <Dropdown
-                    v-model="smart_report.proc_name"
+                    v-model="smart_report.proc_name1"
                     :options="listProcDropdown"
                     optionLabel="name"
                     optionValue="code"

@@ -1350,8 +1350,10 @@ li.p-chips-token {
 .p-datatable.d-sidebar-full td {
   height: unset !important;
 }
-/*Style chung cho min-w-Xrem*/
-
+.p-rowgroup-header td{
+  width: 100%;
+}
+ 
 /* Style quan */
 .menu-request .red-text .p-menuitem-link .p-menuitem-icon,
 .menu-request .red-text .p-menuitem-link .p-menuitem-text {
@@ -1461,4 +1463,11 @@ li.p-chips-token {
 }
 .justify-content-right {
   justify-content: right !important;
+}
+
+.profile-edit .p-sidebar-header .p-sidebar-header-content {
+  width: 100% !important;
+}
+.profile-edit .p-sidebar-content {
+  padding-bottom: 0 !important;
 }

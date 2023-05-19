@@ -468,6 +468,12 @@ const Report_Request_Statistical = () =>
   import("../views/request/report/report_statiscal.vue");
 const Report_Request_personal = () =>
   import("../views/request/report/report_personal.vue");
+  const Report_Request_all = () =>
+  import("../views/request/report/report_all.vue");
+  const Report_Request_overdue = () =>
+  import("../views/request/report/report_overdue.vue");
+  const Report_Request_handle = () =>
+  import("../views/request/report/report_handle.vue");
 // Backup file
 const BackupFile = () => import("../views/backup/backup_schedule.vue");
 const BackupHistory = () => import("../views/backup/backup_history.vue");
@@ -2123,12 +2129,12 @@ const router = createRouter({
       component: ReportDetail,
     },
     {
-      path: "/report/:id",
+      path: "/hrm/profile/report/:id",
       name: "/report/profiledetails",
       component: ProfileDetail,
     },
     {
-      path: "/hrm/payroll/details/:id",
+      path: "/hrm/payroll/hrm_payroll/details/:id",
       name: "/payroll/payrolldetails",
       component: PayrollDetails,
     },
@@ -2163,6 +2169,21 @@ const router = createRouter({
       path: "/reportrequest/request_personal",
       name: "Report_Request_personal",
       component: Report_Request_personal,
+    },
+    {
+      path: "/reportrequest/request_all",
+      name: "Report_Request_all",
+      component: Report_Request_all,
+    },
+    {
+      path: "/reportrequest/request_overdue",
+      name: "Report_Request_overdue",
+      component: Report_Request_overdue,
+    },
+    {
+      path: "/reportrequest/request_handle",
+      name: "Report_Request_handle",
+      component: Report_Request_handle,
     },
     // Request/Category
     {

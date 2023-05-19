@@ -1,8 +1,6 @@
 <script setup>
 import { ref, inject, onMounted, watch, onBeforeUnmount } from "vue";
 import { useToast } from "vue-toastification";
-import { useVuelidate } from "@vuelidate/core";
-import { required } from "@vuelidate/validators";
 import DetailedWork from "../../components/task_origin/DetailedWork.vue";
 import DialogTask from "../../components/task_origin/DialogTask.vue";
 import moment from "moment";
@@ -138,48 +136,6 @@ const listDropdownStatus = ref([
 //   { value: 6, text: "Không khả thi" },
 // ]);
 const listDropdownweight = ref();
-const rules = {
-  task_name: {
-    required,
-    $errors: [
-      {
-        $property: "task_name",
-        $validator: "required",
-        $message: "Tên công việc không được để trống!",
-      },
-    ],
-  },
-  assign_user_id: {
-    required,
-    $errors: [
-      {
-        $property: "assign_user_id",
-        $validator: "required",
-        $message: "Người giao việc không được để trống!",
-      },
-    ],
-  },
-  work_user_ids: {
-    required,
-    $errors: [
-      {
-        $property: "work_user_ids",
-        $validator: "required",
-        $message: "Người thực hiện không được để trống!",
-      },
-    ],
-  },
-  end_date: {
-    required,
-    $errors: [
-      {
-        $property: "end_date",
-        $validator: "required",
-        $message: "Ngày kết thúc không được để trống!",
-      },
-    ],
-  },
-};
 
 const itemSortButs = ref([
   {

@@ -341,14 +341,30 @@ onMounted(() => {
 });
 </script>
 <template>
-  <Dialog
-    :header="props.headerDialog"
+  <Sidebar
     v-model:visible="display"
-    :style="{ width: '72vw' }"
-    :maximizable="true"
-    :closable="true"
-    style="z-index: 9000"
+    position="right"
+    :modal="true"
+    :dismissable="true"
+    :showCloseIcon="false"
+    :autoZIndex="true"
+    class="position-relative profile-edit"
+    :style="{ width: '72vw !important' }"
   >
+    <template #header>
+      <Toolbar class="outline-none surface-0 border-none w-full">
+        <template #start>
+          <h3 class="m-0">{{ props.headerDialog }}</h3>
+        </template>
+        <template #end>
+          <Button
+            @click="props.closeDialog()"
+            icon="pi pi-times"
+            class="p-button-rounded p-button-text"
+          />
+        </template>
+      </Toolbar>
+    </template>
     <form @submit.prevent="" name="submitform">
       <div class="grid formgrid m-2">
         <div class="col-12 md:col-12">
@@ -1625,13 +1641,18 @@ onMounted(() => {
                         class="align-items-center justify-content-center text-center"
                       >
                         <template #body="slotProps">
-                          <Calendar
+                          <!-- <Calendar
                             v-model="slotProps.data.start_date"
                             :showIcon="false"
                             view="month"
                             dateFormat="mm/yy"
                             class="ip36"
                             placeholder="mm/yyyy"
+                          /> -->
+                          <InputText
+                            v-model="slotProps.data.start_date"
+                            class="ip36"
+                            maxLength="250"
                           />
                         </template>
                       </Column>
@@ -1643,13 +1664,18 @@ onMounted(() => {
                         class="align-items-center justify-content-center text-center"
                       >
                         <template #body="slotProps">
-                          <Calendar
+                          <!-- <Calendar
                             v-model="slotProps.data.end_date"
                             :showIcon="false"
                             view="month"
                             dateFormat="mm/yy"
                             class="ip36"
                             placeholder="mm/yyyy"
+                          /> -->
+                          <InputText
+                            v-model="slotProps.data.end_date"
+                            class="ip36"
+                            maxLength="250"
                           />
                         </template>
                       </Column>
@@ -1761,13 +1787,17 @@ onMounted(() => {
                         class="align-items-center justify-content-center text-center"
                       >
                         <template #body="slotProps">
-                          <Calendar
+                          <!-- <Calendar
                             v-model="slotProps.data.graduation_year"
                             :showIcon="false"
                             view="year"
                             dateFormat="yy"
                             class="ip36"
                             placeholder="yyyy"
+                          /> -->
+                          <InputText
+                            v-model="slotProps.data.graduation_year"
+                            class="ip36"
                           />
                         </template>
                       </Column>
@@ -1807,13 +1837,18 @@ onMounted(() => {
                         class="align-items-center justify-content-center text-center"
                       >
                         <template #body="slotProps">
-                          <Calendar
+                          <!-- <Calendar
                             v-model="slotProps.data.degree_date"
                             :showIcon="false"
                             view="day"
                             dateFormat="dd/mm/yy"
                             class="ip36"
                             placeholder="dd/mm/yyyy"
+                          /> -->
+                          <InputText
+                            v-model="slotProps.data.degree_date"
+                            class="ip36"
+                            maxLength="250"
                           />
                         </template>
                       </Column>
@@ -3514,17 +3549,27 @@ onMounted(() => {
         </div>
       </div>
     </form>
-    <template #footer>
-      <Button
-        label="Hủy"
-        icon="pi pi-times"
-        @click="props.closeDialog()"
-        class="p-button-text"
-      />
-
-      <Button label="Lưu" icon="pi pi-check" @click="saveModel()" />
-    </template>
-  </Dialog>
+    <Toolbar
+      class="outline-none surface-0 border-none w-full"
+      :style="{
+        position: 'sticky',
+        zIndex: '1',
+        bottom: '0',
+        background: '#fff',
+      }"
+    >
+      <template #start>
+        <Button
+          label="Hủy"
+          icon="pi pi-times"
+          @click="props.closeDialog()"
+          class="p-button-text"
+      /></template>
+      <template #end>
+        <Button label="Lưu" icon="pi pi-check" @click="saveModel()"
+      /></template>
+    </Toolbar>
+  </Sidebar>
 
   <!--Dialog 1-->
   <Dialog
@@ -3796,27 +3841,33 @@ onMounted(() => {
         <div class="col-3 md:col-3">
           <div class="form-group">
             <label>Từ tháng, năm</label>
-            <Calendar
+            <!-- <Calendar
               v-model="model.start_date"
               :showIcon="false"
               view="month"
               dateFormat="mm/yy"
               class="ip36"
               placeholder="mm/yyyy"
+            /> -->
+            <InputText
+              v-model="model.start_date"
+              class="ip36"
+              maxLength="250"
             />
           </div>
         </div>
         <div class="col-3 md:col-3">
           <div class="form-group">
             <label>Đến tháng, năm</label>
-            <Calendar
+            <!-- <Calendar
               v-model="model.end_date"
               :showIcon="false"
               view="month"
               dateFormat="mm/yy"
               class="ip36"
               placeholder="mm/yyyy"
-            />
+            /> -->
+            <InputText v-model="model.end_date" class="ip36" maxLength="250" />
           </div>
         </div>
         <div class="col-6 md:col-6">
@@ -3902,13 +3953,18 @@ onMounted(() => {
         <div class="col-6 md:col-6">
           <div class="form-group">
             <label>Năm tốt nghiệp</label>
-            <Calendar
+            <!-- <Calendar
               v-model="model.graduation_year"
               :showIcon="false"
               view="year"
               dateFormat="yy"
               class="ip36"
               placeholder="yyyy"
+            /> -->
+            <InputText
+              v-model="model.graduation_year"
+              class="ip36"
+              maxLength="250"
             />
           </div>
         </div>
@@ -3943,12 +3999,17 @@ onMounted(() => {
         <div class="col-6 md:col-6">
           <div class="form-group">
             <label>Ngày cấp bằng</label>
-            <Calendar
+            <!-- <Calendar
               class="ip36"
               id="icon"
               v-model="model.degree_date"
               :showIcon="true"
               placeholder="dd/mm/yyyy"
+            /> -->
+            <InputText
+              v-model="model.degree_date"
+              class="ip36"
+              maxLength="250"
             />
           </div>
         </div>

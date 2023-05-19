@@ -210,47 +210,49 @@ namespace API.Controllers
                         task_Follow.modified_by = uid;
                         task_Follow.modified_date = DateTime.Now;
                         task_Follow.modified_ip = ip;
+                            string ssid = task_Follow.task_id;
                         task_Follow.modified_token_id = tid;
-
-                        if (task_Follow.start_date <= DateTime.Now && task_Follow.status == 0)
+                        if (task_Follow.is_template != true)
                         {
-                            task_Follow.start_real_date = DateTime.Now;
-                            task_Follow.status = 1;
-                        }
-                        db.Entry(task_Follow).State = EntityState.Modified;
+                            if (task_Follow.start_date <= DateTime.Now && task_Follow.status == 0)
+                            {
+                                task_Follow.start_real_date = DateTime.Now;
+                                task_Follow.status = 1;
+                            }
 
-                        //Noti
-                        string ssid = task_Follow.task_id;
-                        var listuser = db.task_member.Where(x => x.task_id == ssid).Select(x => x.user_id).Distinct().ToList();
-                        string task_name = db.task_origin.Where(x => x.task_id == ssid).Select(x => x.task_name).FirstOrDefault().ToString();
-                        listuser.Remove(uid);
+                            //Noti
+                            var listuser = db.task_member.Where(x => x.task_id == ssid).Select(x => x.user_id).Distinct().ToList();
+                            string task_name = db.task_origin.Where(x => x.task_id == ssid).Select(x => x.task_name).FirstOrDefault().ToString();
+                            listuser.Remove(uid);
 
-                        foreach (var l in listuser)
-                        {
-                            helper.saveNotify(uid, l, null, "Công việc", "Cập nhật bước trong quy trình công việc: " + (task_name.Length > 100 ? task_name.Substring(0, 97) + "..." : task_name),
-                                null, 2, -1, false, module_key, ssid, null, null, tid, ip);
-                        }
-                        //Logs
-                        if (helper.wlog)
-                        {
+                            foreach (var l in listuser)
+                            {
+                                helper.saveNotify(uid, l, null, "Công việc", "Cập nhật bước trong quy trình công việc: " + (task_name.Length > 100 ? task_name.Substring(0, 97) + "..." : task_name),
+                                    null, 2, -1, false, module_key, ssid, null, null, tid, ip);
+                            }
+                            //Logs
+                            if (helper.wlog)
+                            {
 
-                            task_logs log = new task_logs();
-                            log.log_id = helper.GenKey();
-                            log.task_id = ssid;
-                            log.project_id = null;
-                            log.description = "Cập nhật quy trình công việc";
-                            log.created_date = DateTime.Now;
-                            log.created_by = uid;
-                            log.created_token_id = tid;
-                            log.created_ip = ip;
-                            db.task_logs.Add(log);
-                            db.SaveChanges();
+                                task_logs log = new task_logs();
+                                log.log_id = helper.GenKey();
+                                log.task_id = ssid;
+                                log.project_id = null;
+                                log.description = "Cập nhật quy trình công việc";
+                                log.created_date = DateTime.Now;
+                                log.created_by = uid;
+                                log.created_token_id = tid;
+                                log.created_ip = ip;
+                                db.task_logs.Add(log);
+                                db.SaveChanges();
+                            }
                         }
                         var listDel = db.task_follow_task.Where(x => x.follow_step_id == task_Follow.follow_step_id).ToList();
                         if(listDel.Count > 0)
                         {
                             db.task_follow_task.RemoveRange(listDel);
-                        }    
+                        }
+                        db.Entry(task_Follow).State = EntityState.Modified;
                         temp2 = provider.FormData.GetValues("task_follow_task").SingleOrDefault();
                         List<task_follow_task> task_Follow_Task = JsonConvert.DeserializeObject<List<task_follow_task>>(temp2);
                         List<task_follow_task> task_ADd = new List<task_follow_task>();
@@ -269,6 +271,7 @@ namespace API.Controllers
                             task_ADd.Add(model);
                         }
                         db.task_follow_task.AddRange(task_ADd);
+
                         db.SaveChanges();
                         return Request.CreateResponse(HttpStatusCode.OK, new { err = "0" });
                     });
