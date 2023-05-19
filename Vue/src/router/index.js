@@ -472,6 +472,8 @@ const Report_Request_personal = () =>
   import("../views/request/report/report_all.vue");
   const Report_Request_overdue = () =>
   import("../views/request/report/report_overdue.vue");
+  const Report_Request_handle = () =>
+  import("../views/request/report/report_handle.vue");
 // Backup file
 const BackupFile = () => import("../views/backup/backup_schedule.vue");
 const BackupHistory = () => import("../views/backup/backup_history.vue");
@@ -2177,6 +2179,11 @@ const router = createRouter({
       path: "/reportrequest/request_overdue",
       name: "Report_Request_overdue",
       component: Report_Request_overdue,
+    },
+    {
+      path: "/reportrequest/request_handle",
+      name: "Report_Request_handle",
+      component: Report_Request_handle,
     },
     // Request/Category
     {

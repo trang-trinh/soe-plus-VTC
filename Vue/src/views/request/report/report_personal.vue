@@ -682,7 +682,7 @@ onMounted(() => {
               :totalRecords="datalists.length"
               template="FirstPageLink PrevPageLink PageLinks NextPageLink
             LastPageLink RowsPerPageDropdown"
-              :rowsPerPageOptions="[100, 200, 300, 500]"
+              :rowsPerPageOptions="[20, 100, 200, 300, 500]"
               @page="onPage"
             />
           </div>

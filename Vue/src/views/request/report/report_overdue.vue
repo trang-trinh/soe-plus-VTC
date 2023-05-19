@@ -206,51 +206,51 @@ const listStatusRequests = ref([
     { id: -1, text: "Quá hạn", value: 0, class: "rqhuy", bg: "rgb(255, 139, 78)", count: 0 },
     { id: 3, text: "Xử lý đánh giá", value: 0, class: "rqthuhoi", bg: "rgb(245, 176, 65)", count: 0 },
 ]);
-const LoadCount = () => {
-    swal.fire({
-        width: 110,
-        didOpen: () => {
-            swal.showLoading();
-        },
-    });
+// const LoadCount = () => {
+//     swal.fire({
+//         width: 110,
+//         didOpen: () => {
+//             swal.showLoading();
+//         },
+//     });
 
-    axios
-        .post(
-            baseURL + "/api/DictionaryProc/getData",
-            {
-                str: encr(
-                    JSON.stringify({
-                        proc: "request_team_count",
-                        par: [{ par: "user_id", va: store.getters.user.user_id }],
-                    }),
-                    SecretKey,
-                    cryoptojs,
-                ).toString(),
-            },
-            config,
-        )
-        .then((response) => {
-            let data = JSON.parse(response.data.data)[0];
+//     axios
+//         .post(
+//             baseURL + "/api/DictionaryProc/getData",
+//             {
+//                 str: encr(
+//                     JSON.stringify({
+//                         proc: "request_team_count",
+//                         par: [{ par: "user_id", va: store.getters.user.user_id }],
+//                     }),
+//                     SecretKey,
+//                     cryoptojs,
+//                 ).toString(),
+//             },
+//             config,
+//         )
+//         .then((response) => {
+//             let data = JSON.parse(response.data.data)[0];
 
-            listStatusRequests.value[0].value = data[0].allreq;
-            listStatusRequests.value[1].value = data[0].waiting;
-            listStatusRequests.value[2].value = data[0].completed;
-            listStatusRequests.value[3].value = data[0].refused;
-            listStatusRequests.value[4].value = data[0].finished;
-            listStatusRequests.value[5].value = data[0].expired;
-            swal.close();
-        })
-        .catch((error) => {
-            if (error && error.status === 401) {
-                swal.fire({
-                    title: "Thông báo",
-                    text: "Mã token đã hết hạn hoặc không hợp lệ, vui lòng đăng nhập lại!",
-                    icon: "error",
-                    confirmButtonText: "OK",
-                });
-            }
-        });
-};
+//             listStatusRequests.value[0].value = data[0].allreq;
+//             listStatusRequests.value[1].value = data[0].waiting;
+//             listStatusRequests.value[2].value = data[0].completed;
+//             listStatusRequests.value[3].value = data[0].refused;
+//             listStatusRequests.value[4].value = data[0].finished;
+//             listStatusRequests.value[5].value = data[0].expired;
+//             swal.close();
+//         })
+//         .catch((error) => {
+//             if (error && error.status === 401) {
+//                 swal.fire({
+//                     title: "Thông báo",
+//                     text: "Mã token đã hết hạn hoặc không hợp lệ, vui lòng đăng nhập lại!",
+//                     icon: "error",
+//                     confirmButtonText: "OK",
+//                 });
+//             }
+//         });
+// };
 const toggleGroupBy = (event) => {
     menuGroupByButs.value.toggle(event);
 };
@@ -274,7 +274,7 @@ const ChangeGroupBy = (value) => {
     loadMainData();
 }
 onMounted(() => {
-    LoadCount();
+    // LoadCount();
     loadMainData();
     return {
         datalists,
@@ -631,7 +631,7 @@ onMounted(() => {
                     </table>
                 </div>
                 <Paginator :rows="options.pageSize" :totalRecords="datalists.length" template="FirstPageLink PrevPageLink PageLinks NextPageLink
-            LastPageLink RowsPerPageDropdown" :rowsPerPageOptions="[100, 200, 300, 500]" @page="onPage" />
+            LastPageLink RowsPerPageDropdown" :rowsPerPageOptions="[20, 100, 200, 300, 500]" @page="onPage" />
             </div>
         </div>
     </div>
