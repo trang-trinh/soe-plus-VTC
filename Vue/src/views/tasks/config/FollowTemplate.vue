@@ -155,8 +155,10 @@ const OpenEditDialog = (data) => {
   submitted.value = false;
   isEdit.value = true;
   let edit = JSON.parse(JSON.stringify(data));
-  edit.start_date = edit.start_date ? new Date(edit.start_date) : null;
-  edit.end_date = edit.end_date ? new Date(edit.end_date) : null;
+  taskfollow.value.process_time =
+    (taskfollow.value.day != null ? taskfollow.value.day : 0) * 24 * 60 +
+    (taskfollow.value.hour != null ? taskfollow.value.hour : 0) * 60 +
+    (taskfollow.value.minutes != null ? taskfollow.value.minutes : 0);
   taskfollow.value = edit;
   DialogVisible.value = true;
   headerDialog.value = "Sửa quy trình công việc";
@@ -435,6 +437,15 @@ const loadData = () => {
       if (data.length > 0) {
         data.forEach((x) => {
           let type = listDrdType.value.filter((xz) => xz.value == x.type)[0];
+          if (x.process_time > 0) {
+            x.minutes = x.process_time % 60;
+            x.hour = Math.floor(x.process_time / 60);
+            let temp = x.hour;
+            if (temp > 24) {
+              x.hour = Math.floor(temp % 24);
+              x.day = Math.floor(temp / 24);
+            }
+          }
           x.type_display = {};
           x.type_display = type;
           let filterstatus = listDrdStatus.value.filter(
@@ -456,36 +467,56 @@ const loadData = () => {
           }
           if (x.task_follow_step != null) {
             x.task_follow_step = JSON.parse(x.task_follow_step);
-            x.task_follow_step.forEach((y) => {
-              let type = listDrdType.value.filter(
-                (xz) => xz.value == y.type,
-              )[0];
-              y.type_display = {};
-              y.type_display = type;
-              let filterstatuszz = listDrdStatus.value.filter(
-                (xz) => xz.value == y.status,
-              )[0];
-              y.status_display = {};
-              y.status_display = filterstatuszz;
-              y.TaskProgress = 0;
-              if (y.countTask > 0) {
-                y.TaskProgress = Math.floor(
-                  (y.countTaskFinished / y.countTask) * 100,
-                );
-              }
-              y.task_info = [];
-              if (y.task_id_follow != null) {
-                y.task_id_follow.forEach((z) => {
-                  let k = listChildjson.filter(
-                    (a) => a.task_id == z.task_id_follow,
-                  );
-                  if (k.length > 0) {
-                    let obj = Object.assign({}, z, k[0]);
-                    y.task_info.push(obj);
+            if (x.task_follow_step.length > 0) {
+              x.task_follow_step.forEach((y) => {
+                if (y.time_process > 0) {
+                  let zminutes = null;
+                  zminutes = y.time_process % 60;
+                  let zhour = null;
+                  zhour = Math.floor(y.time_process / 60);
+                  let zday = null;
+                  let tem2 = zhour;
+                  if (tem2 > 24) {
+                    zhour = Math.floor(tem2 % 24);
+                    zday = Math.floor(tem2 / 24);
                   }
-                });
-              }
-            });
+                  y = Object.assign(y, {
+                    day: zday,
+                    hour: zhour,
+                    minutes: zminutes,
+                  });
+                }
+                let type = listDrdType.value.filter(
+                  (xz) => xz.value == y.type,
+                )[0];
+
+                y.type_display = {};
+                y.type_display = type;
+                let filterstatuszz = listDrdStatus.value.filter(
+                  (xz) => xz.value == y.status,
+                )[0];
+                y.status_display = {};
+                y.status_display = filterstatuszz;
+                y.TaskProgress = 0;
+                if (y.countTask > 0) {
+                  y.TaskProgress = Math.floor(
+                    (y.countTaskFinished / y.countTask) * 100,
+                  );
+                }
+                y.task_info = [];
+                if (y.task_id_follow != null) {
+                  y.task_id_follow.forEach((z) => {
+                    let k = listChildjson.filter(
+                      (a) => a.task_id == z.task_id_follow,
+                    );
+                    if (k.length > 0) {
+                      let obj = Object.assign({}, z, k[0]);
+                      y.task_info.push(obj);
+                    }
+                  });
+                }
+              });
+            }
           } else {
             x.task_follow_step = [];
           }
@@ -513,15 +544,18 @@ const loadData = () => {
 };
 const indexSelected = ref(0);
 const expandAll = (e) => {
-  let dataFilter = e.filter((x) => x.status == 1)[0];
+  let dataFilter = e[0];
   if (dataFilter != null) {
     let add = [];
-    if (dataFilter.task_follow_step.length > 0) {
+    if (
+      dataFilter.task_follow_step != null &&
+      dataFilter.task_follow_step.length > 0
+    ) {
       let findIndex = dataFilter.task_follow_step.findIndex((x) => {
         return x.status === 1;
       });
       if (findIndex >= 0) {
-        indexSelected.value = findIndex;
+        indexSelected.value = 0;
       } else indexSelected.value = 0;
     }
     add.push(dataFilter);
@@ -741,6 +775,7 @@ const openEditStepDialog = (e, f) => {
   isEdit.value = true;
   let template = JSON.parse(JSON.stringify(e));
   taskStep.value = template;
+  console.table(template);
   StepDialogVisible.value = true;
   listTask.value = [];
   e.task_info.forEach((x) => {
@@ -794,7 +829,7 @@ const saveStep = (isFormValid) => {
   });
   taskStep.value.is_template = true;
   if (taskStep.value.is_template == true) {
-    taskStep.value.process_time =
+    taskStep.value.time_process =
       (taskStep.value.day != null ? taskStep.value.day : 0) * 24 * 60 +
       (taskStep.value.hour != null ? taskStep.value.hour : 0) * 60 +
       (taskStep.value.minutes != null ? taskStep.value.minutes : 0);
@@ -866,7 +901,7 @@ onMounted(() => {});
 const expandedRows = ref([]);
 
 const selectStep = (e, i) => {
-  indexSelected.value = i;
+  e.index = i;
 };
 const closeDetail = () => {
   showDetail.value = false;
@@ -1073,11 +1108,17 @@ const openAddTask = () => {
                   v-tooltip="'Sửa bước đang chọn'"
                   v-if="
                     (user.is_admin == true || TypeMember == 0) &&
-                    indexSelected != null
+                    (slotProps.data.index
+                      ? slotProps.data.index
+                      : indexSelected) != null
                   "
                   @click="
                     openEditStepDialog(
-                      slotProps.data.task_follow_step[indexSelected],
+                      slotProps.data.task_follow_step[
+                        slotProps.data.index
+                          ? slotProps.data.index
+                          : indexSelected
+                      ],
                       slotProps.data,
                     )
                   "
@@ -1088,11 +1129,17 @@ const openAddTask = () => {
                   v-tooltip="'Xóa bước đang chọn'"
                   v-if="
                     (user.is_admin == true || TypeMember == 0) &&
-                    indexSelected != null
+                    (slotProps.data.index
+                      ? slotProps.data.index
+                      : indexSelected) != null
                   "
                   @click="
                     DeleteStep(
-                      slotProps.data.task_follow_step[indexSelected],
+                      slotProps.data.task_follow_step[
+                        slotProps.data.index
+                          ? slotProps.data.index
+                          : indexSelected
+                      ],
                       true,
                     )
                   "
@@ -1103,8 +1150,14 @@ const openAddTask = () => {
                   class="multi-step-item active"
                   v-for="(item, index) in slotProps.data.task_follow_step"
                   :key="index"
-                  :class="[{ current: index == indexSelected }]"
-                  @click="selectStep(item, index)"
+                  :class="[
+                    {
+                      current: slotProps.data.index
+                        ? index == slotProps.data.index
+                        : index == indexSelected,
+                    },
+                  ]"
+                  @click="selectStep(slotProps.data, index)"
                   v-tooltip.bottom="{ value: item.step_name }"
                 >
                   <div
@@ -1136,14 +1189,18 @@ const openAddTask = () => {
           >
             <div
               v-if="
-                slotProps.data.task_follow_step[indexSelected].task_info
-                  .length > 0
+                slotProps.data.task_follow_step[
+                  slotProps.data.index ? slotProps.data.index : indexSelected
+                ] != null &&
+                slotProps.data.task_follow_step[
+                  slotProps.data.index ? slotProps.data.index : indexSelected
+                ].task_info.length > 0
               "
             >
               <div
                 class="m-2 grid align-items-center justify-content-center flex-column"
                 v-for="(item2, index2) in slotProps.data.task_follow_step[
-                  indexSelected
+                  slotProps.data.index ? slotProps.data.index : indexSelected
                 ].task_info"
                 :key="index2"
               >
@@ -1213,11 +1270,17 @@ const openAddTask = () => {
                   v-tooltip="'Tuần tự'"
                   class="py-2 pi pi-arrow-down font-bold text-2xl flex justify-content-center"
                   v-if="
-                    slotProps.data.task_follow_step[indexSelected].status ==
-                      1 &&
+                    slotProps.data.task_follow_step[
+                      slotProps.data.index
+                        ? slotProps.data.index
+                        : indexSelected
+                    ].type == 1 &&
                     index2 <
-                      slotProps.data.task_follow_step[indexSelected].task_info
-                        .length -
+                      slotProps.data.task_follow_step[
+                        slotProps.data.index
+                          ? slotProps.data.index
+                          : indexSelected
+                      ].task_info.length -
                         1
                   "
                 ></icon>
@@ -1225,11 +1288,17 @@ const openAddTask = () => {
                   class="py-2 pi pi-sort-alt font-bold text-2xl flex justify-content-center"
                   v-tooltip="'Song song'"
                   v-if="
-                    slotProps.data.task_follow_step[indexSelected].status ==
-                      2 &&
+                    slotProps.data.task_follow_step[
+                      slotProps.data.index
+                        ? slotProps.data.index
+                        : indexSelected
+                    ].type == 2 &&
                     index2 <
-                      slotProps.data.task_follow_step[indexSelected].task_info
-                        .length -
+                      slotProps.data.task_follow_step[
+                        slotProps.data.index
+                          ? slotProps.data.index
+                          : indexSelected
+                      ].task_info.length -
                         1
                   "
                 >
