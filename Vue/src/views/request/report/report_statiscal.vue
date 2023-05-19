@@ -134,48 +134,6 @@ const ChangeIsShowTeam = () => {
             style="width: 100%;height: 50px;justify-content: center;align-items: center;font-weight: bold;font-size: 14px;">
             BÁO CÁO THỐNG KÊ TỔNG HỢP ĐỀ XUẤT
         </div>
-        <!-- <div class="d-lang-table">
-            <DataTable class="table-request-data" :value="datalists" :scrollable="true" selectionMode="single"
-                dataKey="request_id" scrollHeight="calc(100vh - 170px)" :rowHover="true" v-model:selection="selectedNodes">
-                <Column field="request_form_name" header="Form" headerStyle="text-align:left;height:45px"
-                    bodyStyle="text-align:left;" class="align-items-center">
-                </Column>
-                <Column field="count_all_request" header="Tổng số yêu cầu" headerStyle="text-align:center;max-width:140px;height:45px"
-                    bodyStyle="text-align:center;max-width:140px;"
-                    class="align-items-center justify-content-center text-center">
-                </Column>
-                <Column field="created_by" header="Người tạo" headerStyle="text-align:center;max-width:120px;height:45px"
-                    bodyStyle="text-align:center;max-width:120px;"
-                    class="align-items-center justify-content-center text-center">
-                </Column>
-                <Column field="listSignUser" header="Người duyệt"
-                    headerStyle="text-align:center;max-width:250px;height:45px"
-                    bodyStyle="text-align:center;max-width:250px;"
-                    class="align-items-center justify-content-center text-center">
-                </Column>
-                <Column field="status" header="Trạng thái" headerStyle="text-align:center;max-width:180px;height:45px"
-                    bodyStyle="text-align:center;max-width:180px;"
-                    class="align-items-center justify-content-center text-center">
-                </Column>
-                <Column header="" headerStyle="text-align:center;max-width:50px"
-                    bodyStyle="text-align:center;max-width:50px"
-                    class="align-items-center justify-content-center text-center" v-if="options.is_func">
-                </Column>
-                <template #empty>
-                    <div class="align-items-center justify-content-center p-4 text-center m-auto" :style="{
-                        display: 'flex',
-                        width: '100%',
-                        height: 'calc(100vh - 230px)',
-                        backgroundColor: '#fff',
-                    }">
-                        <div v-if="options.total == 0">
-                            <img src="../../../assets/background/nodata.png" height="144" />
-                            <h3 class="m-1">Không có dữ liệu</h3>
-                        </div>
-                    </div>
-                </template>
-            </DataTable>
-        </div> -->
         <div
             style="overflow: scroll;max-height: calc(100vh - 124px);min-height: calc(100vh - 124px);background-color: #fff;">
             <table cellspacing=0 id="table-bc" class="table table-condensed table-hover tbpad" style="width: 100%;">

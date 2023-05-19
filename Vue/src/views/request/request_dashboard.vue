@@ -208,8 +208,8 @@ const loadRequestDashBoardCount = () => {
                 };
                 chart1.labels.push('Đã phê duyệt');
                 chart1.datasets[0].data.push(data1);
-                chart1.datasets[0].backgroundColor.push('#6dd230');
-                chart1.datasets[0].hoverBackgroundColor.push('#6dd230');
+                chart1.datasets[0].backgroundColor.push('#2196f3');
+                chart1.datasets[0].hoverBackgroundColor.push('#2196f3');
                 chart1.labels.push('Đang chờ duyệt');
                 chart1.datasets[0].data.push(data2);
                 chart1.datasets[0].backgroundColor.push('#74b9ff');
@@ -219,8 +219,8 @@ const loadRequestDashBoardCount = () => {
 
                 chart2.labels.push('Đã phê duyệt');
                 chart2.datasets[0].data.push(data3);
-                chart2.datasets[0].backgroundColor.push('#6dd230');
-                chart2.datasets[0].hoverBackgroundColor.push('#6dd230');
+                chart2.datasets[0].backgroundColor.push('#2196f3');
+                chart2.datasets[0].hoverBackgroundColor.push('#2196f3');
                 chart2.labels.push('Đang chờ duyệt');
                 chart2.datasets[0].data.push(data4);
                 chart2.datasets[0].backgroundColor.push('#74b9ff');

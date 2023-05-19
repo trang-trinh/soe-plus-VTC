@@ -128,46 +128,386 @@ onMounted(() => {
             BÁO CÁO ĐỀ XUẤT CÁ NHÂN
         </div> -->
         <div class="d-lang-table">
-            <DataTable class="table-request-data" :value="datalists" :scrollable="true" selectionMode="single"
-                dataKey="request_id" scrollHeight="calc(100vh - 170px)" :rowHover="true" v-model:selection="selectedNodes">
-                <Column field="request_form_name" header="Form" headerStyle="text-align:left;height:45px"
-                    bodyStyle="text-align:left;" class="align-items-center">
-                </Column>
-                <Column field="created_date" header="Ngày tạo" headerStyle="text-align:center;max-width:140px;height:45px"
-                    bodyStyle="text-align:center;max-width:140px;"
-                    class="align-items-center justify-content-center text-center">
-                </Column>
-                <Column field="created_by" header="Người tạo" headerStyle="text-align:center;max-width:120px;height:45px"
-                    bodyStyle="text-align:center;max-width:120px;"
-                    class="align-items-center justify-content-center text-center">
-                </Column>
-                <Column field="listSignUser" header="Người duyệt"
-                    headerStyle="text-align:center;max-width:250px;height:45px"
-                    bodyStyle="text-align:center;max-width:250px;"
-                    class="align-items-center justify-content-center text-center">
-                </Column>
-                <Column field="status" header="Trạng thái" headerStyle="text-align:center;max-width:180px;height:45px"
-                    bodyStyle="text-align:center;max-width:180px;"
-                    class="align-items-center justify-content-center text-center">
-                </Column>
-                <Column header="" headerStyle="text-align:center;max-width:50px"
-                    bodyStyle="text-align:center;max-width:50px"
-                    class="align-items-center justify-content-center text-center" v-if="options.is_func">
-                </Column>
-                <template #empty>
-                    <div class="align-items-center justify-content-center p-4 text-center m-auto" :style="{
-                        display: 'flex',
-                        width: '100%',
-                        height: 'calc(100vh - 230px)',
-                        backgroundColor: '#fff',
-                    }">
-                        <div v-if="options.total == 0">
-                            <img src="../../../assets/background/nodata.png" height="144" />
-                            <h3 class="m-1">Không có dữ liệu</h3>
-                        </div>
-                    </div>
-                </template>
-            </DataTable>
+            <div
+            class="p-datatable p-component p-datatable-hoverable-rows p-datatable-scrollable p-datatable-scrollable-vertical p-datatable-flex-scrollable p-datatable-responsive-scroll p-datatable-gridlines"
+            data-scrollselectors=".p-datatable-wrapper"
+            style="
+              overflow: hidden auto;
+              min-height: calc(100vh - 19rem);
+              max-height: calc(100vh - 19rem);
+            "
+          >
+            <div class="p-datatable-wrapper">
+              <table
+                role="table"
+                class="p-datatable-table"
+                v-if="datalists.length > 0"
+              >
+                <thead
+                  class="p-datatable-thead"
+                  role="rowgroup" style="z-index: 100;"
+                >
+                  <tr role="row">
+                    <th
+                      class="align-items-center justify-content-center max-w-3rem"
+                      role="cell"
+                    >
+                      <div class="p-column-header-content">
+                        <span class="p-column-title">STT</span>
+                      </div>
+                    </th>
+                    <th
+                      class="align-items-center justify-content-center text-center max-w-8rem"
+                      role="cell"
+                    >
+                      <div class="p-column-header-content">
+                        <span class="p-column-title">Mã đề xuất</span>
+                      </div>
+                    </th>
+                    <th
+                      class="align-items-center justify-content-center"
+                      role="cell"
+                    >
+                      <div class="p-column-header-content">
+                        <span class="p-column-title">Tên đề xuất</span>
+                      </div>
+                    </th>
+                    <th
+                      class="align-items-center justify-content-center max-w-10rem"
+                      role="cell"
+                    >
+                      <div class="p-column-header-content">
+                        <span class="p-column-title">Người lập</span>
+                      </div>
+                    </th>
+                    <th
+                      class="align-items-center justify-content-center max-w-8rem"
+                      role="cell"
+                    >
+                      <div class="p-column-header-content">
+                        <span class="p-column-title">Ngày lập</span>
+                      </div>
+                    </th>
+                    <th
+                      class="align-items-center justify-content-center text-center max-w-7rem"
+                      role="cell"
+                    >
+                      <div class="p-column-header-content">
+                        <span class="p-column-title">Trạng thái</span>
+                      </div>
+                    </th>
+                    <th
+                      class="align-items-center justify-content-center text-center max-w-7rem"
+                      role="cell"
+                    >
+                      <div class="p-column-header-content">
+                        <span class="p-column-title">Tiến độ</span>
+                      </div>
+                    </th>
+                    <th
+                      class="align-items-center justify-content-center text-center max-w-10rem"
+                      role="cell"
+                    >
+                      <div class="p-column-header-content">
+                        <span class="p-column-title">Người duyệt</span>
+                      </div>
+                    </th>
+                    <th
+                      class="align-items-center justify-content-center text-center max-w-10rem"
+                      role="cell"
+                    >
+                      <div class="p-column-header-content">
+                        <span class="p-column-title">Ngày hoàn thành</span>
+                      </div>
+                    </th>
+                    <th
+                      class="align-items-center justify-content-center text-center max-w-5rem"
+                      role="cell"
+                    >
+                      <div class="p-column-header-content">
+                        <span class="p-column-title">Số giờ</span>
+                      </div>
+                    </th>
+                  </tr>
+                </thead>
+
+                <tbody
+                  class="p-datatable-tbody"
+                  role="rowgroup"
+                  v-for="(item, index) in datalists"
+                  :key="index"
+                >
+                  <tr
+                    class="p-rowgroup-header"
+                    role="row"
+                    style="top: 42px"
+                  >
+                    <td
+                      colspan="9"
+                      class="p-2"
+                      style="background-color: #f6ddcc; font-size: 16px"
+                    >
+                      <div class="flex align-items-center gap-2">
+                        <span>{{ item.request_form_name }}</span>
+                        <!-- <span>{{ item }}</span> -->
+                      </div>
+                    </td>
+                  </tr>
+                  <div>
+                    <table
+                      role="table"
+                      class="p-datatable-table"
+                    >
+                      <tbody
+                        class="p-datatable-tbody"
+                        role="rowgroup"
+                        v-for="(team, teamIndex) in item.request_team_data"
+                        :key="teamIndex"
+                      >
+                        <tr
+                          class=""
+                          role="row"
+                          style="top: 42px"
+                        >
+                          <td
+                            colspan="9"
+                            style="background-color: #d5f5e3"
+                          >
+                            <div class="flex align-items-center gap-2">
+                              <span>{{ team.request_team_name }}</span>
+                            </div>
+                          </td>
+                        </tr>
+                        <tr
+                          class=""
+                          role="row"
+                          v-for="(request, reqIndex) in team.team_data"
+                          :key="reqIndex"
+                          @click="openViewRequest(request)"
+                        >
+                          <td
+                            class="align-items-center justify-content-center max-w-3rem"
+                            role="cell"
+                          >
+                            {{ request.STT }}
+                          </td>
+                          <td
+                            class="align-items-center justify-content-center text-center max-w-8rem word-break-break-all"
+                            role="cell"
+                          >
+                            {{ request.request_code }}
+                          </td>
+                          <td
+                            class=""
+                            role="cell"
+                          >
+                            {{ request.request_name }}
+                          </td>
+                          <td
+                            class="align-items-center justify-content-center text-center max-w-10rem word-break-break-word"
+                            role="cell"
+                          >
+                            {{ request.created_by_full_name }}
+                          </td>
+                          <td
+                            class="align-items-center justify-content-center max-w-8rem"
+                            role="cell"
+                          >
+                            {{
+                              moment(request.created_date).format("DD/MM/YYYY")
+                            }}
+                          </td>
+                          <td
+                            class="align-items-center justify-content-center text-center max-w-7rem"
+                            role="cell"
+                          >
+                            {{ request.status_display }}
+                          </td>
+                          <td
+                            class="align-items-center justify-content-center text-center max-w-7rem"
+                            role="cell"
+                          >
+                            <ProgressBar
+                              v-if="request.TienDo > 0"
+                              :value="request.TienDo || 0"
+                              :show-value="true"
+                              class="w-full"
+                            >
+                            </ProgressBar>
+                            <div v-else>0%</div>
+                          </td>
+                          <td
+                            class="align-items-center justify-content-center text-center max-w-10rem"
+                            role="cell"
+                          >
+                            <div class="block">
+                              <span
+                                v-for="(user, index) in request.sign_users"
+                                :key="index"
+                              >
+                                - {{ user }}<br />
+                              </span>
+                            </div>
+                          </td>
+                          <td
+                            class="align-items-center justify-content-center text-center max-w-10rem"
+                            role="cell"
+                          >
+                            <div v-if="request.completed_date">
+                              {{
+                                moment(new Date(request.completed_date)).format(
+                                  "DD/MM/YYYY",
+                                )
+                              }}
+                            </div>
+                          </td>
+                          <td
+                            class="align-items-center justify-content-center text-center max-w-5rem"
+                            role="cell"
+                          >
+                            <div v-if="request.times_processing_max">
+                              {{ request.SoNgayHan }} /
+                              {{ request.times_processing_max }}
+                            </div>
+                          </td>
+                        </tr>
+                      </tbody>
+                    </table>
+                  </div>
+                </tbody>
+              </table>
+              <table
+                v-else
+                role="table"
+                class="p-datatable-table"
+              >
+                <thead
+                  class="p-datatable-thead"
+                  role="rowgroup"
+                >
+                  <tr role="row">
+                    <th
+                      class="align-items-center justify-content-center max-w-3rem"
+                      role="cell"
+                    >
+                      <div class="p-column-header-content">
+                        <span class="p-column-title">STT</span>
+                      </div>
+                    </th>
+                    <th
+                      class="align-items-center justify-content-center text-center max-w-8rem"
+                      role="cell"
+                    >
+                      <div class="p-column-header-content">
+                        <span class="p-column-title">Mã đề xuất</span>
+                      </div>
+                    </th>
+                    <th
+                      class="align-items-center justify-content-center"
+                      role="cell"
+                    >
+                      <div class="p-column-header-content">
+                        <span class="p-column-title">Tên đề xuất</span>
+                      </div>
+                    </th>
+                    <th
+                      class="align-items-center justify-content-center max-w-10rem"
+                      role="cell"
+                    >
+                      <div class="p-column-header-content">
+                        <span class="p-column-title">Người lập</span>
+                      </div>
+                    </th>
+                    <th
+                      class="align-items-center justify-content-center max-w-8rem"
+                      role="cell"
+                    >
+                      <div class="p-column-header-content">
+                        <span class="p-column-title">Ngày lập</span>
+                      </div>
+                    </th>
+                    <th
+                      class="align-items-center justify-content-center text-center max-w-7rem"
+                      role="cell"
+                    >
+                      <div class="p-column-header-content">
+                        <span class="p-column-title">Trạng thái</span>
+                      </div>
+                    </th>
+                    <th
+                      class="align-items-center justify-content-center text-center max-w-7rem"
+                      role="cell"
+                    >
+                      <div class="p-column-header-content">
+                        <span class="p-column-title">Tiến độ</span>
+                      </div>
+                    </th>
+                    <th
+                      class="align-items-center justify-content-center text-center max-w-10rem"
+                      role="cell"
+                    >
+                      <div class="p-column-header-content">
+                        <span class="p-column-title">Người duyệt</span>
+                      </div>
+                    </th>
+                    <th
+                      class="align-items-center justify-content-center text-center max-w-10rem"
+                      role="cell"
+                    >
+                      <div class="p-column-header-content">
+                        <span class="p-column-title">Ngày hoàn thành</span>
+                      </div>
+                    </th>
+                    <th
+                      class="align-items-center justify-content-center text-center max-w-5rem"
+                      role="cell"
+                    >
+                      <div class="p-column-header-content">
+                        <span class="p-column-title">Số giờ</span>
+                      </div>
+                    </th>
+                  </tr>
+                </thead>
+
+                <tbody
+                  class="p-datatable-tbody"
+                  role="rowgroup"
+                >
+                  <tr
+                    class="p-datatable-emptymessage"
+                    role="row"
+                  >
+                    <td colspan="10">
+                      <div
+                        data-v-e7fddb26=""
+                        class="w-full align-items-center justify-content-center p-4 text-center"
+                      >
+                        <img
+                          data-v-e7fddb26=""
+                          src="/src/assets/background/nodata.png"
+                          height="144"
+                        />
+                        <h3
+                          data-v-e7fddb26=""
+                          class="m-1"
+                        >
+                          Không có dữ liệu
+                        </h3>
+                      </div>
+                    </td>
+                  </tr>
+                </tbody>
+              </table>
+            </div>
+            <Paginator
+              :rows="options.pageSize"
+              :totalRecords="datalists.length"
+              template="FirstPageLink PrevPageLink PageLinks NextPageLink
+            LastPageLink RowsPerPageDropdown"
+              :rowsPerPageOptions="[20, 100, 200, 300, 500]"
+              @page="onPage"
+            />
+          </div>
         </div>
     </div>
 </template>
