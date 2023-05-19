@@ -1505,7 +1505,7 @@ onMounted(() => {
           v-if="donvi.organization_type == 0"
 
         >
-          <label class="col-2 text-left">Chức năng</label>
+          <label class="col-2 text-left">Chức năng, nhiệm vụ</label>
           <Textarea
           :autoResize="true"
           rows="5"
@@ -1513,7 +1513,7 @@ onMounted(() => {
           v-model="donvi.feature"
           />
         </div>
-        <div
+        <!-- <div
           class="field col-12 md:col-12 flex"
           v-if="donvi.organization_type == 0"
 
@@ -1525,20 +1525,7 @@ onMounted(() => {
           class="col-10 py-2"
           v-model="donvi.mission"
           />
-        </div>
-        <div
-          class="field col-12 md:col-12 flex"
-          v-if="donvi.organization_type == 0"
-
-        >
-          <label class="col-2 text-left">Mô tả</label>
-          <Textarea
-          :autoResize="true"
-          rows="5"
-          class="col-10 py-2"
-          v-model="donvi.description"
-          />
-        </div>
+        </div> -->
         <div
           class="field col-12 md:col-12 flex"
           v-if="donvi.organization_type == 0"
@@ -1609,6 +1596,19 @@ onMounted(() => {
             spellcheck="false"
             class="col-10 ip36"
             v-model="donvi.product_name"
+          />
+        </div>
+        <div
+          class="field col-12 md:col-12 flex"
+          v-if="donvi.organization_type == 0"
+
+        >
+          <label class="col-2 text-left">Mô tả</label>
+          <Textarea
+          :autoResize="true"
+          rows="5"
+          class="col-10 py-2"
+          v-model="donvi.description"
           />
         </div>
         <div class="field col-12 md:col-12">

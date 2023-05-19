@@ -213,7 +213,7 @@ onMounted(() => {
   .p-button:enabled {
     background: #f18636;
     color: #ffffff;
-    border-color: #0b7ad1;
+    border-color: #f18636;
     font-weight: 700;
   }
 }

@@ -153,7 +153,7 @@ namespace Controllers
                         model.modified_date = DateTime.Now;
                         model.modified_ip = ip;
                         var parent = db.sys_organization.FirstOrDefault(x => x.organization_id == model.parent_id);
-                        if (parent == null) model.is_level = 0;
+                        if (parent == null && parent.is_level == null) model.is_level = 0;
                         else model.is_level = parent.is_level + 1;
                         db.sys_organization.Add(model);
                         db.SaveChanges();
@@ -267,7 +267,7 @@ namespace Controllers
                         }
                         fdmodel = provider.FormData.GetValues("model").SingleOrDefault();
                         sys_organization model = JsonConvert.DeserializeObject<sys_organization>(fdmodel);
-                        if (db.sys_organization.Count(a => a.organization_key == model.organization_key) > 0)
+                        if (db.sys_organization.Count(a => a.organization_key == model.organization_key && a.organization_id != model.organization_id) > 0)
                         {
                             return Request.CreateResponse(HttpStatusCode.OK, new { ms = "Đã tồn tại mã đơn vị này trong hệ thống, vui lòng nhập lại!", err = "2" });
                         }

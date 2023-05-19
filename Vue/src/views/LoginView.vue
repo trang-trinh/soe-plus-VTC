@@ -255,72 +255,74 @@ onMounted(() => {
 });
 </script>
 <template>
-  <div class="login-container">
-    <div class="login-bg">
-      <img :src="
-        basedomainURL + store.getters.user.background_image ||
-        '../assets/background/bg.png'
-      " />
-    </div>
-    <div class="login-org">
-      <img class="org-logo" :src="
-        basedomainURL + store.getters.user.logo || '/Portals/Image/noimg.jpg'
-      " />
-      <h3 class="org-name">
-        {{ store.getters.user.organization_name }}
-      </h3>
-    </div>
-    <div class="login-product-container" v-if="store.getters.user.product_name ">
-      <div class="login-product">
-        <h3 class="
-                product-name
-                animate__animated animate__fadeInDown animate__delay-1s
-              ">
-          {{ store.getters.user.product_name }}
-        </h3>
-      </div>
-    </div>
-    <div class="box-login">
-      <div class="login-form">
-        <form name="frlogin" @submit.prevent="login">
-          <div class="login-ava">
-            <Avatar :image="
-              basedomainURL +
-              (store.getters.user.avatar != null
-                ? store.getters.user.avatar
-                : '/Portals/Image/nouser1.png')
-            " shape="circle" size="xlarge" />
-          </div>
-          <div class="mb-3 mt-6">
-            <h1>Đăng nhập</h1>
-          </div>
-          <div class="field">
-            <label for="user_id">Tên đăng nhập</label>
-            <InputText id="user_id" type="text" v-model="user.user_id" @input="checkForm"
-              v-bind:class="errors.user_id != '' ? 'invalid' : ''" autocomplete="off" required />
-            <InlineMessage severity="error" v-if="errors.user_id != ''">{{
-              errors.user_id
-            }}</InlineMessage>
-          </div>
-          <div class="field">
-            <label for="is_psword">Mật khẩu</label>
-            <Password id="is_psword" v-model="user.is_psword" @input="checkForm" v-bind:class="
-              errors.is_psword != 'w-full' ? 'w-full invalid' : ''
-            " autocomplete="off" required toggleMask :feedback="false" v-on:keyup.enter="login">
-            </Password>
-            <InlineMessage severity="error" v-if="errors.is_psword != ''">{{
-              errors.is_psword
-            }}</InlineMessage>
-          </div>
-          <div class="mt-3 font-bold" style="text-align: end;"><label class="forget-pass"
-              @click="showDialogForgetPss()">Quên mật khẩu?</label></div>
+    <div class="login-container">
+      <section class="bg-img overflow-auto h-full w-full" :style="'background-image: url('+basedomainURL+'/Portals/Image/logovtc.jpg)'">  
+        <div class="login-org">
+          <img class="org-logo" :src="
+            basedomainURL + store.getters.user.logo || '/Portals/Image/noimg.jpg'
+          " />
+          <h3 class="org-name">
+            {{ store.getters.user.organization_name }}
+          </h3>
+        </div> 
+        <div class="container px-4 py-5 px-md-5 text-center text-lg-start" style="margin-top: 14vh;">
+          <div class="row gx-lg-5 align-items-center mb-5">
+            <div class="col-lg-6 mb-5 mb-lg-0 animate__animated animate__fadeInDown animate__delay-1s" style="z-index: 1">
+              <h1 class="my-5 display-5 fw-bold ls-tight" style="color: hsl(218, 81%, 95%)">
+                HỆ THỐNG <br />
+                <span style="color: hsl(218, 81%, 75%)">QUẢN LÝ NHÂN SỰ TỔNG THỂ</span>
+              </h1>
+              <p class="mb-4 opacity-70" style="color: hsl(218, 81%, 85%)">
+                Hệ thống cơ sở dữ liệu về nhân sự đồng nhất, thực hiện giải quyết các quy trình, nghiệp vụ quản trị nhân lực.
+                Một kênh kết nối, tương tác,  chia sẻ thông tin trực tuyến giữa nhân sự và người quản lý
+              </p>
+            </div>
+            <div class="col-lg-6 mb-5 mb-lg-0 position-relative">
+              <div class="card bg-glass box-login" style="max-width: 480px;margin: auto;">
+                <div class="card-body px-4 py-5 px-md-5 login-form">
+                  <form name="frlogin" @submit.prevent="login">
+                    <div class="login-ava">
+                      <Avatar :image="
+                        basedomainURL +
+                        (store.getters.user.avatar != null
+                          ? store.getters.user.avatar
+                          : '/Portals/Image/nouser1.png')
+                      " shape="circle" size="xlarge" />
+                    </div>
+                    <div class="mb-3 mt-6 text-center">
+                      <h1>Đăng nhập</h1>
+                    </div>
+                    <div class="field text-lg">
+                      <label for="user_id">Tên đăng nhập</label>
+                      <InputText id="user_id" type="text" v-model="user.user_id" @input="checkForm"
+                        v-bind:class="errors.user_id != '' ? 'invalid' : ''" autocomplete="off" required />
+                      <InlineMessage severity="error" v-if="errors.user_id != ''">{{
+                        errors.user_id
+                      }}</InlineMessage>
+                    </div>
+                    <div class="field text-lg">
+                      <label for="is_psword">Mật khẩu</label>
+                      <Password id="is_psword" v-model="user.is_psword" @input="checkForm" v-bind:class="
+                        errors.is_psword != 'w-full' ? 'w-full invalid' : ''
+                      " autocomplete="off" required toggleMask :feedback="false" v-on:keyup.enter="login">
+                      </Password>
+                      <InlineMessage severity="error" v-if="errors.is_psword != ''">{{
+                        errors.is_psword
+                      }}</InlineMessage>
+                    </div>
+                    <div class="mt-3 font-bold text-lg" style="text-align: end;"><label class="forget-pass"
+                        @click="showDialogForgetPss()">Quên mật khẩu?</label></div>
 
-          <Button label="Đăng nhập" @click="login()" />
-        </form>
-      </div>
+                    <Button label="Đăng nhập" @click="login()" />
+                  </form>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </section>
     </div>
-  </div>
-  <Dialog header="Quên mật khẩu?" v-model:visible="dialogForgetPass" :style="{ width: '38vw', zIndex: 2 }"
+  <Dialog header="Quên mật khẩu?" v-model:visible="dialogForgetPass" :style="{ width: '38vw', zIndex: 100 }"
     :maximizable="true" :autoZIndex="false">
     <form @submit.prevent="sendMail(!v$.$invalid)">
       <div class="grid formgrid m-2" v-if="!isSendEmail">
@@ -365,6 +367,16 @@ onMounted(() => {
 }
 </style>
 <style scoped>
+@import url(../assets/style_login.css);
+ .bg-img {
+  background-size: cover;
+  font-size:16px;
+  }
+
+  .bg-glass {
+    background-color: hsla(0, 0%, 100%, 0.9) !important;
+    backdrop-filter: saturate(200%) blur(25px);
+  }
 .forget-pass {
   color: #551a8b;
   cursor: pointer;
@@ -386,7 +398,6 @@ input.invalid {
 }
 
 .login-container {
-  display: flex;
   width: 100vw;
   height: 100vh;
 }
@@ -403,7 +414,7 @@ input.invalid {
   height: 100%;
 }
 
-.box-login {
+/* .box-login {
   background-color: rgba(255, 255, 255, 0.9);
   flex: 1;
   display: block;
@@ -412,15 +423,16 @@ input.invalid {
   right: 0;
   height: 100%;
   min-width: 480px;
-}
+} */
 
-.login-form {
+/* .login-form {
   align-items: center;
   vertical-align: middle;
-  max-width: 480px;
   margin: auto;
   margin-top: calc(50vh - 242px);
-}
+  max-width: 480px;
+
+} */
 
 .login-form>button {
   width: 100%;
@@ -466,13 +478,12 @@ input.invalid {
 }
 
 .login-org {
-  min-width: calc(100vw - 480px);
+  width:100%;
   background-color: #ddddddcf;
   position: absolute;
   top: 0;
   left: 0;
   display: flex;
-  justify-content: center;
   align-items: center;
 }
 
@@ -486,7 +497,7 @@ input.invalid {
 .login-org .org-name {
   text-transform: uppercase;
   font-size: 1.8rem;
-  color: #cf1127;
+  color: #0153a2;
 }
 
 .login-product-container {

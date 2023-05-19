@@ -616,6 +616,13 @@ const filterForm = () => {
 const formDS_filter = (parentFilter) => {
     return formDS.value.filter(x => x.is_parent_id == parentFilter);
 };
+const IndexTable = (listFormDS, formd_id) => {
+    let fieldTable = listFormDS.filter(x => x.IsType == 3);
+    if (fieldTable.length > 0) {
+        return fieldTable.findIndex(x => x.request_formd_id == formd_id);
+    }
+    return 0;    
+};
 
 const renderWidth = (kieu) => {
     switch (kieu) {
@@ -712,10 +719,7 @@ const removeRow = (pi, i) => {
 const openRelate = (dataRelate, module, type) => {
     
 };
-const clickAction = () => {
-    debugger;
-    var x = 'action';
-};
+
 onMounted(() => {
     if (props.dataForm.request_id != null) {
         loadRequestDetail(props.dataForm);
@@ -1070,7 +1074,7 @@ onMounted(() => {
                                     <div class="form-group formlabel" style="margin-bottom:0.25rem;display:flex;align-items: center;">
                                         <label class="mb-0 label-form">{{ d.ten_truong }}</label>
                                         <Button v-if="request_data.IsEdit"
-                                            @click="addRow(idxForm)"
+                                            @click="addRow(IndexTable(formDS_filter(d.request_formd_id), d.request_formd_id))"
                                             v-tooltip.top="'Thêm dòng'"
                                             icon="pi pi-plus-circle"
                                             class="p-button-rounded p-button-text ml-2"                                        
@@ -1099,7 +1103,8 @@ onMounted(() => {
                                             </tr>
                                         </thead>
                                         <tbody>
-                                            <tr v-for="(r, indexF) in Ftables[idxForm]" :key="indexF">
+                                            <!-- <tr v-for="(r, indexF) in Ftables[idxForm]" :key="indexF"> -->
+                                            <tr v-for="(r, indexF) in Ftables[IndexTable(formDS_filter(d.request_formd_id), d.request_formd_id)]" :key="indexF">
                                                 <td class="td-table-render" v-for="td in r">
                                                     <div v-if="td.kieu_truong">
                                                         <div v-if="td.kieu_truong == 'email'">
@@ -1204,7 +1209,8 @@ onMounted(() => {
                                                     </div>
                                                 </td>
                                                 <td class="td-table-render" style="text-align:center">
-                                                    <a v-if="Ftables[idxForm].length > 1" 
+                                                    <!-- <a v-if="Ftables[idxForm].length > 1" @click="removeRow(idxForm, indexF)"> -->
+                                                    <a v-if="Ftables[IndexTable(formDS_filter(d.request_formd_id), d.request_formd_id)].length > 1" 
                                                         @click="removeRow(idxForm, indexF)">
                                                         <i class="pi pi-trash" style="color:red;cursor:pointer;"></i>
                                                     </a>
@@ -1227,7 +1233,6 @@ onMounted(() => {
                             optionValue="request_team_id" 
                             :filter="true"
                             placeholder="-- Chọn team --"
-                            @optionSelect="clickAction()"
                         >
                         </Dropdown>
                     </div>

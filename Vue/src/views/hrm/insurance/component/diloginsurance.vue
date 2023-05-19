@@ -1,9 +1,11 @@
 <script setup>
 import { onMounted, inject, ref } from "vue";
 import { useToast } from "vue-toastification";
+import { encr, checkURL } from "../../../../util/function.js";
 import { required, maxLength } from "@vuelidate/validators";
 import { useVuelidate } from "@vuelidate/core";
 import moment from "moment";
+const cryoptojs = inject("cryptojs");
 const store = inject("store");
 const swal = inject("$swal");
 const axios = inject("axios");
@@ -84,6 +86,47 @@ const openAddRow = ()=>{
     member_payment: null,
   }
 }
+const changeProfile = (profile_id) => {
+  axios
+    .post(
+      baseURL + "/api/hrm/callProc",
+        {
+          str: encr(
+          JSON.stringify({
+            proc: "hrm_insurance_get_user",
+            par: [
+              { par: "profile_id", va: profile_id },
+          ],
+          }),
+          SecretKey,
+          cryoptojs
+        ).toString(),
+        },
+        config
+      )
+    .then((response) => {
+      let data = JSON.parse(response.data.data)[0];
+      if (data.length > 0) {
+        props.model.gender = data[0].gender;
+        props.model.departmant_name = data[0].departmant_name;
+        props.model.birthday = data[0].birthday? new Date(data[0].birthday) : null;
+        props.model.identity_date_issue = data[0].identity_date_issue? new Date(data[0].identity_date_issue) : null;
+        props.model.identity_papers_code = data[0].identity_papers_code;
+        props.model.birthplace_origin =  data[0].birthplace_origin_name ?  data[0].birthplace_origin_name: data[0].birthplace_origin_last;
+        props.model.identity_place_name = data[0].identity_place_name;
+        props.model.place_register_permanent = data[0].place_register_permanent_last ? data[0].place_register_permanent_last:((data[0].place_register_permanent_first||'') + ' '+ (data[0].place_register_permanent_name||''));
+
+      }
+    })
+    .catch((error) => {
+      if (error.status === 401) {
+        swal.fire({
+          text: "Mã token đã hết hạn hoặc không hợp lệ, vui lòng đăng nhập lại!",
+          confirmButtonText: "OK",
+        });
+      }
+    });
+};
 const saveRowData = ()=>{
   if(model.value.start_date == null){
     swal.fire({
@@ -100,6 +143,16 @@ const saveRowData = ()=>{
 const submitted = ref(false);
 const saveData = () => {
   submitted.value = true;
+  props.model.profile_id = props.model.profile.profile_id;
+  if (isEmpty(props.model.profile_id )) {
+    swal.fire({
+      title: "Thông báo!",
+      text: "Nhân sự không được để trống!",
+      icon: "error",
+      confirmButtonText: "OK",
+    });
+    return;
+  }
   if (isEmpty(props.model.insurance_id)) {
     swal.fire({
       title: "Thông báo!",
@@ -246,14 +299,121 @@ onMounted(() => {
         </div>
         <div class="col-6 md:col-6">
           <div class="form-group">
-            <label>Nhân sự</label>
-            <InputText
+            <label>Nhân sự <span class="redsao">(*)</span></label>
+            <!-- <InputText
               spellcheck="false"
               class="ip36"
               v-model="props.model.profile_user_name"
               maxLength="50"
-              disabled="true"
-            />
+            /> -->
+            <Dropdown
+              :options="dictionarys[6]"
+              @change="changeProfile(props.model.profile.profile_id)"
+              :filter="true"
+              :showClear="true"
+              :editable="false"
+              optionLabel="profile_user_name"
+              placeholder="Chọn nhân sự"
+              v-model="props.model.profile"
+              class="ip36"
+              style="height: auto; min-height: 36px"
+              :class="{
+                'p-invalid': !props.model.profile && submitted,
+              }"
+            >
+              <template #value="slotProps">
+                <div class="mt-2" v-if="slotProps.value">
+                  <Chip
+                    :image="slotProps.value.avatar"
+                    :label="slotProps.value.profile_user_name"
+                    class="mr-2 mb-2 pl-0"
+                  >
+                    <div class="flex">
+                      <div class="format-flex-center">
+                        <Avatar
+                          v-bind:label="
+                            slotProps.value.avatar
+                              ? ''
+                              : (
+                                  slotProps.value.profile_user_name ?? ''
+                                ).substring(0, 1)
+                          "
+                          v-bind:image="
+                            slotProps.value.avatar
+                              ? basedomainURL + slotProps.value.avatar
+                              : basedomainURL + '/Portals/Image/noimg.jpg'
+                          "
+                          :style="{
+                            background:
+                              bgColor[slotProps.value.is_order % 7],
+                            color: '#ffffff',
+                            width: '2rem',
+                            height: '2rem',
+                          }"
+                          class="mr-2 text-avatar"
+                          size="xlarge"
+                          shape="circle"
+                        />
+                      </div>
+                      <div class="format-flex-center">
+                        <span>{{ slotProps.value.profile_user_name }}</span>
+                      </div>
+                    </div>
+                  </Chip>
+                </div>
+                <span v-else> {{ slotProps.placeholder }} </span>
+              </template>
+              <template #option="slotProps">
+                <div v-if="slotProps.option" class="flex">
+                  <div class="format-center">
+                    <Avatar
+                      v-bind:label="
+                        slotProps.option.avatar
+                          ? ''
+                          : slotProps.option.profile_user_name.substring(
+                              0,
+                              1
+                            )
+                      "
+                      v-bind:image="
+                        slotProps.option.avatar
+                          ? basedomainURL + slotProps.option.avatar
+                          : basedomainURL + '/Portals/Image/noimg.jpg'
+                      "
+                      style="
+                        background-color: #2196f3;
+                        color: #ffffff;
+                        width: 3rem;
+                        height: 3rem;
+                        font-size: 1.4rem !important;
+                      "
+                      :style="{
+                        background: bgColor[slotProps.option.is_order % 7],
+                      }"
+                      class="text-avatar"
+                      size="xlarge"
+                      shape="circle"
+                    />
+                  </div>
+                  <div class="format-center text-left ml-3">
+                    <div>
+                      <div class="mb-1">
+                        {{ slotProps.option.profile_user_name }}
+                      </div>
+                      <div class="description">
+                        <div>
+                          <span>{{ slotProps.option.profile_code }}</span
+                          ><span v-if="slotProps.option.department_name">
+                            | {{ slotProps.option.department_name }}</span
+                          >
+                        </div>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+                <span v-else> Chưa có dữ liệu </span>
+              </template>
+            </Dropdown>
           </div>
         </div>
         <div class="col-6 md:col-6">
@@ -288,7 +448,6 @@ onMounted(() => {
               id="icon"
               v-model="props.model.birthday"
               :showIcon="true"
-              placeholder="dd/mm/yyyy"
               disabled 
             />
           </div>
@@ -325,7 +484,6 @@ onMounted(() => {
               id="icon"
               v-model="props.model.identity_date_issue"
               :showIcon="true"
-              placeholder="dd/mm/yyyy"
               disabled 
             />
           </div>
