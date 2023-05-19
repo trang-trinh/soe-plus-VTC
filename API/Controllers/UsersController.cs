@@ -89,7 +89,7 @@ namespace Controllers
                         sys_users model = JsonConvert.DeserializeObject<sys_users>(fdmodel);
                         if (db.sys_users.Count(a => a.user_id == model.user_id) > 0)
                         {
-                            return Request.CreateResponse(HttpStatusCode.OK, new { ms = "Đã có tài khoản người dùng này trong hệ thống rồi!", err = "1" });
+                            return Request.CreateResponse(HttpStatusCode.OK, new { ms = "Đã có tài khoản người dùng này trong hệ thống rồi!", err = "2" });
                         }
                         // This illustrates how to get thefile names.
                         //string depass = Codec.EncryptString(model.is_psword, helper.psKey);

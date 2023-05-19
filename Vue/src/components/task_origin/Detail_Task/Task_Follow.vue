@@ -307,6 +307,7 @@ const loadData = () => {
           }
         });
         datalists.value = data;
+
         if (datalists.value.length > 0) {
           expandAll(datalists.value);
         }
@@ -331,12 +332,15 @@ const expandAll = (e) => {
   let dataFilter = e.filter((x) => x.status == 1)[0];
   if (dataFilter != null) {
     let add = [];
-    if (dataFilter.task_follow_step.length > 0) {
+    if (
+      dataFilter.task_follow_step != null &&
+      dataFilter.task_follow_step.length > 0
+    ) {
       let findIndex = dataFilter.task_follow_step.findIndex((x) => {
         return x.status === 1;
       });
       if (findIndex >= 0) {
-        indexSelected.value = findIndex;
+        indexSelected.value = 0;
       } else indexSelected.value = 0;
     }
     add.push(dataFilter);
@@ -813,7 +817,7 @@ onMounted(() => {
 const expandedRows = ref([]);
 
 const selectStep = (e, i) => {
-  indexSelected.value = i;
+  e.index = i;
 };
 const closeDetail = () => {
   showDetail.value = false;
@@ -832,6 +836,16 @@ const closeDetail = () => {
     >
       <Toolbar class="w-full custoolbar">
         <template #end>
+          <Button
+            icon="pi pi-plus"
+            class="mx-1"
+            label="Chọn quy trình mẫu"
+            @click="openDialog()"
+            v-if="
+              (user.is_admin == true || TypeMember == 0) &&
+              props.isClose != true
+            "
+          ></Button>
           <Button
             icon="pi pi-plus"
             label="Thêm quy trình"
@@ -994,7 +1008,12 @@ const closeDetail = () => {
       </template>
       <template #expansion="slotProps">
         <div>
-          <div v-if="slotProps.data.task_follow_step.length > 0">
+          <div
+            v-if="
+              slotProps.data.task_follow_step != null &&
+              slotProps.data.task_follow_step.length > 0
+            "
+          >
             <div class="multi-step numbered">
               <div class="buttonfunc">
                 <!-- <Button
@@ -1014,12 +1033,18 @@ const closeDetail = () => {
                   v-tooltip="'Sửa bước đang chọn'"
                   v-if="
                     (user.is_admin == true || TypeMember == 0) &&
-                    indexSelected != null &&
+                    (slotProps.data.index
+                      ? slotProps.data.index
+                      : indexSelected) != null &&
                     props.isClose != true
                   "
                   @click="
                     openEditStepDialog(
-                      slotProps.data.task_follow_step[indexSelected],
+                      slotProps.data.task_follow_step[
+                        slotProps.data.index
+                          ? slotProps.data.index
+                          : indexSelected
+                      ],
                       slotProps.data,
                     )
                   "
@@ -1030,12 +1055,18 @@ const closeDetail = () => {
                   v-tooltip="'Xóa bước đang chọn'"
                   v-if="
                     (user.is_admin == true || TypeMember == 0) &&
-                    indexSelected != null &&
+                    (slotProps.data.index
+                      ? slotProps.data.index
+                      : indexSelected) != null &&
                     props.isClose != true
                   "
                   @click="
                     DeleteStep(
-                      slotProps.data.task_follow_step[indexSelected],
+                      slotProps.data.task_follow_step[
+                        slotProps.data.index
+                          ? slotProps.data.index
+                          : indexSelected
+                      ],
                       true,
                     )
                   "
@@ -1046,7 +1077,13 @@ const closeDetail = () => {
                   class="multi-step-item active"
                   v-for="(item, index) in slotProps.data.task_follow_step"
                   :key="index"
-                  :class="[{ current: index == indexSelected }]"
+                  :class="[
+                    {
+                      current: slotProps.data.index
+                        ? index == slotProps.data.index
+                        : index == indexSelected,
+                    },
+                  ]"
                   @click="selectStep(item, index)"
                 >
                   <div
@@ -1070,7 +1107,7 @@ const closeDetail = () => {
           </div>
           <div
             v-if="
-              slotProps.data.task_follow_step != [] &&
+              slotProps.data.task_follow_step != null &&
               slotProps.data.task_follow_step.length > 0
             "
           >
@@ -1083,11 +1120,10 @@ const closeDetail = () => {
               <div
                 class="m-2 grid align-items-center justify-content-center flex-column"
                 v-for="(item2, index2) in slotProps.data.task_follow_step[
-                  indexSelected
+                  slotProps.data.index ? slotProps.data.index : indexSelected
                 ].task_info"
                 :key="index2"
               >
-                {{ item2 }}
                 <Card
                   class="bg-bluegray-50 w-30rem card-hover"
                   @click="onNodeSelect(item2.task_id)"
@@ -1158,11 +1194,17 @@ const closeDetail = () => {
                   v-tooltip="'Tuần tự'"
                   class="py-2 pi pi-arrow-down font-bold text-2xl flex justify-content-center"
                   v-if="
-                    slotProps.data.task_follow_step[indexSelected].status ==
-                      1 &&
+                    slotProps.data.task_follow_step[
+                      slotProps.data.index
+                        ? slotProps.data.index
+                        : indexSelected
+                    ].type == 1 &&
                     index2 <
-                      slotProps.data.task_follow_step[indexSelected].task_info
-                        .length -
+                      slotProps.data.task_follow_step[
+                        slotProps.data.index
+                          ? slotProps.data.index
+                          : indexSelected
+                      ].task_info.length -
                         1
                   "
                 ></icon>
@@ -1170,11 +1212,17 @@ const closeDetail = () => {
                   class="py-2 pi pi-sort-alt font-bold text-2xl flex justify-content-center"
                   v-tooltip="'Song song'"
                   v-if="
-                    slotProps.data.task_follow_step[indexSelected].status ==
-                      2 &&
+                    slotProps.data.task_follow_step[
+                      slotProps.data.index
+                        ? slotProps.data.index
+                        : indexSelected
+                    ].type == 2 &&
                     index2 <
-                      slotProps.data.task_follow_step[indexSelected].task_info
-                        .length -
+                      slotProps.data.task_follow_step[
+                        slotProps.data.index
+                          ? slotProps.data.index
+                          : indexSelected
+                      ].task_info.length -
                         1
                   "
                 >

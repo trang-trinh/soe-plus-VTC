@@ -145,14 +145,16 @@ namespace API.Controllers.Task_Origin1
             {
                 using (DBEntities db = new DBEntities())
                 {
-                    var member = db.task_member.Where(x => ids.Contains(x.member_id)).FirstOrDefault();
-                    db.task_member.Remove(member);
-                    var memberi4 = db.sys_users.Where(x => x.user_id == member.user_id).FirstOrDefault();
+                    var member = db.task_member.Where(x => ids.Contains(x.member_id)).ToList();
+                    db.task_member.RemoveRange(member);
+                    string userid = member[0].user_id;
+                    var task = member[0];
+                    var memberi4 = db.sys_users.Where(x => x.user_id == userid).FirstOrDefault();
                     if (helper.wlog)
                     {
                         task_logs log = new task_logs();
                         log.log_id = helper.GenKey();
-                        log.task_id = member.task_id;
+                        log.task_id = member[0].task_id;
                         log.project_id = null;
                         log.description = "xóa thành viên " + memberi4.full_name;
                         log.created_date = DateTime.Now;
@@ -165,13 +167,13 @@ namespace API.Controllers.Task_Origin1
 
                     await db.SaveChangesAsync();
                     //notify
-                    var listuser = db.task_member.Where(x => x.task_id == member.task_id).Select(x => x.user_id).Distinct().ToList();
-                    string task_name = db.task_origin.Where(x => x.task_id == member.task_id).Select(x => x.task_name).FirstOrDefault().ToString();
+                    var listuser = db.task_member.Where(x => x.task_id == task.task_id).Select(x => x.user_id).Distinct().ToList();
+                    string task_name = db.task_origin.Where(x => x.task_id == task.task_id).Select(x => x.task_name).FirstOrDefault().ToString();
                     listuser.Remove(uid);
                     foreach (var l in listuser)
                     {
                         helper.saveNotify(uid, l, null, "Công việc", "Đã xóa thành viên tham gia công việc: " + (task_name.Length > 100 ? task_name.Substring(0, 97) + "..." : task_name),
-                            null, 2, -1, false, module_key, member.task_id, null, null, tid, ip);
+                            null, 2, -1, false, module_key, task.task_id, null, null, tid, ip);
                     }
                     return Request.CreateResponse(HttpStatusCode.OK, new { err = "0" });
                 }
@@ -319,16 +321,21 @@ namespace API.Controllers.Task_Origin1
                         }
                         ///Get data from FrontEnd
                         string tempID = provider.FormData.GetValues("member").SingleOrDefault();
-                        task_member listprocess_id = JsonConvert.DeserializeObject<task_member>(tempID);
-                        listprocess_id.modified_by = uid;
-                        listprocess_id.modified_date = DateTime.Now;
-                        listprocess_id.modified_ip = ip; ;
-                        listprocess_id.modified_token_id = tid;
-                        db.Entry(listprocess_id).State = EntityState.Modified;
-                        db.SaveChanges();
+                        List<task_member> listprocess_id = JsonConvert.DeserializeObject<List<task_member>>(tempID);
+                        foreach (var item in listprocess_id)
+                        {
+                            item.modified_by = uid;
+                            item.modified_date = DateTime.Now;
+                            item.modified_ip = ip; ;
+                            item.modified_token_id = tid;
+                        db.Entry(item).State = EntityState.Modified;
+                       
                         #region add tasklog
-                        helper.saveLog(uid, name, JsonConvert.SerializeObject(new { data = listprocess_id }), domainurl + "/task_Member/Update_Member_Info", ip, tid, "Cập nhật thành viên công việc", 1, "Công việc");
+                        helper.saveLog(uid, name, JsonConvert.SerializeObject(new { data = item }), domainurl + "/task_Member/Update_Member_Info", ip, tid, "Cập nhật thành viên công việc", 1, "Công việc");
                         #endregion
+                        }
+                      
+                        db.SaveChanges();
                         return Request.CreateResponse(HttpStatusCode.OK, new { err = "0" });
                     });
                     return await task;

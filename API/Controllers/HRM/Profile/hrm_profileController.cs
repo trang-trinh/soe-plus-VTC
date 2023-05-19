@@ -1813,6 +1813,7 @@ namespace API.Controllers.HRM.Profile
                                                                 if (p != null)
                                                                 {
                                                                     profile.profile_id = p.profile_id;
+                                                                    profile.organization_id = p.organization_id;
                                                                 }
                                                                 break;
                                                             case "3":
@@ -1832,7 +1833,7 @@ namespace API.Controllers.HRM.Profile
                                                                 break;
                                                             case "7":
                                                                 var identity_place_name = value;
-                                                                var identity_place_exists = await db.hrm_ca_identity_place.FirstOrDefaultAsync(x => x.identity_place_name.Contains(identity_place_name));
+                                                                var identity_place_exists = await db.hrm_ca_identity_place.FirstOrDefaultAsync(x => x.identity_place_name.Contains(identity_place_name) && (x.organization_id == profile.organization_id || x.is_system == true));
                                                                 if (identity_place_exists != null)
                                                                 {
                                                                     profile.identity_place_id = identity_place_exists.identity_place_id;
@@ -1849,7 +1850,7 @@ namespace API.Controllers.HRM.Profile
                                                                 break;
                                                             case "11":
                                                                 var ethnic_name = value;
-                                                                var ethnic_exists = await db.hrm_ca_ethnic.FirstOrDefaultAsync(x => x.ethnic_name.Contains(ethnic_name));
+                                                                var ethnic_exists = await db.hrm_ca_ethnic.FirstOrDefaultAsync(x => x.ethnic_name.Contains(ethnic_name) && (x.organization_id == profile.organization_id || x.is_system == true));
                                                                 if (ethnic_exists != null)
                                                                 {
                                                                     profile.ethnic_id = ethnic_exists.ethnic_id;
@@ -1857,7 +1858,7 @@ namespace API.Controllers.HRM.Profile
                                                                 break;
                                                             case "12":
                                                                 var religion_name = value;
-                                                                var religio_exists = await db.hrm_ca_religion.FirstOrDefaultAsync(x => x.religion_name.Contains(religion_name));
+                                                                var religio_exists = await db.hrm_ca_religion.FirstOrDefaultAsync(x => x.religion_name.Contains(religion_name) && (x.organization_id == profile.organization_id || x.is_system == true));
                                                                 if (religio_exists != null)
                                                                 {
                                                                     profile.religion_id = religio_exists.religion_id;
@@ -1865,7 +1866,7 @@ namespace API.Controllers.HRM.Profile
                                                                 break;
                                                             case "13":
                                                                 var nationality_name = value;
-                                                                var nationality_exists = await db.hrm_ca_nationality.FirstOrDefaultAsync(x => x.nationality_name.Contains(nationality_name));
+                                                                var nationality_exists = await db.hrm_ca_nationality.FirstOrDefaultAsync(x => x.nationality_name.Contains(nationality_name) && (x.organization_id == profile.organization_id || x.is_system == true));
                                                                 if (nationality_exists != null)
                                                                 {
                                                                     profile.nationality_id = nationality_exists.nationality_id;
@@ -1891,7 +1892,7 @@ namespace API.Controllers.HRM.Profile
                                                                 break;
                                                             case "16":
                                                                 var bank_name = value;
-                                                                var bank_exists = await db.hrm_ca_bank.FirstOrDefaultAsync(x => x.bank_name.Contains(bank_name));
+                                                                var bank_exists = await db.hrm_ca_bank.FirstOrDefaultAsync(x => x.bank_name.Contains(bank_name) && (x.organization_id == profile.organization_id || x.is_system == true));
                                                                 if (bank_exists != null)
                                                                 {
                                                                     profile.bank_id = bank_exists.bank_id;
@@ -1934,7 +1935,7 @@ namespace API.Controllers.HRM.Profile
                                                                 break;
                                                             case "29":
                                                                 var relationship_name = value;
-                                                                var relationship_exists = await db.hrm_ca_relationship.FirstOrDefaultAsync(x => x.relationship_name.Contains(relationship_name));
+                                                                var relationship_exists = await db.hrm_ca_relationship.FirstOrDefaultAsync(x => x.relationship_name.Contains(relationship_name) && (x.organization_id == profile.organization_id || x.is_system == true));
                                                                 if (relationship_exists != null)
                                                                 {
                                                                     profile.relationship_id = relationship_exists.relationship_id;
@@ -1986,7 +1987,7 @@ namespace API.Controllers.HRM.Profile
                                                                 break;
                                                             case "36":
                                                                 var cultural_level_name = value;
-                                                                var cultural_level_exists = await db.hrm_ca_cultural_level.FirstOrDefaultAsync(x => x.cultural_level_name.Contains(cultural_level_name));
+                                                                var cultural_level_exists = await db.hrm_ca_cultural_level.FirstOrDefaultAsync(x => x.cultural_level_name.Contains(cultural_level_name) && (x.organization_id == profile.organization_id || x.is_system == true));
                                                                 if (cultural_level_exists != null)
                                                                 {
                                                                     profile.cultural_level_id = cultural_level_exists.cultural_level_id;
@@ -1994,7 +1995,7 @@ namespace API.Controllers.HRM.Profile
                                                                 break;
                                                             case "37":
                                                                 var political_theory_name = value;
-                                                                var political_theory_exists = await db.hrm_ca_political_theory.FirstOrDefaultAsync(x => x.political_theory_name.Contains(political_theory_name));
+                                                                var political_theory_exists = await db.hrm_ca_political_theory.FirstOrDefaultAsync(x => x.political_theory_name.Contains(political_theory_name) && (x.organization_id == profile.organization_id || x.is_system == true));
                                                                 if (political_theory_exists != null)
                                                                 {
                                                                     profile.political_theory_id = political_theory_exists.political_theory_id;
@@ -2002,7 +2003,7 @@ namespace API.Controllers.HRM.Profile
                                                                 break;
                                                             case "38":
                                                                 var informatic_level_name = value;
-                                                                var informatic_level_exists = await db.hrm_ca_informatic_level.FirstOrDefaultAsync(x => x.informatic_level_name.Contains(informatic_level_name));
+                                                                var informatic_level_exists = await db.hrm_ca_informatic_level.FirstOrDefaultAsync(x => x.informatic_level_name.Contains(informatic_level_name) && (x.organization_id == profile.organization_id || x.is_system == true));
                                                                 if (informatic_level_exists != null)
                                                                 {
                                                                     profile.informatic_level_id = informatic_level_exists.informatic_level_id;
@@ -2010,7 +2011,7 @@ namespace API.Controllers.HRM.Profile
                                                                 break;
                                                             case "39":
                                                                 var language_level_name = value;
-                                                                var language_level_exists = await db.hrm_ca_language_level.FirstOrDefaultAsync(x => x.language_level_name.Contains(language_level_name));
+                                                                var language_level_exists = await db.hrm_ca_language_level.FirstOrDefaultAsync(x => x.language_level_name.Contains(language_level_name) && (x.organization_id == profile.organization_id || x.is_system == true));
                                                                 if (language_level_exists != null)
                                                                 {
                                                                     profile.language_level_id = language_level_exists.language_level_id;
@@ -2018,7 +2019,7 @@ namespace API.Controllers.HRM.Profile
                                                                 break;
                                                             case "40":
                                                                 var management_state_name = value;
-                                                                var management_state_exists = await db.hrm_ca_management_state.FirstOrDefaultAsync(x => x.management_state_name.Contains(management_state_name));
+                                                                var management_state_exists = await db.hrm_ca_management_state.FirstOrDefaultAsync(x => x.management_state_name.Contains(management_state_name) && (x.organization_id == profile.organization_id || x.is_system == true));
                                                                 if (management_state_exists != null)
                                                                 {
                                                                     profile.management_state_id = management_state_exists.management_state_id;
@@ -2252,6 +2253,7 @@ namespace API.Controllers.HRM.Profile
                                                                 if (p != null)
                                                                 {
                                                                     assignment.profile_id = p.profile_id;
+                                                                    assignment.organization_id = p.organization_id;
                                                                 }
                                                                 break;
                                                             case "3":
@@ -2267,7 +2269,7 @@ namespace API.Controllers.HRM.Profile
                                                                 break;
                                                             case "5":
                                                                 var position_name = value;
-                                                                var position_exists = await db.ca_positions.FirstOrDefaultAsync(x => x.position_name == position_name);
+                                                                var position_exists = await db.ca_positions.FirstOrDefaultAsync(x => x.position_name == position_name && (x.organization_id == assignment.organization_id || x.is_system == true));
                                                                 if (position_exists != null)
                                                                 {
                                                                     assignment.position_id = position_exists.position_id;
@@ -2283,7 +2285,7 @@ namespace API.Controllers.HRM.Profile
                                                                 break;
                                                             case "7":
                                                                 var personel_groups_name = value;
-                                                                var personel_groups_exists = await db.hrm_ca_personel_groups.FirstOrDefaultAsync(x => x.personel_groups_name == personel_groups_name);
+                                                                var personel_groups_exists = await db.hrm_ca_personel_groups.FirstOrDefaultAsync(x => x.personel_groups_name == personel_groups_name && (x.organization_id == assignment.organization_id || x.is_system == true));
                                                                 if (personel_groups_exists != null)
                                                                 {
                                                                     assignment.personel_groups_id = personel_groups_exists.personel_groups_id;
@@ -2291,25 +2293,26 @@ namespace API.Controllers.HRM.Profile
                                                                 break;
                                                             case "8":
                                                                 var professional_work_name = value;
-                                                                var professional_work_exists = await db.hrm_ca_professional_work.FirstOrDefaultAsync(x => x.professional_work_name == professional_work_name);
+                                                                var professional_work_exists = await db.hrm_ca_professional_work.FirstOrDefaultAsync(x => x.professional_work_name == professional_work_name && (x.organization_id == assignment.organization_id || x.is_system == true));
                                                                 if (professional_work_exists != null)
                                                                 {
                                                                     assignment.professional_works = professional_work_exists.professional_work_id.ToString();
                                                                 }
                                                                 break;
                                                             case "9":
-                                                                assignment.is_active = value.ToLower().Contains("x") ? true : false;
+                                                                assignment.description = value;
                                                                 break;
                                                             case "10":
-                                                                assignment.is_experiment = value.ToLower().Contains("x") ? true : false;
+                                                                assignment.is_active = value.ToLower().Contains("x") ? true : false;
                                                                 break;
                                                             case "11":
-                                                                assignment.start_date = DateTime.ParseExact(value, "dd/MM/yyyy", CultureInfo.InvariantCulture);
+                                                                assignment.is_experiment = value.ToLower().Contains("x") ? true : false;
                                                                 break;
                                                             case "12":
-                                                                assignment.end_date = DateTime.ParseExact(value, "dd/MM/yyyy", CultureInfo.InvariantCulture);
+                                                                assignment.start_date = DateTime.ParseExact(value, "dd/MM/yyyy", CultureInfo.InvariantCulture);
                                                                 break;
                                                             case "13":
+                                                                assignment.end_date = DateTime.ParseExact(value, "dd/MM/yyyy", CultureInfo.InvariantCulture);
                                                                 break;
                                                             case "14":
                                                                 break;
@@ -2326,7 +2329,16 @@ namespace API.Controllers.HRM.Profile
                                                 }
                                                 if (!string.IsNullOrEmpty(assignment.profile_id))
                                                 {
+                                                    assignment.is_active = true;
+                                                    assignment.is_main = true;
                                                     assignments.Add(assignment);
+
+                                                    var assignments_old = await db.hrm_profile_assignment.Where(x => x.profile_id == assignment.profile_id).ToListAsync();
+                                                    foreach(var item in assignments_old)
+                                                    {
+                                                        item.is_active = false;
+                                                        item.is_main = false;
+                                                    }
                                                 }
                                             }
                                             if (assignments.Count > 0)
@@ -2364,6 +2376,7 @@ namespace API.Controllers.HRM.Profile
                                                                 if (p != null)
                                                                 {
                                                                     contract.profile_id = p.profile_id;
+                                                                    contract.organization_id = p.organization_id;
                                                                 }
                                                                 break;
                                                             case "3":
@@ -2382,7 +2395,7 @@ namespace API.Controllers.HRM.Profile
                                                                 break;
                                                             case "6":
                                                                 var position_name = value;
-                                                                var position_exists = await db.ca_positions.FirstOrDefaultAsync(x => x.position_name == position_name);
+                                                                var position_exists = await db.ca_positions.FirstOrDefaultAsync(x => x.position_name == position_name && (x.organization_id == contract.organization_id || x.is_system == true));
                                                                 if (position_exists != null)
                                                                 {
                                                                     contract.position_id = position_exists.position_id;
@@ -2390,7 +2403,7 @@ namespace API.Controllers.HRM.Profile
                                                                 break;
                                                             case "7":
                                                                 var title_name = value;
-                                                                var title_exists = await db.hrm_ca_title.FirstOrDefaultAsync(x => x.title_name == title_name);
+                                                                var title_exists = await db.hrm_ca_title.FirstOrDefaultAsync(x => x.title_name == title_name && (x.organization_id == contract.organization_id || x.is_system == true));
                                                                 if (title_exists != null)
                                                                 {
                                                                     contract.title_id = title_exists.title_id;
@@ -2398,7 +2411,7 @@ namespace API.Controllers.HRM.Profile
                                                                 break;
                                                             case "8":
                                                                 var personel_groups_name = value;
-                                                                var personel_groups_exists = await db.hrm_ca_personel_groups.FirstOrDefaultAsync(x => x.personel_groups_name == personel_groups_name);
+                                                                var personel_groups_exists = await db.hrm_ca_personel_groups.FirstOrDefaultAsync(x => x.personel_groups_name == personel_groups_name && (x.organization_id == contract.organization_id || x.is_system == true));
                                                                 if (personel_groups_exists != null)
                                                                 {
                                                                     contract.personel_groups_id = personel_groups_exists.personel_groups_id;
@@ -2406,7 +2419,7 @@ namespace API.Controllers.HRM.Profile
                                                                 break;
                                                             case "9":
                                                                 var type_contract_name = value;
-                                                                var type_contract_exists = await db.hrm_ca_type_contract.FirstOrDefaultAsync(x => x.type_contract_name == type_contract_name);
+                                                                var type_contract_exists = await db.hrm_ca_type_contract.FirstOrDefaultAsync(x => x.type_contract_name == type_contract_name && (x.organization_id == contract.organization_id || x.is_system == true));
                                                                 if (type_contract_exists != null)
                                                                 {
                                                                     contract.type_contract_id = type_contract_exists.type_contract_id;
@@ -2854,6 +2867,7 @@ namespace API.Controllers.HRM.Profile
                                                                 if (p != null)
                                                                 {
                                                                     reward.reward_name = p.profile_id;
+                                                                    reward.organization_id = p.organization_id;
                                                                 }
                                                                 break;
                                                             case "3":
@@ -2868,7 +2882,7 @@ namespace API.Controllers.HRM.Profile
                                                                 break;
                                                             case "7":
                                                                 var reward_level_name = value;
-                                                                var reward_level_exists = await db.hrm_ca_reward_level.FirstOrDefaultAsync(x => x.reward_level_name == reward_level_name);
+                                                                var reward_level_exists = await db.hrm_ca_reward_level.FirstOrDefaultAsync(x => x.reward_level_name == reward_level_name && (x.organization_id == reward.organization_id || x.is_system == true));
                                                                 if (reward_level_exists != null)
                                                                 {
                                                                     reward.reward_level_id = reward_level_exists.reward_level_id;
@@ -2876,7 +2890,7 @@ namespace API.Controllers.HRM.Profile
                                                                 break;
                                                             case "8":
                                                                 var reward_title_name = value;
-                                                                var reward_title_exists = await db.hrm_ca_reward_title.FirstOrDefaultAsync(x => x.reward_title_name == reward_title_name);
+                                                                var reward_title_exists = await db.hrm_ca_reward_title.FirstOrDefaultAsync(x => x.reward_title_name == reward_title_name && (x.organization_id == reward.organization_id || x.is_system == true));
                                                                 if (reward_title_exists != null)
                                                                 {
                                                                     reward.reward_title_id = reward_title_exists.reward_title_id;

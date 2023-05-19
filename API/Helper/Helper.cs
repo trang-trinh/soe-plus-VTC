@@ -1908,28 +1908,28 @@ namespace Helper
         public static Nullable<int> Department(IEnumerable<Claim> claims)
         {
             string ctid = claims.Where(p => p.Type == "dept").FirstOrDefault()?.Value;
-            if (ctid != null)
+            if (ctid != null && ctid!="")
                 return Convert.ToInt32(ctid);
             else return null;
         }
         public static Nullable<int> OrgainzationChild(IEnumerable<Claim> claims)
         {
             string ctid = claims.Where(p => p.Type == "ctid").FirstOrDefault()?.Value;
-            if (ctid != null)
+            if (ctid != null && ctid != "")
                 return Convert.ToInt32(ctid);
             else return null;
         }
         public static Nullable<int> Orgainzation(IEnumerable<Claim> claims)
         {
             string ctid = claims.Where(p => p.Type == "dvid").FirstOrDefault()?.Value;
-            if (ctid != null)
+            if (ctid != null && ctid != "")
                 return Convert.ToInt32(ctid);
             else return null;
         }
         public static Nullable<int> OrgainzationParent(IEnumerable<Claim> claims)
         {
             string ctid = claims.Where(p => p.Type == "parent_dvid").FirstOrDefault()?.Value;
-            if (ctid != null)
+            if (ctid != null && ctid != "")
                 return Convert.ToInt32(ctid);
             else return null;
         }
