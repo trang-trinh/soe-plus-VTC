@@ -1803,6 +1803,7 @@ const refresh = () => {
   //   view_copy: 1,
   //   filterProfile_id: null,
   // };
+  options.value.limitItem = 25;
   isFilter.value = false;
   initCount();
   initTreeOrganization();
@@ -1833,8 +1834,6 @@ const loadMoreRow = (data) => {
   if (options.value.limitItem + 25 < data.length) {
     options.value.limitItem += 25;
     dataLimits.value = datas.value.slice(0, options.value.limitItem);
-  } else {
-    options.value.limitItem = data.length;
   }
 };
 // const test = () => {
