@@ -267,7 +267,7 @@ onMounted(() => {
         </div> 
         <div class="container px-4 py-5 px-md-5 text-center text-lg-start" style="margin-top: 14vh;">
           <div class="row gx-lg-5 align-items-center mb-5">
-            <div class="col-lg-6 mb-5 mb-lg-0 animate__animated animate__fadeInDown animate__delay-1s" style="z-index: 1">
+            <div class="col-lg-6 mb-5 mb-lg-0 animate__animated animate__fadeInDown animate__delay-0.6s" style="z-index: 1">
               <h1 class="my-5 display-5 fw-bold ls-tight" style="color: hsl(218, 81%, 95%)">
                 HỆ THỐNG <br />
                 <span style="color: hsl(218, 81%, 75%)">QUẢN LÝ NHÂN SỰ TỔNG THỂ</span>
