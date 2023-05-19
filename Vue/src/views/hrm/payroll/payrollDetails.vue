@@ -101,6 +101,7 @@ export default {
     };
   },
 };
+ 
 </script>
 <template>
   <div class="bg-white h-full">

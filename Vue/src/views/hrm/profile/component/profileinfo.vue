@@ -16,6 +16,7 @@ import diloginsurance from "../../profile/component/diloginsurance.vue";
 import comreward from "../../profile/component/comreward.vue";
 import leaveyear from "../../myprofile/component/comview6.vue";
 import decision from "../../myprofile/component/comview8.vue";
+import DocComponent from "../../template/components/DocComponent.vue";
 import moment from "moment";
 
 const route = useRoute();
@@ -66,6 +67,8 @@ const options = ref({
   file: {},
   type_files: [],
   is_type_files: [],
+  pageNoPayroll: 0,
+  pageSizePayroll: 20,
 });
 const bgColor = ref([
   "#F8E69A",
@@ -297,6 +300,99 @@ const closeDialogContract = () => {
   displayDialogContract.value = false;
   forceRerender(1);
 };
+//data view 5
+const report = ref();
+const pars = ref([]);
+const headerPayroll = ref("");
+const month = ref(new Date());
+const year = ref(new Date());
+
+const selectedPayroll = ref();
+const checkPayroll = ref();
+const listpayrolls = ref([]);
+const onClickPayroll = (data) => {
+  initBaocao(data.data.report_key);
+  pars.value = { profile_id: data.data.profile_id };
+  headerPayroll.value =
+    "Phiếu lương tháng " +
+    data.data.payroll_month +
+    " năm " +
+    data.data.payroll_year;
+  checkPayroll.value = false;
+};
+const callbackFun = () => {
+  if (ref) {
+    swal.fire({
+      width: 110,
+      didOpen: () => {
+        swal.showLoading();
+      },
+    });
+  }
+
+  axios
+    .post(
+      baseURL + "/api/hrm/callProc",
+      {
+        str: encr(
+          JSON.stringify({
+            proc: "hrm_profile_payroll_list1",
+            par: [
+              { par: "profile_id", va: options.value["profile_id"] },
+              { par: "pageno", va: options.value.pageNoPayroll },
+              { par: "pagesize", va: options.value.pageSizePayroll },
+            ],
+          }),
+          SecretKey,
+          cryoptojs
+        ).toString(),
+      },
+      config
+    )
+    .then((response) => {
+      if (response != null && response.data != null) {
+        let data = JSON.parse(response.data.data);
+
+        if (data != null) {
+          data[0].forEach((element, i) => {
+            element.STT =
+              options.value.pageNoPayroll * options.value.pageSizePayroll +
+              i +
+              1;
+          });
+          report.value = null;
+          listpayrolls.value = data[0];
+          options.value.totalRecordsPayroll = data[1][0].totalRecords;
+          checkPayroll.value = true;
+          swal.close();
+        }
+      }
+
+      if (options.value.loading) options.value.loading = false;
+    })
+    .catch((error) => {
+      swal.close();
+      if (options.value.loading) options.value.loading = false;
+      if (error && error.status === 401) {
+        swal.fire({
+          title: "Thông báo!",
+          text: "Mã token đã hết hạn hoặc không hợp lệ, vui lòng đăng nhập lại!",
+          icon: "error",
+          confirmButtonText: "OK",
+        });
+        store.commit("gologout");
+        return;
+      } else {
+        swal.fire({
+          title: "Thông báo!",
+          text: "Có lỗi xảy ra, vui lòng kiểm tra lại!",
+          icon: "error",
+          confirmButtonText: "OK",
+        });
+        return;
+      }
+    });
+};
 
 //data view 6
 const insurance_status = ref([
@@ -434,29 +530,25 @@ const vaccines = ref([]);
 
 //data view 13
 const goPrint = (view) => {
-  
- 
-    let o = {
-      id: view == 13 ? 22 : view == 14 ? 20 : view == 15 ? 5 : 3,
-      par: { profile_id:  profile.value.profile_id },
-    };
-    let url = encodeURIComponent(
-      encr(JSON.stringify(o), SecretKey, cryoptojs).toString()
-    );
-    url =
-      "/report/" +
-      url.replaceAll("%", "==") +
-      "?v=" +
-      (new Date().getTime().toString());
-      if (router)
+  let o = {
+    id: view == 13 ? 22 : view == 14 ? 20 : view == 15 ? 5 : 3,
+    par: { profile_id: profile.value.profile_id },
+  };
+  let url = encodeURIComponent(
+    encr(JSON.stringify(o), SecretKey, cryoptojs).toString()
+  );
+  url =
+    "/hrm/profile/report/" +
+    url.replaceAll("%", "==") +
+    "?v=" +
+    new Date().getTime().toString();
+  if (router)
     router.push({
-      path:
-        url,
+      path: url,
     });
   // forceRerender(3);
   // options.value.view = view;
- 
-}
+};
 //filter
 const goFile = (file) => {
   window.open(basedomainURL + file.file_path, "_blank");
@@ -1740,6 +1832,129 @@ const initView4 = (rf) => {
       }
     });
 };
+
+const initBaocao = async (id) => {
+  let strSQL = {
+    query: false,
+    proc: "report_get_key",
+    par: [
+      {
+        par: "report_key",
+        va: id,
+      },
+    ],
+  };
+  console.log(strSQL);
+
+  swal.fire({
+    width: 110,
+    didOpen: () => {
+      swal.showLoading();
+    },
+  });
+
+  const axResponse = await axios.post(
+    baseURL + "/api/HRM_SQL/getData",
+    {
+      str: encr(JSON.stringify(strSQL), SecretKey, cryoptojs).toString(),
+    },
+    {
+      headers: { Authorization: `Bearer ${store.getters.token}` },
+    }
+  );
+
+  if (axResponse.status == 200) {
+    if (axResponse.data.error) {
+      toast.error("Không mở được báo cáo");
+    } else {
+      report.value = JSON.parse(axResponse.data.data)[0][0];
+    }
+  }
+  swal.close();
+};
+
+const initView5 = (rf) => {
+  if (ref) {
+    swal.fire({
+      width: 110,
+      didOpen: () => {
+        swal.showLoading();
+      },
+    });
+  }
+
+  axios
+    .post(
+      baseURL + "/api/hrm/callProc",
+      {
+        str: encr(
+          JSON.stringify({
+            proc: "hrm_profile_payroll_get",
+            par: [
+              { par: "profile_id", va: options.value["profile_id"] },
+              { par: "month", va: month.value.getMonth() + 1 },
+              { par: "year", va: year.value.getFullYear() },
+            ],
+          }),
+          SecretKey,
+          cryoptojs
+        ).toString(),
+      },
+      config
+    )
+    .then((response) => {
+      if (response != null && response.data != null) {
+        let data = JSON.parse(response.data.data);
+        if (data != null) {
+          if (data[0].length == 1) {
+            var dtcheck = data[0][0];
+            if (
+              dtcheck.payroll_month == month.value.getMonth() + 1 &&
+              dtcheck.payroll_year == year.value.getFullYear()
+            ) {
+              initBaocao(dtcheck.report_key);
+              pars.value = { profile_id: options.value["profile_id"] };
+              headerPayroll.value =
+                "Phiếu lương tháng " +
+                (month.value.getMonth() + 1) +
+                " năm " +
+                month.value.getFullYear();
+              checkPayroll.value = false;
+              swal.close();
+              return;
+            }
+          }
+          listpayrolls.value = data[0];
+          checkPayroll.value = true;
+          swal.close();
+        }
+      }
+
+      if (options.value.loading) options.value.loading = false;
+    })
+    .catch((error) => {
+      swal.close();
+      if (options.value.loading) options.value.loading = false;
+      if (error && error.status === 401) {
+        swal.fire({
+          title: "Thông báo!",
+          text: "Mã token đã hết hạn hoặc không hợp lệ, vui lòng đăng nhập lại!",
+          icon: "error",
+          confirmButtonText: "OK",
+        });
+        store.commit("gologout");
+        return;
+      } else {
+        swal.fire({
+          title: "Thông báo!",
+          text: "Có lỗi xảy ra, vui lòng kiểm tra lại!",
+          icon: "error",
+          confirmButtonText: "OK",
+        });
+        return;
+      }
+    });
+};
 const initView6 = (rf) => {
   if (rf) {
     swal.fire({
@@ -2261,6 +2476,8 @@ const initData = () => {
   } else if (options.value.view === 3) {
     initDictionary3();
     initView3(true);
+  } else if (options.value.view === 5) {
+    initView5(true);
   } else if (options.value.view === 6) {
     initDictionary6();
   } else if (options.value.view === 8) {
@@ -2302,16 +2519,15 @@ const formatViewNumber = (value, partDecimal) => {
     partDecimal = 0;
   }
   if (value != null) {
-    return value.toLocaleString('vi-VN', 
-      { 
-        style: "decimal", minimumFractionDigits: 0, maximumFractionDigits: partDecimal, 
-      }
-    );
-  }
-  else {
+    return value.toLocaleString("vi-VN", {
+      style: "decimal",
+      minimumFractionDigits: 0,
+      maximumFractionDigits: partDecimal,
+    });
+  } else {
     return "";
   }
-}
+};
 </script>
 <template>
   <div class="surface-100 p-2">
@@ -2400,7 +2616,7 @@ const formatViewNumber = (value, partDecimal) => {
       class="tabview"
       :style="{ borderTop: 'solid 1px rgba(0,0,0,.1) !important' }"
     >
-      <div class="tableview-nav-content" style="display:flex;">
+      <div class="tableview-nav-content" style="display: flex">
         <ul class="tableview-nav nav">
           <li
             class="nav-item tableview-header"
@@ -2418,12 +2634,13 @@ const formatViewNumber = (value, partDecimal) => {
             </div>
           </li>
         </ul>
-        <Button class="p-button p-button-outlined p-button-text btn-extra-user"
+        <Button
+          class="p-button p-button-outlined p-button-text btn-extra-user"
           :style="showExtraUser ? 'color: #316AB7 !important;' : ''"
           @click="showUserRelate()"
         >
           <div class="mb-1">
-            <i class="pi pi-users" style="font-size:16px"></i>
+            <i class="pi pi-users" style="font-size: 16px"></i>
           </div>
           <div>
             <span> Xem thêm </span>
@@ -2973,15 +3190,19 @@ const formatViewNumber = (value, partDecimal) => {
                               <label class="label-profileinfo"
                                 >Chỗ ở hiện nay:
                                 <span class="description-2">{{
-                                  (profile.place_permanent || '') +
-                                  (profile.place_residence_name ? (", " + profile.place_residence_name) : '')                                  
+                                  (profile.place_permanent || "") +
+                                  (profile.place_residence_name
+                                    ? ", " + profile.place_residence_name
+                                    : "")
                                 }}</span></label
                               >
                             </div>
                           </div>
                           <div class="col-12 md:col-12">
                             <div class="form-group m-0">
-                              <label class="label-profileinfo m-0">Khi cần báo tin cho:</label>
+                              <label class="label-profileinfo m-0"
+                                >Khi cần báo tin cho:</label
+                              >
                             </div>
                           </div>
                           <div class="col-6 md:col-6">
@@ -3070,7 +3291,13 @@ const formatViewNumber = (value, partDecimal) => {
                             class="align-items-center justify-content-center text-center"
                           >
                             <template #body="slotProps">
-                              <span>{{ slotProps.data.is_type == 1 ? 'Bản thân' : slotProps.data.is_type == 2 ? 'Bên vợ' : '' }}</span>
+                              <span>{{
+                                slotProps.data.is_type == 1
+                                  ? "Bản thân"
+                                  : slotProps.data.is_type == 2
+                                  ? "Bên vợ"
+                                  : ""
+                              }}</span>
                             </template>
                           </Column>
                           <Column
@@ -3107,9 +3334,7 @@ const formatViewNumber = (value, partDecimal) => {
                             class="align-items-center justify-content-center text-center"
                           >
                             <template #body="slotProps">
-                              <span>{{
-                                slotProps.data.birthday
-                              }}</span>
+                              <span>{{ slotProps.data.birthday }}</span>
                             </template>
                           </Column>
                           <Column
@@ -3235,10 +3460,14 @@ const formatViewNumber = (value, partDecimal) => {
                           >
                             <template #body="slotProps">
                               <div class="form-group m-0">
-                                <div class="flex justify-content-center"
+                                <div
+                                  class="flex justify-content-center"
                                   style="height: 100%"
                                 >
-                                  <InputSwitch v-model="slotProps.data.is_company" :disabled="true" />
+                                  <InputSwitch
+                                    v-model="slotProps.data.is_company"
+                                    :disabled="true"
+                                  />
                                 </div>
                               </div>
                             </template>
@@ -3252,10 +3481,14 @@ const formatViewNumber = (value, partDecimal) => {
                           >
                             <template #body="slotProps">
                               <div class="form-group m-0">
-                                <div class="flex justify-content-center"
+                                <div
+                                  class="flex justify-content-center"
                                   style="height: 100%"
                                 >
-                                  <InputSwitch v-model="slotProps.data.is_die" :disabled="true" />
+                                  <InputSwitch
+                                    v-model="slotProps.data.is_die"
+                                    :disabled="true"
+                                  />
                                 </div>
                               </div>
                             </template>
@@ -3306,10 +3539,14 @@ const formatViewNumber = (value, partDecimal) => {
                             >
                               <template #body="slotProps">
                                 <div class="form-group m-0">
-                                  <div class="flex justify-content-center"
+                                  <div
+                                    class="flex justify-content-center"
                                     style="height: 100%"
                                   >
-                                    <InputSwitch v-model="slotProps.data.is_man_degree" :disabled="true" />
+                                    <InputSwitch
+                                      v-model="slotProps.data.is_man_degree"
+                                      :disabled="true"
+                                    />
                                   </div>
                                 </div>
                               </template>
@@ -3477,11 +3714,17 @@ const formatViewNumber = (value, partDecimal) => {
                       </template>
                       <div class="col-12 md:col-12 p-3">
                         <div class="form-group px-1">
-                          <div class="flex ml-3"
-                            style="height: 100%;align-items:center;"
+                          <div
+                            class="flex ml-3"
+                            style="height: 100%; align-items: center"
                           >
-                            <InputSwitch v-model="profile.is_partisan" :disabled="true" />
-                            <label class="label-profileinfo ml-2" for="binary">Là Đảng viên</label>
+                            <InputSwitch
+                              v-model="profile.is_partisan"
+                              :disabled="true"
+                            />
+                            <label class="label-profileinfo ml-2" for="binary"
+                              >Là Đảng viên</label
+                            >
                           </div>
                         </div>
                         <div class="row px-2" v-if="profile.is_partisan">
@@ -3572,113 +3815,165 @@ const formatViewNumber = (value, partDecimal) => {
                           </DataTable> -->
                           <div class="col-12 md:col-12">
                             <div class="form-group m-0">
-                              <label class="label-profileinfo"><b>Thông tin Đảng</b></label>
+                              <label class="label-profileinfo"
+                                ><b>Thông tin Đảng</b></label
+                              >
                             </div>
                           </div>
                           <div class="col-6 md:col-6">
                             <div class="form-group m-0">
-                              <label class="label-profileinfo">Ngạch công chức (viên chức): 
+                              <label class="label-profileinfo"
+                                >Ngạch công chức (viên chức):
                                 <span class="description-2">
                                   {{ profile.civil_servant_rank_name }}
                                 </span>
                               </label>
                             </div>
                           </div>
-                          <div class="col-6 md:col-6 format-center">
-                          </div>
+                          <div class="col-6 md:col-6 format-center"></div>
                           <div class="col-4 md:col-4">
                             <div class="form-group m-0">
-                              <label class="label-profileinfo">Số thẻ Đảng: 
+                              <label class="label-profileinfo"
+                                >Số thẻ Đảng:
                                 <span class="description-2">
-                                  {{ profile.card_partisan || '' }}
-                                </span>
-                              </label>
-                            </div>
-                          </div>
-                          <div class="col-4 md:col-4">
-                            <div class="form-group m-0">
-                              <label class="label-profileinfo">Ngày vào Đảng: 
-                                <span class="description-2">
-                                  {{ profile.partisan_date ? moment(new Date(profile.partisan_date)).format('DD/MM/yyyy') : '' }}
+                                  {{ profile.card_partisan || "" }}
                                 </span>
                               </label>
                             </div>
                           </div>
                           <div class="col-4 md:col-4">
                             <div class="form-group m-0">
-                              <label class="label-profileinfo">Ngày vào Đảng chính thức: 
+                              <label class="label-profileinfo"
+                                >Ngày vào Đảng:
                                 <span class="description-2">
-                                  {{ profile.partisan_main_date ? moment(new Date(profile.partisan_main_date)).format('DD/MM/yyyy') : '' }}
+                                  {{
+                                    profile.partisan_date
+                                      ? moment(
+                                          new Date(profile.partisan_date)
+                                        ).format("DD/MM/yyyy")
+                                      : ""
+                                  }}
+                                </span>
+                              </label>
+                            </div>
+                          </div>
+                          <div class="col-4 md:col-4">
+                            <div class="form-group m-0">
+                              <label class="label-profileinfo"
+                                >Ngày vào Đảng chính thức:
+                                <span class="description-2">
+                                  {{
+                                    profile.partisan_main_date
+                                      ? moment(
+                                          new Date(profile.partisan_main_date)
+                                        ).format("DD/MM/yyyy")
+                                      : ""
+                                  }}
                                 </span>
                               </label>
                             </div>
                           </div>
                           <div class="col-6 md:col-6">
                             <div class="form-group m-0">
-                              <label class="label-profileinfo">Chị bộ sinh hoạt Đảng: 
+                              <label class="label-profileinfo"
+                                >Chị bộ sinh hoạt Đảng:
                                 <span class="description-2">
-                                  {{ profile.partisan_branch || '' }}
+                                  {{ profile.partisan_branch || "" }}
                                 </span>
                               </label>
                             </div>
                           </div>
                           <div class="col-6 md:col-6">
                             <div class="form-group m-0">
-                              <label class="label-profileinfo">Đảng bộ chính thức: 
+                              <label class="label-profileinfo"
+                                >Đảng bộ chính thức:
                                 <span class="description-2">
-                                  {{ profile.partisan_official || '' }}
+                                  {{ profile.partisan_official || "" }}
                                 </span>
                               </label>
                             </div>
                           </div>
                           <div class="col-6 md:col-6">
                             <div class="form-group m-0">
-                              <label class="label-profileinfo">Ngày tham gia cách mạng: 
+                              <label class="label-profileinfo"
+                                >Ngày tham gia cách mạng:
                                 <span class="description-2">
-                                  {{ profile.partisan_joindate ? moment(new Date(profile.partisan_joindate)).format('DD/MM/yyyy') : '' }}
+                                  {{
+                                    profile.partisan_joindate
+                                      ? moment(
+                                          new Date(profile.partisan_joindate)
+                                        ).format("DD/MM/yyyy")
+                                      : ""
+                                  }}
                                 </span>
                               </label>
                             </div>
                           </div>
                           <div class="col-6 md:col-6">
                             <div class="form-group m-0">
-                              <label class="label-profileinfo">Ngày tham gia tổ chức: 
+                              <label class="label-profileinfo"
+                                >Ngày tham gia tổ chức:
                                 <span class="description-2">
-                                  {{ profile.organization_joindate ? moment(new Date(profile.organization_joindate)).format('DD/MM/yyyy') : '' }}
+                                  {{
+                                    profile.organization_joindate
+                                      ? moment(
+                                          new Date(
+                                            profile.organization_joindate
+                                          )
+                                        ).format("DD/MM/yyyy")
+                                      : ""
+                                  }}
                                 </span>
                               </label>
                             </div>
                           </div>
                           <div class="col-12 md:col-12">
                             <div class="form-group m-0">
-                              <label class="label-profileinfo">Công việc trong tổ chức: 
+                              <label class="label-profileinfo"
+                                >Công việc trong tổ chức:
                                 <span class="description-2">
-                                  {{ profile.organization_task || '' }}
+                                  {{ profile.organization_task || "" }}
                                 </span>
                               </label>
                             </div>
                           </div>
                           <div class="col-6 md:col-6">
-                            <div class="flex" style="flex-direction:column;">
-                              <label class="label-profileinfo">Danh hiệu: </label>
-                              <Textarea class="w-full"
+                            <div class="flex" style="flex-direction: column">
+                              <label class="label-profileinfo"
+                                >Danh hiệu:
+                              </label>
+                              <Textarea
+                                class="w-full"
                                 :autoResize="true"
                                 rows="1"
                                 v-model="profile.appellation"
                                 :disabled="true"
-                                style="border:none;color:#606060 !important;line-height: 1.5;opacity:1;"
+                                style="
+                                  border: none;
+                                  color: #606060 !important;
+                                  line-height: 1.5;
+                                  opacity: 1;
+                                "
                               />
                             </div>
                           </div>
                           <div class="col-6 md:col-6">
-                            <div class="flex" style="flex-direction:column;">
-                              <label class="label-profileinfo">Huy hiệu: </label>
-                              <Textarea class="w-full"
+                            <div class="flex" style="flex-direction: column">
+                              <label class="label-profileinfo"
+                                >Huy hiệu:
+                              </label>
+                              <Textarea
+                                class="w-full"
                                 :autoResize="true"
                                 rows="1"
                                 v-model="profile.armorial"
                                 :disabled="true"
-                                style="border:none;color:#606060 !important;line-height: 1.5;opacity:1;"
+                                style="
+                                  border: none;
+                                  color: #606060 !important;
+                                  line-height: 1.5;
+                                  opacity: 1;
+                                "
                               />
                             </div>
                           </div>
@@ -3700,10 +3995,15 @@ const formatViewNumber = (value, partDecimal) => {
                               <label class="label-profileinfo"
                                 >Ngày nhập ngũ:
                                 <span class="description-2">
-                                  {{ profile.military_start_date ? moment(new Date(profile.military_start_date)).format('DD/MM/yyyy') : '' }}
+                                  {{
+                                    profile.military_start_date
+                                      ? moment(
+                                          new Date(profile.military_start_date)
+                                        ).format("DD/MM/yyyy")
+                                      : ""
+                                  }}
                                 </span>
-                              </label
-                              >
+                              </label>
                             </div>
                           </div>
                           <div class="col-6 md:col-6">
@@ -3711,7 +4011,13 @@ const formatViewNumber = (value, partDecimal) => {
                               <label class="label-profileinfo"
                                 >Ngày xuất ngũ:
                                 <span class="description-2">
-                                  {{ profile.military_end_date ? moment(new Date(profile.military_end_date)).format('DD/MM/yyyy') : ''}}
+                                  {{
+                                    profile.military_end_date
+                                      ? moment(
+                                          new Date(profile.military_end_date)
+                                        ).format("DD/MM/yyyy")
+                                      : ""
+                                  }}
                                 </span></label
                               >
                             </div>
@@ -3879,7 +4185,7 @@ const formatViewNumber = (value, partDecimal) => {
                             >
                               <template #body="slotProps">
                                 <span>{{
-                                  slotProps.data.description || ''
+                                  slotProps.data.description || ""
                                 }}</span>
                               </template>
                             </Column>
@@ -3905,7 +4211,8 @@ const formatViewNumber = (value, partDecimal) => {
                         <div class="row">
                           <div class="col-6 md:col-6">
                             <div class="form-group m-0">
-                              <label class="label-profileinfo">Thành phần gia đình xuất thân:
+                              <label class="label-profileinfo"
+                                >Thành phần gia đình xuất thân:
                                 <span class="description-2">{{
                                   profile.family_member
                                 }}</span></label
@@ -3914,7 +4221,8 @@ const formatViewNumber = (value, partDecimal) => {
                           </div>
                           <div class="col-6 md:col-6">
                             <div class="form-group m-0">
-                              <label class="label-profileinfo">Nghề nghiệp bản thân trước khi được tuyển dụng:
+                              <label class="label-profileinfo"
+                                >Nghề nghiệp bản thân trước khi được tuyển dụng:
                                 <span class="description-2">{{
                                   profile.job_before_recruitment
                                 }}</span></label
@@ -3923,7 +4231,8 @@ const formatViewNumber = (value, partDecimal) => {
                           </div>
                           <div class="col-6 md:col-6">
                             <div class="form-group m-0">
-                              <label class="label-profileinfo">Công việc đã làm lâu nhất:
+                              <label class="label-profileinfo"
+                                >Công việc đã làm lâu nhất:
                                 <span class="description-2">{{
                                   profile.task_longest
                                 }}</span></label
@@ -3932,40 +4241,59 @@ const formatViewNumber = (value, partDecimal) => {
                           </div>
                           <div class="col-6 md:col-6">
                             <div class="form-group m-0">
-                              <label class="label-profileinfo">Sở trường công tác:
+                              <label class="label-profileinfo"
+                                >Sở trường công tác:
                                 <span class="description-2">{{
                                   profile.mission_forte
                                 }}</span></label
                               >
                             </div>
-                          </div>                          
+                          </div>
                           <div class="col-6 md:col-6">
                             <div class="form-group m-0">
-                              <label class="label-profileinfo mb-0">Khen thưởng: </label>                              
-                              <Textarea class="w-full"
+                              <label class="label-profileinfo mb-0"
+                                >Khen thưởng:
+                              </label>
+                              <Textarea
+                                class="w-full"
                                 :autoResize="true"
                                 rows="1"
                                 v-model="profile.military_reward"
                                 :disabled="true"
-                                style="border:none;color:#606060 !important;line-height: 1.5;opacity:1;"
+                                style="
+                                  border: none;
+                                  color: #606060 !important;
+                                  line-height: 1.5;
+                                  opacity: 1;
+                                "
                               />
                             </div>
                           </div>
                           <div class="col-6 md:col-6">
                             <div class="form-group m-0">
-                              <label class="label-profileinfo mb-0">Kỷ luật: </label>                             
-                              <Textarea class="w-full"
+                              <label class="label-profileinfo mb-0"
+                                >Kỷ luật:
+                              </label>
+                              <Textarea
+                                class="w-full"
                                 :autoResize="true"
                                 rows="1"
                                 v-model="profile.military_discipline"
                                 :disabled="true"
-                                style="border:none;color:#606060 !important;line-height: 1.5;opacity:1;"
+                                style="
+                                  border: none;
+                                  color: #606060 !important;
+                                  line-height: 1.5;
+                                  opacity: 1;
+                                "
                               />
                             </div>
                           </div>
                           <div class="col-12 md:col-12">
                             <div class="form-group m-0">
-                              <label class="label-profileinfo">Bị bắt, bị tù, bản thân có làm việc trong chế độ cũ: 
+                              <label class="label-profileinfo"
+                                >Bị bắt, bị tù, bản thân có làm việc trong chế
+                                độ cũ:
                                 <span class="description-2">{{
                                   profile.biography_first
                                 }}</span></label
@@ -3974,7 +4302,9 @@ const formatViewNumber = (value, partDecimal) => {
                           </div>
                           <div class="col-12 md:col-12">
                             <div class="form-group m-0">
-                              <label class="label-profileinfo">Tham gia hoặc có quan hệ với các tổ chức chính trị, kinh tế, xã hội nào ở nước ngoài:
+                              <label class="label-profileinfo"
+                                >Tham gia hoặc có quan hệ với các tổ chức chính
+                                trị, kinh tế, xã hội nào ở nước ngoài:
                                 <span class="description-2">{{
                                   profile.biography_second
                                 }}</span></label
@@ -3983,7 +4313,8 @@ const formatViewNumber = (value, partDecimal) => {
                           </div>
                           <div class="col-12 md:col-12">
                             <div class="form-group m-0">
-                              <label class="label-profileinfo">Có thân nhân ở nước ngoài (làm gì, địa chỉ):
+                              <label class="label-profileinfo"
+                                >Có thân nhân ở nước ngoài (làm gì, địa chỉ):
                                 <span class="description-2">{{
                                   profile.biography_third
                                 }}</span></label
@@ -3992,7 +4323,9 @@ const formatViewNumber = (value, partDecimal) => {
                           </div>
                           <div class="col-12 md:col-12">
                             <div class="form-group m-0">
-                              <label class="label-profileinfo">Nhật xét, đánh giá của cơ quan, đơn vị quản lý và sử dụng cán bộ, công chức:
+                              <label class="label-profileinfo"
+                                >Nhật xét, đánh giá của cơ quan, đơn vị quản lý
+                                và sử dụng cán bộ, công chức:
                                 <span class="description-2">{{
                                   profile.note
                                 }}</span></label
@@ -4117,7 +4450,13 @@ const formatViewNumber = (value, partDecimal) => {
                               <label class="label-profileinfo"
                                 >Ngày ký:
                                 <span class="description-2">
-                                  {{ profile.sign_date ? moment(new Date(profile.sign_date)).format(' DD/MM/yyyy') : '' }}
+                                  {{
+                                    profile.sign_date
+                                      ? moment(
+                                          new Date(profile.sign_date)
+                                        ).format(" DD/MM/yyyy")
+                                      : ""
+                                  }}
                                 </span>
                               </label>
                             </div>
@@ -4371,7 +4710,142 @@ const formatViewNumber = (value, partDecimal) => {
                 :view="options.view"
               />
             </div>
-            <div v-show="options.view === 5" class="f-full">Phiếu lương</div>
+            <div v-show="options.view === 5" class="f-full">
+              <div v-if="checkPayroll != null">
+                <div
+                  class="bg-white h-full"
+                  v-if="checkPayroll == false && report"
+                >
+                  <DocComponent
+                    :pars="pars"
+                    :report="report"
+                    :callbackFun="callbackFun"
+                    :header="headerPayroll"
+                  ></DocComponent>
+                </div>
+
+                <div
+                  class="bg-white h-full"
+                  v-else-if="checkPayroll == true && listpayrolls.length > 0"
+                >
+                  <div class="dt-lang-table true flex-grow-1 p-2 pb-0 pr-0">
+                    <DataTable
+                      @page="onPagePayroll($event)"
+                      :scrollable="true"
+                      filterDisplay="menu"
+                      filterMode="lenient"
+                      scrollHeight="flex"
+                      :showGridlines="true"
+                      columnResizeMode="fit"
+                      :lazy="true"
+                      :totalRecords="options.totalRecordsPayroll"
+                      :loading="options.loading"
+                      :reorderableColumns="true"
+                      :value="listpayrolls"
+                      v-model:rows="options.pageSizePayroll"
+                      :rowsPerPageOptions="[20, 30, 50, 100, 200]"
+                      :paginator="true"
+                      :row-hover="true"
+                      dataKey="payroll_id"
+                      responsiveLayout="scroll"
+                      v-model:selection="selectedPayroll"
+                      rowGroupMode="subheader"
+                      groupRowsBy="declare_paycheck_name"
+                      selectionMode="single"
+                      @row-click="onClickPayroll"
+                    >
+                      <template #groupheader="slotProps">
+                        <span class="ml-2 font-bold text-blue-500 py-2"
+                          >{{ slotProps.data.declare_paycheck_name }}
+                        </span>
+                      </template>
+
+                      <Column
+                        field="STT"
+                        header="STT"
+                        class="align-items-center justify-content-center text-center"
+                        headerStyle="text-align:center;max-width:70px;height:50px"
+                        bodyStyle="text-align:center;max-width:70px"
+                      ></Column>
+
+                      <Column
+                        field="payroll_name"
+                        header="Tên bảng lương"
+                        headerStyle="text-align:left;height:50px"
+                        bodyStyle="text-align:left;height:50px"
+                      >
+                      </Column>
+                      <Column
+                        header="Tháng"
+                        headerStyle="text-align:center;max-width:150px;height:50px"
+                        bodyStyle="text-align:center;max-width:150px;overflow:hidden"
+                        class="align-items-center justify-content-center text-center overflow-hidden"
+                      >
+                        <template #body="slotProps">
+                          <div>
+                            {{
+                              moment(
+                                new Date(
+                                  slotProps.data.payroll_year,
+                                  slotProps.data.payroll_month - 1,
+                                  1
+                                )
+                              ).format("MM/YYYY")
+                            }}
+                          </div>
+                        </template>
+                      </Column>
+
+                      <Column
+                        header="Tổng lương (VNĐ)"
+                        headerStyle="text-align:center;max-width:150px;height:50px"
+                        bodyStyle="text-align:center;max-width:150px;overflow:hidden"
+                        class="align-items-center justify-content-center text-center overflow-hidden"
+                      >
+                      </Column>
+
+                      <Column
+                        field="sign_user"
+                        header="Người ký"
+                        headerStyle="text-align:center;max-width:250px;height:50px"
+                        bodyStyle="text-align:center;max-width:250px;overflow:hidden"
+                        class="align-items-center justify-content-center text-center overflow-hidden"
+                      >
+                      </Column>
+                      <Column
+                        header="Ngày ký"
+                        headerStyle="text-align:center;max-width:120px;height:50px"
+                        bodyStyle="text-align:center;max-width:120px;overflow:hidden"
+                        class="align-items-center justify-content-center text-center overflow-hidden"
+                      >
+                        <template #body="slotProps">
+                          <div>
+                            {{
+                              moment(slotProps.data.sign_date).format(
+                                "DD/MM/YYYY"
+                              )
+                            }}
+                          </div>
+                        </template>
+                      </Column>
+
+                      <template #empty>
+                        <div
+                          class="align-items-center justify-content-center p-4 text-center m-auto"
+                          v-if="!isFirst"
+                        >
+                          <img
+                            src="../../../assets/background/nodata.png"
+                            height="144"
+                          />
+                          <h3 class="m-1">Không có dữ liệu</h3>
+                        </div>
+                      </template>
+                    </DataTable>
+                  </div>
+                </div>
+              </div>
+            </div>
             <div v-show="options.view === 6" class="f-full">
               <div class="row p-2">
                 <div class="col-12 md:col-12 p-0">
@@ -4885,7 +5359,9 @@ const formatViewNumber = (value, partDecimal) => {
                             <div class="row">
                               <div class="col-12 md:col-12 p-0">
                                 <div class="form-group">
-                                  <label class="label-profileinfo">Loại file</label>
+                                  <label class="label-profileinfo"
+                                    >Loại file</label
+                                  >
                                   <MultiSelect
                                     :options="type_files"
                                     :filter="true"
@@ -4943,7 +5419,9 @@ const formatViewNumber = (value, partDecimal) => {
                               </div>
                               <div class="col-12 md:col-12 p-0">
                                 <div class="form-group">
-                                  <label class="label-profileinfo">Vị trí file</label>
+                                  <label class="label-profileinfo"
+                                    >Vị trí file</label
+                                  >
                                   <MultiSelect
                                     :options="is_type_files"
                                     :filter="true"
@@ -5261,14 +5739,20 @@ const formatViewNumber = (value, partDecimal) => {
                           </div>
                         </div>
                         <div class="col-12 md:col-12">
-                          <div class="flex" style="flex-direction:column;">
+                          <div class="flex" style="flex-direction: column">
                             <label class="label-profileinfo">Ghi chú: </label>
-                            <Textarea class="w-full"
+                            <Textarea
+                              class="w-full"
                               :autoResize="true"
                               rows="1"
                               v-model="health.note"
                               :disabled="true"
-                              style="border:none;color:#606060 !important;line-height: 1.5;opacity:1;"
+                              style="
+                                border: none;
+                                color: #606060 !important;
+                                line-height: 1.5;
+                                opacity: 1;
+                              "
                             />
                           </div>
                         </div>
@@ -5422,9 +5906,7 @@ const formatViewNumber = (value, partDecimal) => {
         >
           <div class="row">
             <div class="col-12 md:col-12 p-0">
-              <Accordion
-                class="w-full border-none padding-0 mb-2"
-              >
+              <Accordion class="w-full border-none padding-0 mb-2">
                 <AccordionTab>
                   <template #header>
                     <span
@@ -5511,9 +5993,7 @@ const formatViewNumber = (value, partDecimal) => {
                   </div>
                 </AccordionTab>
               </Accordion>
-              <Accordion
-                class="w-full border-none padding-0 mb-2"
-              >
+              <Accordion class="w-full border-none padding-0 mb-2">
                 <AccordionTab>
                   <template #header>
                     <span>
@@ -5600,9 +6080,7 @@ const formatViewNumber = (value, partDecimal) => {
                   </div>
                 </AccordionTab>
               </Accordion>
-              <Accordion
-                class="w-full border-none padding-0 mb-2"
-              >
+              <Accordion class="w-full border-none padding-0 mb-2">
                 <AccordionTab>
                   <template #header>
                     <span
@@ -5744,6 +6222,11 @@ const formatViewNumber = (value, partDecimal) => {
 </template>
 <style scoped>
 @import url(../../profile/component/stylehrm.css);
+.dt-lang-table {
+  height: calc(100vh - 170px) !important;
+  background-color: #fff;
+  overflow: hidden;
+}
 .d-lang-table {
   height: calc(100vh - 156px) !important;
   background-color: #fff;
@@ -5805,16 +6288,16 @@ const formatViewNumber = (value, partDecimal) => {
   font-size: 1rem;
 }
 .btn-extra-user {
-  display: grid; 
-  justify-content: center; 
-  background-color: #ffffff !important; 
-  color: #000000 !important; 
-  border-bottom: 2px solid #dee2e6 !important; 
+  display: grid;
+  justify-content: center;
+  background-color: #ffffff !important;
+  color: #000000 !important;
+  border-bottom: 2px solid #dee2e6 !important;
   font-weight: bold;
   padding: 5px 10px;
 }
 .btn-extra-user:hover {
-  color: #316AB7 !important;
+  color: #316ab7 !important;
 }
 .label-profileinfo {
   color: #6e6e6e;
@@ -5885,18 +6368,18 @@ const formatViewNumber = (value, partDecimal) => {
     padding-bottom: 0;
   }
 }
-::v-deep(.h-leaveyear){
+::v-deep(.h-leaveyear) {
   .box-table {
     height: calc(100vh - 165px) !important;
     background-color: #fff;
     overflow: auto;
+  }
 }
-}
-::v-deep(.h-decision){
-  .d-lang-table{
+::v-deep(.h-decision) {
+  .d-lang-table {
     height: calc(100vh - 165px) !important;
   }
-  .p-datatable-emptymessage .align-items-center{
+  .p-datatable-emptymessage .align-items-center {
     height: calc(100vh - 236px) !important;
   }
 }
