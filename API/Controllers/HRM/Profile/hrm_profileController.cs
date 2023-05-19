@@ -2536,6 +2536,7 @@ namespace API.Controllers.HRM.Profile
                                                 }
                                                 if (!string.IsNullOrEmpty(relative.profile_id))
                                                 {
+                                                    relative.profile_relative_id = helper.GenKey();
                                                     relatives.Add(relative);
                                                 }
                                             }
