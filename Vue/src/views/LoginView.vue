@@ -265,7 +265,7 @@ onMounted(() => {
             {{ store.getters.user.organization_name }}
           </h3>
         </div> 
-        <div class="container px-4 py-5 px-md-5 text-center text-lg-start my-8">
+        <div class="container px-4 py-5 px-md-5 text-center text-lg-start" style="margin-top: 14vh;">
           <div class="row gx-lg-5 align-items-center mb-5">
             <div class="col-lg-6 mb-5 mb-lg-0 animate__animated animate__fadeInDown animate__delay-1s" style="z-index: 1">
               <h1 class="my-5 display-5 fw-bold ls-tight" style="color: hsl(218, 81%, 95%)">
@@ -273,7 +273,7 @@ onMounted(() => {
                 <span style="color: hsl(218, 81%, 75%)">QUẢN LÝ NHÂN SỰ TỔNG THỂ</span>
               </h1>
               <p class="mb-4 opacity-70" style="color: hsl(218, 81%, 85%)">
-                Hệ thống cơ sở dữ liệu về nhận sự đồng nhất, thực hiện giải quyết các quy trình, nghiệp vụ quản trị nhân lực.
+                Hệ thống cơ sở dữ liệu về nhân sự đồng nhất, thực hiện giải quyết các quy trình, nghiệp vụ quản trị nhân lực.
                 Một kênh kết nối, tương tác,  chia sẻ thông tin trực tuyến giữa nhân sự và người quản lý
               </p>
             </div>
