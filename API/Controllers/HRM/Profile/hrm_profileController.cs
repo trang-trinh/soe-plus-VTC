@@ -95,7 +95,8 @@ namespace API.Controllers.HRM.Profile
                     else
                     {
                         var old = await db.hrm_profile.AsNoTracking().FirstOrDefaultAsync(a => a.profile_id == uid);
-                        if (old != null && old.profile_id != model.profile_id) {
+                        if (old != null && old.profile_id != model.profile_id)
+                        {
                             if (db.hrm_profile.Count(a => a.profile_id == model.profile_id) > 0)
                             {
                                 return Request.CreateResponse(HttpStatusCode.OK, new { ms = "Đã tồn tại mã nhân sự này trong hệ thống!", err = "1" });
@@ -754,7 +755,7 @@ namespace API.Controllers.HRM.Profile
                     if (tags != null)
                     {
                         List<hrm_profile_tags> new_receipts = new List<hrm_profile_tags>();
-                        
+
                         var stt = 0;
                         foreach (var tags_id in tags)
                         {
@@ -982,7 +983,7 @@ namespace API.Controllers.HRM.Profile
                         var updates = relative_olds.Where(x => remove_ids.Contains(x.profile_relative_id)).ToList();
                         if (updates.Count > 0)
                         {
-                            foreach(var item in updates)
+                            foreach (var item in updates)
                             {
                                 var update = relatives.FirstOrDefault(x => x.profile_relative_id == item.profile_relative_id);
                                 if (update != null)
@@ -1010,7 +1011,7 @@ namespace API.Controllers.HRM.Profile
                     }
                     int stt = 0;
                     int is_bout = db.hrm_profile_relative.Max(x => x.is_bout) ?? 0;
-                    
+
                     foreach (var rl in relative_news)
                     {
                         hrm_profile_relative relative = new hrm_profile_relative();
@@ -1451,7 +1452,8 @@ namespace API.Controllers.HRM.Profile
             }
         }
 
-        class obj {
+        class obj
+        {
             public int status { get; set; }
             public DateTime? start_date { get; set; }
             public DateTime? end_date { get; set; }
@@ -1525,7 +1527,7 @@ namespace API.Controllers.HRM.Profile
                     }
                     if (de_datas != null)
                     {
-                        foreach(var item in de_datas)
+                        foreach (var item in de_datas)
                         {
                             hrm_profile_status status = new hrm_profile_status();
                             status.profile_id = profile_id;
@@ -1651,7 +1653,7 @@ namespace API.Controllers.HRM.Profile
                             user.full_name_en = helper.convertToUnSign(profile.profile_user_name);
                             user.last_name = (user.full_name ?? "").Split(' ').Last();
                             user.organization_id = profile.organization_id;
-                            user.organization_parent_id = db.sys_organization.FirstOrDefault(x=>x.organization_id == user.organization_id)?.parent_id ?? user.organization_id;
+                            user.organization_parent_id = db.sys_organization.FirstOrDefault(x => x.organization_id == user.organization_id)?.parent_id ?? user.organization_id;
                             user.position_id = db.hrm_contract.FirstOrDefault(x => x.profile_id == profile_id && x.is_active == true)?.position_id;
                             user.birthday = profile.birthday;
                             user.phone = profile.phone;
@@ -2634,7 +2636,7 @@ namespace API.Controllers.HRM.Profile
                                             break;
                                         case "Học vấn":
                                             List<hrm_profile_skill> skills = new List<hrm_profile_skill>();
-                                            for (int r = 4; r <= sheet.Dimension.End.Row; r++)
+                                            for (int r = 3; r <= sheet.Dimension.End.Row; r++)
                                             {
                                                 error_row = r;
                                                 if (sheet.Cells[r, 2].Value == null)
@@ -2644,11 +2646,11 @@ namespace API.Controllers.HRM.Profile
                                                 hrm_profile_skill skill = new hrm_profile_skill();
                                                 for (int c = 2; c <= sheet.Dimension.End.Column; c++)
                                                 {
-                                                    if (sheet.Cells[3, c].Value == null)
+                                                    if (sheet.Cells[2, c].Value == null)
                                                     {
                                                         break;
                                                     }
-                                                    var column = sheet.Cells[3, c].Value;
+                                                    var column = sheet.Cells[2, c].Value;
                                                     error_column = int.Parse(column.ToString() ?? c.ToString());
                                                     var vl = sheet.Cells[r, c].Value;
                                                     if (vl != null)
@@ -2667,10 +2669,10 @@ namespace API.Controllers.HRM.Profile
 
                                                                 break;
                                                             case "4":
-                                                                skill.start_date = DateTime.ParseExact(value, "dd/MM/yyyy", CultureInfo.InvariantCulture);
+                                                                skill.start_date = value;
                                                                 break;
                                                             case "5":
-                                                                skill.end_date = DateTime.ParseExact(value, "dd/MM/yyyy", CultureInfo.InvariantCulture);
+                                                                skill.end_date = value;
                                                                 break;
                                                             case "6":
                                                                 var academic_level_name = value;
@@ -2703,7 +2705,7 @@ namespace API.Controllers.HRM.Profile
                                                                 }
                                                                 break;
                                                             case "11":
-                                                                skill.graduation_year = DateTime.ParseExact(value, "dd/MM/yyyy", CultureInfo.InvariantCulture);
+                                                                skill.graduation_year = value;
                                                                 break;
                                                             case "12":
                                                                 skill.rating = value;
@@ -2726,6 +2728,7 @@ namespace API.Controllers.HRM.Profile
                                                 }
                                                 if (!string.IsNullOrEmpty(skill.profile_id))
                                                 {
+                                                    skill.profile_skill_id = helper.GenKey();
                                                     skills.Add(skill);
                                                 }
                                             }
