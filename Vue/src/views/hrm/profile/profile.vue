@@ -1831,9 +1831,14 @@ onMounted(() => {
   });
 });
 const loadMoreRow = (data) => {
-  if (options.value.limitItem + 25 < data.length) {
-    options.value.limitItem += 25;
-    dataLimits.value = datas.value.slice(0, options.value.limitItem);
+  if (data.length > 0) {
+    if (options.value.limitItem + 25 < data.length) {
+      options.value.limitItem += 25;
+      dataLimits.value = datas.value.slice(0, options.value.limitItem);
+    } else {
+      options.value.limitItem = data.length;
+      dataLimits.value = datas.value.slice(0, options.value.limitItem);
+    }
   }
 };
 // const test = () => {

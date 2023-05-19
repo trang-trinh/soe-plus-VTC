@@ -1339,7 +1339,15 @@ onMounted(() => {
             <div class="d-grid formgrid">
               <div class="col-3 md:col-3 p-0">
                 <div class="format-grid-center">
-                  <div style="width: 55px">
+                  <div
+                    :style="{
+                      width: '70px',
+                      position: 'absolute',
+                      top: '60%',
+                      left: '15%',
+                      transform: 'translate(-50%, -50%)',
+                    }"
+                  >
                     <img
                       :src="basedomainURL + '/Portals/birthday.png'"
                       style="
@@ -1463,8 +1471,25 @@ onMounted(() => {
             <div class="d-grid formgrid">
               <div class="col-3 md:col-3 p-0">
                 <div class="format-grid-center">
-                  <div>
-                    <i class="pi pi-book" :style="{ fontSize: '50px' }"></i>
+                  <div
+                    :style="{
+                      width: '70px',
+                      position: 'absolute',
+                      top: '70%',
+                      left: '15%',
+                      transform: 'translate(-50%, -50%)',
+                    }"
+                  >
+                    <img
+                      :src="basedomainURL + '/Portals/phonebook.png'"
+                      style="
+                        width: 100%;
+                        height: 100%;
+                        object-fit: contain;
+                        border-radius: 3px;
+                        transform: scale(1.5);
+                      "
+                    />
                   </div>
                 </div>
               </div>

@@ -380,6 +380,9 @@ onMounted(() => {
                   <b>{{ slotProps.item.professional_work_name }}</b>
                 </div>
                 <div class="mb-2">
+                  Mô tả công việc: <b>{{ slotProps.item.description }}</b>
+                </div>
+                <div class="mb-2">
                   Loại nhân sự: <b>{{ slotProps.item.personel_groups_name }}</b>
                 </div>
                 <div
