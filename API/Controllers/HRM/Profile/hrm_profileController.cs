@@ -2257,7 +2257,7 @@ namespace API.Controllers.HRM.Profile
                                                                 break;
                                                             case "4":
                                                                 var department_name = value;
-                                                                var department_exists = await db.sys_organization.FirstOrDefaultAsync(x => x.short_name == department_name && x.organization_type == 1);
+                                                                var department_exists = await db.sys_organization.FirstOrDefaultAsync(x => x.organization_key == department_name && x.organization_type == 1);
                                                                 if (department_exists != null)
                                                                 {
                                                                     assignment.department_id = department_exists.organization_id;
