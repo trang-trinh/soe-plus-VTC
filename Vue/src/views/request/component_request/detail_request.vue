@@ -237,7 +237,13 @@ const loadDetailRequest = () => {
 const formDS_filter = (parentFilter) => {
     return FormDS.value.filter(x => x.is_parent_id == parentFilter);
 };
-
+const IndexTable = (listFormDS, formd_id) => {
+    let fieldTable = listFormDS.filter(x => x.IsType == 3);
+    if (fieldTable.length > 0) {
+        return fieldTable.findIndex(x => x.request_formd_id == formd_id);
+    }
+    return 0;    
+};
 const LisFileAttachRQ = ref([]);
 const listFiles = () => {
     axios
@@ -1631,7 +1637,8 @@ onMounted(() => {
                                                             </tr>
                                                         </thead>
                                                         <tbody>
-                                                            <tr v-for="(r, indexF) in Ftables[idxForm]" :key="indexF">
+                                                            <!-- <tr v-for="(r, indexF) in Ftables[idxForm]" :key="indexF"> -->
+                                                            <tr v-for="(r, indexF) in Ftables[IndexTable(formDS_filter(d.request_formd_id), d.request_formd_id)]" :key="indexF">
                                                                 <td class="td-table-render" v-for="td in r">
                                                                     <div v-if="td.kieu_truong">
                                                                         <div v-if="td.kieu_truong == 'email' || td.kieu_truong == 'varchar' || 

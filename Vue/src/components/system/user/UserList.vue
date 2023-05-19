@@ -1066,7 +1066,7 @@ const addUser = () => {
     },
   })
     .then((response) => {
-      if (response.data.err != "1" && response.data.err == "2") {
+      if (response.data.err != "1") {
         swal.close();
         toast.success("Cập nhật User thành công!");
         //re-name and re-icon in header-bar
@@ -1076,15 +1076,7 @@ const addUser = () => {
         // }
         loadUser(true);
         closedisplayAddUser();
-      } else if( response.data.err == "2"){
-        swal.fire({
-          title: "Thông báo!",
-          text: response.data.ms,
-          icon: "error",
-          confirmButtonText: "OK",
-        });
-      }
-       else {
+      } else {
         swal.fire({
           title: "Thông báo!",
           text: "Có lỗi xảy ra, vui lòng kiểm tra lại!",

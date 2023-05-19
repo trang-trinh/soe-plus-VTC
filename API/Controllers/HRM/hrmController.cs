@@ -91,7 +91,7 @@ namespace API.Controllers.Hrm
                 }
                 #endregion
                 string JSONresult = JsonConvert.SerializeObject(tables);
-                return Request.CreateResponse(HttpStatusCode.OK, new { data = JSONresult, err = "0", proc_name = helper.debug ? proc.proc : "" });
+                return Request.CreateResponse(HttpStatusCode.OK, new { data = JSONresult, err = "0" });
             }
             catch (DbEntityValidationException e)
             {
@@ -146,7 +146,7 @@ namespace API.Controllers.Hrm
                 DateTime edate = DateTime.Now;
 
                 string JSONresult = JsonConvert.SerializeObject(tables);
-                return Request.CreateResponse(HttpStatusCode.OK, new { data = JSONresult, err = "0", proc_name = helper.debug ? proc.proc : "" });
+                return Request.CreateResponse(HttpStatusCode.OK, new { data = JSONresult, err = "0" });
             }
             catch (DbEntityValidationException e)
             {

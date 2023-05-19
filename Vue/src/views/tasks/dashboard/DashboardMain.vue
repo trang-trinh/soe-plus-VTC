@@ -206,7 +206,6 @@ onMounted(() => {
 }*/
 .active {
   background-color: #f18636;
-  border: 1px solid #f18636;
 }
 
 ::v-deep(.p-splitbutton-item) {

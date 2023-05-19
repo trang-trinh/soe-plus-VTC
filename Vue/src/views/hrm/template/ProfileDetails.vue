@@ -80,7 +80,6 @@ export default {
         // //<iframe id="IframeDoc" frameborder='0' style="width:100%;height:1005"/>
         // window.open(url);
         if (obj.id) {
-           
           initBaocao(obj.id);
           pars.value = obj.par || {};
         }

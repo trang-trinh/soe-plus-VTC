@@ -71,7 +71,6 @@ namespace API.Controllers.HRM.Category
                         fdpayroll = provider.FormData.GetValues("hrm_payroll").SingleOrDefault();
                         hrm_payroll payroll = JsonConvert.DeserializeObject<hrm_payroll>(fdpayroll);
                         bool super = claims.Where(p => p.Type == "super").FirstOrDefault()?.Value == "True";
-
                         payroll.organization_id = int.Parse(dvid);
                         payroll.created_by = uid;
                         payroll.created_date = DateTime.Now;
@@ -79,22 +78,11 @@ namespace API.Controllers.HRM.Category
                         payroll.created_token_id = tid;
                         db.hrm_payroll.Add(payroll);
                         db.SaveChanges();
-                        foreach (var item in payroll.list_profile_id.Split(','))
-                        {
-                            var puser = new hrm_payroll_user();
-                            puser.is_data = null;
-                            puser.organization_id = payroll.organization_id;
-                            puser.payroll_id = payroll.payroll_id;
-                            puser.profile_id = item;
-                            puser.created_by = uid;
-                            puser.created_date = DateTime.Now;
-                            puser.created_ip = ip;
-                            db.hrm_payroll_user.Add(puser);
-                            db.SaveChanges();
-                        }
+
                         #region add hrm_log
                         if (helper.wlog)
                         {
+
                             hrm_log log = new hrm_log();
                             log.title = "Thêm bảng lương " + payroll.payroll_name;
 
@@ -180,40 +168,20 @@ namespace API.Controllers.HRM.Category
                         }
                         fdpayroll = provider.FormData.GetValues("hrm_payroll").SingleOrDefault();
                         hrm_payroll payroll = JsonConvert.DeserializeObject<hrm_payroll>(fdpayroll);
+
+
+
+
+
+
                         payroll.modified_by = uid;
                         payroll.modified_date = DateTime.Now;
                         payroll.modified_ip = ip;
                         payroll.modified_token_id = tid;
                         db.Entry(payroll).State = EntityState.Modified;
                         db.SaveChanges();
-                     
-                        foreach (var item in payroll.list_profile_id.Split(','))
-                        {
-                            var das = db.hrm_payroll_user.Where(a => a.payroll_id == payroll.payroll_id && a.profile_id == item).FirstOrDefault();
-                            if (das == null)
-                            {
-                                var puser = new hrm_payroll_user();
-                                puser.organization_id = payroll.organization_id;
-                                puser.is_data = null;
-                                puser.payroll_id = payroll.payroll_id;
-                                puser.profile_id = item;
-                                puser.created_by = uid;
-                                puser.created_date = DateTime.Now;
-                                puser.created_ip = ip;
-                                db.hrm_payroll_user.Add(puser);
-                                db.SaveChanges();
-                            }
-                        }
-                        var dase = db.hrm_payroll_user.Where(a => a.payroll_id == payroll.payroll_id).ToList();
-                        foreach (var item in dase)
-                        {
-                            if (payroll.list_profile_id.Contains(item.profile_id) == false)
-                            {
 
-                                db.hrm_payroll_user.Remove(item);
-                                db.SaveChanges();
-                            }
-                        }
+
                         #region add hrm_log
                         if (helper.wlog)
                         {

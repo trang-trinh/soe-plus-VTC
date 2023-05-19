@@ -75,34 +75,7 @@ const saveModel = () => {
     });
     return;
   }
-  if (insurance_pays.value.length >= 2) {
-    let count_duplicate = 0;
-    for (let i = 0; i < insurance_pays.value.length - 1; i++) {
-      for (let j = i + 1; j < insurance_pays.value.length; j++) {
-        if (
-          !isEmpty(insurance_pays.value[i].start_date) &&
-          !isEmpty(insurance_pays.value[i].end_date) &&
-          !isEmpty(insurance_pays.value[j].start_date) &&
-          !isEmpty(insurance_pays.value[j].end_date) &&
-          isMonth(
-            insurance_pays.value[i],
-            insurance_pays.value[j]
-          )
-        ) {
-          count_duplicate++;
-        }
-      }
-      if (count_duplicate > 0) {
-        swal.fire({
-          title: "Thông báo!",
-          text: "Vui lòng nhập tháng đóng bảo hiểm không được trùng nhau!",
-          icon: "error",
-          confirmButtonText: "OK",
-        });
-        return;
-      }
-    }
-  }
+
   var obj = JSON.parse(JSON.stringify(insurance.value));
   var pays = JSON.parse(JSON.stringify(insurance_pays.value));
   var resolves = JSON.parse(JSON.stringify(insurance_resolves.value));
@@ -155,22 +128,20 @@ const saveModel = () => {
     });
   if (submitted.value) submitted.value = true;
 };
-const model = ref();
 const addRow = (type) => {
   //relative
   if (type == 1) {
-    model.value ={
-    start_date: new Date(), 
-    end_date: null,
-    organization_name: null, 
-    title_name: null,
-    coef_salary: null,
-    coef_allowance: null,
-    payment_form: null,
-    total_payment: null,
-    company_payment: null,
-    member_payment: null,
-  }
+    let obj = {
+      start_date: null,
+      payment_form: null,
+      reason: null,
+      end_date: null,
+      organization_payment: null,
+      total_payment: null,
+      company_payment: null,
+      member_payment: null,
+    };
+    insurance_pays.value.push(obj);
   }
   if (type == 2) {
     let obj = {
@@ -184,19 +155,6 @@ const addRow = (type) => {
     insurance_resolves.value.push(obj);
   }
 };
-const saveRowData = ()=>{
-  if(model.value.start_date == null){
-    swal.fire({
-      title: "Thông báo!",
-      text: "Vui lòng chọn tháng bắt đầu!",
-      icon: "error",
-      confirmButtonText: "OK",
-    });
-    return;
-  }
-  insurance_pays.value.push(model.value);
-  model.value = null;
-}
 const deleteRow = (idx, type) => {
   if (type == 1) {
     insurance_pays.value.splice(idx, 1);
@@ -270,15 +228,11 @@ const initData = (rf) => {
         }
         insurance.value.profile_id = props.profile.profile_id;
         //get child
-        debugger
         if (tbs[1] != null && tbs[1].length > 0) {
           insurance_pays.value = tbs[1];
           insurance_pays.value.forEach((item) => {
             if (item.start_date != null) {
               item.start_date = new Date(item.start_date);
-            }
-            if (item.end_date != null) {
-              item.end_date = new Date(item.end_date);
             }
           });
         } else {
@@ -326,22 +280,6 @@ const initData = (rf) => {
       }
     });
 };
-//check month  date
-function isMonth(data1, data2) {
-  let start1 = new Date(data1.start_date);
-  let end1 = new Date(data1.end_date);
-  let start2 = new Date(data2.start_date);
-  let end2 = new Date(data2.end_date);
-  return (start1 < end2 && end2< end1)
-  || (end1 > start2 && end1 < end2)
-  || (start1> start2 && end1< end2)
-  || (start1< start2 && end1> end2)
-    ? true
-    : false;
-}
-function isEmpty(val) {
-  return val === undefined || val == null || val.length <= 0 ? true : false;
-} 
 onMounted(() => {
   if (props.displayDialog) {
     initDictionary();
@@ -447,7 +385,7 @@ onMounted(() => {
           <div class="form-group">
             <div class="flex justify-content-between">
               <div>
-                <h3 class="m-0">2. Quá trình đóng bảo hiểm</h3>
+                <h3 class="m-0">2. Lịch sử đóng bảo hiểm</h3>
               </div>
               <div>
                 <a
@@ -468,399 +406,7 @@ onMounted(() => {
             </div>
           </div>
         </div>
-        <div v-if="model != null" class="grid formgrid m-0">
-          <div class="col-12 md:col-12">
-            <div class="form-group">
-              <label>Thời gian đóng bảo hiểm:</label>
-            </div>
-          </div>
-          <div class="col-3 md:col-3">
-            <div class="form-group">
-              <label>Từ tháng, năm <span class="redsao">(*)</span></label>
-              <Calendar
-                :showIcon="false"
-                view="month"
-                dateFormat="mm/yy"
-                class="ip36"
-                placeholder="mm/yyyy"
-                v-model="model.start_date"
-              />
-            </div>
-          </div>
-          <div class="col-3 md:col-3">
-            <div class="form-group">
-              <label>Đến tháng, năm</label>
-              <Calendar
-                :showIcon="false"
-                view="month"
-                dateFormat="mm/yy"
-                class="ip36"
-                placeholder="mm/yyyy"
-                v-model="model.end_date"
-              />
-            </div>
-          </div>
-          <div class="col-6 md:col-6">
-            <div class="form-group">
-              <label>Bậc lương</label>
-              <InputNumber
-               v-model="model.salary"
-                inputId="minmax"
-                :min="0"
-                class="ip36"
-              />
-            </div>
-          </div>
-          <div class="col-6 md:col-6">
-            <div class="form-group">
-              <label>Đơn vị đóng</label>
-              <Dropdown
-                class="ip36"
-                v-model="model.organization_name"
-                :options="dictionarys[4]"
-                optionLabel="organization_name"
-                optionValue="organization_name"
-                :editable="true"
-                placeholder="Chọn đơn vị"
-              />
-            </div>
-          </div>
-          <div class="col-6 md:col-6">
-            <div class="form-group">
-              <label>Hệ số lương</label>
-              <InputNumber
-                spellcheck="false"
-                class="ip36"
-                :min="0"
-                v-model="model.coef_salary"
-                maxLength="50"
-              />
-            </div>
-          </div>
-          <div class="col-6 md:col-6">
-            <div class="form-group">
-              <label>Chức danh</label>
-              <Dropdown
-                class="ip36"
-                v-model="model.title_name"
-                :options="dictionarys[5]"
-                optionLabel="title_name"
-                optionValue="title_name"
-                :editable="true"
-                placeholder="Chọn chức danh"
-              />
-            </div>
-          </div>
-          <div class="col-6 md:col-6">
-            <div class="form-group">
-              <label>Hệ số phụ cấp</label>
-              <InputNumber
-               v-model="model.coef_allowance"
-                inputId="minmax"
-                :min="0"
-                class="ip36"
-              />
-            </div>
-          </div>
-          <div class="col-6 md:col-6">
-            <div class="form-group">
-              <label>Hình thức đóng</label>
-              <Dropdown
-                :options="hinhthucs"
-                v-model="model.payment_form"
-                optionLabel="text"
-                optionValue="text"
-                placeholder="Chọn hình thức"
-                class="ip36"
-              />
-            </div>
-          </div>
-          <div class="col-6 md:col-6">
-            <div class="form-group">
-              <label>Mức đóng bảo hiểm</label>
-              <InputNumber
-                  spellcheck="false"
-                  mode="decimal"
-                  class="ip36 text-right input-money"
-                  v-model="model.total_payment"
-                  maxLength="250"
-                />
-            </div>
-          </div>
-          <div class="col-6 md:col-6">
-            <div class="form-group">
-              <label>Công ty đóng</label>
-              <InputNumber
-                  spellcheck="false"
-                  mode="decimal"
-                  class="ip36 text-right input-money"
-                  v-model="model.company_payment"
-                  maxLength="250"
-                />
-            </div>
-          </div>
-          <div class="col-6 md:col-6">
-            <div class="form-group">
-              <label>Nhân sự đóng</label>
-              <InputNumber
-                  spellcheck="false"
-                  mode="decimal"
-                  class="ip36 text-right input-money"
-                  v-model="model.member_payment"
-                  maxLength="250"
-                />
-            </div>
-          </div>
-          <div class="col-12 md:col-12 justify-content-end flex pb-3">
-            <Button 
-              label="Cập nhật"
-              icon="pi pi-check"
-              @click="saveRowData()"              
-            />
-          </div>
-        </div>
         <div class="col-12 md:col-12">
-          <DataTable
-            :value="insurance_pays"
-            :scrollable="true"
-            :lazy="true"
-            :rowHover="true"
-            :showGridlines="true"
-            scrollDirection="both"
-          >
-            <Column
-              header=""
-              headerStyle="text-align:center;width:50px"
-              bodyStyle="text-align:center;width:50px"
-              class="align-items-center justify-content-center text-center"
-            >
-              <template #body="slotProps">
-                <a
-                  @click="deleteRow(slotProps.index, 1)"
-                  class="hover"
-                  v-tooltip.top="'Xóa'"
-                >
-                  <i class="pi pi-times-circle" style="font-size: 18px"></i>
-                </a>
-              </template>
-            </Column>
-            <Column
-              field="start_date"
-              header="Từ tháng"
-              headerStyle="text-align:center;width:120px;height:50px"
-              bodyStyle="text-align:center;width:120px;"
-              class="align-items-center justify-content-center text-center"
-            >
-              <template #body="slotProps">
-                <Calendar
-                  v-model="slotProps.data.start_date"
-                  :showIcon="false"
-                  view="month"
-                  dateFormat="mm/yy"
-                  class="ip36"
-                  placeholder="mm/yyyy"
-                />
-              </template>
-            </Column>
-            <Column
-              field="end_date"
-              header="Đến tháng"
-              headerStyle="text-align:center;width:120px;height:50px"
-              bodyStyle="text-align:center;width:120px;"
-              class="align-items-center justify-content-center text-center"
-            >
-              <template #body="slotProps">
-                <Calendar
-                  v-model="slotProps.data.end_date"
-                  :showIcon="false"
-                  view="month"
-                  dateFormat="mm/yy"
-                  class="ip36"
-                  placeholder="mm/yyyy"
-                />
-              </template>
-            </Column>
-            <Column
-              field="salary"
-              header="Bậc lương"
-              headerStyle="text-align:center;width:120px;height:50px"
-              bodyStyle="text-align:center;width:120px;"
-              class="align-items-center justify-content-center text-center"
-            >
-              <template #body="slotProps">
-                <InputNumber
-                  v-model="slotProps.data.salary"
-                  inputId="minmax"
-                  :min="0"
-                  class="ip36"
-                  />                
-              </template>
-            </Column>
-            <Column
-              field="organization_name"
-              header="Đơn vị"
-              headerStyle="text-align:center;width:150px;height:50px"
-              bodyStyle="text-align:center;width:150px;"
-              class="align-items-center justify-content-center text-center"
-            >
-              <template #body="slotProps">
-                <div class="form-group m-0">
-                  <Dropdown
-                    :options="dictionarys[4]"
-                    v-model="slotProps.data.organization_name"
-                    optionLabel="organization_name"
-                    optionValue="organization_name"
-                    placeholder="Chọn đơn vị đóng"
-                    :editable="true"
-                    class="ip36"
-                    :style="{
-                      whiteSpace: 'nowrap',
-                      overflow: 'hidden',
-                      textOverflow: 'ellipsis',
-                    }"
-                  />
-                </div>
-              </template>
-            </Column>
-            <Column
-              field="coef_salary"
-              header="Hệ số lương"
-              headerStyle="text-align:center;width:120px;height:50px"
-              bodyStyle="text-align:center;width:120px;"
-              class="align-items-center justify-content-center text-center"
-            >
-              <template #body="slotProps">
-                <InputNumber
-                  v-model="slotProps.data.coef_salary"
-                  inputId="minmax"
-                  :min="0"
-                  class="ip36"
-                  />                
-              </template>
-            </Column>
-            <Column
-              field="title_name"
-              header="Chức danh"
-              headerStyle="text-align:center;width:150px;height:50px"
-              bodyStyle="text-align:center;width:150px;"
-              class="align-items-center justify-content-center text-center"
-            >
-              <template #body="slotProps">
-                <div class="form-group m-0">
-                  <Dropdown
-                    :options="dictionarys[5]"
-                    v-model="slotProps.data.title_name"
-                    optionLabel="title_name"
-                    optionValue="title_name"
-                    placeholder="Chọn chức danh"
-                    :editable="true"
-                    class="ip36"
-                    :style="{
-                      whiteSpace: 'nowrap',
-                      overflow: 'hidden',
-                      textOverflow: 'ellipsis',
-                    }"
-                  />
-                </div>
-              </template>
-            </Column>
-            <Column
-              field="coef_allowance"
-              header="Hệ số phụ cấp"
-              headerStyle="text-align:center;width:120px;height:50px"
-              bodyStyle="text-align:center;width:120px;"
-              class="align-items-center justify-content-center text-center"
-            >
-              <template #body="slotProps">
-                <InputNumber
-                  v-model="slotProps.data.coef_allowance"
-                  inputId="minmax"
-                  :min="0"
-                  class="ip36"
-                  />                
-              </template>
-            </Column>
-            <Column
-              field="payment_form"
-              header="Hình thức đóng"
-              headerStyle="text-align:center;width:150px;height:50px"
-              bodyStyle="text-align:center;width:150px;"
-              class="align-items-center justify-content-center text-center"
-            >
-              <template #body="slotProps">
-                <div class="form-group m-0">
-                  <Dropdown
-                    :options="hinhthucs"
-                    v-model="slotProps.data.payment_form"
-                    optionLabel="text"
-                    optionValue="text"
-                    placeholder="Chọn hình thức"
-                    class="ip36"
-                    :style="{
-                      whiteSpace: 'nowrap',
-                      overflow: 'hidden',
-                      textOverflow: 'ellipsis',
-                    }"
-                  />
-                </div>
-              </template>
-            </Column>
-            <Column
-              field="total_payment"
-              header="Mức đóng"
-              headerStyle="text-align:center;width:150px;height:50px"
-              bodyStyle="text-align:center;width:150px;"
-              class="align-items-center justify-content-center text-center"
-            >
-              <template #body="slotProps">
-                <InputNumber
-                  spellcheck="false"
-                  mode="decimal"
-                  class="ip36 text-right input-money"
-                  v-model="slotProps.data.total_payment"
-                  maxLength="250"
-                />
-              </template>
-            </Column>
-            <Column
-              field="payment_form"
-              header="Công ty đóng"
-              headerStyle="text-align:center;width:150px;height:50px"
-              bodyStyle="text-align:center;width:150px;"
-              class="align-items-center justify-content-center text-center"
-            >
-              <template #body="slotProps">
-                <div class="form-group m-0">
-                  <InputNumber
-                  mode="decimal"
-                  spellcheck="false"
-                  class="ip36 text-right input-money"
-                  v-model="slotProps.data.organization_payment"
-                  maxLength="250"
-                />
-                </div>
-              </template>
-            </Column>
-            <Column
-              field="reason"
-              header="Nhân sự đóng"
-              headerStyle="text-align:center;width:150px;height:50px"
-              bodyStyle="text-align:center;width:150px;"
-              class="align-items-center justify-content-center text-center"
-            >
-              <template #body="slotProps">
-                <InputNumber
-                  mode="decimal"
-                  spellcheck="false"
-                  class="ip36 text-right input-money"
-                  v-model="slotProps.data.member_payment"
-                  maxLength="250"
-                />
-              </template>
-            </Column>
-          </DataTable>
-        </div>
-        <!-- <div class="col-12 md:col-12">
           <DataTable
             :value="insurance_pays"
             :scrollable="true"
@@ -1013,7 +559,7 @@ onMounted(() => {
               </template>
             </Column>
           </DataTable>
-        </div> -->
+        </div>
         <div class="col-12 md:col-12">
           <div class="form-group">
             <div class="flex justify-content-between">
@@ -1067,8 +613,8 @@ onMounted(() => {
             <Column
               field="payment_form"
               header="Loại chế độ"
-              headerStyle="text-align:center;width:180px;height:50px"
-              bodyStyle="text-align:center;width:180px;"
+              headerStyle="text-align:center;width:150px;height:50px"
+              bodyStyle="text-align:center;width:150px;"
               class="align-items-center justify-content-center text-center"
             >
               <template #body="slotProps">
@@ -1103,8 +649,8 @@ onMounted(() => {
             <Column
               field="completed_date"
               header="Ngày hoàn thiện thủ tục"
-              headerStyle="text-align:center;width:200px;height:50px"
-              bodyStyle="text-align:center;width:200px;"
+              headerStyle="text-align:center;width:160px;height:50px"
+              bodyStyle="text-align:center;width:160px;"
               class="align-items-center justify-content-center text-center"
             >
               <template #body="slotProps">
@@ -1119,8 +665,8 @@ onMounted(() => {
             <Column
               field="received_money_date"
               header="Ngày nhận tiền BH trả"
-              headerStyle="text-align:center;width:200px;height:50px"
-              bodyStyle="text-align:center;width:200px;"
+              headerStyle="text-align:center;width:150px;height:50px"
+              bodyStyle="text-align:center;width:150px;"
               class="align-items-center justify-content-center text-center"
             >
               <template #body="slotProps">

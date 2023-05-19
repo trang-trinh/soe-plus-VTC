@@ -2123,12 +2123,12 @@ const router = createRouter({
       component: ReportDetail,
     },
     {
-      path: "/hrm/profile/report/:id",
+      path: "/report/:id",
       name: "/report/profiledetails",
       component: ProfileDetail,
     },
     {
-      path: "/hrm/payroll/hrm_payroll/details/:id",
+      path: "/hrm/payroll/details/:id",
       name: "/payroll/payrolldetails",
       component: PayrollDetails,
     },

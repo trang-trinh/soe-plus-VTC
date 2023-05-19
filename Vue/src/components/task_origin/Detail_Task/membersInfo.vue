@@ -1,6 +1,8 @@
 <script setup>
 import { ref, inject, onMounted } from "vue";
 import { useToast } from "vue-toastification";
+import { useVuelidate } from "@vuelidate/core";
+import { required } from "@vuelidate/validators";
 import { encr } from "../../../util/function.js";
 import moment from "moment";
 const cryoptojs = inject("cryptojs");
@@ -8,6 +10,7 @@ const axios = inject("axios"); // inject axios
 const store = inject("store");
 const swal = inject("$swal");
 const toast = useToast();
+const router = inject("router");
 const emitter = inject("emitter");
 const config = {
   headers: { Authorization: `Bearer ${store.getters.token}` },
@@ -23,7 +26,10 @@ const bgColor = ref([
   "#CCADD7",
   "#FF88D3",
 ]);
-const model = ref([]);
+const model = ref({
+  point: "",
+  comments: "",
+});
 const configMember = ref();
 const user = store.getters.user;
 const loadConfig = () => {
@@ -47,7 +53,11 @@ const loadConfig = () => {
       configMember.value =
         data.length > 0
           ? data[0]
-          : { manager: 0, executors: 0, co_executors: 0, supervisor: 0 };
+          : {
+              executors: 0,
+              co_executors: 0,
+              supervisor: 0,
+            };
     })
     .catch((error) => {
       toast.error("Tải dữ liệu không thành công!");
@@ -139,11 +149,6 @@ const props = defineProps({
   isType: Intl,
   isClose: Boolean,
 });
-const avgg = function (items, prop) {
-  return items.reduce(function (a, b) {
-    return a + b[prop];
-  }, 0);
-};
 const isHaveData = ref(false);
 const LoadMember = (type) => {
   axios
@@ -155,7 +160,7 @@ const LoadMember = (type) => {
             proc: "task_member_get",
             par: [
               { par: "id", va: props.id },
-              { par: "type", va: null },
+              { par: "type", va: type },
             ],
           }),
           SecretKey,
@@ -166,7 +171,7 @@ const LoadMember = (type) => {
     )
     .then((response) => {
       let mem = JSON.parse(response.data.data)[0];
-      let countMem = JSON.parse(response.data.data)[1];
+      let countMem = JSON.parse(response.data.data)[2];
       let countMemType0 = JSON.parse(response.data.data)[3];
       let countMemType1 = JSON.parse(response.data.data)[4];
       let countMemType2 = JSON.parse(response.data.data)[5];
@@ -174,7 +179,7 @@ const LoadMember = (type) => {
       members.value = mem;
       // member;
       ngv.value = countMemType0[0].countType0;
-      allMembers.value = countMem[0].count;
+      allMembers.value = countMem[0].countAll;
       nth.value = countMemType1[0].countType1;
       ndth.value = countMemType2[0].countType2;
       ntd.value = countMemType3[0].countType3;
@@ -202,34 +207,6 @@ const LoadMember = (type) => {
         element.STTTH = null;
         element.STTDTH = null;
         element.STTTD = null;
-        element.icon =
-          element.is_type == 0
-            ? "pi pi-user"
-            : element.is_type == 1
-            ? "pi pi-user-edit"
-            : element.is_type == 2
-            ? "pi pi-user-edit"
-            : element.is_type == 3
-            ? "pi pi-users"
-            : "";
-        element.tag =
-          element.is_type == 0
-            ? "Người giao việc"
-            : element.is_type == 1
-            ? "Người xử lý chính"
-            : element.is_type == 2
-            ? "Người đồng xử lý"
-            : element.is_type == 3
-            ? "Người theo dõi"
-            : "";
-        element.tag_bg =
-          element.is_type == 0
-            ? "#337ab7"
-            : element.is_type == 1 || element.is_type == 2
-            ? "#5cb85c"
-            : element.is_type == 3
-            ? "#5bc0de"
-            : "";
         element.tooltip =
           element.full_name +
           ("<br/>" + (element.positions ?? "") != "<br/>"
@@ -277,48 +254,10 @@ const LoadMember = (type) => {
         }
       });
       var byDate = members.value.slice(0);
-
       byDate.sort(function (a, b) {
         return a.is_type - b.is_type;
       });
-      let listUser = [];
-      byDate.forEach((x) => {
-        let userss = {
-          avt: x.avt,
-          department_name: x.department_name,
-          full_name: x.full_name,
-          organiztion_name: x.organiztion_name,
-          positions: x.positions,
-          tooltip: x.tooltip,
-          user_id: x.user_id,
-        };
-        if (listUser.filter((y) => y.user_id === userss.user_id).length < 1) {
-          listUser.push(userss);
-        }
-      });
-      listUser.forEach((x) => {
-        x.listType = [];
-        let filter = byDate.filter((a) => a.user_id === x.user_id);
-        x.data = JSON.parse(JSON.stringify(filter));
-
-        if (filter.length > 0) {
-          filter.forEach((k) => {
-            x.listType.push(k.is_type);
-          });
-          x.sumAvg = avgg(filter, "point") / filter.length;
-        } else x.sumAvg = null;
-      });
-
-      if (type == null) {
-        members.value = JSON.parse(JSON.stringify(listUser));
-      } else {
-        members.value = JSON.parse(
-          JSON.stringify(
-            listUser.filter((x) => x.listType.includes(type) == true),
-          ),
-        );
-      }
-
+      members.value = byDate;
       isHaveData.value = members.value.length > 0 ? true : false;
     })
     .catch((error) => {
@@ -334,7 +273,7 @@ const LoadMember = (type) => {
 };
 const ListUser = ref([]);
 const selectedUser = ref();
-const LoadUser = () => {
+const LoadUser = (event) => {
   //   if (event == null) {
   //     event.query = null;
   //   }
@@ -374,7 +313,7 @@ const LoadUser = () => {
     .then((response) => {
       let data = JSON.parse(response.data.data)[0];
       data.forEach((x) => {
-        x.fname = x.full_name;
+        x.fnema = x.full_name;
       });
       ListUser.value = data;
     })
@@ -464,17 +403,7 @@ const addMember = (event) => {
 };
 const Update_Point = () => {
   let formData = new FormData();
-  let list = [];
-  model.value.forEach((m) => {
-    if (m.data.length > 0)
-      m.data.forEach((d) => {
-        d.point = m.sumAvg;
-        d.comments = m.comments;
-        list.push(d);
-      });
-  });
-
-  formData.append("member", JSON.stringify(list));
+  formData.append("member", JSON.stringify(model.value));
   axios
     .put(baseURL + "/api/task_Member/Update_Member_Info", formData, {
       headers: { Authorization: `Bearer ${store.getters.token}` },
@@ -483,7 +412,7 @@ const Update_Point = () => {
       if (response.data.err != "1") {
         toast.success("Cập nhật thành viên công việc thành công!");
         visibleDialog.value = false;
-        Switch(indexTab.value);
+        Switch(index.value);
       } else {
         let ms = response.data.ms;
         swal.fire({
@@ -505,24 +434,8 @@ const Update_Point = () => {
     });
 };
 const delMember = (user) => {
-  let type =
-    NguoiXuLy.value == true
-      ? 1
-      : NguoiDongXuLy.value == true
-      ? 2
-      : NguoiTheoDoi.value == true
-      ? 3
-      : null;
   let id = [];
-  if (type != null) {
-    id.push(user.data.filter((x) => x.is_type === type)[0].member_id);
-  } else {
-    user.data
-      .filter((x) => x.is_type != type)
-      .forEach((u) => {
-        id.push(u.member_id);
-      });
-  }
+  id.push(user.member_id);
   swal
     .fire({
       title: "Thông báo",
@@ -585,58 +498,38 @@ const delMember = (user) => {
     });
 };
 const tabs = ref([]);
-const indexTab = ref();
+const index = ref();
 const changeTab = (e) => {
   Switch(tabs.value[e].va);
-  indexTab.value = tabs.value[e].va;
+  index.value = tabs.value[e].va;
 };
 const headerDialog = ref();
 const visibleDialog = ref(false);
 const Point = (e) => {
   visibleDialog.value = true;
-  is_multiple.value = true;
   headerDialog.value = "Đánh giá thành viên";
-  model.value = JSON.parse(JSON.stringify(members.value.filter((x) => x == e)));
-  let arr = Object.values(configMember.value);
-  arr = arr.filter((x) => typeof x === "number");
-  let min = Math.min(...arr);
-  let max = Math.max(...arr);
-  model.value.forEach((z) => {
-    z.sumAvg = z.sumAvg > 0 ? z.sumAvg : max;
-  });
+  model.value = JSON.parse(JSON.stringify(e));
+  if (model.value.is_type == 1) {
+    model.value.point = configMember.value.executors;
+  }
+  if (model.value.is_type == 2) {
+    model.value.point = configMember.value.co_executors;
+  }
+  if (model.value.is_type == 3) {
+    model.value.point = configMember.value.supervisor;
+  }
 };
 onMounted(() => {
   Switch(props.isType ? props.isType : 1);
   loadConfig();
 });
-const is_multiple = ref(false);
-const OpenMultiple = () => {
-  visibleDialog.value = true;
-  headerDialog.value = "Đánh giá thành viên";
-  is_multiple.value = true;
-  model.value = [];
-  model.value = JSON.parse(JSON.stringify(members.value));
-  let arr = Object.values(configMember.value);
-  let min = Math.min(...arr);
-  let max = Math.max(...arr);
-  model.value.forEach((z) => {
-    z.sumAvg = z.sumAvg > 0 ? z.sumAvg : max;
-  });
-};
 </script>
 <template>
   <div>
-    <div class="grid relative">
-      <Button
-        class="right-0 absolute z-5 my-2 mx-3"
-        label="Đánh giá"
-        icon="pi pi-user-edit"
-        @click="OpenMultiple()"
-      ></Button>
-
+    <div class="grid">
       <TabView
         @tab-change="changeTab($event.index)"
-        class="w-full px-3"
+        class="w-full"
       >
         <TabPanel
           v-for="(item, index) in tabs"
@@ -677,7 +570,7 @@ const OpenMultiple = () => {
                       :label="
                         slotProps.item.avatar
                           ? ''
-                          : slotProps.item.fname
+                          : slotProps.item.fnema
                               .split(' ')
                               .at(-1)
                               .substring(0, 1)
@@ -696,13 +589,13 @@ const OpenMultiple = () => {
                   <div class="col-9">
                     <div class="col-12">
                       <span class="font-bold text-xl text-indigo-700">
-                        {{ slotProps.item.fname }}
+                        {{ slotProps.item.fnema }}
                       </span>
                     </div>
-                    <div class="col-12 py-1">
+                    <div class="col-12 pt-0">
                       {{ slotProps.item.tenChucVu }}
                     </div>
-                    <div class="col-12 py-1">
+                    <div class="col-12 pt-0">
                       {{
                         slotProps.item.department_name
                           ? slotProps.item.department_name
@@ -752,64 +645,51 @@ const OpenMultiple = () => {
                     shape="circle"
                   />
                 </div>
-                <div class="col-8">
+                <div class="col-9">
                   <div class="col-12">
                     <span class="font-bold text-xl text-indigo-700">{{
                       m.full_name
                     }}</span>
+                    <span class="text-500 font-300">
+                      {{
+                        " " +
+                        moment(new Date(m.created_date)).format(
+                          "HH:mm DD/MM/YYYY",
+                        )
+                      }}
+                    </span>
                   </div>
-                  <div class="col-12 py-1">{{ m.positions }}</div>
-                  <div class="col-12 py-1">
+                  <div class="col-12 pt-0">{{ m.positions }}</div>
+                  <div class="col-12 pt-0">
                     {{
                       m.department_name ? m.department_name : m.organiztion_name
                     }}
                   </div>
-                  <div class="col-12 py-1">
-                    <span
-                      class="tag-custom"
-                      v-for="(item, indexItem) in m.data"
-                      :key="indexItem"
-                    >
-                      <Tag
-                        :style="{ background: item.tag_bg }"
-                        :icon="item.icon"
-                        :value="item.tag"
-                      ></Tag>
-                    </span>
-                  </div>
-                </div>
-                <div class="col-1 flex align-items-center justify-content-end">
-                  <span v-if="m.sumAvg > 0">{{ m.sumAvg + " %" }}</span>
                 </div>
                 <div
-                  class="col-2 flex align-items-center justify-content-end"
+                  class="col-2 format-center"
                   v-if="
                     props.isClose == false &&
+                    !TatCa &&
+                    !NguoiQuanLy &&
                     (memberType == 0 ||
                       memberType1 == 0 ||
                       memberType2 == 0 ||
                       memberType3 == 0)
                   "
                 >
-                  <div>
-                    <Button
-                      icon="p-custom pi pi-user-edit"
-                      class="p-button-raised p-button-text p-custom mx-1"
-                      v-tooltip="'Đánh giá thành viên'"
-                      @click="Point(m)"
-                    />
-                    <Button
-                      v-if="m.listType.includes(0) == false"
-                      icon="p-custom pi pi-trash"
-                      class="p-button-raised p-button-text p-custom mx-1"
-                      @click="delMember(m, indexTab)"
-                      v-tooltip="'Xóa thành viên'"
-                    />
-                    <div
-                      v-else
-                      class="h-full p-button p-component p-button-text mx-1"
-                    ></div>
-                  </div>
+                  <Button
+                    icon="p-custom pi pi-user-edit"
+                    class="p-button-raised p-button-text p-custom mx-1"
+                    v-tooltip="'Đánh giá thành viên'"
+                    @click="Point(m)"
+                  />
+                  <Button
+                    icon="p-custom pi pi-trash"
+                    class="p-button-raised p-button-text p-custom mx-1"
+                    @click="delMember(m)"
+                    v-tooltip="'Xóa thành viên'"
+                  />
                 </div>
               </div>
             </ScrollPanel>
@@ -834,9 +714,9 @@ const OpenMultiple = () => {
     modal
     :closable="false"
     dismissableMask
-    style="width: 55vw"
+    style="width: 40vw"
   >
-    <form v-if="is_multiple == false">
+    <form>
       <div class="col-12 flex">
         <div class="col-4 flex align-items-center">Điểm đánh giá</div>
         <InputNumber
@@ -858,91 +738,6 @@ const OpenMultiple = () => {
             class="w-full"
             autoResize
             v-model="model.comments"
-          ></Textarea>
-        </div>
-      </div>
-    </form>
-    <form v-else>
-      <div
-        class="row col-12 flex p-0 m-0"
-        style="border-bottom: 1px solid #ccc"
-      >
-        <div class="col-1 format-center p-0 m-0"></div>
-        <div class="col-6 text-center">Thông tin thành viên</div>
-        <div class="col-2 text-center">Điểm đánh giá</div>
-        <div class="col-3 text-center">Nội dung đánh giá</div>
-      </div>
-      <div
-        class="row col-12 flex p-0 m-0 my-div"
-        v-for="(m, index) in model"
-        :key="m"
-        style="border-bottom: 1px solid #ccc"
-      >
-        <div class="col-1 format-center p-0 m-0">
-          <Avatar
-            @error="
-              $event.target.src = basedomainURL + '/Portals/Image/nouser1.png'
-            "
-            v-tooltip.right="{
-              value: m.tooltip,
-              escape: true,
-              fitContent: true,
-            }"
-            v-bind:label="
-              m.avt ? '' : m.full_name.split(' ').at(-1).substring(0, 1)
-            "
-            v-bind:image="basedomainURL + m.avt"
-            style="color: #ffffff; cursor: pointer"
-            :style="{
-              background: bgColor[index % 7],
-              border: '2px solid' + bgColor[index % 7],
-            }"
-            class="col-2 p-0 m-0"
-            size="large"
-            shape="circle"
-          />
-        </div>
-        <div class="col-6">
-          <div class="col-12">
-            <span class="font-bold text-xl text-indigo-700">{{
-              m.full_name
-            }}</span>
-          </div>
-          <div class="col-12 py-1">{{ m.positions }}</div>
-          <div class="col-12 py-1">
-            {{ m.department_name ? m.department_name : m.organiztion_name }}
-          </div>
-          <div class="col-12 py-1">
-            <span
-              class="mx-1"
-              v-for="(item, indexItem) in m.data"
-              :key="indexItem"
-            >
-              <Tag
-                :style="{ background: item.tag_bg }"
-                :icon="item.icon"
-                :value="item.tag"
-              ></Tag>
-            </span>
-          </div>
-        </div>
-
-        <InputNumber
-          class="col-2 format-center"
-          suffix=" %"
-          mode="decimal"
-          :minFractionDigits="2"
-          :useGrouping="false"
-          v-model="m.sumAvg"
-          v-tooltip="'Mức hoàn thành công việc'"
-        >
-        </InputNumber>
-
-        <div class="col-3 format-center">
-          <Textarea
-            class="w-full h-full"
-            autoResize
-            v-model="m.comments"
           ></Textarea>
         </div>
       </div>
@@ -1011,11 +806,5 @@ const OpenMultiple = () => {
   &.my-panel {
     max-height: 30vh !important;
   }
-}
-.tag-custom {
-  margin: 0rem 1rem;
-}
-.tag-custom:first-child {
-  margin-left: 0;
 }
 </style>

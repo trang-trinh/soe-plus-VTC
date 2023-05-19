@@ -73,6 +73,7 @@ const execSQL = async (id) => {
 };
 const configBaocao = async (row) => {
   axios;
+
   swal.fire({
     width: 110,
     didOpen: () => {
