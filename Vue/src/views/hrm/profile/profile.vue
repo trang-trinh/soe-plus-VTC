@@ -1,5 +1,5 @@
 <script setup>
-import { onMounted, inject, ref, watch } from "vue";
+import { onMounted, inject, ref, watch, nextTick } from "vue";
 import { encr } from "../../../util/function";
 import { useToast } from "vue-toastification";
 import dilogprofile from "../profile/component/dilogprofile.vue";
@@ -34,6 +34,7 @@ const options = ref({
   search: "",
   pageNo: 1,
   pageSize: 25,
+  limitItem: 25,
   total: 0,
   sort: "created_date desc",
   orderBy: "desc",
@@ -54,6 +55,7 @@ const options = ref({
 const isFilter = ref(false);
 const isFirst = ref(true);
 const datas = ref([]);
+const dataLimits = ref([]);
 const counts = ref([]);
 const profile = ref({});
 const selectedNodes = ref({});
@@ -581,18 +583,6 @@ const editItem = (item, str) => {
         }
         if (tbs[2] != null && tbs[2].length > 0) {
           tbs[2].forEach((x) => {
-            if (x["start_date"] != null) {
-              x["start_date"] = new Date(x["start_date"]);
-            }
-            if (x["end_date"] != null) {
-              x["end_date"] = new Date(x["end_date"]);
-            }
-            if (x["degree_date"] != null) {
-              x["degree_date"] = new Date(x["degree_date"]);
-            }
-            if (x["graduation_year"] != null) {
-              x["graduation_year"] = new Date(x["graduation_year"]);
-            }
             if (x["certificate_start_date"] != null) {
               x["certificate_start_date"] = new Date(
                 x["certificate_start_date"]
@@ -1501,6 +1491,8 @@ const initDataFilter = () => {
   if (options.value.tags != null && options.value.tags.length > 0) {
     tags = options.value.tags.map((x) => x["tags_id"]).join(",");
   }
+  datas.value = [];
+  dataLimits.value = [];
   axios
     .post(
       baseURL + "/api/hrm/callProc",
@@ -1570,13 +1562,27 @@ const initDataFilter = () => {
               }
             });
             datas.value = data[0];
+            dataLimits.value = data[0].slice(0, options.value.limitItem);
+            var temp = groupBy(data[0], "department_id");
+            for (let k in temp) {
+              var obj = {
+                department_id: k,
+                department_name: temp[k][0].department_name,
+                organization_id: temp[k][0].organization_id,
+                list: temp[k],
+              };
+              arr.push(obj);
+            }
             if (data[1] != null && data[1].length > 0) {
               options.value.total = data[1][0].total;
             }
           } else {
-            datas.value = [];
+            arr = [];
             options.value.total = 0;
           }
+          treeOrganization.value.forEach((o) => {
+            o.list = arr.filter((dp) => dp.department_id == o.organization_id);
+          });
         }
       }
       if (isFirst.value) isFirst.value = false;
@@ -1665,6 +1671,7 @@ const initData = (ref) => {
     return;
   }
   datas.value = [];
+  dataLimits.value = [];
   axios
     .post(
       baseURL + "/api/hrm/callProc",
@@ -1730,6 +1737,7 @@ const initData = (ref) => {
               }
             });
             datas.value = data[0];
+            dataLimits.value = data[0].slice(0, options.value.limitItem);
             var temp = groupBy(data[0], "department_id");
             for (let k in temp) {
               var obj = {
@@ -1795,18 +1803,39 @@ const refresh = () => {
   //   view_copy: 1,
   //   filterProfile_id: null,
   // };
+  options.value.limitItem = 25;
   isFilter.value = false;
   initCount();
   initTreeOrganization();
   //initData(true);
 };
 onMounted(() => {
-  //initPlace();
-  initDictionary();
-  initCount();
-  initTreeOrganization();
-  //initData(true);
+  nextTick(() => {
+    //initPlace();
+    initDictionary();
+    initCount();
+    initTreeOrganization();
+    //initData(true);
+
+    const el = document.getElementById("buffered-scroll");
+    if (el) {
+      el.addEventListener("scroll", (event) => {
+        const scrollTop = el.scrollTop;
+        const scrollHeight = el.scrollHeight;
+        const offsetHeight = el.offsetHeight;
+        if (scrollTop >= scrollHeight - offsetHeight - 50) {
+          loadMoreRow(datas.value);
+        }
+      });
+    }
+  });
 });
+const loadMoreRow = (data) => {
+  if (options.value.limitItem + 25 < data.length) {
+    options.value.limitItem += 25;
+    dataLimits.value = datas.value.slice(0, options.value.limitItem);
+  }
+};
 // const test = () => {
 //   var str = encr(
 //     JSON.stringify({
@@ -2467,8 +2496,8 @@ onMounted(() => {
         </ul>
       </div>
     </div>
-    <div v-if="options.view === 1" class="d-lang-table">
-      <DataTable
+    <div v-if="options.view === 1" id="buffered-scroll" class="d-lang-table">
+      <!-- <DataTable
         @rowSelect="
           (event) => {
             goProfile(event.data);
@@ -2481,6 +2510,19 @@ onMounted(() => {
         selectionMode="single"
         dataKey="profile_id"
         scrollHeight="calc(100vh - 170px)"
+        class="disable-header"
+      > -->
+      <DataTable
+        @rowSelect="
+          (event) => {
+            goProfile(event.data);
+          }
+        "
+        :value="dataLimits"
+        :virtualScrollerOptions="{ itemSize: 78 }"
+        v-model:selection="selectedNodes"
+        selectionMode="single"
+        dataKey="profile_id"
         class="disable-header"
       >
         <Column
