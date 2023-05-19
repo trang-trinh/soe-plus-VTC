@@ -43,6 +43,7 @@ export default {
     isedit: Boolean,
     readonly: Boolean,
     callbackFun: Function,
+    header:String
   },
   components: {
     Editor,
@@ -67,7 +68,7 @@ export default {
     //refChild
     const isedit = props.isedit || false;
     const onedata = props.onedata;
-
+    const header = props.header|| null;
     const isUrlReport = ref(props.pars ? true : false);
     const readonly = ref(props.readonly ? true : false);
     const isReportListView = ref(
@@ -1264,6 +1265,7 @@ export default {
               dr.ok = false;
               objt.is_data = null;
             }
+
             props.callbackFun(objt);
           });
           isdataSidebar.value = false;
@@ -1506,7 +1508,7 @@ export default {
     const initDataTempAuto = async (tf) => {
       if (!isUrlReport.value) {
         let dts = await goProc(
-          true,
+          false,
           `soe_user_info`,
           [{ par: "user_id", va: store.getters.user.user_id }],
           false,
@@ -1705,6 +1707,7 @@ export default {
                 `
         );
         iframeDoc.querySelector("body").appendChild(divleftiframe);
+
         filename = change_unsigned(props.report.report_name, "_");
       }
       showLoadding.value = true;
@@ -2372,7 +2375,8 @@ export default {
         initTemplate();
       }
 
-      if (!dochtml) dochtml = iframeDoc.getElementById("dochtml");
+      if (!dochtml)
+        if (iframeDoc) dochtml = iframeDoc.getElementById("dochtml");
       users.forEach((u) => {
         itemusers.value.push({
           label: u.name,
@@ -2383,12 +2387,13 @@ export default {
         });
       });
       if (!isUrlReport.value && !readonly.value) {
-        iframeDoc.addEventListener("selectionchange", () => {
-          let txt = getSelectionText();
-          if (txt != "") {
-            selectText = txt;
-          }
-        });
+        if (iframeDoc)
+          iframeDoc.addEventListener("selectionchange", () => {
+            let txt = getSelectionText();
+            if (txt != "") {
+              selectText = txt;
+            }
+          });
 
         //
         initmutationObserver();
@@ -2448,7 +2453,7 @@ export default {
       });
 
       const axResponse = await axios.post(
-        baseURL + "/api/HRM_SQL/getData",
+        baseURL + "/api/HRM_SQL/PostProc",
         {
           str: encr(JSON.stringify(strSQL), SecretKey, cryoptojs).toString(),
         },
@@ -3016,6 +3021,11 @@ export default {
       return dt.cols ? "has-child" : "no-child";
     };
     const goBack = () => {
+       
+      if(header!=null){
+       props.callbackFun();
+      }
+      else
       history.back();
     };
     //Cấu hình nguồn nhập dữ liệu
@@ -3041,7 +3051,7 @@ export default {
     let dtProfile = {};
     const initProfile = async (r) => {
       let dts = await goProc(
-        true,
+        false,
         `profile_info`,
         [
           { par: "user_id", va: store.getters.user.user_id },
@@ -3183,7 +3193,7 @@ export default {
       isdataSidebar.value = true;
 
       dts = await goProc(
-        true,
+        false,
         `profile_info`,
         [
           { par: "user_id", va: store.getters.user.user_id },
@@ -3487,6 +3497,7 @@ export default {
       nextDBrow,
       saveConfig,
       refershConfig,
+    
       //
       onCellEditComplete,
       dataDB,
@@ -3628,11 +3639,7 @@ export default {
         class="ml-1 mr-2"
       />
     </div>
-    <div
-      class="tool flex w-full p-2"
-      v-if="isUrlReport || readonly"
-     
-    >
+    <div class="tool flex w-full p-2" v-if="isUrlReport || readonly">
       <Button
         v-if="!readonly"
         v-tooltip="'Quay lại trang trước'"
@@ -3642,7 +3649,13 @@ export default {
       />
       <div class="flex-1">
         <h3 v-if="!readonly" class="p-2 m-0">
-          <i class="mr-1 pi pi-print"></i>{{ report.report_name }}
+          <i class="mr-1 pi pi-print"></i>  <span v-if="header">
+        {{    header }} ({{     report.report_name}})
+          </span>
+          <span v-else>
+            {{     report.report_name}}
+          </span>
+        
         </h3>
       </div>
       <ToggleButton
@@ -3800,7 +3813,10 @@ export default {
               'max-width:' +
               (col.includes('Ảnh') || col == 'ok'
                 ? '50pt;text-align:center'
-                : (col.includes('Mã nhân sự') || col.includes('Số hợp đồng')  || col.includes('Ngày tạo') || col.includes('Ngày ký')  ) 
+                : col.includes('Mã nhân sự') ||
+                  col.includes('Số hợp đồng') ||
+                  col.includes('Ngày tạo') ||
+                  col.includes('Ngày ký')
                 ? '80pt;text-align:center'
                 : 'auto') +
               ';height:60px'
@@ -3809,23 +3825,39 @@ export default {
               'max-width:' +
               (col.includes('Ảnh') || col == 'ok'
                 ? '50pt;text-align:center'
-                : (col.includes('Mã nhân sự') || col.includes('Số hợp đồng')  || col.includes('Ngày tạo') || col.includes('Ngày ký')  ) 
+                : col.includes('Mã nhân sự') ||
+                  col.includes('Số hợp đồng') ||
+                  col.includes('Ngày tạo') ||
+                  col.includes('Ngày ký')
                 ? '80pt;text-align:center'
                 : 'auto') +
               ';height:60px'
+            "
+            :bodyClass="
+              col.includes('Ảnh') ||
+              col.includes('Số hợp đồng') ||
+              col.includes('Mã nhân sự') ||
+              col.includes('Ngày tạo') ||
+              col.includes('Ngày ký') ||
+              col == 'ok'
+                ? 'format-center'
+                : ''
+            "
+            :headerClass="
+              col.includes('Ảnh') ||
+              col.includes('Số hợp đồng') ||
+              col.includes('Mã nhân sự') ||
+              col.includes('Ngày tạo') ||
+              col.includes('Ngày ký') ||
+              col == 'ok'
+                ? 'align-items-center justify-content-center text-center'
+                : ''
             "
             v-for="col of dtColumns"
             :key="col"
             :field="col"
             :header="col != 'ok' && !col.includes('_') ? col : ''"
-            :bodyClass="
-             ( col.includes('Ảnh') || col.includes('Số hợp đồng') ||  col.includes('Mã nhân sự') || col.includes('Ngày tạo') || col.includes('Ngày ký')  ) || col == 'ok' ? 'format-center' : ''
-            "
-            :headerClass="
-               ( col.includes('Ảnh') || col.includes('Số hợp đồng') ||  col.includes('Mã nhân sự') || col.includes('Ngày tạo') || col.includes('Ngày ký')  ) || col == 'ok'
-                ? 'align-items-center justify-content-center text-center'
-                : ''
-            "
+            
           >
             <template #body="dt">
               <div v-if="col.includes('Ảnh')">
@@ -3855,18 +3887,20 @@ export default {
                   <i v-if="dt.data[col]" class="pi pi-check text-green-500"></i>
                 </div>
                 <div v-else v-html="dt.data[col]"></div>
-                
-                
               </div>
             </template>
           </Column>
           <Column
             class="text-center"
             v-if="readonly && isedit"
-            style="width: 50px"
-            headerStyle="text-align:center;height:50px"
-            bodyStyle="text-align:left "
-            headerClass="align-items-center justify-content-center text-center"
+            bodyClass="
+           format-center
+            "
+            headerClass="
+                 align-items-center justify-content-center text-center
+            "
+            bodyStyle=" max-width:120px "
+            headerStyle="  max-width:120px "
           >
             <template #header>
               <Button
@@ -3876,7 +3910,7 @@ export default {
                 :icon="'pi pi-' + (isCopy ? 'check' : 'copy')"
                 v-tooltip.left="isCopy ? 'Dán' : 'Copy'"
                 text
-                class="p-button-outlined"
+                class="p-button-outlined p-button-text"
               />
               <Button
                 v-if="!onedata"
@@ -4643,15 +4677,14 @@ export default {
   <Sidebar
     v-model:visible="isdataSidebar"
     position="right"
-    :class="'w-full' + (isfullSidebar ? '' : ' md:w-8 lg:w-8')"
+    :class="'w-full d-sidebar-full' + (isfullSidebar ? '  ' : ' md:w-8 lg:w-8')"
   >
     <template #header>
-      <div class="flex">
+      <div class="flex w-full">
         <Button
           @click="isfullSidebar = !isfullSidebar"
           :icon="'pi pi-window-' + (!isfullSidebar ? 'maximize' : 'minimize')"
-          text
-          class="p-button-outlined p-button-secondary"
+          class="p-button-outlined p-button-secondary p-button-text"
         />
         <div class="text-center flex-1">
           <SelectButton
@@ -4822,15 +4855,26 @@ export default {
         <DataTable class="p-datatable-sm" showGridlines :value="dtTables">
           <Column
             class="text-center"
-            headerStyle="width: 50px;text-align: center;"
+            :bodyStyle="
+              'max-width: 60px  '
+            "
+           
+            :headerStyle="
+              'max-width: 60px ;height:60px'
+            "
             field="index"
             header="STT"
           >
           </Column>
           <Column field="name" header="Tiêu đề"></Column>
           <Column
-            style="width: 140px; text-align: center"
-            headerClass="text-center"
+          :bodyStyle="
+              'max-width: 140px  '
+            "
+           
+            :headerStyle="
+              'max-width: 140px ;height:60px'
+            "
             class="text-center"
           >
             <template #body="slotProps">
@@ -4899,7 +4943,14 @@ export default {
             <Column
               field="stt"
               header="STT"
-              style="width: 60px; text-align: center"
+              :bodyStyle="
+              'max-width: 60px  '
+            "
+           
+            :headerStyle="
+              'max-width: 60px ;height:60px'
+            "
+            headerClass="align-items-center justify-content-center text-center"
             >
               <template #body="slotProps">
                 <InputNumber
@@ -4911,7 +4962,15 @@ export default {
             </Column>
             <Column
               v-for="c in dt.cols"
-              style="min-width: 100px; white-space: nowrap"
+              style="  white-space: nowrap"
+              :bodyStyle="
+              'max-width: 150px  '
+            "
+           
+            :headerStyle="
+              'max-width: 150px ;height:60px'
+            "
+           
             >
               <template #header>
                 {{ c.value.replace(/\[(.+)\]/g, "$1") }}
@@ -4961,7 +5020,12 @@ export default {
             expandableRowGroups
             rowGroupMode="subheader"
             groupRowsBy="group"
-            showGridlines
+     
+ 
+                :lazy="true"
+                :rowHover="true"
+                :showGridlines="true"
+                scrollDirection="both"
             :value="dtDataReports"
           >
             <template #groupheader="slotProps">
@@ -4986,19 +5050,62 @@ export default {
               </div>
             </template>
             <Column
-              frozen
-              :style="
-                'min-width:' +
-                (col.includes('Họ tên') ? '150pt' : 'unset') +
-                ';width:' +
-                (col.includes('Ảnh') || col == 'ok' ? '50pt' : 'auto')
-              "
+            frozen 
+            :headerClass="
+              
+              (col.includes('Ảnh') || col == 'ok'
+                ? 'format-center '
+                : col.includes('Mã nhân sự') ||
+                  col.includes('Số hợp đồng') ||
+                  col.includes('Ngày tạo') ||
+                  col.includes('Ngày ký')
+                ? 'format-center'
+                : '') 
+            
+            "
+             :bodyClass="
+              
+              (col.includes('Ảnh') || col == 'ok'
+                ? 'format-center '
+                : col.includes('Mã nhân sự') ||
+                  col.includes('Số hợp đồng') ||
+                  col.includes('Ngày tạo') ||
+                  col.includes('Ngày ký')
+                ? 'format-center'
+                : '') 
+            
+            "
+            :headerStyle="
+              
+              (col.includes('Ảnh') || col == 'ok'
+                ? 'text-align:center;width:70px;height:50px'
+                : col.includes('Mã nhân sự') ||
+                  col.includes('Số hợp đồng') ||
+                  col.includes('Ngày tạo') ||
+                  col.includes('Ngày ký')
+                ? 'text-align:center;width:200px;height:50px'
+                : ' width:250px;height:50px') 
+            
+            "
+              :bodyStyle="
+              
+              (col.includes('Ảnh') || col == 'ok'
+                ? 'text-align:center;width:70px;height:50px'
+                : col.includes('Mã nhân sự') ||
+                  col.includes('Số hợp đồng') ||
+                  col.includes('Ngày tạo') ||
+                  col.includes('Ngày ký')
+                ? 'text-align:center;width:200px;height:50px'
+                : ' width:250px;height:50px') 
+            
+            "
               v-for="col of dtColumns"
               :key="col"
               :field="col"
               :header="col != 'ok' && !col.includes('_') ? col : ''"
             >
               <template #body="dt">
+               
                 <div v-if="col.includes('Ảnh')">
                   <Avatar
                     v-if="(dt.data[col] || '').includes('.')"
@@ -5029,12 +5136,23 @@ export default {
                     ></i>
                   </div>
                   <div v-else v-html="dt.data[col]"></div>
+ 
                 </div>
               </template>
             </Column>
             <Column
               v-for="c in objDataTemp[0].cols"
               style="white-space: nowrap"
+              :headerStyle="
+              
+              ' width:150px;height:50px'  
+            
+            "
+              :bodyStyle="
+              
+            ' width:150px;height:50px' 
+            
+            "
             >
               <template #header>
                 {{ c.value.toString().replace(/\[(.+)\]/g, "$1") }}
