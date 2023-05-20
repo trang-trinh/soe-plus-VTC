@@ -278,7 +278,7 @@ onMounted(() => {
               </p>
             </div>
             <div class="col-lg-6 mb-5 mb-lg-0 position-relative">
-              <div class="card bg-glass box-login" style="max-width: 480px;margin: auto;">
+              <div class="card bg-glass box-login" style="max-width: 450px;margin: auto;">
                 <div class="card-body px-4 py-5 px-md-5 login-form">
                   <form name="frlogin" @submit.prevent="login">
                     <div class="login-ava">
