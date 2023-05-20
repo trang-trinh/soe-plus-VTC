@@ -1802,7 +1802,7 @@ namespace API.Controllers.HRM.Profile
                                                     var column = sheet.Cells[4, c].Value;
                                                     error_column = int.Parse(column.ToString() ?? c.ToString());
                                                     var vl = sheet.Cells[r, c].Value;
-                                                    if (vl != null)
+                                                    if (vl != null && !string.IsNullOrEmpty(vl.ToString()))
                                                     {
                                                         string value = vl.ToString().Trim();
                                                         switch (column)
@@ -2245,7 +2245,7 @@ namespace API.Controllers.HRM.Profile
                                                     var column = sheet.Cells[3, c].Value;
                                                     error_column = int.Parse(column.ToString() ?? c.ToString());
                                                     var vl = sheet.Cells[r, c].Value;
-                                                    if (vl != null)
+                                                    if (vl != null && !string.IsNullOrEmpty(vl.ToString()))
                                                     {
                                                         string value = vl.ToString().Trim();
                                                         switch (column)
@@ -2332,17 +2332,17 @@ namespace API.Controllers.HRM.Profile
                                                 }
                                                 if (!string.IsNullOrEmpty(assignment.profile_id))
                                                 {
-                                                    assignment.is_active = true;
-                                                    assignment.is_main = true;
+                                                    assignment.is_active = false;
+                                                    assignment.is_main = false;
                                                     assignment.is_order = asstt++;
                                                     assignments.Add(assignment);
 
-                                                    var assignments_old = await db.hrm_profile_assignment.Where(x => x.profile_id == assignment.profile_id).ToListAsync();
-                                                    foreach(var item in assignments_old)
-                                                    {
-                                                        item.is_active = false;
-                                                        item.is_main = false;
-                                                    }
+                                                    //var assignments_old = await db.hrm_profile_assignment.Where(x => x.profile_id == assignment.profile_id).ToListAsync();
+                                                    //foreach(var item in assignments_old)
+                                                    //{
+                                                    //    item.is_active = false;
+                                                    //    item.is_main = false;
+                                                    //}
                                                 }
                                             }
                                             if (assignments.Count > 0)
@@ -2371,7 +2371,7 @@ namespace API.Controllers.HRM.Profile
                                                     var column = sheet.Cells[3, c].Value;
                                                     error_column = int.Parse(column.ToString() ?? c.ToString());
                                                     var vl = sheet.Cells[r, c].Value;
-                                                    if (vl != null)
+                                                    if (vl != null && !string.IsNullOrEmpty(vl.ToString()))
                                                     {
                                                         string value = vl.ToString().Trim();
                                                         switch (column)
@@ -2459,6 +2459,7 @@ namespace API.Controllers.HRM.Profile
                                                 }
                                                 if (!string.IsNullOrEmpty(contract.profile_id))
                                                 {
+                                                    contract.contract_id = helper.GenKey();
                                                     contract.is_order = cstt++;
                                                     contracts.Add(contract);
                                                 }
@@ -2489,7 +2490,7 @@ namespace API.Controllers.HRM.Profile
                                                     var column = sheet.Cells[3, c].Value;
                                                     error_column = int.Parse(column.ToString() ?? c.ToString());
                                                     var vl = sheet.Cells[r, c].Value;
-                                                    if (vl != null)
+                                                    if (vl != null && !string.IsNullOrEmpty(vl.ToString()))
                                                     {
                                                         string value = vl.ToString().Trim();
                                                         int? rlorganization_id = null;
@@ -2583,7 +2584,7 @@ namespace API.Controllers.HRM.Profile
                                             //        var column = sheet.Cells[3, c].Value;
                                             //        error_column = int.Parse(column.ToString() ?? c.ToString());
                                             //        var vl = sheet.Cells[r, c].Value;
-                                            //        if (vl != null)
+                                            //        if (vl != null && !string.IsNullOrEmpty(vl.ToString()))
                                             //        {
                                             //            string value = vl.ToString().Trim();
                                             //            switch (column)
@@ -2686,7 +2687,7 @@ namespace API.Controllers.HRM.Profile
                                                     var column = sheet.Cells[2, c].Value;
                                                     error_column = int.Parse(column.ToString() ?? c.ToString());
                                                     var vl = sheet.Cells[r, c].Value;
-                                                    if (vl != null)
+                                                    if (vl != null && !string.IsNullOrEmpty(vl.ToString()))
                                                     {
                                                         string value = vl.ToString().Trim();
                                                         int? skorganization_id = null;
@@ -2795,7 +2796,7 @@ namespace API.Controllers.HRM.Profile
                                                     var column = sheet.Cells[3, c].Value;
                                                     error_column = int.Parse(column.ToString() ?? c.ToString());
                                                     var vl = sheet.Cells[r, c].Value;
-                                                    if (vl != null)
+                                                    if (vl != null && !string.IsNullOrEmpty(vl.ToString()))
                                                     {
                                                         string value = vl.ToString().Trim();
                                                         switch (column)
@@ -2884,7 +2885,7 @@ namespace API.Controllers.HRM.Profile
                                                     var column = sheet.Cells[3, c].Value;
                                                     error_column = int.Parse(column.ToString() ?? c.ToString());
                                                     var vl = sheet.Cells[r, c].Value;
-                                                    if (vl != null)
+                                                    if (vl != null && !string.IsNullOrEmpty(vl.ToString()))
                                                     {
                                                         string value = vl.ToString().Trim();
                                                         switch (column)
@@ -2977,7 +2978,7 @@ namespace API.Controllers.HRM.Profile
                                                     var column = sheet.Cells[3, c].Value;
                                                     error_column = int.Parse(column.ToString() ?? c.ToString());
                                                     var vl = sheet.Cells[r, c].Value;
-                                                    if (vl != null)
+                                                    if (vl != null && !string.IsNullOrEmpty(vl.ToString()))
                                                     {
                                                         string value = vl.ToString().Trim();
                                                         switch (column)
@@ -2987,8 +2988,8 @@ namespace API.Controllers.HRM.Profile
                                                                 if (p != null)
                                                                 {
                                                                     insurance.profile_id = p.profile_id;
+                                                                    insurance_pay.profile_id = p.profile_id;
                                                                     insurance.organization_id = p.organization_id;
-                                                                    
                                                                 }
                                                                 break;
                                                             case "3":
@@ -3040,9 +3041,10 @@ namespace API.Controllers.HRM.Profile
                                                         }
                                                     }
                                                 }
-                                                if (!string.IsNullOrEmpty(insurance.profile_id))
+                                                var check = insurances.Count(x => x.insurance_id == insurance.insurance_id) > 0;
+                                                if (!string.IsNullOrEmpty(insurance.profile_id) && !check)
                                                 {
-                                                    insurance.insurance_id = helper.GenKey();
+                                                    insurance.is_order = isstt++;
                                                     insurances.Add(insurance);
                                                 }
                                                 if (insurance_pay.start_date != null)
