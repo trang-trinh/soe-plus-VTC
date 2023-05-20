@@ -7,7 +7,7 @@ const config = {
     host: "103.226.251.47",
     port: 21,
     localRoot: __dirname + "/dist",
-    remoteRoot: "\\SOE_dev\\vue",
+    remoteRoot: "\\SOEVTC\\vue",
     include: ['*', '**/*'],
     // exclude: [
     //     "dist/**",
