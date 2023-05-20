@@ -2226,6 +2226,7 @@ namespace API.Controllers.HRM.Profile
                                             await db.SaveChangesAsync();
                                             break;
                                         case "Quá trình làm việc trong đơn vị":
+                                            int asstt = 1;
                                             List<hrm_profile_assignment> assignments = new List<hrm_profile_assignment>();
                                             for (int r = 4; r <= sheet.Dimension.End.Row; r++)
                                             {
@@ -2255,6 +2256,7 @@ namespace API.Controllers.HRM.Profile
                                                                 {
                                                                     assignment.profile_id = p.profile_id;
                                                                     assignment.organization_id = p.organization_id;
+                                                                    asstt = db.hrm_profile_assignment.Count(x => x.profile_id == p.profile_id) + 1;
                                                                 }
                                                                 break;
                                                             case "3":
@@ -2332,6 +2334,7 @@ namespace API.Controllers.HRM.Profile
                                                 {
                                                     assignment.is_active = true;
                                                     assignment.is_main = true;
+                                                    assignment.is_order = asstt++;
                                                     assignments.Add(assignment);
 
                                                     var assignments_old = await db.hrm_profile_assignment.Where(x => x.profile_id == assignment.profile_id).ToListAsync();
@@ -2349,6 +2352,7 @@ namespace API.Controllers.HRM.Profile
                                             await db.SaveChangesAsync();
                                             break;
                                         case "Hợp đồng":
+                                            int cstt = 1;
                                             List<hrm_contract> contracts = new List<hrm_contract>();
                                             for (int r = 4; r <= sheet.Dimension.End.Row; r++)
                                             {
@@ -2378,6 +2382,7 @@ namespace API.Controllers.HRM.Profile
                                                                 {
                                                                     contract.profile_id = p.profile_id;
                                                                     contract.organization_id = p.organization_id;
+                                                                    cstt = db.hrm_contract.Count(x => x.profile_id == p.profile_id) + 1;
                                                                 }
                                                                 break;
                                                             case "3":
@@ -2454,6 +2459,7 @@ namespace API.Controllers.HRM.Profile
                                                 }
                                                 if (!string.IsNullOrEmpty(contract.profile_id))
                                                 {
+                                                    contract.is_order = cstt++;
                                                     contracts.Add(contract);
                                                 }
                                             }
@@ -2464,6 +2470,7 @@ namespace API.Controllers.HRM.Profile
                                             await db.SaveChangesAsync();
                                             break;
                                         case "QHGĐ":
+                                            int rlstt = 1;
                                             List<hrm_profile_relative> relatives = new List<hrm_profile_relative>();
                                             for (int r = 4; r <= sheet.Dimension.End.Row; r++)
                                             {
@@ -2494,6 +2501,7 @@ namespace API.Controllers.HRM.Profile
                                                                 {
                                                                     relative.profile_id = p.profile_id;
                                                                     relative.relationship_id = p.organization_id;
+                                                                    rlstt = db.hrm_profile_relative.Count(x => x.profile_id == p.profile_id) + 1;
                                                                 }
                                                                 break;
                                                             case "3":
@@ -2546,6 +2554,7 @@ namespace API.Controllers.HRM.Profile
                                                 if (!string.IsNullOrEmpty(relative.profile_id))
                                                 {
                                                     relative.profile_relative_id = helper.GenKey();
+                                                    relative.is_order = rlstt++;
                                                     relatives.Add(relative);
                                                 }
                                             }
@@ -2658,6 +2667,7 @@ namespace API.Controllers.HRM.Profile
                                             //await db.SaveChangesAsync();
                                             break;
                                         case "Học vấn":
+                                            int psstt = 1;
                                             List<hrm_profile_skill> skills = new List<hrm_profile_skill>();
                                             for (int r = 3; r <= sheet.Dimension.End.Row; r++)
                                             {
@@ -2688,6 +2698,7 @@ namespace API.Controllers.HRM.Profile
                                                                 {
                                                                     skill.profile_id = p.profile_id;
                                                                     skorganization_id = p.organization_id;
+                                                                    psstt = db.hrm_profile_skill.Count(x => x.profile_id == p.profile_id) + 1;
                                                                 }
                                                                 break;
                                                             case "3":
@@ -2754,6 +2765,7 @@ namespace API.Controllers.HRM.Profile
                                                 if (!string.IsNullOrEmpty(skill.profile_id))
                                                 {
                                                     skill.profile_skill_id = helper.GenKey();
+                                                    skill.is_order = psstt++;
                                                     skills.Add(skill);
                                                 }
                                             }
@@ -2764,6 +2776,7 @@ namespace API.Controllers.HRM.Profile
                                             await db.SaveChangesAsync();
                                             break;
                                         case "QT làm việc ngoài đơn vị":
+                                            int exstt = 1;
                                             List<hrm_profile_experience> experiences = new List<hrm_profile_experience>();
                                             for (int r = 4; r <= sheet.Dimension.End.Row; r++)
                                             {
@@ -2792,6 +2805,7 @@ namespace API.Controllers.HRM.Profile
                                                                 if (p != null)
                                                                 {
                                                                     experience.profile_id = p.profile_id;
+                                                                    exstt = db.hrm_profile_experience.Count(x => x.profile_id == p.profile_id) + 1;
                                                                 }
                                                                 break;
                                                             case "3":
@@ -2839,6 +2853,8 @@ namespace API.Controllers.HRM.Profile
                                                 }
                                                 if (!string.IsNullOrEmpty(experience.profile_id))
                                                 {
+                                                    experience.profile_experience_id = helper.GenKey();
+                                                    experience.is_order = exstt++;
                                                     experiences.Add(experience);
                                                 }
                                             }
@@ -2849,6 +2865,7 @@ namespace API.Controllers.HRM.Profile
                                             await db.SaveChangesAsync();
                                             break;
                                         case "QT Khen Thưởng":
+                                            int rstt = 1;
                                             List<hrm_reward> rewards = new List<hrm_reward>();
                                             for (int r = 4; r <= sheet.Dimension.End.Row; r++)
                                             {
@@ -2879,6 +2896,7 @@ namespace API.Controllers.HRM.Profile
                                                                 {
                                                                     reward.reward_name = p.profile_id;
                                                                     reward.organization_id = p.organization_id;
+                                                                    rstt = db.hrm_reward.Count(x => x.reward_name == p.profile_id) + 1;
                                                                 }
                                                                 break;
                                                             case "3":
@@ -2927,6 +2945,7 @@ namespace API.Controllers.HRM.Profile
                                                 }
                                                 if (!string.IsNullOrEmpty(reward.reward_name))
                                                 {
+                                                    reward.is_order = rstt++;
                                                     rewards.Add(reward);
                                                 }
                                             }
@@ -2937,6 +2956,7 @@ namespace API.Controllers.HRM.Profile
                                             await db.SaveChangesAsync();
                                             break;
                                         case "Bảo hiểm":
+                                            int isstt = 1;
                                             List<hrm_insurance> insurances = new List<hrm_insurance>();
                                             List<hrm_insurance_pay> insurance_pays = new List<hrm_insurance_pay>();
                                             for (int r = 4; r <= sheet.Dimension.End.Row; r++)
@@ -2968,12 +2988,14 @@ namespace API.Controllers.HRM.Profile
                                                                 {
                                                                     insurance.profile_id = p.profile_id;
                                                                     insurance.organization_id = p.organization_id;
+                                                                    
                                                                 }
                                                                 break;
                                                             case "3":
                                                                 break;
                                                             case "4":
                                                                 insurance.insurance_id = value;
+                                                                isstt = db.hrm_insurance_pay.Count(x => x.insurance_id == value) + 1;
                                                                 break;
                                                             case "5":
                                                                 insurance_pay.start_date = DateTime.ParseExact(value, "MM/yyyy", CultureInfo.InvariantCulture);
@@ -3027,6 +3049,7 @@ namespace API.Controllers.HRM.Profile
                                                 {
                                                     insurance_pay.insurance_pay_id = helper.GenKey();
                                                     insurance_pay.insurance_id = insurance.insurance_id;
+                                                    insurance_pay.is_order = isstt++;
                                                     insurance_pays.Add(insurance_pay);
                                                 }
                                             }
