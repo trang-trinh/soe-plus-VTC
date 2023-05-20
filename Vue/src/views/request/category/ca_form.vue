@@ -371,6 +371,37 @@ const refreshData = () => {
 	//filterSQL.value = [];
 	loadData(true);
 };
+const listTeamAvailable = ref(0);
+const loadCountTeamAvailable = () => {
+	listTeamAvailable.value = 0;
+	axios
+		.post(
+			baseUrlCheck + "/api/request/getData",
+			{
+				str: encr(
+					JSON.stringify({
+						proc: "request_ca_team_count",
+						par: [
+							{ par: "user_id", va: store.getters.user.user_id },
+							{ par: "status", va: true },
+						],
+					}),
+					SecretKey,
+					cryoptojs
+				).toString(),
+			},
+			config
+		)
+		.then((response) => {
+			if (response.data != null && response.data.data != null) {
+				let data = JSON.parse(response.data.data)[0];
+				if (data.length > 0) {
+					listTeamAvailable.value = data[0].totalRecords;
+				}
+			}
+		})
+		.catch((error) => {});
+};
 const expandedRows = ref([]);
 const showSelectTeam = ref(false);
 const selectedFormID = ref();
@@ -600,6 +631,7 @@ onMounted(() => {
 		//router.back();
 	}
 	loadData(true);
+	loadCountTeamAvailable();
 	return {
 		datalists,
 		options,
@@ -657,7 +689,7 @@ onMounted(() => {
 				headerClass="align-items-center justify-content-center">
 				<template #body="data">
 					<div class="cell-badge">
-						<Badge :value="0 + '/' + 8" size="xlarge" severity="success" @click="openTeamUse(data.data)"
+						<Badge :value="(data.data.group_request.length || 0) + '/' + listTeamAvailable" size="xlarge" severity="success" @click="openTeamUse(data.data)"
 							v-tooltip.top="'Chọn team đề xuất'" style="cursor:pointer;"></Badge>
 					</div>
 				</template>
@@ -674,36 +706,37 @@ onMounted(() => {
 										<Avatar v-tooltip.bottom="{
 												value:
 													value.full_name +
-													'<br/>' +
-													(value.tenChucVu || '') +
-													'<br/>' +
-													(value.tenToChuc || ''),
+													(value.tenChucVu ? ('<br/>' + value.tenChucVu || '') : '') +
+													(value.tenToChuc ? ('<br/>' + value.tenToChuc || '') : ''),
 												escape: true,
-											}" v-bind:label="value.avatar ? '' : (value.last_name ?? '').substring(0, 1)
-		" v-bind:image="basedomainURL + value.avatar" style="
-								                    background-color: #2196f3;
-								                    color: #ffffff;
-								                    width: 32px;
-								                    height: 32px;
-								                    font-size: 15px !important;
-								                    margin-left: -10px;
-								                  " :style="{
-								                  		background: bgColor[index % 7] + '!important',
-								                  	}" class="cursor-pointer" size="xlarge" shape="circle" />
+											}" 
+											v-bind:label="value.avatar ? '' : (value.last_name ?? '').substring(0, 1)" 
+											v-bind:image="basedomainURL + value.avatar" 
+											style="
+												background-color: #2196f3;
+												color: #ffffff;
+												width: 32px;
+												height: 32px;
+												font-size: 15px !important;
+												margin-left: -10px;
+											" 
+											:style="{ background: bgColor[index % 7] + '!important' }"
+											class="cursor-pointer" size="xlarge" shape="circle" 
+										/>
 									</div>
 								</div>
-								<Avatar v-if="l.requestGroup2.length > 0
-									" :label="'+' +
-		(l.requestGroup2.length) +
-		''
-		" class="cursor-pointer" shape="circle" style="
-								                background-color: #e9e9e9 !important;
-								                color: #98a9bc;
-								                font-size: 14px !important;
-								                width: 32px;
-								                margin-left: -10px;
-								                height: 32px;
-								              " />
+								<Avatar v-if="l.requestGroup2.length > 0" 
+									:label="'+' + (l.requestGroup2.length) + ''" 
+									class="cursor-pointer" shape="circle" 
+									style="
+										background-color: #e9e9e9 !important;
+										color: #98a9bc;
+										font-size: 14px !important;
+										width: 32px;
+										margin-left: -10px;
+										height: 32px;
+									" 
+								/>
 							</AvatarGroup>
 						</div>
 					</div>
@@ -747,18 +780,24 @@ onMounted(() => {
 					<div v-if="store.state.user.is_super == true || store.state.user.user_id == Tem.data.created_by ||
 						(store.state.user.role_id == 'admin' && store.state.user.organization_id == Tem.data.organization_id)
 						">
-						<Button @click="editForm(Tem.data)" class="
-																									p-button-rounded
-																									p-button-secondary
-																									p-button-outlined
-																									mx-1
-																								" type="button" icon="pi pi-pencil" v-tooltip.top="'Sửa'"></Button>
-						<Button class="
-																									p-button-rounded
-																									p-button-danger
-																									p-button-outlined
-																									mx-1
-																								" type="button" icon="pi pi-trash" @click="delTem(Tem.data)" v-tooltip.top="'Xóa'"></Button>
+						<Button @click="editForm(Tem.data)" 
+							class="
+								p-button-rounded
+								p-button-secondary
+								p-button-outlined
+								mx-1
+							" 
+							type="button" icon="pi pi-pencil" v-tooltip.top="'Sửa'">
+						</Button>
+						<Button 
+							class="
+								p-button-rounded
+								p-button-danger
+								p-button-outlined
+								mx-1
+							" 
+							type="button" icon="pi pi-trash" @click="delTem(Tem.data)" v-tooltip.top="'Xóa'">
+						</Button>
 					</div>
 				</template>
 			</Column>
