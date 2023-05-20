@@ -2485,6 +2485,7 @@ namespace API.Controllers.HRM.Profile
                                                     if (vl != null)
                                                     {
                                                         string value = vl.ToString().Trim();
+                                                        int? rlorganization_id = null;
                                                         switch (column)
                                                         {
                                                             case "2":
@@ -2492,6 +2493,7 @@ namespace API.Controllers.HRM.Profile
                                                                 if (p != null)
                                                                 {
                                                                     relative.profile_id = p.profile_id;
+                                                                    relative.relationship_id = p.organization_id;
                                                                 }
                                                                 break;
                                                             case "3":
@@ -2499,6 +2501,12 @@ namespace API.Controllers.HRM.Profile
                                                                 break;
                                                             case "4":
                                                                 relative.is_type = value.ToLower().Contains("chồng") ? 1 : value.ToLower().Contains("vợ") ? 2 : 1;
+                                                                var relationship_name = value;
+                                                                var relationship_exists = await db.hrm_ca_relationship.FirstOrDefaultAsync(x => x.relationship_name == relationship_name && (x.organization_id == rlorganization_id || x.is_system == true));
+                                                                if (relationship_exists != null)
+                                                                {
+                                                                    relative.relationship_id = relationship_exists.relationship_id;
+                                                                }
                                                                 break;
                                                             case "5":
                                                                 relative.relative_name = value;
