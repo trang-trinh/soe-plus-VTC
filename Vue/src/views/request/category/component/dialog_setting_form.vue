@@ -119,6 +119,7 @@ const listDataType = ref([
       { label: 'Giờ', value: 7 },
       { label: 'Nghỉ phép?', value: 8 },
       { label: 'Loại nghỉ', value: 9 }, // Các loại nghỉ: FULL=cả ngày, AM=buổi sáng, PM: buổi chiều
+      { label: 'Kiểu nghỉ phép', value: 10 },
     ]
   },
 ])
@@ -229,6 +230,7 @@ const saveDataFormD = () => {
   }
   let formData = new FormData();
   formData.append("request_ca_formd", JSON.stringify(listSettingForms.value));
+  formData.append("request_form_id", props.dataForm.request_form_id);
   axios
     .post(
       baseURL +
