@@ -23,6 +23,7 @@ using System.Globalization;
 using Microsoft.Owin;
 using OfficeOpenXml.FormulaParsing.Excel.Functions.RefAndLookup;
 using System.Diagnostics.Contracts;
+using System.Drawing;
 
 namespace API.Controllers.HRM.Profile
 {
@@ -2927,8 +2928,112 @@ namespace API.Controllers.HRM.Profile
                                             }
                                             await db.SaveChangesAsync();
                                             break;
-                                        default:
+                                        case "Bảo hiểm":
+                                            List<hrm_insurance> insurances = new List<hrm_insurance>();
+                                            List<hrm_insurance_pay> insurance_pays = new List<hrm_insurance_pay>();
+                                            for (int r = 4; r <= sheet.Dimension.End.Row; r++)
+                                            {
+                                                error_row = r;
+                                                if (sheet.Cells[r, 2].Value == null)
+                                                {
+                                                    break;
+                                                }
+                                                hrm_insurance insurance = new hrm_insurance();
+                                                hrm_insurance_pay insurance_pay = new hrm_insurance_pay();
+                                                for (int c = 2; c <= sheet.Dimension.End.Column; c++)
+                                                {
+                                                    if (sheet.Cells[3, c].Value == null)
+                                                    {
+                                                        break;
+                                                    }
+                                                    var column = sheet.Cells[3, c].Value;
+                                                    error_column = int.Parse(column.ToString() ?? c.ToString());
+                                                    var vl = sheet.Cells[r, c].Value;
+                                                    if (vl != null)
+                                                    {
+                                                        string value = vl.ToString().Trim();
+                                                        switch (column)
+                                                        {
+                                                            case "2":
+                                                                var p = await db.hrm_profile.FirstOrDefaultAsync(x => x.profile_code == value);
+                                                                if (p != null)
+                                                                {
+                                                                    insurance.profile_id = p.profile_id;
+                                                                    insurance.organization_id = p.organization_id;
+                                                                }
+                                                                break;
+                                                            case "3":
+                                                                break;
+                                                            case "4":
+                                                                insurance.insurance_id = value;
+                                                                break;
+                                                            case "5":
+                                                                insurance_pay.start_date = DateTime.ParseExact(value, "MM/yyyy", CultureInfo.InvariantCulture);
+                                                                break;
+                                                            case "6":
+                                                                insurance_pay.end_date = DateTime.ParseExact(value, "MM/yyyy", CultureInfo.InvariantCulture);
+                                                                break;
+                                                            case "7":
+                                                                var company_payment = value;
+                                                                var company_payment_exists = await db.sys_organization.FirstOrDefaultAsync(x => x.organization_key == company_payment || x.organization_name == company_payment);
+                                                                if (company_payment_exists != null)
+                                                                {
+                                                                    insurance_pay.company_payment = company_payment_exists.organization_id;
+                                                                }
+                                                                break;
+                                                            case "8":
+                                                                insurance_pay.title_name = value;
+                                                                break;
+                                                            case "9":
+                                                                insurance_pay.wage = double.Parse(value);
+                                                                break;
+                                                            case "10":
+                                                                insurance_pay.coef_salary = double.Parse(value);
+                                                                break;
+                                                            case "11":
+                                                                insurance_pay.coef_allowance = double.Parse(value);
+                                                                break;
+                                                            case "12":
+                                                                insurance_pay.coef_allowance = double.Parse(value);
+                                                                break;
+                                                            case "13":
+                                                                insurance_pay.region = value;
+                                                                break;
+                                                            case "14":
+                                                                insurance.insurance_code = value;
+                                                                break;
+                                                            case "15":
+                                                                insurance.hospital_name = value;
+                                                                break;
+                                                            default:
+                                                                break;
+                                                        }
+                                                    }
+                                                }
+                                                if (!string.IsNullOrEmpty(insurance.profile_id))
+                                                {
+                                                    insurance.insurance_id = helper.GenKey();
+                                                    insurances.Add(insurance);
+                                                }
+                                                if (insurance_pay.start_date != null)
+                                                {
+                                                    insurance_pay.insurance_pay_id = helper.GenKey();
+                                                    insurance_pay.insurance_id = insurance.insurance_id;
+                                                    insurance_pays.Add(insurance_pay);
+                                                }
+                                            }
+                                            if (insurances.Count > 0)
+                                            {
+                                                db.hrm_insurance.AddRange(insurances);
+                                            }
+                                            if (insurance_pays.Count > 0)
+                                            {
+                                                db.hrm_insurance_pay.AddRange(insurance_pays);
+                                            }
+                                            await db.SaveChangesAsync();
                                             break;
+                                        default:
+                                            return Request.CreateResponse(HttpStatusCode.OK, new { err = "1", ms = $"Lỗi định dạng trang thứ {error_sheet} sai tên sheet!" });
                                     }
                                 }
                             }
