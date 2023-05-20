@@ -23,6 +23,7 @@ using System.Globalization;
 using Microsoft.Owin;
 using OfficeOpenXml.FormulaParsing.Excel.Functions.RefAndLookup;
 using System.Diagnostics.Contracts;
+using System.Drawing;
 
 namespace API.Controllers.HRM.Profile
 {
@@ -1801,7 +1802,7 @@ namespace API.Controllers.HRM.Profile
                                                     var column = sheet.Cells[4, c].Value;
                                                     error_column = int.Parse(column.ToString() ?? c.ToString());
                                                     var vl = sheet.Cells[r, c].Value;
-                                                    if (vl != null)
+                                                    if (vl != null && !string.IsNullOrEmpty(vl.ToString()))
                                                     {
                                                         string value = vl.ToString().Trim();
                                                         switch (column)
@@ -2225,6 +2226,7 @@ namespace API.Controllers.HRM.Profile
                                             await db.SaveChangesAsync();
                                             break;
                                         case "Quá trình làm việc trong đơn vị":
+                                            int asstt = 1;
                                             List<hrm_profile_assignment> assignments = new List<hrm_profile_assignment>();
                                             for (int r = 4; r <= sheet.Dimension.End.Row; r++)
                                             {
@@ -2243,7 +2245,7 @@ namespace API.Controllers.HRM.Profile
                                                     var column = sheet.Cells[3, c].Value;
                                                     error_column = int.Parse(column.ToString() ?? c.ToString());
                                                     var vl = sheet.Cells[r, c].Value;
-                                                    if (vl != null)
+                                                    if (vl != null && !string.IsNullOrEmpty(vl.ToString()))
                                                     {
                                                         string value = vl.ToString().Trim();
                                                         switch (column)
@@ -2254,6 +2256,7 @@ namespace API.Controllers.HRM.Profile
                                                                 {
                                                                     assignment.profile_id = p.profile_id;
                                                                     assignment.organization_id = p.organization_id;
+                                                                    asstt = db.hrm_profile_assignment.Count(x => x.profile_id == p.profile_id) + 1;
                                                                 }
                                                                 break;
                                                             case "3":
@@ -2329,16 +2332,17 @@ namespace API.Controllers.HRM.Profile
                                                 }
                                                 if (!string.IsNullOrEmpty(assignment.profile_id))
                                                 {
-                                                    assignment.is_active = true;
-                                                    assignment.is_main = true;
+                                                    assignment.is_active = false;
+                                                    assignment.is_main = false;
+                                                    assignment.is_order = asstt++;
                                                     assignments.Add(assignment);
 
-                                                    var assignments_old = await db.hrm_profile_assignment.Where(x => x.profile_id == assignment.profile_id).ToListAsync();
-                                                    foreach(var item in assignments_old)
-                                                    {
-                                                        item.is_active = false;
-                                                        item.is_main = false;
-                                                    }
+                                                    //var assignments_old = await db.hrm_profile_assignment.Where(x => x.profile_id == assignment.profile_id).ToListAsync();
+                                                    //foreach(var item in assignments_old)
+                                                    //{
+                                                    //    item.is_active = false;
+                                                    //    item.is_main = false;
+                                                    //}
                                                 }
                                             }
                                             if (assignments.Count > 0)
@@ -2348,6 +2352,7 @@ namespace API.Controllers.HRM.Profile
                                             await db.SaveChangesAsync();
                                             break;
                                         case "Hợp đồng":
+                                            int cstt = 1;
                                             List<hrm_contract> contracts = new List<hrm_contract>();
                                             for (int r = 4; r <= sheet.Dimension.End.Row; r++)
                                             {
@@ -2366,7 +2371,7 @@ namespace API.Controllers.HRM.Profile
                                                     var column = sheet.Cells[3, c].Value;
                                                     error_column = int.Parse(column.ToString() ?? c.ToString());
                                                     var vl = sheet.Cells[r, c].Value;
-                                                    if (vl != null)
+                                                    if (vl != null && !string.IsNullOrEmpty(vl.ToString()))
                                                     {
                                                         string value = vl.ToString().Trim();
                                                         switch (column)
@@ -2377,6 +2382,7 @@ namespace API.Controllers.HRM.Profile
                                                                 {
                                                                     contract.profile_id = p.profile_id;
                                                                     contract.organization_id = p.organization_id;
+                                                                    cstt = db.hrm_contract.Count(x => x.profile_id == p.profile_id) + 1;
                                                                 }
                                                                 break;
                                                             case "3":
@@ -2453,6 +2459,8 @@ namespace API.Controllers.HRM.Profile
                                                 }
                                                 if (!string.IsNullOrEmpty(contract.profile_id))
                                                 {
+                                                    contract.contract_id = helper.GenKey();
+                                                    contract.is_order = cstt++;
                                                     contracts.Add(contract);
                                                 }
                                             }
@@ -2463,6 +2471,7 @@ namespace API.Controllers.HRM.Profile
                                             await db.SaveChangesAsync();
                                             break;
                                         case "QHGĐ":
+                                            int rlstt = 1;
                                             List<hrm_profile_relative> relatives = new List<hrm_profile_relative>();
                                             for (int r = 4; r <= sheet.Dimension.End.Row; r++)
                                             {
@@ -2481,9 +2490,10 @@ namespace API.Controllers.HRM.Profile
                                                     var column = sheet.Cells[3, c].Value;
                                                     error_column = int.Parse(column.ToString() ?? c.ToString());
                                                     var vl = sheet.Cells[r, c].Value;
-                                                    if (vl != null)
+                                                    if (vl != null && !string.IsNullOrEmpty(vl.ToString()))
                                                     {
                                                         string value = vl.ToString().Trim();
+                                                        int? rlorganization_id = null;
                                                         switch (column)
                                                         {
                                                             case "2":
@@ -2491,6 +2501,8 @@ namespace API.Controllers.HRM.Profile
                                                                 if (p != null)
                                                                 {
                                                                     relative.profile_id = p.profile_id;
+                                                                    relative.relationship_id = p.organization_id;
+                                                                    rlstt = db.hrm_profile_relative.Count(x => x.profile_id == p.profile_id) + 1;
                                                                 }
                                                                 break;
                                                             case "3":
@@ -2498,6 +2510,12 @@ namespace API.Controllers.HRM.Profile
                                                                 break;
                                                             case "4":
                                                                 relative.is_type = value.ToLower().Contains("chồng") ? 1 : value.ToLower().Contains("vợ") ? 2 : 1;
+                                                                var relationship_name = value;
+                                                                var relationship_exists = await db.hrm_ca_relationship.FirstOrDefaultAsync(x => x.relationship_name == relationship_name && (x.organization_id == rlorganization_id || x.is_system == true));
+                                                                if (relationship_exists != null)
+                                                                {
+                                                                    relative.relationship_id = relationship_exists.relationship_id;
+                                                                }
                                                                 break;
                                                             case "5":
                                                                 relative.relative_name = value;
@@ -2537,6 +2555,7 @@ namespace API.Controllers.HRM.Profile
                                                 if (!string.IsNullOrEmpty(relative.profile_id))
                                                 {
                                                     relative.profile_relative_id = helper.GenKey();
+                                                    relative.is_order = rlstt++;
                                                     relatives.Add(relative);
                                                 }
                                             }
@@ -2565,7 +2584,7 @@ namespace API.Controllers.HRM.Profile
                                             //        var column = sheet.Cells[3, c].Value;
                                             //        error_column = int.Parse(column.ToString() ?? c.ToString());
                                             //        var vl = sheet.Cells[r, c].Value;
-                                            //        if (vl != null)
+                                            //        if (vl != null && !string.IsNullOrEmpty(vl.ToString()))
                                             //        {
                                             //            string value = vl.ToString().Trim();
                                             //            switch (column)
@@ -2649,6 +2668,7 @@ namespace API.Controllers.HRM.Profile
                                             //await db.SaveChangesAsync();
                                             break;
                                         case "Học vấn":
+                                            int psstt = 1;
                                             List<hrm_profile_skill> skills = new List<hrm_profile_skill>();
                                             for (int r = 3; r <= sheet.Dimension.End.Row; r++)
                                             {
@@ -2667,7 +2687,7 @@ namespace API.Controllers.HRM.Profile
                                                     var column = sheet.Cells[2, c].Value;
                                                     error_column = int.Parse(column.ToString() ?? c.ToString());
                                                     var vl = sheet.Cells[r, c].Value;
-                                                    if (vl != null)
+                                                    if (vl != null && !string.IsNullOrEmpty(vl.ToString()))
                                                     {
                                                         string value = vl.ToString().Trim();
                                                         int? skorganization_id = null;
@@ -2679,6 +2699,7 @@ namespace API.Controllers.HRM.Profile
                                                                 {
                                                                     skill.profile_id = p.profile_id;
                                                                     skorganization_id = p.organization_id;
+                                                                    psstt = db.hrm_profile_skill.Count(x => x.profile_id == p.profile_id) + 1;
                                                                 }
                                                                 break;
                                                             case "3":
@@ -2745,6 +2766,7 @@ namespace API.Controllers.HRM.Profile
                                                 if (!string.IsNullOrEmpty(skill.profile_id))
                                                 {
                                                     skill.profile_skill_id = helper.GenKey();
+                                                    skill.is_order = psstt++;
                                                     skills.Add(skill);
                                                 }
                                             }
@@ -2755,6 +2777,7 @@ namespace API.Controllers.HRM.Profile
                                             await db.SaveChangesAsync();
                                             break;
                                         case "QT làm việc ngoài đơn vị":
+                                            int exstt = 1;
                                             List<hrm_profile_experience> experiences = new List<hrm_profile_experience>();
                                             for (int r = 4; r <= sheet.Dimension.End.Row; r++)
                                             {
@@ -2773,7 +2796,7 @@ namespace API.Controllers.HRM.Profile
                                                     var column = sheet.Cells[3, c].Value;
                                                     error_column = int.Parse(column.ToString() ?? c.ToString());
                                                     var vl = sheet.Cells[r, c].Value;
-                                                    if (vl != null)
+                                                    if (vl != null && !string.IsNullOrEmpty(vl.ToString()))
                                                     {
                                                         string value = vl.ToString().Trim();
                                                         switch (column)
@@ -2783,6 +2806,7 @@ namespace API.Controllers.HRM.Profile
                                                                 if (p != null)
                                                                 {
                                                                     experience.profile_id = p.profile_id;
+                                                                    exstt = db.hrm_profile_experience.Count(x => x.profile_id == p.profile_id) + 1;
                                                                 }
                                                                 break;
                                                             case "3":
@@ -2830,6 +2854,8 @@ namespace API.Controllers.HRM.Profile
                                                 }
                                                 if (!string.IsNullOrEmpty(experience.profile_id))
                                                 {
+                                                    experience.profile_experience_id = helper.GenKey();
+                                                    experience.is_order = exstt++;
                                                     experiences.Add(experience);
                                                 }
                                             }
@@ -2840,6 +2866,7 @@ namespace API.Controllers.HRM.Profile
                                             await db.SaveChangesAsync();
                                             break;
                                         case "QT Khen Thưởng":
+                                            int rstt = 1;
                                             List<hrm_reward> rewards = new List<hrm_reward>();
                                             for (int r = 4; r <= sheet.Dimension.End.Row; r++)
                                             {
@@ -2858,7 +2885,7 @@ namespace API.Controllers.HRM.Profile
                                                     var column = sheet.Cells[3, c].Value;
                                                     error_column = int.Parse(column.ToString() ?? c.ToString());
                                                     var vl = sheet.Cells[r, c].Value;
-                                                    if (vl != null)
+                                                    if (vl != null && !string.IsNullOrEmpty(vl.ToString()))
                                                     {
                                                         string value = vl.ToString().Trim();
                                                         switch (column)
@@ -2870,6 +2897,7 @@ namespace API.Controllers.HRM.Profile
                                                                 {
                                                                     reward.reward_name = p.profile_id;
                                                                     reward.organization_id = p.organization_id;
+                                                                    rstt = db.hrm_reward.Count(x => x.reward_name == p.profile_id) + 1;
                                                                 }
                                                                 break;
                                                             case "3":
@@ -2918,6 +2946,7 @@ namespace API.Controllers.HRM.Profile
                                                 }
                                                 if (!string.IsNullOrEmpty(reward.reward_name))
                                                 {
+                                                    reward.is_order = rstt++;
                                                     rewards.Add(reward);
                                                 }
                                             }
@@ -2927,8 +2956,117 @@ namespace API.Controllers.HRM.Profile
                                             }
                                             await db.SaveChangesAsync();
                                             break;
-                                        default:
+                                        case "Bảo hiểm":
+                                            int isstt = 1;
+                                            List<hrm_insurance> insurances = new List<hrm_insurance>();
+                                            List<hrm_insurance_pay> insurance_pays = new List<hrm_insurance_pay>();
+                                            for (int r = 4; r <= sheet.Dimension.End.Row; r++)
+                                            {
+                                                error_row = r;
+                                                if (sheet.Cells[r, 2].Value == null)
+                                                {
+                                                    break;
+                                                }
+                                                hrm_insurance insurance = new hrm_insurance();
+                                                hrm_insurance_pay insurance_pay = new hrm_insurance_pay();
+                                                for (int c = 2; c <= sheet.Dimension.End.Column; c++)
+                                                {
+                                                    if (sheet.Cells[3, c].Value == null)
+                                                    {
+                                                        break;
+                                                    }
+                                                    var column = sheet.Cells[3, c].Value;
+                                                    error_column = int.Parse(column.ToString() ?? c.ToString());
+                                                    var vl = sheet.Cells[r, c].Value;
+                                                    if (vl != null && !string.IsNullOrEmpty(vl.ToString()))
+                                                    {
+                                                        string value = vl.ToString().Trim();
+                                                        switch (column)
+                                                        {
+                                                            case "2":
+                                                                var p = await db.hrm_profile.FirstOrDefaultAsync(x => x.profile_code == value);
+                                                                if (p != null)
+                                                                {
+                                                                    insurance.profile_id = p.profile_id;
+                                                                    insurance_pay.profile_id = p.profile_id;
+                                                                    insurance.organization_id = p.organization_id;
+                                                                }
+                                                                break;
+                                                            case "3":
+                                                                break;
+                                                            case "4":
+                                                                insurance.insurance_id = value;
+                                                                isstt = db.hrm_insurance_pay.Count(x => x.insurance_id == value) + 1;
+                                                                break;
+                                                            case "5":
+                                                                insurance_pay.start_date = DateTime.ParseExact(value, "MM/yyyy", CultureInfo.InvariantCulture);
+                                                                break;
+                                                            case "6":
+                                                                insurance_pay.end_date = DateTime.ParseExact(value, "MM/yyyy", CultureInfo.InvariantCulture);
+                                                                break;
+                                                            case "7":
+                                                                var company_payment = value;
+                                                                var company_payment_exists = await db.sys_organization.FirstOrDefaultAsync(x => x.organization_key == company_payment || x.organization_name == company_payment);
+                                                                if (company_payment_exists != null)
+                                                                {
+                                                                    insurance_pay.company_payment = company_payment_exists.organization_id;
+                                                                }
+                                                                break;
+                                                            case "8":
+                                                                insurance_pay.title_name = value;
+                                                                break;
+                                                            case "9":
+                                                                insurance_pay.salary = double.Parse(value);
+                                                                break;
+                                                            case "10":
+                                                                insurance_pay.coef_salary = double.Parse(value.Replace(",", "."), CultureInfo.InvariantCulture);
+                                                                break;
+                                                            case "11":
+                                                                insurance_pay.coef_allowance = double.Parse(value.Replace(",", "."), CultureInfo.InvariantCulture);
+                                                                break;
+                                                            case "12":
+                                                                insurance_pay.wage = double.Parse(value);
+                                                                break;
+                                                            case "13":
+                                                                insurance_pay.region = value;
+                                                                break;
+                                                            case "14":
+                                                                insurance.insurance_code = value;
+                                                                break;
+                                                            case "15":
+                                                                insurance.hospital_name = value;
+                                                                break;
+                                                            default:
+                                                                break;
+                                                        }
+                                                    }
+                                                }
+                                                var check = insurances.Count(x => x.insurance_id == insurance.insurance_id) > 0;
+                                                if (!string.IsNullOrEmpty(insurance.profile_id) && !check)
+                                                {
+                                                    insurance.is_order = isstt++;
+                                                    insurances.Add(insurance);
+                                                }
+                                                if (insurance_pay.start_date != null)
+                                                {
+                                                    insurance_pay.insurance_pay_id = helper.GenKey();
+                                                    insurance_pay.insurance_id = insurance.insurance_id;
+                                                    insurance_pay.is_order = isstt++;
+                                                    insurance_pays.Add(insurance_pay);
+                                                }
+                                            }
+                                            if (insurances.Count > 0)
+                                            {
+                                                db.hrm_insurance.AddRange(insurances);
+                                            }
+                                            if (insurance_pays.Count > 0)
+                                            {
+                                                db.hrm_insurance_pay.AddRange(insurance_pays);
+                                            }
+                                            await db.SaveChangesAsync();
                                             break;
+                                        default:
+                                            return Request.CreateResponse(HttpStatusCode.OK, new { err = "1", ms = $"Lỗi định dạng trang thứ {error_sheet} sai tên sheet!" });
                                     }
                                 }
                             }

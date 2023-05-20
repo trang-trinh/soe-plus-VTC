@@ -1530,6 +1530,7 @@ const initDataFilter = () => {
       if (response != null && response.data != null) {
         let data = JSON.parse(response.data.data);
         if (data != null) {
+          var arr = [];
           if (data[0] != null && data[0].length > 0) {
             data[0].forEach((item, i) => {
               item["STT"] = i + 1;

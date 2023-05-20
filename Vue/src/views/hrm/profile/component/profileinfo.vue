@@ -531,6 +531,7 @@ const vaccines = ref([]);
 
 //data view 13
 const goPrint = (key) => {
+   
   let o = {
     id: key,
     par: { profile_id: profile.value.profile_id },
@@ -2552,12 +2553,14 @@ const initDictionary = () => {
     .then((response) => {
       if (response != null && response.data != null) {
         var data = response.data.data;
+        
         if (data != null) {
           let tbs = JSON.parse(data);
           if (tbs[0] && tbs[0].length > 0) {
             reports.value = tbs[0];
             tbs[0].forEach((item) => {
               let obj = {
+                report_key:item.report_key,
                 view: 13,
                 label: item.report_title,
                 icon: "fa-regular fa-file",
@@ -2678,7 +2681,7 @@ const formatViewNumber = (value, partDecimal) => {
             <li
               v-for="(value, key) in itemButPrints"
               :key="key"
-              @click="goPrint(value.view)"
+              @click="goPrint(value.report_key)"
               class="item-menu"
               :class="{
                 'item-menu-highlight': value.view === options.view,
