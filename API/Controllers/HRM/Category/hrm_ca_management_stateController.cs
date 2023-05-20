@@ -25,7 +25,7 @@ namespace API.Controllers.HRM.Category
     [Authorize(Roles = "login")]
     public class hrm_ca_management_stateController : ApiController
     {
-  public string getipaddress()
+        public string getipaddress()
         {
             return HttpContext.Current.Request.UserHostAddress;
         }
@@ -75,7 +75,7 @@ namespace API.Controllers.HRM.Category
 
 
                         bool super = claims.Where(p => p.Type == "super").FirstOrDefault()?.Value == "True";
-                        ca_management_state.organization_id =  int.Parse(dvid);
+                        ca_management_state.organization_id = int.Parse(dvid);
                         ca_management_state.created_by = uid;
                         ca_management_state.created_date = DateTime.Now;
                         ca_management_state.created_ip = ip;
