@@ -3016,16 +3016,16 @@ namespace API.Controllers.HRM.Profile
                                                                 insurance_pay.title_name = value;
                                                                 break;
                                                             case "9":
-                                                                insurance_pay.wage = double.Parse(value);
+                                                                insurance_pay.salary = double.Parse(value);
                                                                 break;
                                                             case "10":
-                                                                insurance_pay.coef_salary = double.Parse(value);
+                                                                insurance_pay.coef_salary = double.Parse(value.Replace(",", "."), CultureInfo.InvariantCulture);
                                                                 break;
                                                             case "11":
-                                                                insurance_pay.coef_allowance = double.Parse(value);
+                                                                insurance_pay.coef_allowance = double.Parse(value.Replace(",", "."), CultureInfo.InvariantCulture);
                                                                 break;
                                                             case "12":
-                                                                insurance_pay.coef_allowance = double.Parse(value);
+                                                                insurance_pay.wage = double.Parse(value);
                                                                 break;
                                                             case "13":
                                                                 insurance_pay.region = value;
