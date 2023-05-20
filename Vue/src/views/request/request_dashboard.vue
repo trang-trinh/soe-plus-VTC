@@ -284,10 +284,16 @@ const loadRequestDashBoardList = () => {
                 // ];
                 list_cho_duyets.value.forEach((element) => {
                     element.MemberShows = [];
-                    if (element.Members.length > 5) {
-                        element.MemberShows = element.Members.slice(0, 5);
-                    } else {
-                        element.MemberShows = [...element.Members];
+                    if (element.Members != null) {
+                        element.Members = JSON.parse(element.Members);
+                        if (element.Members.length > 5) {
+                            element.MemberShows = element.Members.slice(0, 5);
+                        } else {
+                            element.MemberShows = [...element.Members];
+                        }
+                    }
+                    else {
+                        element.Members = [];
                     }
                 })
                 // list_hoan_thanhs.value = [
@@ -305,10 +311,16 @@ const loadRequestDashBoardList = () => {
                 // ];
                 list_hoan_thanhs.value.forEach((element) => {
                     element.MemberShows = [];
-                    if (element.Members.length > 5) {
-                        element.MemberShows = element.Members.slice(0, 5);
-                    } else {
-                        element.MemberShows = [...element.Members];
+                    if (element.Members != null) {
+                        element.Members = JSON.parse(element.Members);
+                        if (element.Members.length > 5) {
+                            element.MemberShows = element.Members.slice(0, 5);
+                        } else {
+                            element.MemberShows = [...element.Members];
+                        }
+                    }
+                    else {
+                        element.Members = [];
                     }
                 })
                 // list_qua_hans.value = [
@@ -327,10 +339,16 @@ const loadRequestDashBoardList = () => {
                 list_qua_hans.value.forEach((element) => {
                     element.title_quahan = "Quá hạn 2 giờ";
                     element.MemberShows = [];
-                    if (element.Members.length > 5) {
-                        element.MemberShows = element.Members.slice(0, 5);
-                    } else {
-                        element.MemberShows = [...element.Members];
+                    if (element.Members != null) {
+                        element.Members = JSON.parse(element.Members);
+                        if (element.Members.length > 5) {
+                            element.MemberShows = element.Members.slice(0, 5);
+                        } else {
+                            element.MemberShows = [...element.Members];
+                        }
+                    }
+                    else {
+                        element.Members = [];
                     }
                 })
                 //end
@@ -551,9 +569,12 @@ onMounted(() => {
                                                             <div>
                                                                 <div class="col-12 md:col-12">
                                                                     <span
-                                                                        style="padding: 2px 10px;border: 1px solid #0078d4;background-color: #0078d4;color: #fff;border-radius: 5px;">NP04.23.0539</span>
-                                                                    <label style="margin-left: 5px;font-weight: bold;">{{
-                                                                        l.request_name }}</label>
+                                                                        style="padding: 2px 10px;border: 1px solid #0078d4;background-color: #0078d4;color: #fff;border-radius: 5px;font-size:13px;">
+                                                                        {{ l.request_code }}
+                                                                    </span>
+                                                                    <label style="margin-left: 5px;font-weight: bold;line-height: 1.5;">
+                                                                        {{ l.request_name }}
+                                                                    </label>
                                                                 </div>
                                                                 <div class="col-12 md:col-12"
                                                                     style="display: flex;align-items: center;padding-top: 0px !important;">
@@ -574,38 +595,40 @@ onMounted(() => {
                                                                         :key="index">
                                                                         <div>
                                                                             <Avatar v-tooltip.bottom="{
-                                                                                value:
-                                                                                    value.full_name +
-                                                                                    '<br/>' +
-                                                                                    (value.department_name || '') +
-                                                                                    '<br/>' +
-                                                                                    (value.position_name || ''),
-                                                                                escape: true,
-                                                                            }" v-bind:label="value.avatar ? '' : (value.last_name ?? '').substring(0, 1)
-    " v-bind:image="basedomainURL + value.avatar" style="
-								                    background-color: #2196f3;
-								                    color: #ffffff;
-								                    width: 32px;
-								                    height: 32px;
-								                    font-size: 15px !important;
-								                    margin-left: -10px;
-								                  " :style="{
-								                      background: bgColor[index % 7] + '!important',
-								                  }" class="cursor-pointer" size="xlarge" shape="circle" />
+                                                                                    value: value.full_name +
+                                                                                        (value.department_name ? ('<br/>' + (value.department_name || '')) : '') +
+                                                                                        (value.position_name ? ('<br/>' + (value.position_name || '')) : ''),
+                                                                                    escape: true,
+                                                                                }" 
+                                                                                v-bind:label="value.avatar ? '' : (value.last_name ?? '').substring(0, 1)" 
+                                                                                v-bind:image="basedomainURL + value.avatar" 
+                                                                                style="
+                                                                                    background-color: #2196f3;
+                                                                                    color: #ffffff;
+                                                                                    width: 32px;
+                                                                                    height: 32px;
+                                                                                    font-size: 15px !important;
+                                                                                    margin-left: -10px;
+                                                                                " 
+                                                                                :style="{
+                                                                                    background: bgColor[index % 7] + '!important',
+                                                                                }" 
+                                                                                class="cursor-pointer" size="xlarge" shape="circle" 
+                                                                            />
                                                                         </div>
                                                                     </div>
-                                                                    <Avatar v-if="l.MemberShows.length > 0
-                                                                        " :label="'+' +
-        (l.Members.length - l.MemberShows.length) +
-        ''
-        " class="cursor-pointer" shape="circle" style="
-								                background-color: #e9e9e9 !important;
-								                color: #98a9bc;
-								                font-size: 14px !important;
-								                width: 32px;
-								                margin-left: -10px;
-								                height: 32px;
-								              " />
+                                                                    <Avatar v-if="(l.Members.length - l.MemberShows.length) > 0" 
+                                                                        :label="'+' + (l.Members.length - l.MemberShows.length) + ''" 
+                                                                        class="cursor-pointer" shape="circle" 
+                                                                        style="
+                                                                            background-color: #e9e9e9 !important;
+                                                                            color: #98a9bc;
+                                                                            font-size: 14px !important;
+                                                                            width: 32px;
+                                                                            margin-left: -10px;
+                                                                            height: 32px;
+								                                        " 
+                                                                    />
                                                                 </AvatarGroup>
                                                             </div>
                                                         </li>
@@ -643,9 +666,12 @@ onMounted(() => {
                                                             <div>
                                                                 <div class="col-12 md:col-12">
                                                                     <span
-                                                                        style="padding: 2px 10px;border: 1px solid #0078d4;background-color: #0078d4;color: #fff;border-radius: 5px;">NP04.23.0539</span>
-                                                                    <label style="margin-left: 5px;font-weight: bold;">{{
-                                                                        l.request_name }}</label>
+                                                                        style="padding: 2px 10px;border: 1px solid #0078d4;background-color: #0078d4;color: #fff;border-radius: 5px;font-size:13px;">
+                                                                        {{ l.request_code }}
+                                                                    </span>
+                                                                    <label style="margin-left: 5px;font-weight: bold;line-height: 1.5;">
+                                                                        {{ l.request_name }}
+                                                                    </label>
                                                                 </div>
                                                                 <div class="col-12 md:col-12"
                                                                     style="display: flex;align-items: center;padding-top: 0px !important;">
@@ -667,38 +693,40 @@ onMounted(() => {
                                                                         :key="index">
                                                                         <div>
                                                                             <Avatar v-tooltip.bottom="{
-                                                                                value:
-                                                                                    value.full_name +
-                                                                                    '<br/>' +
-                                                                                    (value.department_name || '') +
-                                                                                    '<br/>' +
-                                                                                    (value.position_name || ''),
-                                                                                escape: true,
-                                                                            }" v-bind:label="value.avatar ? '' : (value.last_name ?? '').substring(0, 1)
-    " v-bind:image="basedomainURL + value.avatar" style="
-								                    background-color: #2196f3;
-								                    color: #ffffff;
-								                    width: 32px;
-								                    height: 32px;
-								                    font-size: 15px !important;
-								                    margin-left: -10px;
-								                  " :style="{
-								                      background: bgColor[index % 7] + '!important',
-								                  }" class="cursor-pointer" size="xlarge" shape="circle" />
+                                                                                    value: value.full_name +
+                                                                                        (value.department_name ? ('<br/>' + (value.department_name || '')) : '') +
+                                                                                        (value.position_name ? ('<br/>' + (value.position_name || '')) : ''),
+                                                                                    escape: true,
+                                                                                }" 
+                                                                                v-bind:label="value.avatar ? '' : (value.last_name ?? '').substring(0, 1)" 
+                                                                                v-bind:image="basedomainURL + value.avatar" 
+                                                                                style="
+                                                                                    background-color: #2196f3;
+                                                                                    color: #ffffff;
+                                                                                    width: 32px;
+                                                                                    height: 32px;
+                                                                                    font-size: 15px !important;
+                                                                                    margin-left: -10px;
+                                                                                " 
+                                                                                :style="{
+                                                                                    background: bgColor[index % 7] + '!important',
+                                                                                }" 
+                                                                                class="cursor-pointer" size="xlarge" shape="circle" 
+                                                                            />
                                                                         </div>
                                                                     </div>
-                                                                    <Avatar v-if="l.MemberShows.length > 0
-                                                                        " :label="'+' +
-        (l.Members.length - l.MemberShows.length) +
-        ''
-        " class="cursor-pointer" shape="circle" style="
-								                background-color: #e9e9e9 !important;
-								                color: #98a9bc;
-								                font-size: 14px !important;
-								                width: 32px;
-								                margin-left: -10px;
-								                height: 32px;
-								              " />
+                                                                    <Avatar v-if="(l.Members.length - l.MemberShows.length) > 0" 
+                                                                        :label="'+' + (l.Members.length - l.MemberShows.length) + ''" 
+                                                                        class="cursor-pointer" shape="circle" 
+                                                                        style="
+                                                                            background-color: #e9e9e9 !important;
+                                                                            color: #98a9bc;
+                                                                            font-size: 14px !important;
+                                                                            width: 32px;
+                                                                            margin-left: -10px;
+                                                                            height: 32px;
+                                                                        " 
+                                                                    />
                                                                 </AvatarGroup>
                                                                 <div style="width: 100px; margin-left: 10px;"
                                                                     class="progressbar-hoanthanh">
@@ -740,21 +768,23 @@ onMounted(() => {
                                                             <div>
                                                                 <div class="col-12 md:col-12">
                                                                     <span
-                                                                        style="padding: 2px 10px;border: 1px solid #0078d4;background-color: #0078d4;color: #fff;border-radius: 5px;">NP04.23.0539</span>
-                                                                    <label style="margin-left: 5px;font-weight: bold;">{{
-                                                                        l.request_name }}</label>
+                                                                        style="padding: 2px 10px;border: 1px solid #0078d4;background-color: #0078d4;color: #fff;border-radius: 5px;font-size:13px;">
+                                                                        {{ l.request_code }}
+                                                                    </span>
+                                                                    <label style="margin-left: 5px;font-weight: bold;line-height: 1.5;">
+                                                                        {{ l.request_name }}
+                                                                    </label>
                                                                 </div>
                                                                 <div class="col-12 md:col-12"
                                                                     style="display: flex;align-items: center;padding-top: 0px !important;">
                                                                     <div
                                                                         style="display: flex; flex: 1;font-size: 12px;color: #98a9bc;">
-                                                                        <span>Ngày lập: {{ moment(new
-                                                                            Date(l.created_date)).format("HH:mm DD/MM/YYYY")
-                                                                        }}</span>
+                                                                        <span>Ngày lập: {{ moment(new Date(l.created_date)).format("HH:mm DD/MM/YYYY") }}</span>
                                                                     </div>
                                                                     <span
-                                                                        style=" background-color: #ff8b4e;font-size: 10px;padding: 5px 5px;color: #fff;border-radius: 5px;height: fit-content;">{{
-                                                                            l.title_quahan }}</span>
+                                                                        style=" background-color: #ff8b4e;font-size: 10px;padding: 5px 5px;color: #fff;border-radius: 5px;height: fit-content;">
+                                                                        {{ l.title_quahan }}
+                                                                    </span>
                                                                 </div>
                                                             </div>
                                                             <div v-if="l.MemberShows.length > 0"
@@ -764,38 +794,40 @@ onMounted(() => {
                                                                         :key="index">
                                                                         <div>
                                                                             <Avatar v-tooltip.bottom="{
-                                                                                value:
-                                                                                    value.full_name +
-                                                                                    '<br/>' +
-                                                                                    (value.department_name || '') +
-                                                                                    '<br/>' +
-                                                                                    (value.position_name || ''),
-                                                                                escape: true,
-                                                                            }" v-bind:label="value.avatar ? '' : (value.last_name ?? '').substring(0, 1)
-    " v-bind:image="basedomainURL + value.avatar" style="
-								                    background-color: #2196f3;
-								                    color: #ffffff;
-								                    width: 32px;
-								                    height: 32px;
-								                    font-size: 15px !important;
-								                    margin-left: -10px;
-								                  " :style="{
-								                      background: bgColor[index % 7] + '!important',
-								                  }" class="cursor-pointer" size="xlarge" shape="circle" />
+                                                                                    value: value.full_name +
+                                                                                        (value.department_name ? ('<br/>' + (value.department_name || '')) : '') +
+                                                                                        (value.position_name ? ('<br/>' + (value.position_name || '')) : ''),
+                                                                                    escape: true,
+                                                                                }" 
+                                                                                v-bind:label="value.avatar ? '' : (value.last_name ?? '').substring(0, 1)" 
+                                                                                v-bind:image="basedomainURL + value.avatar" 
+                                                                                style="
+                                                                                    background-color: #2196f3;
+                                                                                    color: #ffffff;
+                                                                                    width: 32px;
+                                                                                    height: 32px;
+                                                                                    font-size: 15px !important;
+                                                                                    margin-left: -10px;
+                                                                                " 
+                                                                                :style="{
+                                                                                    background: bgColor[index % 7] + '!important',
+                                                                                }" 
+                                                                                class="cursor-pointer" size="xlarge" shape="circle" 
+                                                                            />
                                                                         </div>
                                                                     </div>
-                                                                    <Avatar v-if="l.MemberShows.length > 0
-                                                                        " :label="'+' +
-        (l.Members.length - l.MemberShows.length) +
-        ''
-        " class="cursor-pointer" shape="circle" style=" 
-								                background-color: #e9e9e9 !important;
-								                color: #98a9bc;
-								                font-size: 14px !important;
-								                width: 32px;
-								                margin-left: -10px;
-								                height: 32px;
-								              " />
+                                                                    <Avatar v-if="(l.Members.length - l.MemberShows.length) > 0" 
+                                                                        :label="'+' + (l.Members.length - l.MemberShows.length) + ''" 
+                                                                        class="cursor-pointer" shape="circle" 
+                                                                        style=" 
+                                                                            background-color: #e9e9e9 !important;
+                                                                            color: #98a9bc;
+                                                                            font-size: 14px !important;
+                                                                            width: 32px;
+                                                                            margin-left: -10px;
+                                                                            height: 32px;
+                                                                        "
+                                                                    />
                                                                 </AvatarGroup>
                                                             </div>
                                                         </li>
@@ -818,15 +850,18 @@ onMounted(() => {
         </div>
     </div>
 
-    <Sidebar class="sidebar-request" v-model:visible="showSidebarRequest" :position="PositionSideBar1" :style="{
-        width:
-            PositionSideBar1 == 'right'
-                ? width1 > 1800
-                    ? ' 60vw'
-                    : '80vw'
-                : '100vw',
-        'height': '101vh !important',
-    }" :showCloseIcon="false">
+    <Sidebar class="sidebar-request" v-model:visible="showSidebarRequest" :position="PositionSideBar1" 
+        :style="{
+            width:
+                PositionSideBar1 == 'right'
+                    ? width1 > 1800
+                        ? ' 60vw'
+                        : '80vw'
+                    : '100vw',
+            'height': '101vh !important',
+        }" 
+        :showCloseIcon="false"
+    >
         <SidebarViewRequest :isShow="showSidebarRequest" :turn="0" :counts="counts" :tab="options.tab" :type_tab="options.type_tab">
         </SidebarViewRequest>
     </Sidebar>

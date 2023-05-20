@@ -180,9 +180,14 @@ span.rqlap {
 .requestbutton button {
     flex: 1;
     margin-right: 0.5rem;
+    font-weight: bold;
+    color: #ffffff;
 }
 .requestbutton button:last-child {
     margin-right: 0;
+}
+.requestbutton button:hover {
+    color: #000000;
 }
 .formd.col-1, .formd.col-2, .formd.col-3, .formd.col-4, 
 .formd.col-5, .formd.col-6, .formd.col-7, .formd.col-8, 
