@@ -268,11 +268,11 @@ onMounted(() => {
         <div class="container px-4 py-5 px-md-5 text-center text-lg-start" style="margin-top: 14vh;">
           <div class="row gx-lg-5 align-items-center mb-5">
             <div class="title-left col-lg-6 mb-5 mb-lg-0" style="z-index: 1">
-              <h1 class="my-5 display-5 fw-bold ls-tight animate__animated animate__fadeInLeft animate__delay-0.5s" style="color: hsl(218, 81%, 95%); font-size: 3.8rem;">
+              <h1 class="my-5 display-5 fw-bold ls-tight animate__animated animate__fadeInLeftBig animate__delay-0.5s" style="color: hsl(218, 81%, 95%); font-size: 3.8rem;">
                 Hệ thống <br />
                 <span style="color: hsl(218, 81%, 75%)">Quản lý Nhân sự</span>
               </h1>
-              <p class="mb-4 opacity-70 animate__animated animate__fadeInUp animate__delay-0.5s" style="color: #fff;font-size: 1.5rem;">
+              <p class="mb-4 opacity-70 animate__animated animate__fadeInUpBig animate__delay-1s" style="color: #fff;font-size: 1.5rem;">
                 Hệ thống cơ sở dữ liệu về nhân sự đồng nhất, thực hiện giải quyết các quy trình, nghiệp vụ quản trị nhân lực.
                 <br />Một kênh kết nối, tương tác,  chia sẻ thông tin trực tuyến giữa nhân sự và người quản lý
               </p>
