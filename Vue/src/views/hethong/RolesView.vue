@@ -583,6 +583,7 @@ function getPermissionChildren(md) {
     if (element.children) getPermissionChildren(element);
   });
 }
+var mdmodules = [];
 const addConfigRole = () => {
   swal.fire({
     width: 110,
@@ -590,64 +591,83 @@ const addConfigRole = () => {
       swal.showLoading();
     },
   });
-  let mdmodules = [];
+  mdmodules = [];
   modules.value.forEach((element) => {
-    mdmodules.push({
-      role_module_id: element.data.role_module_id || -1,
-      role_id: is_coppy_module.value ? id_temp.value : element.data.role_id,
-      module_id: element.data.module_id,
-      is_grade: element.data.is_grade,
-      is_permission: element.data.is_permission
-        ? element.data.is_permission.join()
-        : element.data.is_permission,
-      module_functions: element.data.module_functions
-        ? element.data.module_functions.join()
-        : element.data.module_functions,
-    });
-    if (element.children && element.children.length > 0) {
-      element.children.forEach((ec) => {
-        mdmodules.push({
-          role_module_id: ec.data.role_module_id || -1,
-          role_id: is_coppy_module.value ? id_temp.value : ec.data.role_id,
-          module_id: ec.data.module_id,
-          is_grade: ec.data.is_grade,
-          is_permission: ec.data.is_permission
-            ? ec.data.is_permission.join()
-            : ec.data.is_permission,
-          module_functions: ec.data.module_functions
-            ? ec.data.module_functions.join()
-            : ec.data.module_functions,
-          // is_permission: (ec.data.is_permission )
-          //   ? ec.data.is_permission.join("")
-          //   : element.data.is_permission
-          //   ? element.data.is_permission.join("")
-          //   : element.data.is_permission,
-          //   module_functions: ec.data.module_functions
-          //   ? ec.data.module_functions.join()
-          //   : element.data.module_functions
-          //   ? element.data.module_functions.join()
-          //   : element.data.module_functions,
-        });
-        // get value module level 3 (it module khong can de quy - co time xem lai)
-        if (ec.children && ec.children.length > 0) {
-          ec.children.forEach((ec2) => {
-            mdmodules.push({
-              role_module_id: ec2.data.role_module_id || -1,
-              role_id: is_coppy_module.value ? id_temp.value : ec2.data.role_id,
-              module_id: ec2.data.module_id,
-              is_grade: ec2.data.is_grade,
-              is_permission: ec2.data.is_permission
-                ? ec2.data.is_permission.join()
-                : ec2.data.is_permission,
-              module_functions: ec2.data.module_functions
-                ? ec2.data.module_functions.join()
-                : ec2.data.module_functions,
-            });
-          });
-        }
-      });
-    }
-  });
+    recursiveData(element);
+  })
+  // modules.value.forEach((element) => {
+  //   mdmodules.push({
+  //     role_module_id: element.data.role_module_id || -1,
+  //     role_id: is_coppy_module.value ? id_temp.value : element.data.role_id,
+  //     module_id: element.data.module_id,
+  //     is_grade: element.data.is_grade,
+  //     is_permission: element.data.is_permission
+  //       ? element.data.is_permission.join()
+  //       : element.data.is_permission,
+  //     module_functions: element.data.module_functions
+  //       ? element.data.module_functions.join()
+  //       : element.data.module_functions,
+  //   });
+  //   if (element.children && element.children.length > 0) {
+  //     element.children.forEach((ec) => {
+  //       mdmodules.push({
+  //         role_module_id: ec.data.role_module_id || -1,
+  //         role_id: is_coppy_module.value ? id_temp.value : ec.data.role_id,
+  //         module_id: ec.data.module_id,
+  //         is_grade: ec.data.is_grade,
+  //         is_permission: ec.data.is_permission
+  //           ? ec.data.is_permission.join()
+  //           : ec.data.is_permission,
+  //         module_functions: ec.data.module_functions
+  //           ? ec.data.module_functions.join()
+  //           : ec.data.module_functions,
+  //         // is_permission: (ec.data.is_permission )
+  //         //   ? ec.data.is_permission.join("")
+  //         //   : element.data.is_permission
+  //         //   ? element.data.is_permission.join("")
+  //         //   : element.data.is_permission,
+  //         //   module_functions: ec.data.module_functions
+  //         //   ? ec.data.module_functions.join()
+  //         //   : element.data.module_functions
+  //         //   ? element.data.module_functions.join()
+  //         //   : element.data.module_functions,
+  //       });
+  //       // get value module level 3 (it module khong can de quy - co time xem lai)
+  //       if (ec.children && ec.children.length > 0) {
+  //         ec.children.forEach((ec2) => {
+  //           mdmodules.push({
+  //             role_module_id: ec2.data.role_module_id || -1,
+  //             role_id: is_coppy_module.value ? id_temp.value : ec2.data.role_id,
+  //             module_id: ec2.data.module_id,
+  //             is_grade: ec2.data.is_grade,
+  //             is_permission: ec2.data.is_permission
+  //               ? ec2.data.is_permission.join()
+  //               : ec2.data.is_permission,
+  //             module_functions: ec2.data.module_functions
+  //               ? ec2.data.module_functions.join()
+  //               : ec2.data.module_functions,
+  //           });
+  //           if (ec2.children && ec2.children.length > 0) {
+  //               ec2.children.forEach((ec3) => {
+  //                 mdmodules.push({
+  //                   role_module_id: ec3.data.role_module_id || -1,
+  //                   role_id: is_coppy_module.value ? id_temp.value : ec3.data.role_id,
+  //                   module_id: ec3.data.module_id,
+  //                   is_grade: ec3.data.is_grade,
+  //                   is_permission: ec3.data.is_permission
+  //                     ? ec3.data.is_permission.join()
+  //                     : ec3.data.is_permission,
+  //                   module_functions: ec3.data.module_functions
+  //                     ? ec3.data.module_functions.join()
+  //                     : ec3.data.module_functions,
+  //                 });
+  //               });
+  //             }
+  //         });
+  //       }
+  //     });
+  //   }
+  // });
   axios({
     method: "post",
     url: baseURL + "/api/Roles/Add_RoleModules",
@@ -681,6 +701,24 @@ const addConfigRole = () => {
       }
     });
 };
+const recursiveData =(element)=>{
+  mdmodules.push({
+      role_module_id: element.data.role_module_id || -1,
+      role_id: is_coppy_module.value ? id_temp.value : element.data.role_id,
+      module_id: element.data.module_id,
+      is_grade: element.data.is_grade,
+      is_permission: element.data.is_permission
+        ? element.data.is_permission.join()
+        : element.data.is_permission,
+      module_functions: element.data.module_functions
+        ? element.data.module_functions.join()
+        : element.data.module_functions,
+    });
+    if (element.children && element.children.length > 0) {
+      element.children.forEach((ec) => {
+        recursiveData(ec);
+      })}
+}
 const editRole = (md) => {
   isAdd.value = false;
   submitted.value = false;
@@ -1647,8 +1685,7 @@ onMounted(() => {
     <h3 class="mt-0">Danh sách người dùng</h3>
     <div>
       <DataView
-      class="w-full h-full flex flex-column"
-      :lazy="true"
+      class="w-full h-full e-sm flex flex-column p-dataview-unset"
       :value="dataUsers"
       :layout="layout"
       :loading="opition.loading"
@@ -1656,11 +1693,10 @@ onMounted(() => {
       :rows="'20'"
       :totalRecords="dataUsers.length"
       pageLinkSize="4"
-      @page="onPage($event)"
       paginatorTemplate="FirstPageLink PrevPageLink PageLinks NextPageLink LastPageLink RowsPerPageDropdown"
       currentPageReportTemplate=""
       responsiveLayout="scroll"
-      :scrollable="true"
+      :scrollable="false"
       >
       <template #list="slotProps">
         <div class="p-2 w-full" style="background-color: #fff">
@@ -1775,5 +1811,12 @@ onMounted(() => {
   tr {
     cursor: pointer;
   }
+}
+::v-deep(.p-dataview) {
+ .p-dataview-content{
+  overflow: auto;
+  max-height: calc(100vh - 110px);
+  min-height: calc(100vh - 110px);
+ }
 }
 </style>
