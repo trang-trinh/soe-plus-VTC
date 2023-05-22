@@ -3015,7 +3015,7 @@ namespace API.Controllers.HRM.Profile
                                                                 insurance_pay.title_name = value;
                                                                 break;
                                                             case "9":
-                                                                insurance_pay.wage = double.Parse(value);
+                                                                //insurance_pay.wage = double.Parse(value);
                                                                 break;
                                                             case "10":
                                                                 insurance_pay.coef_salary = double.Parse(value);

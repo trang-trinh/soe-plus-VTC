@@ -282,7 +282,7 @@ const sttStamp = ref(1);
 
 //Sửa bản ghi
 const editTem = (dataTem) => {
-  
+   
   training_emps.value = dataTem;
   headerDialog.value = "Sửa đào tạo";
   isSaveTem.value = false;

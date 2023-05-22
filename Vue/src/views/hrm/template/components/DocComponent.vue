@@ -1842,6 +1842,7 @@ export default {
       configDBChild.value.saveDatabase();
     };
     const saveConfig = () => {
+      
       props.callbackFun({
         report_config: JSON.stringify({
           data: isxls.value ? dtExcels.value : objDataTemp.value,
@@ -2317,6 +2318,7 @@ export default {
     const dtTempCols = ref([]);
     const callbackFunChild = (dt, pr) => {
       let arr = [];
+      
       dt.forEach((tr) => {
         tr.cols.forEach((td) => {
           let obj = {};
@@ -4063,6 +4065,7 @@ export default {
                     bodyStyle="text-align:left; "
                     headerClass="align-items-center justify-content-center text-center"
                   >
+       
                   </Column>
                   <Column
                     field="key"
@@ -4072,8 +4075,22 @@ export default {
                     headerClass="align-items-center justify-content-center text-center"
                   ></Column>
                   <Column
-                    headerStyle="text-align:center;height:50px"
-                    bodyStyle="text-align:left; "
+                    headerStyle="text-align:center;height:50px;max-width:50px"
+                    bodyStyle="text-align:left;max-width:50px "
+                    class="align-items-center justify-content-center text-center"
+                  >
+                    <template #body="slotProps">
+                      <Checkbox
+                        v-tooltip="'Đã cấu hình'"
+                        v-model="slotProps.data.isconfig"
+                        :binary="true"
+                        :disabled="true"
+                      />
+                    </template>
+                  </Column>
+                  <Column
+                    headerStyle="text-align:center;height:50px;max-width:50px"
+                    bodyStyle="text-align:left;max-width:50px "
                     class="align-items-center justify-content-center text-center"
                   >
                     <template #body="slotProps">

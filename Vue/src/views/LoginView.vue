@@ -66,6 +66,8 @@ const login = () => {
           decr(response.data.data, SecretKey, cryoptojs)
         );
         store.commit("setislogin", true);
+        store.commit("setlistOrgTree", []);
+        
         // if (localStorage.getItem("ck_cgi") != null) {
         //   localStorage.removeItem("ck_cgi");
         // }
