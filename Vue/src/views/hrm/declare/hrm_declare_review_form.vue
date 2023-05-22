@@ -82,10 +82,10 @@ const itemButMores = ref([
 ]);
 const checkIsmain = ref(true);
 const treemodules = ref();
-const list_users_training = ref([]);
+ 
 const checkShow = ref(false);
 const listEvalCriterias = ref([]);
-
+const listEvalChilds = ref([]);
 const listTypeEvals = ref([
   {
     name: "Tiêu chí đánh giá",
@@ -160,7 +160,7 @@ const loadData = (rf) => {
           element.STT = options.value.PageNo * options.value.PageSize + i + 1;
         });
         datalists.value = data;
-   
+
         options.value.loading = false;
       })
       .catch((error) => {
@@ -217,7 +217,8 @@ const openBasic = (str) => {
     is_results: true,
     status: true,
     type: 1,
-    evaluations_child: [],
+ 
+    
   };
   listEvalCriterias.value.push(obj);
 
@@ -256,9 +257,16 @@ const saveData = (isFormValid) => {
   }
   let formData = new FormData();
 
-  if (review_form.value.countryside_fake)
-    review_form.value.countryside = review_form.value.countryside_fake;
+  
+  for (var i = 0; i < filesList.value.length; i++) {
+    let file = filesList.value[i];
+    formData.append("image", file);
+  }
   formData.append("hrm_declare_review_form", JSON.stringify(review_form.value));
+  formData.append("list_eval_criterias", JSON.stringify(listEvalCriterias.value));
+  formData.append("list_eval_childs", JSON.stringify(listEvalChilds.value));
+
+
   swal.fire({
     width: 110,
     didOpen: () => {
@@ -560,18 +568,16 @@ const addRow_Item = (item) => {
   ) {
     let obj = {
       is_order:
-        listEvalCriterias.value.find((x) => x.roman_order == item.roman_order)
-          .evaluations_child.length + 1,
+      listEvalChilds.value.filter((x) => x.roman_order == item.roman_order).length + 1,
       eval_criteria_child_name: null,
       complete_results: null,
       complete_time: null,
       weight: null,
       parent_id: null,
       status: true,
+      roman_order:item.roman_order
     };
-    listEvalCriterias.value
-      .find((x) => x.roman_order == item.roman_order)
-      .evaluations_child.push(obj);
+    listEvalChilds.value.push(obj);
   }
 };
 
@@ -613,32 +619,88 @@ const onAddEvalCriterias = () => {
     is_results: true,
     status: true,
     type: 1,
-
-    evaluations_child: [],
+ 
   };
   listEvalCriterias.value.push(obj);
 };
 const delRow_Item = (item, type) => {
   if (type == 1) {
-
-
     if (
-    listEvalCriterias.value.find((x) => x.evaluations_child.find(y=>y.is_order== item.is_order)  ) !=
-    null
-  ) {
-    
-    let arr= listEvalCriterias.value.find((x) => x.evaluations_child.find(y=>y.is_order== item.is_order)  );
-    arr=  arr.evaluations_child.splice(
-      arr.evaluations_child.lastIndexOf(item),
-      1
-    );
-    // listEvalCriterias.value.find((x) => x.evaluations_child.find(y=>y.is_order== item.is_order)  )['evaluations_child']=arr;
+      listEvalChilds.value.find((x) =>
+        x ==item
+      ) != null
+    ) {
+      listEvalChilds.value = listEvalChilds.value.filter((x) =>
+      x !=item
+      );
+ }
   }
-  
- 
-  }
- 
 };
+const listFilesS = ref([]);
+
+const filesList = ref([]);
+let fileSize = [];
+const onUploadFile = (event) => {
+  fileSize = [];
+  filesList.value = [];
+
+  var ms = false;
+
+  event.files.forEach((fi) => {
+    let formData = new FormData();
+    formData.append("fileupload", fi);
+    axios({
+      method: "post",
+      url: baseURL + `/api/chat/ScanFileUpload`,
+      data: formData,
+      headers: {
+        Authorization: `Bearer ${store.getters.token}`,
+      },
+    })
+      .then((response) => {
+        if (response.data.err != "1") {
+          if (fi.size > 100 * 1024 * 1024) {
+            ms = true;
+          } else {
+            filesList.value.push(fi);
+            fileSize.push(fi.size);
+          }
+        } else {
+          filesList.value = filesList.value.filter((x) => x.name != fi.name);
+          swal.fire({
+            title: "Cảnh báo",
+            text: "File bị xóa do tồn tại mối đe dọa với hệ thống!",
+            icon: "warning",
+            confirmButtonText: "OK",
+          });
+        }
+        if (ms) {
+          swal.fire({
+            icon: "warning",
+            type: "warning",
+            title: "Thông báo",
+            text: "Bạn chỉ được upload file có dung lượng tối đa 100MB!",
+          });
+        }
+      })
+      .catch(() => {
+        swal.fire({
+          title: "Thông báo",
+          text: "Có lỗi xảy ra, vui lòng kiểm tra lại!",
+          icon: "error",
+          confirmButtonText: "OK",
+        });
+      });
+  });
+};
+const removeFile = (event) => {
+  filesList.value = filesList.value.filter((a) => a != event.file);
+};
+
+const onMinusItem=(item)=>{
+  listEvalCriterias.value=listEvalCriterias.value.filter(x=>x.roman_order!=item.roman_order);
+}
+
 onMounted(() => {
   loadData(true);
   return {
@@ -715,7 +777,8 @@ onMounted(() => {
                     <div
                       class="grid h-full w-full formgrid"
                       :class="
-                        review_form.review_form_id == slotProps.data.review_form_id
+                        review_form.review_form_id ==
+                        slotProps.data.review_form_id
                           ? 'bg-d-selected'
                           : ''
                       "
@@ -836,8 +899,8 @@ onMounted(() => {
               />
             </div>
           </div> -->
-          <div class="col-12 field md:col-12 p-0 flex">
-            <Toolbar class="custoolbar w-full">
+          <div class="col-12 field md:col-12 p-0 pr-2 flex">
+            <Toolbar class="custoolbar w-full ">
               <template #start>
                 <div class="font-bold text-lg">Danh sách chỉ tiêu</div>
               </template>
@@ -861,12 +924,28 @@ onMounted(() => {
           >
             <Card class="w-full">
               <template #title>
-                <div>
-                  Phần
-                  <span style="font-family: 'Times New Roman', Times, serif">{{
-                    item.roman_order
-                  }}</span>
-                </div>
+                <Toolbar class="custoolbar p-0">
+                  <template #start>
+                
+                      <div class="font-bold text-3xl">
+                        Phần
+                        <span
+                          style="font-family: 'Times New Roman', Times, serif"
+                          >{{ item.roman_order }}</span
+                        >
+                      </div>
+           
+                  </template>
+                  <template #end>
+                    <Button
+                      icon="pi pi-minus"
+                 @click="onMinusItem(item)"
+                      class="p-button-outlined p-button-danger"
+                  
+                    >
+                    </Button>
+                  </template>
+                </Toolbar>
               </template>
               <template #content>
                 <div class="col-12 md:col-12 p-0 flex field">
@@ -894,7 +973,8 @@ onMounted(() => {
                         class="w-full"
                         v-model="item.percen"
                         inputId="percent"
-                        surfix="%"
+                        :max="100"
+                        suffix=" %"
                       />
                     </div>
                   </div>
@@ -963,8 +1043,8 @@ onMounted(() => {
                       ></i>
                       <div class="pl-2">
                         Danh sách tiêu chí đánh giá
-                        <span v-if="item.evaluations_child.length > 0">
-                          ( {{ item.evaluations_child.length }} )</span
+                        <span v-if="listEvalChilds.filter(x=>x.roman_order==item.roman_order).length > 0">
+                          ( {{listEvalChilds.filter(x=>x.roman_order==item.roman_order).length }} )</span
                         >
                       </div>
                     </div>
@@ -985,17 +1065,16 @@ onMounted(() => {
                   <div class="w-full p-0" v-if="checkShow == true">
                     <div>
                       <DataTable
-                        :value="item.evaluations_child"
+                        :value="listEvalChilds.filter(x=>x.roman_order==item.roman_order)"
                         :scrollable="true"
                         :lazy="true"
                         :rowHover="true"
                         :showGridlines="true"
-                        scrollDirection="both"
                       >
                         <Column
                           header=""
-                          headerStyle="text-align:center;width:50px"
-                          bodyStyle="text-align:center;width:50px"
+                          headerStyle="text-align:center;max-width:50px"
+                          bodyStyle="text-align:center;max-width:50px"
                           class="align-items-center justify-content-center text-center"
                         >
                           <template #body="slotProps">
@@ -1014,77 +1093,198 @@ onMounted(() => {
                         <Column
                           field="card_number"
                           header="STT"
-                          headerStyle="text-align:center;width:70px;height:50px"
-                          bodyStyle="text-align:center;width:70px;"
+                          headerStyle="text-align:center;max-width:70px;height:50px"
+                          bodyStyle="text-align:center;max-width:70px;"
                           class="align-items-center justify-content-center text-center"
                         >
                           <template #body="slotProps">
                             {{ slotProps.data.is_order }}
-                     
                           </template>
                         </Column>
                         <Column
                           field="form"
                           header="Tiêu chí"
-                          headerStyle="text-align:center;width:250px;height:50px"
-                          bodyStyle="text-align:center;width:250px;"
+                          headerStyle="text-align:center; height:50px"
+                          bodyStyle="text-align:center; "
                           class="align-items-center justify-content-center text-center"
                         >
-                        <template #body="slotProps">
-                          <InputText
-                              spellcheck="false"
-                              class="w-full h-full d-design-it"
-                              style="width: 170px"
+                          <template #body="slotProps">
+                            <Textarea
+                              :autoResize="true"
+                              rows="1"
+                              cols="30"
                               v-model="slotProps.data.eval_criteria_child_name"
-                               
+                              class="w-full"
+                              spellcheck="false"
                             />
-                     
                           </template>
                         </Column>
                         <Column
                           field="form"
                           header="Kết quả cần đạt"
-                          headerStyle="text-align:center;width:250px;height:50px"
-                          bodyStyle="text-align:center;width:250px;"
+                          headerStyle="text-align:center;max-width:250px;height:50px"
+                          bodyStyle="text-align:center;max-width:250px;"
                           class="align-items-center justify-content-center text-center"
                         >
-                        <template #body="slotProps">
-                          <InputText
+                          <template #body="slotProps">
+                            <Textarea
+                              :autoResize="true"
+                              rows="1"
+                              cols="30"
+                              v-model="slotProps.data.complete_results"
+                              class="w-full"
                               spellcheck="false"
-                              class="w-full h-full d-design-it"
-                              style="width: 170px"
-                              v-model="slotProps.data.eval_criteria_child_name"
-                               
                             />
-                     
                           </template>
                         </Column>
                         <Column
                           field="weight"
                           header="Trọng số"
-                          headerStyle="text-align:center;width:200px;height:50px"
-                          bodyStyle="text-align:center;width:200px;"
+                          headerStyle="text-align:center;max-width:120px;height:50px"
+                          bodyStyle="text-align:center;max-width:120px;"
                           class="align-items-center justify-content-center text-center"
                         >
                           <template #body="slotProps">
                             <InputNumber
                               spellcheck="false"
-                              class="w-full h-full d-design-it"
-                              style="width: 170px"
+                              class="w-full d-design-it duy-inpput"
                               v-model="slotProps.data.weight"
-                               
                             />
                           </template>
                         </Column>
-                           
-
-                        <template #empty> </template>
                       </DataTable>
                     </div>
                   </div>
                 </div>
               </template>
             </Card>
+          </div>
+          <div class="col-12 field  text-lg font-bold">File đính kèm</div>
+          <div class="w-full col-12 field p-0">
+            <FileUpload
+              chooseLabel="Chọn File"
+              :showUploadButton="false"
+              :showCancelButton="false"
+              :multiple="false"
+              :maxFileSize="524288000"
+              @select="onUploadFile"
+              @remove="removeFile"
+              :invalidFileSizeMessage="'{0}: Dung lượng File không được lớn hơn {1}'"
+            >
+              <template #empty>
+                <p class="p-0 m-0 text-500">Kéo thả hoặc chọn File.</p>
+              </template>
+            </FileUpload>
+
+            <div class="col-12 p-0" v-if="listFilesS.length > 0">
+              <DataTable
+                :value="listFilesS"
+                filterDisplay="menu"
+                filterMode="lenient"
+                scrollHeight="flex"
+                :showGridlines="true"
+                :paginator="false"
+                :row-hover="true"
+                columnResizeMode="fit"
+              >
+                <Column field="code" header="  File đính kèm">
+                  <template #body="item">
+                    <div
+                      class="p-0 d-style-hover"
+                      style="width: 100%; border-radius: 10px"
+                    >
+                      <div class="w-full flex align-items-center">
+                        <div class="flex w-full text-900">
+                          <div
+                            v-if="item.data.is_image"
+                            class="align-items-center flex"
+                          >
+                            <Image
+                              :src="basedomainURL + item.data.file_path"
+                              alt=""
+                              width="70"
+                              height="50"
+                              style="
+                                object-fit: contain;
+                                border: 1px solid #ccc;
+                                width: 70px;
+                                height: 50px;
+                              "
+                              preview
+                              class="pr-2"
+                            />
+                            <div class="ml-2" style="word-break: break-all">
+                              {{ item.data.file_name }}
+                            </div>
+                          </div>
+                          <div v-else>
+                            <a
+                              :href="basedomainURL + item.data.file_path"
+                              download
+                              class="w-full no-underline cursor-pointer text-900"
+                            >
+                              <div class="align-items-center flex">
+                                <div>
+                                  <img
+                                    :src="
+                                      basedomainURL +
+                                      '/Portals/Image/file/' +
+                                      item.data.file_path.substring(
+                                        item.data.file_path.lastIndexOf('.') + 1
+                                      ) +
+                                      '.png'
+                                    "
+                                    style="
+                                      width: 70px;
+                                      height: 50px;
+                                      object-fit: contain;
+                                    "
+                                    alt=""
+                                  />
+                                </div>
+                                <div class="ml-2" style="word-break: break-all">
+                                  <div
+                                    class="ml-2"
+                                    style="word-break: break-all"
+                                  >
+                                    <div style="word-break: break-all">
+                                      {{ item.data.file_name }}
+                                    </div>
+                                    <div
+                                      v-if="store.getters.user.is_super"
+                                      style="
+                                        word-break: break-all;
+                                        font-size: 11px;
+                                        font-style: italic;
+                                      "
+                                    >
+                                      {{ item.data.organization_name }}
+                                    </div>
+                                  </div>
+                                </div>
+                              </div>
+                            </a>
+                          </div>
+                        </div>
+                        <div
+                          class="w-3rem align-items-center d-style-hover-1"
+                          v-if="
+                            store.getters.user.organization_id ==
+                            item.data.organization_id
+                          "
+                        >
+                          <Button
+                            icon="pi pi-times"
+                            class="p-button-rounded bg-red-300 border-none"
+                            @click="deleteFileH(item.data)"
+                          />
+                        </div>
+                      </div>
+                    </div>
+                  </template>
+                </Column>
+              </DataTable>
+            </div>
           </div>
         </div>
       </form>

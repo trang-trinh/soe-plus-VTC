@@ -89,8 +89,35 @@ namespace API.Controllers.HRM.Declare
                         hrm_ReviewForm.modified_token_id = tid;
                         db.hrm_declare_review_form.Add(hrm_ReviewForm);
                         db.SaveChanges();
+                        fdhrm_ReviewForm = provider.FormData.GetValues("list_eval_criterias").SingleOrDefault();
+                        List<hrm_declare_eval_criteria> hrmEvalCriteria = JsonConvert.DeserializeObject<List<hrm_declare_eval_criteria>>(fdhrm_ReviewForm);
+                        var fdhrmEvalCriteriaChilds = provider.FormData.GetValues("list_eval_childs").SingleOrDefault();
+                        List<hrm_eval_criteria_child> hrmEvalCriteriaChilds = JsonConvert.DeserializeObject<List<hrm_eval_criteria_child>>(fdhrmEvalCriteriaChilds);
+                        foreach (var item in hrmEvalCriteria)
+                        {
+                            item.review_form_id = hrm_ReviewForm.review_form_id;
+                            item.organization_id = int.Parse(dvid);
+                            item.created_by = uid;
+                            item.created_date = DateTime.Now;
+                            item.created_ip = ip;
+                            item.created_token_id = tid;
+                      
+                            db.hrm_declare_eval_criteria.Add(item);
+                            db.SaveChanges();
+                            var listChilds = hrmEvalCriteriaChilds.Where(x => x.roman_order == item.roman_order).ToList();
+                            foreach (var elem in listChilds)
+                            {
+                                elem.eval_criteria_id = item.eval_criteria_id;
+                                elem.organization_id = int.Parse(dvid);
+                                elem.created_by = uid;
+                                elem.created_date = DateTime.Now;
+                                elem.created_ip = ip;
+                                elem.created_token_id = tid;
+                                db.hrm_eval_criteria_child.Add(elem);
+                                db.SaveChanges();
+                            }
 
-
+                        }
 
                         // This illustrates how to get thefile names.
                         FileInfo fileInfo = null;
@@ -268,6 +295,41 @@ namespace API.Controllers.HRM.Declare
                         db.Entry(hrm_ReviewForm).State = EntityState.Modified;
 
                         db.SaveChanges();
+                       
+                        fdhrm_ReviewForm = provider.FormData.GetValues("list_eval_criterias").SingleOrDefault();
+                        List<hrm_declare_eval_criteria> hrmEvalCriteria = JsonConvert.DeserializeObject<List<hrm_declare_eval_criteria>>(fdhrm_ReviewForm);
+                        var fdhrmEvalCriteriaChilds = provider.FormData.GetValues("list_eval_childs").SingleOrDefault();
+                        List<hrm_eval_criteria_child> hrmEvalCriteriaChilds = JsonConvert.DeserializeObject<List<hrm_eval_criteria_child>>(fdhrmEvalCriteriaChilds);
+
+                        var hrm_Eval_criteriaOlds = db.hrm_declare_eval_criteria.Where(s =>s.review_form_id == hrm_ReviewForm.review_form_id).ToArray<hrm_declare_eval_criteria>();
+                        db.hrm_declare_eval_criteria.RemoveRange(hrm_Eval_criteriaOlds);
+                        db.SaveChanges();
+                        foreach (var item in hrmEvalCriteria)
+                        {
+                            item.review_form_id = hrm_ReviewForm.review_form_id;
+                            item.organization_id = int.Parse(dvid);
+                            item.created_by = uid;
+                            item.created_date = DateTime.Now;
+                            item.created_ip = ip;
+                            item.created_token_id = tid;
+                    
+                            db.hrm_declare_eval_criteria.Add(item);
+                            db.SaveChanges();
+                            var listChilds = hrmEvalCriteriaChilds.Where(x => x.roman_order == item.roman_order).ToList();
+                            foreach (var elem in listChilds)
+                            {
+                                elem.eval_criteria_id = item.eval_criteria_id;
+                                elem.organization_id = int.Parse(dvid);
+                                elem.created_by = uid;
+                                elem.created_date = DateTime.Now;
+                                elem.created_ip = ip;
+                                elem.created_token_id = tid;
+                             
+                                db.hrm_eval_criteria_child.Add(elem);
+                                db.SaveChanges();
+                            }
+
+                        }
 
                         var hrm_Files = "";
                         List<string> paths = new List<string>();
