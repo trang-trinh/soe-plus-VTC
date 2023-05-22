@@ -193,6 +193,12 @@ const removeFilter = (idx, array, isTree) => {
   }
 };
 const filter = (event) => {
+  options.value.pageNo = 1;
+  options.value.pageSize = 25;
+  options.value.limitItem = 25;
+  options.value.total = 0;
+  dataLimits.value = [];
+  
   opfilter.value.toggle(event);
   isFilter.value = true;
   initCount();
