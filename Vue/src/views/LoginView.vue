@@ -277,8 +277,8 @@ onMounted(() => {
                 <span style="color: #F6C445">Quản lý Nhân sự</span>
               </h1>
               <p class="mb-4 opacity-70 animate__animated animate__fadeInUpBig animate__delay-1s" style="color: #fff;font-size: 1.5rem;">
-                Hệ thống cơ sở dữ liệu về nhân sự đồng nhất, thực hiện giải quyết các quy trình, nghiệp vụ quản trị nhân lực.
-                <br />Một kênh kết nối, tương tác,  chia sẻ thông tin trực tuyến giữa nhân sự và người quản lý
+                Hệ thống cơ sở dữ liệu nhân sự tập trung, đồng nhất, giúp nhà quản lý dễ dàng xử lý các quy trình và nghiệp vụ.
+                <br />Giải pháp thực hiện hiện chuyển đổi số toàn diện về quản lý nguồn nhân lực trong doanh nghiệp.
               </p>
             </div>
             <div class="col-lg-6 mb-5 mb-lg-0 position-relative">
