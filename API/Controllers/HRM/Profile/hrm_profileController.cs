@@ -3025,7 +3025,7 @@ namespace API.Controllers.HRM.Profile
                                                                 insurance_pay.coef_allowance = double.Parse(value.Replace(",", "."), CultureInfo.InvariantCulture);
                                                                 break;
                                                             case "12":
-                                                                insurance_pay.wage = double.Parse(value);
+                                                                insurance_pay.total_payment = double.Parse(value);
                                                                 break;
                                                             case "13":
                                                                 insurance_pay.region = value;
