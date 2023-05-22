@@ -443,8 +443,11 @@ const HRM_ReportBeforeWorkingProcess = () =>
   import("../views/hrm/report/report_general/BeforeWorkingProcess.vue");
 const HRM_ReportAcademicLevelMember = () =>
   import("../views/hrm/report/report_general/AcademicLevelMember.vue");
+const HRM_ReportWorkingProcess= () =>
+  import("../views/hrm/report/report_general/WorkingProces.vue");
 const HRM_ReportContractStatistical = () =>
   import("../views/hrm/report/report_contract/StatisticalContract.vue");
+
 const HRM_ReportChartGender = () =>
   import("../views/hrm/report/chart/ChartGender.vue");
 
@@ -2044,6 +2047,11 @@ const router = createRouter({
       path: "/hrm/hrm_report/contract_statistical",
       name: "hrm_report_contract_statistical",
       component: HRM_ReportContractStatistical,
+    },
+    {
+      path: "/hrm/hrm_report/working_process",
+      name: "hrm_report_working_process",
+      component: HRM_ReportWorkingProcess,
     },
     {
       path: "/hrm/hrm_chart/chart_gender",

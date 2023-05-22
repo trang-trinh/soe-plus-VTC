@@ -6,6 +6,7 @@ import { VuemojiPicker } from "vuemoji-picker";
 import moment from "moment";
 import treeuser from "../../../components/user/treeuser.vue";
 import FileInfoVue from "../component_request/file_attach_request.vue";
+import dialogApprove from "../component_request/approved_request.vue";
 
 const toast = useToast();
 const axios = inject("axios");
@@ -117,6 +118,7 @@ const props = defineProps({
     id: String,
     key: Number,
     listStatusRequests: Array,
+    initData: Function,
 });
 const loadData = (rf) => {
     if (rf) {
@@ -166,7 +168,7 @@ const loadDetailRequest = () => {
                     // temp fake
                     //is_viewSecurityRequest.value = true; // false;
                 }
-                
+                detail_request.value.IsLast = (detail_request.daky || 0) + 1 == (detail_request.soky || 0);
                 let today = new Date();
                 var d2 = detail_request.value.completed_date ? new Date(detail_request.value.completed_date) : new Date();
                 var diff = d2.getTime() - today.getTime();
@@ -883,8 +885,21 @@ const openFlow = (dataR) => {
 };
 
 // type: 1=Chấp thuận, -1=Từ chối, 2=Chuyển tiếp, 3=Đồng ý & chuyển tiếp, null=Gửi
+const selectedNodes = ref([]);
+const showDialogApproved = ref(false);
+const headerDialogApproved = ref('');
+const modelApproved = ref();
 const OpenSendRequest = (dataR, text, type) => {
-
+    modelApproved.value = {
+        is_type_approve: type,
+        content: "",
+    };
+    showDialogApproved.value = true;
+    headerDialogApproved.value = text;
+};
+const closeDialogApproved = () => {
+    modelApproved.value = {};
+    showDialogApproved.value = false;
 };
 // Huỷ request
 const StopRequest = (dataR) => {
@@ -897,6 +912,10 @@ const BackRequest = (dataR) => {
 // Gia hạn request
 const openModalDatelineRequest = (dataR) => {
 
+};
+const initDataApproved = () => {
+    closeSildeBar();
+    props.initData();
 };
 
 const toggleMores = (event, item) => {
@@ -1156,6 +1175,7 @@ const closeSildeBar = () => {
 const is_viewSecurityRequest = ref(true);
 onMounted(() => {
     if (props.id != null) {
+        selectedNodes.value = [{ request_id: props.id }];
         loadData(true);
         listComments();
         loadEmote();
@@ -1355,20 +1375,20 @@ onMounted(() => {
                         v-if="!detail_request.is_create && detail_request.is_func && detail_request.status_processing == 1"
                     >
                         <Button label="Chấp thuận" 
-                            @click="OpenSendRequest(detail_request,'Chấp thuận',1)" 
+                            @click="OpenSendRequest(detail_request,'Chấp thuận', 1)" 
                             class="p-button-success">
                         </Button>
                         <Button label="Từ chối"
-                            @click="OpenSendRequest(detail_request, 'Từ chối', -1)" 
+                            @click="OpenSendRequest(detail_request, 'Từ chối', -2)" 
                             class="p-button-danger">
                         </Button>
                         <Button v-if="!detail_request.IsLast" 
                             label="Chuyển tiếp"
-                            @click="OpenSendRequest(detail_request,'Chuyển tiếp',2)">
+                            @click="OpenSendRequest(detail_request,'Chuyển tiếp', 2)">
                         </Button>
                         <Button v-if="detail_request.IsForward" 
                             label="Đồng ý & chuyển tiếp"
-                            @click="OpenSendRequest(detail_request,'Đồng ý và chuyển tiếp',3)" 
+                            @click="OpenSendRequest(detail_request,'Đồng ý và chuyển tiếp', 3)" 
                             class="p-button-success">
                         </Button>
                     </div>
@@ -3130,6 +3150,15 @@ onMounted(() => {
         :data="fileInfo"
         v-if="isViewFileInfo"
     ></FileInfoVue>
+    <dialogApprove
+        v-if="showDialogApproved == true"
+        :headerDialog="headerDialogApproved"
+        :displayDialog="showDialogApproved"
+        :closeDialog="closeDialogApproved"
+        :modelApproved="modelApproved"
+        :selectedNodes="selectedNodes"
+        :initDataApproved="initDataApproved"
+    ></dialogApprove>
 </template>
 <style scoped>
     @import url(../style_request.css);

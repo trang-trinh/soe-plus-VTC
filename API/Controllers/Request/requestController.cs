@@ -1684,6 +1684,516 @@ namespace API.Controllers.Request
             }
         }
 
+        [HttpPost]
+        public async Task<HttpResponseMessage> Approved_Request()
+        {
+            var identity = User.Identity as ClaimsIdentity;
+            if (identity == null)
+            {
+                return Request.CreateResponse(HttpStatusCode.OK, new { ms = "Bạn không có quyền truy cập chức năng này!", err = "1" });
+            }
+
+            IEnumerable<Claim> claims = identity.Claims;
+            string ip = getipaddress();
+            string name = claims.Where(p => p.Type == "fname").FirstOrDefault()?.Value;
+            string tid = claims.Where(p => p.Type == "tid").FirstOrDefault()?.Value;
+            string dvid = claims.Where(p => p.Type == "dvid").FirstOrDefault()?.Value;
+            string uid = claims.Where(p => p.Type == "uid").FirstOrDefault()?.Value;
+            bool super = claims.Where(p => p.Type == "super").FirstOrDefault()?.Value == "True";
+            string domainurl = HttpContext.Current.Request.Url.Scheme + "://" + HttpContext.Current.Request.Url.Host + ":" + HttpContext.Current.Request.Url.Port + "/";
+
+            try
+            {
+                using (DBEntities db = new DBEntities())
+                {
+                    if (!Request.Content.IsMimeMultipartContent())
+                    {
+                        throw new HttpResponseException(HttpStatusCode.UnsupportedMediaType);
+                    }
+                    // Provider
+                    string rootTemp = HttpContext.Current.Server.MapPath("~/");
+                    bool existsTemp = Directory.Exists(rootTemp);
+                    if (!existsTemp)
+                        Directory.CreateDirectory(rootTemp);
+                    var provider = new MultipartFormDataStreamProvider(rootTemp + "/Portals");
+                    var task = await Request.Content.ReadAsMultipartAsync(provider);
+
+                    // Params
+                    List<Notification> notifications = new List<Notification>();
+                    var user_now = db.sys_users.FirstOrDefault(x => x.user_id == uid);
+                    int is_type_approve = int.Parse(provider.FormData.GetValues("is_type_approve").SingleOrDefault());
+                    string content = provider.FormData.GetValues("content").SingleOrDefault();
+                    var rq = provider.FormData.GetValues("requests").SingleOrDefault();
+                    List<string> requests = JsonConvert.DeserializeObject<List<string>>(rq);
+
+                    foreach (var request_id in requests)
+                    {
+                        var request = await db.request_master.FindAsync(request_id);
+                        if (request != null)
+                        {
+                            //Send Message
+                            List<string> sendUsers = new List<string>();
+                            string sendTitle = "Đề xuất";
+                            string sendContent = (name ?? "") + "vừa gửi đến bạn đề xuất chờ duyệt: \"" + request.request_name + "\".";
+
+                            request_master_procedure procedure = await db.request_master_procedure.FirstOrDefaultAsync(x => x.request_id == request_id && x.is_close != true);
+                            var procedure_id = procedure?.procedure_id;
+                            List<request_master_sign> signs = await db.request_master_sign.Where(x => x.request_id == request_id && x.procedure_id == procedure_id && x.is_close != true).OrderBy(x => x.is_order).ToListAsync();
+                            List<request_master_signuser> signusers = await db.request_master_signuser.Where(x => x.request_id == request_id && x.is_close != true).OrderBy(x => x.is_order).ToListAsync();
+
+                            #region next step
+                            //Current step
+                            var sign_current = signs.Where(x => x.is_sign != true).FirstOrDefault();
+                            int stepsign_current = sign_current?.is_order ?? 0;
+                            var sign_id = sign_current?.sign_id;
+                            var signuser_currents = signusers.Where(x => (x.is_sign == 0 || x.is_sign == 1)).OrderBy(x => x.is_order).ToList();
+                            if (procedure != null && procedure.is_type == 0) //Là quy trinh duyệt tuần tự
+                            {
+                                signuser_currents = signusers.Where(x => x.sign_id == sign_id && (x.is_sign == 0 || x.is_sign == 1)).OrderBy(x => x.is_order).ToList();
+                            }
+
+                            //Cập nhật nguời ký duyệt
+                            var user_current = signuser_currents.FirstOrDefault(a => a.user_id == uid && a.status == true);
+                            user_current.is_sign = 2;
+                            user_current.sign_date = DateTime.Now;
+                            user_current.sign_content = content;
+                            user_current.read_date = DateTime.Now;
+                            user_current.modified_by = uid;
+                            user_current.modified_date = DateTime.Now;
+                            user_current.modified_ip = ip;
+                            user_current.modified_token_id = tid;
+
+                            //Danh sách chưa ký
+                            signuser_currents = signusers.Where(x => x.sign_id == user_current.sign_id && (x.is_sign == 0 || x.is_sign == 1)).OrderBy(x => x.is_order).ToList();
+                            if (procedure != null && procedure.is_type == 0) //Là quy trinh duyệt tuần tự
+                            {
+                                signuser_currents = signusers.Where(x => x.sign_id == user_current.sign_id && (x.is_sign == 0 || x.is_sign == 1)).OrderBy(x => x.is_order).ToList();
+                            }
+
+                            switch (is_type_approve)
+                            {
+                                case 1: // Chấp thuận
+                                    if (request.is_type_send == 0) // Gui theo quy trinh
+                                    {
+                                        if (procedure.is_type == 0) // quy trình duyệt lần lượt
+                                        {
+                                            var countapprove = 0;
+                                            if (sign_current != null && sign_current.is_type == 1)
+                                            {
+                                                countapprove = signusers.Count(a => a.sign_id == sign_current.sign_id && a.is_type != 1 && (a.is_sign == 2 || a.is_sign == -1 || a.is_sign == -3));
+                                            }
+                                            while (sign_current != null && (signuser_currents.Count(a => a.is_sign == 0 || a.is_sign == 1) == 0 || countapprove > 0))
+                                            {
+                                                sign_current.is_sign = true;
+                                                sign_current = signs.Where(a => a.is_sign != true && a.is_order > stepsign_current).OrderBy(a => a.is_order).FirstOrDefault();
+                                                if (sign_current != null)
+                                                {
+                                                    stepsign_current = sign_current?.is_order ?? 0;
+                                                    signuser_currents = signusers.Where(a => a.sign_id == sign_current.sign_id && (a.is_sign == 0 || a.is_sign == 1)).OrderBy(a => a.is_order).ToList();
+                                                    countapprove = 0;
+                                                    if (sign_current.is_type == 1)
+                                                    {
+                                                        countapprove = signuser_currents.Count(a => a.is_type != 1 && (a.is_sign == 2 || a.is_sign == -1 || a.is_sign == -3));
+                                                    }
+                                                }
+                                            }
+                                            if (sign_current != null && signuser_currents.Count > 0)
+                                            {
+                                                sign_current.status = true;
+                                                switch (sign_current.is_type)
+                                                {
+                                                    case 0: //Nhóm duyệt lần lượt
+                                                        var signuser = signuser_currents.FirstOrDefault();
+                                                        signuser.status = true;
+                                                        signuser.modified_by = uid;
+                                                        signuser.modified_date = DateTime.Now;
+                                                        signuser.modified_ip = ip;
+                                                        signuser.modified_token_id = tid;
+                                                        break;
+                                                    case 1: //Nhóm duyệt 1 nhiều
+                                                        foreach (var user in signuser_currents)
+                                                        {
+                                                            user.status = true;
+                                                            user.modified_by = uid;
+                                                            user.modified_date = DateTime.Now;
+                                                            user.modified_ip = ip;
+                                                            user.modified_token_id = tid;
+                                                        }
+                                                        break;
+                                                    case 2: //Nhóm ngẫu nhiên
+
+                                                        break;
+                                                }
+                                            }
+                                            else
+                                            {
+                                                request.status = 2; //Ban hành
+                                                request.modified_by = uid;
+                                                request.modified_date = DateTime.Now;
+                                                request.modified_ip = ip;
+                                                request.modified_token_id = tid;
+                                            }
+                                        }
+                                        else if (procedure.is_type == 1) // quy trình duyệt 1 nhiều
+                                        {
+                                            sign_current = signs.FirstOrDefault(x => x.sign_id == user_current.sign_id);
+                                            stepsign_current = sign_current?.is_order ?? 0;
+                                            sign_current.is_sign = true;
+                                            sign_current.status = true;
+                                            if (sign_current != null && signuser_currents.Count > 0)
+                                            {
+                                                switch (sign_current.is_type)
+                                                {
+                                                    case 0: //Nhóm duyệt lần lượt
+                                                        var signuser = signuser_currents.FirstOrDefault();
+                                                        signuser.status = true;
+                                                        signuser.modified_by = uid;
+                                                        signuser.modified_date = DateTime.Now;
+                                                        signuser.modified_ip = ip;
+                                                        signuser.modified_token_id = tid;
+                                                        break;
+                                                    case 1: //Nhóm duyệt 1 nhiều
+                                                        request.status = 2; // Hoan thanh
+                                                        request.modified_by = uid;
+                                                        request.modified_date = DateTime.Now;
+                                                        request.modified_ip = ip;
+                                                        request.modified_token_id = tid;
+                                                        break;
+                                                    case 2: //Nhóm ngẫu nhiên
+
+                                                        break;
+                                                }
+                                            }
+                                            else
+                                            {
+                                                request.status = 2; // Hoan thanh
+                                                request.modified_by = uid;
+                                                request.modified_date = DateTime.Now;
+                                                request.modified_ip = ip;
+                                                request.modified_token_id = tid;
+                                            }
+                                        }
+                                        else if (procedure.is_type == 2) // quy trình ngẫu nhiên
+                                        {
+
+                                        }
+                                    }
+                                    else if (request.is_type_send == 1)
+                                    {
+                                        if (sign_current != null && signuser_currents.Count > 0)
+                                        {
+                                            sign_current.status = true;
+                                            switch (sign_current.is_type)
+                                            {
+                                                case 0: //Nhóm duyệt lần lượt
+                                                    var signuser = signuser_currents.FirstOrDefault();
+                                                    signuser.status = true;
+                                                    signuser.modified_by = uid;
+                                                    signuser.modified_date = DateTime.Now;
+                                                    signuser.modified_ip = ip;
+                                                    signuser.modified_token_id = tid;
+                                                    break;
+                                                case 1: //Nhóm duyệt 1 nhiều
+                                                    foreach (var user in signuser_currents)
+                                                    {
+                                                        user.status = true;
+                                                        user.modified_by = uid;
+                                                        user.modified_date = DateTime.Now;
+                                                        user.modified_ip = ip;
+                                                        user.modified_token_id = tid;
+                                                    }
+                                                    request.status = 2; //Ban hành
+                                                    request.modified_by = uid;
+                                                    request.modified_date = DateTime.Now;
+                                                    request.modified_ip = ip;
+                                                    request.modified_token_id = tid;
+                                                    break;
+                                                case 2: //Nhóm ngẫu nhiên
+
+                                                    break;
+                                            }
+                                        }
+                                        else
+                                        {
+                                            request.status = 2; //Ban hành
+                                            request.modified_by = uid;
+                                            request.modified_date = DateTime.Now;
+                                            request.modified_ip = ip;
+                                            request.modified_token_id = tid;
+                                        }
+                                    }
+                                    else if (request.is_type_send == 2)
+                                    {
+                                        request.status = 2; //Hoan thanh
+                                        request.modified_by = uid;
+                                        request.modified_date = DateTime.Now;
+                                        request.modified_ip = ip;
+                                        request.modified_token_id = tid;
+                                    }
+                                    break;
+                                case -2: // Trả lại
+                                    user_current.is_sign = -1; //Trả lại
+                                    request.status = -2; //Trả lại
+                                    request.modified_by = uid;
+                                    request.modified_date = DateTime.Now;
+                                    request.modified_ip = ip;
+                                    request.modified_token_id = tid;
+                                    break;
+                                case 2: // Hoan thanh
+                                    user_current.is_sign = 2; // Ban hành
+                                    request.status = 2; // Ban hành
+                                    request.modified_by = uid;
+                                    request.modified_date = DateTime.Now;
+                                    request.modified_ip = ip;
+                                    request.modified_token_id = tid;
+                                    break;
+                                case -1: // Hủy de xuat
+                                    user_current.is_sign = -2; // Hủy de xuat
+                                    request.status = -1; // Hủy de xuat
+                                    request.modified_by = uid;
+                                    request.modified_date = DateTime.Now;
+                                    request.modified_ip = ip;
+                                    request.modified_token_id = tid;
+                                    break;
+                            }
+
+                            // Update
+                            foreach (var item in signs)
+                            {
+                                var is_exists = db.request_master_sign.FirstOrDefault(x => x.sign_id == item.sign_id);
+                                if (is_exists != null)
+                                {
+                                    db.Entry(item).State = EntityState.Modified;
+                                }
+                                else
+                                {
+                                    db.request_master_sign.Add(item);
+                                }
+                            }
+                            foreach (var item in signusers)
+                            {
+                                var is_exists = db.request_master_signuser.FirstOrDefault(x => x.sign_id == item.sign_id);
+                                if (is_exists != null)
+                                {
+                                    db.Entry(item).State = EntityState.Modified;
+                                }
+                                else
+                                {
+                                    db.request_master_signuser.Add(item);
+                                }
+                            }
+
+                            //send
+                            sendUsers = signuser_currents.Where(x => x.status == true && (x.is_sign == 0 || x.is_sign == 1)).Select(x => x.user_id).ToList();
+                            #endregion
+
+                            #region Comment
+                            if (!string.IsNullOrWhiteSpace(content))
+                            {
+                                request_comment comment = new request_comment();
+                                comment.request_comment_id = helper.GenKey();
+                                comment.request_id = request_id;
+                                comment.content = content;
+                                comment.is_type = 1;
+                                comment.type_comment = 0;
+                                comment.is_delete = false;
+                                comment.created_by = uid;
+                                comment.created_date = DateTime.Now;
+                                comment.created_ip = ip;
+                                comment.created_token_id = tid;
+                                db.request_comment.Add(comment);
+                            }
+                            #endregion
+
+                            #region file
+                            string root = HttpContext.Current.Server.MapPath("~/Portals");
+                            string path = root + "/" + request.organization_id + "/Request/" + request_id;
+
+                            // Format path
+                            var pathFormatRoot = Regex.Replace(path.Replace("\\", "/"), @"\.*/+", "/");
+                            var listPathRoot = pathFormatRoot.Split('/');
+                            var pathConfigRoot = "";
+                            var sttPartPath = 1;
+                            foreach (var item in listPathRoot)
+                            {
+                                if (item.Trim() != "")
+                                {
+                                    if (sttPartPath == 1)
+                                    {
+                                        pathConfigRoot += (item);
+                                    }
+                                    else
+                                    {
+                                        pathConfigRoot += "/" + Path.GetFileName(item);
+                                    }
+                                }
+                                sttPartPath++;
+                            }
+                            bool exists = Directory.Exists(pathConfigRoot);
+                            if (!exists)
+                                Directory.CreateDirectory(pathConfigRoot);
+
+                            List<request_master_file> dfs = new List<request_master_file>();
+                            foreach (MultipartFileData fileData in provider.FileData)
+                            {
+                                string org_name_file = fileData.Headers.ContentDisposition.FileName;
+                                if (org_name_file.StartsWith("\"") && org_name_file.EndsWith("\""))
+                                {
+                                    org_name_file = org_name_file.Trim('"');
+                                }
+                                if (org_name_file.Contains(@"/") || org_name_file.Contains(@"\"))
+                                {
+                                    org_name_file = System.IO.Path.GetFileName(org_name_file);
+                                }
+                                string name_file = org_name_file; //helper.UniqueFileName(org_name_file);
+                                string rootPath = pathConfigRoot + "/" + name_file;
+                                string Duongdan = "/Portals/" + request.organization_id + "/Request/" + request_id + "/" + name_file;
+                                string Dinhdang = helper.GetFileExtension(fileData.Headers.ContentDisposition.FileName);
+                                if (rootPath.Length > 350)
+                                {
+                                    name_file = name_file.Substring(0, name_file.LastIndexOf('.') - 1);
+                                    int le = 350 - (pathConfigRoot.Length + 1) - Dinhdang.Length;
+                                    name_file = name_file.Substring(0, le) + Dinhdang;
+                                }
+                                if (File.Exists(rootPath))
+                                {
+                                    File.Delete(rootPath);
+                                }
+                                File.Move(fileData.LocalFileName, rootPath);
+                                //File.Copy(fileData.LocalFileName, rootPathFile, true);
+                                var df = new request_master_file();
+                                df.request_file_id = helper.GenKey();
+                                df.request_id = request.request_id;
+                                df.file_name = name_file;
+                                df.file_path = Duongdan;
+                                df.file_type = Dinhdang;
+                                var file_info = new FileInfo(rootPath);
+                                df.file_size = file_info.Length;
+                                df.is_image = helper.IsImageFileName(name_file);
+                                if (df.is_image == true)
+                                {
+                                    //helper.ResizeImage(rootPathFile, 1024, 768, 90);
+                                }
+                                df.is_type = 2;
+                                df.is_delete = false;
+                                df.created_by = uid;
+                                df.created_date = DateTime.Now;
+                                df.created_ip = ip;
+                                df.created_token_id = tid;
+                                dfs.Add(df);
+                            }
+                            if (dfs.Count > 0)
+                            {
+                                db.request_master_file.AddRange(dfs);
+                            }
+                            #endregion
+
+                            #region log
+                            if (helper.wlog)
+                            {
+                                //Log
+                                request_log log = new request_log();
+
+                                switch (is_type_approve)
+                                {
+                                    case 0:
+                                        log.title = "Duyệt lịch: " + content;
+                                        break;
+                                    case 1:
+                                        log.title = "Trả lại: " + content;
+                                        break;
+                                    case 2:
+                                        log.title = "Ban hành: " + content;
+                                        break;
+                                    case 3:
+                                        log.title = "Hủy lịch: " + content;
+                                        break;
+                                }
+                                log.log_type = 3;
+                                log.log_content = JsonConvert.SerializeObject(new { data = JsonConvert.SerializeObject(request, new JsonSerializerSettings() { ReferenceLoopHandling = ReferenceLoopHandling.Ignore }) }); ;
+                                log.id_key = request_id;
+                                log.created_by = uid;
+                                log.log_module = "request_master";
+                                log.created_date = DateTime.Now;
+                                log.created_ip = ip;
+                                log.created_token_id = tid;
+                                db.request_log.Add(log);
+                            }
+                            #endregion
+
+                            await db.SaveChangesAsync();
+                            #region Send Message
+                            switch (request.status)
+                            {
+                                case 2:
+                                    sendContent = "Vừa hoàn thành đề xuất: \"" + request.content + "\".";
+                                    //Notify tất cả user tham gia lịch
+                                    string Connection = System.Configuration.ConfigurationManager.ConnectionStrings["Connection"].ConnectionString;
+                                    var sqlpas = new List<SqlParameter>();
+                                    sqlpas.Add(new SqlParameter("@" + "calendar_id", request.request_id));
+                                    var arrpas = sqlpas.ToArray();
+                                    var tasks = System.Threading.Tasks.Task.Run(() => SqlHelper.ExecuteDataset(Connection, "calendar_member_get", arrpas).Tables);
+                                    var tables = await tasks;
+                                    List<string> temps = JsonConvert.DeserializeObject<List<string>>(JsonConvert.SerializeObject(tables[0]));
+                                    List<string> users = temps.Where(x => !sendUsers.Contains(x)).ToList();
+                                    send_message(uid, request.request_id, users, sendTitle, sendContent, 0);
+                                    notifications.Add(new Notification()
+                                    {
+                                        request_id = request.request_id,
+                                        uids = sendUsers,
+                                        title = sendTitle,
+                                        text = sendContent,
+                                    });
+                                    break;
+                                case -2:
+                                    sendContent = "Vừa trả lại đề xuất: \"" + request.content + "\".";
+                                    break;
+                                case -1:
+                                    sendContent = "Vừa hủy đề xuất: \"" + request.content + "\".";
+                                    break;
+                            }
+                            if (sendUsers.Count > 0)
+                            {
+                                send_message(uid, request.request_id, sendUsers, sendTitle, sendContent, 0);
+                                notifications.Add(new Notification()
+                                {
+                                    request_id = request.request_id,
+                                    uids = sendUsers,
+                                    title = sendTitle,
+                                    text = sendContent,
+                                });
+                            }
+                            #endregion
+                        }
+                    }
+                    await db.SaveChangesAsync();
+                    return Request.CreateResponse(HttpStatusCode.OK, new { err = "0", data = JsonConvert.SerializeObject(notifications) });
+                }
+            }
+            catch (DbEntityValidationException e)
+            {
+                string contents = helper.getCatchError(e, null);
+                helper.saveLog(uid, name, JsonConvert.SerializeObject(new { data = "", contents }), domainurl + "request/Approved_Request", ip, tid, "Lỗi khi duyệt đề xuất", 0, "request");
+                if (!helper.debug)
+                {
+                    contents = "";
+                }
+                Log.Error(contents);
+                return Request.CreateResponse(HttpStatusCode.OK, new { ms = contents, err = "1" });
+            }
+            catch (Exception e)
+            {
+                string contents = helper.ExceptionMessage(e);
+                helper.saveLog(uid, name, JsonConvert.SerializeObject(new { data = "", contents }), domainurl + "request/Approved_Request", ip, tid, "Lỗi khi duyệt đề xuất", 0, "request");
+                if (!helper.debug)
+                {
+                    contents = "";
+                }
+                Log.Error(contents);
+                return Request.CreateResponse(HttpStatusCode.OK, new { ms = contents, err = "1" });
+            }
+        }
+
         #region Send Message
         public void send_message(string user_send, string id_key, [System.Web.Mvc.Bind(Include = "")][FromBody] List<string> users, string title, string content, int is_type)
         {

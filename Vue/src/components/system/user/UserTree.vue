@@ -1112,7 +1112,7 @@ const addUser = () => {
     },
   })
     .then((response) => {
-      if (response.data.err != "1" && response.data.err == "2") {
+      if (response.data.err != "1" && response.data.err != "2") {
         swal.close();
         toast.success("Cập nhật User thành công!");
         //re-name and re-icon in header-bar
@@ -1549,6 +1549,7 @@ const clickDelUser = () => {
     isShowBtnDel.value = true;
   } else isShowBtnDel.value = false;
 };
+var mdmodules = [];
 const addConfigRole = () => {
   swal.fire({
     width: 110,
@@ -1556,59 +1557,60 @@ const addConfigRole = () => {
       swal.showLoading();
     },
   });
-  let mdmodules = [];
+  mdmodules = [];
   modules.value.forEach((element) => {
-    mdmodules.push({
-      role_module_id: element.data.role_module_id || -1,
-      role_id: is_coppy_module.value ? role_temp.value : element.data.role_id,
-      user_id: is_coppy_module.value ? id_temp.value : element.data.user_id,
-      module_id: element.data.module_id,
-      IsCap: element.data.IsCap,
-      is_permission: element.data.is_permission
-        ? element.data.is_permission.join()
-        : element.data.is_permission,
-      module_functions: element.data.module_functions
-        ? element.data.module_functions.join()
-        : element.data.module_functions,
-    });
-    if (element.children && element.children.length > 0) {
-      element.children.forEach((ec) => {
-        mdmodules.push({
-          role_module_id: ec.data.role_module_id || -1,
-          role_id: is_coppy_module.value ? role_temp.value : ec.data.role_id,
-          user_id: is_coppy_module.value ? id_temp.value : element.data.user_id,
-          module_id: ec.data.module_id,
-          IsCap: ec.data.IsCap,
-          is_permission: ec.data.is_permission
-            ? ec.data.is_permission.join()
-            : ec.data.is_permission,
-          module_functions: element.data.module_functions
-            ? element.data.module_functions.join()
-            : element.data.module_functions,
-        });
-        // get value module level 3 (it module khong can de quy - co time xem lai)
-        if (ec.children && ec.children.length > 0) {
-          ec.children.forEach((ec2) => {
-            mdmodules.push({
-              role_module_id: ec2.data.role_module_id || -1,
-              role_id: is_coppy_module.value
-                ? role_temp.value
-                : ec2.data.role_id,
-              user_id: is_coppy_module.value ? id_temp.value : ec2.data.user_id,
-              module_id: ec2.data.module_id,
-              is_grade: ec2.data.is_grade,
-              is_permission: ec2.data.is_permission
-                ? ec2.data.is_permission.join()
-                : ec2.data.is_permission,
-              module_functions: ec2.data.module_functions
-                ? ec2.data.module_functions.join()
-                : ec2.data.module_functions,
-            });
-          });
-        }
-      });
-    }
-  });
+    recursiveData(element);
+  })
+  // modules.value.forEach((element) => {
+  //   mdmodules.push({
+  //     role_module_id: element.data.role_module_id || -1,
+  //     role_id: is_coppy_module.value? role_temp.value: element.data.role_id,
+  //     user_id: is_coppy_module.value? id_temp.value: element.data.user_id,
+  //     module_id: element.data.module_id,
+  //     IsCap: element.data.IsCap,
+  //     is_permission: element.data.is_permission
+  //       ? element.data.is_permission.join()
+  //       : element.data.is_permission,
+  //     module_functions: element.data.module_functions
+  //       ? element.data.module_functions.join()
+  //       : element.data.module_functions,
+  //   });
+  //   if (element.children && element.children.length > 0) {
+  //     element.children.forEach((ec) => {
+  //       mdmodules.push({
+  //         role_module_id: ec.data.role_module_id || -1,
+  //         role_id: is_coppy_module.value? role_temp.value: ec.data.role_id,
+  //         user_id: is_coppy_module.value? id_temp.value: element.data.user_id,
+  //         module_id: ec.data.module_id,
+  //         IsCap: ec.data.IsCap,
+  //         is_permission: ec.data.is_permission
+  //           ? ec.data.is_permission.join()
+  //           : ec.data.is_permission,
+  //         module_functions: element.data.module_functions
+  //           ? element.data.module_functions.join()
+  //           : element.data.module_functions,
+  //       });
+  //       // get value module level 3 (it module khong can de quy - co time xem lai)
+  //       if (ec.children && ec.children.length > 0) {
+  //         ec.children.forEach((ec2) => {
+  //           mdmodules.push({
+  //             role_module_id: ec2.data.role_module_id || -1,
+  //             role_id: is_coppy_module.value? role_temp.value: ec2.data.role_id,
+  //             user_id: is_coppy_module.value? id_temp.value: ec2.data.user_id,
+  //             module_id: ec2.data.module_id,
+  //             is_grade: ec2.data.is_grade,
+  //             is_permission: ec2.data.is_permission
+  //               ? ec2.data.is_permission.join()
+  //               : ec2.data.is_permission,
+  //             module_functions: ec2.data.module_functions
+  //               ? ec2.data.module_functions.join()
+  //               : ec2.data.module_functions,
+  //           });
+  //         });
+  //       }
+  //     });
+  //   }
+  // });
   axios({
     method: "post",
     url: baseURL + "/api/Roles/Add_RoleModules",
@@ -1642,6 +1644,25 @@ const addConfigRole = () => {
       }
     });
 };
+const recursiveData =(element)=>{
+  mdmodules.push({
+      role_module_id: element.data.role_module_id || -1,
+      role_id: is_coppy_module.value? role_temp.value: element.data.role_id,
+      user_id: is_coppy_module.value? id_temp.value: element.data.user_id,
+      module_id: element.data.module_id,
+      IsCap: element.data.IsCap,
+      is_permission: element.data.is_permission
+        ? element.data.is_permission.join()
+        : element.data.is_permission,
+      module_functions: element.data.module_functions
+        ? element.data.module_functions.join()
+        : element.data.module_functions,
+    });
+    if (element.children && element.children.length > 0) {
+      element.children.forEach((ec) => {
+        recursiveData(ec);
+      })}
+}
 const displayPhongban = ref(false);
 // const showPhongban = () => {
 //   displayPhongban.value = !displayPhongban.value;

@@ -1491,8 +1491,8 @@ const initDataFilter = () => {
   if (options.value.tags != null && options.value.tags.length > 0) {
     tags = options.value.tags.map((x) => x["tags_id"]).join(",");
   }
+  options.value.loading = true;
   datas.value = [];
-  dataLimits.value = [];
   axios
     .post(
       baseURL + "/api/hrm/callProc",
@@ -1563,7 +1563,7 @@ const initDataFilter = () => {
               }
             });
             datas.value = data[0];
-            dataLimits.value = data[0].slice(0, options.value.limitItem);
+            dataLimits.value = dataLimits.value.concat(data[0]);
             var temp = groupBy(data[0], "department_id");
             for (let k in temp) {
               var obj = {
@@ -1671,8 +1671,8 @@ const initData = (ref) => {
     initDataFilter();
     return;
   }
+  options.value.loading = true;
   datas.value = [];
-  dataLimits.value = [];
   axios
     .post(
       baseURL + "/api/hrm/callProc",
@@ -1738,7 +1738,7 @@ const initData = (ref) => {
               }
             });
             datas.value = data[0];
-            dataLimits.value = data[0].slice(0, options.value.limitItem);
+            dataLimits.value = dataLimits.value.concat(data[0]);
             var temp = groupBy(data[0], "department_id");
             for (let k in temp) {
               var obj = {
@@ -1804,7 +1804,12 @@ const refresh = () => {
   //   view_copy: 1,
   //   filterProfile_id: null,
   // };
+  options.value.pageNo = 1;
+  options.value.pageSize = 25;
   options.value.limitItem = 25;
+  options.value.total = 0;
+  dataLimits.value = [];
+
   isFilter.value = false;
   initCount();
   initTreeOrganization();
@@ -1833,12 +1838,18 @@ onMounted(() => {
 });
 const loadMoreRow = (data) => {
   if (data.length > 0) {
-    if (options.value.limitItem + 25 < data.length) {
+    if (
+      !options.value.loading &&
+      options.value.limitItem + 25 < options.value.total
+    ) {
       options.value.limitItem += 25;
-      dataLimits.value = datas.value.slice(0, options.value.limitItem);
+      options.value.pageNo += 1;
+      //dataLimits.value = datas.value.slice(0, options.value.limitItem);
+      initData(false);
     } else {
       options.value.limitItem = data.length;
-      dataLimits.value = datas.value.slice(0, options.value.limitItem);
+      //dataLimits.value = datas.value.slice(0, options.value.limitItem);
+      //initData(false);
     }
   }
 };
@@ -2805,7 +2816,7 @@ const loadMoreRow = (data) => {
             :style="{
               display: 'flex',
               width: '100%',
-              height: 'calc(100vh - 210px)',
+              height: 'calc(100vh - 235px)',
               backgroundColor: '#fff',
             }"
           >
@@ -2816,6 +2827,14 @@ const loadMoreRow = (data) => {
           </div>
         </template>
       </DataTable>
+      <div
+        v-if="options.loading"
+        class="format-center"
+        :style="{ height: '50px' }"
+      >
+        <i class="pi pi-sync rotate"></i>
+        <span class="ml-3 loading-dots"> Đang tải dữ liệu </span>
+      </div>
     </div>
     <div v-else-if="options.view === 2" class="d-lang-table">
       <table :style="{ width: '100%', borderSpacing: '0px' }">
@@ -3242,7 +3261,7 @@ const loadMoreRow = (data) => {
   />
 
   <Dialog
-    header="Tải lên file Excel"
+    header="Import dữ liệu vào hệ thống"
     v-model:visible="displayImport"
     :style="{ width: '50vw' }"
     :closable="true"
@@ -3435,6 +3454,49 @@ const loadMoreRow = (data) => {
 
 .filter {
   filter: opacity(1) !important;
+}
+
+.rotate {
+  animation: rotateAnimation 2s infinite linear;
+}
+
+@keyframes rotateAnimation {
+  0% {
+    transform: rotate(0deg);
+  }
+  100% {
+    transform: rotate(360deg);
+  }
+}
+
+.loading-dots {
+  position: relative;
+  display: inline-block;
+}
+
+.loading-dots::after {
+  content: "...";
+  display: inline-block;
+  opacity: 0;
+  animation: dotsAnimation 1.5s infinite;
+}
+
+@keyframes dotsAnimation {
+  0% {
+    opacity: 0;
+  }
+  25% {
+    opacity: 0;
+  }
+  50% {
+    opacity: 1;
+  }
+  75% {
+    opacity: 1;
+  }
+  100% {
+    opacity: 0;
+  }
 }
 </style>
 <style lang="scss" scoped>
