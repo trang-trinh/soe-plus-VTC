@@ -4,6 +4,7 @@ import { useToast } from "vue-toastification";
 import { required } from "@vuelidate/validators";
 import { useVuelidate } from "@vuelidate/core";
 import { encr, checkURL } from "../../../util/function.js";
+import tree_users_hrm from "../component/tree_users_hrm.vue";
 //Khai báo
 import moment from "moment";
 const cryoptojs = inject("cryptojs");
@@ -82,7 +83,7 @@ const itemButMores = ref([
 ]);
 const checkIsmain = ref(true);
 const treemodules = ref();
- 
+
 const checkShow = ref(false);
 const listEvalCriterias = ref([]);
 const listEvalChilds = ref([]);
@@ -96,45 +97,9 @@ const listTypeEvals = ref([
     code: 2,
   },
 ]);
-//Lấy số bản ghi
-const loadCount = () => {
-  axios
-    .post(
-      baseURL + "/api/hrm_ca_SQL/getData",
-      {
-        str: encr(
-          JSON.stringify({
-            proc: "hrm_declare_review_form_count",
-            par: [
-              { par: "search", va: options.value.search },
-              { par: "type", va: options.value.typeDeclare },
-              { par: "user_id", va: store.getters.user.user_id },
-              { par: "status", va: null },
-            ],
-          }),
-          SecretKey,
-          cryoptojs
-        ).toString(),
-      },
-      config
-    )
-    .then((response) => {
-      let data = JSON.parse(response.data.data)[0];
-      if (data.length > 0) {
-        options.value.totalRecords = data[0].totalRecords;
-        sttStamp.value = data[0].totalRecords + 1;
-      }
-    })
-    .catch((error) => {});
-};
 //Lấy dữ liệu review_form
 const loadData = (rf) => {
   if (rf) {
-    if (rf) {
-      if (options.value.PageNo == 0) {
-        loadCount();
-      }
-    }
     axios
       .post(
         baseURL + "/api/hrm_ca_SQL/getData",
@@ -217,8 +182,6 @@ const openBasic = (str) => {
     is_results: true,
     status: true,
     type: 1,
- 
-    
   };
   listEvalCriterias.value.push(obj);
 
@@ -257,15 +220,17 @@ const saveData = (isFormValid) => {
   }
   let formData = new FormData();
 
-  
   for (var i = 0; i < filesList.value.length; i++) {
     let file = filesList.value[i];
     formData.append("image", file);
   }
   formData.append("hrm_declare_review_form", JSON.stringify(review_form.value));
-  formData.append("list_eval_criterias", JSON.stringify(listEvalCriterias.value));
+  formData.append(
+    "list_eval_criterias",
+    JSON.stringify(listEvalCriterias.value)
+  );
   formData.append("list_eval_childs", JSON.stringify(listEvalChilds.value));
-
+  formData.append("hrm_files", JSON.stringify(listFilesS.value));
 
   swal.fire({
     width: 110,
@@ -337,21 +302,55 @@ const saveData = (isFormValid) => {
       });
   }
 };
-
+const isView = ref(false);
 //Sửa bản ghi
-const editTem = (dataTem) => {
+const editTem = (dataTem, header, view) => {
   submitted.value = false;
-  review_form.value = dataTem;
-  if (review_form.value.countryside)
-    review_form.value.countryside_fake = review_form.value.countryside;
-  if (review_form.value.is_default) {
-    checkIsmain.value = false;
-  } else {
-    checkIsmain.value = true;
-  }
-  headerDialog.value = "Sửa mẫu biểu";
-  isSaveTem.value = true;
-  displayBasic.value = true;
+  isView.value = view;
+  headerDialog.value = header;
+
+  axios
+    .post(
+      baseURL + "/api/hrm_ca_SQL/getData",
+      {
+        str: encr(
+          JSON.stringify({
+            proc: "hrm_declare_review_form_get",
+            par: [{ par: "review_form_id", va: dataTem.review_form_id }],
+          }),
+          SecretKey,
+          cryoptojs
+        ).toString(),
+      },
+      config
+    )
+    .then((response) => {
+      let data = JSON.parse(response.data.data);
+      if (isFirst.value) isFirst.value = false;
+
+      // datalists.value = data;
+      review_form.value = data[0][0];
+      listEvalCriterias.value = data[1];
+      listEvalChilds.value = data[2];
+      listFilesS.value = data[3];
+      checkShow.value = true;
+      options.value.loading = false;
+
+      isSaveTem.value = true;
+      displayBasic.value = true;
+    })
+    .catch((error) => {
+      toast.error("Tải dữ liệu không thành công!");
+      options.value.loading = false;
+
+      if (error && error.status === 401) {
+        swal.fire({
+          text: "Mã token đã hết hạn hoặc không hợp lệ, vui lòng đăng nhập lại!",
+          confirmButtonText: "OK",
+        });
+        store.commit("gologout");
+      }
+    });
 };
 //Xóa bản ghi
 const delTem = (Tem) => {
@@ -568,14 +567,15 @@ const addRow_Item = (item) => {
   ) {
     let obj = {
       is_order:
-      listEvalChilds.value.filter((x) => x.roman_order == item.roman_order).length + 1,
+        listEvalChilds.value.filter((x) => x.roman_order == item.roman_order)
+          .length + 1,
       eval_criteria_child_name: null,
       complete_results: null,
       complete_time: null,
       weight: null,
       parent_id: null,
       status: true,
-      roman_order:item.roman_order
+      roman_order: item.roman_order,
     };
     listEvalChilds.value.push(obj);
   }
@@ -619,21 +619,14 @@ const onAddEvalCriterias = () => {
     is_results: true,
     status: true,
     type: 1,
- 
   };
   listEvalCriterias.value.push(obj);
 };
 const delRow_Item = (item, type) => {
   if (type == 1) {
-    if (
-      listEvalChilds.value.find((x) =>
-        x ==item
-      ) != null
-    ) {
-      listEvalChilds.value = listEvalChilds.value.filter((x) =>
-      x !=item
-      );
- }
+    if (listEvalChilds.value.find((x) => x == item) != null) {
+      listEvalChilds.value = listEvalChilds.value.filter((x) => x != item);
+    }
   }
 };
 const listFilesS = ref([]);
@@ -696,10 +689,42 @@ const onUploadFile = (event) => {
 const removeFile = (event) => {
   filesList.value = filesList.value.filter((a) => a != event.file);
 };
+const deleteFileH = (value) => {
+  listFilesS.value = listFilesS.value.filter((x) => x.file_id != value.file_id);
+};
+const onMinusItem = (item) => {
+  listEvalCriterias.value = listEvalCriterias.value.filter(
+    (x) => x.roman_order != item.roman_order
+  );
+};
 
-const onMinusItem=(item)=>{
-  listEvalCriterias.value=listEvalCriterias.value.filter(x=>x.roman_order!=item.roman_order);
-}
+
+
+// CHọn nhân sự
+
+const displayDialogUser = ref(false);
+
+const selectedUser = ref();
+
+const showTreeUser = () => {
+  checkMultile.value = false;
+  selectedUser.value =listProfiles.value;
+  displayDialogUser.value = true;
+};
+
+const closeDialogUser = () => {
+  displayDialogUser.value = false;
+};
+
+const checkMultile = ref(false);
+const listProfiles = ref([]);
+const choiceUser = () => {
+  listProfiles.value = [];
+  if (checkMultile.value == false)
+  listProfiles.value=  selectedUser.value  
+
+  closeDialogUser();
+};
 
 onMounted(() => {
   loadData(true);
@@ -708,7 +733,7 @@ onMounted(() => {
     options,
     onPage,
     loadData,
-    loadCount,
+
     openBasic,
     closeDialog,
     basedomainURL,
@@ -754,7 +779,7 @@ onMounted(() => {
                 </template>
               </Toolbar>
             </div>
-            <div class="flex"></div>
+          
             <div style="border-top: 2px solid #dee2e6">
               <div class="w-full d-lang-table mx-2">
                 <DataView
@@ -789,16 +814,7 @@ onMounted(() => {
                           <div class="font-bold text-lg">
                             {{ slotProps.data.review_form_name }}
                           </div>
-                          <div class="pt-1">
-                            Loại phiếu:
-                            {{
-                              slotProps.data.declare_type == 1
-                                ? "Người lao động"
-                                : slotProps.data.declare_type == 2
-                                ? "Người quản lý"
-                                : "Khác"
-                            }}
-                          </div>
+
                           <div class="text-sm">
                             Người lập: {{ slotProps.data.full_name }} | Ngày lập
                             {{
@@ -813,19 +829,46 @@ onMounted(() => {
                           <Toolbar class="w-full p-0 m-0 custoolbar">
                             <template #end>
                               <Button
-                                @click="editTem(slotProps.data, 'Sửa mẫu biểu')"
+                                @click="
+                                  editTem(slotProps.data, 'Xem mẫu biểu', true)
+                                "
                                 class="p-button-rounded p-button-secondary p-button-outlined mx-1"
                                 type="button"
-                                icon="pi pi-pencil"
-                                v-tooltip.top="'Sửa'"
+                                icon="pi pi-eye"
+                                v-tooltip.top="'Xem'"
                               ></Button>
-                              <Button
-                                @click="delTem(slotProps.data)"
-                                class="p-button-rounded p-button-secondary p-button-outlined mx-1"
-                                type="button"
-                                icon="pi pi-trash"
-                                v-tooltip.top="'Xóa mẫu biểu'"
-                              ></Button>
+                          
+                              <div
+                                v-if="
+                                  store.state.user.is_super == true ||
+                                  store.state.user.user_id ==
+                                    slotProps.data.created_by ||
+                                  (store.state.user.role_id == 'admin' &&
+                                    store.state.user.organization_id ==
+                                      slotProps.data.organization_id)
+                                "
+                              >
+                                <Button
+                                  @click="
+                                    editTem(
+                                      slotProps.data,
+                                      'Sửa mẫu biểu',
+                                      false
+                                    )
+                                  "
+                                  class="p-button-rounded p-button-secondary p-button-outlined mx-1"
+                                  type="button"
+                                  icon="pi pi-pencil"
+                                  v-tooltip.top="'Sửa'"
+                                ></Button>
+                                <Button
+                                  @click="delTem(slotProps.data)"
+                                  class="p-button-rounded p-button-secondary p-button-outlined mx-1"
+                                  type="button"
+                                  icon="pi pi-trash"
+                                  v-tooltip.top="'Xóa'"
+                                ></Button>
+                              </div>
                             </template>
                           </Toolbar>
                         </div>
@@ -838,7 +881,199 @@ onMounted(() => {
           </div>
         </SplitterPanel>
         <SplitterPanel :size="65">
-          <div>s</div>
+          <div>
+              <Toolbar>
+                <template #start>
+                  <span class="p-input-icon-left">
+                    <i class="pi pi-search" />
+                    <InputText
+                      v-model="options.search"
+                      @keyup="searchStamp"
+                      type="text"
+                      spellcheck="false"
+                      placeholder="Tìm kiếm nhân sự"
+                    />
+                  </span>
+                </template>
+                <template #end>
+                  <Button
+                    v-tooltip.top="'Thêm nhân sự'"
+                 
+                    @click="showTreeUser()"
+                    label="Thêm nhân sự"
+                    icon="pi pi-plus"
+                    class="mr-2"
+                  />
+                </template>
+              </Toolbar>
+            </div>
+            <div>
+          
+              <DataTable
+            @page="onPage($event)"
+            @sort="onSort($event)"
+            @filter="onFilter($event)"
+            v-model:filters="filters" selectionMode="single"
+            filterDisplay="menu"
+            filterMode="lenient"
+            :filters="filters"
+            :scrollable="true"
+            scrollHeight="flex"
+            :showGridlines="true"
+            columnResizeMode="fit"
+            :lazy="true"
+            :totalRecords="options.totalRecords"
+            :loading="options.loading"
+            :reorderableColumns="true"
+            :value="listProfiles"
+            removableSort
+            v-model:rows="options.PageSize"
+            paginatorTemplate="FirstPageLink PrevPageLink PageLinks NextPageLink LastPageLink RowsPerPageDropdown"
+            :rowsPerPageOptions="[20, 30, 50, 100, 200]"
+            :paginator="true"
+            dataKey="candidate_id"
+            responsiveLayout="scroll"
+      
+            :row-hover="true"
+          >
+ 
+            <Column
+              field="STT"
+              header="STT"
+              class="align-items-center justify-content-center text-center overflow-hidden"
+              headerStyle="text-align:center;max-width:55px;height:50px"
+              bodyStyle="text-align:center;max-width:55px"
+            ></Column>
+            <Column
+              field="candidate_code"
+              header="Ảnh"
+              headerStyle="text-align:center;max-width:70px;height:50px"
+              bodyStyle="text-align:center;max-width:70px"
+              class="align-items-center justify-content-center text-center  overflow-hidden"
+            >
+              <template #body="slotProps">
+                <div>
+                  <Avatar   style="color:#fff"
+                    v-bind:label="
+                      slotProps.data.candidate_avatar
+                        ? ''
+                        : slotProps.data.candidate_name.substring(
+                            slotProps.data.candidate_name.lastIndexOf(' ') + 1,
+                            slotProps.data.candidate_name.lastIndexOf(' ') + 2
+                          )
+                    "
+                    :image="basedomainURL + slotProps.data.candidate_avatar"
+                    class="w-3rem"
+                    size="large"
+                    :style="
+                      slotProps.data.avatar
+                        ? 'background-color: #2196f3'
+                        : 'background:' +
+                          bgColor[slotProps.data.candidate_name.length % 7]
+                    "
+                    shape="circle"
+                    @error="
+                      $event.target.src =
+                        basedomainURL + '/Portals/Image/nouser1.png'
+                    "
+                  />
+                </div>
+              </template>
+            </Column>
+            
+            <Column
+              field="candidate_name"
+              header="Họ và tên"
+              :sortable="true"
+              headerStyle=" height:50px"
+              bodyStyle="text-align:left" class=" overflow-hidden"
+              headerClass="align-items-center justify-content-center text-center"
+            >
+              <template #filter="{ filterModel }">
+                <InputText
+                  type="text"
+                  v-model="filterModel.value"
+                  class="p-column-filter"
+                  placeholder="Từ khoá"
+                />
+              </template>
+            </Column>
+
+            <Column
+              field="end_date"
+              header="Số điện thoại"
+              headerStyle="text-align:center;max-width:200px;height:50px"
+              bodyStyle="text-align:center;max-width:200px"
+              class="align-items-center justify-content-center text-center  overflow-hidden"
+            >
+              <template #body="data">
+                <div v-if="data.data.candidate_phone">
+                  {{ data.data.candidate_phone }}
+                </div>
+              </template>
+            </Column>
+
+            <Column
+              field="count_emps"
+              header="Email"
+              headerStyle="text-align:center;max-width:200px;height:50px"
+              bodyStyle="text-align:center;max-width:200px"
+              class="align-items-center justify-content-center text-center  overflow-hidden"
+            >
+              <template #body="data">
+                <div v-if="data.data.candidate_email">
+                  {{ data.data.candidate_email }}
+                </div>
+              </template>
+            </Column>
+            <Column
+              field="form_training"
+              header="Ngày sinh"
+              headerStyle="text-align:center;max-width:100px;height:50px"
+              bodyStyle="text-align:center;max-width:100px"
+              class="align-items-center justify-content-center text-center  overflow-hidden"
+            >
+              <template #body="data">
+                <div v-if="data.data.candidate_birthday">
+                  {{
+                    moment(new Date(data.data.candidate_birthday)).format(
+                      "DD/MM/YYYY"
+                    )
+                  }}
+                </div>
+              </template>
+            </Column>
+ 
+            
+            <Column
+              header=""
+              headerStyle="text-align:center;max-width:70px"
+              bodyStyle="text-align:center;max-width:70px"
+              class="align-items-center justify-content-center text-center"
+            >
+              <template #body="slotProps">
+                <Button
+                  icon="pi pi-ellipsis-h"
+                  class="p-button-rounded p-button-text ml-2"
+                  @click="toggleMores($event, slotProps.data)"
+                  aria-haspopup="true"
+                  aria-controls="overlay_More"
+                  v-tooltip.top="'Tác vụ'"
+                />
+              </template>
+            </Column>
+          
+            <template #empty>
+              <div
+                class="align-items-center justify-content-center p-4 text-center m-auto"
+                v-if="!isFirst"
+              >
+                <img src="../../../assets/background/nodata.png" height="144" />
+                <h3 class="m-1">Không có dữ liệu</h3>
+              </div>
+            </template>
+          </DataTable>
+            </div>
         </SplitterPanel>
       </Splitter>
     </div>
@@ -864,6 +1099,8 @@ onMounted(() => {
               :class="{
                 'p-invalid': v$.review_form_name.$invalid && submitted,
               }"
+              :disabled="isView"
+              :style="isView?'opacity:1':''"
             />
           </div>
           <div
@@ -900,20 +1137,9 @@ onMounted(() => {
             </div>
           </div> -->
           <div class="col-12 field md:col-12 p-0 pr-2 flex">
-            <Toolbar class="custoolbar w-full ">
+            <Toolbar class="custoolbar w-full">
               <template #start>
                 <div class="font-bold text-lg">Danh sách chỉ tiêu</div>
-              </template>
-              <template #end>
-                <div>
-                  <Button
-                    icon="pi pi-plus"
-                    label="Thêm mới"
-                    class="p-button-outlined"
-                    @click="onAddEvalCriterias"
-                  >
-                  </Button>
-                </div>
               </template>
             </Toolbar>
           </div>
@@ -926,22 +1152,20 @@ onMounted(() => {
               <template #title>
                 <Toolbar class="custoolbar p-0">
                   <template #start>
-                
-                      <div class="font-bold text-3xl">
-                        Phần
-                        <span
-                          style="font-family: 'Times New Roman', Times, serif"
-                          >{{ item.roman_order }}</span
-                        >
-                      </div>
-           
+                    <div class="font-bold text-3xl">
+                      Phần
+                      <span
+                        style="font-family: 'Times New Roman', Times, serif"
+                        >{{ item.roman_order }}</span
+                      >
+                    </div>
                   </template>
                   <template #end>
                     <Button
+                      v-if="!isView"
                       icon="pi pi-minus"
-                 @click="onMinusItem(item)"
+                      @click="onMinusItem(item)"
                       class="p-button-outlined p-button-danger"
-                  
                     >
                     </Button>
                   </template>
@@ -956,6 +1180,7 @@ onMounted(() => {
                         v-model="item.eval_criteria_name"
                         spellcheck="false"
                         class="px-2 w-full"
+                        :disabled="isView"   :style="isView?'opacity:1':''"
                       />
                     </div>
                   </div>
@@ -975,6 +1200,7 @@ onMounted(() => {
                         inputId="percent"
                         :max="100"
                         suffix=" %"
+                        :disabled="isView"   :style="isView?'opacity:1':''"
                       />
                     </div>
                   </div>
@@ -987,6 +1213,7 @@ onMounted(() => {
                       class="p-0 flex align-items-center"
                     >
                       <Dropdown
+                        :disabled="isView"   :style="isView?'opacity:1':''"
                         class="w-full"
                         v-model="item.type"
                         :options="listTypeEvals"
@@ -1002,6 +1229,7 @@ onMounted(() => {
                       </div>
                       <div class="col-6 p-0 flex align-items-center">
                         <InputSwitch
+                          :disabled="isView"   :style="isView?'opacity:1':''"
                           v-model="item.is_plan"
                           class="w-4rem lck-checked"
                         />
@@ -1012,7 +1240,8 @@ onMounted(() => {
                         Kết quả
                       </div>
                       <div class="col-6 p-0 flex align-items-center">
-                        <InputSwitch
+                        <InputSwitch 
+                          :disabled="isView"   :style="isView?'opacity:1':''"
                           v-model="item.is_results"
                           class="w-4rem lck-checked"
                         />
@@ -1043,14 +1272,26 @@ onMounted(() => {
                       ></i>
                       <div class="pl-2">
                         Danh sách tiêu chí đánh giá
-                        <span v-if="listEvalChilds.filter(x=>x.roman_order==item.roman_order).length > 0">
-                          ( {{listEvalChilds.filter(x=>x.roman_order==item.roman_order).length }} )</span
+                        <span
+                          v-if="
+                            listEvalChilds.filter(
+                              (x) => x.roman_order == item.roman_order
+                            ).length > 0
+                          "
+                        >
+                          (
+                          {{
+                            listEvalChilds.filter(
+                              (x) => x.roman_order == item.roman_order
+                            ).length
+                          }}
+                          )</span
                         >
                       </div>
                     </div>
                     <div
                       class="w-1 text-right p-3 hover"
-                      v-if="!view"
+                      v-if="!isView"
                       @click="addRow_Item(item)"
                     >
                       <a class="hover" v-tooltip.top="'Thêm chỉ tiêu'">
@@ -1065,13 +1306,18 @@ onMounted(() => {
                   <div class="w-full p-0" v-if="checkShow == true">
                     <div>
                       <DataTable
-                        :value="listEvalChilds.filter(x=>x.roman_order==item.roman_order)"
+                        :value="
+                          listEvalChilds.filter(
+                            (x) => x.roman_order == item.roman_order
+                          )
+                        "
                         :scrollable="true"
                         :lazy="true"
                         :rowHover="true"
                         :showGridlines="true"
                       >
                         <Column
+                          v-if="!isView"
                           header=""
                           headerStyle="text-align:center;max-width:50px"
                           bodyStyle="text-align:center;max-width:50px"
@@ -1116,6 +1362,7 @@ onMounted(() => {
                               v-model="slotProps.data.eval_criteria_child_name"
                               class="w-full"
                               spellcheck="false"
+                              :disabled="isView"   :style="isView?'opacity:1':''"
                             />
                           </template>
                         </Column>
@@ -1134,6 +1381,7 @@ onMounted(() => {
                               v-model="slotProps.data.complete_results"
                               class="w-full"
                               spellcheck="false"
+                              :disabled="isView"   :style="isView?'opacity:1':''"
                             />
                           </template>
                         </Column>
@@ -1149,6 +1397,7 @@ onMounted(() => {
                               spellcheck="false"
                               class="w-full d-design-it duy-inpput"
                               v-model="slotProps.data.weight"
+                              :disabled="isView"   :style="isView?'opacity:1':''"
                             />
                           </template>
                         </Column>
@@ -1159,8 +1408,25 @@ onMounted(() => {
               </template>
             </Card>
           </div>
-          <div class="col-12 field  text-lg font-bold">File đính kèm</div>
-          <div class="w-full col-12 field p-0">
+          <div class="col-12 field md:col-12 p-0 pr-2 flex">
+            <Toolbar class="custoolbar w-full">
+              <template #end>
+                <div v-if="!isView">
+                  <Button
+                    icon="pi pi-plus"
+                    label="Thêm mới"
+                    class="p-button-outlined"
+                    @click="onAddEvalCriterias"
+                  >
+                  </Button>
+                </div>
+              </template>
+            </Toolbar>
+          </div>
+          <div class="col-12 field text-lg font-bold" v-if="!isView">
+            File đính kèm
+          </div>
+          <div class="w-full col-12 field p-0" v-if="!isView">
             <FileUpload
               chooseLabel="Chọn File"
               :showUploadButton="false"
@@ -1289,22 +1555,36 @@ onMounted(() => {
         </div>
       </form>
       <template #footer>
-        <Button
-          label="Hủy"
-          icon="pi pi-times"
-          @click="closeDialog"
-          class="p-button-outlined"
-        />
+        <div class="pt-3">
+          <Button
+            label="Hủy"
+            icon="pi pi-times"
+            @click="closeDialog"
+            class="p-button-outlined"
+          />
 
-        <Button
-          label="Lưu"
-          icon="pi pi-check"
-          @click="saveData(!v$.$invalid)"
-          autofocus
-        />
+          <Button
+            v-if="!isView"
+            label="Lưu"
+            icon="pi pi-check"
+            @click="saveData(!v$.$invalid)"
+            autofocus
+          />
+        </div>
       </template>
     </Dialog>
   </div>
+  
+  <tree_users_hrm
+    v-if="displayDialogUser === true"
+    :headerDialog="'Chọn nhân sự'"
+    :displayDialog="displayDialogUser"
+    :closeDialog="closeDialogUser"
+    :one="checkMultile"
+    :selected="selectedUser"
+    :choiceUser="choiceUser"
+  />
+
   <Menu
     id="overlay_More"
     ref="menuButMores"

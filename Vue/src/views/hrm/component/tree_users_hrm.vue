@@ -288,6 +288,7 @@ const initOrganization = () => {
         var data = response.data.data;
         if (data != null) {
           let tbs = JSON.parse(data);
+          debugger
           if (tbs[0] != null && tbs[0].length > 0) {
             rootorganizations.value = [...tbs[0]];
             let obj = renderTree(
@@ -474,8 +475,6 @@ const initUserSQL = () => {
 const displayDialog = ref(false);
 onMounted(() => {
   initOrganization();
-
-  //initRender();
   displayDialog.value = props.displayDialog;
   return {};
 });

@@ -1481,8 +1481,8 @@ onMounted(() => {
             <template #node="{ data }">
               <div
                 :id="'orgchart' + data.some_id"
-                style="padding: 10px 15px"
-                class="flex flex-column align-items-center cursor-pointer d-design-org-hover"
+                style="padding: 10px 15px "
+                class="flex flex-column align-items-center cursor-pointer d-design-org-hover "
                 @click="onNodeSelectOrgchart(data)"
               >
                 <div
@@ -1504,8 +1504,8 @@ onMounted(() => {
                   >
                     aassaaa
                   </div>
-                  <div class="mt-3 font-medium text-lg">
-                    {{ data.label }}
+                  <div class="mt-3 font-medium text-lg" >
+                    {{ data.label }} 
                   </div>
                 </div>
                 <div v-else class="font-medium text-lg">

@@ -623,6 +623,7 @@ const callbackFun = (obj) => {
   Object.keys(obj).forEach((k) => {
     smart_report.value[k] = obj[k];
   });
+  debugger
   let formData = new FormData();
   formData.append("smart_report", JSON.stringify(smart_report.value));
   axios

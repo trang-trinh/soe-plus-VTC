@@ -791,7 +791,79 @@ const onNodeSelect = (id) => {
 onBeforeMount(() => {
   loadData();
 });
+const expandedRows = ref([]);
 
+const selectStep = (e, i) => {
+  e.index = i;
+};
+const closeDetail = () => {
+  showDetail.value = false;
+  selectedTaskID.value = null;
+  loadData();
+};
+const CopyFollow = ref(false);
+const headerCopyFollow = ref();
+const listDropdownFollow = ref([]);
+const selectedFollowTemplate = ref();
+const loadFollowTemplate = () => {
+  axios
+    .post(
+      baseURL + "/api/TaskProc/getTaskData",
+      {
+        str: encr(
+          JSON.stringify({
+            proc: "task_follow_list_template",
+            par: [
+              { par: "task_id", va: null },
+              { par: "user_id", va: user.user_id },
+            ],
+          }),
+          SecretKey,
+          cryoptojs,
+        ).toString(),
+      },
+      config,
+    )
+    .then((response) => {
+      listDropdownFollow.value = [];
+      let data = JSON.parse(response.data.data)[0];
+      if (data.length > 0) {
+        data.forEach((x, i) => {
+          let k = {
+            label: x.follow_name,
+            value: x.follow_id,
+          };
+          listDropdownFollow.value.push(k);
+          if (i == 0) {
+            selectedFollowTemplate.value = k.value;
+          }
+        });
+      }
+    })
+    .catch((error) => {
+      options.value.loading = false;
+      if (error && error.status === 401) {
+        swal.fire({
+          text: "Mã token đã hết hạn hoặc không hợp lệ, vui lòng đăng nhập lại!",
+          confirmButtonText: "OK",
+        });
+        store.commit("gologout");
+      }
+    });
+};
+const AddTemplateToTask = () => {
+  submitted2.value = true;
+  if (selectedFollowTemplate.value == null) {
+    return;
+  }
+};
+const submitted2 = ref(false);
+const openSelectFollow = () => {
+  CopyFollow.value = true;
+  headerCopyFollow.value = "Chọn quy trình công việc";
+  loadFollowTemplate();
+  submitted2.value = false;
+};
 onMounted(() => {
   let type = [];
   props.member.forEach((x) => {
@@ -814,16 +886,6 @@ onMounted(() => {
     TypeMember.value = 4;
   }
 });
-const expandedRows = ref([]);
-
-const selectStep = (e, i) => {
-  e.index = i;
-};
-const closeDetail = () => {
-  showDetail.value = false;
-  selectedTaskID.value = null;
-  loadData();
-};
 </script>
 <template>
   <div class="h-custom">
@@ -840,7 +902,7 @@ const closeDetail = () => {
             icon="pi pi-plus"
             class="mx-1"
             label="Chọn quy trình mẫu"
-            @click="openDialog()"
+            @click="openSelectFollow()"
             v-if="
               (user.is_admin == true || TypeMember == 0) &&
               props.isClose != true
@@ -1389,6 +1451,7 @@ const closeDetail = () => {
       </div>
     </template>
   </Dialog>
+
   <Dialog
     v-model:visible="StepDialogVisible"
     :style="'width:40vw;'"
@@ -1903,8 +1966,8 @@ const closeDetail = () => {
           {{ item.label }}
         </span>
       </div>
-    </template></Menu
-  >
+    </template>
+  </Menu>
   <DetailedWork
     v-if="showDetail === true"
     :id="selectedTaskID"
@@ -1912,13 +1975,55 @@ const closeDetail = () => {
     :closeDetail="closeDetail"
   >
   </DetailedWork>
+  <Dialog
+    v-model:visible="CopyFollow"
+    :style="'width:40vw;'"
+    :closable="false"
+    :header="headerCopyFollow"
+  >
+    <div class="col-12 flex">
+      <div class="col-4">Quy trình mẫu:</div>
+      <Dropdown
+        v-model="selectedFollowTemplate"
+        :options="listDropdownFollow"
+        optionLabel="label"
+        placeholder="Chọn trình tự"
+        panelClass="d-design-dropdown"
+        class="col-8 py-0"
+        optionValue="value"
+        filter
+        showClear
+      >
+      </Dropdown>
+    </div>
+    <div class="col-12 flex p-0">
+      <div class="col-4 p-0"></div>
+      <div class="col-8">
+        <small
+          v-if="submitted2 && selectedFollowTemplate == null"
+          :class="{ 'p-error': submitted2 && selectedFollowTemplate == null }"
+        >
+          Mẫu quy trình không được để trống!
+        </small>
+      </div>
+    </div>
+    <template #footer>
+      <div class="mt-2">
+        <Button
+          class="p-button-text"
+          icon="pi pi-times"
+          label="Đóng"
+          @click="CopyFollow = false"
+        />
+        <Button
+          icon="pi pi-check"
+          label="Xác nhận"
+          @click="AddTemplateToTask()"
+        />
+      </div>
+    </template>
+  </Dialog>
 </template>
-
-<style lang="scss" scoped>
-.h-custom {
-  height: calc(100vh - 5rem);
-}
-</style>
 <style lang="scss" scoped>
 // Variables
 $base-margin: 2em;
