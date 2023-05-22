@@ -198,7 +198,7 @@ const filter = (event) => {
   options.value.limitItem = 25;
   options.value.total = 0;
   dataLimits.value = [];
-  
+
   opfilter.value.toggle(event);
   isFilter.value = true;
   initCount();
@@ -1880,7 +1880,7 @@ const loadMoreRow = (data) => {
   if (data.length > 0) {
     if (
       !options.value.loading &&
-      options.value.limitItem + 25 < options.value.total
+      options.value.limitItem < options.value.total
     ) {
       options.value.limitItem += 25;
       options.value.pageNo += 1;
