@@ -349,7 +349,7 @@ onMounted(() => {
                 :groupRowsBy="group != null ? group : ''" @page="onPage">
                 <template #empty>
                     <div class="w-full align-items-center justify-content-center p-4 text-center">
-                        <img src="../../assets/background/nodata.png" height="144" />
+                        <img src="../../../assets/background/nodata.png" height="144" />
                         <h3 class="m-1">Không có dữ liệu</h3>
                     </div>
                 </template>
@@ -634,7 +634,7 @@ onMounted(() => {
                                 <td colspan="10">
                                     <div data-v-e7fddb26=""
                                         class="w-full align-items-center justify-content-center p-4 text-center">
-                                        <img data-v-e7fddb26="" src="/src/assets/background/nodata.png" height="144" />
+                                        <img data-v-e7fddb26="" src="../../../assets/background/nodata.png" height="144" />
                                         <h3 data-v-e7fddb26="" class="m-1">
                                             Không có dữ liệu
                                         </h3>

@@ -1333,7 +1333,7 @@ onMounted(() => {
           style="cursor: pointer"
         >
           <div class="card-header">
-            <span>Sinh nhật</span>
+            <span>Sinh nhật trong tháng</span>
           </div>
           <div class="card-body" style="height: 80px">
             <div class="d-grid formgrid">
@@ -1349,7 +1349,7 @@ onMounted(() => {
                     }"
                   >
                     <img
-                      :src="basedomainURL + '/Portals/birthday.png'"
+                      :src="basedomainURL + '/Portals/birthday.png?v=1'"
                       style="
                         width: 100%;
                         height: 100%;
@@ -1460,7 +1460,7 @@ onMounted(() => {
           </div>
         </div>
         <div
-          class="card m-1"
+          class="card m-1 mb-3"
           @click="goRouter('hrm_contact')"
           style="cursor: pointer"
         >
@@ -1494,6 +1494,18 @@ onMounted(() => {
                 </div>
               </div>
             </div>
+          </div>
+        </div>
+        <div
+          class="card m-1"
+          @click="goRouter('hrm_contact')"
+          style="cursor: pointer"
+        >
+          <div class="card-header">
+            <span>Thông báo công ty</span>
+          </div>
+          <div class="card-body" style="height: 125px">
+
           </div>
         </div>
       </div>

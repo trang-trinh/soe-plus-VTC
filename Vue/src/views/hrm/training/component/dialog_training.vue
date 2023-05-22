@@ -98,7 +98,10 @@ const rules = {
   },
 };
 const listFilesS = ref([]);
-const training_emps = ref({});
+const training_emps = ref({
+  user_verify_fake:[],
+  user_follows_fake:[]
+});
 const submitted = ref(false);
 const list_users_training = ref([]);
 const list_schedule = ref([]);
@@ -106,8 +109,10 @@ const loadData = () => {
   if (props.checkadd == true) {
     list_users_training.value = [];
     list_schedule.value = [];
+    
     training_emps.value = props.training_emps;
   } else {
+     
     axios
       .post(
         baseURL + "/api/hrm_ca_SQL/getData",
@@ -153,7 +158,7 @@ const loadData = () => {
             training_emps.value.user_verify.split(",");
           training_emps.value.user_follows_fake =
             training_emps.value.user_follows.split(",");
-             debugger
+              
         }
         training_emps.value.organization_training_fake = {};
         training_emps.value.organization_training_fake[
@@ -1470,8 +1475,8 @@ onMounted(() => {
                 <Column
                   field="form"
                   header="Họ và tên"
-                  headerStyle="text-align:center;width:250px;height:50px"
-                  bodyStyle="text-align:center;width:250px;"
+                  headerStyle="text-align:center;width:300px;height:50px"
+                  bodyStyle="text-align:center;width:300px;"
                   class="align-items-center justify-content-center text-center"
                 >
                   <template #body="slotProps">
@@ -1633,7 +1638,7 @@ onMounted(() => {
                     />
                   </template>
                 </Column>
-                <Column
+                <!-- <Column
                   field="end_date"
                   header="Vị trí"
                   headerStyle="text-align:center;width:180px;height:50px"
@@ -1649,7 +1654,7 @@ onMounted(() => {
                       disabled
                     />
                   </template>
-                </Column>
+                </Column> -->
                 <Column
                   field="admission_place"
                   header="Chức vụ"

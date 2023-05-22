@@ -200,7 +200,7 @@ onMounted(() => {
           {{ item.label_module }}
         </h3>
         <div class="py-2 pl-2 item-hover cursor-pointer" @click="goDetailReport(item1)" v-for="(item1, index1) in datalists" :key="index1" v-show="item1.is_level !== 0 && item1.parent_id == item.module_id">
-          <span :style="([370, 358, 361, 362, 371, 374]).includes(item1.module_id) ? 'color:green' : ''" class="ml-2"
+          <span :style="([370, 358, 361, 362, 371, 374, 363,379]).includes(item1.module_id) ? 'color:green' : ''" class="ml-2"
           >
           {{ item1.label_module }}
           <span v-if=" item1.report_code"> ({{ item1.report_code }})</span> 

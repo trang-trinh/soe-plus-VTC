@@ -583,7 +583,7 @@ onMounted(() => {
         </div>
         <div class="col-6 md:col-6">
           <div class="form-group">
-            <label>Nơi đăng ký</label>
+            <label>Nơi đăng ký khám chữa bệnh</label>
             <Dropdown
               autofocus
               class="ip36"
@@ -661,6 +661,10 @@ onMounted(() => {
                 inputId="minmax"
                 :min="0"
                 class="ip36"
+                mode="decimal"
+                locale="vi-VN"
+                :minFractionDigits="0"
+                :maxFractionDigits="2"                
               />
             </div>
           </div>
@@ -687,6 +691,10 @@ onMounted(() => {
                 :min="0"
                 v-model="model.coef_salary"
                 maxLength="50"
+                mode="decimal"
+                locale="vi-VN"
+                :minFractionDigits="0"
+                :maxFractionDigits="2"
               />
             </div>
           </div>
@@ -712,6 +720,10 @@ onMounted(() => {
                 inputId="minmax"
                 :min="0"
                 class="ip36"
+                mode="decimal"
+                locale="vi-VN"
+                :minFractionDigits="0"
+                :maxFractionDigits="2"
               />
             </div>
           </div>
@@ -742,7 +754,7 @@ onMounted(() => {
           </div>
           <div class="col-6 md:col-6">
             <div class="form-group">
-              <label>Công ty đóng</label>
+              <label>Công ty đóng (số tiền)</label>
               <InputNumber
                   spellcheck="false"
                   mode="decimal"
@@ -754,7 +766,7 @@ onMounted(() => {
           </div>
           <div class="col-6 md:col-6">
             <div class="form-group">
-              <label>Nhân sự đóng</label>
+              <label>Nhân sự đóng (số tiền)</label>
               <InputNumber
                   spellcheck="false"
                   mode="decimal"
@@ -846,6 +858,10 @@ onMounted(() => {
                   inputId="minmax"
                   :min="0"
                   class="ip36"
+                  mode="decimal"
+                  locale="vi-VN"
+                  :minFractionDigits="0"
+                  :maxFractionDigits="2"
                   />                
               </template>
             </Column>
@@ -888,6 +904,10 @@ onMounted(() => {
                   inputId="minmax"
                   :min="0"
                   class="ip36"
+                  mode="decimal"
+                  locale="vi-VN"
+                  :minFractionDigits="0"
+                  :maxFractionDigits="2"
                   />                
               </template>
             </Column>
@@ -930,6 +950,10 @@ onMounted(() => {
                   inputId="minmax"
                   :min="0"
                   class="ip36"
+                  mode="decimal"
+                locale="vi-VN"
+                :minFractionDigits="0"
+                :maxFractionDigits="2"
                   />                
               </template>
             </Column>

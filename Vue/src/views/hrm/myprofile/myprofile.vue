@@ -68,6 +68,15 @@ const profile = ref({});
 const activeTab = (tab) => {
   options.value.tab = tab.id;
 };
+const edit = () => {
+  swal.fire({
+    title: "Thông báo!",
+    text: "Tính năng đang được pháp triển, vui lòng thử lại sau!",
+    icon: "error",
+    confirmButtonText: "OK",
+  });
+  return;
+};
 
 //init
 const iniData = (ref) => {
@@ -236,7 +245,7 @@ onMounted(() => {
       </template>
       <template #end>
         <Button
-          @click="refresh()"
+          @click="edit()"
           class="p-button-warning"
           icon="pi pi-pencil"
           label="Cập nhật thông tin"
@@ -268,16 +277,46 @@ onMounted(() => {
         maxHeight: 'calc(100vh - 220px)',
       }"
     >
-      <comview1 v-if="options.tab === 1 && profile.profile_id != null" :profile_id="profile.profile_id" />
-      <comview2 v-if="options.tab === 2 && profile.profile_id != null" :profile_id="profile.profile_id" />
-      <comview3 v-if="options.tab === 3 && profile.profile_id != null" :profile_id="profile.profile_id" />
-      <comview4 v-if="options.tab === 4 && profile.profile_id != null" :profile_id="profile.profile_id" />
-      <comview6 v-if="options.tab === 6 && profile.profile_id != null" :profile_id="profile.profile_id" />
-      <comview7 v-if="options.tab === 7 && profile.profile_id != null" :profile_id="profile.profile_id" />
-      <comview8 v-if="options.tab === 8 && profile.profile_id != null" :profile_id="profile.profile_id" />
-      <comview9 v-if="options.tab === 9 && profile.profile_id != null" :profile_id="profile.profile_id" />
-      <comview10 v-if="options.tab === 10 && profile.profile_id != null" :profile_id="profile.profile_id" />
-      <comview11 v-if="options.tab === 11 && profile.profile_id != null" :profile_id="profile.profile_id" />
+      <comview1
+        v-if="options.tab === 1 && profile.profile_id != null"
+        :profile_id="profile.profile_id"
+      />
+      <comview2
+        v-if="options.tab === 2 && profile.profile_id != null"
+        :profile_id="profile.profile_id"
+      />
+      <comview3
+        v-if="options.tab === 3 && profile.profile_id != null"
+        :profile_id="profile.profile_id"
+      />
+      <comview4
+        v-if="options.tab === 4 && profile.profile_id != null"
+        :profile_id="profile.profile_id"
+      />
+      <comview6
+        v-if="options.tab === 6 && profile.profile_id != null"
+        :profile_id="profile.profile_id"
+      />
+      <comview7
+        v-if="options.tab === 7 && profile.profile_id != null"
+        :profile_id="profile.profile_id"
+      />
+      <comview8
+        v-if="options.tab === 8 && profile.profile_id != null"
+        :profile_id="profile.profile_id"
+      />
+      <comview9
+        v-if="options.tab === 9 && profile.profile_id != null"
+        :profile_id="profile.profile_id"
+      />
+      <comview10
+        v-if="options.tab === 10 && profile.profile_id != null"
+        :profile_id="profile.profile_id"
+      />
+      <comview11
+        v-if="options.tab === 11 && profile.profile_id != null"
+        :profile_id="profile.profile_id"
+      />
     </div>
   </div>
 </template>

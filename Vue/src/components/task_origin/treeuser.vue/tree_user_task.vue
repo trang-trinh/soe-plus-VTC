@@ -79,12 +79,12 @@ const loadData = (rf) => {
       {
         str: encr(
           JSON.stringify({
-            proc: "sys_organization_list_doc_role_department",
+            proc: "sys_organization_to_task_tree",
             par: [
-              { par: "pageno", va: opition.value.PageNo },
-              { par: "pagesize", va: opition.value.PageSize },
-              { par: "search", va: opition.value.search },
-              { par: "organization_type", va: opition.value.organization_type },
+              // { par: "pageno", va: opition.value.PageNo },
+              // { par: "pagesize", va: opition.value.PageSize },
+              // { par: "search", va: opition.value.search },
+              // { par: "organization_type", va: opition.value.organization_type },
               { par: "user_id", va: store.getters.user.user_id },
             ],
           }),
@@ -97,10 +97,6 @@ const loadData = (rf) => {
     .then((response) => {
       let data = JSON.parse(response.data.data);
       if (data.length > 0) {
-        data[0].forEach((d) => {
-          if (d.ThanhvienRole != null)
-            d.ThanhvienRole = JSON.parse(d.ThanhvienRole);
-        });
         listDepartmentsTemp.value = [...data[0]];
         let obj = renderTree(
           data[0],
@@ -202,6 +198,8 @@ const loadUsers = () => {
             department_id: x.department_id,
             organization_name: x.organization_name,
             STT: x.STT,
+            orgID: x.orgID,
+            org_name: x.org_name,
           }));
         }
         swal.close();
@@ -235,32 +233,32 @@ const expandNode = (node) => {
 const selectedNodeUser = ref([]);
 const filters1 = ref({
   global: { value: null, matchMode: FilterMatchMode.CONTAINS },
-  department_id: { value: [], matchMode: FilterMatchMode.IN },
+  orgID: { value: [], matchMode: FilterMatchMode.IN },
 });
 const goOrganization = (organization) => {
-  filters1.value["department_id"].value = [];
+  filters1.value["orgID"].value = [];
+  filters1.value["orgID"].value = [];
   options.value.filter_organization_id = organization.data.organization_id;
   if (organization.data.parent_id != null) {
-    filters1.value["department_id"].value.push(
-      organization.data.organization_id,
-    );
+    filters1.value["orgID"].value.push(organization.data.organization_id);
+
     if (organization.children != null) {
       organization.children.forEach((x) => {
-        filters1.value["department_id"].value.push(x.data.organization_id);
+        filters1.value["orgID"].value.push(x.data.organization_id);
       });
     }
-  } else filters1.value["department_id"].value = [];
+  } else filters1.value["orgID"].value = [];
 };
 
 const changeOrganizationChecked = () => {
   let choses = selectedNodeOrganization.value;
-  filters1.value["department_id"].value = [];
+  filters1.value["orgID"].value = [];
   for (var o in choses) {
     if (choses[o]["checked"] == true) {
       let organization = listDepartmentsTemp.value.find(
         (x) => x["organization_id"] === parseInt(o),
       );
-      filters1.value["department_id"].value.push(parseInt(o));
+      filters1.value["orgID"].value.push(parseInt(o));
       let filters = [];
       switch (organization["organization_type"]) {
         case 0:
@@ -445,14 +443,25 @@ onMounted(() => {
           v-model:selection="selectedNodeUser"
           scrollHeight="flex"
           rowGroupMode="subheader"
-          groupRowsBy="department_id"
+          :groupRowsBy="department_id"
           removableSort
           v-model:filters="filters1"
           :globalFilterFields="['user_id', 'full_name']"
         >
+          <template #empty>
+            <div
+              class="row col-12 align-items-center justify-content-center p-4 text-center m-auto"
+            >
+              <img
+                src="../../../assets/background/nodata.png"
+                height="144"
+              />
+              <h3 class="m-1">Không có dữ liệu</h3>
+            </div>
+          </template>
           <template #groupheader="slotProps">
             <i class="pi pi-list mr-2"></i
-            >{{ slotProps.data.organization_name ?? "Không thuộc phòng ban" }}
+            >{{ slotProps.data.department_name ?? "Không thuộc phòng ban" }}
           </template>
           <Column
             :selectionMode="props.one == true ? 'single' : 'multiple'"
@@ -501,6 +510,12 @@ onMounted(() => {
                       style="text-align: left"
                     >
                       {{ slotProps.data.position_name }}
+                    </div>
+                    <div
+                      class="description"
+                      style="text-align: left"
+                    >
+                      {{ slotProps.data.organization_name }}
                     </div>
                   </div>
                 </div>

@@ -99,6 +99,14 @@ const list_type_dayoff = ref([
     { text: 'AM'  , code: '1', name: 'Buổi sáng' },
     { text: 'PM'  , code: '2', name: 'Buổi chiều' }
 ]);
+const list_type_hr_off = ref([
+    { code: '0', name: 'Nghỉ phép' },
+    { code: '1', name: 'Nghỉ ốm' },
+    { code: '2', name: 'Nghỉ thai sản' },
+    { code: '3', name: 'Nghỉ không lương hưởng báo hiểm' },
+    { code: '4', name: 'Nghỉ không lương không đóng báo hiểm' },
+    { code: '5', name: 'Việc riêng theo chế độ' },
+]);
 
 // File 
 const files = ref([]);
@@ -1035,6 +1043,16 @@ onMounted(() => {
                                             >
                                             </Dropdown>
                                         </div>
+                                        <div v-if="d.kieu_truong == 'select' && d.is_type == 10">
+                                            <Dropdown
+                                                :options="list_type_hr_off"
+                                                v-model="d.value_field"
+                                                optionLabel="name" 
+                                                optionValue="code" 
+                                                placeholder="-- Kiểu nghỉ phép --"
+                                            >
+                                            </Dropdown>
+                                        </div>
                                         <div v-if="d.kieu_truong == 'date' || d.kieu_truong == 'datetime'">
                                             <Calendar
                                                 :showIcon="true"
@@ -1168,10 +1186,22 @@ onMounted(() => {
                                                                     v-model="request_data.Radio"/>
                                                                 <!-- <label class="ml-2">{{ td.ten_truong }}</label> -->
                                                             </div>
-                                                        </div>                                                        
+                                                        </div>
                                                         <div v-if="td.kieu_truong == 'select' && td.is_type == 9">
                                                             <Dropdown class="w-full"
                                                                 :options="list_type_dayoff"
+                                                                :showClear="true"
+                                                                v-model="td.value_field"
+                                                                optionLabel="name" 
+                                                                optionValue="code" 
+                                                                :placeholder="'-- ' + td.ten_truong + ' --'"
+                                                                style="border:none;"
+                                                            >
+                                                            </Dropdown>
+                                                        </div>
+                                                        <div v-if="td.kieu_truong == 'select' && td.is_type == 10">
+                                                            <Dropdown class="w-full"
+                                                                :options="list_type_hr_off"
                                                                 :showClear="true"
                                                                 v-model="td.value_field"
                                                                 optionLabel="name" 
