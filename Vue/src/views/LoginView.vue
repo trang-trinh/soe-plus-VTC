@@ -258,19 +258,23 @@ onMounted(() => {
     <div class="login-container">
       <section class="bg-img overflow-auto h-full w-full" :style="'background-image: url('+basedomainURL+'/Portals/Image/logovtc.jpg)'">  
         <div class="login-org">
-          <img v-if="store.getters.user.logo" class="org-logo py-1" :src="
+          <img v-if="store.getters.user.logo" class="org-logo py-1 ml-2" :src="
             basedomainURL + store.getters.user.logo || '/Portals/Image/noimg.jpg'
           " />
-          <h3 class="org-name">
+          <h3 class="org-name flex-grow-1 mb-0">
             {{ store.getters.user.organization_name }}
           </h3>
+          <div class="mr-2" style="font-size:12px; color:#383737">
+            <span class="mr-4">Phiên bản chạy thử nghiệm</span>
+            <span><i class="pi pi-whatsapp mr-2"></i>Hỗ trợ: 090 142 6788</span>
+          </div>
         </div> 
         <div class="container px-4 py-5 px-md-5 text-center text-lg-start" style="margin-top: 14vh;">
           <div class="row gx-lg-5 align-items-center mb-5">
             <div class="title-left col-lg-6 mb-5 mb-lg-0" style="z-index: 1">
-              <h1 class="my-5 display-5 fw-bold ls-tight animate__animated animate__fadeInLeftBig animate__delay-0.5s" style="color: hsl(218, 81%, 95%); font-size: 3.8rem;">
+              <h1 class="my-5 display-5 fw-bold ls-tight animate__animated animate__fadeInLeftBig animate__delay-0.5s" style="color: hsl(218, 81%, 95%); font-size: 3.8rem;margin-bottom:20px !important;">
                 Hệ thống <br />
-                <span style="color: hsl(218, 81%, 75%)">Quản lý Nhân sự</span>
+                <span style="color: #F6C445">Quản lý Nhân sự</span>
               </h1>
               <p class="mb-4 opacity-70 animate__animated animate__fadeInUpBig animate__delay-1s" style="color: #fff;font-size: 1.5rem;">
                 Hệ thống cơ sở dữ liệu về nhân sự đồng nhất, thực hiện giải quyết các quy trình, nghiệp vụ quản trị nhân lực.
@@ -482,7 +486,7 @@ input.invalid {
 
 .login-org {
   width:100%;
-  background-color: #ddddddcf;
+  background-color: #f2f2f2;
   position: absolute;
   top: 0;
   left: 0;
