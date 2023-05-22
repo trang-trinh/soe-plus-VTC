@@ -108,6 +108,7 @@ namespace API.Controllers.HRM.Declare
                             foreach (var elem in listChilds)
                             {
                                 elem.eval_criteria_id = item.eval_criteria_id;
+                                elem.review_form_id = item.review_form_id;
                                 elem.organization_id = int.Parse(dvid);
                                 elem.created_by = uid;
                                 elem.created_date = DateTime.Now;
@@ -318,6 +319,7 @@ namespace API.Controllers.HRM.Declare
                             var listChilds = hrmEvalCriteriaChilds.Where(x => x.roman_order == item.roman_order).ToList();
                             foreach (var elem in listChilds)
                             {
+                                elem.review_form_id = item.review_form_id;
                                 elem.eval_criteria_id = item.eval_criteria_id;
                                 elem.organization_id = int.Parse(dvid);
                                 elem.created_by = uid;
@@ -479,9 +481,6 @@ namespace API.Controllers.HRM.Declare
                 return Request.CreateResponse(HttpStatusCode.OK, new { ms = contents, err = "1" });
             }
         }
-
-
-
         [HttpDelete]
         public async Task<HttpResponseMessage> delete_hrm_declare_review_form([System.Web.Mvc.Bind(Include = "")][FromBody] List<int> id)
         {
@@ -690,6 +689,154 @@ namespace API.Controllers.HRM.Declare
                 return Request.CreateResponse(HttpStatusCode.BadRequest);
             }
 
+        }
+
+
+
+        [HttpPost]
+        public async Task<HttpResponseMessage> add_hrm_review_form_users()
+        {
+            var identity = User.Identity as ClaimsIdentity;
+            if (identity == null)
+            {
+                return Request.CreateResponse(HttpStatusCode.OK, new { ms = "Bạn không có quyền truy cập chức năng này!", err = "1" });
+            }
+            string fdhrm_ReviewForm = "";
+            IEnumerable<Claim> claims = identity.Claims;
+            string ip = getipaddress();
+            string name = claims.Where(p => p.Type == "fname").FirstOrDefault()?.Value;
+            string tid = claims.Where(p => p.Type == "tid").FirstOrDefault()?.Value;
+            string dvid = claims.Where(p => p.Type == "dvid").FirstOrDefault()?.Value;
+            string uid = claims.Where(p => p.Type == "uid").FirstOrDefault()?.Value;
+            bool super = claims.Where(p => p.Type == "super").FirstOrDefault()?.Value == "True";
+            string domainurl = HttpContext.Current.Request.Url.Scheme + "://" + HttpContext.Current.Request.Url.Host + ":" + HttpContext.Current.Request.Url.Port + "/";
+
+            try
+            {
+                using (DBEntities db = new DBEntities())
+                {
+                    if (!Request.Content.IsMimeMultipartContent())
+                    {
+                        throw new HttpResponseException(HttpStatusCode.UnsupportedMediaType);
+                    }
+
+                    string root = HttpContext.Current.Server.MapPath("~/Portals");
+                    var provider = new MultipartFormDataStreamProvider(root);
+
+                    // Read the form data and return an async task.
+                    var task = Request.Content.ReadAsMultipartAsync(provider).
+                    ContinueWith<HttpResponseMessage>(t =>
+                    {
+                        if (t.IsFaulted || t.IsCanceled)
+                        {
+                            Request.CreateErrorResponse(HttpStatusCode.InternalServerError, t.Exception);
+                        }
+                        fdhrm_ReviewForm = provider.FormData.GetValues("hrm_review_form_users").SingleOrDefault();
+                        hrm_review_form_users hrm_ReviewForm = JsonConvert.DeserializeObject<hrm_review_form_users>(fdhrm_ReviewForm);
+                        db.hrm_review_form_users.Add(hrm_ReviewForm);
+                        db.SaveChanges();
+                         
+                        return Request.CreateResponse(HttpStatusCode.OK, new { err = "0" });
+                    });
+                    return await task;
+                }
+            }
+            catch (DbEntityValidationException e)
+            {
+                string contents = helper.getCatchError(e, null);
+                helper.saveLog(uid, name, JsonConvert.SerializeObject(new { data = fdhrm_ReviewForm, contents }), domainurl + "hrm_declare_review_users/Add_hrm_ReviewForm", ip, tid, "Lỗi khi thêm chiến dịch", 0, "chiến dịch");
+                if (!helper.debug)
+                {
+                    contents = "";
+                }
+                Log.Error(contents);
+                return Request.CreateResponse(HttpStatusCode.OK, new { ms = contents, err = "1" });
+            }
+            catch (Exception e)
+            {
+                string contents = helper.ExceptionMessage(e);
+                helper.saveLog(uid, name, JsonConvert.SerializeObject(new { data = fdhrm_ReviewForm, contents }), domainurl + "hrm_declare_review_users/Add_hrm_ReviewForm", ip, tid, "Lỗi khi thêm chiến dịch", 0, "chiến dịch  ");
+                if (!helper.debug)
+                {
+                    contents = "";
+                }
+                Log.Error(contents);
+                return Request.CreateResponse(HttpStatusCode.OK, new { ms = contents, err = "1" });
+            }
+        }
+
+        [HttpDelete]
+        public async Task<HttpResponseMessage> delete_hrm_review_form_users([System.Web.Mvc.Bind(Include = "")][FromBody] List<String> id)
+        {
+            var identity = User.Identity as ClaimsIdentity;
+            if (identity == null)
+            {
+                return Request.CreateResponse(HttpStatusCode.OK, new { ms = "Bạn không có quyền truy cập chức năng này!", err = "1" });
+            }
+            IEnumerable<Claim> claims = identity.Claims;
+
+            try
+            {
+                string ip = getipaddress();
+                string name = claims.Where(p => p.Type == "fname").FirstOrDefault()?.Value;
+                string tid = claims.Where(p => p.Type == "tid").FirstOrDefault()?.Value;
+                string uid = claims.Where(p => p.Type == "uid").FirstOrDefault()?.Value;
+                bool ad = claims.Where(p => p.Type == "ad").FirstOrDefault()?.Value == "True";
+                string dvid = claims.Where(p => p.Type == "dvid").FirstOrDefault()?.Value;
+                string domainurl = HttpContext.Current.Request.Url.Scheme + "://" + HttpContext.Current.Request.Url.Host + ":" + HttpContext.Current.Request.Url.Port + "/";
+                try
+                {
+                    using (DBEntities db = new DBEntities())
+                    {
+                        var das = await db.hrm_review_form_users.Where(a => id.Contains(a.profile_id)).ToListAsync();
+                        string root = HttpContext.Current.Server.MapPath("~/Portals");
+                        List<string> paths = new List<string>();
+                        if (das != null)
+                        {
+                            List<hrm_review_form_users> del = new List<hrm_review_form_users>();
+                            foreach (var da in das)
+                            {
+                                del.Add(da);
+                            }
+                            if (del.Count == 0)
+                            {
+                                return Request.CreateResponse(HttpStatusCode.OK, new { err = "1", ms = "Bạn không có quyền xóa dữ liệu." });
+                            }
+                            db.hrm_review_form_users.RemoveRange(del);
+                        }
+                        await db.SaveChangesAsync();
+
+                        return Request.CreateResponse(HttpStatusCode.OK, new { err = "0" });
+                    }
+                }
+                catch (DbEntityValidationException e)
+                {
+                    string contents = helper.getCatchError(e, null);
+                    helper.saveLog(uid, name, JsonConvert.SerializeObject(new { data = id, contents }), domainurl + "hrm_declare_review_users/Delete_hrm_ReviewForm", ip, tid, "Lỗi khi xoá chiến dịch", 0, "hrm_ReviewForm");
+                    if (!helper.debug)
+                    {
+                        contents = "";
+                    }
+                    Log.Error(contents);
+                    return Request.CreateResponse(HttpStatusCode.OK, new { ms = contents, err = "1" });
+                }
+                catch (Exception e)
+                {
+                    string contents = helper.ExceptionMessage(e);
+                    helper.saveLog(uid, name, JsonConvert.SerializeObject(new { data = id, contents }), domainurl + "hrm_declare_review_users/Delete_hrm_ReviewForm", ip, tid, "Lỗi khi xoá chiến dịch", 0, "hrm_ReviewForm");
+                    if (!helper.debug)
+                    {
+                        contents = "";
+                    }
+                    Log.Error(contents);
+                    return Request.CreateResponse(HttpStatusCode.OK, new { ms = contents, err = "1" });
+                }
+
+            }
+            catch (Exception)
+            {
+                return Request.CreateResponse(HttpStatusCode.BadRequest);
+            }
         }
 
     }

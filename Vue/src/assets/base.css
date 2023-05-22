@@ -1323,6 +1323,8 @@ li.p-chips-token {
 .d-design-orgchart .org-tree-node-label .org-tree-node-label-inner {
   box-shadow: 0 1px 5px rgba(0, 0, 0, 0.25) !important;
   padding: 0 !important;
+  min-width: 35rem !important;
+  max-width: 35rem !important;
 }
 .d-sidebar-full .p-sidebar-full .p-sidebar {
   transition: none;

@@ -151,11 +151,22 @@ const marital_status = ref([
 
 //filter
 const activeTab = (tab) => {
+  options.value.pageNo = 1;
+  options.value.pageSize = 25;
+  options.value.limitItem = 25;
+  options.value.total = 0;
+  dataLimits.value = [];
+
   options.value.tab = tab.status;
   initData(true);
 };
 const search = () => {
   options.value.pageNo = 1;
+  options.value.pageSize = 25;
+  options.value.limitItem = 25;
+  options.value.total = 0;
+  dataLimits.value = [];
+
   initCount();
   initData(true);
 };
@@ -182,6 +193,12 @@ const removeFilter = (idx, array, isTree) => {
   }
 };
 const filter = (event) => {
+  options.value.pageNo = 1;
+  options.value.pageSize = 25;
+  options.value.limitItem = 25;
+  options.value.total = 0;
+  dataLimits.value = [];
+
   opfilter.value.toggle(event);
   isFilter.value = true;
   initCount();
@@ -1119,6 +1136,29 @@ const execImportExcel = () => {
     });
 };
 
+const downloadFile = (file) => {
+  let name = "";
+  let pathFileDownload = "";
+  if (file.files != null && file.files.length > 0) {
+    name = file.files[0].file_name || "file_download" + file.files[0].file_type;
+    pathFileDownload = file.files[0].file_path;
+  } else {
+    pathFileDownload = file.file_path;
+    name = file.file_name || "file_download." + file.file_type;
+  }
+  const a = document.createElement("a");
+  a.href =
+    basedomainURL +
+    "/Viewer/DownloadFile?url=" +
+    encodeURIComponent(pathFileDownload) +
+    "&title=" +
+    encodeURIComponent(name);
+  a.download = name;
+  // a.target = "_blank";
+  a.click();
+  a.remove();
+};
+
 //Init
 const initPlace = () => {
   axios
@@ -1840,7 +1880,7 @@ const loadMoreRow = (data) => {
   if (data.length > 0) {
     if (
       !options.value.loading &&
-      options.value.limitItem + 25 < options.value.total
+      options.value.limitItem < options.value.total
     ) {
       options.value.limitItem += 25;
       options.value.pageNo += 1;
@@ -3271,6 +3311,7 @@ const loadMoreRow = (data) => {
       <div class="col-4 md:col-4">
         <div class="card">
           <div
+            @click=""
             class="card-body button-custom zoom"
             :style="{ backgroundColor: '#89c83e', borderColor: '#89c83e' }"
           >

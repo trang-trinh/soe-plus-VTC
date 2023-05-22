@@ -66,6 +66,8 @@ const login = () => {
           decr(response.data.data, SecretKey, cryoptojs)
         );
         store.commit("setislogin", true);
+        store.commit("setlistOrgTree", []);
+        
         // if (localStorage.getItem("ck_cgi") != null) {
         //   localStorage.removeItem("ck_cgi");
         // }
@@ -78,7 +80,7 @@ const login = () => {
         if (cookies.get("ck_tabchat") != null) {
           cookies.remove("ck_tabchat");
         }
-        router.push({ name: "profile" });
+        router.push({ name: "homeview" });
         swal.close();
 
         //socket

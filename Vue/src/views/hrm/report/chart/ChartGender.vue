@@ -355,7 +355,7 @@ onMounted(() => {
         <Button
             label="Quay lại"
             icon="pi pi-arrow-left"
-            class="p-button-outlined mr-2 p-button-secondary"
+            class="p-button-outlined mr-2 ml-2 p-button-secondary"
             @click="goBack()"
             />
           <SelectButton
@@ -376,7 +376,7 @@ onMounted(() => {
             </template>
           </SelectButton>
         </div>
-      <div v-if="options.view == 1" class="w-full h-full flex" style="flex-flow:wrap">
+      <div v-if="options.view == 1" class="w-full h-full flex content-body" style="flex-flow:wrap">
         <div class="col-6 md:col-6" v-for="(item, index) in data_lines" :key="index">
           <div class="card m-1">
             <div class="card-header" :style="{ cursor: 'pointer', padding: '4px 4px 4px 1rem' }">
@@ -391,7 +391,7 @@ onMounted(() => {
           </div>
         </div>
       </div>
-      <div v-if="options.view == 2" class="w-full h-full flex" style="flex-flow:wrap">
+      <div v-if="options.view == 2" class="w-full h-full flex content-body" style="flex-flow:wrap">
         <div class="col-6 md:col-6" v-for="(item, index) in data_lines" :key="index">
           <div class="card m-1">
             <div class="card-header" :style="{ cursor: 'pointer', padding: '4px 4px 4px 1rem' }">
@@ -406,7 +406,7 @@ onMounted(() => {
           </div>
         </div>
       </div>
-      <div v-if="options.view == 3" class="w-full h-full flex" style="flex-flow:wrap">
+      <div v-if="options.view == 3" class="w-full h-full flex content-body" style="flex-flow:wrap">
         <div class="col-6 md:col-6" v-for="(item, index) in data_lines" :key="index">
           <div class="card m-1">
             <div class="card-header" :style="{ cursor: 'pointer', padding: '4px 4px 4px 1rem' }">
@@ -426,4 +426,10 @@ onMounted(() => {
     </div>
   </div>
 </template>
-<style lang="scss" scoped></style>
+<style scoped>
+  .content-body{
+    max-height: calc(100vh - 118px);
+    min-height: calc(100vh - 118px);
+    overflow:auto;
+  }
+</style>
