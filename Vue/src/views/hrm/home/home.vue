@@ -1333,7 +1333,7 @@ onMounted(() => {
           style="cursor: pointer"
         >
           <div class="card-header">
-            <span>Sinh nhật sắp tới</span>
+            <span>Sinh nhật trong tháng</span>
           </div>
           <div class="card-body" style="height: 80px">
             <div class="d-grid formgrid">
