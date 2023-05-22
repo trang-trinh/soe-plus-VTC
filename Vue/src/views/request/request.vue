@@ -8,6 +8,7 @@ import dialogAddRequest from "../request/component_request/dialog_add_request.vu
 import DetailedRequest from "../request/component_request/detail_request.vue";
 import toolbarSearchRequest from "../request/component_request/toolbar_search_request.vue";
 import dialogSend from "../request/component_request/dialog_send.vue";
+import dialogApprove from "../request/component_request/approved_request.vue";
 
 const router = inject("router");
 const route = useRoute();
@@ -182,6 +183,7 @@ const listRequest = (rf) => {
                         else {
                             item.listSignUser = [];
                         }
+                        item.IsLast = (item.daky || 0) + 1 == (item.soky || 0);
                     });
                     datas.value = data[0];
                     options.value.is_func = datas.value.filter(x => x.is_func && (x.status == 1 || x.status == 0 || x.status == -1 || x.status == 3)).length > 0;
@@ -773,6 +775,7 @@ const itemButMores = ref([
     {
         label: "Chuyển đến quy trình",
         icon: "pi pi-chart-line",
+        statusDisplay: 0,
         command: (event) => {
             headerSend.value = "Chuyển đến quy trình";
             modelsend.value.type_send = 0;
@@ -783,6 +786,7 @@ const itemButMores = ref([
     {
         label: "Chuyển đến nhóm",
         icon: "pi pi-users",
+        statusDisplay: 0,
         command: (event) => {
             headerSend.value = "Chuyển đến nhóm";
             modelsend.value.type_send = 1;
@@ -793,6 +797,7 @@ const itemButMores = ref([
     {
         label: "Chuyển đích danh",
         icon: "pi pi-user-edit",
+        statusDisplay: 0,
         command: (event) => {
             headerSend.value = "Chuyển đích danh";
             modelsend.value.type_send = 2;
@@ -816,13 +821,50 @@ const itemButMores = ref([
         command: (event) => {
             deleteRequest(request_select.value);
         },
+    },    
+    {
+        label: "Chấp thuận",
+        icon: "pi pi-check-circle",
+        statusDisplay: 1,
+        command: (event) => {
+            OpenSendRequest(request_select.value, 'Chấp thuận', 1);
+        },
+    },
+    {
+        label: "Từ chối",
+        icon: "pi pi-stop-circle",
+        statusDisplay: 1,
+        command: (event) => {
+            OpenSendRequest(request_select.value, 'Từ chối', -2);
+        },
+    },
+    {
+        label: "Chuyển tiếp",
+        icon: "pi pi-forward",
+        statusDisplay: 2,
+        command: (event) => {
+            OpenSendRequest(request_select.value, 'Chuyển tiếp', 2);
+        },
+    },
+    {
+        label: "Đồng ý & chuyển tiếp",
+        icon: "pi pi-forward",
+        statusDisplay: 3,
+        command: (event) => {
+            OpenSendRequest(request_select.value, 'Đồng ý & chuyển tiếp', 3);
+        },
     },
 ]);
 const itemsFuncByStatus = () => {
-    if (request_select.value != null && request_select.value.status_processing != 0) {
-        return itemButMores.value.filter(x => x.statusDisplay != 0);
+    if (request_select.value != null && request_select.value.status != 0) {
+        if (request_select.value.is_func) {
+            return itemButMores.value.filter(x => x.statusDisplay == 1 || (x.statusDisplay == 2 && !request_select.value.IsLast) || (x.statusDisplay == 3 && request_select.value.IsForward));
+        } else {
+            return [];
+        }        
+    } else {
+        return itemButMores.value.filter(x => x.statusDisplay == 0);
     }
-    return itemButMores.value;
 };
 const selectedNodes = ref([]);
 const toggleMores = (event, item) => {
@@ -837,7 +879,30 @@ const toggleMores = (event, item) => {
     selectedNodes.value.push(item);
     menuButMores.value.toggle(event);
 };
-
+const listStatusDelAvaiable = [0,-1,-2,-3,3];
+const buttonDelRequest = () => {
+    if (selectedNodes.value != null && selectedNodes.value.length > 0) {
+        return selectedNodes.value.filter(x => !listStatusDelAvaiable.includes(x.status)).length;
+    }
+    return 1;
+};
+// Duyet de xuat
+const showDialogApproved = ref(false);
+const headerDialogApproved = ref('');
+const modelApproved = ref();
+const OpenSendRequest = (dataR, text, type) => {
+    modelApproved.value = {
+        is_type_approve: type,
+        content: "",
+    };
+    showDialogApproved.value = true;
+    headerDialogApproved.value = text;
+};
+const closeDialogApproved = () => {
+    modelApproved.value = {};
+    showDialogApproved.value = false;
+};
+// ----
 onMounted(() => {
     listRequest(true);
     countRequest();
@@ -868,7 +933,7 @@ onMounted(() => {
                     class="mr-2 p-button-outlined p-button-secondary"
                     aria:haspopup="true"
                     aria-controls="overlay_send"
-                    v-if="selectedNodes.length > 0"
+                    v-if="buttonDelRequest() == 0"
                 />
                 <Menu
                     :model="itemSends"
@@ -897,7 +962,7 @@ onMounted(() => {
                     icon="pi pi-trash"
                     label="Xóa"
                     class="p-button-danger mr-2"
-                    v-if="selectedNodes.length > 0"
+                    v-if="buttonDelRequest() == 0"
                     @click="deleteRequest()"
                 />
                 <Button
@@ -971,11 +1036,11 @@ onMounted(() => {
                 :rowHover="true"                
                 v-model:selection="selectedNodes"
             >
-                <Column
+                <!-- <Column
                     headerStyle="text-align:center;max-width:50px;height:45px"
                     bodyStyle="text-align:center;max-width:50px"
                     class="align-items-center justify-content-center text-center"
-                    >
+                >
                     <template #header>
                         <div class="mx-2">
                         <Checkbox
@@ -988,15 +1053,15 @@ onMounted(() => {
                     <template #body="slotProps">
                         <div class="mx-2">
                             <Checkbox
-                                v-if="((slotProps.data.created_by == store.getters.user.user_id || store.getters.user.is_super) && slotProps.data.status == 0) ||
-                                    slotProps.data.is_user_approved"
+                                v-if="((slotProps.data.created_by == store.getters.user.user_id || store.getters.user.is_super) && 
+                                        slotProps.data.status == 0) || slotProps.data.is_func"
                                 v-model="slotProps.data.is_check"
                                 :binary="true"
                                 @change="changeChecked(slotProps.data)"
                             />
                         </div>
                     </template>
-                </Column>
+                </Column> -->
                 <Column
                     field="request_code"
                     header="Mã số"
@@ -1244,6 +1309,7 @@ onMounted(() => {
                             aria-haspopup="true"
                             aria-controls="overlay_More"
                             v-tooltip.top="'Tác vụ'"
+                            v-if="slotProps.data.is_func"
                         />                        
                         <Menu
                             class="menu-request"
@@ -1280,8 +1346,7 @@ onMounted(() => {
         :style="{
             width: PositionSideBar == 'right' ? (widthWindow > 1800 ? '65vw' : '75vw') : '100%',
             'min-height': '100vh !important',
-        }"
-        :baseZindex="1000"        
+        }"     
 		:autoZIndex="true"
         :showCloseIcon="false"
         @hide="hideall()"
@@ -1291,6 +1356,7 @@ onMounted(() => {
             :id="selectedRequestID"
             :key="cpnDetailRequest"
             :listStatusRequests="listStatusRequests"
+            :initData="listRequest"
         >
         </DetailedRequest>
     </Sidebar>
@@ -1319,6 +1385,15 @@ onMounted(() => {
         :modelsend="modelsend"
         :closeDialog="closeDialogSend"
     />
+    <dialogApprove
+        v-if="showDialogApproved == true"
+        :headerDialog="headerDialogApproved"
+        :displayDialog="showDialogApproved"
+        :closeDialog="closeDialogApproved"
+        :modelApproved="modelApproved"
+        :selectedNodes="selectedNodes"
+        :initDataApproved="initDataApproved"
+    ></dialogApprove>
 </template>
 <style scoped>
 @import url(style_request.css);

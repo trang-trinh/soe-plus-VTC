@@ -1220,6 +1220,31 @@ const initView1 = (rf) => {
               new Date(profile.value["identity_date_issue"])
             ).format("DD/MM/YYYY");
           }
+          if (profile.value["identity_end_date_issue"] != null) {
+            profile.value["identity_end_date_issue"] = moment(
+              new Date(profile.value["identity_end_date_issue"])
+            ).format("DD/MM/YYYY");
+          }
+          if (profile.value["recruitment_date_first"] != null) {
+            profile.value["recruitment_date_first"] = moment(
+              new Date(profile.value["recruitment_date_first"])
+            ).format("DD/MM/YYYY");
+          }
+          if (profile.value["re_recruitment_date"] != null) {
+            profile.value["re_recruitment_date"] = moment(
+              new Date(profile.value["re_recruitment_date"])
+            ).format("DD/MM/YYYY");
+          }
+          if (profile.value["bevy_date"] != null) {
+            profile.value["bevy_date"] = moment(new Date(profile.value["bevy_date"])).format("DD/MM/YYYY");
+          }
+          var idx = dictionarys.value[11].findIndex(
+            (x) =>
+              x["relationship_id"] === profile.value["relationship_id"]
+          );
+          if (profile.value["relationship_id"] != null && idx != -1) {
+            profile.value["relationship_name"] = dictionarys.value[11][idx]["relationship_name"];
+          }
           //
           var idx = dictionarys.value[0].findIndex(
             (x) =>
@@ -1370,6 +1395,12 @@ const initView1 = (rf) => {
             if (x["birthday"] != null) {
               x["birthday"] = moment(new Date(x["birthday"])).format("YYYY");
             }
+            if (x.is_type == 1) {
+              x.type_relative_name = "Bản thân";
+            }
+            else {
+              x.type_relative_name = "Bên vợ";
+            }
           });
           datachilds.value[1] = tbs[1];
         } else {
@@ -1378,12 +1409,24 @@ const initView1 = (rf) => {
         if (tbs[2] != null && tbs[2].length > 0) {
           tbs[2].forEach((x) => {
             if (x["start_date"] != null) {
-              x["start_date"] = moment(new Date(x["start_date"])).format(
-                "MM/YYYY"
-              );
+              if (moment(x["start_date"], moment.ISO_8601, true).isValid()) {
+                x["start_date"] = moment(new Date(x["start_date"])).format("MM/YYYY");
+              }
             }
             if (x["end_date"] != null) {
-              x["end_date"] = moment(new Date(x["end_date"])).format("MM/YYYY");
+              if (moment(x["end_date"], moment.ISO_8601, true).isValid()) {
+                x["end_date"] = moment(new Date(x["end_date"])).format("MM/YYYY");
+              }
+            }
+            if (x["graduation_year"] != null) {
+              if (moment(x["graduation_year"], moment.ISO_8601, true).isValid()) {
+                x["graduation_year"] = moment(new Date(x["graduation_year"])).format("MM/YYYY");
+              }
+            }
+            if (x["degree_date"] != null) {
+              if (moment(x["degree_date"], moment.ISO_8601, true).isValid()) {
+                x["degree_date"] = moment(new Date(x["degree_date"])).format("MM/YYYY");
+              }
             }
             if (x["certificate_start_date"] != null) {
               x["certificate_start_date"] = moment(
@@ -1394,6 +1437,10 @@ const initView1 = (rf) => {
               x["certificate_end_date"] = moment(
                 new Date(x["certificate_end_date"])
               ).format("DD/MM/YYYY");
+            }            
+            var idx = dictionarys.value[6].findIndex((t) => t["academic_level_id"] === x["academic_level_id"]);
+            if (x["academic_level_id"] != null && idx != -1) {
+              x["academic_level_name"] = dictionarys.value[6][idx]["academic_level_name"];
             }
             //
             var idx = dictionarys.value[18].findIndex(
@@ -2469,6 +2516,10 @@ const initRelate = (rf) => {
       }
     });
 };
+const onRowGroupExpand = (event) => {
+ 
+};
+const expandedRowGroups = ref([1,2]);
 const initData = () => {
   if (options.value.view === 1) {
     initDictionary1();
@@ -2541,7 +2592,7 @@ onMounted(() => {
     initData();
     initRelate();
     //initDictionaryInsurance();
-    initDictionary();
+    initDictionary();    
   } else {
     router.back();
     return;
@@ -2957,7 +3008,8 @@ const formatViewNumber = (value, partDecimal) => {
                           <label class="label-profileinfo"
                             >Nơi sinh:
                             <span class="description-2">{{
-                              profile.select_birthplace
+                              //profile.select_birthplace
+                              (profile.birthplace_name || '')
                             }}</span></label
                           >
                         </div>
@@ -2967,7 +3019,8 @@ const formatViewNumber = (value, partDecimal) => {
                           <label class="label-profileinfo"
                             >Quê quán:
                             <span class="description-2">{{
-                              profile.select_birthplace_origin
+                              //profile.select_birthplace_origin
+                              (profile.birthplace_origin_name || '')
                             }}</span></label
                           >
                         </div>
@@ -2977,7 +3030,9 @@ const formatViewNumber = (value, partDecimal) => {
                           <label class="label-profileinfo"
                             >Nơi đăng ký HKTT:
                             <span class="description-2">{{
-                              profile.select_place_register_permanent
+                              //profile.select_place_register_permanent
+                              (profile.place_register_permanent_first || '') +
+                              (profile.place_register_permanent_name ? (', ' + profile.place_register_permanent_name || '') : '')                              
                             }}</span></label
                           >
                         </div>
@@ -2987,59 +3042,9 @@ const formatViewNumber = (value, partDecimal) => {
                           <div class="col-4 md:col-4">
                             <div class="form-group m-0">
                               <label class="label-profileinfo"
-                                >Loại giấy tờ:
-                                <span class="description-2">{{
-                                  profile.identity_papers_name
-                                }}</span></label
-                              >
-                            </div>
-                          </div>
-                          <div class="col-4 md:col-4">
-                            <div class="form-group m-0">
-                              <label class="label-profileinfo"
-                                >Số:
-                                <span class="description-2">{{
-                                  profile.identity_papers_code
-                                }}</span></label
-                              >
-                            </div>
-                          </div>
-                          <div class="col-4 md:col-4">
-                            <div class="form-group m-0">
-                              <label class="label-profileinfo"
-                                >Ngày cấp:
-                                <span class="description-2">{{
-                                  profile.identity_date_issue
-                                }}</span></label
-                              >
-                            </div>
-                          </div>
-                          <div class="col-4 md:col-4">
-                            <div class="form-group m-0">
-                              <label class="label-profileinfo"
-                                >Nơi cấp:
-                                <span class="description-2">{{
-                                  profile.identity_papers_name
-                                }}</span></label
-                              >
-                            </div>
-                          </div>
-                          <div class="col-4 md:col-4">
-                            <div class="form-group m-0">
-                              <label class="label-profileinfo"
                                 >Quốc tịch:
                                 <span class="description-2">{{
                                   profile.nationality_name
-                                }}</span></label
-                              >
-                            </div>
-                          </div>
-                          <div class="col-4 md:col-4">
-                            <div class="form-group m-0">
-                              <label class="label-profileinfo"
-                                >Tình trạng hôn nhân:
-                                <span class="description-2">{{
-                                  profile.marital_status
                                 }}</span></label
                               >
                             </div>
@@ -3067,9 +3072,69 @@ const formatViewNumber = (value, partDecimal) => {
                           <div class="col-4 md:col-4">
                             <div class="form-group m-0">
                               <label class="label-profileinfo"
+                                >Loại giấy tờ:
+                                <span class="description-2">{{
+                                  profile.identity_papers_name
+                                }}</span></label
+                              >
+                            </div>
+                          </div>
+                          <div class="col-4 md:col-4">
+                            <div class="form-group m-0">
+                              <label class="label-profileinfo"
+                                >Số:
+                                <span class="description-2">{{
+                                  profile.identity_papers_code
+                                }}</span></label
+                              >
+                            </div>
+                          </div>
+                          <div class="col-2 md:col-2">
+                            <div class="form-group m-0">
+                              <label class="label-profileinfo"
+                                >Ngày cấp:
+                                <span class="description-2">{{
+                                  profile.identity_date_issue
+                                }}</span></label
+                              >
+                            </div>
+                          </div>
+                          <div class="col-2 md:col-2">
+                            <div class="form-group m-0">
+                              <label class="label-profileinfo"
+                                >Ngày hết hạn:
+                                <span class="description-2">{{
+                                  profile.identity_end_date_issue
+                                }}</span></label
+                              >
+                            </div>
+                          </div>
+                          <div class="col-4 md:col-4">
+                            <div class="form-group m-0">
+                              <label class="label-profileinfo"
+                                >Nơi cấp:
+                                <span class="description-2">{{
+                                  profile.identity_papers_name
+                                }}</span></label
+                              >
+                            </div>
+                          </div>
+                          <div class="col-4 md:col-4">
+                            <div class="form-group m-0">
+                              <label class="label-profileinfo"
                                 >Mã số thuế:
                                 <span class="description-2">{{
                                   profile.tax_code
+                                }}</span></label
+                              >
+                            </div>
+                          </div>
+                          <div class="col-4 md:col-4">
+                            <div class="form-group m-0">
+                              <label class="label-profileinfo"
+                                >Tình trạng hôn nhân:
+                                <span class="description-2">{{
+                                  profile.marital_status
                                 }}</span></label
                               >
                             </div>
@@ -3108,16 +3173,258 @@ const formatViewNumber = (value, partDecimal) => {
                       </div>
                     </AccordionTab>
                   </Accordion>
-                  <!-- 2. Trình độ học vấn -->
+                  <!-- 2. Thông tin liên hệ -->
                   <Accordion class="w-full mb-2" :activeIndex="0">
                     <AccordionTab>
                       <template #header>
-                        <!-- <i class="pi pi-book mr-2"></i> -->
-                        <span>2. Trình độ học vấn</span>
+                        <!-- <i class="pi pi-info-circle mr-2"></i> -->
+                        <span>2. Thông tin liên hệ</span>
+                      </template>
+                      <div class="col-12 md:col-12">
+                        <div class="row">
+                          <div class="col-4 md:col-4">
+                            <div class="form-group m-0">
+                              <label class="label-profileinfo"
+                                >Di động:
+                                <span class="description-2">{{
+                                  profile.phone
+                                }}</span></label
+                              >
+                            </div>
+                          </div>
+                          <div class="col-4 md:col-4">
+                            <div class="form-group m-0">
+                              <label class="label-profileinfo"
+                                >Số điện thoại cố định:
+                                <span class="description-2">{{
+                                  profile.fax
+                                }}</span></label
+                              >
+                            </div>
+                          </div>
+                          <div class="col-4 md:col-4">
+                            <div class="form-group m-0">
+                              <label class="label-profileinfo"
+                                >Email:
+                                <span class="description-2">{{
+                                  profile.email
+                                }}</span></label
+                              >
+                            </div>
+                          </div>
+                          <!-- <div class="col-12 md:col-12">
+                            <div class="form-group m-0">
+                              <label class="label-profileinfo"
+                                >Thường trú:
+                                <span class="description-2">{{
+                                  profile.place_permanent
+                                }}</span></label
+                              >
+                            </div>
+                          </div> -->
+                          <div class="col-12 md:col-12">
+                            <div class="form-group m-0">
+                              <label class="label-profileinfo"
+                                >Chỗ ở hiện nay:
+                                <span class="description-2">{{
+                                  (profile.place_permanent || "") +
+                                  (profile.place_residence_name
+                                    ? ", " + profile.place_residence_name
+                                    : "")
+                                }}</span></label
+                              >
+                            </div>
+                          </div>
+                          <div class="col-12 md:col-12">
+                            <div class="form-group m-0">
+                              <label class="label-profileinfo m-0"
+                                >Khi cần báo tin cho:</label
+                              >
+                            </div>
+                          </div>
+                          <div class="col-4 md:col-4">
+                            <div class="form-group m-0">
+                              <label class="label-profileinfo"
+                                >Họ và tên:
+                                <span class="description-2">{{
+                                  profile.involved_name
+                                }}</span></label
+                              >
+                            </div>
+                          </div>
+                          <div class="col-4 md:col-4">
+                            <div class="form-group m-0">
+                              <label class="label-profileinfo"
+                                >Số điện thoại:
+                                <span class="description-2">{{
+                                  profile.involved_phone
+                                }}</span></label
+                              >
+                            </div>
+                          </div>
+                          <div class="col-4 md:col-4">
+                            <div class="form-group m-0">
+                              <label class="label-profileinfo"
+                                >Mối quan hệ:
+                                <span class="description-2">{{
+                                  profile.relationship_name
+                                }}</span></label
+                              >
+                            </div>
+                          </div>
+                          <div class="col-12 md:col-12">
+                            <div class="form-group m-0">
+                              <label class="label-profileinfo"
+                                >Địa chỉ:
+                                <span class="description-2">{{
+                                  profile.involved_place
+                                }}</span></label
+                              >
+                            </div>
+                          </div>
+                        </div>
+                      </div>
+                    </AccordionTab>
+                  </Accordion>
+                  <!-- 3. Thông tin tuyển dụng -->
+                  <Accordion class="w-full mb-2" :activeIndex="0">
+                    <AccordionTab>
+                      <template #header>
+                        <!-- <i class="pi pi-info-circle mr-2"></i> -->
+                        <span>3. Thông tin tuyển dụng</span>
                       </template>
                       <div class="col-12 md:col-12">
                         <div class="row">
                           <div class="col-6 md:col-6">
+                            <div class="form-group m-0">
+                              <label class="label-profileinfo"
+                                >Ngày tuyển dụng lần đầu:
+                                <span class="description-2">{{
+                                  profile.recruitment_date_first
+                                }}</span></label
+                              >
+                            </div>
+                          </div>
+                          <div class="col-6 md:col-6">
+                            <div class="form-group m-0">
+                              <label class="label-profileinfo"
+                                >Hình thức tuyển dụng:
+                                <span class="description-2">{{
+                                  profile.recruitment_form
+                                }}</span></label
+                              >
+                            </div>
+                          </div>
+                          <div class="col-6 md:col-6">
+                            <div class="form-group m-0">
+                              <label class="label-profileinfo"
+                                >Nghề nghiệp bản thân trước khi được tuyển dụng:
+                                <span class="description-2">{{
+                                  profile.job_before_recruitment
+                                }}</span></label
+                              >
+                            </div>
+                          </div>
+                          <div class="col-6 md:col-6">
+                            <div class="form-group m-0">
+                              <label class="label-profileinfo"
+                                >Vị trí tuyển dụng:
+                                <span class="description-2">{{
+                                  profile.recruitment_position
+                                }}</span></label
+                              >
+                            </div>
+                          </div>
+                          <div class="col-6 md:col-6">
+                            <div class="form-group px-1">
+                              <div
+                                class="flex"
+                                style="height: 100%; align-items: center"
+                              >
+                                <InputSwitch
+                                  v-model="profile.is_re_recruitment"
+                                  :disabled="true"
+                                />
+                                <label class="label-profileinfo ml-2" for="binary"
+                                  >Tuyển dụng lại</label
+                                >
+                              </div>
+                            </div>
+                          </div>
+                          
+                          <div class="col-6 md:col-6" v-if="profile.is_re_recruitment">
+                            <div class="form-group m-0">
+                              <label class="label-profileinfo"
+                                >Lần tuyển dụng:
+                                <span class="description-2">{{
+                                  profile.recruitment_number
+                                }}</span></label
+                              >
+                            </div>
+                          </div>
+                          <div class="col-6 md:col-6" v-if="profile.is_re_recruitment">
+                            <div class="form-group m-0">
+                              <label class="label-profileinfo"
+                                >Ngày tuyển dụng lại:
+                                <span class="description-2">{{
+                                  profile.re_recruitment_date
+                                }}</span></label
+                              >
+                            </div>
+                          </div>
+                          <div class="col-6 md:col-6" v-if="profile.is_re_recruitment">
+                            <div class="form-group m-0">
+                              <label class="label-profileinfo"
+                                >Hình thức tuyển dụng:
+                                <span class="description-2">{{
+                                  profile.re_recruitment_form
+                                }}</span></label
+                              >
+                            </div>
+                          </div>
+                          <div class="col-6 md:col-6" v-if="profile.is_re_recruitment">
+                            <div class="form-group m-0">
+                              <label class="label-profileinfo"
+                                >Nghề nghiệp bản thân trước khi được tuyển dụng:
+                                <span class="description-2">{{
+                                  profile.job_before_re_recruitment
+                                }}</span></label
+                              >
+                            </div>
+                          </div>
+                          <div class="col-6 md:col-6" v-if="profile.is_re_recruitment">
+                            <div class="form-group m-0">
+                              <label class="label-profileinfo"
+                                >Vị trí tuyển dụng:
+                                <span class="description-2">{{
+                                  profile.re_recruitment_position
+                                }}</span></label
+                              >
+                            </div>
+                          </div>
+
+                        </div>
+                      </div>
+                    </AccordionTab>
+                  </Accordion>
+
+                  <!-- 4. Trình độ học vấn - Quá trình đào tạo -->
+                  <Accordion class="w-full mb-2" :activeIndex="0">
+                    <AccordionTab>
+                      <template #header>
+                        <!-- <i class="pi pi-book mr-2"></i> -->
+                        <span>4. Trình độ học vấn - Quá trình đào tạo</span>
+                      </template>
+                      <div class="col-12 md:col-12">
+                        <div class="form-group m-0 mb-1">
+                          <label class="label-profileinfo m-0">
+                            4.1 Trình độ học vấn:
+                          </label>
+                        </div>
+                      </div>
+                      <div class="col-12 md:col-12">
+                        <div class="row">
+                          <div class="col-4 md:col-4">
                             <div class="form-group m-0">
                               <label class="label-profileinfo"
                                 >Trình độ phổ thông:
@@ -3127,27 +3434,17 @@ const formatViewNumber = (value, partDecimal) => {
                               >
                             </div>
                           </div>
-                          <!-- <div class="col-6 md:col-6">
+                          <div class="col-4 md:col-4">
                             <div class="form-group m-0">
                               <label class="label-profileinfo"
                                 >Trình độ học vấn cao nhất:
                                 <span class="description-2">{{
-                                  profile.academic_level_name
+                                  profile.cultural_level_max
                                 }}</span></label
                               >
                             </div>
                           </div>
-                          <div class="col-6 md:col-6">
-                            <div class="form-group m-0">
-                              <label class="label-profileinfo"
-                                >Chuyên ngành học:
-                                <span class="description-2">{{
-                                  profile.specialization_name
-                                }}</span></label
-                              >
-                            </div>
-                          </div> -->
-                          <div class="col-6 md:col-6">
+                          <div class="col-4 md:col-4">
                             <div class="form-group m-0">
                               <label class="label-profileinfo"
                                 >Quản lý nhà nước:
@@ -3188,24 +3485,637 @@ const formatViewNumber = (value, partDecimal) => {
                             </div>
                           </div>
                         </div>
+                      </div>                      
+                      <div class="col-12 md:col-12">
+                        <div class="form-group m-0 mb-1">
+                          <label class="label-profileinfo m-0">
+                            4.2 Quá trình đào tạo:
+                          </label>
+                        </div>
+                      </div>
+                      <div class="col-12 md:col-12 p-0">
+                        <div>
+                          <DataTable
+                            :value="datachilds[2]"
+                            :scrollable="true"
+                            :lazy="true"
+                            :rowHover="true"
+                            :showGridlines="true"
+                            scrollDirection="both"
+                            style="display: grid"
+                            class="empty-full tbl-detail-profile"
+                          >
+                            <Column
+                              field="is_man_degree"
+                              header="Bằng cấp chính"
+                              headerStyle="text-align:center;width:120px;height:50px;padding:1rem 0.5rem;"
+                              bodyStyle="text-align:center;width:120px;"
+                              class="align-items-center justify-content-center text-center"
+                            >
+                              <template #body="slotProps">
+                                <div class="form-group m-0">
+                                  <div
+                                    class="flex justify-content-center"
+                                    style="height: 100%"
+                                  >
+                                    <InputSwitch
+                                      v-model="slotProps.data.is_man_degree"
+                                      :disabled="true"
+                                    />
+                                  </div>
+                                </div>
+                              </template>
+                            </Column>
+                            <Column
+                              field="start_date"
+                              header="Từ tháng, năm"
+                              headerStyle="text-align:center;width:120px;height:50px"
+                              bodyStyle="text-align:center;width:120px;"
+                              class="align-items-center justify-content-center text-center"
+                            >
+                              <template #body="slotProps">
+                                <span>{{ slotProps.data.start_date }}</span>
+                              </template>
+                            </Column>
+                            <Column
+                              field="end_date"
+                              header="Đến tháng, năm"
+                              headerStyle="text-align:center;width:120px;height:50px"
+                              bodyStyle="text-align:center;width:120px;"
+                              class="align-items-center justify-content-center text-center"
+                            >
+                              <template #body="slotProps">
+                                <span>{{ slotProps.data.end_date }}</span>
+                              </template>
+                            </Column>
+                            <Column
+                              field="academic_level_name"
+                              header="Trình độ chuyên môn"
+                              headerStyle="text-align:center;width:180px;height:50px;"
+                              bodyStyle="text-align:center;width:180px;"
+                              class="align-items-center justify-content-center text-center"
+                            >
+                              <template #body="slotProps">
+                                <span>{{
+                                  slotProps.data.academic_level_name
+                                }}</span>
+                              </template>
+                            </Column>
+                            <Column
+                              field="specialized"
+                              header="Chuyên ngành"
+                              headerStyle="text-align:center;width:170px;height:50px"
+                              bodyStyle="text-align:center;width:170px;"
+                              class="align-items-center justify-content-center text-center"
+                            >
+                              <template #body="slotProps">
+                                <span>{{
+                                  slotProps.data.specialization_name
+                                }}</span>
+                              </template>
+                            </Column>
+                            <Column
+                              field="university_name"
+                              header="Nơi đào tạo"
+                              headerStyle="text-align:center;width:210px;height:50px;"
+                              bodyStyle="text-align:center;width:210px;"
+                              class="align-items-center justify-content-center text-center"
+                            >
+                              <template #body="slotProps">
+                                <span>{{
+                                  slotProps.data.university_name
+                                }}</span>
+                              </template>
+                            </Column>
+                            <Column
+                              field="form_traning_id"
+                              header="Hệ đào tạo"
+                              headerStyle="text-align:center;width:170px;height:50px"
+                              bodyStyle="text-align:center;width:170px;"
+                              class="align-items-center justify-content-center text-center"
+                            >
+                              <template #body="slotProps">
+                                <span>{{
+                                  slotProps.data.form_traning_name
+                                }}</span>
+                              </template>
+                            </Column>
+                            <Column
+                              field="graduation_year"
+                              header="Năm tốt nghiệp"
+                              headerStyle="text-align:center;width:120px;height:50px"
+                              bodyStyle="text-align:center;width:120px;"
+                              class="align-items-center justify-content-center text-center"
+                            >
+                              <template #body="slotProps">
+                                <span>{{
+                                  slotProps.data.graduation_year || ''
+                                }}</span>
+                              </template>
+                            </Column>
+                            <Column
+                              field="rating"
+                              header="Xếp loại"
+                              headerStyle="text-align:center;width:100px;height:50px"
+                              bodyStyle="text-align:center;width:100px;"
+                              class="align-items-center justify-content-center text-center"
+                            >
+                              <template #body="slotProps">
+                                <span>{{
+                                  slotProps.data.rating || ''
+                                }}</span>
+                              </template>
+                            </Column>                            
+                            <Column
+                              field="degree_date"
+                              header="Ngày cấp bằng"
+                              headerStyle="text-align:center;width:120px;height:50px"
+                              bodyStyle="text-align:center;width:120px;"
+                              class="align-items-center justify-content-center text-center"
+                            >
+                              <template #body="slotProps">
+                                <span>{{
+                                  slotProps.data.graduation_year || ''
+                                }}</span>
+                              </template>
+                            </Column>
+                            <Column
+                              field="certificate_id"
+                              header="Văn bằng, chứng chỉ"
+                              headerStyle="text-align:center;width:170px;height:50px"
+                              bodyStyle="text-align:center;width:170px;"
+                              class="align-items-center justify-content-center text-center"
+                            >
+                              <template #body="slotProps">
+                                <span>{{
+                                  slotProps.data.certificate_name
+                                }}</span>
+                              </template>
+                            </Column>
+                            <Column
+                              field="certificate_key_code"
+                              header="Số hiệu"
+                              headerStyle="text-align:center;width:150px;height:50px"
+                              bodyStyle="text-align:center;width:150px;"
+                              class="align-items-center justify-content-center text-center"
+                            >
+                              <template #body="slotProps">
+                                <span>{{
+                                  slotProps.data.certificate_key_code
+                                }}</span>
+                              </template>
+                            </Column>
+                            <Column
+                              field="certificate_version"
+                              header="Phiên bản"
+                              headerStyle="text-align:center;width:150px;height:50px"
+                              bodyStyle="text-align:center;width:150px;"
+                              class="align-items-center justify-content-center text-center"
+                            >
+                              <template #body="slotProps">
+                                <span>{{
+                                  slotProps.data.certificate_version
+                                }}</span>
+                              </template>
+                            </Column>
+                            <Column
+                              field="certificate_release_time"
+                              header="Lần phát hành"
+                              headerStyle="text-align:center;width:150px;height:50px"
+                              bodyStyle="text-align:center;width:150px;"
+                              class="align-items-center justify-content-center text-center"
+                            >
+                              <template #body="slotProps">
+                                <span>{{
+                                  slotProps.data.certificate_release_time
+                                }}</span>
+                              </template>
+                            </Column>
+                            <Column
+                              field="certificate_start_date"
+                              header="Ngày hiệu lực"
+                              headerStyle="text-align:center;width:120px;height:50px"
+                              bodyStyle="text-align:center;width:120px;"
+                              class="align-items-center justify-content-center text-center"
+                            >
+                              <template #body="slotProps">
+                                <span>{{
+                                  slotProps.data.certificate_start_date
+                                }}</span>
+                              </template>
+                            </Column>
+                            <Column
+                              field="certificate_end_date"
+                              header="Ngày hết hiệu lực"
+                              headerStyle="text-align:center;width:120px;height:50px"
+                              bodyStyle="text-align:center;width:120px;"
+                              class="align-items-center justify-content-center text-center"
+                            >
+                              <template #body="slotProps">
+                                <span>{{
+                                  slotProps.data.certificate_end_date
+                                }}</span>
+                              </template>
+                            </Column>
+                            <template #empty>
+                              <div
+                                class="align-items-center justify-content-center p-4 text-center m-auto"
+                                style="display: flex; width: 100%"
+                              ></div>
+                            </template>
+                          </DataTable>
+                        </div>
                       </div>
                     </AccordionTab>
                   </Accordion>
-                  <!-- 3. Thông tin liên hệ -->
+                  <!-- 5. Thông tin đảng, tham gia TCCT-XH -->
+                  <Accordion class="w-full padding-0 mb-2" :activeIndex="0">
+                    <AccordionTab>
+                      <template #header>
+                        <Toolbar class="w-full custoolbar p-0 font-bold">
+                          <template #start>
+                            <!-- <i class="pi pi-replay mr-2"></i> -->
+                            <span>5. Thông tin đảng, tham gia TCCT-XH</span></template
+                          >
+                        </Toolbar>
+                      </template>
+                      <div class="col-12 md:col-12">
+                        <div class="form-group m-0 mb-1">
+                          <label class="label-profileinfo m-0">
+                            Tham gia đoàn thanh niên:
+                          </label>
+                        </div>
+                      </div>
+                      <div class="col-12 md:col-12">
+                        <div class="row">
+                          <div class="col-6 md:col-6">
+                            <div class="form-group m-0">
+                              <label class="label-profileinfo"
+                                >Số thẻ Đoàn:
+                                <span class="description-2">{{
+                                  profile.bevy_code
+                                }}</span></label
+                              >
+                            </div>
+                          </div>
+                          <div class="col-6 md:col-6">
+                            <div class="form-group m-0">
+                              <label class="label-profileinfo"
+                                >Ngày vào Đoàn:
+                                <span class="description-2">{{
+                                  profile.bevy_date
+                                }}</span></label
+                              >
+                            </div>
+                          </div>
+                          <div class="col-6 md:col-6">
+                            <div class="form-group m-0">
+                              <label class="label-profileinfo"
+                                >Nơi vào Đoàn:
+                                <span class="description-2">{{
+                                  profile.bevy_address
+                                }}</span></label
+                              >
+                            </div>
+                          </div>
+                          <div class="col-6 md:col-6">
+                            <div class="form-group m-0">
+                              <label class="label-profileinfo"
+                                >Chức vụ Đoàn hiện tại:
+                                <span class="description-2">{{
+                                  profile.bevy_position
+                                }}</span></label
+                              >
+                            </div>
+                          </div>
+                          
+                        </div>
+                      </div>
+                      <div class="col-12 md:col-12">
+                        <div class="form-group m-0 mb-1">
+                          <label class="label-profileinfo m-0">
+                            Thông tin Đảng:
+                          </label>
+                        </div>
+                      </div>
+                      <div class="col-12 md:col-12 p-3">
+                        <div class="form-group px-1">
+                          <div
+                            class="flex ml-3"
+                            style="height: 100%; align-items: center"
+                          >
+                            <InputSwitch
+                              v-model="profile.is_partisan"
+                              :disabled="true"
+                            />
+                            <label class="label-profileinfo ml-2" for="binary"
+                              >Là Đảng viên</label
+                            >
+                          </div>
+                        </div>
+                        <div class="row px-2" v-if="profile.is_partisan">
+                          <!-- <DataTable
+                            :value="datachilds[3]"
+                            :scrollable="true"
+                            :lazy="true"
+                            :rowHover="true"
+                            :showGridlines="true"
+                            scrollDirection="both"
+                            style="display: grid"
+                            class="empty-full"
+                          >
+                            <Column
+                              field="card_number"
+                              header="Số thẻ"
+                              headerStyle="text-align:center;width:180px;height:50px"
+                              bodyStyle="text-align:center;width:180px;"
+                              class="align-items-center justify-content-center text-center"
+                            >
+                              <template #body="slotProps">
+                                <span>{{ slotProps.data.card_number }}</span>
+                              </template>
+                            </Column>
+                            <Column
+                              field="form"
+                              header="Hình thức"
+                              headerStyle="text-align:center;width:170px;height:50px"
+                              bodyStyle="text-align:center;width:170px;"
+                              class="align-items-center justify-content-center text-center"
+                            >
+                              <template #body="slotProps">
+                                <span>{{ slotProps.data.form }}</span>
+                              </template>
+                            </Column>
+                            <Column
+                              field="start_date"
+                              header="Từ ngày"
+                              headerStyle="text-align:center;width:120px;height:50px"
+                              bodyStyle="text-align:center;width:120px;"
+                              class="align-items-center justify-content-center text-center"
+                            >
+                              <template #body="slotProps">
+                                <span>{{ slotProps.data.start_date }}</span>
+                              </template>
+                            </Column>
+                            <Column
+                              field="end_date"
+                              header="Đến ngày"
+                              headerStyle="text-align:center;width:120px;height:50px"
+                              bodyStyle="text-align:center;width:120px;"
+                              class="align-items-center justify-content-center text-center"
+                            >
+                              <template #body="slotProps">
+                                <span>{{ slotProps.data.end_date }}</span>
+                              </template>
+                            </Column>
+                            <Column
+                              field="admission_place"
+                              header="Nơi kết nạp"
+                              headerStyle="text-align:center;width:180px;height:50px"
+                              bodyStyle="text-align:center;width:180px;"
+                              class="align-items-center justify-content-center text-center"
+                            >
+                              <template #body="slotProps">
+                                <span>{{
+                                  slotProps.data.admission_place
+                                }}</span>
+                              </template>
+                            </Column>
+                            <Column
+                              field="transfer_place"
+                              header="Nơi điều chuyển"
+                              headerStyle="text-align:center;width:180px;height:50px"
+                              bodyStyle="text-align:center;width:180px;"
+                              class="align-items-center justify-content-center text-center"
+                            >
+                              <template #body="slotProps">
+                                <span>{{ slotProps.data.transfer_place }}</span>
+                              </template>
+                            </Column>
+                            <template #empty>
+                              <div
+                                class="align-items-center justify-content-center p-4 text-center m-auto"
+                                style="display: flex; width: 100%"
+                              ></div>
+                            </template>
+                          </DataTable> -->
+                          <div class="col-12 md:col-12">
+                            <div class="form-group m-0">
+                              <label class="label-profileinfo"
+                                ><b>Thông tin Đảng</b></label
+                              >
+                            </div>
+                          </div>
+                          <div class="col-6 md:col-6">
+                            <div class="form-group m-0">
+                              <label class="label-profileinfo"
+                                >Ngạch công chức (viên chức):
+                                <span class="description-2">
+                                  {{ profile.civil_servant_rank_name }}
+                                </span>
+                              </label>
+                            </div>
+                          </div>
+                          <div class="col-6 md:col-6 format-center"></div>
+                          <div class="col-4 md:col-4">
+                            <div class="form-group m-0">
+                              <label class="label-profileinfo"
+                                >Số thẻ Đảng:
+                                <span class="description-2">
+                                  {{ profile.card_partisan || "" }}
+                                </span>
+                              </label>
+                            </div>
+                          </div>
+                          <div class="col-4 md:col-4">
+                            <div class="form-group m-0">
+                              <label class="label-profileinfo"
+                                >Ngày vào Đảng:
+                                <span class="description-2">
+                                  {{
+                                    profile.partisan_date
+                                      ? moment(
+                                          new Date(profile.partisan_date)
+                                        ).format("DD/MM/yyyy")
+                                      : ""
+                                  }}
+                                </span>
+                              </label>
+                            </div>
+                          </div>
+                          <div class="col-4 md:col-4">
+                            <div class="form-group m-0">
+                              <label class="label-profileinfo"
+                                >Ngày vào Đảng chính thức:
+                                <span class="description-2">
+                                  {{
+                                    profile.partisan_main_date
+                                      ? moment(
+                                          new Date(profile.partisan_main_date)
+                                        ).format("DD/MM/yyyy")
+                                      : ""
+                                  }}
+                                </span>
+                              </label>
+                            </div>
+                          </div>
+                          <div class="col-6 md:col-6">
+                            <div class="form-group m-0">
+                              <label class="label-profileinfo"
+                                >Chị bộ sinh hoạt Đảng:
+                                <span class="description-2">
+                                  {{ profile.partisan_branch || "" }}
+                                </span>
+                              </label>
+                            </div>
+                          </div>
+                          <div class="col-6 md:col-6">
+                            <div class="form-group m-0">
+                              <label class="label-profileinfo"
+                                >Đảng bộ chính thức:
+                                <span class="description-2">
+                                  {{ profile.partisan_official || "" }}
+                                </span>
+                              </label>
+                            </div>
+                          </div>
+                          <div class="col-6 md:col-6">
+                            <div class="form-group m-0">
+                              <label class="label-profileinfo"
+                                >Ngày tham gia cách mạng:
+                                <span class="description-2">
+                                  {{
+                                    profile.partisan_joindate
+                                      ? moment(
+                                          new Date(profile.partisan_joindate)
+                                        ).format("DD/MM/yyyy")
+                                      : ""
+                                  }}
+                                </span>
+                              </label>
+                            </div>
+                          </div>
+                          <div class="col-6 md:col-6">
+                            <div class="form-group m-0">
+                              <label class="label-profileinfo"
+                                >Ngày tham gia tổ chức:
+                                <span class="description-2">
+                                  {{
+                                    profile.organization_joindate
+                                      ? moment(
+                                          new Date(
+                                            profile.organization_joindate
+                                          )
+                                        ).format("DD/MM/yyyy")
+                                      : ""
+                                  }}
+                                </span>
+                              </label>
+                            </div>
+                          </div>
+                          <div class="col-12 md:col-12">
+                            <div class="form-group m-0">
+                              <label class="label-profileinfo"
+                                >Công việc trong tổ chức:
+                                <span class="description-2">
+                                  {{ profile.organization_task || "" }}
+                                </span>
+                              </label>
+                            </div>
+                          </div>
+                          <div class="col-6 md:col-6">
+                            <div class="flex" style="flex-direction: column">
+                              <label class="label-profileinfo"
+                                >Danh hiệu:
+                              </label>
+                              <Textarea
+                                class="w-full"
+                                :autoResize="true"
+                                rows="1"
+                                v-model="profile.appellation"
+                                :disabled="true"
+                                style="
+                                  border: none;
+                                  color: #000000 !important;
+                                  background-color: transparent;
+                                  line-height: 1.5;
+                                  opacity: 1;
+                                "
+                              />
+                            </div>
+                          </div>
+                          <div class="col-6 md:col-6">
+                            <div class="flex" style="flex-direction: column">
+                              <label class="label-profileinfo"
+                                >Huy hiệu:
+                              </label>
+                              <Textarea
+                                class="w-full"
+                                :autoResize="true"
+                                rows="1"
+                                v-model="profile.armorial"
+                                :disabled="true"
+                                style="
+                                  border: none;
+                                  color: #000000 !important;
+                                  background-color: transparent;
+                                  line-height: 1.5;
+                                  opacity: 1;
+                                "
+                              />
+                            </div>
+                          </div>
+                        </div>
+                      </div>
+                    </AccordionTab>
+                  </Accordion>
+                  <!-- 6. Thông tin tham gia quân đội -->
                   <Accordion class="w-full mb-2" :activeIndex="0">
                     <AccordionTab>
                       <template #header>
-                        <!-- <i class="pi pi-info-circle mr-2"></i> -->
-                        <span>3. Thông tin liên hệ</span>
+                        <!-- <i class="pi pi-chart-line mr-2"></i> -->
+                        <span>6. Thông tin tham gia quân đội</span>
                       </template>
                       <div class="col-12 md:col-12">
                         <div class="row">
                           <div class="col-6 md:col-6">
                             <div class="form-group m-0">
                               <label class="label-profileinfo"
-                                >Số điện thoại:
+                                >Ngày nhập ngũ:
+                                <span class="description-2">
+                                  {{
+                                    profile.military_start_date
+                                      ? moment(
+                                          new Date(profile.military_start_date)
+                                        ).format("DD/MM/yyyy")
+                                      : ""
+                                  }}
+                                </span>
+                              </label>
+                            </div>
+                          </div>
+                          <div class="col-6 md:col-6">
+                            <div class="form-group m-0">
+                              <label class="label-profileinfo"
+                                >Ngày xuất ngũ:
+                                <span class="description-2">
+                                  {{
+                                    profile.military_end_date
+                                      ? moment(
+                                          new Date(profile.military_end_date)
+                                        ).format("DD/MM/yyyy")
+                                      : ""
+                                  }}
+                                </span></label
+                              >
+                            </div>
+                          </div>
+                          <div class="col-6 md:col-6">
+                            <div class="form-group m-0">
+                              <label class="label-profileinfo"
+                                >Quân hàm cao nhất:
                                 <span class="description-2">{{
-                                  profile.phone
+                                  profile.military_rank
                                 }}</span></label
                               >
                             </div>
@@ -3213,69 +4123,49 @@ const formatViewNumber = (value, partDecimal) => {
                           <div class="col-6 md:col-6">
                             <div class="form-group m-0">
                               <label class="label-profileinfo"
-                                >Email:
+                                >Danh hiệu cao nhất:
                                 <span class="description-2">{{
-                                  profile.email
+                                  profile.military_title
                                 }}</span></label
                               >
                             </div>
                           </div>
-                          <!-- <div class="col-12 md:col-12">
+                          <!-- <div class="col-6 md:col-6">
                             <div class="form-group m-0">
                               <label class="label-profileinfo"
-                                >Thường trú:
+                                >Sở trường công tác:
                                 <span class="description-2">{{
-                                  profile.place_permanent
+                                  profile.military_forte
+                                }}</span></label
+                              >
+                            </div>
+                          </div>
+                          <div class="col-6 md:col-6">
+                            <div class="form-group m-0">
+                              <label class="label-profileinfo"
+                                >Sức khỏe:
+                                <span class="description-2">{{
+                                  profile.military_health
                                 }}</span></label
                               >
                             </div>
                           </div> -->
-                          <div class="col-12 md:col-12">
+                          <div class="col-6 md:col-6 m-0">
                             <div class="form-group m-0">
                               <label class="label-profileinfo"
-                                >Chỗ ở hiện nay:
+                                >Thương binh hạng:
                                 <span class="description-2">{{
-                                  (profile.place_permanent || "") +
-                                  (profile.place_residence_name
-                                    ? ", " + profile.place_residence_name
-                                    : "")
+                                  profile.military_veterans_rank
                                 }}</span></label
                               >
                             </div>
                           </div>
-                          <div class="col-12 md:col-12">
-                            <div class="form-group m-0">
-                              <label class="label-profileinfo m-0"
-                                >Khi cần báo tin cho:</label
-                              >
-                            </div>
-                          </div>
-                          <div class="col-6 md:col-6">
+                          <div class="col-6 md:col-6 m-0">
                             <div class="form-group m-0">
                               <label class="label-profileinfo"
-                                >Họ và tên:
+                                >Con gia đình chính sách:
                                 <span class="description-2">{{
-                                  profile.involved_name
-                                }}</span></label
-                              >
-                            </div>
-                          </div>
-                          <div class="col-6 md:col-6">
-                            <div class="form-group m-0">
-                              <label class="label-profileinfo"
-                                >Số điện thoại:
-                                <span class="description-2">{{
-                                  profile.involved_phone
-                                }}</span></label
-                              >
-                            </div>
-                          </div>
-                          <div class="col-12 md:col-12">
-                            <div class="form-group m-0">
-                              <label class="label-profileinfo"
-                                >Địa chỉ:
-                                <span class="description-2">{{
-                                  profile.involved_place
+                                  profile.military_policy_family
                                 }}</span></label
                               >
                             </div>
@@ -3284,7 +4174,121 @@ const formatViewNumber = (value, partDecimal) => {
                       </div>
                     </AccordionTab>
                   </Accordion>
-                  <!-- 4. Thông tin gia đình, người phụ thuộc -->
+                  <!-- 7. Quá trình công tác trước khi vào đơn vị -->
+                  <Accordion class="w-full padding-0 mb-2" :activeIndex="0">
+                    <AccordionTab>
+                      <template #header>
+                        <Toolbar class="w-full custoolbar p-0 font-bold">
+                          <template #start>
+                            <span>7. Quá trình công tác trước khi vào đơn vị</span></template
+                          >
+                        </Toolbar>
+                      </template>
+                      <div class="col-12 md:col-12 p-0">
+                        <div>
+                          <DataTable
+                            :value="datachilds[4]"
+                            :scrollable="true"
+                            :lazy="true"
+                            :rowHover="true"
+                            :showGridlines="true"
+                            scrollDirection="both"
+                            style="display: grid"
+                            class="empty-full"
+                          >
+                            <Column
+                              field="start_date"
+                              header="Từ tháng, năm"
+                              headerStyle="text-align:center;width:130px;height:50px"
+                              bodyStyle="text-align:center;width:130px;"
+                              class="align-items-center justify-content-center text-center"
+                            >
+                              <template #body="slotProps">
+                                <span>{{ slotProps.data.start_date }}</span>
+                              </template>
+                            </Column>
+                            <Column
+                              field="end_date"
+                              header="Đến tháng, năm"
+                              headerStyle="text-align:center;width:130px;height:50px"
+                              bodyStyle="text-align:center;width:130px;"
+                              class="align-items-center justify-content-center text-center"
+                            >
+                              <template #body="slotProps">
+                                <span>{{ slotProps.data.end_date }}</span>
+                              </template>
+                            </Column>
+                            <Column
+                              field="company"
+                              header="Công ty, đơn vị"
+                              headerStyle="text-align:center;width:300px;height:50px;"
+                              bodyStyle="text-align:center;width:300px;"
+                              class="align-items-center justify-content-center text-center"
+                            >
+                              <template #body="slotProps">
+                                <span>{{ slotProps.data.company }}</span>
+                              </template>
+                            </Column>
+                            <Column
+                              field="role"
+                              header="Vị trí"
+                              headerStyle="text-align:center;width:250px;height:50px"
+                              bodyStyle="text-align:center;width:250px;"
+                              class="align-items-center justify-content-center text-center"
+                            >
+                              <template #body="slotProps">
+                                <span>{{ slotProps.data.role }}</span>
+                              </template>
+                            </Column>
+                            <Column
+                              field="reference_name"
+                              header="Người tham chiếu"
+                              headerStyle="text-align:center;width:200px;height:50px"
+                              bodyStyle="text-align:center;width:200px;"
+                              class="align-items-center justify-content-center text-center"
+                            >
+                              <template #body="slotProps">
+                                <span>{{ slotProps.data.reference_name }}</span>
+                              </template>
+                            </Column>
+                            <Column
+                              field="reference_phone"
+                              header="SĐT"
+                              headerStyle="text-align:center;width:130px;height:50px"
+                              bodyStyle="text-align:center;width:130px;"
+                              class="align-items-center justify-content-center text-center"
+                            >
+                              <template #body="slotProps">
+                                <span>{{
+                                  slotProps.data.reference_phone
+                                }}</span>
+                              </template>
+                            </Column>
+                            <Column
+                              field="description-2"
+                              header="Mô tả công việc"
+                              headerStyle="text-align:center;width:250px;height:50px;flex:1;"
+                              bodyStyle="text-align:center;width:250px;flex:1;"
+                              class="align-items-center justify-content-center text-center"
+                            >
+                              <template #body="slotProps">
+                                <span>{{
+                                  slotProps.data.description || ""
+                                }}</span>
+                              </template>
+                            </Column>
+                            <template #empty>
+                              <div
+                                class="align-items-center justify-content-center p-4 text-center m-auto"
+                                style="display: flex; width: 100%"
+                              ></div>
+                            </template>
+                          </DataTable>
+                        </div>
+                      </div>
+                    </AccordionTab>
+                  </Accordion>                  
+                  <!-- 8. Thông tin gia đình, người phụ thuộc -->
                   <Accordion class="w-full padding-0 mb-2" :activeIndex="0">
                     <AccordionTab>
                       <template #header>
@@ -3292,13 +4296,13 @@ const formatViewNumber = (value, partDecimal) => {
                           <template #start>
                             <!-- <i class="pi pi-users mr-2"></i> -->
                             <span
-                              >4. Thông tin gia đình, người phụ thuộc</span
+                              >8. Thông tin gia đình, người phụ thuộc</span
                             ></template
                           >
                         </Toolbar>
                       </template>
                       <div class="col-12 md:col-12 p-0">
-                        <DataTable
+                        <!-- <DataTable
                           :value="datachilds[1]"
                           :scrollable="true"
                           :lazy="true"
@@ -3544,704 +4548,257 @@ const formatViewNumber = (value, partDecimal) => {
                               style="display: flex; width: 100%"
                             ></div>
                           </template>
-                        </DataTable>
-                      </div>
-                    </AccordionTab>
-                  </Accordion>
-                  <!-- 5. Quá trình đào tạo, bồi dưỡng về chuyên môn, nghiệp vụ, lý luận chính trị, ngoại ngữ, tin học -->
-                  <Accordion class="w-full padding-0 mb-2" :activeIndex="0">
-                    <AccordionTab>
-                      <template #header>
-                        <Toolbar class="w-full custoolbar p-0 font-bold">
-                          <template #start>
-                            <!-- <i class="pi pi-replay mr-2"></i> -->
-                            <span
-                              >5. Quá trình đào tạo, bồi dưỡng về chuyên môn,
-                              nghiệp vụ, lý luận chính trị, ngoại ngữ, tin
-                              học</span
-                            ></template
+                        </DataTable> -->
+                        <DataTable
+                          :scrollable="true"
+                          scrollHeight="flex"
+                          :showGridlines="true"
+                          columnResizeMode="fit"
+                          :lazy="true"
+                          :reorderableColumns="true"
+                          :value="datachilds[1]"
+                          removableSort
+                          :paginator="false"
+                          dataKey="profile_relative_id"
+                          responsiveLayout="scroll"
+                          :row-hover="true"
+                          rowGroupMode="subheader"
+                          groupRowsBy="is_type"
+                          expandableRowGroups 
+                          scrollDirection="both"
+                          v-model:expandedRowGroups="expandedRowGroups"
+                          sortMode="single" sortField="is_type" :sortOrder="1"
+                          @rowgroup-expand="onRowGroupExpand($event)"
+                          style="display: grid"
+                          class="empty-full tbl-detail-profile"
+                        >
+                          <template #groupheader="slotProps">
+                            <div class="flex align-items-center pl-3">
+                              <div class="font-bold">
+                                {{ slotProps.data.type_relative_name }}
+                              </div>
+                            </div>
+                          </template>
+                          <Column
+                            field="is_root"
+                            header=""
+                            headerStyle="text-align:center;width:30px;height:50px"
+                            bodyStyle="text-align:center;width:30px;"
+                            class="align-items-center justify-content-center text-center"
                           >
-                        </Toolbar>
-                      </template>
-                      <div class="col-12 md:col-12 p-0">
-                        <div>
-                          <DataTable
-                            :value="datachilds[2]"
-                            :scrollable="true"
-                            :lazy="true"
-                            :rowHover="true"
-                            :showGridlines="true"
-                            scrollDirection="both"
-                            style="display: grid"
-                            class="empty-full tbl-detail-profile"
+                            <template #body="slotProps">
+                              <span
+                                v-if="slotProps.data.is_root"
+                                v-tooltip.right="'Theo lý lịch'"
+                                ><i class="pi pi-flag-fill"></i
+                              ></span>
+                              <span
+                                v-if="!slotProps.data.is_root"
+                                v-tooltip.right="'Bổ sung'"
+                                ><i class="pi pi-pencil"></i
+                              ></span>
+                            </template>
+                          </Column>
+                          <Column
+                            field="relative_name"
+                            header="Họ tên"
+                            headerStyle="text-align:center;width:180px;height:50px"
+                            bodyStyle="text-align:center;width:180px;"
+                            class="align-items-center justify-content-center text-center"
                           >
-                            <Column
-                              field="is_man_degree"
-                              header="Bằng cấp chính"
-                              headerStyle="text-align:center;width:120px;height:50px;padding:1rem 0.5rem;"
-                              bodyStyle="text-align:center;width:120px;"
-                              class="align-items-center justify-content-center text-center"
-                            >
-                              <template #body="slotProps">
-                                <div class="form-group m-0">
-                                  <div
-                                    class="flex justify-content-center"
-                                    style="height: 100%"
-                                  >
-                                    <InputSwitch
-                                      v-model="slotProps.data.is_man_degree"
-                                      :disabled="true"
-                                    />
-                                  </div>
+                            <template #body="slotProps">
+                              <span>{{ slotProps.data.relative_name }}</span>
+                            </template>
+                          </Column>
+                          <Column
+                            field="relationship_id"
+                            header="Quan hệ"
+                            headerStyle="text-align:center;width:170px;height:50px"
+                            bodyStyle="text-align:center;width:170px;"
+                            class="align-items-center justify-content-center text-center"
+                          >
+                            <template #body="slotProps">
+                              <div class="form-group m-0">
+                                <span>{{
+                                  slotProps.data.relationship_name
+                                }}</span>
+                              </div>
+                            </template>
+                          </Column>
+                          <Column
+                            field="birthday"
+                            header="Năm sinh"
+                            headerStyle="text-align:center;width:120px;height:50px"
+                            bodyStyle="text-align:center;width:120px;"
+                            class="align-items-center justify-content-center text-center"
+                          >
+                            <template #body="slotProps">
+                              <span>{{ slotProps.data.birthday }}</span>
+                            </template>
+                          </Column>
+                          <Column
+                            field="phone"
+                            header="SĐT"
+                            headerStyle="text-align:center;width:120px;height:50px"
+                            bodyStyle="text-align:center;width:120px;"
+                            class="align-items-center justify-content-center text-center"
+                          >
+                            <template #body="slotProps">
+                              <span>{{ slotProps.data.phone }}</span>
+                            </template>
+                          </Column>
+                          <Column
+                            field="tax_code"
+                            header="Mã số thuế"
+                            headerStyle="text-align:center;width:150px;height:50px"
+                            bodyStyle="text-align:center;width:150px;"
+                            class="align-items-center justify-content-center text-center"
+                          >
+                            <template #body="slotProps">
+                              <span>{{ slotProps.data.tax_code }}</span>
+                            </template>
+                          </Column>
+                          <Column
+                            field="identification_citizen"
+                            header="CCCD/Hộ chiếu"
+                            headerStyle="text-align:center;width:150px;height:50px"
+                            bodyStyle="text-align:center;width:150px;"
+                            class="align-items-center justify-content-center text-center"
+                          >
+                            <template #body="slotProps">
+                              <span>{{
+                                slotProps.data.identification_citizen
+                              }}</span>
+                            </template>
+                          </Column>
+                          <Column
+                            field="identification_date_issue"
+                            header="Ngày cấp"
+                            headerStyle="text-align:center;width:120px;height:50px"
+                            bodyStyle="text-align:center;width:120px;"
+                            class="align-items-center justify-content-center text-center"
+                          >
+                            <template #body="slotProps">
+                              {{ slotProps.data.identification_date_issue }}
+                            </template>
+                          </Column>
+                          <Column
+                            field="identification_place_issue"
+                            header="Nơi cấp"
+                            headerStyle="text-align:center;width:150px;height:50px"
+                            bodyStyle="text-align:center;width:150px;"
+                            class="align-items-center justify-content-center text-center"
+                          >
+                            <template #body="slotProps">
+                              {{ slotProps.data.identification_place_issue }}
+                            </template>
+                          </Column>
+                          <Column
+                            field="is_dependent"
+                            header="Phụ thuộc"
+                            headerStyle="text-align:center;width:150px;height:50px"
+                            bodyStyle="text-align:center;width:150px;"
+                            class="align-items-center justify-content-center text-center"
+                          >
+                            <template #body="slotProps">
+                              <div class="form-group m-0">
+                                <span>{{ slotProps.data.dependent_name }}</span>
+                              </div>
+                            </template>
+                          </Column>
+                          <Column
+                            field="start_date"
+                            header="Từ ngày"
+                            headerStyle="text-align:center;width:120px;height:50px"
+                            bodyStyle="text-align:center;width:120px;"
+                            class="align-items-center justify-content-center text-center"
+                          >
+                            <template #body="slotProps">
+                              <span>{{ slotProps.data.start_date }}</span>
+                            </template>
+                          </Column>
+                          <Column
+                            field="end_date"
+                            header="Đến ngày"
+                            headerStyle="text-align:center;width:120px;height:50px"
+                            bodyStyle="text-align:center;width:120px;"
+                            class="align-items-center justify-content-center text-center"
+                          >
+                            <template #body="slotProps">
+                              <span>{{ slotProps.data.end_date }}</span>
+                            </template>
+                          </Column>
+                          <Column
+                            field="info"
+                            header="Thông tin cơ bản"
+                            headerStyle="text-align:center;width:150px;height:50px"
+                            bodyStyle="text-align:center;width:150px;"
+                            class="align-items-center justify-content-center text-center"
+                          >
+                            <template #body="slotProps">
+                              <span>{{ slotProps.data.info }}</span>
+                            </template>
+                          </Column>
+                          <Column
+                            field="note"
+                            header="Ghi chú"
+                            headerStyle="text-align:center;width:150px;height:50px"
+                            bodyStyle="text-align:center;width:150px;"
+                            class="align-items-center justify-content-center text-center"
+                          >
+                            <template #body="slotProps">
+                              <span>{{ slotProps.data.note }}</span>
+                            </template>
+                          </Column>
+                          <Column
+                            field="is_company"
+                            header="Cùng cơ quan"
+                            headerStyle="text-align:center;width:120px;height:50px"
+                            bodyStyle="text-align:center;width:120px;"
+                            class="align-items-center justify-content-center text-center"
+                          >
+                            <template #body="slotProps">
+                              <div class="form-group m-0">
+                                <div
+                                  class="flex justify-content-center"
+                                  style="height: 100%"
+                                >
+                                  <InputSwitch
+                                    v-model="slotProps.data.is_company"
+                                    :disabled="true"
+                                  />
                                 </div>
-                              </template>
-                            </Column>
-                            <Column
-                              field="university_name"
-                              header="Tên trường"
-                              headerStyle="text-align:center;width:180px;height:50px;"
-                              bodyStyle="text-align:center;width:180px;"
-                              class="align-items-center justify-content-center text-center"
-                            >
-                              <template #body="slotProps">
-                                <span>{{
-                                  slotProps.data.university_name
-                                }}</span>
-                              </template>
-                            </Column>
-                            <Column
-                              field="specialized"
-                              header="Chuyên ngành"
-                              headerStyle="text-align:center;width:170px;height:50px"
-                              bodyStyle="text-align:center;width:170px;"
-                              class="align-items-center justify-content-center text-center"
-                            >
-                              <template #body="slotProps">
-                                <span>{{
-                                  slotProps.data.specialization_name
-                                }}</span>
-                              </template>
-                            </Column>
-                            <Column
-                              field="start_date"
-                              header="Từ tháng, năm"
-                              headerStyle="text-align:center;width:120px;height:50px"
-                              bodyStyle="text-align:center;width:120px;"
-                              class="align-items-center justify-content-center text-center"
-                            >
-                              <template #body="slotProps">
-                                <span>{{ slotProps.data.start_date }}</span>
-                              </template>
-                            </Column>
-                            <Column
-                              field="end_date"
-                              header="Đến tháng, năm"
-                              headerStyle="text-align:center;width:120px;height:50px"
-                              bodyStyle="text-align:center;width:120px;"
-                              class="align-items-center justify-content-center text-center"
-                            >
-                              <template #body="slotProps">
-                                <span>{{ slotProps.data.end_date }}</span>
-                              </template>
-                            </Column>
-                            <Column
-                              field="form_traning_id"
-                              header="Hình thức đào tạo"
-                              headerStyle="text-align:center;width:170px;height:50px"
-                              bodyStyle="text-align:center;width:170px;"
-                              class="align-items-center justify-content-center text-center"
-                            >
-                              <template #body="slotProps">
-                                <span>{{
-                                  slotProps.data.form_traning_name
-                                }}</span>
-                              </template>
-                            </Column>
-                            <Column
-                              field="certificate_id"
-                              header="Văn bằng, chứng chỉ"
-                              headerStyle="text-align:center;width:170px;height:50px"
-                              bodyStyle="text-align:center;width:170px;"
-                              class="align-items-center justify-content-center text-center"
-                            >
-                              <template #body="slotProps">
-                                <span>{{
-                                  slotProps.data.certificate_name
-                                }}</span>
-                              </template>
-                            </Column>
-                            <Column
-                              field="certificate_start_date"
-                              header="Ngày hiệu lực"
-                              headerStyle="text-align:center;width:120px;height:50px"
-                              bodyStyle="text-align:center;width:120px;"
-                              class="align-items-center justify-content-center text-center"
-                            >
-                              <template #body="slotProps">
-                                <span>{{
-                                  slotProps.data.certificate_start_date
-                                }}</span>
-                              </template>
-                            </Column>
-                            <Column
-                              field="certificate_end_date"
-                              header="Ngày hết hiệu lực"
-                              headerStyle="text-align:center;width:120px;height:50px"
-                              bodyStyle="text-align:center;width:120px;"
-                              class="align-items-center justify-content-center text-center"
-                            >
-                              <template #body="slotProps">
-                                <span>{{
-                                  slotProps.data.certificate_end_date
-                                }}</span>
-                              </template>
-                            </Column>
-                            <Column
-                              field="certificate_key_code"
-                              header="Số hiệu"
-                              headerStyle="text-align:center;width:150px;height:50px"
-                              bodyStyle="text-align:center;width:150px;"
-                              class="align-items-center justify-content-center text-center"
-                            >
-                              <template #body="slotProps">
-                                <span>{{
-                                  slotProps.data.certificate_key_code
-                                }}</span>
-                              </template>
-                            </Column>
-                            <Column
-                              field="certificate_version"
-                              header="Phiên bản"
-                              headerStyle="text-align:center;width:150px;height:50px"
-                              bodyStyle="text-align:center;width:150px;"
-                              class="align-items-center justify-content-center text-center"
-                            >
-                              <template #body="slotProps">
-                                <span>{{
-                                  slotProps.data.certificate_version
-                                }}</span>
-                              </template>
-                            </Column>
-                            <Column
-                              field="certificate_release_time"
-                              header="Lần phát hành"
-                              headerStyle="text-align:center;width:150px;height:50px"
-                              bodyStyle="text-align:center;width:150px;"
-                              class="align-items-center justify-content-center text-center"
-                            >
-                              <template #body="slotProps">
-                                <span>{{
-                                  slotProps.data.certificate_release_time
-                                }}</span>
-                              </template>
-                            </Column>
-                            <template #empty>
-                              <div
-                                class="align-items-center justify-content-center p-4 text-center m-auto"
-                                style="display: flex; width: 100%"
-                              ></div>
+                              </div>
                             </template>
-                          </DataTable>
-                        </div>
-                      </div>
-                    </AccordionTab>
-                  </Accordion>
-                  <!-- 6. Lịch sử Đảng viên -->
-                  <Accordion class="w-full padding-0 mb-2" :activeIndex="0">
-                    <AccordionTab>
-                      <template #header>
-                        <Toolbar class="w-full custoolbar p-0 font-bold">
-                          <template #start>
-                            <!-- <i class="pi pi-replay mr-2"></i> -->
-                            <span>6. Lịch sử Đảng viên</span></template
+                          </Column>
+                          <Column
+                            field="is_die"
+                            header="Đã mất"
+                            headerStyle="text-align:center;width:90px;height:50px"
+                            bodyStyle="text-align:center;width:90px;"
+                            class="align-items-center justify-content-center text-center"
                           >
-                        </Toolbar>
-                      </template>
-                      <div class="col-12 md:col-12 p-3">
-                        <div class="form-group px-1">
-                          <div
-                            class="flex ml-3"
-                            style="height: 100%; align-items: center"
-                          >
-                            <InputSwitch
-                              v-model="profile.is_partisan"
-                              :disabled="true"
-                            />
-                            <label class="label-profileinfo ml-2" for="binary"
-                              >Là Đảng viên</label
-                            >
-                          </div>
-                        </div>
-                        <div class="row px-2" v-if="profile.is_partisan">
-                          <!-- <DataTable
-                            :value="datachilds[3]"
-                            :scrollable="true"
-                            :lazy="true"
-                            :rowHover="true"
-                            :showGridlines="true"
-                            scrollDirection="both"
-                            style="display: grid"
-                            class="empty-full"
-                          >
-                            <Column
-                              field="card_number"
-                              header="Số thẻ"
-                              headerStyle="text-align:center;width:180px;height:50px"
-                              bodyStyle="text-align:center;width:180px;"
-                              class="align-items-center justify-content-center text-center"
-                            >
-                              <template #body="slotProps">
-                                <span>{{ slotProps.data.card_number }}</span>
-                              </template>
-                            </Column>
-                            <Column
-                              field="form"
-                              header="Hình thức"
-                              headerStyle="text-align:center;width:170px;height:50px"
-                              bodyStyle="text-align:center;width:170px;"
-                              class="align-items-center justify-content-center text-center"
-                            >
-                              <template #body="slotProps">
-                                <span>{{ slotProps.data.form }}</span>
-                              </template>
-                            </Column>
-                            <Column
-                              field="start_date"
-                              header="Từ ngày"
-                              headerStyle="text-align:center;width:120px;height:50px"
-                              bodyStyle="text-align:center;width:120px;"
-                              class="align-items-center justify-content-center text-center"
-                            >
-                              <template #body="slotProps">
-                                <span>{{ slotProps.data.start_date }}</span>
-                              </template>
-                            </Column>
-                            <Column
-                              field="end_date"
-                              header="Đến ngày"
-                              headerStyle="text-align:center;width:120px;height:50px"
-                              bodyStyle="text-align:center;width:120px;"
-                              class="align-items-center justify-content-center text-center"
-                            >
-                              <template #body="slotProps">
-                                <span>{{ slotProps.data.end_date }}</span>
-                              </template>
-                            </Column>
-                            <Column
-                              field="admission_place"
-                              header="Nơi kết nạp"
-                              headerStyle="text-align:center;width:180px;height:50px"
-                              bodyStyle="text-align:center;width:180px;"
-                              class="align-items-center justify-content-center text-center"
-                            >
-                              <template #body="slotProps">
-                                <span>{{
-                                  slotProps.data.admission_place
-                                }}</span>
-                              </template>
-                            </Column>
-                            <Column
-                              field="transfer_place"
-                              header="Nơi điều chuyển"
-                              headerStyle="text-align:center;width:180px;height:50px"
-                              bodyStyle="text-align:center;width:180px;"
-                              class="align-items-center justify-content-center text-center"
-                            >
-                              <template #body="slotProps">
-                                <span>{{ slotProps.data.transfer_place }}</span>
-                              </template>
-                            </Column>
-                            <template #empty>
-                              <div
-                                class="align-items-center justify-content-center p-4 text-center m-auto"
-                                style="display: flex; width: 100%"
-                              ></div>
+                            <template #body="slotProps">
+                              <div class="form-group m-0">
+                                <div
+                                  class="flex justify-content-center"
+                                  style="height: 100%"
+                                >
+                                  <InputSwitch
+                                    v-model="slotProps.data.is_die"
+                                    :disabled="true"
+                                  />
+                                </div>
+                              </div>
                             </template>
-                          </DataTable> -->
-                          <div class="col-12 md:col-12">
-                            <div class="form-group m-0">
-                              <label class="label-profileinfo"
-                                ><b>Thông tin Đảng</b></label
-                              >
-                            </div>
-                          </div>
-                          <div class="col-6 md:col-6">
-                            <div class="form-group m-0">
-                              <label class="label-profileinfo"
-                                >Ngạch công chức (viên chức):
-                                <span class="description-2">
-                                  {{ profile.civil_servant_rank_name }}
-                                </span>
-                              </label>
-                            </div>
-                          </div>
-                          <div class="col-6 md:col-6 format-center"></div>
-                          <div class="col-4 md:col-4">
-                            <div class="form-group m-0">
-                              <label class="label-profileinfo"
-                                >Số thẻ Đảng:
-                                <span class="description-2">
-                                  {{ profile.card_partisan || "" }}
-                                </span>
-                              </label>
-                            </div>
-                          </div>
-                          <div class="col-4 md:col-4">
-                            <div class="form-group m-0">
-                              <label class="label-profileinfo"
-                                >Ngày vào Đảng:
-                                <span class="description-2">
-                                  {{
-                                    profile.partisan_date
-                                      ? moment(
-                                          new Date(profile.partisan_date)
-                                        ).format("DD/MM/yyyy")
-                                      : ""
-                                  }}
-                                </span>
-                              </label>
-                            </div>
-                          </div>
-                          <div class="col-4 md:col-4">
-                            <div class="form-group m-0">
-                              <label class="label-profileinfo"
-                                >Ngày vào Đảng chính thức:
-                                <span class="description-2">
-                                  {{
-                                    profile.partisan_main_date
-                                      ? moment(
-                                          new Date(profile.partisan_main_date)
-                                        ).format("DD/MM/yyyy")
-                                      : ""
-                                  }}
-                                </span>
-                              </label>
-                            </div>
-                          </div>
-                          <div class="col-6 md:col-6">
-                            <div class="form-group m-0">
-                              <label class="label-profileinfo"
-                                >Chị bộ sinh hoạt Đảng:
-                                <span class="description-2">
-                                  {{ profile.partisan_branch || "" }}
-                                </span>
-                              </label>
-                            </div>
-                          </div>
-                          <div class="col-6 md:col-6">
-                            <div class="form-group m-0">
-                              <label class="label-profileinfo"
-                                >Đảng bộ chính thức:
-                                <span class="description-2">
-                                  {{ profile.partisan_official || "" }}
-                                </span>
-                              </label>
-                            </div>
-                          </div>
-                          <div class="col-6 md:col-6">
-                            <div class="form-group m-0">
-                              <label class="label-profileinfo"
-                                >Ngày tham gia cách mạng:
-                                <span class="description-2">
-                                  {{
-                                    profile.partisan_joindate
-                                      ? moment(
-                                          new Date(profile.partisan_joindate)
-                                        ).format("DD/MM/yyyy")
-                                      : ""
-                                  }}
-                                </span>
-                              </label>
-                            </div>
-                          </div>
-                          <div class="col-6 md:col-6">
-                            <div class="form-group m-0">
-                              <label class="label-profileinfo"
-                                >Ngày tham gia tổ chức:
-                                <span class="description-2">
-                                  {{
-                                    profile.organization_joindate
-                                      ? moment(
-                                          new Date(
-                                            profile.organization_joindate
-                                          )
-                                        ).format("DD/MM/yyyy")
-                                      : ""
-                                  }}
-                                </span>
-                              </label>
-                            </div>
-                          </div>
-                          <div class="col-12 md:col-12">
-                            <div class="form-group m-0">
-                              <label class="label-profileinfo"
-                                >Công việc trong tổ chức:
-                                <span class="description-2">
-                                  {{ profile.organization_task || "" }}
-                                </span>
-                              </label>
-                            </div>
-                          </div>
-                          <div class="col-6 md:col-6">
-                            <div class="flex" style="flex-direction: column">
-                              <label class="label-profileinfo"
-                                >Danh hiệu:
-                              </label>
-                              <Textarea
-                                class="w-full"
-                                :autoResize="true"
-                                rows="1"
-                                v-model="profile.appellation"
-                                :disabled="true"
-                                style="
-                                  border: none;
-                                  color: #606060 !important;
-                                  line-height: 1.5;
-                                  opacity: 1;
-                                "
-                              />
-                            </div>
-                          </div>
-                          <div class="col-6 md:col-6">
-                            <div class="flex" style="flex-direction: column">
-                              <label class="label-profileinfo"
-                                >Huy hiệu:
-                              </label>
-                              <Textarea
-                                class="w-full"
-                                :autoResize="true"
-                                rows="1"
-                                v-model="profile.armorial"
-                                :disabled="true"
-                                style="
-                                  border: none;
-                                  color: #606060 !important;
-                                  line-height: 1.5;
-                                  opacity: 1;
-                                "
-                              />
-                            </div>
-                          </div>
-                        </div>
-                      </div>
-                    </AccordionTab>
-                  </Accordion>
-                  <!-- 7. Lịch sử tham gia quân đội -->
-                  <Accordion class="w-full mb-2" :activeIndex="0">
-                    <AccordionTab>
-                      <template #header>
-                        <!-- <i class="pi pi-chart-line mr-2"></i> -->
-                        <span>7. Lịch sử tham gia quân đội</span>
-                      </template>
-                      <div class="col-12 md:col-12">
-                        <div class="row">
-                          <div class="col-6 md:col-6">
-                            <div class="form-group m-0">
-                              <label class="label-profileinfo"
-                                >Ngày nhập ngũ:
-                                <span class="description-2">
-                                  {{
-                                    profile.military_start_date
-                                      ? moment(
-                                          new Date(profile.military_start_date)
-                                        ).format("DD/MM/yyyy")
-                                      : ""
-                                  }}
-                                </span>
-                              </label>
-                            </div>
-                          </div>
-                          <div class="col-6 md:col-6">
-                            <div class="form-group m-0">
-                              <label class="label-profileinfo"
-                                >Ngày xuất ngũ:
-                                <span class="description-2">
-                                  {{
-                                    profile.military_end_date
-                                      ? moment(
-                                          new Date(profile.military_end_date)
-                                        ).format("DD/MM/yyyy")
-                                      : ""
-                                  }}
-                                </span></label
-                              >
-                            </div>
-                          </div>
-                          <div class="col-6 md:col-6">
-                            <div class="form-group m-0">
-                              <label class="label-profileinfo"
-                                >Quân hàm cao nhất:
-                                <span class="description-2">{{
-                                  profile.military_rank
-                                }}</span></label
-                              >
-                            </div>
-                          </div>
-                          <div class="col-6 md:col-6">
-                            <div class="form-group m-0">
-                              <label class="label-profileinfo"
-                                >Danh hiệu cao nhất:
-                                <span class="description-2">{{
-                                  profile.military_title
-                                }}</span></label
-                              >
-                            </div>
-                          </div>
-                          <!-- <div class="col-6 md:col-6">
-                            <div class="form-group m-0">
-                              <label class="label-profileinfo"
-                                >Sở trường công tác:
-                                <span class="description-2">{{
-                                  profile.military_forte
-                                }}</span></label
-                              >
-                            </div>
-                          </div>
-                          <div class="col-6 md:col-6">
-                            <div class="form-group m-0">
-                              <label class="label-profileinfo"
-                                >Sức khỏe:
-                                <span class="description-2">{{
-                                  profile.military_health
-                                }}</span></label
-                              >
-                            </div>
-                          </div> -->
-                          <div class="col-6 md:col-6 m-0">
-                            <div class="form-group m-0">
-                              <label class="label-profileinfo"
-                                >Thương binh hạng:
-                                <span class="description-2">{{
-                                  profile.military_veterans_rank
-                                }}</span></label
-                              >
-                            </div>
-                          </div>
-                          <div class="col-6 md:col-6 m-0">
-                            <div class="form-group m-0">
-                              <label class="label-profileinfo"
-                                >Con gia đình chính sách:
-                                <span class="description-2">{{
-                                  profile.military_policy_family
-                                }}</span></label
-                              >
-                            </div>
-                          </div>
-                        </div>
-                      </div>
-                    </AccordionTab>
-                  </Accordion>
-                  <!-- 8. Kinh nghiệm làm việc -->
-                  <Accordion class="w-full padding-0 mb-2" :activeIndex="0">
-                    <AccordionTab>
-                      <template #header>
-                        <Toolbar class="w-full custoolbar p-0 font-bold">
-                          <template #start>
-                            <span>8. Kinh nghiệm làm việc</span></template
-                          >
-                        </Toolbar>
-                      </template>
-                      <div class="col-12 md:col-12 p-0">
-                        <div>
-                          <DataTable
-                            :value="datachilds[4]"
-                            :scrollable="true"
-                            :lazy="true"
-                            :rowHover="true"
-                            :showGridlines="true"
-                            scrollDirection="both"
-                            style="display: grid"
-                            class="empty-full"
-                          >
-                            <Column
-                              field="start_date"
-                              header="Từ tháng, năm"
-                              headerStyle="text-align:center;width:130px;height:50px"
-                              bodyStyle="text-align:center;width:130px;"
-                              class="align-items-center justify-content-center text-center"
-                            >
-                              <template #body="slotProps">
-                                <span>{{ slotProps.data.start_date }}</span>
-                              </template>
-                            </Column>
-                            <Column
-                              field="end_date"
-                              header="Đến tháng, năm"
-                              headerStyle="text-align:center;width:130px;height:50px"
-                              bodyStyle="text-align:center;width:130px;"
-                              class="align-items-center justify-content-center text-center"
-                            >
-                              <template #body="slotProps">
-                                <span>{{ slotProps.data.end_date }}</span>
-                              </template>
-                            </Column>
-                            <Column
-                              field="company"
-                              header="Công ty, đơn vị"
-                              headerStyle="text-align:center;width:300px;height:50px;"
-                              bodyStyle="text-align:center;width:300px;"
-                              class="align-items-center justify-content-center text-center"
-                            >
-                              <template #body="slotProps">
-                                <span>{{ slotProps.data.company }}</span>
-                              </template>
-                            </Column>
-                            <Column
-                              field="role"
-                              header="Vị trí"
-                              headerStyle="text-align:center;width:250px;height:50px"
-                              bodyStyle="text-align:center;width:250px;"
-                              class="align-items-center justify-content-center text-center"
-                            >
-                              <template #body="slotProps">
-                                <span>{{ slotProps.data.role }}</span>
-                              </template>
-                            </Column>
-                            <Column
-                              field="reference_name"
-                              header="Người tham chiếu"
-                              headerStyle="text-align:center;width:200px;height:50px"
-                              bodyStyle="text-align:center;width:200px;"
-                              class="align-items-center justify-content-center text-center"
-                            >
-                              <template #body="slotProps">
-                                <span>{{ slotProps.data.reference_name }}</span>
-                              </template>
-                            </Column>
-                            <Column
-                              field="reference_phone"
-                              header="SĐT"
-                              headerStyle="text-align:center;width:130px;height:50px"
-                              bodyStyle="text-align:center;width:130px;"
-                              class="align-items-center justify-content-center text-center"
-                            >
-                              <template #body="slotProps">
-                                <span>{{
-                                  slotProps.data.reference_phone
-                                }}</span>
-                              </template>
-                            </Column>
-                            <Column
-                              field="description-2"
-                              header="Mô tả công việc"
-                              headerStyle="text-align:center;width:250px;height:50px;flex:1;"
-                              bodyStyle="text-align:center;width:250px;flex:1;"
-                              class="align-items-center justify-content-center text-center"
-                            >
-                              <template #body="slotProps">
-                                <span>{{
-                                  slotProps.data.description || ""
-                                }}</span>
-                              </template>
-                            </Column>
-                            <template #empty>
-                              <div
-                                class="align-items-center justify-content-center p-4 text-center m-auto"
-                                style="display: flex; width: 100%"
-                              ></div>
-                            </template>
-                          </DataTable>
-                        </div>
+                          </Column>
+                          <template #empty>
+                            <div
+                              class="align-items-center justify-content-center p-4 text-center m-auto"
+                              style="display: flex; width: 100%"
+                            ></div>
+                          </template>
+                        </DataTable>
                       </div>
                     </AccordionTab>
                   </Accordion>
@@ -4265,14 +4822,14 @@ const formatViewNumber = (value, partDecimal) => {
                             </div>
                           </div>
                           <div class="col-6 md:col-6">
-                            <div class="form-group m-0">
+                            <!-- <div class="form-group m-0">
                               <label class="label-profileinfo"
                                 >Nghề nghiệp bản thân trước khi được tuyển dụng:
                                 <span class="description-2">{{
                                   profile.job_before_recruitment
                                 }}</span></label
                               >
-                            </div>
+                            </div> -->
                           </div>
                           <div class="col-6 md:col-6">
                             <div class="form-group m-0">
@@ -4307,7 +4864,8 @@ const formatViewNumber = (value, partDecimal) => {
                                 :disabled="true"
                                 style="
                                   border: none;
-                                  color: #606060 !important;
+                                  color: #000000 !important;
+                                  background-color: transparent;
                                   line-height: 1.5;
                                   opacity: 1;
                                 "
@@ -4327,7 +4885,8 @@ const formatViewNumber = (value, partDecimal) => {
                                 :disabled="true"
                                 style="
                                   border: none;
-                                  color: #606060 !important;
+                                  color: #000000 !important;
+                                  background-color: transparent;
                                   line-height: 1.5;
                                   opacity: 1;
                                 "
@@ -5794,7 +6353,8 @@ const formatViewNumber = (value, partDecimal) => {
                               :disabled="true"
                               style="
                                 border: none;
-                                color: #606060 !important;
+                                color: #000000 !important;
+                                background-color: transparent;
                                 line-height: 1.5;
                                 opacity: 1;
                               "
@@ -6328,7 +6888,8 @@ const formatViewNumber = (value, partDecimal) => {
   justify-content: center;
 }
 .description-2 {
-  color: #606060;
+  /* color: #606060; */
+  color: #000000;
   font-weight: normal;
   font-size: 1rem;
 }
@@ -6345,7 +6906,8 @@ const formatViewNumber = (value, partDecimal) => {
   color: #316ab7 !important;
 }
 .label-profileinfo {
-  color: #6e6e6e;
+  /* color: #6e6e6e; */
+  color: #000000;
   font-weight: bold;
 }
 </style>
@@ -6430,7 +6992,7 @@ const formatViewNumber = (value, partDecimal) => {
 }
 ::v-deep(.tbl-detail-profile) {
   tbody {
-    max-height: 335px;
+    max-height: 270px;
   }
 }
 </style>
