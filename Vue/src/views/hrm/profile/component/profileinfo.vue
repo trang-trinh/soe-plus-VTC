@@ -1395,6 +1395,12 @@ const initView1 = (rf) => {
             if (x["birthday"] != null) {
               x["birthday"] = moment(new Date(x["birthday"])).format("YYYY");
             }
+            if (x.is_type == 1) {
+              x.type_relative_name = "Bản thân";
+            }
+            else {
+              x.type_relative_name = "Bên vợ";
+            }
           });
           datachilds.value[1] = tbs[1];
         } else {
@@ -2510,6 +2516,10 @@ const initRelate = (rf) => {
       }
     });
 };
+const onRowGroupExpand = (event) => {
+ 
+};
+const expandedRowGroups = ref([1,2]);
 const initData = () => {
   if (options.value.view === 1) {
     initDictionary1();
@@ -4292,7 +4302,7 @@ const formatViewNumber = (value, partDecimal) => {
                         </Toolbar>
                       </template>
                       <div class="col-12 md:col-12 p-0">
-                        <DataTable
+                        <!-- <DataTable
                           :value="datachilds[1]"
                           :scrollable="true"
                           :lazy="true"
@@ -4337,6 +4347,256 @@ const formatViewNumber = (value, partDecimal) => {
                                   ? "Bên vợ"
                                   : ""
                               }}</span>
+                            </template>
+                          </Column>
+                          <Column
+                            field="relative_name"
+                            header="Họ tên"
+                            headerStyle="text-align:center;width:180px;height:50px"
+                            bodyStyle="text-align:center;width:180px;"
+                            class="align-items-center justify-content-center text-center"
+                          >
+                            <template #body="slotProps">
+                              <span>{{ slotProps.data.relative_name }}</span>
+                            </template>
+                          </Column>
+                          <Column
+                            field="relationship_id"
+                            header="Quan hệ"
+                            headerStyle="text-align:center;width:170px;height:50px"
+                            bodyStyle="text-align:center;width:170px;"
+                            class="align-items-center justify-content-center text-center"
+                          >
+                            <template #body="slotProps">
+                              <div class="form-group m-0">
+                                <span>{{
+                                  slotProps.data.relationship_name
+                                }}</span>
+                              </div>
+                            </template>
+                          </Column>
+                          <Column
+                            field="birthday"
+                            header="Năm sinh"
+                            headerStyle="text-align:center;width:120px;height:50px"
+                            bodyStyle="text-align:center;width:120px;"
+                            class="align-items-center justify-content-center text-center"
+                          >
+                            <template #body="slotProps">
+                              <span>{{ slotProps.data.birthday }}</span>
+                            </template>
+                          </Column>
+                          <Column
+                            field="phone"
+                            header="SĐT"
+                            headerStyle="text-align:center;width:120px;height:50px"
+                            bodyStyle="text-align:center;width:120px;"
+                            class="align-items-center justify-content-center text-center"
+                          >
+                            <template #body="slotProps">
+                              <span>{{ slotProps.data.phone }}</span>
+                            </template>
+                          </Column>
+                          <Column
+                            field="tax_code"
+                            header="Mã số thuế"
+                            headerStyle="text-align:center;width:150px;height:50px"
+                            bodyStyle="text-align:center;width:150px;"
+                            class="align-items-center justify-content-center text-center"
+                          >
+                            <template #body="slotProps">
+                              <span>{{ slotProps.data.tax_code }}</span>
+                            </template>
+                          </Column>
+                          <Column
+                            field="identification_citizen"
+                            header="CCCD/Hộ chiếu"
+                            headerStyle="text-align:center;width:150px;height:50px"
+                            bodyStyle="text-align:center;width:150px;"
+                            class="align-items-center justify-content-center text-center"
+                          >
+                            <template #body="slotProps">
+                              <span>{{
+                                slotProps.data.identification_citizen
+                              }}</span>
+                            </template>
+                          </Column>
+                          <Column
+                            field="identification_date_issue"
+                            header="Ngày cấp"
+                            headerStyle="text-align:center;width:120px;height:50px"
+                            bodyStyle="text-align:center;width:120px;"
+                            class="align-items-center justify-content-center text-center"
+                          >
+                            <template #body="slotProps">
+                              {{ slotProps.data.identification_date_issue }}
+                            </template>
+                          </Column>
+                          <Column
+                            field="identification_place_issue"
+                            header="Nơi cấp"
+                            headerStyle="text-align:center;width:150px;height:50px"
+                            bodyStyle="text-align:center;width:150px;"
+                            class="align-items-center justify-content-center text-center"
+                          >
+                            <template #body="slotProps">
+                              {{ slotProps.data.identification_place_issue }}
+                            </template>
+                          </Column>
+                          <Column
+                            field="is_dependent"
+                            header="Phụ thuộc"
+                            headerStyle="text-align:center;width:150px;height:50px"
+                            bodyStyle="text-align:center;width:150px;"
+                            class="align-items-center justify-content-center text-center"
+                          >
+                            <template #body="slotProps">
+                              <div class="form-group m-0">
+                                <span>{{ slotProps.data.dependent_name }}</span>
+                              </div>
+                            </template>
+                          </Column>
+                          <Column
+                            field="start_date"
+                            header="Từ ngày"
+                            headerStyle="text-align:center;width:120px;height:50px"
+                            bodyStyle="text-align:center;width:120px;"
+                            class="align-items-center justify-content-center text-center"
+                          >
+                            <template #body="slotProps">
+                              <span>{{ slotProps.data.start_date }}</span>
+                            </template>
+                          </Column>
+                          <Column
+                            field="end_date"
+                            header="Đến ngày"
+                            headerStyle="text-align:center;width:120px;height:50px"
+                            bodyStyle="text-align:center;width:120px;"
+                            class="align-items-center justify-content-center text-center"
+                          >
+                            <template #body="slotProps">
+                              <span>{{ slotProps.data.end_date }}</span>
+                            </template>
+                          </Column>
+                          <Column
+                            field="info"
+                            header="Thông tin cơ bản"
+                            headerStyle="text-align:center;width:150px;height:50px"
+                            bodyStyle="text-align:center;width:150px;"
+                            class="align-items-center justify-content-center text-center"
+                          >
+                            <template #body="slotProps">
+                              <span>{{ slotProps.data.info }}</span>
+                            </template>
+                          </Column>
+                          <Column
+                            field="note"
+                            header="Ghi chú"
+                            headerStyle="text-align:center;width:150px;height:50px"
+                            bodyStyle="text-align:center;width:150px;"
+                            class="align-items-center justify-content-center text-center"
+                          >
+                            <template #body="slotProps">
+                              <span>{{ slotProps.data.note }}</span>
+                            </template>
+                          </Column>
+                          <Column
+                            field="is_company"
+                            header="Cùng cơ quan"
+                            headerStyle="text-align:center;width:120px;height:50px"
+                            bodyStyle="text-align:center;width:120px;"
+                            class="align-items-center justify-content-center text-center"
+                          >
+                            <template #body="slotProps">
+                              <div class="form-group m-0">
+                                <div
+                                  class="flex justify-content-center"
+                                  style="height: 100%"
+                                >
+                                  <InputSwitch
+                                    v-model="slotProps.data.is_company"
+                                    :disabled="true"
+                                  />
+                                </div>
+                              </div>
+                            </template>
+                          </Column>
+                          <Column
+                            field="is_die"
+                            header="Đã mất"
+                            headerStyle="text-align:center;width:90px;height:50px"
+                            bodyStyle="text-align:center;width:90px;"
+                            class="align-items-center justify-content-center text-center"
+                          >
+                            <template #body="slotProps">
+                              <div class="form-group m-0">
+                                <div
+                                  class="flex justify-content-center"
+                                  style="height: 100%"
+                                >
+                                  <InputSwitch
+                                    v-model="slotProps.data.is_die"
+                                    :disabled="true"
+                                  />
+                                </div>
+                              </div>
+                            </template>
+                          </Column>
+                          <template #empty>
+                            <div
+                              class="align-items-center justify-content-center p-4 text-center m-auto"
+                              style="display: flex; width: 100%"
+                            ></div>
+                          </template>
+                        </DataTable> -->
+                        <DataTable
+                          :scrollable="true"
+                          scrollHeight="flex"
+                          :showGridlines="true"
+                          columnResizeMode="fit"
+                          :lazy="true"
+                          :reorderableColumns="true"
+                          :value="datachilds[1]"
+                          removableSort
+                          :paginator="false"
+                          dataKey="profile_relative_id"
+                          responsiveLayout="scroll"
+                          :row-hover="true"
+                          rowGroupMode="subheader"
+                          groupRowsBy="is_type"
+                          expandableRowGroups 
+                          scrollDirection="both"
+                          v-model:expandedRowGroups="expandedRowGroups"
+                          sortMode="single" sortField="is_type" :sortOrder="1"
+                          @rowgroup-expand="onRowGroupExpand($event)"
+                          style="display: grid"
+                          class="empty-full tbl-detail-profile"
+                        >
+                          <template #groupheader="slotProps">
+                            <div class="flex align-items-center pl-3">
+                              <div class="font-bold">
+                                {{ slotProps.data.type_relative_name }}
+                              </div>
+                            </div>
+                          </template>
+                          <Column
+                            field="is_root"
+                            header=""
+                            headerStyle="text-align:center;width:30px;height:50px"
+                            bodyStyle="text-align:center;width:30px;"
+                            class="align-items-center justify-content-center text-center"
+                          >
+                            <template #body="slotProps">
+                              <span
+                                v-if="slotProps.data.is_root"
+                                v-tooltip.right="'Theo lý lịch'"
+                                ><i class="pi pi-flag-fill"></i
+                              ></span>
+                              <span
+                                v-if="!slotProps.data.is_root"
+                                v-tooltip.right="'Bổ sung'"
+                                ><i class="pi pi-pencil"></i
+                              ></span>
                             </template>
                           </Column>
                           <Column
