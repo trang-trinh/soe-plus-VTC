@@ -151,11 +151,22 @@ const marital_status = ref([
 
 //filter
 const activeTab = (tab) => {
+  options.value.pageNo = 1;
+  options.value.pageSize = 25;
+  options.value.limitItem = 25;
+  options.value.total = 0;
+  dataLimits.value = [];
+
   options.value.tab = tab.status;
   initData(true);
 };
 const search = () => {
   options.value.pageNo = 1;
+  options.value.pageSize = 25;
+  options.value.limitItem = 25;
+  options.value.total = 0;
+  dataLimits.value = [];
+
   initCount();
   initData(true);
 };
@@ -182,6 +193,12 @@ const removeFilter = (idx, array, isTree) => {
   }
 };
 const filter = (event) => {
+  options.value.pageNo = 1;
+  options.value.pageSize = 25;
+  options.value.limitItem = 25;
+  options.value.total = 0;
+  dataLimits.value = [];
+  
   opfilter.value.toggle(event);
   isFilter.value = true;
   initCount();
@@ -1119,6 +1136,29 @@ const execImportExcel = () => {
     });
 };
 
+const downloadFile = (file) => {
+  let name = "";
+  let pathFileDownload = "";
+  if (file.files != null && file.files.length > 0) {
+    name = file.files[0].file_name || "file_download" + file.files[0].file_type;
+    pathFileDownload = file.files[0].file_path;
+  } else {
+    pathFileDownload = file.file_path;
+    name = file.file_name || "file_download." + file.file_type;
+  }
+  const a = document.createElement("a");
+  a.href =
+    basedomainURL +
+    "/Viewer/DownloadFile?url=" +
+    encodeURIComponent(pathFileDownload) +
+    "&title=" +
+    encodeURIComponent(name);
+  a.download = name;
+  // a.target = "_blank";
+  a.click();
+  a.remove();
+};
+
 //Init
 const initPlace = () => {
   axios
@@ -1491,8 +1531,8 @@ const initDataFilter = () => {
   if (options.value.tags != null && options.value.tags.length > 0) {
     tags = options.value.tags.map((x) => x["tags_id"]).join(",");
   }
+  options.value.loading = true;
   datas.value = [];
-  dataLimits.value = [];
   axios
     .post(
       baseURL + "/api/hrm/callProc",
@@ -1563,7 +1603,7 @@ const initDataFilter = () => {
               }
             });
             datas.value = data[0];
-            dataLimits.value = data[0].slice(0, options.value.limitItem);
+            dataLimits.value = dataLimits.value.concat(data[0]);
             var temp = groupBy(data[0], "department_id");
             for (let k in temp) {
               var obj = {
@@ -1671,8 +1711,8 @@ const initData = (ref) => {
     initDataFilter();
     return;
   }
+  options.value.loading = true;
   datas.value = [];
-  dataLimits.value = [];
   axios
     .post(
       baseURL + "/api/hrm/callProc",
@@ -1738,7 +1778,7 @@ const initData = (ref) => {
               }
             });
             datas.value = data[0];
-            dataLimits.value = data[0].slice(0, options.value.limitItem);
+            dataLimits.value = dataLimits.value.concat(data[0]);
             var temp = groupBy(data[0], "department_id");
             for (let k in temp) {
               var obj = {
@@ -1804,7 +1844,12 @@ const refresh = () => {
   //   view_copy: 1,
   //   filterProfile_id: null,
   // };
+  options.value.pageNo = 1;
+  options.value.pageSize = 25;
   options.value.limitItem = 25;
+  options.value.total = 0;
+  dataLimits.value = [];
+
   isFilter.value = false;
   initCount();
   initTreeOrganization();
@@ -1833,12 +1878,18 @@ onMounted(() => {
 });
 const loadMoreRow = (data) => {
   if (data.length > 0) {
-    if (options.value.limitItem + 25 < data.length) {
+    if (
+      !options.value.loading &&
+      options.value.limitItem + 25 < options.value.total
+    ) {
       options.value.limitItem += 25;
-      dataLimits.value = datas.value.slice(0, options.value.limitItem);
+      options.value.pageNo += 1;
+      //dataLimits.value = datas.value.slice(0, options.value.limitItem);
+      initData(false);
     } else {
       options.value.limitItem = data.length;
-      dataLimits.value = datas.value.slice(0, options.value.limitItem);
+      //dataLimits.value = datas.value.slice(0, options.value.limitItem);
+      //initData(false);
     }
   }
 };
@@ -2805,7 +2856,7 @@ const loadMoreRow = (data) => {
             :style="{
               display: 'flex',
               width: '100%',
-              height: 'calc(100vh - 210px)',
+              height: 'calc(100vh - 235px)',
               backgroundColor: '#fff',
             }"
           >
@@ -2816,6 +2867,14 @@ const loadMoreRow = (data) => {
           </div>
         </template>
       </DataTable>
+      <div
+        v-if="options.loading"
+        class="format-center"
+        :style="{ height: '50px' }"
+      >
+        <i class="pi pi-sync rotate"></i>
+        <span class="ml-3 loading-dots"> Đang tải dữ liệu </span>
+      </div>
     </div>
     <div v-else-if="options.view === 2" class="d-lang-table">
       <table :style="{ width: '100%', borderSpacing: '0px' }">
@@ -3242,7 +3301,7 @@ const loadMoreRow = (data) => {
   />
 
   <Dialog
-    header="Tải lên file Excel"
+    header="Import dữ liệu vào hệ thống"
     v-model:visible="displayImport"
     :style="{ width: '50vw' }"
     :closable="true"
@@ -3252,6 +3311,7 @@ const loadMoreRow = (data) => {
       <div class="col-4 md:col-4">
         <div class="card">
           <div
+            @click=""
             class="card-body button-custom zoom"
             :style="{ backgroundColor: '#89c83e', borderColor: '#89c83e' }"
           >
@@ -3435,6 +3495,49 @@ const loadMoreRow = (data) => {
 
 .filter {
   filter: opacity(1) !important;
+}
+
+.rotate {
+  animation: rotateAnimation 2s infinite linear;
+}
+
+@keyframes rotateAnimation {
+  0% {
+    transform: rotate(0deg);
+  }
+  100% {
+    transform: rotate(360deg);
+  }
+}
+
+.loading-dots {
+  position: relative;
+  display: inline-block;
+}
+
+.loading-dots::after {
+  content: "...";
+  display: inline-block;
+  opacity: 0;
+  animation: dotsAnimation 1.5s infinite;
+}
+
+@keyframes dotsAnimation {
+  0% {
+    opacity: 0;
+  }
+  25% {
+    opacity: 0;
+  }
+  50% {
+    opacity: 1;
+  }
+  75% {
+    opacity: 1;
+  }
+  100% {
+    opacity: 0;
+  }
 }
 </style>
 <style lang="scss" scoped>
