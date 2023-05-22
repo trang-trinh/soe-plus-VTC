@@ -256,12 +256,12 @@ onMounted(() => {
 </script>
 <template>
     <div class="login-container">
-      <section class="bg-img overflow-auto h-full w-full" :style="'background-image: url('+basedomainURL+'/Portals/Image/logovtc.jpg)'">  
+      <section class="bg-img overflow-hidden h-full w-full" :style="'background-image: url('+basedomainURL+'/Portals/Image/logovtc.jpg)'">  
         <div class="login-org">
           <img v-if="store.getters.user.logo" class="org-logo py-1 ml-2" :src="
             basedomainURL + store.getters.user.logo || '/Portals/Image/noimg.jpg'
           " />
-          <h3 class="org-name flex-grow-1 mb-0">
+          <h3 class="org-name flex-grow-1 mb-0 font-bold">
             {{ store.getters.user.organization_name }}
           </h3>
           <div class="mr-2" style="font-size:12px; color:#383737">
