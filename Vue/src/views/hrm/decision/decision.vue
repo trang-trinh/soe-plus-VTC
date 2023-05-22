@@ -1047,7 +1047,7 @@ onMounted(() => {
         >
           <div>
             <span><i class="pi pi-plus mr-2"></i></span>
-            <span class="mr-2">Thếm mới</span>
+            <span class="mr-2">Thêm mới</span>
             <span><i class="pi pi-chevron-down"></i></span>
           </div>
         </Button>
