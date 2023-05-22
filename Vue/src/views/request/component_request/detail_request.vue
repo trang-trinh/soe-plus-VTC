@@ -5,6 +5,8 @@ import { encr } from "../../../util/function";
 import { VuemojiPicker } from "vuemoji-picker";
 import moment from "moment";
 import treeuser from "../../../components/user/treeuser.vue";
+import FileInfoVue from "../component_request/file_attach_request.vue";
+import dialogApprove from "../component_request/approved_request.vue";
 
 const toast = useToast();
 const axios = inject("axios");
@@ -65,6 +67,14 @@ const list_type_dayoff = ref([
     { text: 'AM'  , code: '1', name: 'Buổi sáng' },
     { text: 'PM'  , code: '2', name: 'Buổi chiều' }
 ]);
+const list_type_hr_off = ref([
+    { code: '0', name: 'Nghỉ phép' },
+    { code: '1', name: 'Nghỉ ốm' },
+    { code: '2', name: 'Nghỉ thai sản' },
+    { code: '3', name: 'Nghỉ không lương hưởng báo hiểm' },
+    { code: '4', name: 'Nghỉ không lương không đóng báo hiểm' },
+    { code: '5', name: 'Việc riêng theo chế độ' },
+]);
 const orderDatas = (dataJob, type) => {
     let resultOrder = dataJob.sort((a, b) => { 
         return a[type] - b[type];
@@ -108,6 +118,7 @@ const props = defineProps({
     id: String,
     key: Number,
     listStatusRequests: Array,
+    initData: Function,
 });
 const loadData = (rf) => {
     if (rf) {
@@ -157,7 +168,7 @@ const loadDetailRequest = () => {
                     // temp fake
                     //is_viewSecurityRequest.value = true; // false;
                 }
-                
+                detail_request.value.IsLast = (detail_request.daky || 0) + 1 == (detail_request.soky || 0);
                 let today = new Date();
                 var d2 = detail_request.value.completed_date ? new Date(detail_request.value.completed_date) : new Date();
                 var diff = d2.getTime() - today.getTime();
@@ -874,8 +885,21 @@ const openFlow = (dataR) => {
 };
 
 // type: 1=Chấp thuận, -1=Từ chối, 2=Chuyển tiếp, 3=Đồng ý & chuyển tiếp, null=Gửi
+const selectedNodes = ref([]);
+const showDialogApproved = ref(false);
+const headerDialogApproved = ref('');
+const modelApproved = ref();
 const OpenSendRequest = (dataR, text, type) => {
-
+    modelApproved.value = {
+        is_type_approve: type,
+        content: "",
+    };
+    showDialogApproved.value = true;
+    headerDialogApproved.value = text;
+};
+const closeDialogApproved = () => {
+    modelApproved.value = {};
+    showDialogApproved.value = false;
 };
 // Huỷ request
 const StopRequest = (dataR) => {
@@ -888,6 +912,10 @@ const BackRequest = (dataR) => {
 // Gia hạn request
 const openModalDatelineRequest = (dataR) => {
 
+};
+const initDataApproved = () => {
+    closeSildeBar();
+    props.initData();
 };
 
 const toggleMores = (event, item) => {
@@ -972,14 +1000,6 @@ const Del_Relate = (text, id_relate, dataRelate) => {
 const showChartSign = (r) => {
 
 };
-// File đính kèm request
-const openModalAddFileCV = (dataR) => {
-
-};
-// Xóa file đính kèm
-const Del_AttachFile = (listFiles, fileDel) => {
-
-};
 
 // Download file
 const downloadFile = (file) => {
@@ -1054,6 +1074,91 @@ const listLog = () => {
 
 };
 // ---
+// File đính kèm
+const displayUploadFile = ref(false);
+// File đính kèm request
+const openModalAddFileCV = () => {
+    displayUploadFile.value = true;
+    filesAttach = [];
+};
+let filesAttach = [];
+const selectFileAttach = (event) => {
+    event.files.forEach((element) => {
+		filesAttach.push(element);
+	});
+};
+const removeFileAttach = (event) => {
+    filesAttach = [];
+};
+const UploadFileAttach = () => {
+    if (filesAttach.length == 0) {
+        swal.fire({
+            title: "Thông báo",
+            text: "Chưa có tệp tải lên!",
+            icon: "error",
+            confirmButtonText: "OK",
+        });
+        return;
+    }
+	let formData = new FormData();
+	for (var i = 0; i < filesAttach.length; i++) {
+		let file = filesAttach[i];
+		formData.append("url_file", file);
+	}
+    formData.append("request_id", JSON.stringify(detail_request.value.request_id));
+	swal.fire({
+		width: 110,
+		didOpen: () => {
+		swal.showLoading();
+		},
+	});
+	axios
+		.post(
+			baseUrlCheck + "/api/request/UploadFileAttach",
+			formData,
+			config
+		)
+		.then((response) => {
+			if (response.data.err == "0") {
+                listFiles();
+				toast.success("Upload file thành công");
+			}
+			else {
+				swal.fire({
+					title: "Error!",
+					text: "Xảy ra lỗi khi upload file đính kèm!",
+					icon: "error",
+					confirmButtonText: "OK",
+				});
+			}
+			swal.close();
+            displayUploadFile.value = false;
+		})
+		.catch((error) => {
+			swal.close();
+            displayUploadFile.value = false;
+			swal.fire({
+				title: "Error!",
+				text: "Có lỗi xảy ra, vui lòng kiểm tra lại!",
+				icon: "error",
+				confirmButtonText: "OK",
+			});
+		});
+};
+// Xóa file đính kèm
+const Del_AttachFile = (listFiles, fileDel) => {
+
+};
+const fileInfo = ref();
+const isViewFileInfo = ref(false);
+const ViewFileInfo = (data) => {
+    isViewFileInfo.value = true;
+    fileInfo.value = data;
+};
+emitter.on("closeViewFileRequest", (obj) => {
+    isViewFileInfo.value = obj;
+});
+//
 
 const hideall = () => {
     emitter.emit("SideBarRequest", false);
@@ -1070,6 +1175,7 @@ const closeSildeBar = () => {
 const is_viewSecurityRequest = ref(true);
 onMounted(() => {
     if (props.id != null) {
+        selectedNodes.value = [{ request_id: props.id }];
         loadData(true);
         listComments();
         loadEmote();
@@ -1269,20 +1375,20 @@ onMounted(() => {
                         v-if="!detail_request.is_create && detail_request.is_func && detail_request.status_processing == 1"
                     >
                         <Button label="Chấp thuận" 
-                            @click="OpenSendRequest(detail_request,'Chấp thuận',1)" 
+                            @click="OpenSendRequest(detail_request,'Chấp thuận', 1)" 
                             class="p-button-success">
                         </Button>
                         <Button label="Từ chối"
-                            @click="OpenSendRequest(detail_request, 'Từ chối', -1)" 
+                            @click="OpenSendRequest(detail_request, 'Từ chối', -2)" 
                             class="p-button-danger">
                         </Button>
                         <Button v-if="!detail_request.IsLast" 
                             label="Chuyển tiếp"
-                            @click="OpenSendRequest(detail_request,'Chuyển tiếp',2)">
+                            @click="OpenSendRequest(detail_request,'Chuyển tiếp', 2)">
                         </Button>
                         <Button v-if="detail_request.IsForward" 
                             label="Đồng ý & chuyển tiếp"
-                            @click="OpenSendRequest(detail_request,'Đồng ý và chuyển tiếp',3)" 
+                            @click="OpenSendRequest(detail_request,'Đồng ý và chuyển tiếp', 3)" 
                             class="p-button-success">
                         </Button>
                     </div>
@@ -1586,6 +1692,10 @@ onMounted(() => {
                                                             :style="d.text_align == null ? 'text-align:left;' : ('text-align:' + d.text_align)">
                                                             {{ getDataSelectView(list_type_dayoff, d.value_field, 'name', 'code') }}
                                                         </div>
+                                                        <div v-if="d.kieu_truong == 'select' && d.is_type == 10" 
+                                                            :style="d.text_align == null ? 'text-align:left;' : ('text-align:' + d.text_align)">
+                                                            {{ getDataSelectView(list_type_hr_off, d.value_field, 'name', 'code') }}
+                                                        </div>
                                                         <div v-if="d.kieu_truong == 'date'" 
                                                             :style="d.text_align == null ? 'text-align:center;' : ('text-align:' + d.text_align)">
                                                             {{ (d.value_field ? moment(new Date(d.value_field)).format('DD/MM/yyyy') : '') }}
@@ -1665,11 +1775,15 @@ onMounted(() => {
                                                                                 style="align-items: center; flex-direction: row; justify-content: center;">
                                                                                 <RadioButton :value="td.request_formd_id" v-model="request_data.Radio" :disabled="true"/>
                                                                             </div>
-                                                                        </div>                                                        
+                                                                        </div>
                                                                         <div v-if="td.kieu_truong == 'select' && td.is_type == 9"
                                                                             style="padding:0.25rem;">
                                                                             {{ getDataSelectView(list_type_dayoff, td.value_field, 'name', 'code') }}
-                                                                        </div>                                                                        
+                                                                        </div>
+                                                                        <div v-if="td.kieu_truong == 'select' && td.is_type == 10"
+                                                                            style="padding:0.25rem;">
+                                                                            {{ getDataSelectView(list_type_hr_off, td.value_field, 'name', 'code') }}
+                                                                        </div>
                                                                         <div v-if="td.kieu_truong == 'date'"
                                                                             style="padding:0.25rem;" 
                                                                             :style="td.text_align == null ? 'text-align:center;' : ('text-align:' + td.text_align)">
@@ -1880,7 +1994,7 @@ onMounted(() => {
                                             <span class="flex ml-2"
                                                 v-if="detail_request.IsEdit || detail_request.IsComment" 
                                                 v-tooltip="'Thêm File đính kèm'"
-                                                @click="openModalAddFileCV(detail_request)"
+                                                @click="openModalAddFileCV()"
                                                 style="margin:5px; cursor:pointer;"
                                             >
                                                  <i class="pi pi-plus-circle"></i>
@@ -1890,8 +2004,11 @@ onMounted(() => {
                                     <div class="row" v-if="filterFileType(LisFileAttachRQ, 'is_type', 0).length>0">
                                         <div class="col-12 ListImagesFile" style="margin:5px 0;cursor:pointer">
                                             <table class="table table-condensed" style="table-layout:fixed;margin-left:0;width:100%;border-spacing: 0;">
-                                                <tbody>
-                                                    <tr v-for="ffile in filterFileType(LisFileAttachRQ, 'is_type', 0)">
+                                                <tbody>                                                    
+                                                    <tr v-for="(ffile, idxF) in filterFileType(LisFileAttachRQ, 'is_type', 0)"
+                                                        :key="idxF"
+                                                        v-on:dblclick="ViewFileInfo(ffile)"
+                                                    >
                                                         <td class="td-table-file" width="50" style="text-align: center;">
                                                             <Image v-if="!ffile.is_image"
 																class="flex image-type-file"
@@ -1925,18 +2042,44 @@ onMounted(() => {
                                                         <td class="td-table-file" width="100" style="text-align: center;">
                                                             {{ formatByte(ffile.file_size) }}
                                                         </td>
+                                                        <td class="td-table-file" width="50" style="text-align: center;">
+                                                            <div>
+                                                                <Avatar
+                                                                    v-bind:label="
+                                                                        ffile.avatar
+                                                                        ? ''
+                                                                        : (ffile.last_name ?? ' ').substring(0, 1).toUpperCase()
+                                                                    "
+                                                                    v-bind:image="
+                                                                        ffile.avatar
+                                                                        ? basedomainURL + ffile.avatar
+                                                                        : basedomainURL + '/Portals/Image/nouser1.png'
+                                                                    "
+                                                                    v-tooltip.top="{ value: 'Người tạo: ' + (ffile.full_name 
+                                                                            + (ffile.position_name ? ('<br/>' + ffile.position_name) : '') 
+                                                                            + (ffile.department_name ? ('<br/>' + ffile.department_name) : '')), 
+                                                                        escape: true }"
+                                                                    style="color: #ffffff; font-size: 1rem !important;"
+                                                                    :style="{ background: bgColor[idxF%7], }"
+                                                                    shape="circle"
+                                                                    class="border-radius"
+                                                                />
+                                                            </div>
+                                                        </td>
                                                         <td class="td-table-file" 
-                                                            :style="detail_request.IsEdit ? 'width:100px' : 'width:50px'"
+                                                            :style="detail_request.IsEdit || ffile.created_by == store.getters.user.user_id ? 'width:100px' : 'width:50px'"
                                                         >
                                                             <div class="flex" style="justify-content: center;">
                                                                 <Button class="p-button-text p-button-secondary p-button-rounded"
+                                                                    v-tooltip.top="'Tải xuống'"
                                                                     icon="pi pi-download"
                                                                     @click="downloadFile(ffile)"
                                                                 />
                                                                 <Button class="p-button-text p-button-danger p-button-rounded ml-1"
+                                                                    v-tooltip.top="'Xóa'"
                                                                     icon="pi pi-trash"
                                                                     @click="Del_AttachFile(LisFileAttachRQ, ffile)"
-                                                                    v-if="detail_request.IsEdit"
+                                                                    v-if="detail_request.IsEdit || ffile.created_by == store.getters.user.user_id"
                                                                 />
                                                             </div>
                                                         </td>
@@ -2977,6 +3120,45 @@ onMounted(() => {
             <source :src="basedomainURL + fileShow.file_path">
         </audio>
     </Sidebar>
+    <Dialog header="Tải lên file đính kèm đề xuất"
+		v-model:visible="displayUploadFile"
+		:style="{ width: '40vw' }"
+		:closable="true"
+	>
+		<form>
+			<FileUpload
+				@remove="removeFileAttach"
+				@select="selectFileAttach"
+				:multiple="true"
+				:show-upload-button="false"
+                :show-cancel-button="true"
+				choose-label="Chọn tệp"
+				cancel-label="Hủy"
+                accept=""
+			>
+				<template #empty>
+					<p>Kéo và thả tệp vào đây để tải lên.</p>
+				</template>
+			</FileUpload>
+		</form>
+		<template #footer>
+			<Button label="Uploađ" icon="pi pi-check" @click="UploadFileAttach" />
+		</template>
+		<!-- Chức năng đang chỉnh sửa vui lòng liên hệ quản trị viên phần mềm -->
+	</Dialog>
+    <FileInfoVue
+        :data="fileInfo"
+        v-if="isViewFileInfo"
+    ></FileInfoVue>
+    <dialogApprove
+        v-if="showDialogApproved == true"
+        :headerDialog="headerDialogApproved"
+        :displayDialog="showDialogApproved"
+        :closeDialog="closeDialogApproved"
+        :modelApproved="modelApproved"
+        :selectedNodes="selectedNodes"
+        :initDataApproved="initDataApproved"
+    ></dialogApprove>
 </template>
 <style scoped>
     @import url(../style_request.css);

@@ -318,13 +318,15 @@ const renderOrgChart = (data, id, name, title) => {
           om1.expand = true;
         }
 
+        if(em.status){
         rechildren(om1, em[id]);
         mm.children.push(om1);
+        }
       });
     }
   };
   data
-    .filter((x) => x.parent_id == null)
+    .filter((x) => x.parent_id == null )
     .forEach((m, i) => {
       let om = {
         label: m.organization_name + "",
@@ -333,9 +335,10 @@ const renderOrgChart = (data, id, name, title) => {
         logo: m.logo,
         type: m.organization_type,
       };
-
+        if(m.status){
       rechildren(om, m[id]);
       arrChils.push(om);
+    }
     });
 
   return { arrChils: arrChils, arrtreeChils: arrtreeChils };
