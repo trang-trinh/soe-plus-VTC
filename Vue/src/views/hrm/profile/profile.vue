@@ -151,10 +151,12 @@ const marital_status = ref([
 
 //filter
 const activeTab = (tab) => {
+  dataLimits.value = [];
   options.value.tab = tab.status;
   initData(true);
 };
 const search = () => {
+  dataLimits.value = [];
   options.value.pageNo = 1;
   initCount();
   initData(true);
@@ -1117,6 +1119,29 @@ const execImportExcel = () => {
       });
       return;
     });
+};
+
+const downloadFile = (file) => {
+  let name = "";
+  let pathFileDownload = "";
+  if (file.files != null && file.files.length > 0) {
+    name = file.files[0].file_name || "file_download" + file.files[0].file_type;
+    pathFileDownload = file.files[0].file_path;
+  } else {
+    pathFileDownload = file.file_path;
+    name = file.file_name || "file_download." + file.file_type;
+  }
+  const a = document.createElement("a");
+  a.href =
+    basedomainURL +
+    "/Viewer/DownloadFile?url=" +
+    encodeURIComponent(pathFileDownload) +
+    "&title=" +
+    encodeURIComponent(name);
+  a.download = name;
+  // a.target = "_blank";
+  a.click();
+  a.remove();
 };
 
 //Init
@@ -3271,6 +3296,7 @@ const loadMoreRow = (data) => {
       <div class="col-4 md:col-4">
         <div class="card">
           <div
+            @click=""
             class="card-body button-custom zoom"
             :style="{ backgroundColor: '#89c83e', borderColor: '#89c83e' }"
           >
