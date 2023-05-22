@@ -151,13 +151,22 @@ const marital_status = ref([
 
 //filter
 const activeTab = (tab) => {
+  options.value.pageNo = 1;
+  options.value.pageSize = 25;
+  options.value.limitItem = 25;
+  options.value.total = 0;
   dataLimits.value = [];
+
   options.value.tab = tab.status;
   initData(true);
 };
 const search = () => {
-  dataLimits.value = [];
   options.value.pageNo = 1;
+  options.value.pageSize = 25;
+  options.value.limitItem = 25;
+  options.value.total = 0;
+  dataLimits.value = [];
+
   initCount();
   initData(true);
 };
