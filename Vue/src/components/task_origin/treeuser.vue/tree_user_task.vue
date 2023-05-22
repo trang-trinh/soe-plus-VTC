@@ -79,12 +79,12 @@ const loadData = (rf) => {
       {
         str: encr(
           JSON.stringify({
-            proc: "sys_organization_list_doc_role_department",
+            proc: "sys_organization_to_task_tree",
             par: [
-              { par: "pageno", va: opition.value.PageNo },
-              { par: "pagesize", va: opition.value.PageSize },
-              { par: "search", va: opition.value.search },
-              { par: "organization_type", va: opition.value.organization_type },
+              // { par: "pageno", va: opition.value.PageNo },
+              // { par: "pagesize", va: opition.value.PageSize },
+              // { par: "search", va: opition.value.search },
+              // { par: "organization_type", va: opition.value.organization_type },
               { par: "user_id", va: store.getters.user.user_id },
             ],
           }),
