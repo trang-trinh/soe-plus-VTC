@@ -80,6 +80,7 @@ const configBaocao = async (row) => {
     },
   });  const axResponse = await execSQL(row.report_id);
 
+  debugger
   if (axResponse.status == 200) {
     if (axResponse.data.error) {
       toast.error("Không mở được bản ghi");
@@ -309,16 +310,16 @@ const onPage = (event) => {
 };
 const liReportGroup = ref([
   {
-    name: "Bảng lương",
+    name: "Bảng lương",code:1
   },
   {
-    name: "Hợp đồng",
+    name: "Hợp đồng",code:2
   },
   {
-    name: "Quyết định",
+    name: "Quyết định",code:3
   },
   {
-    name: "Hồ sơ nhân sự",
+    name: "Hồ sơ nhân sự",code:4
   },
 ]);
 const smart_report = ref({
@@ -440,6 +441,15 @@ const saveData = (isFormValid) => {
   if (smart_report.value.user_deny_fake.length > 0)
     smart_report.value.user_deny = smart_report.value.user_deny_fake.toString();
   else smart_report.value.user_deny = null;
+
+  if (smart_report.value.report_group !=null)
+  {
+    var ser=liReportGroup.value.find(x=>x.name==smart_report.value.report_group);
+    if(ser!=null){
+      smart_report.value.report_type =ser.code;
+    }
+  }
+
   formData.append("smart_report", JSON.stringify(smart_report.value));
   swal.fire({
     width: 110,
@@ -623,7 +633,7 @@ const callbackFun = (obj) => {
   Object.keys(obj).forEach((k) => {
     smart_report.value[k] = obj[k];
   });
-  debugger
+   
   let formData = new FormData();
   formData.append("smart_report", JSON.stringify(smart_report.value));
   axios

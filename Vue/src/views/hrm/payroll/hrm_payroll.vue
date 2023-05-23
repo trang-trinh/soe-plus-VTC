@@ -500,6 +500,7 @@ const configPayroll = async (row) => {
             swal.close();
         }
         const callbackFun = (obj) => {
+           
             if (obj.is_config) {
                 payroll.value.payroll_config = obj.is_config;
                   
@@ -511,17 +512,21 @@ const configPayroll = async (row) => {
         }
         const saveDGLuongUser = async (r) => {
            
+           var arrck=r.is_data[0][report.value.sum_key];
+           if(!arrck)
+           arrck=null;
             let strSQL = {
                 "query": false,
-                "proc": "hrm_payroll_user_add",
+                "proc": "hrm_payroll_user_addd ",
                 "par": [
                     { "par": "payroll_user_id", "va": r.payroll_user_id },
                     { "par": "payroll_id", "va": r.payroll_id },
                     { "par": "profile_id", "va": r.profile_id },
-                    { "par": "is_data", "va": JSON.stringify(r.is_data) },
+                    { "par": "is_data", "va": JSON.stringify() },
                     { "par": "user_id", "va": store.getters.user.user_id },
                     { "par": "ip", "va": store.getters.ip },
                     { "par": "organization_id", "va": store.getters.user.organization_id },
+                    { "par": "salary", "va":  arrck },
                 ]
             };
             console.log(strSQL);
@@ -542,6 +547,13 @@ const configPayroll = async (row) => {
                 console.log(e);
             }
         };
+        const goProfile = (profile) => {
+  router.push({
+    name: "profileinfo",
+    params: { id: profile.profile_code },
+    query: { id: profile.profile_id },
+  });
+};
         const saveDGLuong = async () => {
             let ok = true;
             if (!payroll.value.report_key) {
@@ -1447,11 +1459,7 @@ onMounted(() => {
             placeholder="Từ khoá"
           />
         </template>
-        <!-- <template #body="ddd">
-        <div>
-          {{ ddd.data }}
-        </div>
-      </template> -->
+ 
       </Column>
       <Column
         header="Tháng"
@@ -1461,11 +1469,12 @@ onMounted(() => {
       >
         <template #body="slotProps">
           <div>
+     
             {{
               moment(
                 new Date(
                   slotProps.data.payroll_year,
-                  slotProps.data.payroll_month,
+                  slotProps.data.payroll_month-1,
                   1
                 )
               ).format("MM/YYYY")
@@ -1480,6 +1489,14 @@ onMounted(() => {
         bodyStyle="text-align:center;max-width:150px;overflow:hidden"
         class="align-items-center justify-content-center text-center overflow-hidden"
       >
+      <template #body="slotProps">
+          <div v-if="slotProps.data.sum_salary">
+     
+            {{
+             slotProps.data.sum_salary.toLocaleString()
+            }}
+          </div>
+        </template>
       </Column>
       <Column
         field="vacancy_name"
@@ -1644,6 +1661,7 @@ onMounted(() => {
     v-model:visible="visibleSidebarDoc"
     position="full"
     class="d-sidebar-full"
+    @hide="loadData(true)"
   >
     <template #header>
       <h2 class="p-0 m-0">

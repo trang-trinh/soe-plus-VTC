@@ -76,7 +76,7 @@ export default {
     );
     const isViewReport = ref(readonly.value || isUrlReport.value);
     const configDBChild = ref(null);
-    const report = props.report;
+    const report = props.report||null;
     const cryoptojs = inject("cryptojs");
     const toast = useToast();
     const swal = inject("$swal");
@@ -1247,6 +1247,7 @@ export default {
       });
     };
     const saveDatamap = (f) => {
+       
       if (readonly.value) {
         //Save file quyết định, lương...
         let users = [];
@@ -1265,7 +1266,7 @@ export default {
               dr.ok = false;
               objt.is_data = null;
             }
-
+            
             props.callbackFun(objt);
           });
           isdataSidebar.value = false;
@@ -1847,6 +1848,7 @@ export default {
         report_config: JSON.stringify({
           data: isxls.value ? dtExcels.value : objDataTemp.value,
           proc: proc,
+          sum_key:report.sum_key
         }),
       });
       toast.success("Đã lưu cấu hình thành công!");
@@ -3741,10 +3743,11 @@ export default {
       :class="isxls ? 'div-excel' : ''"
       style="
         overflow-y: auto;
-        max-height: calc(100% - 40px);
+       
         padding: 20px;
         background-color: #ccc;
       "
+      :style="header==null?' max-height: calc(100% - 40px);':' max-height: calc(100% - 200px);'"
     >
       <div
         class="doc-page card shadow-1"
@@ -4045,7 +4048,29 @@ export default {
             </Column>
             <template #expansion="row">
               <div class="pt-3 pb-3 w-full" v-if="row.data.cols">
-                <h3 class="p-0 m-0 mb-2">Cột</h3>
+                <Toolbar class="w-full custoolbar">
+                  <template #start>
+                    <h3 class="p-0 m-0 mb-2">Cột  </h3>
+
+                  </template>
+                  <template #end>
+             <div v-if="report.report_type==1" >
+       
+            <Dropdown
+                  v-model="report.sum_key"
+                  :options="row.data.cols"
+                  optionLabel="key"
+                  optionValue="key"
+                  placeholder="Chọn tổng lương"
+                  class="w-full"
+                  style="min-width:200px"
+               
+                />
+             </div>
+
+                  </template>
+                </Toolbar>
+     
                 <DataTable
                   class="p-datatable-sm d-sidebar-full w-full"
                   :value="row.data.cols"
