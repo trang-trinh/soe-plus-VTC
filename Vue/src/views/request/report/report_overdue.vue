@@ -256,11 +256,11 @@ const toggleGroupBy = (event) => {
 };
 const ChangeGroupBy = (value) => {
     options.value.active_group = value;
-    if(value == 1){
+    if (value == 1) {
         group.value = 'request_team_name';
-    } else if (value == 2){
+    } else if (value == 2) {
         group.value = 'request_form_name';
-    }else{
+    } else {
         group.value = null;
     }
     itemGroupBys.value.forEach((i) => {
@@ -271,6 +271,19 @@ const ChangeGroupBy = (value) => {
         }
     });
     menuGroupByButs.value.toggle();
+    loadMainData();
+}
+const refresh = () => {
+    options.value = ({
+        loading: true,
+        search: '',
+        pageNo: 0,
+        pageSize: 20,
+        total: 0,
+        is_team: false,
+        active_group: 3,
+        group_by: false,
+    });
     loadMainData();
 }
 onMounted(() => {
@@ -557,7 +570,7 @@ onMounted(() => {
                                 </table>
                             </div>
                         </tbody>
-                        
+
                     </table>
                     <table v-else role="table" class="p-datatable-table">
                         <thead class="p-datatable-thead" role="rowgroup">
