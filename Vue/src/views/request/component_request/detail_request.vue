@@ -169,30 +169,37 @@ const loadDetailRequest = () => {
                     //is_viewSecurityRequest.value = true; // false;
                 }
                 detail_request.value.IsLast = (detail_request.daky || 0) + 1 == (detail_request.soky || 0);
-                let today = new Date();
-                var d2 = detail_request.value.completed_date ? new Date(detail_request.value.completed_date) : new Date();
-                var diff = d2.getTime() - today.getTime();
-                var daydiff = diff / (1000 * 60 * 60 * 24);
-                var stdate = new Date(detail_request.value.start_date);
-                if (stdate == null || stdate > today) {
-                    TimeToDo.value = "Chưa bắt đầu";
+                detail_request.value.times_processing = detail_request.value.status == 0 ? 0 : 
+                                                        detail_request.value.status != 2 ? Math.round((Math.abs(new Date() - new Date(detail_request.value.start_send_date)) / (60*60*1000))) : 
+                                                        detail_request.value.times_processing;
+                if (detail_request.value.times_processing > detail_request.value.times_processing_max) {
+                    detail_request.value.is_overdue = true;
+                    detail_request.value.SoNgayHan = detail_request.value.times_processing - detail_request.value.times_processing_max;
                 }
-                else {
-                    if (0 < daydiff + 1 && daydiff + 1 < 1) {
-                        TimeToDo.value =
-                        "<div class='flex format-center font-bold' style='background-color: #fffbd8;color: #6DD230'> Đến hạn hoàn thành </div>";
-                        return;
-                    }
-                    let displayTime = Math.abs(Math.floor(daydiff + 1));
-                    TimeToDo.value =
-                        daydiff + 1 < 0
-                        ? "<div class='flex format-center font-bold' style='background-color: #fffbd8;color: red'> Quá hạn " +
-                            displayTime +
-                            " ngày</div>"
-                        : "<div class='flex format-center font-bold' style='background-color: #fffbd8;color: #6DD230'> Còn " +
-                            displayTime +
-                            " ngày</div>";
-                }
+                //let today = new Date();
+                //var d2 = detail_request.value.completed_date ? new Date(detail_request.value.completed_date) : new Date();
+                //var diff = d2.getTime() - today.getTime();
+                //var daydiff = diff / (1000 * 60 * 60 * 24);
+                //var stdate = new Date(detail_request.value.start_send_date);
+                // if (stdate == null || stdate > today) {
+                //     TimeToDo.value = "Chưa bắt đầu";
+                // }
+                // else {
+                //     if (0 < daydiff + 1 && daydiff + 1 < 1) {
+                //         TimeToDo.value =
+                //         "<div class='flex format-center font-bold' style='background-color: #fffbd8;color: #6DD230'> Đến hạn hoàn thành </div>";
+                //         return;
+                //     }
+                //     let displayTime = Math.abs(Math.floor(daydiff + 1));
+                //     TimeToDo.value =
+                //         daydiff + 1 < 0
+                //         ? "<div class='flex format-center font-bold' style='background-color: #fffbd8;color: red'> Quá hạn " +
+                //             displayTime +
+                //             " ngày</div>"
+                //         : "<div class='flex format-center font-bold' style='background-color: #fffbd8;color: #6DD230'> Còn " +
+                //             displayTime +
+                //             " ngày</div>";
+                // }
                 if (data[1] != null && data[1].length > 0) {
                     FormDS.value = data[1].filter(x => x.is_order_row == null);
                     var fd = data[1].filter(x => x.kieu_truong != null && x.kieu_truong.toLowerCase() == "radio" && x.value_field != null && x.value_field.toLowerCase() == "true");
@@ -476,7 +483,7 @@ const loadEmote = () => {
     })
     .catch((error) => {
 		//toast.error("Tải dữ liệu không thành công!");
-		console.log("Error list emotes.");
+		//console.log("Error list emotes.");
 		if (error && error.status === 401) {
 			swal.fire({
 				text: "Mã token đã hết hạn hoặc không hợp lệ, vui lòng đăng nhập lại!",
@@ -735,9 +742,7 @@ const editRequest = () => {
 const delRequest = (dataR, type) => {
 
 };
-const openRecallRequest = (dataRequest, f) => {
-    
-};
+
 // ---
 // Function xử lý request
 // Công việc
@@ -1067,7 +1072,34 @@ const changeTabContent = (event) => {
 
 const dataQT = ref([]);
 const listQT_Request = () => {
-
+    axios
+    .post(
+	  	basedomainURL + "api/request/getData",
+		{ 
+			str: encr(JSON.stringify({
+					proc: "chat_emote_list",
+					par: [
+						{ par: "user_id", va: store.getters.user.user_id },
+					],
+				}), SecretKey, cryoptojs
+			).toString()
+		},
+		config
+    )
+    .then((response) => {
+		let data = JSON.parse(response.data.data)[0];
+		emoteList.value = data;
+    })
+    .catch((error) => {
+		//console.log("Error list emotes.");
+		if (error && error.status === 401) {
+			swal.fire({
+				text: "Mã token đã hết hạn hoặc không hợp lệ, vui lòng đăng nhập lại!",
+				confirmButtonText: "OK",
+			});
+			store.commit("gologout");
+		}
+    });
 };
 const dataLog = ref([]);
 const listLog = () => {
@@ -1278,7 +1310,7 @@ onMounted(() => {
                     >
                         <Button class="p-button-warning" 
                             style="background-color:orange"
-                            @click="openRecallRequest(detail_request, true)"
+                            @click="OpenSendRequest(detail_request, 'Thu hồi đề xuất', 3)"
                             label="Thu hồi">
                         </Button>
                     </div>
@@ -1397,7 +1429,7 @@ onMounted(() => {
                     >
                         <Button v-if="!detail_request.IsHoanthanh" 
                             label="Gửi" 
-                            @click="OpenSendRequest(detail_request,'Gửi')">
+                            @click="OpenSendRequest(detail_request,'Gửi đề xuất')">
                         </Button>
                         <Button v-if="detail_request.status_processing != -1 && detail_request.status_processing != 0" 
                             label="Hủy"

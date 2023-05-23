@@ -46,8 +46,8 @@ const approve = () => {
     formData.append("is_type_approve", obj["is_type_approve"]);
     formData.append("content", obj["content"]);
     //formData.append("read_date", obj["read_date"]);
-    for (var i = 0; i < props.files.length; i++) {
-        let file = props.files[i];
+    for (var i = 0; i < files.length; i++) {
+        let file = files[i];
         formData.append("files", file);
     }
     formData.append("requests", JSON.stringify(requests));
