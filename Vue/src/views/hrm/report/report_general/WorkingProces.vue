@@ -104,7 +104,7 @@ const loadData = () => {
             let data = JSON.parse(response.data.data);
             if (data[0].length > 0) {
                var baocaoct = [];
-                data[0].forEach((item, index) => {
+                data[0].slice(0,10).forEach((item, index) => {
                     item.is_active = false;
                     if (item.Congtac !== null) {
                         item.Congtac = JSON.parse(item.Congtac);                               

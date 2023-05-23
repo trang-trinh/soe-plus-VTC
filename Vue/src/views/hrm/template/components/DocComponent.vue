@@ -1422,7 +1422,10 @@ export default {
       let apimethod = xls ? "PostFileXLS" : "PostFile";
       apimethod = "PostFile";
       try {
-        const response = await fetch(baseURL + "api/Files/" + apimethod, {
+        const response = await fetch(baseURL 
+        //+ "api/Files/" 
+        + "api/SRC/" 
+        + apimethod, {
           method: "POST",
           body: formData,
         });
@@ -1709,7 +1712,7 @@ export default {
         );
         iframeDoc.querySelector("body").appendChild(divleftiframe);
 
-        filename = change_unsigned(props.report.report_name, "_");
+        filename = change_unsigned(props.report.report_name.replace(/\t/g, "_").replace(/[/\\?%*:|"<>]/g, '-'), "_");
       }
       showLoadding.value = true;
       if (props.report.report_template)
@@ -1885,24 +1888,34 @@ export default {
         return false;
       }
       showLoadding.value = true;
+      let dataHtml = { html: html, filename: filename || "doc" };
       try {
         const axResponse = await axios.post(
           baseURL +
-            "api/Files/" +
+            //"api/Files/" +
+            "api/SRC/" +
             (isxls.value ? "ConvertFileXLS" : "ConvertFile"),
-          html,
+          dataHtml,
           config
         );
 
         if (axResponse.status == 200) {
-          window.open(
-            baseURL +
-              "api/Files/downloadFile" +
-              (isxls.value ? "XLS" : "") +
-              "?name=" +
-              filename +
-              (isxls.value ? ".xlsx" : ".docx")
-          );
+          // window.open(
+          //   baseURL +
+          //     "api/Files/downloadFile" +
+          //     (isxls.value ? "XLS" : "") +
+          //     "?name=" +
+          //     filename +
+          //     (isxls.value ? ".xlsx" : ".docx")
+          // );
+          if (axResponse.data.err == "0") {            
+            if (isxls.value) {
+              downloadFileExport("GetDownloadXLS", dataHtml.filename, axResponse.data.fileName + ".html", ".xlsx");
+            }
+            else {
+              downloadFileExport("GetDownload", dataHtml.filename, axResponse.data.fileName + ".html", ".docx");
+            }
+          }
           let sps = [];
           spans.value
             .filter((x) => x.historys.length > 0)
@@ -1920,6 +1933,16 @@ export default {
       } catch (e) {
         console.log(e);
       }
+    };
+    const downloadFileExport = (name_func, file_name_download, file_name, file_type) => {
+      let nameF = (file_name || "file_download") + file_type;
+      let nameDownload = (file_name_download || "file_download") + file_type;
+      const a = document.createElement("a");
+      a.href = baseURL + "/api/SRC/" + name_func + "?name=" + nameF;
+      a.download = nameDownload;
+      a.target = "_blank";
+      a.click();
+      a.remove();
     };
     const downloadFile = async (f) => {
       if (tempHTML != "") {
@@ -2196,24 +2219,33 @@ export default {
       html = html.replace(/<td class="tablecell"[^</]*>(\d+)<\/td>/gim, "");
       html = html.replace(/<col class="tablecell"[^</]*>/gim, "");
       showLoadding.value = true;
+      let dataHtml = { html: html, filename: filename || "doc" };
       try {
         const axResponse = await axios.post(
           baseURL +
-            "api/Files/" +
+            //"api/Files/" +
+            "/api/SRC/" +
             (isxls.value ? "ConvertFileXLSX" : "ConvertFile"),
-          html,
+          dataHtml,
           config
         );
-
         if (axResponse.status == 200) {
-          window.open(
-            baseURL +
-              "api/Files/downloadFile" +
-              (isxls.value ? "XLS" : "") +
-              "?name=" +
-              filename +
-              (isxls.value ? ".xlsx" : ".docx")
-          );
+          // window.open(
+          //   baseURL +
+          //     "api/Files/downloadFile" +
+          //     (isxls.value ? "XLS" : "") +
+          //     "?name=" +
+          //     filename +
+          //     (isxls.value ? ".xlsx" : ".docx")
+          // );
+          if (axResponse.data.err == "0") {            
+            if (isxls.value) {
+              downloadFileExport("GetDownloadXLS", dataHtml.filename, axResponse.data.fileName + ".html", ".xlsx");
+            }
+            else {
+              downloadFileExport("GetDownload", dataHtml.filename, axResponse.data.fileName + ".html", ".docx");
+            }
+          }
           let sps = [];
           spans.value
             .filter((x) => x.historys.length > 0)

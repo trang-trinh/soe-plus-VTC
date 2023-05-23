@@ -487,7 +487,7 @@ const router = createRouter({
   history: createWebHistory(import.meta.env.BASE_URL),
   routes: [
     {
-      name: "profile",
+      path: "/",
       name: "homeview",
       component: HomeView,
     },

@@ -591,7 +591,7 @@ namespace API.Controllers.Leave
                                     profile_leave.modified_date = DateTime.Now;
                                     profile_leave.modified_ip = ip;
                                     profile_leave.modified_token_id = tid;
-                                    var holiday = await db.hrm_config_holidays.FirstOrDefaultAsync(x => x.type == 1 && x.organization_id == profile_leave.organization_id);
+                                    var holiday = await db.hrm_config_holidays.FirstOrDefaultAsync(x => x.type == 1 && x.organization_id == organization_id);
                                     if (profile.recruitment_date != null && holiday != null && holiday.num_seniority != null && holiday.num_seniority > 0)
                                     {
                                         var dt = DateTime.Now;
@@ -616,7 +616,7 @@ namespace API.Controllers.Leave
                                     md.created_ip = ip;
                                     md.created_token_id = tid;
                                     md.organization_id = profile.organization_id;
-                                    var holiday = await db.hrm_config_holidays.FirstOrDefaultAsync(x => x.type == 1 && x.organization_id == profile_leave.organization_id);
+                                    var holiday = await db.hrm_config_holidays.FirstOrDefaultAsync(x => x.type == 1 && x.organization_id == organization_id);
                                     if (profile.recruitment_date != null && holiday != null && holiday.num_seniority != null && holiday.num_seniority > 0)
                                     {
                                         var dt = DateTime.Now;
