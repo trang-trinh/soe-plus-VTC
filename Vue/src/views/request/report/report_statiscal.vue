@@ -69,7 +69,7 @@ const loadData = (rf) => {
                 count_all_request_hoanthanh.value = data[4][0].count_all_request_hoanthanh;
                 count_all_request_quahan_choduyet.value = data[5][0].count_all_request_quahan_choduyet;
                 count_all_request_quahan_daduyet.value = data[6][0].count_all_request_quahan_daduyet;
-                datalists.value.forEach((d)=>{
+                datalists.value.forEach((d) => {
                     d.is_show = d.lv == 0 ? true : false;
                 })
             }
@@ -88,7 +88,17 @@ const loadData = (rf) => {
             }
         });
 };
-
+const refresh = () => {
+    options.value = ({
+        loading: true,
+        search: "",
+        pageNo: 1,
+        pageSize: 20,
+        total: 0,
+        is_team: false,
+    });
+    loadData(true);
+}
 onMounted(() => {
     loadData(true);
     return {
@@ -98,8 +108,8 @@ onMounted(() => {
 });
 
 const ChangeIsShowTeam = () => {
-    datalists.value.forEach((d)=>{
-        if(d.lv == 1){
+    datalists.value.forEach((d) => {
+        if (d.lv == 1) {
             d.is_show = options.value.is_team ? true : false;
         }
     })
@@ -144,7 +154,7 @@ const ChangeIsShowTeam = () => {
                         <th class="text-center" rowspan="2" width="100">Mới lập</th>
                         <th class="text-center" rowspan="2" width="100">Chờ duyệt</th>
                         <th class="text-center" rowspan="2" width="100">Hoàn thành</th>
-                        <th class="text-center" colspan="3">Quá hạn</th> 
+                        <th class="text-center" colspan="3">Quá hạn</th>
                     </tr>
                     <tr>
                         <th class="text-center" width="100">Quá hạn chờ duyệt</th>
@@ -158,7 +168,8 @@ const ChangeIsShowTeam = () => {
                         <th class="text-center" width="100">{{ count_all_request_hoanthanh }}</th>
                         <th class="text-center" width="100">{{ count_all_request_quahan_choduyet }}</th>
                         <th class="text-center" width="100">{{ count_all_request_quahan_daduyet }}</th>
-                        <th class="text-center" width="100">{{ count_all_request_quahan_choduyet + count_all_request_quahan_daduyet }}</th>
+                        <th class="text-center" width="100">{{ count_all_request_quahan_choduyet +
+                            count_all_request_quahan_daduyet }}</th>
                     </tr>
                 </thead>
                 <tbody v-for="(d, index) in datalists" :key="index">
@@ -170,7 +181,8 @@ const ChangeIsShowTeam = () => {
                         <td align="center">{{ d.count_all_request_hoanthanh }}</td>
                         <td align="center">{{ d.count_all_request_quahan_choduyet }}</td>
                         <td align="center">{{ d.count_all_request_quahan_daduyet }}</td>
-                        <td align="center">{{ d.count_all_request_quahan_choduyet + d.count_all_request_quahan_daduyet }}</td>
+                        <td align="center">{{ d.count_all_request_quahan_choduyet + d.count_all_request_quahan_daduyet }}
+                        </td>
                     </tr>
                 </tbody>
             </table>
@@ -182,74 +194,87 @@ const ChangeIsShowTeam = () => {
     .p-toolbar-group-left {
         width: 70%;
     }
-}</style>
+}
+</style>
 <style scoped>
-.item-hover:hover{
-  background-color: #f0f8ff!important;
+.item-hover:hover {
+    background-color: #f0f8ff !important;
 }
-.bg-group{
-  background-color: rgb(222, 230, 240) !important;
+
+.bg-group {
+    background-color: rgb(222, 230, 240) !important;
 }
-.bg-stt{
-  background-color: #e6e6e6;
+
+.bg-stt {
+    background-color: #e6e6e6;
 }
-.active-item{
-  background-color: #ffd95f;
+
+.active-item {
+    background-color: #ffd95f;
 }
-.active-border{
-  border:2px solid #008eff !important
+
+.active-border {
+    border: 2px solid #008eff !important
 }
-  .table {
-      margin-bottom: 0px !important;
-  }
+
+.table {
+    margin-bottom: 0px !important;
+}
 
 
-  .left-sticky1 {
-      position: sticky;
-      z-index: 5;
-      vertical-align: middle !important;
-  }
+.left-sticky1 {
+    position: sticky;
+    z-index: 5;
+    vertical-align: middle !important;
+}
 
-  .left-1 {
-      left:-1px;
-  }
-  .left-2 {
-      left: 49px;
-  }
-  .left-3 {
-      left: 149px;
-  }
-  .left-4 {
-      left: 299px;
-  }
-  .btn.btn-secondary:hover {
-      background-color: #e6f0f8 !important;
-      color: #2f90d1 !important;
-  }
+.left-1 {
+    left: -1px;
+}
 
-  table{
-    border: 0.3px solid rgba(0,0,0,.3) !important;
-  }
+.left-2 {
+    left: 49px;
+}
 
-  tr td {
-      word-break: break-word;
-      vertical-align: middle !important;
-      cursor: pointer;
-  }
+.left-3 {
+    left: 149px;
+}
 
-  table th {
-      background-color: #8BCFFB !important;
-  }
-  table .td-form-0 {
-      background-color: #f6ddcc !important;
-  }
-  table .td-form-1 {
-      background-color: #d5f5e3 !important;
-  }
-  table th, table td {
-      border: 0.3px solid rgba(0,0,0,.3) !important;
-  }
+.left-4 {
+    left: 299px;
+}
 
+.btn.btn-secondary:hover {
+    background-color: #e6f0f8 !important;
+    color: #2f90d1 !important;
+}
+
+table {
+    border: 0.3px solid rgba(0, 0, 0, .3) !important;
+}
+
+tr td {
+    word-break: break-word;
+    vertical-align: middle !important;
+    cursor: pointer;
+}
+
+table th {
+    background-color: #8BCFFB !important;
+}
+
+table .td-form-0 {
+    background-color: #f6ddcc !important;
+}
+
+table .td-form-1 {
+    background-color: #d5f5e3 !important;
+}
+
+table th,
+table td {
+    border: 0.3px solid rgba(0, 0, 0, .3) !important;
+}
 </style>
 <style scoped>
 /* #table-bc{
@@ -260,43 +285,44 @@ overflow-x: scroll;
 } */
 th,
 td {
-  background: #fff;
-  padding: 0.6rem;
+    background: #fff;
+    padding: 0.6rem;
 }
 
 .row-parent {
-  font-weight: bold;
-  margin-left: 0.5em;
+    font-weight: bold;
+    margin-left: 0.5em;
 }
 
 .row-child {
-  cursor: pointer;
-  margin-left: 1.5em;
+    cursor: pointer;
+    margin-left: 1.5em;
 }
 
 .row-child:hover {
-  color: #0078d4;
+    color: #0078d4;
 }
+
 .toolbar-filter {
-border: unset;
-outline: unset;
-background-color: #fff;
-padding-bottom: 0px;
+    border: unset;
+    outline: unset;
+    background-color: #fff;
+    padding-bottom: 0px;
 }
+
 td.bg-group>b {
-  position: sticky;
-  left: 10px;
+    position: sticky;
+    left: 10px;
 }
 </style>
-<style lang="scss" scoped>
-::v-deep(.p-rowgroup-header) {
-td {
-  flex:1 1 0 !important;
+<style lang="scss" scoped>::v-deep(.p-rowgroup-header) {
+    td {
+        flex: 1 1 0 !important;
+    }
 }
-}
+
 ::v-deep(.p-datatable-emptymessage) {
-td {
-  flex:1 1 0 !important;
-}
-}
-</style>
+    td {
+        flex: 1 1 0 !important;
+    }
+}</style>

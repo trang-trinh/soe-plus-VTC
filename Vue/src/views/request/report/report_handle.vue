@@ -95,6 +95,7 @@ const loadMainData = () => {
                         par: [
                             { par: "user_id", va: store.getters.user.user_id },
                             { par: "optionView", va: options.value.active_group },
+                            { par: "search", va: options.value.search },
                         ],
                     }),
                     SecretKey,
@@ -256,11 +257,11 @@ const toggleGroupBy = (event) => {
 };
 const ChangeGroupBy = (value) => {
     options.value.active_group = value;
-    if(value == 1){
+    if (value == 1) {
         group.value = 'request_team_name';
-    } else if (value == 2){
+    } else if (value == 2) {
         group.value = 'request_form_name';
-    }else{
+    } else {
         group.value = null;
     }
     itemGroupBys.value.forEach((i) => {
@@ -271,6 +272,19 @@ const ChangeGroupBy = (value) => {
         }
     });
     menuGroupByButs.value.toggle();
+    loadMainData();
+}
+const refresh = () => {
+    options.value = ({
+        loading: true,
+        search: '',
+        pageNo: 0,
+        pageSize: 20,
+        total: 0,
+        is_team: false,
+        active_group: 3,
+        group_by: false,
+    });
     loadMainData();
 }
 onMounted(() => {
@@ -294,7 +308,7 @@ onMounted(() => {
                     <span class="p-input-icon-left" style="width: 50%;">
                         <i class="pi pi-search" />
                         <InputText type="text" spellcheck="false" v-model="options.search" style="width: 75%;"
-                            placeholder="Tìm kiếm" v-on:keyup.enter="loadData(true)" />
+                            placeholder="Tìm kiếm" v-on:keyup.enter="loadMainData()" />
                     </span>
                 </div>
             </template>
@@ -557,7 +571,7 @@ onMounted(() => {
                                 </table>
                             </div>
                         </tbody>
-                        
+
                     </table>
                     <table v-else role="table" class="p-datatable-table">
                         <thead class="p-datatable-thead" role="rowgroup">
@@ -631,7 +645,7 @@ onMounted(() => {
                     </table>
                 </div>
                 <Paginator :rows="options.pageSize" :totalRecords="datalists.length" template="FirstPageLink PrevPageLink PageLinks NextPageLink
-            LastPageLink RowsPerPageDropdown" :rowsPerPageOptions="[20,100, 200, 300, 500]" @page="onPage" />
+            LastPageLink RowsPerPageDropdown" :rowsPerPageOptions="[20, 100, 200, 300, 500]" @page="onPage" />
             </div>
         </div>
     </div>

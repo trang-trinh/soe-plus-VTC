@@ -1040,7 +1040,7 @@ namespace API.Controllers.Request
                                 request.modified_date = DateTime.Now;
                                 request.modified_ip = ip;
                                 request.modified_token_id = tid;
-
+                                request.start_send_date = DateTime.Now;
                                 #region Gen quy trinh
                                 if (type_send == 0) // gửi đến quy trình
                                 {
@@ -1950,6 +1950,14 @@ namespace API.Controllers.Request
                                 case -1: // Hủy de xuat
                                     user_current.is_sign = -2; // Hủy de xuat
                                     request.status = -1; // Hủy de xuat
+                                    request.modified_by = uid;
+                                    request.modified_date = DateTime.Now;
+                                    request.modified_ip = ip;
+                                    request.modified_token_id = tid;
+                                    break;
+                                case 3: // Thu hồi
+                                    user_current.is_sign = 3; // Thu hồi
+                                    request.status = 3; // Thu hồi 
                                     request.modified_by = uid;
                                     request.modified_date = DateTime.Now;
                                     request.modified_ip = ip;
