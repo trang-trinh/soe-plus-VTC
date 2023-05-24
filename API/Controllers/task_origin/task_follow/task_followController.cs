@@ -537,7 +537,6 @@ namespace API.Controllers
                         temp3 = provider.FormData.GetValues("start_date").SingleOrDefault();
                         string follow_id = JsonConvert.DeserializeObject<string>(temp1);
                         string task_id = JsonConvert.DeserializeObject<string>(temp2);
-
                         string start_date = JsonConvert.DeserializeObject<string>(temp3) ?? null;
                         var task_Follow_Template = db.task_follow.AsNoTracking().FirstOrDefault(x => x.follow_id == follow_id);
                         if (task_Follow_Template != null)
@@ -585,6 +584,7 @@ namespace API.Controllers
                             if (follow_steps.Count > 0)
                             {
                                 List<task_follow_step> list_steps = new List<task_follow_step>();
+                                string startStep = start_date;
                                 foreach (var item in follow_steps)
                                 {
                                     string stepID = item.follow_step_id;
@@ -606,8 +606,17 @@ namespace API.Controllers
                                     new_step.time_process = null;
                                     if (new_step.time_process > 0)
                                     {
-                                        new_step.start_date = start_date != null && start_date != "" ? Convert.ToDateTime(start_date) : DateTime.Now;
-                                        new_step.end_date = DateTime.Now.AddMinutes((double)new_step.time_process);
+                                        if (new_Follow.type != 1)
+                                        {
+                                            new_step.start_date = start_date != null && start_date != "" ? Convert.ToDateTime(start_date) : DateTime.Now;
+                                            
+                                            new_step.end_date = (new_step.start_date??DateTime.Now).AddMinutes((double)new_step.time_process);
+                                        }
+                                        else
+                                        {
+                                            new_step.start_date = start_date != null && start_date != "" ? Convert.ToDateTime(startStep) : DateTime.Now;
+                                            new_step.end_date = (new_step.start_date ?? DateTime.Now).AddMinutes((double)new_step.time_process);
+                                        }
                                         if (new_step.start_date <= DateTime.Now && item.status == 0)
                                         {
                                             new_step.start_real_date = DateTime.Now;
@@ -628,6 +637,7 @@ namespace API.Controllers
                                     var list_task_follow_task = db.task_follow_task.AsNoTracking().Where(x => x.follow_step_id == stepID).ToList();
                                     if (list_task_follow_task.Count > 0)
                                     {
+                                        string start_task = new_step.start_date.ToString();
                                         List<task_follow_task> task_Follow_Tasks = new List<task_follow_task>();
                                         foreach (var follow_task in list_task_follow_task)
                                         {
@@ -638,8 +648,17 @@ namespace API.Controllers
                                                 task_orgin1.parent_id = task_id;
                                                 if (task_orgin1.process_time > 0)
                                                 {
-                                                    task_orgin1.start_date = start_date != null && start_date != "" ? Convert.ToDateTime(start_date) : DateTime.Now;
-                                                    task_orgin1.end_date = DateTime.Now.AddMinutes((double)task_orgin1.process_time);
+                                                    if (new_step.type != 1)
+                                                    {
+                                                        task_orgin1.start_date = start_date != null && start_date != "" ? Convert.ToDateTime(start_task) : DateTime.Now;
+
+                                                        task_orgin1.end_date = (task_orgin1.start_date ?? DateTime.Now).AddMinutes((double)task_orgin1.process_time);
+                                                    }
+                                                    else
+                                                    {
+                                                        task_orgin1.start_date = start_date != null && start_date != "" ? Convert.ToDateTime(start_task) : DateTime.Now;
+                                                        task_orgin1.end_date = (task_orgin1.start_date ?? DateTime.Now).AddMinutes((double)task_orgin1.process_time);
+                                                    }
                                                     if (task_orgin1.start_date <= DateTime.Now && item.status == 0)
                                                     {
                                                         task_orgin1.start_real_date = DateTime.Now;
