@@ -682,6 +682,12 @@ namespace API.Controllers
                                                         mem.modified_date = null;
                                                         mem.modified_ip = null;
                                                         mem.modified_token_id = null;
+                                                        if (mem.user_id != uid)
+                                                        {
+                                                            helper.saveNotify(uid, mem.user_id, null, "Công việc",
+                                                                "Tạo công việc: " + (task_orgin1.task_name.Length > 100 ? task_orgin1.task_name.Substring(0, 97) + "..." : task_orgin1.task_name),
+                                                                 null, 2, -1, false, module_key, mem.task_id, null, null, tid, ip);
+                                                        }
                                                     }
                                                     db.task_member.AddRange(members);
                                                 }
@@ -722,7 +728,16 @@ namespace API.Controllers
                                 db.task_logs.Add(log);
                                 db.SaveChanges();
                             }
+                            string ssid = task_id;
+                            var listuser = db.task_member.Where(x => x.task_id == ssid).Select(x => x.user_id).Distinct().ToList();
+                            string task_name = db.task_origin.Where(x => x.task_id == ssid).Select(x => x.task_name).FirstOrDefault().ToString();
+                            listuser.Remove(uid);
 
+                            foreach (var l in listuser)
+                            {
+                                helper.saveNotify(uid, l, null, "Công việc", "Thêm quy trình công việc: " + (task_name.Length > 100 ? task_name.Substring(0, 97) + "..." : task_name),
+                                    null, 2, -1, false, module_key, ssid, null, null, tid, ip);
+                            }
                         }
 
                         return Request.CreateResponse(HttpStatusCode.OK, new { err = "0" });
