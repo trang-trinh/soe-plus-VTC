@@ -45,6 +45,7 @@ const props = defineProps({
   data: Object,
   isClose: Boolean,
   openAddTask: Function,
+  loadChildTask: Function,
 });
 
 const DialogVisible = ref();
@@ -594,7 +595,7 @@ const saveStep = (isFormValid) => {
   listTask.value.forEach((x) => {
     listID.push({ task_id_follow: x.task_id });
   });
-
+  taskStep.value.is_template = false;
   formData.append("task_step", JSON.stringify(taskStep.value));
   formData.append("task_follow_task", JSON.stringify(listID));
   axios({
@@ -804,7 +805,7 @@ const closeDetail = () => {
 const CopyFollow = ref(false);
 const headerCopyFollow = ref();
 const listDropdownFollow = ref([]);
-const selectedFollowTemplate = ref();
+const selectedFollowTemplate = ref({ template: null, start_date: null });
 const loadFollowTemplate = () => {
   axios
     .post(
@@ -827,6 +828,7 @@ const loadFollowTemplate = () => {
     .then((response) => {
       listDropdownFollow.value = [];
       let data = JSON.parse(response.data.data)[0];
+
       if (data.length > 0) {
         data.forEach((x, i) => {
           let k = {
@@ -835,7 +837,7 @@ const loadFollowTemplate = () => {
           };
           listDropdownFollow.value.push(k);
           if (i == 0) {
-            selectedFollowTemplate.value = k.value;
+            selectedFollowTemplate.value.template = k.value;
           }
         });
       }
@@ -853,9 +855,53 @@ const loadFollowTemplate = () => {
 };
 const AddTemplateToTask = () => {
   submitted2.value = true;
-  if (selectedFollowTemplate.value == null) {
+  if (selectedFollowTemplate.value.template == null) {
     return;
   }
+  let formData = new FormData();
+  formData.append(
+    "follow_id",
+    JSON.stringify(selectedFollowTemplate.value.template),
+  );
+  formData.append("task_id", JSON.stringify(props.id));
+  formData.append(
+    "start_date",
+    JSON.stringify(selectedFollowTemplate.value.start_date),
+  );
+  axios({
+    method: "post",
+    url: baseURL + "/api/task_follow/" + "addFollowToTask",
+    data: formData,
+    headers: {
+      Authorization: `Bearer ${store.getters.token}`,
+    },
+  })
+    .then((response) => {
+      if (response.data.err != "1") {
+        swal.close();
+        props.loadChildTask();
+        loadData();
+        toast.success("Thêm quy trình công việc thành công");
+        CopyFollow.value = false;
+      } else {
+        let ms = response.data.ms;
+        swal.fire({
+          title: "Thông báo!",
+          html: ms,
+          icon: "error",
+          confirmButtonText: "OK",
+        });
+      }
+    })
+    .catch((error) => {
+      swal.close();
+      swal.fire({
+        title: "Thông báo",
+        text: "Có lỗi xảy ra, vui lòng kiểm tra lại!" + error,
+        icon: "error",
+        confirmButtonText: "OK",
+      });
+    });
 };
 const submitted2 = ref(false);
 const openSelectFollow = () => {
@@ -863,6 +909,7 @@ const openSelectFollow = () => {
   headerCopyFollow.value = "Chọn quy trình công việc";
   loadFollowTemplate();
   submitted2.value = false;
+  selectedFollowTemplate.value = { template: null, start_date: new Date() };
 };
 onMounted(() => {
   let type = [];
@@ -1069,16 +1116,16 @@ onMounted(() => {
         </div>
       </template>
       <template #expansion="slotProps">
-        <div>
-          <div
-            v-if="
-              slotProps.data.task_follow_step != null &&
-              slotProps.data.task_follow_step.length > 0
-            "
-          >
-            <div class="multi-step numbered">
-              <div class="buttonfunc">
-                <!-- <Button
+        <div
+          class="w-full"
+          v-if="
+            slotProps.data.task_follow_step != null &&
+            slotProps.data.task_follow_step.length > 0
+          "
+        >
+          <div class="multi-step numbered">
+            <div class="buttonfunc">
+              <!-- <Button
                   class="mx-1"
                   icon="pi pi-plus"
                   v-tooltip="'Thêm bước'"
@@ -1089,72 +1136,202 @@ onMounted(() => {
                   "
                   @click="openStepDialog(slotProps.data)"
                 ></Button> -->
-                <Button
-                  class="mx-1 p-button-outlined p-button-rounded"
-                  icon="pi pi-pencil"
-                  v-tooltip="'Sửa bước đang chọn'"
-                  v-if="
-                    (user.is_admin == true || TypeMember == 0) &&
-                    (slotProps.data.index
-                      ? slotProps.data.index
-                      : indexSelected) != null &&
-                    props.isClose != true
-                  "
-                  @click="
-                    openEditStepDialog(
-                      slotProps.data.task_follow_step[
-                        slotProps.data.index
-                          ? slotProps.data.index
-                          : indexSelected
-                      ],
-                      slotProps.data,
-                    )
-                  "
-                ></Button>
-                <Button
-                  class="mx-1 p-button-danger p-button-outlined p-button-raised p-button-rounded"
-                  icon="pi pi-trash"
-                  v-tooltip="'Xóa bước đang chọn'"
-                  v-if="
-                    (user.is_admin == true || TypeMember == 0) &&
-                    (slotProps.data.index
-                      ? slotProps.data.index
-                      : indexSelected) != null &&
-                    props.isClose != true
-                  "
-                  @click="
-                    DeleteStep(
-                      slotProps.data.task_follow_step[
-                        slotProps.data.index
-                          ? slotProps.data.index
-                          : indexSelected
-                      ],
-                      true,
-                    )
-                  "
-                ></Button>
-              </div>
-              <ul class="multi-step-list">
-                <li
-                  class="multi-step-item active"
-                  v-for="(item, index) in slotProps.data.task_follow_step"
-                  :key="index"
-                  :class="[
-                    {
-                      current: slotProps.data.index
-                        ? index == slotProps.data.index
-                        : index == indexSelected,
-                    },
-                  ]"
-                  @click="selectStep(item, index)"
+              <Button
+                class="mx-1 p-button-outlined p-button-rounded"
+                icon="pi pi-pencil"
+                v-tooltip="'Sửa bước đang chọn'"
+                v-if="
+                  (user.is_admin == true || TypeMember == 0) &&
+                  (slotProps.data.index
+                    ? slotProps.data.index
+                    : indexSelected) != null &&
+                  props.isClose != true
+                "
+                @click="
+                  openEditStepDialog(
+                    slotProps.data.task_follow_step[
+                      slotProps.data.index
+                        ? slotProps.data.index
+                        : indexSelected
+                    ],
+                    slotProps.data,
+                  )
+                "
+              ></Button>
+              <Button
+                class="mx-1 p-button-danger p-button-outlined p-button-raised p-button-rounded"
+                icon="pi pi-trash"
+                v-tooltip="'Xóa bước đang chọn'"
+                v-if="
+                  (user.is_admin == true || TypeMember == 0) &&
+                  (slotProps.data.index
+                    ? slotProps.data.index
+                    : indexSelected) != null &&
+                  props.isClose != true
+                "
+                @click="
+                  DeleteStep(
+                    slotProps.data.task_follow_step[
+                      slotProps.data.index
+                        ? slotProps.data.index
+                        : indexSelected
+                    ],
+                    true,
+                  )
+                "
+              ></Button>
+            </div>
+            <ul class="multi-step-list">
+              <li
+                class="multi-step-item active"
+                v-for="(item, index) in slotProps.data.task_follow_step"
+                :key="index"
+                :class="[
+                  {
+                    current: slotProps.data.index
+                      ? index == slotProps.data.index
+                      : index == indexSelected,
+                  },
+                ]"
+                @click="selectStep(slotProps.data, index)"
+              >
+                <div
+                  class="item-wrap flex align-items-center justify-content-center"
                 >
-                  <div
-                    class="item-wrap flex align-items-center justify-content-center"
-                  >
-                    <p class="item-title text-center">{{ item.step_name }}</p>
+                  <p class="item-title text-center">{{ item.step_name }}</p>
+                </div>
+              </li>
+            </ul>
+          </div>
+        </div>
+        <div
+          v-else
+          class="top-50 block row col-12 align-items-center justify-content-center p-4 text-center"
+        >
+          <img
+            src="../../../assets/background/nodata.png"
+            height="144"
+          />
+          <h3 class="m-1">Quy trình chưa có các bước thực hiện!</h3>
+        </div>
+        <div
+          v-if="
+            slotProps.data.task_follow_step != null &&
+            slotProps.data.task_follow_step.length > 0
+          "
+        >
+          <div
+            v-if="
+              slotProps.data.task_follow_step[indexSelected].task_info.length >
+              0
+            "
+          >
+            <div
+              class="m-2 grid align-items-center justify-content-center flex-column"
+              v-for="(item2, index2) in slotProps.data.task_follow_step[
+                slotProps.data.index ? slotProps.data.index : indexSelected
+              ].task_info"
+              :key="index2"
+            >
+              <Card
+                class="bg-bluegray-50 w-30rem card-hover"
+                @click="onNodeSelect(item2.task_id)"
+              >
+                <template #title>
+                  <span class="font-bold text-xl">
+                    Công việc:
+                    <span class="text-blue-700"> {{ item2.task_name }}</span>
+                  </span>
+                </template>
+                <template #subtitle>
+                  <div class="flex justify-content-center align-items-center">
+                    <span
+                      v-if="item2.start_date || item2.end_date"
+                      style="color: #98a9bc"
+                    >
+                      <i
+                        style="margin-right: 5px"
+                        class="pi pi-calendar"
+                      >
+                      </i>
+                      {{
+                        item2.start_date
+                          ? moment(new Date(item2.start_date)).format(
+                              "DD/MM/YYYY",
+                            )
+                          : null
+                      }}
+                      -
+                      {{
+                        item2.end_date
+                          ? moment(new Date(item2.end_date)).format(
+                              "DD/MM/YYYY",
+                            )
+                          : null
+                      }}
+                    </span>
                   </div>
-                </li>
-              </ul>
+                </template>
+                <template #content>
+                  <div
+                    class="w-50 flex justify-content-center align-items-center"
+                  >
+                    <span
+                      class=""
+                      :style="{
+                        background: item2.status_display.bg_color,
+                        color: item2.status_display.text_color,
+                        padding: '2px 8px',
+                        border: '1px solid' + item2.status_display.bg_color,
+                        borderRadius: '5px',
+                      }"
+                    >
+                      {{ item2.status_display.text }}
+                    </span>
+                  </div>
+                </template>
+                <template #footer>
+                  <div
+                    v-if="item2.progress != 0"
+                    style="width: 100%"
+                  >
+                    <ProgressBar :value="item2.progress ?? 0" /></div
+                ></template>
+              </Card>
+
+              <icon
+                v-tooltip="'Tuần tự'"
+                class="py-2 pi pi-arrow-down font-bold text-2xl flex justify-content-center"
+                v-if="
+                  slotProps.data.task_follow_step[
+                    slotProps.data.index ? slotProps.data.index : indexSelected
+                  ].type == 1 &&
+                  index2 <
+                    slotProps.data.task_follow_step[
+                      slotProps.data.index
+                        ? slotProps.data.index
+                        : indexSelected
+                    ].task_info.length -
+                      1
+                "
+              ></icon>
+              <icon
+                class="py-2 pi pi-sort-alt font-bold text-2xl flex justify-content-center"
+                v-tooltip="'Song song'"
+                v-if="
+                  slotProps.data.task_follow_step[
+                    slotProps.data.index ? slotProps.data.index : indexSelected
+                  ].type == 2 &&
+                  index2 <
+                    slotProps.data.task_follow_step[
+                      slotProps.data.index
+                        ? slotProps.data.index
+                        : indexSelected
+                    ].task_info.length -
+                      1
+                "
+              >
+              </icon>
             </div>
           </div>
           <div
@@ -1165,142 +1342,7 @@ onMounted(() => {
               src="../../../assets/background/nodata.png"
               height="144"
             />
-            <h3 class="m-1">Quy trình chưa có các bước thực hiện!</h3>
-          </div>
-          <div
-            v-if="
-              slotProps.data.task_follow_step != null &&
-              slotProps.data.task_follow_step.length > 0
-            "
-          >
-            <div
-              v-if="
-                slotProps.data.task_follow_step[indexSelected].task_info
-                  .length > 0
-              "
-            >
-              <div
-                class="m-2 grid align-items-center justify-content-center flex-column"
-                v-for="(item2, index2) in slotProps.data.task_follow_step[
-                  slotProps.data.index ? slotProps.data.index : indexSelected
-                ].task_info"
-                :key="index2"
-              >
-                <Card
-                  class="bg-bluegray-50 w-30rem card-hover"
-                  @click="onNodeSelect(item2.task_id)"
-                >
-                  <template #title>
-                    <span class="font-bold text-xl">
-                      Công việc:
-                      <span class="text-blue-700"> {{ item2.task_name }}</span>
-                    </span>
-                  </template>
-                  <template #subtitle>
-                    <div class="flex justify-content-center align-items-center">
-                      <span
-                        v-if="item2.start_date || item2.end_date"
-                        style="color: #98a9bc"
-                      >
-                        <i
-                          style="margin-right: 5px"
-                          class="pi pi-calendar"
-                        >
-                        </i>
-                        {{
-                          item2.start_date
-                            ? moment(new Date(item2.start_date)).format(
-                                "DD/MM/YYYY",
-                              )
-                            : null
-                        }}
-                        -
-                        {{
-                          item2.end_date
-                            ? moment(new Date(item2.end_date)).format(
-                                "DD/MM/YYYY",
-                              )
-                            : null
-                        }}
-                      </span>
-                    </div>
-                  </template>
-                  <template #content>
-                    <div
-                      class="w-50 flex justify-content-center align-items-center"
-                    >
-                      <span
-                        class=""
-                        :style="{
-                          background: item2.status_display.bg_color,
-                          color: item2.status_display.text_color,
-                          padding: '2px 8px',
-                          border: '1px solid' + item2.status_display.bg_color,
-                          borderRadius: '5px',
-                        }"
-                      >
-                        {{ item2.status_display.text }}
-                      </span>
-                    </div>
-                  </template>
-                  <template #footer>
-                    <div
-                      v-if="item2.progress != 0"
-                      style="width: 100%"
-                    >
-                      <ProgressBar :value="item2.progress ?? 0" /></div
-                  ></template>
-                </Card>
-
-                <icon
-                  v-tooltip="'Tuần tự'"
-                  class="py-2 pi pi-arrow-down font-bold text-2xl flex justify-content-center"
-                  v-if="
-                    slotProps.data.task_follow_step[
-                      slotProps.data.index
-                        ? slotProps.data.index
-                        : indexSelected
-                    ].type == 1 &&
-                    index2 <
-                      slotProps.data.task_follow_step[
-                        slotProps.data.index
-                          ? slotProps.data.index
-                          : indexSelected
-                      ].task_info.length -
-                        1
-                  "
-                ></icon>
-                <icon
-                  class="py-2 pi pi-sort-alt font-bold text-2xl flex justify-content-center"
-                  v-tooltip="'Song song'"
-                  v-if="
-                    slotProps.data.task_follow_step[
-                      slotProps.data.index
-                        ? slotProps.data.index
-                        : indexSelected
-                    ].type == 2 &&
-                    index2 <
-                      slotProps.data.task_follow_step[
-                        slotProps.data.index
-                          ? slotProps.data.index
-                          : indexSelected
-                      ].task_info.length -
-                        1
-                  "
-                >
-                </icon>
-              </div>
-            </div>
-            <div
-              v-else
-              class="top-50 block row col-12 align-items-center justify-content-center p-4 text-center"
-            >
-              <img
-                src="../../../assets/background/nodata.png"
-                height="144"
-              />
-              <h3 class="m-1">Chưa có công việc được giao!</h3>
-            </div>
+            <h3 class="m-1">Chưa có công việc được giao!</h3>
           </div>
         </div>
       </template>
@@ -1982,12 +2024,12 @@ onMounted(() => {
     :header="headerCopyFollow"
   >
     <div class="col-12 flex">
-      <div class="col-4">Quy trình mẫu:</div>
+      <div class="col-4">Quy trình mẫu</div>
       <Dropdown
-        v-model="selectedFollowTemplate"
+        v-model="selectedFollowTemplate.template"
         :options="listDropdownFollow"
         optionLabel="label"
-        placeholder="Chọn trình tự"
+        placeholder="Chọn quy trình"
         panelClass="d-design-dropdown"
         class="col-8 py-0"
         optionValue="value"
@@ -2000,12 +2042,28 @@ onMounted(() => {
       <div class="col-4 p-0"></div>
       <div class="col-8">
         <small
-          v-if="submitted2 && selectedFollowTemplate == null"
-          :class="{ 'p-error': submitted2 && selectedFollowTemplate == null }"
+          v-if="submitted2 && selectedFollowTemplate.template == null"
+          :class="{
+            'p-error': submitted2 && selectedFollowTemplate.template == null,
+          }"
         >
           Mẫu quy trình không được để trống!
         </small>
       </div>
+    </div>
+    <div class="col-12 flex">
+      <div class="col-4">Ngày bắt đầu</div>
+      <Calendar
+        v-model="selectedFollowTemplate.start_date"
+        :showIcon="true"
+        :showTime="true"
+        class="col-8 px-0"
+        manualInput
+        :minDate="props.data.start_date ? new Date(props.data.start_date) : ''"
+        :maxDate="props.data.end_date ? new Date(props.data.end_date) : ''"
+        showButtonBar
+      >
+      </Calendar>
     </div>
     <template #footer>
       <div class="mt-2">
@@ -2063,7 +2121,7 @@ $animation-time: 0.5s;
   flex-direction: row;
   justify-content: flex-start;
   list-style-type: none;
-  padding: 10px 10px 0px 10px;
+  padding: 10px 10px 10px 10px;
   overflow: auto;
   background: #efefef;
 

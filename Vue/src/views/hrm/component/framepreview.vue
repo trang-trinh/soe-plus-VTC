@@ -40,7 +40,7 @@ const initData = () => {
           encr(JSON.stringify(o), SecretKey, cryoptojs).toString()
         );
         url =
-          "https://doconline.soe.vn/report/" +
+          "/hrm/profile/report/" +
           url.replaceAll("%", "==") +
           "?v=" +
           new Date().getTime().toString();
@@ -66,7 +66,7 @@ const initData = () => {
           encr(JSON.stringify(o), SecretKey, cryoptojs).toString()
         );
         url =
-          "https://doconline.soe.vn/report/" +
+          "/hrm/profile/report/" +
           url.replaceAll("%", "==") +
           "?v=" +
           new Date().getTime().toString();
@@ -92,7 +92,7 @@ const initData = () => {
           encr(JSON.stringify(o), SecretKey, cryoptojs).toString()
         );
         url =
-          "https://doconline.soe.vn/decided/" +
+          "/hrm/profile/report/" +
           url.replaceAll("%", "==") +
           "?v=" +
           new Date().getTime().toString();

@@ -156,13 +156,7 @@ namespace API.Controllers
                             File.Move(ffileData.LocalFileName, filePath);
 
                         }
-                        //FileStream fs = File.OpenRead(fileData.LocalFileName);
-                        //using (var fileStream = new FileStream(filePath, FileMode.Create))
-                        //{
-                        //    fs.CopyTo(fileStream);
-                        //    fileStream.Close();
-                        //    fs.Close();
-                        //}
+              
                         if (isxls)
                         {
                             var workbook = new Workbook(filePath);
@@ -282,21 +276,58 @@ namespace API.Controllers
                         return Request.CreateResponse(HttpStatusCode.OK, new { err = "1", ms = "Không có file up load!" });
                     }
                     List<String> htmls = new List<string>();
-                    foreach (MultipartFileData ufile in provider.FileData)
+                    FileInfo fileInfo = null;
+                    MultipartFileData ffileData = null;
+                    foreach (MultipartFileData fileData in provider.FileData)
                     {
+
                         var html = "";
-                        var fileName = Path.GetFileName(ufile.Headers.ContentDisposition.FileName);
-                        //var filePath = Path.Combine(Directory.GetCurrentDirectory(), @"wwwroot/Portals", fileName);
-                        var filePath = Path.Combine(AppDomain.CurrentDomain.BaseDirectory, "Portals", fileName);
+                        string fileName = "";
+                        if (string.IsNullOrEmpty(fileData.Headers.ContentDisposition.FileName))
+                        {
+                            fileName = Guid.NewGuid().ToString();
+                        }
+                        fileName = fileData.Headers.ContentDisposition.FileName;
+                        if (fileName.StartsWith("\"") && fileName.EndsWith("\""))
+                        {
+                            fileName = fileName.Trim('"');
+                        }
+                        if (fileName.Contains(@"/") || fileName.Contains(@"\"))
+                        {
+                            fileName = Path.GetFileName(fileName);
+                        }
+
+
+                        var extype = Path.GetExtension(fileName);
+                        fileName = System.Guid.NewGuid().ToString() + extype;
+                        bool isxls = fileName.ToLower().Contains(".xls");
+                        var filePath = Path.Combine(root, @"/Portals", fileName);
                         var filePathHTML = filePath + ".html";
 
-                        FileStream fs = File.OpenRead(ufile.LocalFileName);
-                        using (var fileStream = new FileStream(filePath, FileMode.Create))
+                        fileInfo = new FileInfo(filePath);
+
+                        ffileData = fileData;
+                        if (fileInfo != null)
                         {
-                            fs.CopyTo(fileStream);
-                            fileStream.Close();
-                            fs.Close();
+                            if (!Directory.Exists(fileInfo.Directory.FullName))
+                            {
+                                Directory.CreateDirectory(fileInfo.Directory.FullName);
+                            }
+                            File.Move(ffileData.LocalFileName, filePath);
+
                         }
+
+
+
+                     
+
+                        //FileStream fs = File.OpenRead(filePath);
+                        //using (var fileStream = new FileStream(filePath, FileMode.Create))
+                        //{
+                        //    fs.CopyTo(fileStream);
+                        //    fileStream.Close();
+                        //    fs.Close();
+                        //}
                         var workbook = new Workbook(filePath);
                         Aspose.Cells.HtmlSaveOptions opts = new Aspose.Cells.HtmlSaveOptions();
                         opts.ExportImagesAsBase64 = true;

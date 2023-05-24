@@ -1367,15 +1367,21 @@ const initView1 = (rf) => {
                 new Date(x["identification_date_issue"])
               ).format("DD/MM/YYYY");
             }
+            // if (x["start_date"] != null) {
+            //   x["start_date"] = moment(new Date(x["start_date"])).format("DD/MM/YYYY");
+            // }
+            // if (x["end_date"] != null) {
+            //   x["end_date"] = moment(new Date(x["end_date"])).format("DD/MM/YYYY");
+            // }
             if (x["start_date"] != null) {
-              x["start_date"] = moment(new Date(x["start_date"])).format(
-                "DD/MM/YYYY"
-              );
+              if (moment(x["start_date"], moment.ISO_8601, true).isValid()) {
+                x["start_date"] = moment(new Date(x["start_date"])).format("DD/MM/YYYY");
+              }
             }
             if (x["end_date"] != null) {
-              x["end_date"] = moment(new Date(x["end_date"])).format(
-                "DD/MM/YYYY"
-              );
+              if (moment(x["end_date"], moment.ISO_8601, true).isValid()) {
+                x["end_date"] = moment(new Date(x["end_date"])).format("DD/MM/YYYY");
+              }
             }
             //
             var idx = dictionarys.value[11].findIndex(
@@ -1473,15 +1479,21 @@ const initView1 = (rf) => {
         }
         if (tbs[3] != null && tbs[3].length > 0) {
           tbs[3].forEach((x) => {
+            // if (x["start_date"] != null) {
+            //   x["start_date"] = moment(new Date(x["start_date"])).format("DD/MM/YYYY");
+            // }
+            // if (x["end_date"] != null) {
+            //   x["end_date"] = moment(new Date(x["end_date"])).format("DD/MM/YYYY");
+            // }
             if (x["start_date"] != null) {
-              x["start_date"] = moment(new Date(x["start_date"])).format(
-                "DD/MM/YYYY"
-              );
+              if (moment(x["start_date"], moment.ISO_8601, true).isValid()) {
+                x["start_date"] = moment(new Date(x["start_date"])).format("DD/MM/YYYY");
+              }
             }
             if (x["end_date"] != null) {
-              x["end_date"] = moment(new Date(x["end_date"])).format(
-                "DD/MM/YYYY"
-              );
+              if (moment(x["end_date"], moment.ISO_8601, true).isValid()) {
+                x["end_date"] = moment(new Date(x["end_date"])).format("DD/MM/YYYY");
+              }
             }
             //
             var idx = forms.value.findIndex((a) => a["value"] === x["form"]);
@@ -1496,12 +1508,14 @@ const initView1 = (rf) => {
         if (tbs[4] != null && tbs[4].length > 0) {
           tbs[4].forEach((x) => {
             if (x["start_date"] != null) {
-              x["start_date"] = moment(new Date(x["start_date"])).format(
-                "MM/YYYY"
-              );
+              if (moment(x["start_date"], moment.ISO_8601, true).isValid()) {
+                x["start_date"] = moment(new Date(x["start_date"])).format("MM/YYYY");
+              }
             }
             if (x["end_date"] != null) {
-              x["end_date"] = moment(new Date(x["end_date"])).format("MM/YYYY");
+              if (moment(x["end_date"], moment.ISO_8601, true).isValid()) {
+                x["end_date"] = moment(new Date(x["end_date"])).format("MM/YYYY");
+              }
             }
           });
           datachilds.value[4] = tbs[4];
@@ -1930,7 +1944,7 @@ const initView5 = (rf) => {
       },
     });
   }
-
+   
   axios
     .post(
       baseURL + "/api/hrm/callProc",
@@ -1956,6 +1970,7 @@ const initView5 = (rf) => {
         if (data != null) {
           if (data[0].length == 1) {
             var dtcheck = data[0][0];
+            
             if (
               dtcheck.payroll_month == month.value.getMonth() + 1 &&
               dtcheck.payroll_year == year.value.getFullYear()
@@ -4835,7 +4850,7 @@ const formatViewNumber = (value, partDecimal) => {
                 >
                   <Column
                     field="contract_code"
-                    header="Mã HĐ"
+                    header="Số HĐ"
                     headerStyle="text-align:center;max-width:80px;height:50px"
                     bodyStyle="text-align:center;max-width:80px;"
                     class="align-items-center justify-content-center text-center"
@@ -4984,7 +4999,7 @@ const formatViewNumber = (value, partDecimal) => {
             <div v-show="options.view === 5" class="f-full">
               <div v-if="checkPayroll != null">
                 <div
-                  class="bg-white h-full"
+                  class="bg-white dt-lang-table-1"
                   v-if="checkPayroll == false && report"
                 >
                   <DocComponent
@@ -6494,12 +6509,16 @@ const formatViewNumber = (value, partDecimal) => {
 </template>
 <style scoped>
 @import url(../../profile/component/stylehrm.css);
-.dt-lang-table {
+.dt-lang-table-1 {
   height: calc(100vh - 170px) !important;
   background-color: #fff;
   overflow: hidden;
 }
-.d-lang-table {
+.dt-lang-table {
+  height: calc(100vh - 170px) !important;
+  background-color: #fff;
+  overflow: hidden;
+}.d-lang-table {
   height: calc(100vh - 156px) !important;
   background-color: #fff;
   overflow: hidden;
