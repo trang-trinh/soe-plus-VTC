@@ -2635,13 +2635,18 @@ onMounted(() => {
                       class="align-items-center justify-content-center text-center"
                     >
                       <template #body="slotProps">
-                        <Calendar
+                        <!-- <Calendar
                           v-model="slotProps.data.start_date"
                           :showIcon="false"
                           view="month"
                           dateFormat="mm/yy"
                           class="ip36"
                           placeholder="mm/yyyy"
+                        /> -->
+                        <InputText
+                          v-model="slotProps.data.start_date"
+                          class="ip36"
+                          maxLength="250"
                         />
                       </template>
                     </Column>
@@ -2653,13 +2658,18 @@ onMounted(() => {
                       class="align-items-center justify-content-center text-center"
                     >
                       <template #body="slotProps">
-                        <Calendar
+                        <!-- <Calendar
                           v-model="slotProps.data.end_date"
                           :showIcon="false"
                           view="month"
                           dateFormat="mm/yy"
                           class="ip36"
                           placeholder="mm/yyyy"
+                        /> -->
+                        <InputText
+                          v-model="slotProps.data.end_date"
+                          class="ip36"
+                          maxLength="250"
                         />
                       </template>
                     </Column>
@@ -4134,35 +4144,36 @@ onMounted(() => {
   >
     <form @submit.prevent="" name="submitform">
       <div class="grid formgrid m-2">
-        <div class="col-12 md:col-12">
-          <div class="form-group">
-            <label>Văn bằng:</label>
-          </div>
-        </div>
         <div class="col-3 md:col-3">
           <div class="form-group">
             <label>Từ tháng, năm</label>
-            <Calendar
+            <!-- <Calendar
               v-model="model.start_date"
               :showIcon="false"
               view="month"
               dateFormat="mm/yy"
               class="ip36"
               placeholder="mm/yyyy"
+            /> -->
+            <InputText
+              v-model="model.start_date"
+              class="ip36"
+              maxLength="250"
             />
           </div>
         </div>
         <div class="col-3 md:col-3">
           <div class="form-group">
             <label>Đến tháng, năm</label>
-            <Calendar
+            <!-- <Calendar
               v-model="model.end_date"
               :showIcon="false"
               view="month"
               dateFormat="mm/yy"
               class="ip36"
               placeholder="mm/yyyy"
-            />
+            /> -->
+            <InputText v-model="model.end_date" class="ip36" maxLength="250" />
           </div>
         </div>
         <div class="col-6 md:col-6">
