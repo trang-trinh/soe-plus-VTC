@@ -2501,7 +2501,6 @@ namespace API.Controllers.HRM.Profile
                                                                 if (p != null)
                                                                 {
                                                                     relative.profile_id = p.profile_id;
-                                                                    relative.relationship_id = p.organization_id;
                                                                     rlstt = db.hrm_profile_relative.Count(x => x.profile_id == p.profile_id) + 1;
                                                                 }
                                                                 break;
@@ -2819,16 +2818,16 @@ namespace API.Controllers.HRM.Profile
                                                                 experience.address = value;
                                                                 break;
                                                             case "6":
-                                                                experience.start_date = DateTime.ParseExact(value, "dd/MM/yyyy", CultureInfo.InvariantCulture);
+                                                                experience.start_date = value;
                                                                 break;
                                                             case "7":
-                                                                experience.end_date = DateTime.ParseExact(value, "dd/MM/yyyy", CultureInfo.InvariantCulture);
+                                                                experience.end_date = value;
                                                                 break;
                                                             case "8":
                                                                 experience.title = value;
                                                                 break;
                                                             case "9":
-                                                                experience.wage = value;
+                                                                experience.role = value;
                                                                 break;
                                                             case "10":
                                                                 experience.description = value;
@@ -3074,7 +3073,7 @@ namespace API.Controllers.HRM.Profile
                         }
                         catch (DbEntityValidationException e)
                         {
-                            return Request.CreateResponse(HttpStatusCode.OK, new { err = "1", ms = e.Message });
+                            return Request.CreateResponse(HttpStatusCode.OK, new { err = "1", ms = e });
                         }
                         catch (Exception e)
                         {
