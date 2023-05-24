@@ -820,6 +820,7 @@ const initDictionary = () => {
           dictionarys.value = tbs;
 
           if (tbs[3] != null && tbs[3].length > 0) {
+             
             tbs[3].forEach((item) => {
               itemAddItems.value.push({
                 label: item.type_decision_name,

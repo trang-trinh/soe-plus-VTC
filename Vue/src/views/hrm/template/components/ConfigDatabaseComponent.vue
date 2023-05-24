@@ -76,6 +76,7 @@ export default {
           let dts = JSON.parse(axResponse.data.data)[0];
           dtPars.value = dts;
           if (mdProc.value) {
+            debugger
             let sql = mdProc.value.proc_name + " ";
             let dfs = props.report.proc_name
               ? props.report.proc_name.split(" ")
@@ -87,6 +88,7 @@ export default {
             // if (mdProc.value.proc_des) {
             //     sql = mdProc.value.proc_des;
             // }
+             
             goSQL(sql);
           }
         }
@@ -119,7 +121,7 @@ export default {
         if (axResponse.data.error) {
           toast.error("Không mở được bản ghi");
         } else {
-          debugger
+           
           dtTables.value = [];
           let dts = JSON.parse(axResponse.data.data);
           dts.forEach((dt, i) => {
@@ -191,8 +193,8 @@ export default {
           {
             headers: { Authorization: `Bearer ${store.getters.token}` },
           }
-        );
-  
+        ); 
+   
         if (axResponse.status == 200) {
           if (axResponse.data.error) {
             toast.error("Không tải được dữ liệu");
@@ -200,7 +202,7 @@ export default {
             let dts = JSON.parse(axResponse.data.data);
             dtProcs.value = dts[0];
             mdProc.value = dtProcs.value[0];
-            debugger
+             
             if (
               props.report.report_config &&
               props.report.report_config.trim() != ""
@@ -209,9 +211,10 @@ export default {
               if (objConfig && objConfig.proc) {
                 dtPars.value = objConfig.proc.parameters;
                 txtSQL.value = objConfig.proc.sql;
+                 
                 goProc();
               } else {
-
+                 
                 goProc();
               }
             } else {
@@ -242,7 +245,7 @@ export default {
         tbc.cols = [cc];
         tbchons.push(tbc);
       });
-      debugger
+       
       props.callbackFun(tbchons, {
         name: mdProc.value ? mdProc.value.proc_name : "",
         parameters: dtPars.value,
@@ -251,14 +254,14 @@ export default {
       });
     };
     onMounted(() => {
-        
+         
       if (
         props.report.proc_name &&
         props.report.proc_name.toLowerCase().includes("select")
       ) {
         mdTable.value = { stt: 0, tid: 0, cols: [], issql: true };
         txtSQL.value = props.report.proc_name;
-        
+         
         goSQL(txtSQL.value);
       } else if (dtProcs.value.length == 0) {
         listProc();

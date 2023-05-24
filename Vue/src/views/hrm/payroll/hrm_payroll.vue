@@ -503,7 +503,7 @@ const configPayroll = async (row) => {
            
             if (obj.is_config) {
                 payroll.value.payroll_config = obj.is_config;
-                  
+                   
                 saveDGLuong();
                 return false;
             }
@@ -511,8 +511,10 @@ const configPayroll = async (row) => {
             saveDGLuongUser(obj);
         }
         const saveDGLuongUser = async (r) => {
-           
-           var arrck=r.is_data[0][report.value.sum_key];
+          debugger
+          var arrck=null;
+           if(r.is_data)
+             arrck=r.is_data[0][report.value.sum_key];
            if(!arrck)
            arrck=null;
             let strSQL = {
@@ -566,7 +568,7 @@ const configPayroll = async (row) => {
                
                 ok = false;
             }
-            if (!payroll.value.sign_name) {
+            if (!payroll.value.sign_user) {
               toast.warning("Vui lòng nhập tên người ký bảng lương.");
              
                 ok = false;
@@ -577,7 +579,7 @@ const configPayroll = async (row) => {
                     "query": false,
                     "proc": "hrm_payroll_add",
                     "par": [
-                    { "par": "payroll_id", "va": payroll.value.payroll_id },
+                        { "par": "payroll_id", "va": payroll.value.payroll_id },
                         { "par": "payroll_month", "va": payroll.value.payroll_month },
                         { "par": "payroll_year", "va": payroll.value.payroll_year },
                         { "par": "payroll_name", "va": payroll.value.payroll_name },
@@ -586,27 +588,26 @@ const configPayroll = async (row) => {
                         { "par": "sign_date", "va": payroll.value.sign_date },
                         { "par": "sign_user", "va": payroll.value.sign_user },
                         { "par": "profile_sign_id", "va": payroll.value.profile_sign_id },
+                        { "par": "declare_paycheck_id", "va": payroll.value.declare_paycheck_id },
+                     
                         { "par": "report_key", "va": payroll.value.report_key },
                         { "par": "status ", "va": payroll.value.status },
-                        { "par": "user_id", "va": payroll.value.user_id || store.getters.user.user_id },
-                        { "par": "ip", "va": payroll.value.ip || store.getters.ip },
-                        { "par": "organization_id", "va": payroll.value.organization_id || store.getters.user.organization_id },
+                        { "par": "user_id", "va":   store.getters.user.user_id },
+                        { "par": "ip", "va":   store.getters.ip },
+                        { "par": "organization_id", "va":  store.getters.user.organization_id },
                     ]
                 };
                 console.log(strSQL);
                 try {
-                    const axResponse = await axios
-                        .post(
-                            apiURL + "api/Proc/PostProc",
-                            encr(
-                                JSON.stringify(strSQL),
-                                SecretKey,
-                                cryoptojs
-                            ).toString(),
-                            {
-                                headers: { "Content-Type": "application/json" }
-                            }
-                        );
+                  const axResponse = await axios.post(
+        baseURL + "/api/HRM_SQL/PostProc",
+        {
+          str: encr(JSON.stringify(strSQL), SecretKey, cryoptojs).toString(),
+        },
+        {
+          headers: { Authorization: `Bearer ${store.getters.token}` },
+        }
+      );
 
                     if (axResponse.status == 200) {
                         displayBasic.value = false;

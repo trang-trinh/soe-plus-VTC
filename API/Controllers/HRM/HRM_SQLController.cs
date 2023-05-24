@@ -223,7 +223,7 @@ namespace API.Controllers.HRM
                     }
                     var arrpas = sqlpas.ToArray();
                     DateTime sdate = DateTime.Now;
-                    var task = System.Threading.Tasks.Task.Run(() => SqlHelper.ExecuteDataset(Connection, proc.proc, arrpas).Tables);
+                    var task = System.Threading.Tasks.Task.Run(() =>    SqlHelper.ExecuteDataset(Connection, proc.proc, arrpas).Tables);
                     var tables = await task;
                     DateTime edate = DateTime.Now;
                     #region add SQLLog

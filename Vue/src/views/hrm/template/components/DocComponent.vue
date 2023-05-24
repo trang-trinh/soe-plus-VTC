@@ -779,6 +779,7 @@ export default {
           x.className = "tablecell";
           x.innerHTML = i + 1;
         });
+         
         let tr = dochtml.querySelector("tbody").insertRow(0);
         tr.className = "tablecell";
         //Dòng trên
@@ -1266,7 +1267,7 @@ export default {
               dr.ok = false;
               objt.is_data = null;
             }
-            
+             
             props.callbackFun(objt);
           });
           isdataSidebar.value = false;
@@ -1420,7 +1421,7 @@ export default {
       formData.append("doc", event.files[0]);
       let xls = event.files[0].name.includes(".xls");
       let apimethod = xls ? "PostFileXLS" : "PostFile";
-      apimethod = "PostFile";
+      // apimethod = "PostFile";
       try {
         const response = await fetch(baseURL 
         //+ "api/Files/" 
@@ -1430,11 +1431,14 @@ export default {
           body: formData,
         });
         var data = await response.json();
-        let html = data.html;
+        
+        let html = data.htmls;
         dochtml.innerHTML = html;
         isxls.value = true;
         addExcelStyle();
+         
         await initDataTempAuto(true);
+        
         let rowmnumber = dtExcels.value[0].rowmnumber || 1;
         dochtml.querySelectorAll('[style*="display:none"]').forEach((tr) => {
           tr.remove();
@@ -1477,8 +1481,12 @@ export default {
             delete r.datatemp;
           }
         });
+         
+         
         await saveDatamap(false);
+         
         props.callbackFun({ is_config: JSON.stringify(objDataTemp.value) });
+
         showLoadding.value = false;
         isdataSidebar.value = false;
         initTemplate(true);
@@ -1510,6 +1518,7 @@ export default {
     };
     let dtUser = {};
     const initDataTempAuto = async (tf) => {
+       
       if (!isUrlReport.value) {
         let dts = await goProc(
           false,
@@ -1520,7 +1529,6 @@ export default {
         );
         dtUser = dts[0];
       }
-
       let stt = 0;
       let obj = { stt: 0, key: 0, value: "data-" + stt, cols: [] };
       let tagps = [];
@@ -1629,7 +1637,7 @@ export default {
       ) {
         try {
           objConfig = JSON.parse(props.report.report_config.trim());
-
+ 
           if (isUrlReport.value && Object.keys(props.pars).length > 0) {
             await initURLReport();
           } else if (Object.keys(objConfig.proc).length > 0) {
@@ -1696,6 +1704,7 @@ export default {
     };
     let tempHTMLGoc = "";
     const initTemplate = (fi) => {
+       
       if (fi != true) {
         //Nếu dùng Iframe
         let iframe = document.getElementById("docIframe");
@@ -1715,6 +1724,7 @@ export default {
         filename = change_unsigned(props.report.report_name.replace(/\t/g, "_").replace(/[/\\?%*:|"<>]/g, '-'), "_");
       }
       showLoadding.value = true;
+      
       if (props.report.report_template)
         isxls.value = props.report.report_template.startsWith("<!doctype");
       tempHTML = "";
@@ -1727,6 +1737,7 @@ export default {
         //divZoom.value = "0.75";
         addExcelStyle();
       }
+      debugger
       initDataTempAuto();
       if (dochtml) {
         tempHTMLGoc = dochtml.innerHTML;
@@ -1822,6 +1833,7 @@ export default {
     const IsOne = ref(false);
     const dbrow = ref({});
     const openCogDatabase = (row, f, o) => {
+       
       if (f) {
         if (row.isfor) {
           row.value = row.colname;
@@ -1945,6 +1957,7 @@ export default {
       a.remove();
     };
     const downloadFile = async (f) => {
+       
       if (tempHTML != "") {
         dochtml.innerHTML = tempHTML;
       } else {
@@ -2221,6 +2234,7 @@ export default {
       showLoadding.value = true;
       let dataHtml = { html: html, filename: filename || "doc" };
       try {
+        
         const axResponse = await axios.post(
           baseURL +
             //"api/Files/" +
@@ -2406,7 +2420,7 @@ export default {
         if (document.getElementById("app-body"))
           document.getElementById("app-body").classList.remove("p-2");
       }
-
+ 
       if (props.report) {
         initTemplate();
       }
@@ -2454,7 +2468,7 @@ export default {
       if (!objConfig.proc.name) {
         objConfig.proc.name = props.report.proc_name;
       }
-
+  
       dtDataReports.value = await goProc(
         objConfig.proc.issql,
         objConfig.proc.sql,
@@ -2497,7 +2511,7 @@ export default {
           headers: { Authorization: `Bearer ${store.getters.token}` },
         }
       );
-
+ 
       let dts = [];
 
       if (axResponse.status == 200) {
@@ -2583,7 +2597,8 @@ export default {
             va: objpar[pa.Parameter_name.replace("@", "")],
           });
         });
-
+        
+        debugger
       let dts = await goProc(false, objConfig.proc.name, pas, true);
       //init với kiểu lưu
       let tbs = [];
@@ -3105,7 +3120,7 @@ export default {
       if (props.report.is_config) {
         objDataTemp.value = props.report.is_config;
       }
-
+      debugger
       let dts = await goProc(true, props.report.proc_all, [], true);
       dtDataReports.value.forEach((dt) => {
         let tb = dts[0].find((x) => x.profile_id == dt.profile_id);
@@ -3205,7 +3220,7 @@ export default {
           va: r[pa.Parameter_name.replace("@", "")],
         });
       });
-
+       
       let dts = await goProc(false, objConfig.proc.name, pas, true);
       objForm.value = dts[0][0];
       cForm.value = r;
@@ -3217,7 +3232,7 @@ export default {
             va: rcopy[pa.Parameter_name.replace("@", "")],
           });
         });
-
+        debugger
         let dts = await goProc(false, objConfig.proc.name, pas, true);
         if (dts.length > 0) {
           objForm.value.is_data = dts[0][0].is_data;
