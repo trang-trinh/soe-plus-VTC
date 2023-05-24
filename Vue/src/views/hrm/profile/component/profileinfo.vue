@@ -4836,7 +4836,7 @@ const formatViewNumber = (value, partDecimal) => {
                 >
                   <Column
                     field="contract_code"
-                    header="Mã HĐ"
+                    header="Số HĐ"
                     headerStyle="text-align:center;max-width:80px;height:50px"
                     bodyStyle="text-align:center;max-width:80px;"
                     class="align-items-center justify-content-center text-center"
