@@ -627,14 +627,14 @@ const editItem = (item, str) => {
           datachilds.value[3] = [];
         }
         if (tbs[4] != null && tbs[4].length > 0) {
-          tbs[4].forEach((x) => {
-            if (x["start_date"] != null) {
-              x["start_date"] = new Date(x["start_date"]);
-            }
-            if (x["end_date"] != null) {
-              x["end_date"] = new Date(x["end_date"]);
-            }
-          });
+          // tbs[4].forEach((x) => {
+          //   if (x["start_date"] != null) {
+          //     x["start_date"] = new Date(x["start_date"]);
+          //   }
+          //   if (x["end_date"] != null) {
+          //     x["end_date"] = new Date(x["end_date"]);
+          //   }
+          // });
           datachilds.value[4] = tbs[4];
         } else {
           datachilds.value[4] = [];
