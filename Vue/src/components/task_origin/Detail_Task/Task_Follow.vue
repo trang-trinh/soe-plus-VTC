@@ -595,7 +595,7 @@ const saveStep = (isFormValid) => {
   listTask.value.forEach((x) => {
     listID.push({ task_id_follow: x.task_id });
   });
-
+  taskStep.value.is_template = false;
   formData.append("task_step", JSON.stringify(taskStep.value));
   formData.append("task_follow_task", JSON.stringify(listID));
   axios({
