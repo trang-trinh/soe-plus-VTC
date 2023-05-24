@@ -503,6 +503,7 @@ const configPayroll = async (row) => {
   swal.close();
 };
 const callbackFun = (obj) => {
+   
   if (obj.is_config) {
     payroll.value.payroll_config = obj.is_config;
 
@@ -523,7 +524,7 @@ const saveDGLuongUser = async (r) => {
       { par: "payroll_user_id", va: r.payroll_user_id },
       { par: "payroll_id", va: r.payroll_id },
       { par: "profile_id", va: r.profile_id },
-      { par: "is_data", va: JSON.stringify() },
+      { par: "is_data", va: JSON.stringify(r.is_data) },
       { par: "user_id", va: store.getters.user.user_id },
       { par: "ip", va: store.getters.ip },
       { par: "organization_id", va: store.getters.user.organization_id },

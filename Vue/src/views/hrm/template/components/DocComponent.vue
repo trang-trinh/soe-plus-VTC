@@ -779,7 +779,7 @@ export default {
           x.className = "tablecell";
           x.innerHTML = i + 1;
         });
-
+        
         let tr = dochtml.querySelector("tbody").insertRow(0);
         tr.className = "tablecell";
         //Dòng trên
