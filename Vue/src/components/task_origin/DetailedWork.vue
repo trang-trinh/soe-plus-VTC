@@ -5612,6 +5612,7 @@ const CloseVisible = () => {
               :isClose="isClose"
               :openAddTask="addNewChildTaskOrigin"
               :turn="props.turn"
+              :loadChildTask="loadChildTaskOrigin"
             ></Task_FollowVue>
           </div>
           <div v-if="CongViecCon == true">
