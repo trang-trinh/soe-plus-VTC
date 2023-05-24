@@ -217,13 +217,13 @@ const changeView = (view) => {
 //Xuất excel
 const menuButs = ref();
 const itemButs = ref([
-  {
-    label: "Export dữ liệu ra Excel",
-    icon: "pi pi-file-excel",
-    command: (event) => {
-      exportData("ExportExcel");
-    },
-  },
+  // {
+  //   label: "Export dữ liệu ra Excel",
+  //   icon: "pi pi-file-excel",
+  //   command: (event) => {
+  //     exportData("ExportExcel");
+  //   },
+  // },
   {
     label: "Import dữ liệu từ Excel",
     icon: "pi pi-file-excel",
