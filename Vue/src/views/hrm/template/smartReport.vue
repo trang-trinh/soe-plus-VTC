@@ -16,7 +16,7 @@ const axios = inject("axios");
 const store = inject("store");
 const swal = inject("$swal");
 const isDynamicSQL = ref(false);
- 
+
 const router = inject("router");
 const config = {
   headers: { Authorization: `Bearer ${store.getters.token}` },
@@ -78,16 +78,19 @@ const configBaocao = async (row) => {
     didOpen: () => {
       swal.showLoading();
     },
-  });  const axResponse = await execSQL(row.report_id);
+  });
+  const axResponse = await execSQL(row.report_id);
 
   if (axResponse.status == 200) {
     if (axResponse.data.error) {
       toast.error("Không mở được bản ghi");
     } else {
       smart_report.value = JSON.parse(axResponse.data.data)[0][0];
- 
+
       if (smart_report.value.proc_name)
-      smart_report.value.proc_name1=smart_report.value.proc_name.split(" ")[0];
+        smart_report.value.proc_name1 =
+          smart_report.value.proc_name.split(" ")[0];
+        
       visibleSidebarDoc.value = true;
     }
   }
@@ -233,22 +236,21 @@ const onRowClickTable = async (data) => {
     if (axResponse.data.error) {
       toast.error("Không mở được báo cáo");
     } else {
-   var seg  = JSON.parse(axResponse.data.data)[0][0];
-   let srcMs = removeVietnameseTones(seg.report_name);
-  store.commit("setnews", data);
-  if (router)
-    router.push({
-      path:
-        "/hrm/template/smart_report/" +
-        srcMs.replace(/','|'.'/g, "").replace(/\s+/g, "-") +
-        "-orient-" +
-        seg.report_key,
-    });
+      var seg = JSON.parse(axResponse.data.data)[0][0];
+      let srcMs = removeVietnameseTones(seg.report_name);
+      store.commit("setnews", data);
+      if (router)
+        router.push({
+          path:
+            "/hrm/template/smart_report/" +
+            srcMs.replace(/','|'.'/g, "").replace(/\s+/g, "-") +
+            "-orient-" +
+            seg.report_key,
+        });
     }
   }
 
   // configBaocao(data.data);
- 
 };
 function removeVietnameseTones(str) {
   str = str.replace(/à|á|ạ|ả|ã|â|ầ|ấ|ậ|ẩ|ẫ|ă|ằ|ắ|ặ|ẳ|ẵ/g, "a");
@@ -310,15 +312,19 @@ const onPage = (event) => {
 const liReportGroup = ref([
   {
     name: "Bảng lương",
+    code: 1,
   },
   {
     name: "Hợp đồng",
+    code: 2,
   },
   {
     name: "Quyết định",
+    code: 3,
   },
   {
     name: "Hồ sơ nhân sự",
+    code: 4,
   },
 ]);
 const smart_report = ref({
@@ -431,8 +437,13 @@ const saveData = (isFormValid) => {
   }
   let formData = new FormData();
   if (smart_report.value.profile_id) {
-    smart_report.value.proc_name=smart_report.value.proc_name1+" '"+smart_report.value.profile_id+"'";
-                }
+    smart_report.value.proc_name =
+      smart_report.value.proc_name1 +
+      " '" +
+      smart_report.value.profile_id +
+      "'";
+  }
+
   if (smart_report.value.user_access_fake.length > 0)
     smart_report.value.user_access =
       smart_report.value.user_access_fake.toString();
@@ -440,6 +451,27 @@ const saveData = (isFormValid) => {
   if (smart_report.value.user_deny_fake.length > 0)
     smart_report.value.user_deny = smart_report.value.user_deny_fake.toString();
   else smart_report.value.user_deny = null;
+
+  if (smart_report.value.report_group != null) {
+    var ser = liReportGroup.value.find(
+      (x) => smart_report.value.report_group.indexOf(x.name) != -1
+    );
+    if (ser != null) {
+      smart_report.value.report_type = ser.code;
+    }
+    if (smart_report.value.report_type == 3) {
+      if (smart_report.value.profile_id) {
+        smart_report.value.proc_name =
+          smart_report.value.proc_name1 +
+          " '" +
+          smart_report.value.decision_id +
+          "','" +
+          smart_report.value.profile_id +
+          "' ";
+      }
+    }
+  }
+ 
   formData.append("smart_report", JSON.stringify(smart_report.value));
   swal.fire({
     width: 110,
@@ -543,7 +575,7 @@ const copyTem = (dataTem) => {
       if (data.user_deny)
         smart_report.value.user_deny_fake = data.user_deny.split(",");
       else smart_report.value.user_deny_fake = [];
-      smart_report.value.proc_get =data.proc_get;
+      smart_report.value.proc_get = data.proc_get;
       smart_report.value.proc_name = data.proc_name;
       smart_report.value.report_name = null;
       headerDialog.value = "Thêm báo cáo";
@@ -592,7 +624,8 @@ const editTem = (dataTem) => {
         checkUploadFile.value = true;
         checkDisabled.value = false;
       }
-      smart_report.value.proc_name1=data.proc_name.split(" ")[0];
+      if (data.proc_name)
+        smart_report.value.proc_name1 = data.proc_name.split(" ")[0];
       if (data.user_access)
         smart_report.value.user_access_fake = data.user_access.split(",");
       else smart_report.value.user_access_fake = [];
@@ -623,7 +656,7 @@ const callbackFun = (obj) => {
   Object.keys(obj).forEach((k) => {
     smart_report.value[k] = obj[k];
   });
-  debugger
+
   let formData = new FormData();
   formData.append("smart_report", JSON.stringify(smart_report.value));
   axios
@@ -732,7 +765,7 @@ const loadDataSQL = () => {
 
   let data = {
     id: "report_id DESC",
-    sqlS:   null,
+    sqlS: null,
     sqlO: options.value.sort,
     Search: options.value.SearchText,
     PageNo: options.value.PageNo,
@@ -794,7 +827,7 @@ const searchStamp = (event) => {
 };
 const refreshStamp = () => {
   options.value.SearchText = null;
- 
+
   options.value.loading = true;
   selectedStamps.value = [];
   isDynamicSQL.value = false;
@@ -1001,7 +1034,44 @@ const removeFile = (event) => {
   filesList.value = filesList.value.filter((a) => a != event.file);
 };
 const listProcDropdown = ref([]);
+const listDecisions = ref([]);
 const initTuDien = () => {
+  listDecisions.value=[];
+  axios
+    .post(
+      baseURL + "/api/hrm/callProc",
+      {
+        str: encr(
+          JSON.stringify({
+            proc: "smart_proc_listdecision",
+            par: [{ par: "user_id", va: store.getters.user.user_id }],
+          }),
+          SecretKey,
+          cryoptojs
+        ).toString(),
+      },
+      config
+    )
+    .then((response) => {
+      if (response != null && response.data != null) {
+        var data = response.data.data;
+        if (data != null) {
+          let tbs = JSON.parse(data);
+    
+
+          if (tbs[0] != null && tbs[0].length > 0) {
+             
+            tbs[0].forEach((item) => {
+              listDecisions.value.push({
+                name: item.type_decision_name,
+                code: item.decision_id
+                 
+              });
+            });
+          }
+        }
+      }
+    });
   listProcDropdown.value = [];
   axios
     .post(
@@ -1122,6 +1192,11 @@ const onFilterReportGr = () => {
     loadData();
   }
 };
+const  onChangRPGR=(item)=>{
+  if(item == 'Quyết định'){
+    smart_report.value.report_type=3;
+  }
+}
 onMounted(() => {
   loadData(true);
   initTuDien();
@@ -1200,8 +1275,7 @@ onMounted(() => {
                   spellcheck="false"
                   placeholder="Tìm kiếm"
                 />
-
-                   </span>
+              </span>
 
               <div class="p-inputgroup flex-1 ml-2">
                 <span class="p-inputgroup-addon">
@@ -1436,7 +1510,6 @@ onMounted(() => {
         :isedit="true"
         :report="smart_report"
         :callbackFun="callbackFun"
-       
       ></DocComponent>
     </div>
   </Sidebar>
@@ -1485,12 +1558,13 @@ onMounted(() => {
 
             <Dropdown
               v-model="smart_report.report_group"
-              :editable="true"
+             
               :options="liReportGroup"
               optionLabel="name"
               optionValue="name"
               spellcheck="false"
               class="col-12 ip36"
+              @change="onChangRPGR(smart_report.report_group)"
             />
           </div>
           <div class="col-6 md:col-6 p-0 align-items-center pl-1">
@@ -1608,18 +1682,50 @@ onMounted(() => {
                 </div>
               </div>
             </div>
-            <div class="col-12 field md:col-12">
-              <div class="col-12 text-left p-0 pb-2">
-                Thủ tục lấy danh sách hiển thị khi tra cứu
+       
+            <div class="col-12 field md:col-12 flex" v-if="smart_report.report_type==3"  >
+              <div class="col-6 p-0   align-items-center pr-1">
+                <div class="col-12 text-left p-0 pb-2">
+                  Thủ tục lấy danh sách hiển thị khi tra cứu
+                </div>
+                <Dropdown
+                  v-model="smart_report.proc_get"
+                  :options="listProcDropdown"
+                  optionLabel="name"
+                  optionValue="code"
+                  placeholder="Chọn thủ tục lấy dữ liệu"
+                  class="col-12 p-0"
+                />
               </div>
-              <Dropdown
-                v-model="smart_report.proc_get"
-                :options="listProcDropdown"
-                optionLabel="name"
-                optionValue="code"
-                placeholder="Chọn thủ tục lấy dữ liệu"
-                class="col-12 p-0"
-              />
+              <div class="col-6 p-0   align-items-center pl-1">
+                <div class="col-12 text-left p-0 pb-2">
+                  Loại quyết định
+                </div>
+                <Dropdown
+                  v-model="smart_report.decision_id"
+                  :options="listDecisions"
+                  optionLabel="name"
+                  optionValue="code"
+                  placeholder="Chọn loại quyết định"
+                  class="col-12 p-0"
+                />
+              </div>
+            </div>
+            <div class="col-12 field md:col-12  " v-else >
+            
+                <div class="col-12 text-left p-0 pb-2">
+                  Thủ tục lấy danh sách hiển thị khi tra cứu
+                </div>
+                <Dropdown
+                  v-model="smart_report.proc_get"
+                  :options="listProcDropdown"
+                  optionLabel="name"
+                  optionValue="code"
+                  placeholder="Chọn thủ tục lấy dữ liệu"
+                  class="col-12 p-0"
+                />
+          
+             
             </div>
           </Panel>
         </div>

@@ -2013,7 +2013,7 @@ onMounted(() => {
           bodyStyle="text-align:center;max-width:120px;"
           class="align-items-center justify-content-center text-center"
         >
-          <template #body="slotProps">
+          <!-- <template #body="slotProps">
             <div class="flex justify-content-center">
               <span class="format-center mr-2">{{
                 slotProps.data.created_date
@@ -2047,7 +2047,7 @@ onMounted(() => {
                 />
               </div>
             </div>
-          </template>
+          </template> -->
         </Column>
         <Column
           field="status"

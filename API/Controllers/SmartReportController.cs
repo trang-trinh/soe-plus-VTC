@@ -20,6 +20,7 @@ using System.Configuration;
 using Microsoft.ApplicationBlocks.Data;
 using API.Helper;
 using Newtonsoft.Json.Linq;
+using System.Security.Claims;
 
 namespace API.Controllers
 {
@@ -155,13 +156,7 @@ namespace API.Controllers
                             File.Move(ffileData.LocalFileName, filePath);
 
                         }
-                        //FileStream fs = File.OpenRead(fileData.LocalFileName);
-                        //using (var fileStream = new FileStream(filePath, FileMode.Create))
-                        //{
-                        //    fs.CopyTo(fileStream);
-                        //    fileStream.Close();
-                        //    fs.Close();
-                        //}
+              
                         if (isxls)
                         {
                             var workbook = new Workbook(filePath);
@@ -225,7 +220,8 @@ namespace API.Controllers
                     {
                         var html = "";
                         var fileName = Path.GetFileName(ufile.Headers.ContentDisposition.FileName);
-                        var filePath = Path.Combine(Directory.GetCurrentDirectory(), @"wwwroot/Portals", fileName);
+                        //var filePath = Path.Combine(Directory.GetCurrentDirectory(), @"wwwroot/Portals", fileName);
+                        var filePath = Path.Combine(AppDomain.CurrentDomain.BaseDirectory, "Portals", fileName);
                         var filePathHTML = filePath + ".html";
                         
                         FileStream fs = File.OpenRead(ufile.LocalFileName);
@@ -280,20 +276,58 @@ namespace API.Controllers
                         return Request.CreateResponse(HttpStatusCode.OK, new { err = "1", ms = "Không có file up load!" });
                     }
                     List<String> htmls = new List<string>();
-                    foreach (MultipartFileData ufile in provider.FileData)
+                    FileInfo fileInfo = null;
+                    MultipartFileData ffileData = null;
+                    foreach (MultipartFileData fileData in provider.FileData)
                     {
+
                         var html = "";
-                        var fileName = Path.GetFileName(ufile.Headers.ContentDisposition.FileName);
-                        var filePath = Path.Combine(Directory.GetCurrentDirectory(), @"wwwroot/Portals", fileName);
+                        string fileName = "";
+                        if (string.IsNullOrEmpty(fileData.Headers.ContentDisposition.FileName))
+                        {
+                            fileName = Guid.NewGuid().ToString();
+                        }
+                        fileName = fileData.Headers.ContentDisposition.FileName;
+                        if (fileName.StartsWith("\"") && fileName.EndsWith("\""))
+                        {
+                            fileName = fileName.Trim('"');
+                        }
+                        if (fileName.Contains(@"/") || fileName.Contains(@"\"))
+                        {
+                            fileName = Path.GetFileName(fileName);
+                        }
+
+
+                        var extype = Path.GetExtension(fileName);
+                        fileName = System.Guid.NewGuid().ToString() + extype;
+                        bool isxls = fileName.ToLower().Contains(".xls");
+                        var filePath = Path.Combine(root, @"/Portals", fileName);
                         var filePathHTML = filePath + ".html";
 
-                        FileStream fs = File.OpenRead(ufile.LocalFileName);
-                        using (var fileStream = new FileStream(filePath, FileMode.Create))
+                        fileInfo = new FileInfo(filePath);
+
+                        ffileData = fileData;
+                        if (fileInfo != null)
                         {
-                            fs.CopyTo(fileStream);
-                            fileStream.Close();
-                            fs.Close();
+                            if (!Directory.Exists(fileInfo.Directory.FullName))
+                            {
+                                Directory.CreateDirectory(fileInfo.Directory.FullName);
+                            }
+                            File.Move(ffileData.LocalFileName, filePath);
+
                         }
+
+
+
+                     
+
+                        //FileStream fs = File.OpenRead(filePath);
+                        //using (var fileStream = new FileStream(filePath, FileMode.Create))
+                        //{
+                        //    fs.CopyTo(fileStream);
+                        //    fileStream.Close();
+                        //    fs.Close();
+                        //}
                         var workbook = new Workbook(filePath);
                         Aspose.Cells.HtmlSaveOptions opts = new Aspose.Cells.HtmlSaveOptions();
                         opts.ExportImagesAsBase64 = true;
@@ -315,20 +349,30 @@ namespace API.Controllers
             }
         }
         //[HttpPost("ConvertFile")]
+        
         [HttpPost]
-        public async Task<HttpResponseMessage> ConvertFile([FromBody] string html)
+        //public async Task<HttpResponseMessage> ConvertFile([FromBody] string html)
+        public async Task<HttpResponseMessage> ConvertFile([FromBody] JObject data)
         {
+            string html = data["html"].ToObject<string>();
+            string filename = data["filename"].ToObject<string>();
             try
             {
-                var filePathHTML = Path.Combine(Directory.GetCurrentDirectory(), @"wwwroot/Portals", "doc.html");
-                var filePath = Path.Combine(Directory.GetCurrentDirectory(), @"wwwroot/Portals", "doc.html.docx");
-                System.IO.File.WriteAllText(filePathHTML, html);
-                if (DocumentConverter.CanConvert(filePathHTML, DocumentFormat.Docx))
+                using (DBEntities db = new DBEntities())
                 {
-                    DocumentConverter.Convert(filePathHTML, DocumentFormat.Docx);
+                    //var filePathHTML = Path.Combine(Directory.GetCurrentDirectory(), @"wwwroot/Portals", "doc.html");
+                    //var filePath = Path.Combine(Directory.GetCurrentDirectory(), @"wwwroot/Portals", "doc.html.docx");
+                    var fileName = filename + DateTime.Now.ToString("ddMMyyyy_HHmmss");
+                    var filePathHTML = Path.Combine(AppDomain.CurrentDomain.BaseDirectory, "Portals", fileName + ".html");
+                    var filePath = Path.Combine(AppDomain.CurrentDomain.BaseDirectory, "Portals", fileName + ".html.docx");
+                    System.IO.File.WriteAllText(filePathHTML, html);
+                    if (DocumentConverter.CanConvert(filePathHTML, DocumentFormat.Docx))
+                    {
+                        DocumentConverter.Convert(filePathHTML, DocumentFormat.Docx);
+                    }
+                    System.IO.File.Delete(filePathHTML);
+                    return Request.CreateResponse(HttpStatusCode.OK, new { err = "0", filePath, fileName });
                 }
-                System.IO.File.Delete(filePathHTML);
-                return Request.CreateResponse(HttpStatusCode.OK, new { err = "0", filePath });
             }
             catch (Exception e)
             {
@@ -338,14 +382,19 @@ namespace API.Controllers
 
         //[HttpPost("ConvertFileXLS")]
         [HttpPost]
-        public async Task<HttpResponseMessage> ConvertFileXLS([FromBody] string html)
+        public async Task<HttpResponseMessage> ConvertFileXLS([FromBody] JObject data)
         {
-
+            string html = data["html"].ToObject<string>();
+            string filename = data["filename"].ToObject<string>();
+            var fileName = filename + DateTime.Now.ToString("ddMMyyyy_HHmmss");
             try
             {
-                var filePathHTML = Path.Combine(Directory.GetCurrentDirectory(), @"wwwroot/Portals", "doc.html");
-                var filePath1 = Path.Combine(Directory.GetCurrentDirectory(), @"wwwroot/Portals", "doc1.xlsx");
-                var filePath = Path.Combine(Directory.GetCurrentDirectory(), @"wwwroot/Portals", "doc.xlsx");
+                //var filePathHTML = Path.Combine(Directory.GetCurrentDirectory(), @"wwwroot/Portals", "doc.html");
+                //var filePath1 = Path.Combine(Directory.GetCurrentDirectory(), @"wwwroot/Portals", "doc1.xlsx");
+                //var filePath = Path.Combine(Directory.GetCurrentDirectory(), @"wwwroot/Portals", "doc.xlsx");
+                var filePathHTML = Path.Combine(AppDomain.CurrentDomain.BaseDirectory, "Portals", fileName + ".html");
+                var filePath1 = Path.Combine(AppDomain.CurrentDomain.BaseDirectory, "Portals", fileName + ".xlsx");
+                var filePath = Path.Combine(AppDomain.CurrentDomain.BaseDirectory, "Portals", fileName + ".xlsx");
                 System.IO.File.WriteAllText(filePathHTML, html);
                 var workbook = new Workbook(filePathHTML);
                 workbook.Save(filePath1, SaveFormat.Xlsx);
@@ -363,7 +412,7 @@ namespace API.Controllers
                 workbook.Save(filePath);
                 // Closing the file stream to free all resources
                 fstream.Close();
-                return Request.CreateResponse(HttpStatusCode.OK, new { err = "0", filePath });
+                return Request.CreateResponse(HttpStatusCode.OK, new { err = "0", filePath, fileName });
             }
             catch (Exception e)
             {
@@ -377,8 +426,10 @@ namespace API.Controllers
 
             try
             {
-                var filePathHTML = Path.Combine(Directory.GetCurrentDirectory(), @"wwwroot/Portals", "doc.html");
-                var filePath = Path.Combine(Directory.GetCurrentDirectory(), @"wwwroot/Portals", "doc.xlsx");
+                //var filePathHTML = Path.Combine(Directory.GetCurrentDirectory(), @"wwwroot/Portals", "doc.html");
+                //var filePath = Path.Combine(Directory.GetCurrentDirectory(), @"wwwroot/Portals", "doc.xlsx");
+                var filePathHTML = Path.Combine(AppDomain.CurrentDomain.BaseDirectory, "Portals", "doc.html");
+                var filePath = Path.Combine(AppDomain.CurrentDomain.BaseDirectory, "Portals", "doc.xlsx");
                 System.IO.File.WriteAllText(filePathHTML, html);
                 SpreadsheetInfo.SetLicense("FREE-LIMITED-KEY");
                 ExcelFile.Load(filePathHTML).Save(filePath);
@@ -395,7 +446,8 @@ namespace API.Controllers
         [HttpGet]
         public void GetBlobDownload([FromBody] string? link)
         {
-            var filePath = Path.Combine(Directory.GetCurrentDirectory(), @"wwwroot/Portals", "doc.html.docx");
+            //var filePath = Path.Combine(Directory.GetCurrentDirectory(), @"wwwroot/Portals", "doc.html.docx");
+            var filePath = Path.Combine(AppDomain.CurrentDomain.BaseDirectory, "Portals", "doc.html.docx");
             var contentType = "application/vnd.ms-word";
             var fileName = "doc.docx";
             FileInfo ObjArchivo = new System.IO.FileInfo(filePath);
@@ -412,49 +464,47 @@ namespace API.Controllers
         //[HttpGet("downloadFile")]
         //public FileContentResult GetDownload([FromQuery] string? name)
         [HttpGet]
-        public void GetDownload([FromBody] string? name)
+        public void GetDownload(string? name)
         {
-            var filePath = Path.Combine(Directory.GetCurrentDirectory(), @"wwwroot/Portals", "doc.html.docx");
+            //var filePath = Path.Combine(Directory.GetCurrentDirectory(), @"wwwroot/Portals", "doc.html.docx");
+            var filePath = Path.Combine(AppDomain.CurrentDomain.BaseDirectory, "Portals", name);
             var contentType = "application/vnd.ms-word";
-            var myfile = System.IO.File.ReadAllBytes(filePath);
-            System.IO.File.Delete(filePath);
-            //FileContentResult result = new FileContentResult(myfile, contentType)
-            //{
-            //    FileDownloadName = name ?? "doc-edit.docx"
-            //};
-
-            //FileInfo ObjArchivo = new System.IO.FileInfo(filePath);
+            //var myfile = System.IO.File.ReadAllBytes(filePath);
+            FileInfo ObjArchivo = new System.IO.FileInfo(filePath);
             HttpContext.Current.Response.Clear();
-            HttpContext.Current.Response.AddHeader("Content", new ByteArrayContent(myfile).ToString());
-            HttpContext.Current.Response.AddHeader("Content-Length", myfile.LongLength.ToString());
+            //HttpContext.Current.Response.AddHeader("Content", new ByteArrayContent(myfile).ToString());
+            //HttpContext.Current.Response.AddHeader("Content-Length", myfile.LongLength.ToString());
+            HttpContext.Current.Response.AddHeader("Content-Length", ObjArchivo.Length.ToString());
             HttpContext.Current.Response.AddHeader("Content-Disposition", "attachment; filename=" + (name ?? "doc-edit.docx"));
             HttpContext.Current.Response.AddHeader("Strict-Transport-Security", "max-age=31536000; includeSubDomains");
             HttpContext.Current.Response.ContentType = contentType;
-            HttpContext.Current.Response.WriteFile(name ?? "doc-edit.docx");
+            //HttpContext.Current.Response.WriteFile(name ?? "doc-edit.docx");
+            HttpContext.Current.Response.WriteFile(ObjArchivo.FullName);
             HttpContext.Current.Response.End();
+            System.IO.File.Delete(filePath);
         }
         //[HttpGet("downloadFileXLS")]
         //public FileContentResult GetDownloadXLS([FromQuery] string? name)
         [HttpGet]
-        public void GetDownloadXLS([FromBody] string? name)
+        public void GetDownloadXLS(string? name)
         {
-            var filePath = Path.Combine(Directory.GetCurrentDirectory(), @"wwwroot/Portals", "doc.xlsx");
+            //var filePath = Path.Combine(Directory.GetCurrentDirectory(), @"wwwroot/Portals", "doc.xlsx");
+            var filePath = Path.Combine(AppDomain.CurrentDomain.BaseDirectory, "Portals", name);
             var contentType = "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet";
-            var myfile = System.IO.File.ReadAllBytes(filePath);
-            System.IO.File.Delete(filePath);
-            //FileContentResult result = new FileContentResult(myfile, contentType)
-            //{
-            //    FileDownloadName = name ?? "doc-edit.xlsx"
-            //};
-
+            //var myfile = System.IO.File.ReadAllBytes(filePath);
+            FileInfo ObjArchivo = new System.IO.FileInfo(filePath);
             HttpContext.Current.Response.Clear();
-            HttpContext.Current.Response.AddHeader("Content", new ByteArrayContent(myfile).ToString());
-            HttpContext.Current.Response.AddHeader("Content-Length", myfile.LongLength.ToString());
+            HttpContext.Current.Response.Clear();
+            //HttpContext.Current.Response.AddHeader("Content", new ByteArrayContent(myfile).ToString());
+            //HttpContext.Current.Response.AddHeader("Content-Length", myfile.LongLength.ToString());
+            HttpContext.Current.Response.AddHeader("Content-Length", ObjArchivo.Length.ToString());
             HttpContext.Current.Response.AddHeader("Content-Disposition", "attachment; filename=" + (name ?? "doc-edit.xlsx"));
             HttpContext.Current.Response.AddHeader("Strict-Transport-Security", "max-age=31536000; includeSubDomains");
             HttpContext.Current.Response.ContentType = contentType;
-            HttpContext.Current.Response.WriteFile(name ?? "doc-edit.xlsx");
+            //HttpContext.Current.Response.WriteFile(name ?? "doc-edit.xlsx");
+            HttpContext.Current.Response.WriteFile(ObjArchivo.FullName);
             HttpContext.Current.Response.End();
+            System.IO.File.Delete(filePath);
         }
 
 

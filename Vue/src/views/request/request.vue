@@ -184,6 +184,7 @@ const listRequest = (rf) => {
                             item.listSignUser = [];
                         }
                         item.IsLast = (item.daky || 0) + 1 == (item.soky || 0);
+                        item.is_overdue = item.times_processing > item.times_processing_max ? true : false;
                     });
                     datas.value = data[0];
                     options.value.is_func = datas.value.filter(x => x.is_func && (x.status == 1 || x.status == 0 || x.status == -1 || x.status == 3)).length > 0;
@@ -1251,30 +1252,46 @@ onMounted(() => {
                     class="align-items-center justify-content-center text-center"
                 >
                     <template #body="slotProps">
-                        <div class="relative">
-                            <AvatarGroup>                            
-                                <Avatar v-for="(us, idxUser) in slotProps.data.listSignUser" :key="idxUser"
-                                    v-bind:label="us.avatar ? '' : (us.last_name ?? '').substring(0, 1)"
-                                    v-bind:image="
-                                        us.avatar
-                                        ? basedomainURL + us.avatar
-                                        : basedomainURL + '/Portals/Image/noimg.jpg'
-                                    "
-                                    v-tooltip.top="{ value: (us.full_name + '<br/>' + us.position_name + '<br/>' + us.department_name), escape: true }"
-                                    style="background-color: #2196f3; color: #ffffff; width: 2rem; height: 2rem; font-size: 1rem !important;"
-                                    :style="{ background: bgColor[idxUser % 7], }"
-                                    class="text-avatar"
-                                    size="xlarge" 
-                                    shape="circle" 
-                                >
-                                    <template #body="">
-                                        <span v-if="us.status" class="is-sign">
+                        <div class="relative avt-list-request">
+                            <AvatarGroup>  
+                                <template v-for="(us, idxUser) in slotProps.data.listSignUser" :key="idxUser">
+                                    <div style="display: inline-block; position: relative;">
+                                        <Avatar
+                                            v-bind:label="us.avatar ? '' : (us.last_name ?? '').substring(0, 1)"
+                                            v-bind:image="
+                                                us.avatar
+                                                ? basedomainURL + us.avatar
+                                                : basedomainURL + '/Portals/Image/noimg.jpg'
+                                            "
+                                            v-tooltip.top="{ value: ((us.group_sign_name ? (us.group_sign_name + '<br/>') : '') 
+                                                    + us.full_name 
+                                                    + (us.position_name ? ('<br/>' + us.position_name) : '')
+                                                    + (us.department_name ? ('<br/>' + us.department_name) : '')), 
+                                                escape: true 
+                                            }"
+                                            style="background-color: #2196f3; color: #ffffff; width: 2rem; height: 2rem; font-size: 1rem !important; border:1px solid #ffffff;"
+                                            :style="{ background: bgColor[idxUser % 7], }"
+                                            class="text-avatar"
+                                            size="xlarge" 
+                                            shape="circle" 
+                                        >
+                                        </Avatar>
+                                        <span v-if="us.is_sign != 0" style="position: absolute; right: 0; bottom: 0;">
                                             <font-awesome-icon icon="fa-solid fa-circle-check" 
-                                                style="font-size: 16px; display: block; color: #f4b400"
+                                                style="font-size: 13px; display: block; color: #7abd1a"
+                                                v-if="us.is_sign == 2"
+                                            />
+                                            <font-awesome-icon icon="fa-solid fa-circle-info" 
+                                                style="font-size: 13px; display: block; color: #017bec"
+                                                v-else-if="us.is_sign == 1"
+                                            />
+                                            <font-awesome-icon icon="fa-solid fa-circle-stop" 
+                                                style="font-size: 13px; display: block; color: #e00f00"
+                                                v-else-if="us.is_sign == -1"
                                             />
                                         </span>
-                                    </template>
-                                </Avatar>
+                                    </div>
+                                </template>  
                             </AvatarGroup>
                         </div>
                     </template>
@@ -1346,8 +1363,7 @@ onMounted(() => {
         :style="{
             width: PositionSideBar == 'right' ? (widthWindow > 1800 ? '65vw' : '75vw') : '100%',
             'min-height': '100vh !important',
-        }"     
-		:autoZIndex="true"
+        }"
         :showCloseIcon="false"
         @hide="hideall()"
         >
@@ -1435,6 +1451,15 @@ onMounted(() => {
     ::v-deep(.p-menuitem) {
         .red-text {
             color: red;
+        }
+    }
+    ::v-deep(.avt-list-request) {
+        .p-avatar-group .p-avatar {
+            // margin-left: -0.25rem;
+            margin-left: 0;
+        }
+        .p-avatar-group .p-avatar .p-avatar-text {
+            position: absolute;
         }
     }
 </style>

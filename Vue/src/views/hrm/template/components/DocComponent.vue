@@ -76,7 +76,7 @@ export default {
     );
     const isViewReport = ref(readonly.value || isUrlReport.value);
     const configDBChild = ref(null);
-    const report = props.report;
+    const report = props.report||null;
     const cryoptojs = inject("cryptojs");
     const toast = useToast();
     const swal = inject("$swal");
@@ -779,6 +779,7 @@ export default {
           x.className = "tablecell";
           x.innerHTML = i + 1;
         });
+         
         let tr = dochtml.querySelector("tbody").insertRow(0);
         tr.className = "tablecell";
         //Dòng trên
@@ -1247,6 +1248,7 @@ export default {
       });
     };
     const saveDatamap = (f) => {
+       
       if (readonly.value) {
         //Save file quyết định, lương...
         let users = [];
@@ -1265,7 +1267,7 @@ export default {
               dr.ok = false;
               objt.is_data = null;
             }
-
+             
             props.callbackFun(objt);
           });
           isdataSidebar.value = false;
@@ -1419,18 +1421,24 @@ export default {
       formData.append("doc", event.files[0]);
       let xls = event.files[0].name.includes(".xls");
       let apimethod = xls ? "PostFileXLS" : "PostFile";
-      apimethod = "PostFile";
+      // apimethod = "PostFile";
       try {
-        const response = await fetch(baseURL + "api/Files/" + apimethod, {
+        const response = await fetch(baseURL 
+        //+ "api/Files/" 
+        + "api/SRC/" 
+        + apimethod, {
           method: "POST",
           body: formData,
         });
         var data = await response.json();
-        let html = data.html;
+        
+        let html = data.htmls;
         dochtml.innerHTML = html;
         isxls.value = true;
         addExcelStyle();
+         
         await initDataTempAuto(true);
+        
         let rowmnumber = dtExcels.value[0].rowmnumber || 1;
         dochtml.querySelectorAll('[style*="display:none"]').forEach((tr) => {
           tr.remove();
@@ -1473,8 +1481,12 @@ export default {
             delete r.datatemp;
           }
         });
+         
+         
         await saveDatamap(false);
+         
         props.callbackFun({ is_config: JSON.stringify(objDataTemp.value) });
+
         showLoadding.value = false;
         isdataSidebar.value = false;
         initTemplate(true);
@@ -1506,6 +1518,7 @@ export default {
     };
     let dtUser = {};
     const initDataTempAuto = async (tf) => {
+       
       if (!isUrlReport.value) {
         let dts = await goProc(
           false,
@@ -1516,7 +1529,6 @@ export default {
         );
         dtUser = dts[0];
       }
-
       let stt = 0;
       let obj = { stt: 0, key: 0, value: "data-" + stt, cols: [] };
       let tagps = [];
@@ -1625,7 +1637,7 @@ export default {
       ) {
         try {
           objConfig = JSON.parse(props.report.report_config.trim());
-
+ 
           if (isUrlReport.value && Object.keys(props.pars).length > 0) {
             await initURLReport();
           } else if (Object.keys(objConfig.proc).length > 0) {
@@ -1692,6 +1704,7 @@ export default {
     };
     let tempHTMLGoc = "";
     const initTemplate = (fi) => {
+       
       if (fi != true) {
         //Nếu dùng Iframe
         let iframe = document.getElementById("docIframe");
@@ -1708,9 +1721,10 @@ export default {
         );
         iframeDoc.querySelector("body").appendChild(divleftiframe);
 
-        filename = change_unsigned(props.report.report_name, "_");
+        filename = change_unsigned(props.report.report_name.replace(/\t/g, "_").replace(/[/\\?%*:|"<>]/g, '-'), "_");
       }
       showLoadding.value = true;
+      
       if (props.report.report_template)
         isxls.value = props.report.report_template.startsWith("<!doctype");
       tempHTML = "";
@@ -1723,6 +1737,7 @@ export default {
         //divZoom.value = "0.75";
         addExcelStyle();
       }
+      debugger
       initDataTempAuto();
       if (dochtml) {
         tempHTMLGoc = dochtml.innerHTML;
@@ -1818,6 +1833,7 @@ export default {
     const IsOne = ref(false);
     const dbrow = ref({});
     const openCogDatabase = (row, f, o) => {
+       
       if (f) {
         if (row.isfor) {
           row.value = row.colname;
@@ -1847,6 +1863,7 @@ export default {
         report_config: JSON.stringify({
           data: isxls.value ? dtExcels.value : objDataTemp.value,
           proc: proc,
+          sum_key:report.sum_key
         }),
       });
       toast.success("Đã lưu cấu hình thành công!");
@@ -1883,24 +1900,34 @@ export default {
         return false;
       }
       showLoadding.value = true;
+      let dataHtml = { html: html, filename: filename || "doc" };
       try {
         const axResponse = await axios.post(
           baseURL +
-            "api/Files/" +
+            //"api/Files/" +
+            "api/SRC/" +
             (isxls.value ? "ConvertFileXLS" : "ConvertFile"),
-          html,
+          dataHtml,
           config
         );
 
         if (axResponse.status == 200) {
-          window.open(
-            baseURL +
-              "api/Files/downloadFile" +
-              (isxls.value ? "XLS" : "") +
-              "?name=" +
-              filename +
-              (isxls.value ? ".xlsx" : ".docx")
-          );
+          // window.open(
+          //   baseURL +
+          //     "api/Files/downloadFile" +
+          //     (isxls.value ? "XLS" : "") +
+          //     "?name=" +
+          //     filename +
+          //     (isxls.value ? ".xlsx" : ".docx")
+          // );
+          if (axResponse.data.err == "0") {            
+            if (isxls.value) {
+              downloadFileExport("GetDownloadXLS", dataHtml.filename, axResponse.data.fileName + ".html", ".xlsx");
+            }
+            else {
+              downloadFileExport("GetDownload", dataHtml.filename, axResponse.data.fileName + ".html", ".docx");
+            }
+          }
           let sps = [];
           spans.value
             .filter((x) => x.historys.length > 0)
@@ -1919,7 +1946,18 @@ export default {
         console.log(e);
       }
     };
+    const downloadFileExport = (name_func, file_name_download, file_name, file_type) => {
+      let nameF = (file_name || "file_download") + file_type;
+      let nameDownload = (file_name_download || "file_download") + file_type;
+      const a = document.createElement("a");
+      a.href = baseURL + "/api/SRC/" + name_func + "?name=" + nameF;
+      a.download = nameDownload;
+      a.target = "_blank";
+      a.click();
+      a.remove();
+    };
     const downloadFile = async (f) => {
+       
       if (tempHTML != "") {
         dochtml.innerHTML = tempHTML;
       } else {
@@ -2194,24 +2232,34 @@ export default {
       html = html.replace(/<td class="tablecell"[^</]*>(\d+)<\/td>/gim, "");
       html = html.replace(/<col class="tablecell"[^</]*>/gim, "");
       showLoadding.value = true;
+      let dataHtml = { html: html, filename: filename || "doc" };
       try {
+        
         const axResponse = await axios.post(
           baseURL +
-            "api/Files/" +
+            //"api/Files/" +
+            "/api/SRC/" +
             (isxls.value ? "ConvertFileXLSX" : "ConvertFile"),
-          html,
+          dataHtml,
           config
         );
-
         if (axResponse.status == 200) {
-          window.open(
-            baseURL +
-              "api/Files/downloadFile" +
-              (isxls.value ? "XLS" : "") +
-              "?name=" +
-              filename +
-              (isxls.value ? ".xlsx" : ".docx")
-          );
+          // window.open(
+          //   baseURL +
+          //     "api/Files/downloadFile" +
+          //     (isxls.value ? "XLS" : "") +
+          //     "?name=" +
+          //     filename +
+          //     (isxls.value ? ".xlsx" : ".docx")
+          // );
+          if (axResponse.data.err == "0") {            
+            if (isxls.value) {
+              downloadFileExport("GetDownloadXLS", dataHtml.filename, axResponse.data.fileName + ".html", ".xlsx");
+            }
+            else {
+              downloadFileExport("GetDownload", dataHtml.filename, axResponse.data.fileName + ".html", ".docx");
+            }
+          }
           let sps = [];
           spans.value
             .filter((x) => x.historys.length > 0)
@@ -2372,7 +2420,7 @@ export default {
         if (document.getElementById("app-body"))
           document.getElementById("app-body").classList.remove("p-2");
       }
-
+ 
       if (props.report) {
         initTemplate();
       }
@@ -2420,7 +2468,7 @@ export default {
       if (!objConfig.proc.name) {
         objConfig.proc.name = props.report.proc_name;
       }
-
+  
       dtDataReports.value = await goProc(
         objConfig.proc.issql,
         objConfig.proc.sql,
@@ -2463,7 +2511,7 @@ export default {
           headers: { Authorization: `Bearer ${store.getters.token}` },
         }
       );
-
+ 
       let dts = [];
 
       if (axResponse.status == 200) {
@@ -2549,7 +2597,8 @@ export default {
             va: objpar[pa.Parameter_name.replace("@", "")],
           });
         });
-
+        
+        debugger
       let dts = await goProc(false, objConfig.proc.name, pas, true);
       //init với kiểu lưu
       let tbs = [];
@@ -3071,7 +3120,7 @@ export default {
       if (props.report.is_config) {
         objDataTemp.value = props.report.is_config;
       }
-
+      debugger
       let dts = await goProc(true, props.report.proc_all, [], true);
       dtDataReports.value.forEach((dt) => {
         let tb = dts[0].find((x) => x.profile_id == dt.profile_id);
@@ -3171,7 +3220,7 @@ export default {
           va: r[pa.Parameter_name.replace("@", "")],
         });
       });
-
+       
       let dts = await goProc(false, objConfig.proc.name, pas, true);
       objForm.value = dts[0][0];
       cForm.value = r;
@@ -3183,7 +3232,7 @@ export default {
             va: rcopy[pa.Parameter_name.replace("@", "")],
           });
         });
-
+        debugger
         let dts = await goProc(false, objConfig.proc.name, pas, true);
         if (dts.length > 0) {
           objForm.value.is_data = dts[0][0].is_data;
@@ -3741,10 +3790,11 @@ export default {
       :class="isxls ? 'div-excel' : ''"
       style="
         overflow-y: auto;
-        max-height: calc(100% - 40px);
+       
         padding: 20px;
         background-color: #ccc;
       "
+      :style="header==null?' max-height: calc(100% - 40px);':' max-height: calc(100% - 200px);'"
     >
       <div
         class="doc-page card shadow-1"
@@ -4045,7 +4095,29 @@ export default {
             </Column>
             <template #expansion="row">
               <div class="pt-3 pb-3 w-full" v-if="row.data.cols">
-                <h3 class="p-0 m-0 mb-2">Cột</h3>
+                <Toolbar class="w-full custoolbar">
+                  <template #start>
+                    <h3 class="p-0 m-0 mb-2">Cột  </h3>
+
+                  </template>
+                  <template #end>
+             <div v-if="report.report_type==1" >
+       
+            <Dropdown
+                  v-model="report.sum_key"
+                  :options="row.data.cols"
+                  optionLabel="key"
+                  optionValue="key"
+                  placeholder="Chọn tổng lương"
+                  class="w-full"
+                  style="min-width:200px"
+               
+                />
+             </div>
+
+                  </template>
+                </Toolbar>
+     
                 <DataTable
                   class="p-datatable-sm d-sidebar-full w-full"
                   :value="row.data.cols"

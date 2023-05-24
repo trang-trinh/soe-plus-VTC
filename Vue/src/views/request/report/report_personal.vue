@@ -6,6 +6,7 @@ import { required, maxLength } from "@vuelidate/validators";
 import { useVuelidate } from "@vuelidate/core";
 import { FilterMatchMode, FilterOperator } from "primevue/api";
 import { encr, checkURL } from "../../../util/function.js";
+import moment from "moment";
 
 const router = inject("router");
 const route = useRoute();
@@ -28,65 +29,260 @@ const options = ref({
     pageSize: 20,
     total: 0,
     is_team: false,
+    optionView: 3,
+    status: null,
 });
 
-const listStatusRequests = ref([
-    { id: 0,  text: "Mới lập", value: 0, class: "rqlap", bg:"rgb(116, 185, 255)" },
-    { id: 1,  text: "Chờ duyệt", value: 0, class: "rqchoduyet", bg:"rgb(51, 201, 220)" },
-    { id: 2,  text: "Hoàn thành", value: 0, classclass: "rqchapthuan", bg:"rgb(109, 210, 48)" },
-    { id: -2, text: "Từ chối", value: 0, class: "rqtuchoi", bg:"rgb(241, 122, 199)" },
-    { id: -1, text: "Quá hạn", value: 0, class: "rqhuy", bg:"rgb(255, 139, 78)" },
-    { id: 3,  text: "Xử lý đánh giá", value: 0, class: "rqthuhoi", bg:"rgb(245, 176, 65)" },
+const datalists = ref([]);
+
+// const loadData = (rf) => {
+//     options.value.loading = true;
+//     axios
+//         .post(
+//             baseURL + "/api/request/getData",
+//             {
+//                 str: encr(
+//                     JSON.stringify({
+//                         proc: "report_request_statistical_list",
+//                         par: [
+//                             { par: "user_id", va: store.getters.user.user_id },
+//                             { par: "search", va: options.value.search },
+//                         ],
+//                     }),
+//                     SecretKey,
+//                     cryoptojs
+//                 ).toString(),
+//             },
+//             config
+//         )
+//         .then((response) => {
+//             if (response != null && response.data != null) {
+//                 let data = JSON.parse(response.data.data)[0];
+//                 datalists.value = data;
+//             }
+//             swal.close();
+//             if (options.value.loading) options.value.loading = false;
+//         })
+//         .catch((error) => {
+//             toast.error("Tải dữ liệu không thành công!");
+//             options.value.loading = false;
+//             if (error && error.status === 401) {
+//                 swal.fire({
+//                     text: "Mã token đã hết hạn hoặc không hợp lệ, vui lòng đăng nhập lại!",
+//                     confirmButtonText: "OK",
+//                 });
+//                 store.commit("gologout");
+//             }
+//         });
+// };
+const status = ref([
+  { value: "-3", label: "Đã xóa", count: 0 },
+  { value: "-2", label: "Trả lại", count: 0 },
+  { value: "-1", label: "Hủy", count: 0 },
+  { value: "0", label: "Mới tạo", count: 0 },
+  { value: "1", label: "Đang trình", count: 0 },
+  { value: "2", label: "Hoàn thành", count: 0 },
+  { value: "3", label: "Thu hồi", count: 0 },
 ]);
-
-const datalists = ref();
-
-const loadData = (rf) => {
-    options.value.loading = true;
-    axios
-        .post(
-            baseURL + "/api/request/getData",
-            {
-                str: encr(
-                    JSON.stringify({
-                        proc: "report_request_statistical_list",
-                        par: [
-                            { par: "user_id", va: store.getters.user.user_id },
-                            { par: "search", va: options.value.search },
-                        ],
-                    }),
-                    SecretKey,
-                    cryoptojs
-                ).toString(),
-            },
-            config
-        )
-        .then((response) => {
-            if (response != null && response.data != null) {
-                let data = JSON.parse(response.data.data)[0];
-                datalists.value = data;
+const loadMainData = () => {
+    swal.fire({
+    width: 110,
+    didOpen: () => {
+      swal.showLoading();
+    },
+  });
+  axios
+    .post(
+      baseURL + "/api/DictionaryProc/getData",
+      {
+        str: encr(
+          JSON.stringify({
+            proc: "report_request_personal_list",
+            par: [                                   
+              { par: "user_id", va: store.getters.user.user_id },
+              { par: "optionView", va: options.value.optionView },
+              { par: "search", va: options.value.search },
+              { par: "status", va: options.value.status },
+            ],
+          }),
+          SecretKey,
+          cryoptojs,
+        ).toString(),
+      },
+      config,
+    )
+    .then((response) => {
+      let data = JSON.parse(response.data.data)[0];
+      data.forEach((x, i) => {
+        if (x.request_team_id == null) {
+          x.request_team_id = -1;
+          x.request_team_name = "Cá nhân";
+        }
+        if (x.request_form_id == null) {
+          x.request_form_id = -1;
+          x.request_form_name = "Đề xuất khác";
+        }
+        x.STT = options.value.pageNo * options.value.pageSize + (i + 1);
+        x.status_display = status.value.filter(
+          (z) => z.value == x.status,
+        )[0].label;
+        x.sign_users = ["Nguyễn Thị Hương", "Trần Cao Duy", "Dữ liệu Fake"];
+        x.TienDo = 50;
+      });
+      let dataTeam = [];
+      if (options.value.optionView == 3) {
+        data.forEach((x, i) => {
+          if (dataTeam.length == 0) {
+            let k = {
+              request_form_id: x.request_form_id,
+              request_form_name: x.request_form_name,
+              request_team_data: [],
+            };
+            dataTeam.push(k);
+          } else {
+            let t = dataTeam.filter(
+              (z) => z.request_form_id == x.request_form_id,
+            );
+            if (t.length == 0) {
+              let k = {
+                request_form_id: x.request_form_id,
+                request_form_name: x.request_form_name,
+                request_team_data: [],
+              };
+              dataTeam.push(k);
             }
-            swal.close();
-            if (options.value.loading) options.value.loading = false;
-        })
-        .catch((error) => {
-            toast.error("Tải dữ liệu không thành công!");
-            options.value.loading = false;
-            if (error && error.status === 401) {
-                swal.fire({
-                    text: "Mã token đã hết hạn hoặc không hợp lệ, vui lòng đăng nhập lại!",
-                    confirmButtonText: "OK",
-                });
-                store.commit("gologout");
-            }
+          }
         });
-};
+        dataTeam.forEach((element) => {
+          data.forEach((k) => {
+            if (element.request_team_data.length == 0) {
+              let container = {
+                request_team_id: k.request_team_id,
+                request_team_name: k.request_team_name,
+                team_data: [],
+              };
+              element.request_team_data.push(container);
+            } else {
+              let filter = element.request_team_data.filter(
+                (u) => u.request_team_id == k.request_team_id,
+              );
+              if (filter.length == 0) {
+                let container = {
+                  request_team_id: k.request_team_id,
+                  request_team_name: k.request_team_name,
+                  team_data: [],
+                };
+                element.request_team_data.push(container);
+              }
+            }
+          });
+        });
 
+        dataTeam.forEach((z, i) => {
+          z.request_team_data.forEach((x, k) => {
+            let datafilter = data.filter(
+              (d) =>
+                x.request_team_id == d.request_team_id &&
+                z.request_form_id == d.request_form_id,
+            );
+            datafilter.forEach((x, i) => {
+              x.STT = options.value.pageNo * options.value.pageSize + (i + 1);
+            });
+            x.team_data = datafilter;
+          });
+        });
+        datalists.value = dataTeam;
+      } else datalists.value = data;
+      // datalists.value = [];
+      swal.close();
+    })
+    .catch((error) => {
+      if (error && error.status === 401) {
+        swal.fire({
+          title: "Thông báo",
+          text: "Mã token đã hết hạn hoặc không hợp lệ, vui lòng đăng nhập lại!",
+          icon: "error",
+          confirmButtonText: "OK",
+        });
+      }
+    });
+};
+const listStatusRequests = ref([
+    { id: 0,  text: "Mới lập", value: 0, class: "rqlap", bg:"rgb(116, 185, 255)", count: 0 },
+    { id: 1,  text: "Chờ duyệt", value: 0, class: "rqchoduyet", bg:"rgb(51, 201, 220)", count: 0 },
+    { id: 2,  text: "Hoàn thành", value: 0, classclass: "rqchapthuan", bg:"rgb(109, 210, 48)", count: 0 },
+    { id: -2, text: "Từ chối", value: 0, class: "rqtuchoi", bg:"rgb(241, 122, 199)", count: 0 },
+    { id: -1, text: "Quá hạn", value: 0, class: "rqhuy", bg:"rgb(255, 139, 78)", count: 0 },
+    { id: 3,  text: "Xử lý đánh giá", value: 0, class: "rqthuhoi", bg:"rgb(245, 176, 65)", count: 0 },
+]);
+const LoadCount = () => {
+  swal.fire({
+    width: 110,
+    didOpen: () => {
+      swal.showLoading();
+    },
+  });
+
+  axios
+    .post(
+      baseURL + "/api/DictionaryProc/getData",
+      {
+        str: encr(
+          JSON.stringify({
+            proc: "request_team_count",
+            par: [{ par: "user_id", va: store.getters.user.user_id }],
+          }),
+          SecretKey,
+          cryoptojs,
+        ).toString(),
+      },
+      config,
+    )
+    .then((response) => {
+      let data = JSON.parse(response.data.data)[0];
+
+      listStatusRequests.value[0].value = data[0].allreq;
+      listStatusRequests.value[1].value = data[0].waiting;
+      listStatusRequests.value[2].value = data[0].completed;
+      listStatusRequests.value[3].value = data[0].refused;
+      listStatusRequests.value[4].value = data[0].finished;
+      listStatusRequests.value[5].value = data[0].expired;
+      swal.close();
+    })
+    .catch((error) => {
+      if (error && error.status === 401) {
+        swal.fire({
+          title: "Thông báo",
+          text: "Mã token đã hết hạn hoặc không hợp lệ, vui lòng đăng nhập lại!",
+          icon: "error",
+          confirmButtonText: "OK",
+        });
+      }
+    });
+};
+const refresh = () => {
+  options.value = ({
+    loading: true,
+    search: '',
+    pageNo: 1,
+    pageSize: 20,
+    total: 0,
+    is_team: false,
+    optionView: 3,
+    status: null,
+  });
+  loadMainData();
+}
+const ChangeStatus = (model) => {
+  options.value.status = model.id;
+  loadMainData();
+}
 onMounted(() => {
-    loadData(true);
+    LoadCount();
+    loadMainData();
     return {
         datalists,
-        loadData,
+        loadMainData,
     };
 });
 </script>
@@ -97,12 +293,11 @@ onMounted(() => {
                 <div class="flex" style="width: 100%;">
                     <span class="p-input-icon-left"
                         style="position: relative;width: 50%;display: flex;align-items: center;">
-                        
                     </span>
                     <span class="p-input-icon-left" style="width: 50%;">
                         <i class="pi pi-search" />
                         <InputText type="text" spellcheck="false" v-model="options.search" style="width: 75%;"
-                            placeholder="Tìm kiếm" v-on:keyup.enter="loadData(true)" />
+                            placeholder="Tìm kiếm" v-on:keyup.enter="loadMainData()" />
                     </span>
                 </div>
             </template>
@@ -119,7 +314,7 @@ onMounted(() => {
         </div>
         <div class="field col-12 md:col-12 algn-items-center flex p-0" style="margin-top: 10px;">
             <div v-for="l in listStatusRequests" class="col-2 text-center p-0" style="align-items:center;">
-                <div style="margin: 0px 10px;color: #fff;font-size: 15px;" :style="'background-color:' + l.bg" class="zoom">
+                <div @click="ChangeStatus(l)" style="margin: 0px 10px;color: #fff;font-size: 15px;" :style="'background-color:' + l.bg" class="zoom">
                     {{ l.text }} ({{ l.value }})
                 </div>
             </div>

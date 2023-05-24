@@ -697,7 +697,7 @@ const exportData = (method) => {
         swal.close();
 
         toast.success("Kết xuất Data thành công!");
-        debugger
+         
         if (response.data.path != null) {
           let pathReplace = response.data.path
             .replace(/\\+/g, "/")
@@ -1720,8 +1720,8 @@ onMounted(() => {
               header="Mã số"
               headerStyle="text-align:center;max-width:150px;height:50px "
               bodyStyle="text-align:center;max-width:150px"
-              headerClass="align-items-center    justify-content-center text-center "
-              class="overflow-hidden"
+              class="align-items-center  overflow-hidden  justify-content-center text-center "
+             
               :sortable="true"
             >
               <template #filter="{ filterModel }">
