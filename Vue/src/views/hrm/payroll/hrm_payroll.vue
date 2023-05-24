@@ -94,6 +94,7 @@ const loadCount = () => {
 };
 //Lấy dữ liệu payroll
 const loadData = (rf) => {
+  debugger
   if (rf) {
     if (isDynamicSQL.value) {
       loadDataSQL();
@@ -132,9 +133,11 @@ const loadData = (rf) => {
           element.STT = options.value.PageNo * options.value.PageSize + i + 1;
 
           if (element.report_key) {
-            element.report_key_name = listTypeContractSave.value.find(
+            var arr=listTypeContractSave.value.find(
               (x) => x.report_key == element.report_key
-            ).report_name;
+            );
+            if(arr)
+            element.report_key_name = arr.report_name;
           }
           if (element.listUsers) {
             element.listUsers = JSON.parse(element.listUsers);
@@ -183,7 +186,7 @@ const loadData = (rf) => {
       .catch((error) => {
         toast.error("Tải dữ liệu không thành công!");
         options.value.loading = false;
-
+console.log("0e",error)
         if (error && error.status === 401) {
           swal.fire({
             text: "Mã token đã hết hạn hoặc không hợp lệ, vui lòng đăng nhập lại!",
@@ -477,6 +480,7 @@ const configPayroll = async (row) => {
         report.value.report_config &&
         report.value.report_config.trim() != ""
       ) {
+        debugger
         cg = JSON.parse(report.value.report_config);
       }
       cg.proc = {
@@ -515,8 +519,11 @@ const callbackFun = (obj) => {
 };
 const saveDGLuongUser = async (r) => {
   var arrck = null;
+   
   if (r.is_data) arrck = r.is_data[0][report.value.sum_key];
   if (!arrck) arrck = null;
+  else
+  arrck=Number(arrck);
   let strSQL = {
     query: false,
     proc: "hrm_payroll_user_addd ",
@@ -557,7 +564,7 @@ const goProfile = (profile) => {
 };
 const saveDGLuong = async () => {
   let ok = true;
-  debugger
+   
   if (!payroll.value.report_key) {
     toast.warning("Vui lòng chọn mẫu bảng lương.");
 
@@ -634,10 +641,10 @@ const editTem = (dataTem) => {
       payroll.value.profile_id_fake.push(element.profile_id);
     });
   }
-
+ 
   if (payroll.value.payroll_month)
     payroll.value.payroll_month_fake = new Date(
-      "01/" + payroll.value.payroll_month + "/2023"
+     payroll.value.payroll_month +  "/01" +  "/2023"
     );
   if (payroll.value.payroll_year)
     payroll.value.payroll_year_fake = new Date(
@@ -1548,8 +1555,8 @@ onMounted(() => {
                 style="
                   background-color: #2196f3;
                   color: #fff;
-                  width: 2rem;
-                  height: 2rem;
+                  width: 3rem;
+                  height: 3rem;
                   font-size: 1rem !important;
                 "
               />

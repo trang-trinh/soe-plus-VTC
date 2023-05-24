@@ -1248,6 +1248,7 @@ export default {
       });
     };
     const saveDatamap = (f) => {
+      debugger
       if (readonly.value) {
         //Save file quyết định, lương...
         let users = [];
@@ -1638,7 +1639,7 @@ export default {
       ) {
         try {
           objConfig = JSON.parse(props.report.report_config.trim());
-
+debugger
           if (isUrlReport.value && Object.keys(props.pars).length > 0) {
             await initURLReport();
           } else if (Object.keys(objConfig.proc).length > 0) {
@@ -1742,7 +1743,6 @@ export default {
         //divZoom.value = "0.75";
         addExcelStyle();
       }
-      debugger;
       initDataTempAuto();
       if (dochtml) {
         tempHTMLGoc = dochtml.innerHTML;
@@ -1838,6 +1838,7 @@ export default {
     const IsOne = ref(false);
     const dbrow = ref({});
     const openCogDatabase = (row, f, o) => {
+      
       if (f) {
         if (row.isfor) {
           row.value = row.colname;
@@ -2622,7 +2623,7 @@ export default {
           });
         });
 
-      debugger;
+      ;
       let dts = await goProc(false, objConfig.proc.name, pas, true);
       //init với kiểu lưu
       let tbs = [];
@@ -3141,7 +3142,7 @@ export default {
       if (props.report.is_config) {
         objDataTemp.value = props.report.is_config;
       }
-      debugger;
+      ;
       let dts = await goProc(true, props.report.proc_all, [], true);
       dtDataReports.value.forEach((dt) => {
         let tb = dts[0].find((x) => x.profile_id == dt.profile_id);
@@ -3253,7 +3254,7 @@ export default {
             va: rcopy[pa.Parameter_name.replace("@", "")],
           });
         });
-        debugger;
+        ;
         let dts = await goProc(false, objConfig.proc.name, pas, true);
         if (dts.length > 0) {
           objForm.value.is_data = dts[0][0].is_data;
@@ -4116,11 +4117,15 @@ export default {
               </template>
             </Column>
             <template #expansion="row">
-              <div class="pt-3 pb-3 w-full" v-if="row.data.cols">
+              <div class=" py-3 w-full" v-if="row.data.cols">
                 <Toolbar class="w-full custoolbar">
                  
                   <template #start>
-                    <div v-if="report.report_type == 1">
+                  
+                    <div  > <h3 class="p-0 m-0 mb-2">Cột</h3></div>
+                  </template>
+                  <template #end>  
+                  <div v-if="report.report_type == 1">
                       <Dropdown
                         v-model="report.sum_key"
                         :options="row.data.cols"
@@ -4131,8 +4136,7 @@ export default {
                         style="min-width: 200px"
                       />
                     </div>
-                    <div v-else> <h3 class="p-0 m-0 mb-2">Cột</h3></div>
-                  </template>
+                    </template>
                 </Toolbar>
 
                 <DataTable

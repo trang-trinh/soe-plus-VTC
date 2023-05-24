@@ -1893,7 +1893,7 @@ const initBaocao = async (id) => {
       },
     ],
   };
-  console.log(strSQL);
+  console.log("ssasda",strSQL);
 
   swal.fire({
     width: 110,
