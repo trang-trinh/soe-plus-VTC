@@ -595,6 +595,7 @@ const filterForm = () => {
     listSignUser.value = []; // SignUser
     formDS.value = [];
     if (fo != null) {
+        listLeaveDayByUser();
         if (fo.is_use_all) {
             filterTeamRequest.value = props.dictionarys[2];
         } else {
@@ -631,7 +632,78 @@ const IndexTable = (listFormDS, formd_id) => {
     }
     return 0;    
 };
-
+const dataHR_Leave = ref({
+    sum_leave_use: 0,
+    total_leave_available: 0,
+    remaining_leave: 0,
+    leave_normal: 0,
+    leave_sick: 0,
+    leave_maternity: 0,
+    leave_no_salary_insurance: 0,
+    leave_no_salary_no_insurance: 0,
+    leave_personal: 0,
+});
+const listLeaveDayByUser = () => {
+    axios({
+        method: "post",
+        url: basedomainURL + "api/request/getData",
+        data: {
+            str: encr(
+                JSON.stringify({
+                    proc: "request_leavedays_by_user",
+                    par: [ 
+                        { par: "user_id", va: store.getters.user.user_id },
+                        { par: "date_now", va: new Date() },
+                    ],
+                }),
+                SecretKey,
+                cryoptojs
+            ).toString(),
+        },
+        headers: {
+			Authorization: `Bearer ${store.getters.token}`,
+		},
+    })
+    .then((response) => {
+        if (response.data != null && response.data.err == "0") {
+            if (response.data.data != null) {
+                var dataResult = JSON.parse(response.data.data)[0];
+                if (dataResult.length > 0) {
+                    let data = dataResult[0];
+                    dataHR_Leave.value.sum_leave_use = data.sum_leave_use;
+                    dataHR_Leave.value.total_leave_available = data.leave + data.inventory + data.bonus + data.seniority;
+                    dataHR_Leave.value.remaining_leave = dataHR_Leave.value.total_leave_available - dataHR_Leave.value.sum_leave_use;
+                    dataHR_Leave.value.leave_normal = data.leave_normal;
+                    dataHR_Leave.value.leave_sick = data.leave_sick;
+                    dataHR_Leave.value.leave_maternity = data.leave_maternity;
+                    dataHR_Leave.value.leave_no_salary_insurance = data.leave_no_salary_insurance;
+                    dataHR_Leave.value.leave_no_salary_no_insurance = data.leave_no_salary_no_insurance;
+                    dataHR_Leave.value.leave_personal = data.leave_personal;
+                }
+                else {
+                    dataHR_Leave.value.sum_leave_use = 0;
+                    dataHR_Leave.value.total_leave_available = 0;
+                    dataHR_Leave.value.remaining_leave = dataHR_Leave.value.total_leave_available - dataHR_Leave.value.sum_leave_use;
+                    dataHR_Leave.value.leave_normal = 0;
+                    dataHR_Leave.value.leave_sick = 0;
+                    dataHR_Leave.value.leave_maternity = 0;
+                    dataHR_Leave.value.leave_no_salary_insurance = 0;
+                    dataHR_Leave.value.leave_no_salary_no_insurance = 0;
+                    dataHR_Leave.value.leave_personal = 0;
+                }
+            }
+        }
+    })
+    .catch((error) => {
+        if (error.status === 401) {
+            swal.fire({
+                text: "Mã token đã hết hạn hoặc không hợp lệ, vui lòng đăng nhập lại!",
+                confirmButtonText: "OK",
+            });
+            return;
+        }
+    });
+};
 const renderWidth = (kieu) => {
     switch (kieu) {
         case "checkbox":
@@ -912,29 +984,29 @@ onMounted(() => {
                             <div class="col-6 md:col-6 flex p-0" style="flex-direction: column;">
                                 <div class="label-dayoff">
                                     <label class="mr-2">1. Nghỉ phép:</label>
-                                    <span>{{ '0' }}</span>
+                                    <span>{{ dataHR_Leave.leave_normal }}</span>
                                 </div>
                                 <div class="label-dayoff">
                                     <label class="mr-2">2. Nghỉ ốm:</label>
-                                    <span>{{ '0' }}</span>
+                                    <span>{{ dataHR_Leave.leave_sick }}</span>
                                 </div>
                                 <div class="label-dayoff">
                                     <label class="mr-2">3. Nghỉ thai sản:</label>
-                                    <span>{{ '0' }}</span>
+                                    <span>{{ dataHR_Leave.leave_maternity }}</span>
                                 </div>
                             </div>
                             <div class="col-6 md:col-6 flex p-0" style="flex-direction: column;">
                                 <div class="label-dayoff">
                                     <label class="mr-2">4. Nghỉ không lương hưởng báo hiểm:</label>
-                                    <span>{{ '0' }}</span>
+                                    <span>{{ dataHR_Leave.leave_no_salary_insurance }}</span>
                                 </div>
                                 <div class="label-dayoff">
                                     <label class="mr-2">5. Nghỉ không lương không đóng báo hiểm:</label>
-                                    <span>{{ '0' }}</span>
+                                    <span>{{ dataHR_Leave.leave_no_salary_no_insurance }}</span>
                                 </div>
                                 <div class="label-dayoff">
                                     <label class="mr-2">6. Việc riêng theo chế độ:</label>
-                                    <span>{{ '0' }}</span>
+                                    <span>{{ dataHR_Leave.leave_personal }}</span>
                                 </div>
                             </div>
                         </div>       
@@ -942,11 +1014,11 @@ onMounted(() => {
                             <div class="col-12 md:col-12 flex p-0" style="flex-direction: column;">                                
                                 <div class="label-dayoff">
                                     <label class="label-form mr-2">Số ngày phép được phân bổ:</label>
-                                    <span>{{ '0' }}</span>
+                                    <span>{{ dataHR_Leave.total_leave_available }}</span>
                                 </div>
                                 <div class="label-dayoff">
                                     <label class="label-form mr-2">Số ngày phép còn lại:</label>
-                                    <span>{{ '0' }}</span>
+                                    <span>{{ dataHR_Leave.remaining_leave }}</span>
                                 </div>
                             </div>
                         </div>
