@@ -1872,7 +1872,7 @@ onMounted(() => {
                                                 <td class="" 
                                                     style="cursor:pointer;text-align:center;" 
                                                     @click="openURLRQ(r)" 
-                                                    :class="r.status != 2 && r.is_overdue && r.Deadline && r.SoNgayHan <= 24 ? 'overdue-request' : ''"
+                                                    :class="r.status != 2 && r.is_overdue && r.deadline && r.SoNgayHan <= 24 ? 'overdue-request' : ''"
                                                 >
                                                     <span style="word-break: break-all;">{{ r.request_code }}</span>
                                                     <div class="mt-2" v-if="r.status_processing == 3">
