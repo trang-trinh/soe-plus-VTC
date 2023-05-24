@@ -320,10 +320,11 @@ const saveData = (isFormValid) => {
     payroll.value.list_profile_id = payroll.value.profile_id_fake.toString();
   }
   if (payroll.value.payroll_month_fake) {
-    payroll.value.payroll_month= payroll.value.payroll_month_fake.getMonth()+1;
+    payroll.value.payroll_month =
+      payroll.value.payroll_month_fake.getMonth() + 1;
   }
   if (payroll.value.payroll_year_fake) {
-    payroll.value.payroll_year= payroll.value.payroll_year_fake.getFullYear() ;
+    payroll.value.payroll_year = payroll.value.payroll_year_fake.getFullYear();
   }
   if (payroll.value.profile_id_fake) {
     payroll.value.list_profile_id = payroll.value.profile_id_fake.toString();
@@ -419,187 +420,185 @@ const viewTem = (data) => {
     url.replaceAll("%", "==") +
     "?v=" +
     new Date().getTime().toString();
-     
+
   if (router)
     router.push({
       path: url,
     });
 };
 const visibleSidebarDoc = ref(false);
-const report=ref({datadic:null});
+const report = ref({ datadic: null });
 const configPayroll = async (row) => {
-            let strSQL = {
-                "query": false,
-                "proc": "payroll_config",
-                "par": [
-                    {
-                        "par": "payroll_id",
-                        "va": row.payroll_id
-                    }, {
-                        "par": "report_key",
-                        "va": row.report_key
-                    }
-                ]
-            };
-            swal.fire({
-                width: 110,
-                didOpen: () => {
-                    swal.showLoading();
-                },
-            });
-            const axResponse = await axios
-            .post(
-        baseURL + "/api/HRM_SQL/getData",
-        {
-          str: encr(JSON.stringify(strSQL), SecretKey, cryoptojs).toString(),
-        },
-        {
-          headers: { Authorization: `Bearer ${store.getters.token}` },
-        }
-      );
+  let strSQL = {
+    query: false,
+    proc: "payroll_config",
+    par: [
+      {
+        par: "payroll_id",
+        va: row.payroll_id,
+      },
+      {
+        par: "report_key",
+        va: row.report_key,
+      },
+    ],
+  };
+  swal.fire({
+    width: 110,
+    didOpen: () => {
+      swal.showLoading();
+    },
+  });
+  
+  const axResponse = await axios.post(
+    baseURL + "/api/HRM_SQL/getData",
+    {
+      str: encr(JSON.stringify(strSQL), SecretKey, cryoptojs).toString(),
+    },
+    {
+      headers: { Authorization: `Bearer ${store.getters.token}` },
+    }
+  );
+
+  if (axResponse.status == 200) {
+    if (axResponse.data.error) {
+      toast.error("Không mở được bản ghi");
+    } else {
+      let dt = JSON.parse(axResponse.data.data);
        
-            if (axResponse.status == 200) {
-                if (axResponse.data.error) {
-                    toast.error("Không mở được bản ghi");
-                } else {
-                    let dt = JSON.parse(axResponse.data.data);
-                    payroll.value = dt[2][0];
-                    report.value = dt[1][0];
-                    
-                    
-                    report.value.datadic = [
-                        { title: "Bảng lương", data: dt[0][0] }
-                    ];
-                    report.value.proc_name = `payroll_profile_list '${store.getters.user.user_id}', '${row.payroll_id}'`;
-                    report.value.proc_all = `payroll_profile_list_all '${store.getters.user.user_id}', '${row.payroll_id}'`;
-                    let cg = {};
-                    if (report.value.report_config && report.value.report_config.trim() != "") {
-                        cg = JSON.parse(report.value.report_config);
-                    }
-                    cg.proc = {
-                        "name": "payroll_user_get",
-                        "parameters": [
-                            {
-                                "Parameter_name": "@payroll_user_id",
-                                "Type": "varchar",
-                                "Length": 50,
-                                "Param_order": 1
-                            }
-                        ],
-                        "sql": report.value.proc_name,
-                        "data": JSON.stringify(cg.data),
-                        "issql": true
-                    }
-                    report.value.report_config = JSON.stringify(cg);
-                    if(payroll.value.payroll_config)
-                    report.value.is_config =JSON.parse(payroll.value.payroll_config);
-                     
-                    visibleSidebarDoc.value = true;
-                }
-            }
-            swal.close();
-        }
-        const callbackFun = (obj) => {
-           
-            if (obj.is_config) {
-                payroll.value.payroll_config = obj.is_config;
-                   
-                saveDGLuong();
-                return false;
-            }
-             
-            saveDGLuongUser(obj);
-        }
-        const saveDGLuongUser = async (r) => {
-          debugger
-          var arrck=null;
-           if(r.is_data)
-             arrck=r.is_data[0][report.value.sum_key];
-           if(!arrck)
-           arrck=null;
-            let strSQL = {
-                "query": false,
-                "proc": "hrm_payroll_user_addd ",
-                "par": [
-                    { "par": "payroll_user_id", "va": r.payroll_user_id },
-                    { "par": "payroll_id", "va": r.payroll_id },
-                    { "par": "profile_id", "va": r.profile_id },
-                    { "par": "is_data", "va": JSON.stringify() },
-                    { "par": "user_id", "va": store.getters.user.user_id },
-                    { "par": "ip", "va": store.getters.ip },
-                    { "par": "organization_id", "va": store.getters.user.organization_id },
-                    { "par": "salary", "va":  arrck },
-                ]
-            };
-            console.log(strSQL);
-            try {
-              const axResponse = await axios.post(
-        baseURL + "/api/HRM_SQL/getData",
-        {
-          str: encr(JSON.stringify(strSQL), SecretKey, cryoptojs).toString(),
-        },
-        {
-          headers: { Authorization: `Bearer ${store.getters.token}` },
-        }
-      );
+      payroll.value = dt[2][0];
+      report.value = dt[1][0];
 
-              console.log(axResponse.value);
+      report.value.datadic = [{ title: "Bảng lương", data: dt[0][0] }];
+      report.value.proc_name = `payroll_profile_list '${store.getters.user.user_id}', '${row.payroll_id}'`;
+      report.value.proc_all = `payroll_profile_list_all '${store.getters.user.user_id}', '${row.payroll_id}'`;
+      let cg = {};
+      if (
+        report.value.report_config &&
+        report.value.report_config.trim() != ""
+      ) {
+        cg = JSON.parse(report.value.report_config);
+      }
+      cg.proc = {
+        name: "payroll_user_get",
+        parameters: [
+          {
+            Parameter_name: "@payroll_user_id",
+            Type: "varchar",
+            Length: 50,
+            Param_order: 1,
+          },
+        ],
+        sql: report.value.proc_name,
+        data: JSON.stringify(cg.data),
+        issql: true,
+      };
+      report.value.report_config = JSON.stringify(cg);
+      if (payroll.value.payroll_config)
+        report.value.is_config = JSON.parse(payroll.value.payroll_config);
 
-            } catch (e) {
-                console.log(e);
-            }
-        };
-        const goProfile = (profile) => {
+      visibleSidebarDoc.value = true;
+    }
+  }
+  swal.close();
+};
+const callbackFun = (obj) => {
+  if (obj.is_config) {
+    payroll.value.payroll_config = obj.is_config;
+
+    saveDGLuong();
+    return false;
+  }
+
+  saveDGLuongUser(obj);
+};
+const saveDGLuongUser = async (r) => {
+  var arrck = null;
+  if (r.is_data) arrck = r.is_data[0][report.value.sum_key];
+  if (!arrck) arrck = null;
+  let strSQL = {
+    query: false,
+    proc: "hrm_payroll_user_addd ",
+    par: [
+      { par: "payroll_user_id", va: r.payroll_user_id },
+      { par: "payroll_id", va: r.payroll_id },
+      { par: "profile_id", va: r.profile_id },
+      { par: "is_data", va: JSON.stringify() },
+      { par: "user_id", va: store.getters.user.user_id },
+      { par: "ip", va: store.getters.ip },
+      { par: "organization_id", va: store.getters.user.organization_id },
+      { par: "salary", va: arrck },
+    ],
+  };
+  console.log(strSQL);
+  try {
+    const axResponse = await axios.post(
+      baseURL + "/api/HRM_SQL/getData",
+      {
+        str: encr(JSON.stringify(strSQL), SecretKey, cryoptojs).toString(),
+      },
+      {
+        headers: { Authorization: `Bearer ${store.getters.token}` },
+      }
+    );
+
+    console.log(axResponse.value);
+  } catch (e) {
+    console.log(e);
+  }
+};
+const goProfile = (profile) => {
   router.push({
     name: "profileinfo",
     params: { id: profile.profile_code },
     query: { id: profile.profile_id },
   });
 };
-        const saveDGLuong = async () => {
-            let ok = true;
-            if (!payroll.value.report_key) {
-              toast.warning("Vui lòng chọn mẫu bảng lương.");
-          
-                ok = false;
-            }
-            if (!payroll.value.payroll_name) {
-              toast.warning("Vui lòng nhập tên bảng lương.");
-               
-                ok = false;
-            }
-            if (!payroll.value.sign_user) {
-              toast.warning("Vui lòng nhập tên người ký bảng lương.");
-             
-                ok = false;
-            }
-            if (ok) {
-              options.value.loading = true;
-                let strSQL = {
-                    "query": false,
-                    "proc": "hrm_payroll_add",
-                    "par": [
-                        { "par": "payroll_id", "va": payroll.value.payroll_id },
-                        { "par": "payroll_month", "va": payroll.value.payroll_month },
-                        { "par": "payroll_year", "va": payroll.value.payroll_year },
-                        { "par": "payroll_name", "va": payroll.value.payroll_name },
-                        { "par": "payroll_config", "va": payroll.value.payroll_config },
-                        { "par": "list_profile_id", "va": payroll.value.list_profile_id||null },
-                        { "par": "sign_date", "va": payroll.value.sign_date },
-                        { "par": "sign_user", "va": payroll.value.sign_user },
-                        { "par": "profile_sign_id", "va": payroll.value.profile_sign_id },
-                        { "par": "declare_paycheck_id", "va": payroll.value.declare_paycheck_id },
-                     
-                        { "par": "report_key", "va": payroll.value.report_key },
-                        { "par": "status ", "va": payroll.value.status },
-                        { "par": "user_id", "va":   store.getters.user.user_id },
-                        { "par": "ip", "va":   store.getters.ip },
-                        { "par": "organization_id", "va":  store.getters.user.organization_id },
-                    ]
-                };
-                console.log(strSQL);
-                try {
-                  const axResponse = await axios.post(
+const saveDGLuong = async () => {
+  let ok = true;
+  debugger
+  if (!payroll.value.report_key) {
+    toast.warning("Vui lòng chọn mẫu bảng lương.");
+
+    ok = false;
+  }
+  if (!payroll.value.payroll_name) {
+    toast.warning("Vui lòng nhập tên bảng lương.");
+
+    ok = false;
+  }
+  if (!payroll.value.sign_user) {
+    toast.warning("Vui lòng nhập tên người ký bảng lương.");
+
+    ok = false;
+  }
+  if (ok) {
+    options.value.loading = true;
+    let strSQL = {
+      query: false,
+      proc: "hrm_payroll_add",
+      par: [
+        { par: "payroll_id", va: payroll.value.payroll_id },
+        { par: "payroll_month", va: payroll.value.payroll_month },
+        { par: "payroll_year", va: payroll.value.payroll_year },
+        { par: "payroll_name", va: payroll.value.payroll_name },
+        { par: "payroll_config", va: payroll.value.payroll_config },
+        { par: "list_profile_id", va: payroll.value.list_profile_id || null },
+        { par: "sign_date", va: payroll.value.sign_date },
+        { par: "sign_user", va: payroll.value.sign_user },
+        { par: "profile_sign_id", va: payroll.value.profile_sign_id },
+        { par: "declare_paycheck_id", va: payroll.value.declare_paycheck_id },
+
+        { par: "report_key", va: payroll.value.report_key },
+        { par: "status ", va: payroll.value.status },
+        { par: "user_id", va: store.getters.user.user_id },
+        { par: "ip", va: store.getters.ip },
+        { par: "organization_id", va: store.getters.user.organization_id },
+      ],
+    };
+    console.log(strSQL);
+    try {
+      const axResponse = await axios.post(
         baseURL + "/api/HRM_SQL/PostProc",
         {
           str: encr(JSON.stringify(strSQL), SecretKey, cryoptojs).toString(),
@@ -609,21 +608,20 @@ const configPayroll = async (row) => {
         }
       );
 
-                    if (axResponse.status == 200) {
-                        displayBasic.value = false;
-                        // listsalary();
-                    } else {
-                        toast.error("Có lỗi xảy ra, vui lòng thử lại!");
-                    }
-                    options.value.loading = false;
-
-                } catch (e) {
-                    console.log(e);
-                    options.value.loading = false;
-                    toast.error("Có lỗi xảy ra, vui lòng thử lại!");
-                }
-            }
-        };
+      if (axResponse.status == 200) {
+        displayBasic.value = false;
+        // listsalary();
+      } else {
+        toast.error("Có lỗi xảy ra, vui lòng thử lại!");
+      }
+      options.value.loading = false;
+    } catch (e) {
+      console.log(e);
+      options.value.loading = false;
+      toast.error("Có lỗi xảy ra, vui lòng thử lại!");
+    }
+  }
+};
 //Sửa bản ghi
 const editTem = (dataTem) => {
   submitted.value = false;
@@ -637,9 +635,13 @@ const editTem = (dataTem) => {
   }
 
   if (payroll.value.payroll_month)
-    payroll.value.payroll_month_fake = new Date('01/'+payroll.value.payroll_month+'/2023' ) ;
+    payroll.value.payroll_month_fake = new Date(
+      "01/" + payroll.value.payroll_month + "/2023"
+    );
   if (payroll.value.payroll_year)
-    payroll.value.payroll_year_fake = new Date("01/01/"+payroll.value.payroll_year);
+    payroll.value.payroll_year_fake = new Date(
+      "01/01/" + payroll.value.payroll_year
+    );
   if (payroll.value.sign_date)
     payroll.value.sign_date = new Date(payroll.value.sign_date);
   headerDialog.value = "Sửa bảng lương";
@@ -891,7 +893,7 @@ const onCheckBox = (value, check) => {
         if (response.data.err != "1") {
           swal.close();
           toast.success("Sửa trạng thái bảng lương thành công!");
-        
+
           closeDialog();
         } else {
           swal.fire({
@@ -1460,7 +1462,6 @@ onMounted(() => {
             placeholder="Từ khoá"
           />
         </template>
- 
       </Column>
       <Column
         header="Tháng"
@@ -1470,12 +1471,11 @@ onMounted(() => {
       >
         <template #body="slotProps">
           <div>
-     
             {{
               moment(
                 new Date(
                   slotProps.data.payroll_year,
-                  slotProps.data.payroll_month-1,
+                  slotProps.data.payroll_month - 1,
                   1
                 )
               ).format("MM/YYYY")
@@ -1490,12 +1490,9 @@ onMounted(() => {
         bodyStyle="text-align:center;max-width:150px;overflow:hidden"
         class="align-items-center justify-content-center text-center overflow-hidden"
       >
-      <template #body="slotProps">
+        <template #body="slotProps">
           <div v-if="slotProps.data.sum_salary">
-     
-            {{
-             slotProps.data.sum_salary.toLocaleString()
-            }}
+            {{ slotProps.data.sum_salary.toLocaleString() }}
           </div>
         </template>
       </Column>
@@ -1574,7 +1571,7 @@ onMounted(() => {
         class="align-items-center justify-content-center text-center overflow-hidden"
       >
         <template #body="slotProps">
-          <div>
+          <div v-if="slotProps.data.sign_date">
             {{ moment(slotProps.data.sign_date).format("DD/MM/YYYY") }}
           </div>
         </template>
@@ -1623,7 +1620,7 @@ onMounted(() => {
               icon="pi pi-eye"
               v-tooltip.top="'Xem'"
             ></Button> -->
-                <Button
+            <Button
               @click="configPayroll(Tem.data)"
               class="p-button-rounded p-button-secondary p-button-outlined mx-1"
               type="button"
