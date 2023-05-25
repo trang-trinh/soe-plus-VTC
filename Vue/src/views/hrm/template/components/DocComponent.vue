@@ -2493,7 +2493,7 @@ export default {
       if (!objConfig.proc.name) {
         objConfig.proc.name = props.report.proc_name;
       }
-
+debugger
       dtDataReports.value = await goProc(
         objConfig.proc.issql,
         objConfig.proc.sql,
@@ -2514,6 +2514,7 @@ export default {
       dochtml.innerHTML = tempHTMLGoc;
       await initReportData();
     };
+     
     const goProc = async (query, name, par, f, o) => {
       let strSQL = {
         query: query,
@@ -2526,7 +2527,7 @@ export default {
           swal.showLoading();
         },
       });
-
+debugger
       const axResponse = await axios.post(
         baseURL + "/api/HRM_SQL/PostProc",
         {
@@ -2624,6 +2625,7 @@ export default {
         });
 
       ;
+       
       let dts = await goProc(false, objConfig.proc.name, pas, true);
       //init với kiểu lưu
       let tbs = [];
@@ -2776,6 +2778,7 @@ export default {
     }
     const initURLReport = async () => {
       objConfig = JSON.parse(props.report.report_config);
+      debugger
       //Xử lý for Word
       renderTableWord(props.pars);
     };
@@ -3254,7 +3257,7 @@ export default {
             va: rcopy[pa.Parameter_name.replace("@", "")],
           });
         });
-        ;
+        
         let dts = await goProc(false, objConfig.proc.name, pas, true);
         if (dts.length > 0) {
           objForm.value.is_data = dts[0][0].is_data;
@@ -3585,7 +3588,8 @@ export default {
 };
 </script>
 <template>
-  <div :class="'flex mb-' + (isUrlReport ? 0 : 1)">
+  <div class="d-design-doc">
+  <div :class="'   flex mb-' + (isUrlReport ? 0 : 1)">
     <div class="tool flex-1 flex" v-if="isHasHTML && !isUrlReport && !readonly">
       <Button
         v-tooltip="'Chữ thường'"
@@ -3794,7 +3798,7 @@ export default {
                                                                                                                                                                                                                                                                                                                                                                                                 </Tag> -->
   </div>
   <Divider class="m-0 p-0" />
-  <div class="flex" style="background-color: #eee">
+  <div class="  flex" style="background-color: #eee">
     <iframe
       id="docIframe"
       src="about:blank"
@@ -5240,6 +5244,7 @@ export default {
       </div>
     </div>
   </Sidebar>
+</div>
   <!-- <Menu style="max-height: 450px;overflow-y: auto;" ref="menuInput" :model="itemtypeInputs" popup id="overlay_tmenu" /> -->
 </template>
 <style lang="scss" scoped>
@@ -5382,43 +5387,43 @@ export default {
   margin: auto;
 }
 </style>
-<style>
-.no-icon {
+<style  >
+.d-design-doc .no-icon {
   text-align: center;
   justify-content: center;
 }
 
-.no-icon .p-dropdown-trigger {
+.d-design-doc   .no-icon .p-dropdown-trigger {
   display: none;
 }
 
-.none {
+.d-design-doc .none {
   display: none !important;
 }
 
-.p-dialog-content tr:hover td {
+.d-design-doc .p-dialog-content tr:hover td {
   background-color: yellow;
 }
 
-.div-excel {
+.d-design-doc .div-excel {
   padding: 0 !important;
 }
 
-.div-excel tr:hover td {
+.d-design-doc .div-excel tr:hover td {
   background-color: yellow !important;
   color: #000 !important;
 }
 
-.div-excel tr:hover td:hover {
+.d-design-doc .div-excel tr:hover td:hover {
   background-color: aliceblue !important;
   color: #000 !important;
 }
 
-.div-excel.line td {
+.d-design-doc .div-excel.line td {
   border: 1px solid #999;
 }
 
-.tablecell {
+.d-design-doc .tablecell {
   text-align: center;
   font-weight: bold;
   background-color: #eee;
@@ -5426,14 +5431,14 @@ export default {
   border-bottom: 1px solid #999;
 }
 
-td.thcell {
+.d-design-doc td.thcell {
   font-weight: bold;
   padding: 5px;
   font-size: 13pt;
   border-right: 1px solid #999;
 }
 
-td.tablecell,
+.d-design-doc td.tablecell,
 .thcell {
   background-color: #eee;
   position: sticky;
@@ -5442,34 +5447,34 @@ td.tablecell,
   left: 0;
 }
 
-#app-sidebar,
+.d-design-doc #app-sidebar,
 #mobile-header {
   display: none !important;
 }
 
-.true .p-contextmenu-root-list {
+.d-design-doc .true .p-contextmenu-root-list {
   max-height: 400px;
   overflow-y: auto;
   padding: 10px !important;
 }
 
-#gtx-trans {
+.d-design-doc #gtx-trans {
   display: none !important;
 }
 
-[contenteditable] {
+.d-design-doc [contenteditable] {
   outline: 0px solid transparent;
 }
 
-.os-delete-os {
+.d-design-doc .os-delete-os {
   display: none;
 }
 
-tr.selected {
+.d-design-doc tr.selected {
   background-color: yellow !important;
 }
 
-td.thcell,
+.d-design-doc td.thcell,
 td.tablecell {
   border-right: 1px solid #999;
   position: sticky;
@@ -5478,19 +5483,19 @@ td.tablecell {
   background-color: #eee;
 }
 
-.p-dialog .table-data {
+.d-design-doc .p-dialog .table-data {
   max-width: calc(100% - 290px);
 }
 
-textarea[disabled] {
+.d-design-doc textarea[disabled] {
   background-color: #e9ecef;
 }
 
-.disabled {
+.d-design-doc .disabled {
   display: none;
 }
 
-.disabled input,
+.d-design-doc .disabled input,
 .disabled textarea,
 .disabled .p-dropdown {
   background-color: #eee;

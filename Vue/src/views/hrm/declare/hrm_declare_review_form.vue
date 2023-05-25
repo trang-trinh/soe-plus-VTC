@@ -83,6 +83,7 @@ const treemodules = ref();
 
 const checkShow = ref(false);
 const listEvalCriterias = ref([]);
+ 
 const listEvalChilds = ref([]);
 const listTypeEvals = ref([
   {
@@ -248,7 +249,7 @@ const saveData = (isFormValid) => {
       .then((response) => {
         if (response.data.err != "1") {
           swal.close();
-          toast.success("Thêm mẫu biểuthành công!");
+          toast.success("Thêm mẫu biểu thành công!");
 
           closeDialog();
         } else {
@@ -352,6 +353,69 @@ const editTem = (dataTem, header, view) => {
       }
     });
 };
+
+
+
+
+
+const delUser = (Tem) => {
+  swal
+    .fire({
+      title: "Thông báo",
+      text: "Xác nhận xoá nhân sự khỏi mẫu biểu ?",
+      icon: "warning",
+      showCancelButton: true,
+      confirmButtonColor: "#3085d6",
+      cancelButtonColor: "#d33",
+      confirmButtonText: "Có",
+      cancelButtonText: "Không",
+    })
+    .then((result) => {
+      if (result.isConfirmed) {
+        swal.fire({
+          width: 110,
+          didOpen: () => {
+            swal.showLoading();
+          },
+        });
+
+        axios
+          .delete(
+            baseURL +
+              "/api/hrm_review_form_users/delete_hrm_review_form_users",
+            {
+              headers: { Authorization: `Bearer ${store.getters.token}` },
+              data: Tem != null ? [Tem.profile_id] : 1,
+            }
+          )
+          .then((response) => {
+            swal.close();
+            if (response.data.err != "1") {
+              swal.close();
+              toast.success("Xoá mẫu biểu thành công!");
+              
+        loadDataDetails(true);
+            } else {
+              swal.fire({
+                title: "Error!",
+                text: response.data.ms,
+                icon: "error",
+                confirmButtonText: "OK",
+              });
+            }
+          })
+          .catch((error) => {
+            swal.close();
+            if (error.status === 401) {
+              swal.fire({
+                text: "Mã token đã hết hạn hoặc không hợp lệ, vui lòng đăng nhập lại!",
+                confirmButtonText: "OK",
+              });
+            }
+          });
+      }
+    });
+};
 //Xóa bản ghi
 const delTem = (Tem) => {
   swal
@@ -387,7 +451,7 @@ const delTem = (Tem) => {
             swal.close();
             if (response.data.err != "1") {
               swal.close();
-              toast.success("Xoá mẫu biểuthành công!");
+              toast.success("Xoá mẫu biểu thành công!");
               loadData(true);
             } else {
               swal.fire({
@@ -468,7 +532,7 @@ const renderTree = (data, id, name, title) => {
     });
   return { arrChils: arrChils, arrtreeChils: arrtreeChils };
 };
-const listProfilesSave=ref([]);
+const listProfilesSave = ref([]);
 const loadDataDetails = (rf) => {
   if (rf) {
     axios
@@ -495,7 +559,7 @@ const loadDataDetails = (rf) => {
         data.forEach((element, i) => {
           element.STT = options.value.PageNo * options.value.PageSize + i + 1;
         });
-         
+
         listProfiles.value = data;
         options.value.totalRecordsP = data1[0].totalRecordsP;
         listProfilesSave.value = data2;
@@ -668,19 +732,14 @@ const showTreeUser = () => {
   selectedUser.value = listProfilesSave.value;
   displayDialogUser.value = true;
 };
-
-const closeDialogUser = () => {
-  displayDialogUser.value = false;
-};
+ 
 
 const checkMultile = ref(false);
 const listProfiles = ref([]);
 const choiceUser = () => {
-
   listProfiles.value = [];
   if (checkMultile.value == false) listProfiles.value = selectedUser.value;
   let formData = new FormData();
- 
 
   formData.append("report", JSON.stringify(review_form.value));
   formData.append("hrm_review_form_users", JSON.stringify(listProfiles.value));
@@ -690,36 +749,37 @@ const choiceUser = () => {
       swal.showLoading();
     },
   });
- 
-    axios
-      .post(baseURL + "/api/hrm_review_form_users/add_hrm_review_form_users", formData, config)
-      .then((response) => {
-        if (response.data.err != "1") {
-          swal.close();
-          toast.success("Thêm thông tin chiến dịch thành công!");
 
-  
-        } else {
-          swal.fire({
-            title: "Error!",
-            text: response.data.ms,
-            icon: "error",
-            confirmButtonText: "OK",
-          });
-        }
-        displayDialogUser.value = false;
-      })
-      .catch((error) => {
+  axios
+    .post(
+      baseURL + "/api/hrm_review_form_users/add_hrm_review_form_users",
+      formData,
+      config
+    )
+    .then((response) => {
+      if (response.data.err != "1") {
         swal.close();
+        toast.success("Thêm thông tin chiến dịch thành công!");
+        loadDataDetails(true);
+      } else {
         swal.fire({
           title: "Error!",
-          text: "Có lỗi xảy ra, vui lòng kiểm tra lại!",
+          text: response.data.ms,
           icon: "error",
           confirmButtonText: "OK",
         });
+      }
+      displayDialogUser.value = false;
+    })
+    .catch((error) => {
+      swal.close();
+      swal.fire({
+        title: "Error!",
+        text: "Có lỗi xảy ra, vui lòng kiểm tra lại!",
+        icon: "error",
+        confirmButtonText: "OK",
       });
- 
-
+    });
 };
 
 const filters = ref({
@@ -727,9 +787,8 @@ const filters = ref({
   profile_user_name: {
     operator: FilterOperator.AND,
     constraints: [{ value: null, matchMode: FilterMatchMode.STARTS_WITH }],
-  } 
+  },
 });
-
 
 //Phân trang dữ liệu
 const onPageP = (event) => {
@@ -747,7 +806,8 @@ const onPageP = (event) => {
   } else if (event.page > options.value.PageNoP) {
     //Trang sau
 
-    options.value.id = listProfiles.value[listProfiles.value.length - 1].profile_id;
+    options.value.id =
+      listProfiles.value[listProfiles.value.length - 1].profile_id;
     options.value.IsNext = true;
   } else if (event.page < options.value.PageNoP) {
     //Trang trước
@@ -806,22 +866,24 @@ const onFilterP = (event) => {
   }
   options.value.PageNoP = 0;
   options.value.id = null;
- 
+
   loadDataSQL();
 };
 
 const checkFilter = ref(false);
 const filterSQL = ref([]);
- 
+
 const checkLoadCount = ref(true);
 const loadDataSQL = () => {
   datalists.value = [];
   filterSQL.value.push({
-    filterconstraints: [ { value: review_form.value.review_form_id, matchMode: "equals" }],
-      filteroperator: "and",
-      key: "review_form_id",
+    filterconstraints: [
+      { value: review_form.value.review_form_id, matchMode: "equals" },
+    ],
+    filteroperator: "and",
+    key: "review_form_id",
   });
-  
+
   let data = {
     id: "profile_id",
     sqlS: null,
@@ -840,18 +902,15 @@ const loadDataSQL = () => {
       let dt = JSON.parse(response.data.data);
       let data = dt[0];
       if (data.length > 0) {
-     
         listProfiles.value = data;
       } else {
         listProfiles.value = [];
       }
- 
+
       options.value.loading = false;
       //Show Count nếu có
       if (dt.length >= 1 && checkLoadCount.value == true) {
-    
         options.value.totalRecordsP = dt[1][0].totalRecords;
-        
       }
     })
     .catch((error) => {
@@ -869,7 +928,51 @@ const loadDataSQL = () => {
       }
     });
 };
+const onChangeMaxPercen = (item) => {
+  var max=0;
+  listEvalCriterias.value.forEach(element => {
+    max+=element.percen;
+  });
+  if(max>100){
+    let sum=0;
+    listEvalCriterias.value
+      .filter((x) => x != item)
+      .forEach((out) => {
+        sum += out.percen;
+      });
+      listEvalCriterias.value.find((x) => x == item).percen = 100 - sum ;
 
+
+  }
+  // var str = listEvalCriterias.value.find((x) => x == item);
+  // if (str != null) {
+  //   listEvalCriterias.value.find((x) => x == item).maxpercen = item.percen;
+  // }
+};
+const onChangeMaxVal = (item, data) => {
+  var str = listEvalCriterias.value.find((x) => x == item);
+  if (str != null) {
+    if (str.maxpercen == null){
+      str.maxpercen=str.percen;
+    }
+    var curPercent = 0;
+    listEvalChilds.value
+      .filter((x) => x.roman_order == item.roman_order)
+      .forEach((element) => {
+        curPercent += element.weight;
+      });
+      if(curPercent>str.maxpercen ){
+        let sum=0;
+        listEvalChilds.value
+      .filter((x) => x.roman_order == item.roman_order && x!=data)
+      .forEach((out) => {
+        sum += out.weight;
+      });
+        listEvalChilds.value.find((x) => x == data).weight =  str.maxpercen - sum ;
+      }
+   
+  }
+};
 onMounted(() => {
   loadData(true);
   return {
@@ -1050,8 +1153,7 @@ onMounted(() => {
               </template>
             </Toolbar>
           </div>
-          <div class="d-lang-table-d" v-if="listProfiles.length>0">
- 
+          <div class="d-lang-table-d" v-if="listProfiles.length > 0">
             <DataTable
               @page="onPageP($event)"
               @sort="onSortP($event)"
@@ -1162,6 +1264,7 @@ onMounted(() => {
               >
                 <template #body="slotProps">
                   <Button
+                  @click="delUser(slotProps.data)"
                     icon="pi pi-trash"
                     class="p-button-rounded p-button-danger p-button-outlined ml-2"
                   />
@@ -1247,7 +1350,7 @@ onMounted(() => {
           <div class="col-12 field md:col-12 p-0 pr-2 flex">
             <Toolbar class="custoolbar w-full">
               <template #start>
-                <div class="font-bold text-lg">Danh sách chỉ tiêu</div>
+                <div class="font-bold text-lg">Danh sách nội dung đánh giá</div>
               </template>
             </Toolbar>
           </div>
@@ -1282,7 +1385,7 @@ onMounted(() => {
               <template #content>
                 <div class="col-12 md:col-12 p-0 flex field">
                   <div class="col-12 p-0 flex align-items-center">
-                    <div class="w-10rem p-0">Tên chỉ tiêu</div>
+                    <div class="w-10rem p-0">Tên nội dung</div>
                     <div class="p-0" style="width: calc(100% - 10rem)">
                       <InputText
                         v-model="item.eval_criteria_name"
@@ -1297,7 +1400,7 @@ onMounted(() => {
                 <div class="col-12 md:col-12 p-0 flex field">
                   <div class="col-3 p-0 flex align-items-center">
                     <div class="w-10rem p-0 flex align-items-center">
-                      Phần trăm đánh giá
+                      Tỷ trọng nhóm
                     </div>
                     <div
                       style="width: calc(100% - 10rem)"
@@ -1311,6 +1414,7 @@ onMounted(() => {
                         suffix=" %"
                         :disabled="isView"
                         :style="isView ? 'opacity:1' : ''"
+                        @update:modelValue="onChangeMaxPercen(item)"
                       />
                     </div>
                   </div>
@@ -1502,7 +1606,7 @@ onMounted(() => {
                         </Column>
                         <Column
                           field="weight"
-                          header="Trọng số"
+                          header="Tỷ trọng"
                           headerStyle="text-align:center;max-width:120px;height:50px"
                           bodyStyle="text-align:center;max-width:120px;"
                           class="align-items-center justify-content-center text-center"
@@ -1512,8 +1616,13 @@ onMounted(() => {
                               spellcheck="false"
                               class="w-full d-design-it duy-inpput"
                               v-model="slotProps.data.weight"
+                              :min="0"
+                         
                               :disabled="isView"
                               :style="isView ? 'opacity:1' : ''"
+                              @update:modelValue="
+                                onChangeMaxVal(item, slotProps.data)
+                              "
                             />
                           </template>
                         </Column>
@@ -1695,7 +1804,7 @@ onMounted(() => {
     v-if="displayDialogUser === true"
     :headerDialog="'Chọn nhân sự'"
     :displayDialog="displayDialogUser"
-    :closeDialog="closeDialogUser"
+ 
     :one="checkMultile"
     :selected="selectedUser"
     :choiceUser="choiceUser"

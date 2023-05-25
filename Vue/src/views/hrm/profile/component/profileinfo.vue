@@ -312,14 +312,9 @@ const selectedPayroll = ref();
 const checkPayroll = ref();
 const listpayrolls = ref([]);
 const onClickPayroll = (data) => {
-  initBaocao(data.data.report_key);
-  pars.value = { profile_id: data.data.profile_id };
-  headerPayroll.value =
-    "Phiếu lương tháng " +
-    data.data.payroll_month +
-    " năm " +
-    data.data.payroll_year;
-  checkPayroll.value = false;
+   
+   initBaocao(data.data.report_key,true,data);
+
 };
 const callbackFun = () => {
   if (ref) {
@@ -1896,7 +1891,7 @@ const initView4 = (rf) => {
     });
 };
 
-const initBaocao = async (id) => {
+const initBaocao = async (id,check,data) => {
   let strSQL = {
     query: false,
     proc: "report_get_key",
@@ -1924,12 +1919,22 @@ const initBaocao = async (id) => {
       headers: { Authorization: `Bearer ${store.getters.token}` },
     }
   );
-
+ 
   if (axResponse.status == 200) {
     if (axResponse.data.error) {
       toast.error("Không mở được báo cáo");
     } else {
       report.value = JSON.parse(axResponse.data.data)[0][0];
+
+      if(check){
+        pars.value = { profile_id: data.data.profile_id };
+  headerPayroll.value =
+    "Phiếu lương tháng " +
+    data.data.payroll_month +
+    " năm " +
+    data.data.payroll_year;
+  checkPayroll.value = false;
+      }
     }
   }
   swal.close();
@@ -1968,6 +1973,12 @@ const initView5 = (rf) => {
       if (response != null && response.data != null) {
         let data = JSON.parse(response.data.data);
         if (data != null) {
+          data[0].forEach((element, i) => {
+            element.STT =
+              options.value.pageNoPayroll * options.value.pageSizePayroll +
+              i +
+              1;
+          });
           if (data[0].length == 1) {
             var dtcheck = data[0][0];
             
@@ -1975,7 +1986,7 @@ const initView5 = (rf) => {
               dtcheck.payroll_month == month.value.getMonth() + 1 &&
               dtcheck.payroll_year == year.value.getFullYear()
             ) {
-              initBaocao(dtcheck.report_key);
+              initBaocao(dtcheck.report_key,false,null);
               pars.value = { profile_id: options.value["profile_id"] };
               headerPayroll.value =
                 "Phiếu lương tháng " +
@@ -1987,6 +1998,7 @@ const initView5 = (rf) => {
               return;
             }
           }
+         
           listpayrolls.value = data[0];
           checkPayroll.value = true;
           swal.close();
@@ -5002,6 +5014,7 @@ const formatViewNumber = (value, partDecimal) => {
                   class="bg-white dt-lang-table-1"
                   v-if="checkPayroll == false && report"
                 >
+              
                   <DocComponent
                     :pars="pars"
                     :report="report"
