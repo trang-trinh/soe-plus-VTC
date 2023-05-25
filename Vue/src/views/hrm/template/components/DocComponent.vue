@@ -1248,7 +1248,7 @@ export default {
       });
     };
     const saveDatamap = (f) => {
-      debugger
+      
       if (readonly.value) {
         //Save file quyết định, lương...
         let users = [];
@@ -1639,7 +1639,7 @@ export default {
       ) {
         try {
           objConfig = JSON.parse(props.report.report_config.trim());
-debugger
+ 
           if (isUrlReport.value && Object.keys(props.pars).length > 0) {
             await initURLReport();
           } else if (Object.keys(objConfig.proc).length > 0) {
