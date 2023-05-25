@@ -204,7 +204,7 @@ const LoadActive = () => {
       listDate2.forEach((z) => {
         listActive.value.push(z);
       });
-      console.log(listActive.value);
+
     })
     .catch((error) => {
       toast.error("Tải dữ liệu không thành công!");

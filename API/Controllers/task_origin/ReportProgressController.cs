@@ -170,15 +170,40 @@ namespace API.Controllers.Task_Origin1
                             #endregion
                         }
 
-                        var chag= db.task_origin.Where(x => x.task_id == cmtbug.task_id).FirstOrDefault();
-                        chag.status = 5;
+                        var chag = db.task_origin.Where(x => x.task_id == cmtbug.task_id).FirstOrDefault();
+
                         cmtbug.created_by = uid;
                         cmtbug.created_date = DateTime.Now;
                         cmtbug.created_by = uid;
                         cmtbug.created_ip = ip;
                         cmtbug.created_token_id = tid;
+
+                        var members = db.task_member.Where(x => x.task_id == cmtbug.task_id && x.is_type == 0).Select(x => x.user_id).ToList();
+                        members.Add(task.created_by);
+                        if (members.Contains(cmtbug.created_by))
+                        {
+                            cmtbug.status = 1;
+                            chag.progress = cmtbug.progress;
+                            if (cmtbug.request_progress == 100)
+                            {
+                                cmtbug.progress = 100;
+                                if (chag.end_date == null || chag.end_date <= DateTime.Now)
+                                {
+                                    chag.status = 4;
+                                    chag.end_real_date = DateTime.Now;
+                                }
+                                else
+                                {
+                                    chag.status = 7;
+                                    chag.end_real_date = DateTime.Now;
+                                }
+                            }
+                        }
+                        else { chag.status = 5; }
+                        db.Entry(chag).State = EntityState.Modified;
+
                         db.task_reportprogress.Add(cmtbug);
-                        
+
                         db.SaveChanges();
                         #region add notify
                         var listuser = db.task_member.Where(x => x.task_id == chag.task_id).Select(x => x.user_id).Distinct().ToList();
@@ -187,7 +212,7 @@ namespace API.Controllers.Task_Origin1
                         foreach (var l in listuser)
                         {
                             helper.saveNotify(uid, l, null, "Công việc", "Đã báo cáo tiến độ công việc: " + (task_name.Length > 100 ? task_name.Substring(0, 97) + "..." : task_name),
-                                null, 2, -1, false, module_key, chag.task_id, null, null, tid,ip);
+                                null, 2, -1, false, module_key, chag.task_id, null, null, tid, ip);
                         }
                         #endregion
                         #region add tasklog

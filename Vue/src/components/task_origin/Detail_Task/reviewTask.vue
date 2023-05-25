@@ -144,10 +144,10 @@ const LoadReview = () => {
             par: [{ par: "id", va: props.id }],
           }),
           SecretKey,
-          cryoptojs,
+          cryoptojs
         ).toString(),
       },
-      config,
+      config
     )
     .then((response) => {
       let data0 = JSON.parse(response.data.data)[0];
@@ -536,10 +536,7 @@ onMounted(() => {
   <div class="h-custom">
     <div class="relative card-container blue-container w-full h-full">
       <div class="relative p-4 border-round w-full h-full">
-        <ScrollPanel
-          style="height: calc(100vh - 12rem)"
-          class="relative"
-        >
+        <ScrollPanel style="height: calc(100vh - 12rem)" class="relative">
           <div class="col-12 p-0 m-0 font-bold text-xl">
             <i class="pi pi-check-square pr-2"></i>
             <span>
@@ -585,12 +582,14 @@ onMounted(() => {
                   </div>
 
                   <div
-                    class="flex col-10 p-0 m-0 format-left pl-1"
+                    class="flex col-11 p-0 m-0 format-left pl-1"
                     style="font-weight: 700; font-size: 16px; color: #385898"
                   >
                     <div class="col-12 p-0 m-0">
                       <div class="flex col-12 p-0 m-0 pl-2 format-left">
-                        {{ rp.creator_full_name }}
+                        <div class="col p-0 text-left">
+                          {{ rp.creator_full_name }}
+                        </div>
                         <div class="col-2 p-0 m-0 pl-2 h-50">
                           <ProgressBar
                             :value="
@@ -606,7 +605,7 @@ onMounted(() => {
                           />
                         </div>
 
-                        <div class="col-2 p-0 m-0 pl-2 font-bold">
+                        <div class="col-1 p-0 m-0 pl-2 font-bold">
                           <Chip
                             :style="{
                               color:
@@ -618,10 +617,7 @@ onMounted(() => {
                             {{ rp.request_progress }}%
                           </Chip>
                         </div>
-                        <div
-                          class="col-4 p-0 m-0 pl-2 format-left"
-                          :style="{}"
-                        >
+                        <div class="col-3 p-0 m-0 pl-2 format-left" :style="{}">
                           <Chip
                             :style="{
                               color: '#FFFFFF',
@@ -651,37 +647,22 @@ onMounted(() => {
                       >
                         {{
                           moment(new Date(rp.created_date)).format(
-                            "HH:mm DD/MM/YYYY",
+                            "HH:mm DD/MM/YYYY"
                           )
                         }}
                       </div>
                     </div>
                   </div>
-                  <!-- <div class="col-1 format-center hover-delete-child">
-                    <Button
-                      icon="pi pi-trash"
-                      class="p-button-text p-button-danger"
-                      v-tooltip="'Xóa báo cáo'"
-                      @click="DeleteReport(rp.report_id)"
-                      v-if="rp.review == null"
-                    />
-                  </div> -->
                 </div>
                 <div class="col-12 contents">
                   <span v-html="rp.contents"></span>
                 </div>
-                <div
-                  class="col-12 contents mt-2"
-                  v-if="rp.difficult"
-                >
+                <div class="col-12 contents mt-2" v-if="rp.difficult">
                   <label class="font-bold">Khó khăn, vướng mắc</label>
                   <br />
                   <span v-html="rp.difficult"></span>
                 </div>
-                <div
-                  class="col-12 contents mt-2"
-                  v-if="rp.request"
-                >
+                <div class="col-12 contents mt-2" v-if="rp.request">
                   <label class="font-bold">Đề xuất giải quyết</label>
                   <br />
                   <span v-html="rp.request"></span>
@@ -706,10 +687,7 @@ onMounted(() => {
                     style=""
                   >
                     <div class="anh2 format-center pt-1">
-                      <div
-                        class=""
-                        v-if="item.data.is_image == 1"
-                      >
+                      <div class="" v-if="item.data.is_image == 1">
                         <Image
                           :src="basedomainURL + item.data.file_path"
                           :alt="item.data.name"
@@ -737,16 +715,13 @@ onMounted(() => {
                           MB
                         </div>
                       </div>
-                      <div
-                        class=""
-                        v-else
-                      >
+                      <div class="" v-else>
                         <img
                           :src="
                             basedomainURL +
                             '/Portals/Image/file/' +
                             item.data.file_name.substring(
-                              item.data.file_name.lastIndexOf('.') + 1,
+                              item.data.file_name.lastIndexOf('.') + 1
                             ) +
                             '.png'
                           "
@@ -785,6 +760,7 @@ onMounted(() => {
                   style="padding-left: 4rem !important"
                   v-if="
                     props.isClose == false &&
+                    rp.status != 1 &&
                     rp.review == null &&
                     (memberType == 0 ||
                       memberType1 == 0 ||
@@ -883,7 +859,7 @@ onMounted(() => {
                           >
                             {{
                               moment(new Date(rp.review.created_date)).format(
-                                "HH:mm DD/MM/YYYY",
+                                "HH:mm DD/MM/YYYY"
                               )
                             }}
                           </div>
@@ -916,10 +892,7 @@ onMounted(() => {
                       style=""
                     >
                       <div class="anh2 format-center">
-                        <div
-                          class=""
-                          v-if="item.data.is_image == 1"
-                        >
+                        <div class="" v-if="item.data.is_image == 1">
                           <Image
                             :src="basedomainURL + item.data.file_path"
                             :alt="''"
@@ -947,16 +920,13 @@ onMounted(() => {
                             MB
                           </div>
                         </div>
-                        <div
-                          class=""
-                          v-else
-                        >
+                        <div class="" v-else>
                           <img
                             :src="
                               basedomainURL +
                               '/Portals/Image/file/' +
                               item.data.file_name.substring(
-                                item.data.file_name.lastIndexOf('.') + 1,
+                                item.data.file_name.lastIndexOf('.') + 1
                               ) +
                               '.png'
                             "
@@ -998,10 +968,7 @@ onMounted(() => {
               class="col-12 align-items-center justify-content-center p-4 text-center m-auto"
               style="height: calc(100vh - 30rem)"
             >
-              <img
-                src="../../../assets/background/nodata.png"
-                height="300"
-              />
+              <img src="../../../assets/background/nodata.png" height="300" />
               <h3 class="m-1">Chưa có đánh giá</h3>
             </div>
           </div>
@@ -1057,10 +1024,7 @@ onMounted(() => {
                     ></Button>
                   </span>
 
-                  <div
-                    class="h-8rem"
-                    v-if="item.checkimg == true"
-                  >
+                  <div class="h-8rem" v-if="item.checkimg == true">
                     <img
                       :src="item.src"
                       :alt="' '"
@@ -1089,10 +1053,7 @@ onMounted(() => {
                       {{ item.size }}
                     </div>
                   </div>
-                  <div
-                    class="h-8rem"
-                    v-else
-                  >
+                  <div class="h-8rem" v-else>
                     <img
                       :src="
                         basedomainURL +
@@ -1266,11 +1227,7 @@ onMounted(() => {
         class="p-button-text"
       />
 
-      <Button
-        label="Lưu"
-        icon="pi pi-check"
-        @click="closeReport('1')"
-      />
+      <Button label="Lưu" icon="pi pi-check" @click="closeReport('1')" />
     </template>
   </Dialog>
   <Dialog
@@ -1282,10 +1239,7 @@ onMounted(() => {
     <form>
       <div class="col-12 p-0 m-0">
         <div class="col-12">
-          <div
-            class="left-0 w-full bg-white"
-            v-if="listFileComment.length > 0"
-          >
+          <div class="left-0 w-full bg-white" v-if="listFileComment.length > 0">
             <div class="col-12 h-full bottom-0 p-0 m-0">
               <div
                 class="col-12 p-0 m-0 font-bold pl-2 bg-white"
@@ -1323,10 +1277,7 @@ onMounted(() => {
                     v-tooltip="{ value: 'Xóa tệp' }"
                   ></Button>
 
-                  <div
-                    class=""
-                    v-if="item.checkimg == true"
-                  >
+                  <div class="" v-if="item.checkimg == true">
                     <img
                       :src="item.src"
                       :alt="' '"
@@ -1355,10 +1306,7 @@ onMounted(() => {
                       {{ item.size }}
                     </div>
                   </div>
-                  <div
-                    class=""
-                    v-else
-                  >
+                  <div class="" v-else>
                     <img
                       :src="
                         basedomainURL +
@@ -1398,10 +1346,7 @@ onMounted(() => {
           </div>
         </div>
 
-        <div
-          class="flex col-12"
-          v-if="isRemake == false"
-        >
+        <div class="flex col-12" v-if="isRemake == false">
           <div class="col-2 format-left">Tiến độ</div>
           <div class="col-10">
             <InputNumber
@@ -1417,10 +1362,7 @@ onMounted(() => {
               }"
               v-model="Review.progress"
             />
-            <Slider
-              v-model="Review.progress"
-              class="p-0 m-0 col-12"
-            />
+            <Slider v-model="Review.progress" class="p-0 m-0 col-12" />
           </div>
         </div>
         <div class="col-12 flex pb-0 mb-0">
@@ -1487,10 +1429,7 @@ onMounted(() => {
             </div>
           </div>
         </div>
-        <div
-          style="display: flex"
-          class="col-12"
-        >
+        <div style="display: flex" class="col-12">
           <div class="col-2 text-left"></div>
           <small
             v-if="
@@ -1506,10 +1445,7 @@ onMounted(() => {
             }}</span>
           </small>
         </div>
-        <div
-          class="col-12 flex"
-          v-if="isRemake == false"
-        >
+        <div class="col-12 flex" v-if="isRemake == false">
           <div class="col-2 format-left">Điểm đánh giá</div>
           <Rating
             v-model="Review.point"
@@ -1536,10 +1472,7 @@ onMounted(() => {
       />
     </template>
   </Dialog>
-  <FileAction
-    :data="fileInfo"
-    v-if="isViewFileInfo"
-  ></FileAction>
+  <FileAction :data="fileInfo" v-if="isViewFileInfo"></FileAction>
 </template>
 <style scoped></style>
 
@@ -1628,8 +1561,8 @@ onMounted(() => {
   width: fit-content;
   padding: 1rem 1rem;
   background-color: #f5f5f5;
-  border-radius: 20px;
-  margin-left: 4rem;
+  border-radius: 10px;
+  margin-left: 6rem;
 }
 
 .text-dark {

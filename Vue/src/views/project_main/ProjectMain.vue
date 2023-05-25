@@ -92,16 +92,16 @@ const submitted = ref(false);
 const listDropdownParent = ref();
 const selectcapcha = ref({});
 const rules = {
-  project_code: {
-    required,
-    $errors: [
-      {
-        $property: "project_code",
-        $validator: "required",
-        $message: "Mã dự án không được để trống!",
-      },
-    ],
-  },
+  // project_code: {
+  //   required,
+  //   $errors: [
+  //     {
+  //       $property: "project_code",
+  //       $validator: "required",
+  //       $message: "Mã dự án không được để trống!",
+  //     },
+  //   ],
+  // },
   project_name: {
     required,
     $errors: [
@@ -184,10 +184,10 @@ const listUser = () => {
             ],
           }),
           SecretKey,
-          cryoptojs,
+          cryoptojs
         ).toString(),
       },
-      config,
+      config
     )
     .then((response) => {
       let data = JSON.parse(response.data.data)[0];
@@ -256,10 +256,10 @@ const loadData = (rf, type_view) => {
             ],
           }),
           SecretKey,
-          cryoptojs,
+          cryoptojs
         ).toString(),
       },
-      config,
+      config
     )
     .then((response) => {
       let data = JSON.parse(response.data.data);
@@ -268,13 +268,13 @@ const loadData = (rf, type_view) => {
         // listData.value = data[0];
         listData.value.forEach((element, i) => {
           element.status_name = listDropdownStatus.value.filter(
-            (x) => x.value == element.status,
+            (x) => x.value == element.status
           )[0].text;
           element.status_bg_color = listDropdownStatus.value.filter(
-            (x) => x.value == element.status,
+            (x) => x.value == element.status
           )[0].bg_color;
           element.status_text_color = listDropdownStatus.value.filter(
-            (x) => x.value == element.status,
+            (x) => x.value == element.status
           )[0].text_color;
           element.Thanhviens = element.Thanhviens
             ? JSON.parse(element.Thanhviens)
@@ -301,7 +301,7 @@ const loadData = (rf, type_view) => {
             listData.value,
             "project_id",
             "project_name",
-            "dự án",
+            "dự án"
           );
           listProjectMains.value = obj.arrChils;
           treelistProjectMains.value = obj.arrtreeChils;
@@ -316,10 +316,10 @@ const loadData = (rf, type_view) => {
             arrNew.push({
               status: k,
               group_view_name: listDropdownStatus.value.filter(
-                (x) => x.value == k,
+                (x) => x.value == k
               )[0].text,
               group_view_bg_color: listDropdownStatus.value.filter(
-                (x) => x.value == k,
+                (x) => x.value == k
               )[0].bg_color,
               CVGroup: CVGroup,
               countProject: CVGroup.length,
@@ -330,10 +330,10 @@ const loadData = (rf, type_view) => {
         } else if (type_view == 4 || type_view == 5) {
           listProjectMains.value = listData.value;
           let date1 = new Date(
-            opition.value.sdate ? opition.value.sdate : new Date(),
+            opition.value.sdate ? opition.value.sdate : new Date()
           );
           let date2 = new Date(
-            opition.value.edate ? opition.value.edate : new Date(),
+            opition.value.edate ? opition.value.edate : new Date()
           );
           // var firstDay = new Date(date.getFullYear(), date.getMonth(), 1);
           // var lastDay = new Date(date.getFullYear(), date.getMonth() + 1, 0);
@@ -399,10 +399,10 @@ const getDates = (startDate, endDate) => {
       DW: d.getDay(),
       Day: parseInt(moment(currentDate).format("DD")),
       DayName: WeekDay.value.filter(
-        (x) => x.value == d.toLocaleString("default", { weekday: "long" }),
+        (x) => x.value == d.toLocaleString("en-us", { weekday: "long" })
       )[0].text,
       bg: WeekDay.value.filter(
-        (x) => x.value == d.toLocaleString("default", { weekday: "long" }),
+        (x) => x.value == d.toLocaleString("en-us", { weekday: "long" })
       )[0].bg,
       color:
         parseInt(moment(currentDate).format("DD/MM/YYYY")) ==
@@ -455,7 +455,7 @@ const getDates = (startDate, endDate) => {
       cv.Thanhviens.forEach(function (u) {
         if (
           listData.filter(
-            (x) => x.user_id == u.user_id && x.project_id == cv.project_id,
+            (x) => x.user_id == u.user_id && x.project_id == cv.project_id
           ).length == 0
         ) {
           listData.push({
@@ -483,7 +483,7 @@ const getDates = (startDate, endDate) => {
         r.count_cv = listCV[k].length;
         r.count_istype_0 = listCV[k].filter((x) => x.is_type == 0).length;
         r.count_istype_1 = listCV[k].filter(
-          (x) => x.is_type == 1 || x.is_type == 2,
+          (x) => x.is_type == 1 || x.is_type == 2
         ).length;
         r.count_istype_3 = listCV[k].filter((x) => x.is_type == 3).length;
         arrNew.push(r);
@@ -556,6 +556,7 @@ const addTreeProjectMain = (p) => {
     is_order: listProjectMains.value.length + 1,
     managers: [],
     participants: [],
+    logo: "",
   };
 
   ProjectMain.value.organization_id = store.state.user.organization_id;
@@ -598,10 +599,10 @@ const editProjectMain = (dataProjectMain) => {
             par: [{ par: "project_id", va: dataProjectMain.project_id }],
           }),
           SecretKey,
-          cryoptojs,
+          cryoptojs
         ).toString(),
       },
-      config,
+      config
     )
     .then((response) => {
       let data = JSON.parse(response.data.data);
@@ -698,6 +699,7 @@ const DelProjectMain = (dataProjectMain) => {
                 toast.success("Xoá dự án thành công!");
                 //   checkDelList.value = false;
                 loadData(true, opition.value.type_view);
+                listtreeProjectMain();
               } else {
                 swal.fire({
                   title: "Thông báo!",
@@ -801,7 +803,7 @@ const saveProjectMain = (isFormValid) => {
           "/api/ProjectMain/" +
           (isAdd.value == true ? "Add_ProjectMain" : "Update_ProjectMain"),
         formData,
-        config,
+        config
       )
       .then((response) => {
         if (response.data.err != "1") {
@@ -937,6 +939,7 @@ const renderTreeDV = (data, id, name, title) => {
           dts.forEach((em, index) => {
             m.arr_del.push(em.project_id);
             em.STT = mm.data.STT + "." + (index + 1);
+            em.padding_left = em.STT.split(".").length - 1;
             // em.label_order = mm.data.label_order + "." + em.is_order;
             em.is_check = false;
             let om1 = { key: em[id], data: em };
@@ -981,6 +984,7 @@ const handleFileUpload = (event, ia) => {
   };
 };
 const chonanh = (id) => {
+  document.getElementById(id).value = "";
   document.getElementById(id).click();
 };
 const listtreeProjectMain = () => {
@@ -994,10 +998,10 @@ const listtreeProjectMain = () => {
             par: [{ par: "user_id", va: store.getters.user.user_id }],
           }),
           SecretKey,
-          cryoptojs,
+          cryoptojs
         ).toString(),
       },
-      config,
+      config
     )
     .then((response) => {
       let data = JSON.parse(response.data.data)[0];
@@ -1154,7 +1158,7 @@ const removeVietnameseTones = (str) => {
   // Bỏ dấu câu, kí tự đặc biệt
   str = str.replace(
     /!|@|%|\^|\*|\(|\)|\+|\=|\<|\>|\?|\/|,|\.|\:|\;|\'|\"|\&|\#|\[|\]|~|\$|_|`|-|{|}|\||\\/g,
-    " ",
+    " "
   );
   ProjectMain.value.project_code = str;
 };
@@ -1181,10 +1185,10 @@ const loadCountProjectGroup = () => {
             par: [{ par: "user_id", va: store.getters.user.user_id }],
           }),
           SecretKey,
-          cryoptojs,
+          cryoptojs
         ).toString(),
       },
-      config,
+      config
     )
     .then((response) => {
       let data = JSON.parse(response.data.data)[0];
@@ -1292,7 +1296,6 @@ const MaxMin = (m) => {
 
 emitter.on("psb", (obj) => {
   PositionSideBar.value = obj;
-  console.log(obj);
 });
 
 const showDetailProject = ref(false);
@@ -1470,7 +1473,7 @@ const ChangeFilter = (type, act) => {
               d.label =
                 "Theo ngày nhận" +
                 " (" +
-                moment(t.filter_date).format("DD/MM/YYYY HH:mm") +
+                moment(t.filter_date).format("DD/MM/YYYY ") +
                 ")";
               opition.value.filter_date = t.filter_date;
             });
@@ -1498,7 +1501,7 @@ const ChangeFilter = (type, act) => {
             .forEach((d) => {
               d.label =
                 "Ngày hoàn thành (" +
-                moment(t.filter_date).format("DD/MM/YYYY HH:mm") +
+                moment(t.filter_date).format("DD/MM/YYYY ") +
                 ")";
             });
           opition.value.filter_date = t.filter_date;
@@ -1519,7 +1522,7 @@ const ChangeFilter = (type, act) => {
       opition.value.edate = new Date(
         date.getFullYear(),
         date.getMonth() + 1,
-        0,
+        0
       );
       opition.value.loctitle = "Trong tháng";
       break;
@@ -1720,10 +1723,7 @@ onMounted(() => {
 </script>
 <template>
   <!-- @nodeSelect="onNodeSelect" @nodeUnselect="onNodeUnselect" selectionMode="checkbox" -->
-  <div
-    v-if="store.getters.islogin"
-    class="main-layout true flex-grow-1 p-2"
-  >
+  <div v-if="store.getters.islogin" class="main-layout true flex-grow-1 p-2">
     <div class="flex justify-content-center align-items-center">
       <Toolbar class="w-full custoolbar">
         <template #start>
@@ -1757,14 +1757,8 @@ onMounted(() => {
               aria-controls="overlay_Export1"
             >
               <a
-                ><i
-                  style="margin-right: 5px"
-                  class="pi pi-bars"
-                ></i
-                >Kiểu hiển thị<i
-                  style="margin-left: 5px"
-                  class="pi pi-angle-down"
-                ></i
+                ><i style="margin-right: 5px" class="pi pi-bars"></i>Kiểu hiển
+                thị<i style="margin-left: 5px" class="pi pi-angle-down"></i
               ></a>
             </li>
             <li
@@ -1804,13 +1798,7 @@ onMounted(() => {
           />
           <!-- <Button label="Export" icon="pi pi-file-excel" class="mr-2 p-button-outlined p-button-secondary"
                                         @click="toggleExport" aria-haspopup="true" aria-controls="overlay_Export" /> -->
-          <Menu
-            vị
-            id="overlay_Export"
-            ref="menuButs"
-            :model="itemButs"
-            :popup="true"
-          />
+
           <Menu
             id="task_list_type"
             :model="itemListTypeButs"
@@ -1884,10 +1872,7 @@ onMounted(() => {
                           @click="ChangeFilter(item.istype, false)"
                           :class="{ active: item.active }"
                         >
-                          <i
-                            style="padding-right: 5px"
-                            :class="item1.icon"
-                          ></i>
+                          <i style="padding-right: 5px" :class="item1.icon"></i>
                           {{ item1.label }}
                         </a>
                         <span style="margin-left: 10px">
@@ -1968,10 +1953,7 @@ onMounted(() => {
                   class="p-menuitem"
                 >
                   <a :class="{ active: item.active }"
-                    ><i
-                      style="padding-right: 5px"
-                      :class="item.icon"
-                    ></i
+                    ><i style="padding-right: 5px" :class="item.icon"></i
                     >{{ item.label }}</a
                   >
                   <ul style="padding: 0px; display: flex">
@@ -2055,10 +2037,7 @@ onMounted(() => {
                   @click="ChangeFilter(item.istype, false)"
                 >
                   <a :class="{ active: item.active }"
-                    ><i
-                      style="padding-right: 5px"
-                      :class="item.icon"
-                    ></i
+                    ><i style="padding-right: 5px" :class="item.icon"></i
                     >{{ item.label }}</a
                   >
                 </li>
@@ -2100,7 +2079,6 @@ onMounted(() => {
       :totalRecords="opition.totalRecords"
       paginatorTemplate="FirstPageLink PrevPageLink PageLinks NextPageLink LastPageLink RowsPerPageDropdown"
       :rowsPerPageOptions="[20, 30, 50, 100, 200]"
-      :filters="filters"
       filterMode="strict"
       class="p-treetable-sm"
       :rowHover="true"
@@ -2109,14 +2087,13 @@ onMounted(() => {
       :scrollable="true"
       @nodeSelect="onNodeSelect"
       selectionMode="single"
-      @nodeUnselect="onNodeUnselect"
       scrollHeight="flex"
     >
       <Column
         field="STT"
         header="STT"
         class="align-items-center justify-content-center text-center font-bold"
-        headerStyle="text-align:center;max-width:4rem;height:40px;"
+        headerStyle="text-align:center;max-width:4rem;"
         bodyStyle="text-align:center;max-width:4rem"
       >
       </Column>
@@ -2124,7 +2101,7 @@ onMounted(() => {
         field="Logo"
         header="Logo"
         class="align-items-center justify-content-center text-center"
-        headerStyle="text-align:center;max-width:80px;height:40px;"
+        headerStyle="text-align:center;max-width:80px;"
         bodyStyle="text-align:center;max-width:80px"
       >
         <template #body="md">
@@ -2141,10 +2118,18 @@ onMounted(() => {
         header="Tên dự án"
         :expander="true"
         :sortable="true"
-        headerStyle="max-width:auto;height:40px;"
+        headerStyle="max-width:auto;"
+        headerClass="align-items-center justify-content-center"
       >
         <template #body="md">
-          <div style="display: flex; flex-direction: column">
+          <div
+            style="display: flex; flex-direction: column"
+            :style="[
+              {
+                'padding-left': md.node.data.padding_left * 20 + 'px',
+              },
+            ]"
+          >
             <span style="font-weight: bold">{{
               md.node.data.project_name
             }}</span>
@@ -2158,10 +2143,10 @@ onMounted(() => {
         </template>
       </Column>
       <!-- <Column field="project_code" header="Mã dự án" class="align-items-center justify-content-center text-center"
-        headerStyle="max-width:100px;text-align:center;height:40px;" bodyStyle="max-width:100px;text-align:center;">
+        headerStyle="max-width:100px;text-align:center;" bodyStyle="max-width:100px;text-align:center;">
       </Column> -->
       <!-- <Column field="group_name" header="Nhóm dự án" class="align-items-center justify-content-center text-center"
-        headerStyle="max-width:300px;text-align:center;height:40px;" bodyStyle="max-width:300px;text-align:center;">
+        headerStyle="max-width:300px;text-align:center;" bodyStyle="max-width:300px;text-align:center;">
       </Column> -->
       <Column
         class="align-items-center justify-content-center text-center"
@@ -2179,9 +2164,7 @@ onMounted(() => {
             "
           >
             <span style="color: #ffab2b; font-size: 13px; font-weight: bold">{{
-              moment(new Date(data.node.data.start_date)).format(
-                "DD/MM/YYYY HH:mm",
-              )
+              moment(new Date(data.node.data.start_date)).format("DD/MM/YYYY ")
             }}</span>
           </div>
         </template>
@@ -2202,9 +2185,7 @@ onMounted(() => {
             "
           >
             <span style="color: #ffab2b; font-size: 13px; font-weight: bold">{{
-              moment(new Date(data.node.data.end_date)).format(
-                "DD/MM/YYYY HH:mm",
-              )
+              moment(new Date(data.node.data.end_date)).format("DD/MM/YYYY ")
             }}</span>
           </div>
         </template>
@@ -2213,7 +2194,7 @@ onMounted(() => {
         field="status"
         header="Trạng thái"
         class="align-items-center justify-content-center text-center"
-        headerStyle="text-align:center;max-width:120px;height:40px;"
+        headerStyle="text-align:center;max-width:120px;"
         bodyStyle="text-align:center;max-width:120px"
       >
         <template #body="md">
@@ -2230,7 +2211,7 @@ onMounted(() => {
         header="Chức năng"
         headerClass="text-center"
         class="align-items-center justify-content-center text-center"
-        headerStyle="text-align:center;max-width:150px;height:40px;"
+        headerStyle="text-align:center;max-width:150px;"
         bodyStyle="text-align:center;max-width:150px"
       >
         <template #header> </template>
@@ -2279,12 +2260,8 @@ onMounted(() => {
             display: flex;
             flex-direction: column;
           "
-          v-if="!isFirst"
         >
-          <img
-            src="../../assets/background/nodata.png"
-            height="144"
-          />
+          <img src="../../assets/background/nodata.png" height="144" />
           <h3 class="m-1">Không có dữ liệu</h3>
         </div>
       </template>
@@ -2379,9 +2356,7 @@ onMounted(() => {
           >
             <span style="color: #ffab2b; font-size: 13px; font-weight: bold"
               >{{
-                moment(new Date(data.data.start_date)).format(
-                  "DD/MM/YYYY HH:mm",
-                )
+                moment(new Date(data.data.start_date)).format("DD/MM/YYYY ")
               }}
             </span>
           </div>
@@ -2403,9 +2378,7 @@ onMounted(() => {
             "
           >
             <span style="color: #ffab2b; font-size: 13px; font-weight: bold"
-              >{{
-                moment(new Date(data.data.end_date)).format("DD/MM/YYYY HH:mm")
-              }}
+              >{{ moment(new Date(data.data.end_date)).format("DD/MM/YYYY ") }}
             </span>
           </div>
         </template>
@@ -2481,10 +2454,7 @@ onMounted(() => {
           "
           v-if="!isFirst"
         >
-          <img
-            src="../../assets/background/nodata.png"
-            height="144"
-          />
+          <img src="../../assets/background/nodata.png" height="144" />
           <h3 class="m-1">Không có dữ liệu</h3>
         </div>
       </template>
@@ -2527,10 +2497,7 @@ onMounted(() => {
           id="task-grid"
           class="scroll-outer"
         >
-          <div
-            class="scroll-inner"
-            style="width: fit-content"
-          >
+          <div class="scroll-inner" style="width: fit-content">
             <Card
               v-for="cv in item.CVGroup"
               style="width: 320px; margin-bottom: 2em"
@@ -2570,13 +2537,8 @@ onMounted(() => {
                   "
                   >{{ cv.group_name }}</span
                 >
-                <span
-                  v-if="cv.start_date || cv.end_date"
-                  style="color: #98a9bc"
-                  ><i
-                    style="margin-right: 5px"
-                    class="pi pi-calendar"
-                  ></i
+                <span v-if="cv.start_date || cv.end_date" style="color: #98a9bc"
+                  ><i style="margin-right: 5px" class="pi pi-calendar"></i
                   >{{
                     cv.start_date
                       ? moment(new Date(cv.start_date)).format("DD/MM/YYYY")
@@ -2784,10 +2746,7 @@ onMounted(() => {
         "
         v-if="listProjectMains.length == 0"
       >
-        <img
-          src="../../assets/background/nodata.png"
-          height="144"
-        />
+        <img src="../../assets/background/nodata.png" height="144" />
         <h3 class="m-1">Không có dữ liệu</h3>
       </div>
     </div>
@@ -2903,19 +2862,14 @@ onMounted(() => {
               </tr>
             </thead>
             <tbody>
-              <tr
-                v-for="l in listProjectMains"
-                @click="onRowSelect(l)"
-              >
+              <tr v-for="l in listProjectMains" @click="onRowSelect(l)">
                 <td
                   class="fixcol left-0 p-3"
                   style="border: 1px solid #e9e9e9; background-color: #f8f9fa"
                 >
-                  <label
-                    @click="onRowSelect(l)"
-                    style="font-weight: bold"
-                    >{{ l.project_name }}</label
-                  >
+                  <label @click="onRowSelect(l)" style="font-weight: bold">{{
+                    l.project_name
+                  }}</label>
                   <div
                     style="
                       font-size: 12px;
@@ -3050,10 +3004,7 @@ onMounted(() => {
                 </td>
               </tr>
               <tr v-if="listProjectMains.length == 0">
-                <td
-                  :colspan="GrandsDate.length + 4"
-                  style="text-align: center"
-                >
+                <td :colspan="GrandsDate.length + 4" style="text-align: center">
                   <div
                     class="align-items-center justify-content-center p-4 text-center m-auto"
                     style="
@@ -3390,10 +3341,7 @@ onMounted(() => {
                 </td>
               </tr>
               <tr v-if="listProjectMains.length == 0">
-                <td
-                  :colspan="GrandsDate.length + 4"
-                  style="text-align: center"
-                >
+                <td :colspan="GrandsDate.length + 4" style="text-align: center">
                   <div
                     class="align-items-center justify-content-center p-4 text-center m-auto"
                     style="
@@ -3422,12 +3370,7 @@ onMounted(() => {
       v-model:visible="showDetailProject"
       :position="PositionSideBar"
       :style="{
-        width:
-          PositionSideBar == 'right'
-            ? width1 > 1800
-              ? ' 60vw'
-              : '80vw'
-            : '100vw',
+        width: PositionSideBar == 'right' ? '80vw' : '100vw',
         height: '100vh !important',
       }"
       :showCloseIcon="false"
@@ -3483,20 +3426,18 @@ onMounted(() => {
         <div class="grid formgrid m-2">
           <div class="field col-12 md:col-12">
             <label class="col-3 text-left p-0"
-              >Mã dự án<span class="redsao"> (*) </span></label
-            >
+              >Mã dự án
+              <!-- <span class="redsao"> (*) </span> -->
+            </label>
             <InputText
               v-model="ProjectMain.project_code"
               @change="removeVietnameseTones(ProjectMain.project_code)"
               spellcheck="false"
               class="col-9 ip36 px-2"
-              :class="{ 'p-invalid': v$.project_code.$invalid && submitted }"
             />
+            <!-- :class="{ 'p-invalid': v$.project_code.$invalid && submitted }" -->
           </div>
-          <div
-            style="display: flex"
-            class="field col-12 md:col-12"
-          >
+          <!-- <div style="display: flex" class="field col-12 md:col-12">
             <div class="col-3 text-left"></div>
             <small
               v-if="
@@ -3511,7 +3452,7 @@ onMounted(() => {
                   .replace("is required", "không được để trống")
               }}</span>
             </small>
-          </div>
+          </div> -->
           <div class="field col-12 md:col-12">
             <label class="col-3 text-left p-0"
               >Tên dự án<span class="redsao"> (*) </span></label
@@ -3522,10 +3463,7 @@ onMounted(() => {
               class="col-9 ip36 px-2"
             />
           </div>
-          <div
-            style="display: flex"
-            class="field col-12 md:col-12"
-          >
+          <div style="display: flex" class="field col-12 md:col-12">
             <div class="col-3 text-left"></div>
             <small
               v-if="
@@ -3559,10 +3497,7 @@ onMounted(() => {
                   class="country-item flex"
                   style="align-items: center; margin-left: 10px"
                 >
-                  <div
-                    class="pt-1"
-                    style="padding-left: 10px"
-                  >
+                  <div class="pt-1" style="padding-left: 10px">
                     {{ slotProps.option.name }}
                   </div>
                 </div>
@@ -3589,7 +3524,7 @@ onMounted(() => {
                 <img
                   @click="chonanh('AnhDonvi')"
                   id="LogoDonvi"
-                  style="height: 80px; width: 100px"
+                  style="max-width: 150px"
                   v-bind:src="
                     ProjectMain.logo
                       ? basedomainURL + ProjectMain.logo
@@ -3601,7 +3536,7 @@ onMounted(() => {
                   style="width: 1.5rem; height: 1.5rem"
                   icon="pi pi-times"
                   @click="delLogo(ProjectMain)"
-                  class="p-button-rounded absolute top-0 right-0 cursor-pointer"
+                  class="p-button-rounded absolute delete-image cursor-pointer"
                 />
               </div>
               <input
@@ -3614,10 +3549,7 @@ onMounted(() => {
               />
             </div>
           </div>
-          <div
-            class="field col-12 md:col-12"
-            style="display: flex"
-          >
+          <div class="field col-12 md:col-12" style="display: flex">
             <label class="col-3 text-left p-0">Mô tả</label>
             <Textarea
               style="margin-top: 5px; padding: 5px"
@@ -3665,10 +3597,7 @@ onMounted(() => {
               </div>
             </div>
           </div>
-          <div
-            class="field col-12 md:col-12"
-            style="display: flex"
-          >
+          <div class="field col-12 md:col-12" style="display: flex">
             <label
               style="display: flex; align-items: center"
               class="col-3 text-left p-0"
@@ -3714,9 +3643,7 @@ onMounted(() => {
           <div class="field col-12 md:col-12">
             <label class="col-3 text-left p-0"
               >Người quản lý
-              <span
-                @click="OpenDialogTreeUser(false, 1)"
-                class="choose-user"
+              <span @click="OpenDialogTreeUser(false, 1)" class="choose-user"
                 ><i class="pi pi-user-plus"></i></span
             ></label>
             <MultiSelect
@@ -3756,10 +3683,7 @@ onMounted(() => {
                     size="xlarge"
                     shape="circle"
                   />
-                  <div
-                    class="pt-1"
-                    style="padding-left: 10px"
-                  >
+                  <div class="pt-1" style="padding-left: 10px">
                     {{ slotProps.option.name }}
                   </div>
                 </div>
@@ -3769,9 +3693,7 @@ onMounted(() => {
           <div class="field col-12 md:col-12">
             <label class="col-3 text-left p-0"
               >Người tham gia
-              <span
-                @click="OpenDialogTreeUser(false, 2)"
-                class="choose-user"
+              <span @click="OpenDialogTreeUser(false, 2)" class="choose-user"
                 ><i class="pi pi-user-plus"></i></span
             ></label>
             <MultiSelect
@@ -3811,10 +3733,7 @@ onMounted(() => {
                     size="xlarge"
                     shape="circle"
                   />
-                  <div
-                    class="pt-1"
-                    style="padding-left: 10px"
-                  >
+                  <div class="pt-1" style="padding-left: 10px">
                     {{ slotProps.option.name }}
                   </div>
                 </div>
@@ -3856,10 +3775,7 @@ onMounted(() => {
                         responsiveLayout="scroll"
                       >
                         <template #list="slotProps">
-                          <Toolbar
-                            class="w-full"
-                            style="display: flex"
-                          >
+                          <Toolbar class="w-full" style="display: flex">
                             <template #start>
                               <div
                                 class="flex align-items-center task-file-list"
@@ -4074,5 +3990,16 @@ onMounted(() => {
 
 #task_filter .children .active {
   color: #2196f3 !important;
+}
+.delete-image {
+  right: -10px;
+  top: -10px;
+}
+.inputanh.relative {
+  max-width: fit-content;
+}
+.inputanh.relative img {
+  max-width: 150px;
+  max-height: 150px;
 }
 </style>
