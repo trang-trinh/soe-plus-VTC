@@ -1040,7 +1040,13 @@ namespace API.Controllers.Request
                                 request.modified_date = DateTime.Now;
                                 request.modified_ip = ip;
                                 request.modified_token_id = tid;
-                                request.start_send_date = DateTime.Now;
+                                var datestart = DateTime.Now;
+                                request.start_send_date = datestart;
+                                if (request.times_processing_max != null && request.times_processing_max > 0)
+                                {
+                                    request.deadline_first = datestart.AddHours(request.times_processing_max ?? 0);
+                                    request.deadline = request.deadline_first;
+                                }
                                 #region Gen quy trinh
                                 if (type_send == 0) // gửi đến quy trình
                                 {
@@ -1940,8 +1946,14 @@ namespace API.Controllers.Request
                                     request.modified_token_id = tid;
                                     break;
                                 case 2: // Hoan thanh
-                                    user_current.is_sign = 2; // Ban hành
-                                    request.status = 2; // Ban hành
+                                    user_current.is_sign = 2; // Hoan thanh
+                                    request.status = 2; // Hoan thanh
+                                    request.completed_date = DateTime.Now;
+                                    request.completed_by = uid;
+                                    DateTime complete_time = request.completed_date ?? DateTime.Now;
+                                    DateTime start_time = request.start_send_date ?? DateTime.Now;
+                                    TimeSpan span = complete_time.Subtract(start_time);
+                                    request.times_processing = Math.Round(span.TotalHours);
                                     request.modified_by = uid;
                                     request.modified_date = DateTime.Now;
                                     request.modified_ip = ip;

@@ -165,10 +165,10 @@ const tasks = ref([]);
 //data view 3
 const contracts = ref([]);
 const typestatus = ref([
-  { value: 0, title: "Chưa hiệu lực", bg_color: "#bbbbbb", text_color: "#fff" },
-  { value: 1, title: "Đang hiệu lực", bg_color: "#2196f3", text_color: "#fff" },
-  { value: 2, title: "Hết hiệu lực", bg_color: "red", text_color: "#fff" },
-  { value: 3, title: "Đã thanh lý", bg_color: "#ff8b4e", text_color: "#fff" },
+  { value: 0, title: "Chưa hiệu lực", bg_color: "#0078d4", text_color: "#fff" },
+  { value: 1, title: "Đang hiệu lực", bg_color: "#5FC57B", text_color: "#fff" },
+  { value: 2, title: "Hết hiệu lực", bg_color: "#DF5249", text_color: "#fff" },
+  { value: 3, title: "Đã thanh lý", bg_color: "#F39C12", text_color: "#fff" },
 ]);
 const isView = ref(false);
 const contract = ref({});
@@ -1367,15 +1367,21 @@ const initView1 = (rf) => {
                 new Date(x["identification_date_issue"])
               ).format("DD/MM/YYYY");
             }
+            // if (x["start_date"] != null) {
+            //   x["start_date"] = moment(new Date(x["start_date"])).format("DD/MM/YYYY");
+            // }
+            // if (x["end_date"] != null) {
+            //   x["end_date"] = moment(new Date(x["end_date"])).format("DD/MM/YYYY");
+            // }
             if (x["start_date"] != null) {
-              x["start_date"] = moment(new Date(x["start_date"])).format(
-                "DD/MM/YYYY"
-              );
+              if (moment(x["start_date"], moment.ISO_8601, true).isValid()) {
+                x["start_date"] = moment(new Date(x["start_date"])).format("DD/MM/YYYY");
+              }
             }
             if (x["end_date"] != null) {
-              x["end_date"] = moment(new Date(x["end_date"])).format(
-                "DD/MM/YYYY"
-              );
+              if (moment(x["end_date"], moment.ISO_8601, true).isValid()) {
+                x["end_date"] = moment(new Date(x["end_date"])).format("DD/MM/YYYY");
+              }
             }
             //
             var idx = dictionarys.value[11].findIndex(
@@ -1473,15 +1479,21 @@ const initView1 = (rf) => {
         }
         if (tbs[3] != null && tbs[3].length > 0) {
           tbs[3].forEach((x) => {
+            // if (x["start_date"] != null) {
+            //   x["start_date"] = moment(new Date(x["start_date"])).format("DD/MM/YYYY");
+            // }
+            // if (x["end_date"] != null) {
+            //   x["end_date"] = moment(new Date(x["end_date"])).format("DD/MM/YYYY");
+            // }
             if (x["start_date"] != null) {
-              x["start_date"] = moment(new Date(x["start_date"])).format(
-                "DD/MM/YYYY"
-              );
+              if (moment(x["start_date"], moment.ISO_8601, true).isValid()) {
+                x["start_date"] = moment(new Date(x["start_date"])).format("DD/MM/YYYY");
+              }
             }
             if (x["end_date"] != null) {
-              x["end_date"] = moment(new Date(x["end_date"])).format(
-                "DD/MM/YYYY"
-              );
+              if (moment(x["end_date"], moment.ISO_8601, true).isValid()) {
+                x["end_date"] = moment(new Date(x["end_date"])).format("DD/MM/YYYY");
+              }
             }
             //
             var idx = forms.value.findIndex((a) => a["value"] === x["form"]);
@@ -1496,12 +1508,14 @@ const initView1 = (rf) => {
         if (tbs[4] != null && tbs[4].length > 0) {
           tbs[4].forEach((x) => {
             if (x["start_date"] != null) {
-              x["start_date"] = moment(new Date(x["start_date"])).format(
-                "MM/YYYY"
-              );
+              if (moment(x["start_date"], moment.ISO_8601, true).isValid()) {
+                x["start_date"] = moment(new Date(x["start_date"])).format("MM/YYYY");
+              }
             }
             if (x["end_date"] != null) {
-              x["end_date"] = moment(new Date(x["end_date"])).format("MM/YYYY");
+              if (moment(x["end_date"], moment.ISO_8601, true).isValid()) {
+                x["end_date"] = moment(new Date(x["end_date"])).format("MM/YYYY");
+              }
             }
           });
           datachilds.value[4] = tbs[4];
@@ -4837,8 +4851,8 @@ const formatViewNumber = (value, partDecimal) => {
                   <Column
                     field="contract_code"
                     header="Số HĐ"
-                    headerStyle="text-align:center;max-width:80px;height:50px"
-                    bodyStyle="text-align:center;max-width:80px;"
+                    headerStyle="text-align:center;max-width:150px;height:50px"
+                    bodyStyle="text-align:center;max-width:150px;"
                     class="align-items-center justify-content-center text-center"
                   />
                   <Column
@@ -4894,7 +4908,7 @@ const formatViewNumber = (value, partDecimal) => {
                       <span v-html="slotProps.data.end_date"></span>
                     </template>
                   </Column>
-                  <Column
+                  <!-- <Column
                     field="created_date"
                     header="Ngày/Người lập"
                     headerStyle="text-align:center;max-width:130px;height:50px"
@@ -4932,7 +4946,7 @@ const formatViewNumber = (value, partDecimal) => {
                         />
                       </div>
                     </template>
-                  </Column>
+                  </Column> -->
                   <Column
                     field="status"
                     header="Trạng thái"

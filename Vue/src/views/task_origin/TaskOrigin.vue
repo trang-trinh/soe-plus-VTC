@@ -2279,8 +2279,6 @@ const ChangeShowListCVGroup = (model) => {
       "
       :expandableRowGroups="opition.type_group_view ? true : false"
       v-model:expandedRowGroups="expandedRowGroups"
-      @rowgroupExpand="onRowGroupExpand($event)"
-      @rowgroupCollapse="onRowGroupCollapse($event)"
       selectionMode="single"
       @rowSelect="onRowSelect($event.data)"
       @rowUnselect="onRowUnselect($event.data)"

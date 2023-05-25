@@ -2889,7 +2889,7 @@ onMounted(() => {
                             :showClear="true"
                             :options="[
                               { value: 1, title: 'Về bản thân' },
-                              { value: 2, title: 'Về bên vợ' },
+                              { value: 2, title: 'Về bên vợ/chồng' },
                             ]"
                             optionLabel="title"
                             optionValue="value"
@@ -3599,7 +3599,7 @@ onMounted(() => {
               :showClear="true"
               :options="[
                 { value: 1, title: 'Về bản thân' },
-                { value: 2, title: 'Về bên vợ' },
+                { value: 2, title: 'Về bên vợ/chồng' },
               ]"
               optionLabel="title"
               optionValue="value"
