@@ -329,7 +329,7 @@ const itemButMores = ref([
     label: "Hiệu chỉnh sơ yếu lý lịch",
     icon: "pi pi-file",
     command: (event) => {
-      editItem(profile.value, "Chỉnh sửa hồ sơ");
+      editItem(profile.value, "Cập nhật thông tin hồ sơ");
     },
   },
   // {
@@ -454,225 +454,21 @@ const files = ref([]);
 const headerDialog = ref();
 const displayDialog = ref(false);
 const openAddDialog = (str) => {
-  forceRerender(0);
   isAdd.value = true;
-  model.value = {
-    status: 0,
-    is_order: options.value.total + 1,
-  };
-  files.value = [];
   headerDialog.value = str;
   displayDialog.value = true;
-  datachilds.value = [];
+  forceRerender(0);
 };
 const closeDialog = () => {
   displayDialog.value = false;
   forceRerender(0);
 };
 const editItem = (item, str) => {
-  datachilds.value = [];
-  files.value = [];
-  submitted.value = false;
-  options.value.loading = true;
-  swal.fire({
-    width: 110,
-    didOpen: () => {
-      swal.showLoading();
-    },
-  });
+  profile.value = item;
   isAdd.value = false;
-  axios
-    .post(
-      baseURL + "/api/hrm/callProc",
-      {
-        str: encr(
-          JSON.stringify({
-            proc: "hrm_profile_get_2",
-            par: [{ par: "profile_id", va: item.profile_id }],
-          }),
-          SecretKey,
-          cryoptojs
-        ).toString(),
-      },
-      config
-    )
-    .then((response) => {
-      var data = response.data.data;
-      if (data != null) {
-        var tbs = JSON.parse(data);
-        if (tbs[0] != null && tbs[0].length > 0) {
-          model.value = tbs[0][0];
-          // model.value["select_birthplace"] = {};
-          // model.value["select_birthplace"][
-          //   model.value["birthplace_id"] || -1
-          // ] = true;
-          // model.value["select_birthplace_origin"] = {};
-          // model.value["select_birthplace_origin"][
-          //   model.value["birthplace_origin_id"] || -1
-          // ] = true;
-          // model.value["select_place_register_permanent"] = {};
-          // model.value["select_place_register_permanent"][
-          //   model.value["place_register_permanent"] || -1
-          // ] = true;
-          model.value["select_birthplace"] = model.value["birthplace_name"];
-          model.value["select_birthplace_origin"] =
-            model.value["birthplace_origin_name"];
-          model.value["select_place_register_permanent"] =
-            model.value["place_register_permanent_name"];
-          model.value["select_place_residence"] =
-            model.value["place_residence_name"];
-
-          if (model.value["recruitment_date"] != null) {
-            model.value["recruitment_date"] = new Date(
-              model.value["recruitment_date"]
-            );
-          }
-          if (model.value["birthday"] != null) {
-            model.value["birthday"] = new Date(model.value["birthday"]);
-          }
-          if (model.value["identity_date_issue"] != null) {
-            model.value["identity_date_issue"] = new Date(
-              model.value["identity_date_issue"]
-            );
-          }
-          if (model.value["identity_end_date_issue"] != null) {
-            model.value["identity_end_date_issue"] = new Date(
-              model.value["identity_end_date_issue"]
-            );
-          }
-          if (model.value["partisan_date"] != null) {
-            model.value["partisan_date"] = new Date(
-              model.value["partisan_date"]
-            );
-          }
-          if (model.value["partisan_joindate"] != null) {
-            model.value["partisan_joindate"] = new Date(
-              model.value["partisan_joindate"]
-            );
-          }
-          if (model.value["organization_joindate"] != null) {
-            model.value["organization_joindate"] = new Date(
-              model.value["organization_joindate"]
-            );
-          }
-          if (model.value.bevy_date != null) {
-            model.value.bevy_date = new Date(model.value.bevy_date);
-          }
-          if (model.value.military_start_date != null) {
-            model.value.military_start_date = new Date(
-              model.value.military_start_date
-            );
-          }
-          if (model.value.military_end_date != null) {
-            model.value.military_end_date = new Date(
-              model.value.military_end_date
-            );
-          }
-          if (model.value["sign_date"] != null) {
-            model.value["sign_date"] = new Date(model.value["sign_date"]);
-          }
-          if (model.value["partisan_main_date"] != null) {
-            model.value["partisan_main_date"] = new Date(
-              model.value["partisan_main_date"]
-            );
-          }
-        }
-        if (tbs[1] != null && tbs[1].length > 0) {
-          tbs[1].forEach((x) => {
-            if (x["identification_date_issue"] != null) {
-              x["identification_date_issue"] = new Date(
-                x["identification_date_issue"]
-              );
-            }
-            if (x["start_date"] != null) {
-              x["start_date"] = new Date(x["start_date"]);
-            }
-            if (x["end_date"] != null) {
-              x["end_date"] = new Date(x["end_date"]);
-            }
-            if (x["birthday"] != null) {
-              x["birthday"] = new Date(x["birthday"]);
-            }
-          });
-          datachilds.value[1] = tbs[1];
-        } else {
-          datachilds.value[1] = [];
-        }
-        if (tbs[2] != null && tbs[2].length > 0) {
-          tbs[2].forEach((x) => {
-            if (x["certificate_start_date"] != null) {
-              x["certificate_start_date"] = new Date(
-                x["certificate_start_date"]
-              );
-            }
-            if (x["certificate_end_date"] != null) {
-              x["certificate_end_date"] = new Date(x["certificate_end_date"]);
-            }
-          });
-          datachilds.value[2] = tbs[2];
-        } else {
-          datachilds.value[2] = [];
-        }
-        if (tbs[3] != null && tbs[3].length > 0) {
-          tbs[3].forEach((x) => {
-            if (x["start_date"] != null) {
-              x["start_date"] = new Date(x["start_date"]);
-            }
-            if (x["end_date"] != null) {
-              x["end_date"] = new Date(x["end_date"]);
-            }
-          });
-          datachilds.value[3] = tbs[3];
-        } else {
-          datachilds.value[3] = [];
-        }
-        if (tbs[4] != null && tbs[4].length > 0) {
-          // tbs[4].forEach((x) => {
-          //   if (x["start_date"] != null) {
-          //     x["start_date"] = new Date(x["start_date"]);
-          //   }
-          //   if (x["end_date"] != null) {
-          //     x["end_date"] = new Date(x["end_date"]);
-          //   }
-          // });
-          datachilds.value[4] = tbs[4];
-        } else {
-          datachilds.value[4] = [];
-        }
-        if (tbs[5] != null && tbs[5].length > 0) {
-          model.value["files"] = tbs[5];
-        } else {
-          model.value["files"] = [];
-        }
-      }
-      swal.close();
-      if (options.value.loading) options.value.loading = false;
-      forceRerender(0);
-      headerDialog.value = str;
-      displayDialog.value = true;
-    })
-    .catch((error) => {
-      swal.close();
-      if (options.value.loading) options.value.loading = false;
-      if (error && error.status === 401) {
-        swal.fire({
-          title: "Thông báo!",
-          text: "Mã token đã hết hạn hoặc không hợp lệ, vui lòng đăng nhập lại!",
-          icon: "error",
-          confirmButtonText: "OK",
-        });
-        store.commit("gologout");
-        return;
-      } else {
-        swal.fire({
-          title: "Thông báo!",
-          text: "Có lỗi xảy ra, vui lòng kiểm tra lại!",
-          icon: "error",
-          confirmButtonText: "OK",
-        });
-        return;
-      }
-    });
+  headerDialog.value = str;
+  displayDialog.value = true;
+  forceRerender(0);
 };
 const deleteItem = (item) => {
   if (item != null || options.value["filterProfile_id"] != null) {
@@ -1654,12 +1450,6 @@ const initDataFilter = () => {
     });
 };
 const initTreeOrganization = () => {
-  swal.fire({
-    width: 110,
-    didOpen: () => {
-      swal.showLoading();
-    },
-  });
   treeOrganization.value = [];
   axios
     .post(
@@ -1854,6 +1644,15 @@ const refresh = () => {
   initCount();
   initTreeOrganization();
   //initData(true);
+};
+const initSave = () => {
+  options.value.pageNo = 1;
+  options.value.pageSize = 25;
+  options.value.limitItem = 25;
+  options.value.total = 0;
+  dataLimits.value = [];
+
+  initData(true);
 };
 onMounted(() => {
   nextTick(() => {
@@ -3202,21 +3001,9 @@ const loadMoreRow = (data) => {
     :displayDialog="displayDialog"
     :closeDialog="closeDialog"
     :isAdd="isAdd"
-    :model="model"
-    :files="files"
-    :chooseImage="chooseImage"
-    :deleteImage="deleteImage"
-    :handleFileAvtUpload="handleFileAvtUpload"
-    :selectFile="selectFile"
-    :removeFile="removeFile"
-    :addRow="addRow"
-    :deleteRow="deleteRow"
-    :datachilds="datachilds"
+    :profile="profile"
     :dictionarys="dictionarys"
-    :genders="genders"
-    :places="places"
-    :marital_status="marital_status"
-    :initData="initData"
+    :initData="initSave"
   />
   <dialogreceipt
     :key="componentKey['1']"
