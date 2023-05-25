@@ -113,6 +113,7 @@ const passModuleToSidebar = () => {
       }
       let path_system = [
         "/options",
+        "/helperview",
         "/hrm/contact",
         "/hrm/hrm_headbar_calendar",
         "/tasks/taskmaintype",

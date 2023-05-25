@@ -674,8 +674,8 @@ onMounted(() => {
 </template>
 <style scoped>
 .ck-editor__editable {
-  min-height: 800px !important;
-  max-height: 800px !important;
+  min-height: calc(100vh - 200px) !important;
+  max-height: calc(100vh - 200px) !important;
 }
 
 .col-12 .p-inputswitch {
@@ -729,5 +729,11 @@ onMounted(() => {
   .p-treenode-label {
     width: 100%;
   }
+}
+::v-deep(.ck-editor__main) {
+  .ck-editor__editable {
+  height: calc(100vh - 177px) !important;
+}
+
 }
 </style>
