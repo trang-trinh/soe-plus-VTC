@@ -3,6 +3,8 @@ import { onMounted, ref, inject } from "vue";
 import { encr } from "../../../util/function";
 import { useToast } from "vue-toastification";
 import moment from "moment";
+
+import dialogmyprofile from "./component/dialogmyprofile.vue";
 import comview1 from "./component/comview1.vue";
 import comview2 from "./component/comview2.vue";
 import comview3 from "./component/comview3.vue";
@@ -62,24 +64,61 @@ const bgColor = ref([
   "#8BCFFB",
   "#CCADD7",
 ]);
+const dictionarys = ref({});
 const profile = ref({});
 
 //Fucntion
+const componentKey = ref({});
+const forceRerender = (type) => {
+  if (!componentKey.value[type]) {
+    componentKey.value[type] = 0;
+  }
+  componentKey.value[type] += 1;
+};
 const activeTab = (tab) => {
   options.value.tab = tab.id;
 };
-const edit = () => {
-  swal.fire({
-    title: "Thông báo!",
-    text: "Tính năng đang được pháp triển, vui lòng thử lại sau!",
-    icon: "error",
-    confirmButtonText: "OK",
-  });
-  return;
+
+const headerDialog = ref();
+const displayDialog = ref(false);
+const openEditDialog = (str) => {
+  headerDialog.value = str;
+  displayDialog.value = true;
+  forceRerender(0);
+};
+const closeDialog = () => {
+  displayDialog.value = false;
+  forceRerender(0);
 };
 
 //init
-const iniData = (ref) => {
+const initDictionary = () => {
+  axios
+    .post(
+      baseURL + "/api/hrm/callProc",
+      {
+        str: encr(
+          JSON.stringify({
+            proc: "hrm_profile_dictionary",
+            par: [{ par: "user_id", va: store.getters.user.user_id }],
+          }),
+          SecretKey,
+          cryoptojs
+        ).toString(),
+      },
+      config
+    )
+    .then((response) => {
+      if (response != null && response.data != null) {
+        var data = response.data.data;
+        if (data != null) {
+          let tbs = JSON.parse(data);
+          dictionarys.value = tbs;
+        }
+      }
+    });
+};
+const initData = (ref) => {
   if (ref) {
     swal.fire({
       width: 110,
@@ -158,7 +197,8 @@ const iniData = (ref) => {
     });
 };
 onMounted(() => {
-  iniData();
+  initDictionary();
+  initData();
 });
 </script>
 <template>
@@ -245,7 +285,7 @@ onMounted(() => {
       </template>
       <template #end>
         <Button
-          @click="edit()"
+          @click="openEditDialog('Cập nhật thông tin hồ sơ')"
           class="p-button-warning"
           icon="pi pi-pencil"
           label="Cập nhật thông tin"
@@ -319,6 +359,18 @@ onMounted(() => {
       />
     </div>
   </div>
+
+  <!--Dialog-->
+  <dialogmyprofile 
+    :key="componentKey['0']"
+    :headerDialog="headerDialog"
+    :displayDialog="displayDialog"
+    :closeDialog="closeDialog"
+    :isAdd="false"
+    :profile="profile"
+    :dictionarys="dictionarys"
+    :initData="initData"
+  />
 </template>
 <style scoped>
 @import url(../contract/component/stylehrm.css);

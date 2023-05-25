@@ -160,7 +160,7 @@ const saveModel = (is_continue) => {
     }
   }
   axios
-    .put(baseURL + "/api/hrm_profile/update_profile", formData, config)
+    .put(baseURL + "/api/hrm_profile/update_profile_history", formData, config)
     .then((response) => {
       if (response.data.err === "1") {
         swal.fire({
@@ -4489,7 +4489,7 @@ onMounted(() => {
   </Dialog>
 </template>
 <style scoped>
-@import url(./stylehrm.css);
+@import url(../../profile/component/stylehrm.css);
 </style>
 <style lang="scss" scoped>
 ::v-deep(.p-datatable) {
