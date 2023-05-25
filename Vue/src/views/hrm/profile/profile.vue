@@ -1450,12 +1450,6 @@ const initDataFilter = () => {
     });
 };
 const initTreeOrganization = () => {
-  swal.fire({
-    width: 110,
-    didOpen: () => {
-      swal.showLoading();
-    },
-  });
   treeOrganization.value = [];
   axios
     .post(

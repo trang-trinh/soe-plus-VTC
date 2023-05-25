@@ -3750,7 +3750,7 @@ onMounted(() => {
         </div>
       </div>
     </form>
-    <Toolbar
+    <!-- <Toolbar
       class="outline-none surface-0 border-none w-full"
       :style="{
         position: 'sticky',
@@ -3769,7 +3769,7 @@ onMounted(() => {
       <template #end>
         <Button label="Lưu" icon="pi pi-check" @click="saveModel()"
       /></template>
-    </Toolbar>
+    </Toolbar> -->
   </Sidebar>
 
   <!--Dialog 1-->
