@@ -769,23 +769,23 @@ const closeDialogInsurance = () => {
 //Function mores
 const menuButs = ref();
 const itemButs = ref([
-  {
-    label: "Thông tin chung/liên hệ",
-    icon: "pi pi-id-card",
-    command: (event) => {
-      openEditDialog(1, "Cập nhật thay đổi thông tin");
-    },
-  },
-  {
-    label: "Gia đình, người phụ thuộc",
-    icon: "pi pi-users",
-    command: (event) => {
-      openEditDialog(
-        2,
-        "Cập nhật thay đổi thông tin gia đình, người phụ thuộc"
-      );
-    },
-  },
+  // {
+  //   label: "Thông tin chung/liên hệ",
+  //   icon: "pi pi-id-card",
+  //   command: (event) => {
+  //     openEditDialog(1, "Cập nhật thay đổi thông tin");
+  //   },
+  // },
+  // {
+  //   label: "Gia đình, người phụ thuộc",
+  //   icon: "pi pi-users",
+  //   command: (event) => {
+  //     openEditDialog(
+  //       2,
+  //       "Cập nhật thay đổi thông tin gia đình, người phụ thuộc"
+  //     );
+  //   },
+  // },
   {
     label: "Thông tin bảo hiểm",
     icon: "pi pi-shield",
