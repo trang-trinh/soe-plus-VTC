@@ -316,11 +316,6 @@ namespace API.Controllers
                             File.Move(ffileData.LocalFileName, filePath);
 
                         }
-
-
-
-                     
-
                         //FileStream fs = File.OpenRead(filePath);
                         //using (var fileStream = new FileStream(filePath, FileMode.Create))
                         //{

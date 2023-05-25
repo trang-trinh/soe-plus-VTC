@@ -1907,7 +1907,7 @@ const initBaocao = async (id) => {
       },
     ],
   };
-  console.log(strSQL);
+ 
 
   swal.fire({
     width: 110,
