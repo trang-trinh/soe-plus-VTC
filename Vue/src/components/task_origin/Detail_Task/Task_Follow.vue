@@ -365,7 +365,7 @@ const closeDialogDetail = () => {
 };
 const onRowReorder = (event) => {
   let formData = new FormData();
-  console.log(event.value);
+
   formData.append("task_follow", JSON.stringify(event.value));
   swal.fire({
     width: 110,

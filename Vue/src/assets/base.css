@@ -1478,3 +1478,6 @@ li.p-chips-token {
 .profile-edit .p-sidebar-content {
   padding-bottom: 0 !important;
 }
+/*delete this css */
+/* .p-treetable-scrollable .p-treetable-thead 
+{z-index: unset !important} */

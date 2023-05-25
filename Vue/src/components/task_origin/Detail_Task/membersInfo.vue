@@ -631,7 +631,10 @@ const OpenMultiple = () => {
         class="right-0 absolute z-5 my-2 mx-3"
         label="Đánh giá"
         icon="pi pi-user-edit"
-        @click="OpenMultiple()"
+        @click="OpenMultiple()"    v-if="  (memberType == 0 ||
+                  memberType1 == 0 ||
+                  memberType2 == 0 ||
+                  memberType3 == 0)"
       ></Button>
 
       <TabView

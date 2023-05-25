@@ -874,7 +874,7 @@ onMounted(() => {
             :totalRecords="opition.totalRecords"
             :row-hover="true"
             dataKey="discuss_project_id"
-            v-model:selection="selectedProjectMains"
+
             @page="onPage($event)"
             @sort="onSort($event)"
             @filter="onFilter($event)"
