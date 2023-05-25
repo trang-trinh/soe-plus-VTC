@@ -3865,7 +3865,7 @@ onMounted(() => {
           <div class="form-group">
             <label>Mã số thuế</label>
             <InputText
-              v-model="modmodeldetaill.tax_code"
+              v-model="modeldetail.tax_code"
               spellcheck="false"
               type="text"
               class="ip36"
