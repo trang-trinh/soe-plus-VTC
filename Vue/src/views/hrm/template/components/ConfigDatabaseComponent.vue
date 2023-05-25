@@ -39,7 +39,7 @@ export default {
       mdTable.value = tb;
     };
     const goProc = async () => {
-      
+        
       let strSQL = {
         query: false,
         proc: "proc_get_info",
@@ -209,7 +209,8 @@ export default {
               props.report.report_config.trim() != ""
             ) {
               let objConfig = JSON.parse(props.report.report_config);
-              if (objConfig && objConfig.proc) {
+              debugger
+              if (objConfig && Object.entries(objConfig.proc).length >0) {
                 dtPars.value = objConfig.proc.parameters;
                 txtSQL.value = objConfig.proc.sql;
                  
@@ -353,7 +354,7 @@ export default {
       return dts;
     };
     const initDataTempAuto = async (tf) => {
-      debugger
+       
       if (!isUrlReport.value) {
         let dts = await goProcD(
           false,
@@ -637,7 +638,9 @@ export default {
         </span>
       </div>
     </template>
-    <Column selectionMode="single" headerStyle="max-width: 3rem"> </Column>
+    <Column selectionMode="single" headerStyle="max-width: 3rem"
+    bodyStyle="max-width: 3rem"
+    > </Column>
     <Column header="Mã">
       <template #body="slotProps">
         {{ slotProps.data.column_id }}
