@@ -188,7 +188,7 @@ onMounted(() => {
                 </span>
               </template>
               <template #content="slotProps">
-                <Card class="mb-5">
+                <Card class="mb-5" :style="{ backgroundColor: '#D6EAF8', boxShadow: 'none' }">
                   <template #subtitle>
                     <div class="w-full text-left">
                       {{ slotProps.item.effective_date }}
@@ -242,7 +242,7 @@ onMounted(() => {
                 </span>
               </template>
               <template #content="slotProps">
-                <Card class="mb-5">
+                <Card class="mb-5" :style="{ backgroundColor: '#FDEBD0', boxShadow: 'none' }">
                   <template #subtitle>
                     <div class="w-full text-left">
                       {{ slotProps.item.effective_date }}

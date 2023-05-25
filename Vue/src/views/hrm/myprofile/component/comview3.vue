@@ -344,8 +344,8 @@ const onPage = (event) => {
         <Column
           field="contract_code"
           header="Số HĐ"
-          headerStyle="text-align:center;max-width:100px;height:50px"
-          bodyStyle="text-align:center;max-width:100px;"
+          headerStyle="text-align:center;max-width:150px;height:50px"
+          bodyStyle="text-align:center;max-width:150px;"
           class="align-items-center justify-content-center text-center"
         />
         <Column
