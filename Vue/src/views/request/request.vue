@@ -174,7 +174,7 @@ const listRequest = (rf) => {
                             item.listSignUser = JSON.parse(item.listSignUser);
                             if (item.listSignUser.length > 0) {
                                 item.listSignUser.forEach((su) => {
-                                    su.status = su.status == '1'; // Trạng thái nhận
+                                    //su.status = su.status == '1'; // Trạng thái nhận
                                     su.is_type = parseInt(su.is_type);
                                     su.is_order = parseInt(su.is_order);
                                 });
@@ -184,7 +184,8 @@ const listRequest = (rf) => {
                             item.listSignUser = [];
                         }
                         item.IsLast = (item.daky || 0) + 1 == (item.soky || 0);
-                        item.is_overdue = item.times_processing > item.times_processing_max ? true : false;
+                        item.is_overdue = item.status == 2 ? (item.times_processing > item.times_processing_max ? true : false) : 
+                                            ((item.SoNgayHan || 0) < 0 ? true : false);
                     });
                     datas.value = data[0];
                     options.value.is_func = datas.value.filter(x => x.is_func && (x.status == 1 || x.status == 0 || x.status == -1 || x.status == 3)).length > 0;
@@ -1072,7 +1073,7 @@ onMounted(() => {
                 >
                     <template #body="slotProps">
                         <div class="flex" 
-                            :class="slotProps.data.status != 2 && slotProps.data.is_overdue && slotProps.data.Deadline && slotProps.data.SoNgayHan <= 24 ? 'overdue-request' : ''"
+                            :class="slotProps.data.status != 2 && slotProps.data.is_overdue && slotProps.data.deadline && slotProps.data.SoNgayHan <= 24 ? 'overdue-request' : ''"
                             style="flex-direction: column;height:100%;justify-content: center;" 
                             @click="openViewRequest(slotProps.data)"
                         >
@@ -1134,16 +1135,16 @@ onMounted(() => {
                                 </span>
                                 <span class="flex ml-2 span-note-request" v-if="slotProps.data.is_overdue" 
                                     v-tooltip.top="{ value: 'Hạn xử lý: ' + 
-                                        (slotProps.data.Deadline ? moment(new Date(slotProps.data.Deadline)).format('HH:mm DD/MM/yyyy') : ''), escape: true }" 
+                                        (slotProps.data.deadline ? moment(new Date(slotProps.data.deadline)).format('HH:mm DD/MM/yyyy') : ''), escape: true }" 
                                     style="color:red;">
                                     <i style="font-size:12px" class="pi pi-clock"></i> 
                                     <span class="pl-1">
                                         ({{ slotProps.data.SoNgayHan || 0 }}h)
                                     </span>
                                 </span>
-                                <span class="flex ml-2 span-note-request" v-if="!slotProps.data.is_overdue && slotProps.data.Deadline" 
+                                <span class="flex ml-2 span-note-request" v-if="!slotProps.data.is_overdue && slotProps.data.deadline" 
                                     v-tooltip.top="{ value: 'Hạn xử lý: ' + 
-                                        (slotProps.data.Deadline ? moment(new Date(slotProps.data.Deadline)).format('HH:mm DD/MM/yyyy') : ''), escape: true }" 
+                                        (slotProps.data.deadline ? moment(new Date(slotProps.data.deadline)).format('HH:mm DD/MM/yyyy') : ''), escape: true }" 
                                     :style="slotProps.data.SoNgayHan <= 24 ? 'color:orange' : 'color:#333'">
                                     <i style="font-size:12px" class="pi pi-clock"></i> 
                                     <span class="pl-1">

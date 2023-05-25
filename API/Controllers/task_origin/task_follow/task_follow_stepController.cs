@@ -74,7 +74,7 @@ namespace API.Controllers
                         task_Follow.created_date = DateTime.Now;
                         task_Follow.created_ip = ip;
                         task_Follow.created_token_id = tid;
-                        string ssid = task_Follow.is_template == true?task_Follow.task_id:null;
+                        string ssid = task_Follow.is_template != true?task_Follow.task_id:null;
                         if (task_Follow.is_template != true)
                         {
                             if (task_Follow.start_date <= DateTime.Now && task_Follow.status == 0)

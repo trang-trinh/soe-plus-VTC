@@ -1367,15 +1367,21 @@ const initView1 = (rf) => {
                 new Date(x["identification_date_issue"])
               ).format("DD/MM/YYYY");
             }
+            // if (x["start_date"] != null) {
+            //   x["start_date"] = moment(new Date(x["start_date"])).format("DD/MM/YYYY");
+            // }
+            // if (x["end_date"] != null) {
+            //   x["end_date"] = moment(new Date(x["end_date"])).format("DD/MM/YYYY");
+            // }
             if (x["start_date"] != null) {
-              x["start_date"] = moment(new Date(x["start_date"])).format(
-                "DD/MM/YYYY"
-              );
+              if (moment(x["start_date"], moment.ISO_8601, true).isValid()) {
+                x["start_date"] = moment(new Date(x["start_date"])).format("DD/MM/YYYY");
+              }
             }
             if (x["end_date"] != null) {
-              x["end_date"] = moment(new Date(x["end_date"])).format(
-                "DD/MM/YYYY"
-              );
+              if (moment(x["end_date"], moment.ISO_8601, true).isValid()) {
+                x["end_date"] = moment(new Date(x["end_date"])).format("DD/MM/YYYY");
+              }
             }
             //
             var idx = dictionarys.value[11].findIndex(
@@ -1473,15 +1479,21 @@ const initView1 = (rf) => {
         }
         if (tbs[3] != null && tbs[3].length > 0) {
           tbs[3].forEach((x) => {
+            // if (x["start_date"] != null) {
+            //   x["start_date"] = moment(new Date(x["start_date"])).format("DD/MM/YYYY");
+            // }
+            // if (x["end_date"] != null) {
+            //   x["end_date"] = moment(new Date(x["end_date"])).format("DD/MM/YYYY");
+            // }
             if (x["start_date"] != null) {
-              x["start_date"] = moment(new Date(x["start_date"])).format(
-                "DD/MM/YYYY"
-              );
+              if (moment(x["start_date"], moment.ISO_8601, true).isValid()) {
+                x["start_date"] = moment(new Date(x["start_date"])).format("DD/MM/YYYY");
+              }
             }
             if (x["end_date"] != null) {
-              x["end_date"] = moment(new Date(x["end_date"])).format(
-                "DD/MM/YYYY"
-              );
+              if (moment(x["end_date"], moment.ISO_8601, true).isValid()) {
+                x["end_date"] = moment(new Date(x["end_date"])).format("DD/MM/YYYY");
+              }
             }
             //
             var idx = forms.value.findIndex((a) => a["value"] === x["form"]);
@@ -1496,12 +1508,14 @@ const initView1 = (rf) => {
         if (tbs[4] != null && tbs[4].length > 0) {
           tbs[4].forEach((x) => {
             if (x["start_date"] != null) {
-              x["start_date"] = moment(new Date(x["start_date"])).format(
-                "MM/YYYY"
-              );
+              if (moment(x["start_date"], moment.ISO_8601, true).isValid()) {
+                x["start_date"] = moment(new Date(x["start_date"])).format("MM/YYYY");
+              }
             }
             if (x["end_date"] != null) {
-              x["end_date"] = moment(new Date(x["end_date"])).format("MM/YYYY");
+              if (moment(x["end_date"], moment.ISO_8601, true).isValid()) {
+                x["end_date"] = moment(new Date(x["end_date"])).format("MM/YYYY");
+              }
             }
           });
           datachilds.value[4] = tbs[4];
