@@ -4894,7 +4894,7 @@ const formatViewNumber = (value, partDecimal) => {
                       <span v-html="slotProps.data.end_date"></span>
                     </template>
                   </Column>
-                  <Column
+                  <!-- <Column
                     field="created_date"
                     header="Ngày/Người lập"
                     headerStyle="text-align:center;max-width:130px;height:50px"
@@ -4932,7 +4932,7 @@ const formatViewNumber = (value, partDecimal) => {
                         />
                       </div>
                     </template>
-                  </Column>
+                  </Column> -->
                   <Column
                     field="status"
                     header="Trạng thái"
