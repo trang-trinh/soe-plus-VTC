@@ -23,6 +23,8 @@ const ConfigAprrovedGroups = () =>
 const FollowTemplate = () => import("../views/tasks/config/FollowTemplate.vue");
 const ConfigProcess = () =>
   import("../views/hethong/process/ConfigProcess.vue");
+const Helper = () => import("../views/hethong/Helper.vue");
+const HelperView = () => import("../views/hethong/HelperView.vue");
 
 //Scraper
 // const ScraperView = () =>
@@ -607,6 +609,16 @@ const router = createRouter({
       path: "/system/organization",
       name: "organization",
       component: Organization,
+    },
+    {
+      path: "/system/helper",
+      name: "helper",
+      component: Helper,
+    },
+    {
+      path: "/helperview",
+      name: "helperview",
+      component: HelperView,
     },
     //Danh mục
     {
