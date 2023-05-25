@@ -165,10 +165,10 @@ const tasks = ref([]);
 //data view 3
 const contracts = ref([]);
 const typestatus = ref([
-  { value: 0, title: "Chưa hiệu lực", bg_color: "#bbbbbb", text_color: "#fff" },
-  { value: 1, title: "Đang hiệu lực", bg_color: "#2196f3", text_color: "#fff" },
-  { value: 2, title: "Hết hiệu lực", bg_color: "red", text_color: "#fff" },
-  { value: 3, title: "Đã thanh lý", bg_color: "#ff8b4e", text_color: "#fff" },
+  { value: 0, title: "Chưa hiệu lực", bg_color: "#0078d4", text_color: "#fff" },
+  { value: 1, title: "Đang hiệu lực", bg_color: "#5FC57B", text_color: "#fff" },
+  { value: 2, title: "Hết hiệu lực", bg_color: "#DF5249", text_color: "#fff" },
+  { value: 3, title: "Đã thanh lý", bg_color: "#F39C12", text_color: "#fff" },
 ]);
 const isView = ref(false);
 const contract = ref({});
