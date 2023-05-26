@@ -385,53 +385,55 @@ onMounted(() => {
         </div>
       </template>
       <template #end>
-        <Button
-          @click="openEditDialog('Cập nhật thông tin hồ sơ')"
-          class="p-button-warning mr-2"
-          icon="pi pi-pencil"
-          label="Cập nhật thay đổi thông tin"
-        />
+        <div v-if="profile != null && profile.profile_id != null">
+          <Button
+            @click="openEditDialog('Cập nhật thông tin hồ sơ')"
+            class="p-button-warning mr-2"
+            icon="pi pi-pencil"
+            label="Cập nhật thay đổi thông tin"
+          />
 
-        <Button
-          @click="
-            togglePrints($event);
-            $event.stopPropagation();
-          "
-          class="p-button-outlined p-button-secondary p-button-custom'"
-        >
-          <span class="mr-2"
-            ><font-awesome-icon icon="fa-solid fa-print"
-          /></span>
-          <span class="mr-2">In</span>
-          <span><i class="pi pi-chevron-down"></i></span>
-        </Button>
-        <OverlayPanel
-          :showCloseIcon="false"
-          ref="menuButPrints"
-          appendTo="body"
-          class="p-0 m-0"
-          id="overlay_More"
-          style="min-width: max-content"
-        >
-          <ul class="m-0 p-0" style="list-style: none">
-            <li
-              v-for="(value, key) in itemButPrints"
-              :key="key"
-              @click="goPrint(value.report_key)"
-              class="item-menu"
-              :class="{
-                'item-menu-highlight': value.view === options.view,
-              }"
-            >
-              <div>
-                <span :class="{ 'mr-2': value.label != null }"
-                  ><font-awesome-icon :icon="value.icon"
-                /></span>
-                <span>{{ value.label }}</span>
-              </div>
-            </li>
-          </ul>
-        </OverlayPanel>
+          <Button
+            @click="
+              togglePrints($event);
+              $event.stopPropagation();
+            "
+            class="p-button-outlined p-button-secondary p-button-custom'"
+          >
+            <span class="mr-2"
+              ><font-awesome-icon icon="fa-solid fa-print"
+            /></span>
+            <span class="mr-2">In</span>
+            <span><i class="pi pi-chevron-down"></i></span>
+          </Button>
+          <OverlayPanel
+            :showCloseIcon="false"
+            ref="menuButPrints"
+            appendTo="body"
+            class="p-0 m-0"
+            id="overlay_More"
+            style="min-width: max-content"
+          >
+            <ul class="m-0 p-0" style="list-style: none">
+              <li
+                v-for="(value, key) in itemButPrints"
+                :key="key"
+                @click="goPrint(value.report_key)"
+                class="item-menu"
+                :class="{
+                  'item-menu-highlight': value.view === options.view,
+                }"
+              >
+                <div>
+                  <span :class="{ 'mr-2': value.label != null }"
+                    ><font-awesome-icon :icon="value.icon"
+                  /></span>
+                  <span>{{ value.label }}</span>
+                </div>
+              </li>
+            </ul>
+          </OverlayPanel>
+        </div>
       </template>
     </Toolbar>
     <div class="tabview">
