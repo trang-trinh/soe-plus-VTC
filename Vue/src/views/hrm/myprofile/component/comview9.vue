@@ -118,7 +118,7 @@ onMounted(() => {
   <div
     class="d-lang-table"
     :style="{
-      height: 'calc(100vh - 220px) !important',
+      height: 'calc(100vh - 230px) !important',
       overflowY: 'auto',
     }"
   >

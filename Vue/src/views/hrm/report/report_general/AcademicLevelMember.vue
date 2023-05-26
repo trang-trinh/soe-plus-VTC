@@ -108,7 +108,7 @@ const loadData = () => {
                 data[0].forEach((item, index) => {
                     item.is_active = false;
                     if (item.Congtac !== null) {
-                        item.Congtac = JSON.parse(item.Congtac);                               
+                        item.Congtac = JSON.parse(item.Congtac.replaceAll('\n', ' '));                            
                     } if (item.Congtac == null) {
                         item.Congtac = [];
                         item.Congtac.push(baocaoct);

@@ -1,4 +1,5 @@
 ﻿using API.Models;
+using API.Helper;
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -24,6 +25,10 @@ using Microsoft.Owin;
 using OfficeOpenXml.FormulaParsing.Excel.Functions.RefAndLookup;
 using System.Diagnostics.Contracts;
 using System.Drawing;
+using Microsoft.ApplicationBlocks.Data;
+using System.Data.SqlClient;
+using System.Data;
+using System.Reflection;
 
 namespace API.Controllers.HRM.Profile
 {
@@ -409,6 +414,395 @@ namespace API.Controllers.HRM.Profile
             {
                 string contents = helper.ExceptionMessage(e);
                 helper.saveLog(uid, name, JsonConvert.SerializeObject(new { data = contents }), domainurl + "hrm_profile/update_profile", ip, tid, "Lỗi khi cập nhật", 0, "hrm_profile");
+                if (!helper.debug)
+                {
+                    contents = "";
+                }
+                return Request.CreateResponse(HttpStatusCode.OK, new { ms = contents, err = "1" });
+            }
+        }
+
+        [HttpPut]
+        public async Task<HttpResponseMessage> update_profile_history()
+        {
+            var identity = User.Identity as ClaimsIdentity;
+            IEnumerable<Claim> claims = identity.Claims;
+            string ip = getipaddress();
+            string name = claims.Where(p => p.Type == "fname").FirstOrDefault()?.Value;
+            string tid = claims.Where(p => p.Type == "tid").FirstOrDefault()?.Value;
+            string uid = claims.Where(p => p.Type == "uid").FirstOrDefault()?.Value;
+            string domainurl = HttpContext.Current.Request.Url.Scheme + "://" + HttpContext.Current.Request.Url.Host + ":" + HttpContext.Current.Request.Url.Port + "/";
+            try
+            {
+                if (identity == null)
+                {
+                    return Request.CreateResponse(HttpStatusCode.OK, new { ms = "Bạn không có quyền truy cập chức năng này!", err = "1" });
+                }
+            }
+            catch
+            {
+                return Request.CreateResponse(HttpStatusCode.OK, new { ms = "Bạn không có quyền truy cập chức năng này!", err = "1" });
+            }
+            try
+            {
+                using (DBEntities db = new DBEntities())
+                {
+                    if (!Request.Content.IsMimeMultipartContent())
+                    {
+                        throw new HttpResponseException(HttpStatusCode.UnsupportedMediaType);
+                    }
+                    // Provider
+                    string rootTemp = HttpContext.Current.Server.MapPath("~/Portals");
+                    bool existsTemp = Directory.Exists(rootTemp);
+                    if (!existsTemp)
+                        Directory.CreateDirectory(rootTemp);
+                    var provider = new MultipartFormDataStreamProvider(rootTemp);
+                    var task = await Request.Content.ReadAsMultipartAsync(provider);
+
+                    // Params
+                    var user_now = await db.sys_users.AsNoTracking().FirstOrDefaultAsync(x => x.user_id == uid);
+                    var md = provider.FormData.GetValues("model").SingleOrDefault();
+                    var de_relative = provider.FormData.GetValues("relative").SingleOrDefault();
+                    var de_skill = provider.FormData.GetValues("skill").SingleOrDefault();
+                    var de_clan_history = provider.FormData.GetValues("clan_history").SingleOrDefault();
+                    var se_experience = provider.FormData.GetValues("experience").SingleOrDefault();
+
+                    hrm_profile_history model = JsonConvert.DeserializeObject<hrm_profile_history>(md);
+                    List<hrm_profile_relative> relatives = JsonConvert.DeserializeObject<List<hrm_profile_relative>>(de_relative);
+                    List<hrm_profile_skill> skills = JsonConvert.DeserializeObject<List<hrm_profile_skill>>(de_skill);
+                    List<hrm_profile_clan_history> clan_historys = JsonConvert.DeserializeObject<List<hrm_profile_clan_history>>(de_clan_history);
+                    List<hrm_profile_experience> experiences = JsonConvert.DeserializeObject<List<hrm_profile_experience>>(se_experience);
+
+
+                    var profile = await db.hrm_profile.AsNoTracking().FirstOrDefaultAsync(x=>x.profile_id == model.profile_id);
+                    if (profile != null)
+                    {
+                        #region Model
+                        model.profile_code = profile.profile_code;
+                        model.recruitment_date = profile.recruitment_date;
+                        model.profile_user_name = profile.profile_user_name;
+                        model.profile_name = profile.profile_name;
+                        model.profile_last_name = profile.profile_last_name;
+                        model.superior_id = profile.superior_id;
+                        model.check_in_id = profile.check_in_id;
+
+                        var historys = await db.hrm_profile_history.AsNoTracking().Where(x => x.profile_id == model.profile_id).ToListAsync();
+                        var historyRoot = historys.FirstOrDefault(x => x.is_root == true);
+                        if (historyRoot == null)
+                        {
+                            hrm_profile_history history = new hrm_profile_history();
+                            Type typeA = typeof(hrm_profile);
+                            Type typeB = typeof(hrm_profile_history);
+
+                            foreach (var propertyA in typeA.GetProperties())
+                            {
+                                var propertyB = typeB.GetProperty(propertyA.Name);
+                                if (propertyB != null && propertyB.PropertyType == propertyA.PropertyType)
+                                {
+                                    propertyB.SetValue(history, propertyA.GetValue(profile));
+                                }
+                            }
+
+                            history.history_id = helper.GenKey();
+                            history.is_root = true;
+                            db.hrm_profile_history.Add(history);
+                        }
+                        var upgrade = historys.FirstOrDefault(x => x.is_approve == 0);
+                        if (upgrade != null)
+                        {
+                            model.modified_by = uid;
+                            model.modified_date = DateTime.Now;
+                            model.modified_ip = ip;
+                            model.modified_token_id = tid;
+                            db.Entry(model).State = EntityState.Modified;
+                        }
+                        else
+                        {
+                            model.history_id = helper.GenKey();
+                            model.is_order = db.hrm_profile_history.Count(x=>x.profile_id == model.profile_id) + 1;
+                            model.created_by = uid;
+                            model.created_date = DateTime.Now;
+                            model.created_ip = ip;
+                            model.created_token_id = tid;
+                            model.organization_id = profile.organization_id;
+
+                            model.is_approve = 0;
+                            model.is_root = false;
+                            db.hrm_profile_history.Add(model);
+                        }
+                        #endregion
+                        #region add relative
+                        //var check = await db.hrm_profile_relative.CountAsync(x => (x.is_bout ?? 0) > 0) > 0;
+                        //if (!check)
+                        //{
+                        //    var relatives_old = await db.hrm_profile_relative.Where(x => x.profile_id == model.profile_id && x.is_root == true).ToListAsync();
+                        //    if (relatives_old.Count > 0)
+                        //    {
+                        //        db.hrm_profile_relative.RemoveRange(relatives_old);
+                        //    }
+                        //    if (relatives != null)
+                        //    {
+                        //        var count = 0;
+                        //        foreach (var rl in relatives)
+                        //        {
+                        //            rl.profile_relative_id = helper.GenKey();
+                        //            rl.profile_id = model.profile_id;
+                        //            rl.is_order = count++;
+                        //            rl.created_token_id = tid;
+                        //            rl.created_date = DateTime.Now;
+                        //            rl.created_by = uid;
+                        //            rl.created_token_id = tid;
+                        //            rl.created_ip = ip;
+                        //            rl.is_root = true;
+                        //            rl.is_bout = 0;
+                        //            db.hrm_profile_relative.Add(rl);
+                        //        }
+                        //    }
+                        //}
+
+                        var relative_news = relatives.Where(p => string.IsNullOrWhiteSpace(p.profile_relative_id)).ToList();
+                        var relative_olds = await db.hrm_profile_relative.Where(x => x.history_id == model.history_id).ToListAsync();
+                        if (relative_olds.Count > 0)
+                        {
+                            var remove_ids = relatives.Where(x => !string.IsNullOrWhiteSpace(x.profile_relative_id)).Select(x => x.profile_relative_id).ToList();
+                            var removes = relative_olds.Where(x => !remove_ids.Contains(x.profile_relative_id)).ToList();
+                            if (removes.Count > 0)
+                            {
+                                db.hrm_profile_relative.RemoveRange(removes);
+                            }
+                            var updates = relative_olds.Where(x => remove_ids.Contains(x.profile_relative_id)).ToList();
+                            if (updates.Count > 0)
+                            {
+                                foreach (var item in updates)
+                                {
+                                    var update = relatives.FirstOrDefault(x => x.profile_relative_id == item.profile_relative_id);
+                                    if (update != null)
+                                    {
+                                        item.is_type = update.is_type;
+                                        item.relative_name = update.relative_name;
+                                        item.relationship_id = update.relationship_id;
+                                        item.birthday = update.birthday;
+                                        item.phone = update.phone;
+                                        item.tax_code = update.tax_code;
+                                        item.identification_citizen = update.identification_citizen;
+                                        item.identification_date_issue = update.identification_date_issue;
+                                        item.identification_place_issue = update.identification_place_issue;
+                                        item.is_dependent = update.is_dependent;
+                                        item.start_date = update.start_date;
+                                        item.end_date = update.end_date;
+                                        item.info = update.info;
+                                        item.note = update.note;
+                                        item.is_company = update.is_company;
+                                        item.is_die = update.is_die;
+                                        //db.Entry(update).State = EntityState.Modified;
+                                    }
+                                }
+                            }
+                        }
+                        if (relative_news.Count > 0)
+                        {
+                            List<hrm_profile_relative> new_relatives = new List<hrm_profile_relative>();
+                            int sttt = 0;
+                            int is_bout = db.hrm_profile_relative.Max(x => x.is_bout) ?? 0;
+
+                            foreach (var rl in relative_news)
+                            {
+                                hrm_profile_relative relative = new hrm_profile_relative();
+                                relative = rl;
+                                relative.profile_relative_id = helper.GenKey();
+                                relative.profile_id = model.profile_id;
+                                relative.history_id = model.history_id;
+                                relative.is_order = sttt++;
+                                relative.created_by = uid;
+                                relative.created_date = DateTime.Now;
+                                relative.created_ip = ip;
+                                relative.created_token_id = tid;
+                                relative.is_root = false;
+                                relative.is_bout = is_bout + 1;
+                                new_relatives.Add(relative);
+                            }
+                            if (new_relatives.Count > 0)
+                            {
+                                db.hrm_profile_relative.AddRange(new_relatives);
+                            }
+                        }
+                        #endregion
+                        #region add skill
+                        var skill_old = await db.hrm_profile_skill.Where(x => x.history_id == model.history_id).ToListAsync();
+                        if (skill_old.Count > 0)
+                        {
+                            db.hrm_profile_skill.RemoveRange(skill_old);
+                        }
+                        if (skills != null)
+                        {
+                            var count = 0;
+                            foreach (var sk in skills)
+                            {
+                                sk.profile_skill_id = helper.GenKey();
+                                sk.profile_id = model.profile_id;
+                                sk.history_id = model.history_id;
+                                sk.is_order = count++;
+                                sk.created_token_id = tid;
+                                sk.created_date = DateTime.Now;
+                                sk.created_by = uid;
+                                sk.created_token_id = tid;
+                                sk.created_ip = ip;
+                                db.hrm_profile_skill.Add(sk);
+                            }
+                        }
+                        #endregion
+                        #region add clan_history
+                        if (clan_historys != null)
+                        {
+                            var clan_historys_old = await db.hrm_profile_clan_history.Where(x => x.history_id == model.history_id).ToListAsync();
+                            if (clan_historys_old.Count > 0)
+                            {
+                                db.hrm_profile_clan_history.RemoveRange(clan_historys_old);
+                            }
+                            var count = 0;
+                            foreach (var clan in clan_historys)
+                            {
+                                clan.profile_clan_history_id = helper.GenKey();
+                                clan.profile_id = model.profile_id;
+                                clan.history_id = model.history_id;
+                                clan.is_order = count++;
+                                clan.created_token_id = tid;
+                                clan.created_date = DateTime.Now;
+                                clan.created_by = uid;
+                                clan.created_token_id = tid;
+                                clan.created_ip = ip;
+                                db.hrm_profile_clan_history.Add(clan);
+                            }
+                        }
+                        #endregion
+                        #region add experience
+                        if (experiences != null)
+                        {
+                            var experiences_old = await db.hrm_profile_experience.Where(x => x.history_id == model.history_id).ToListAsync();
+                            if (experiences_old.Count > 0)
+                            {
+                                db.hrm_profile_experience.RemoveRange(experiences_old);
+                            }
+                            var count = 0;
+                            foreach (var ex in experiences)
+                            {
+                                ex.profile_experience_id = helper.GenKey();
+                                ex.profile_id = model.profile_id;
+                                ex.history_id = model.history_id;
+                                ex.is_order = count++;
+                                ex.created_token_id = tid;
+                                ex.created_date = DateTime.Now;
+                                ex.created_by = uid;
+                                ex.created_token_id = tid;
+                                ex.created_ip = ip;
+                                db.hrm_profile_experience.Add(ex);
+                            }
+                        }
+                        #endregion
+                        #region file
+                        string root = HttpContext.Current.Server.MapPath("~/Portals");
+                        string path = root + "/" + model.organization_id + "/Hrm/Profile/" + model.history_id;
+                        bool exists = Directory.Exists(path);
+                        if (!exists)
+                            Directory.CreateDirectory(path);
+                        List<hrm_file> dfs = new List<hrm_file>();
+                        string avatar_old = null;
+                        var modelold = await db.hrm_profile_history.FindAsync(model.history_id);
+                        if (modelold != null)
+                        {
+                            avatar_old = modelold.avatar;
+                        }
+                        int stt = 0;
+                        foreach (MultipartFileData fileData in provider.FileData)
+                        {
+                            string org_name_file = fileData.Headers.ContentDisposition.FileName;
+                            if (org_name_file.StartsWith("\"") && org_name_file.EndsWith("\""))
+                            {
+                                org_name_file = org_name_file.Trim('"');
+                            }
+                            if (org_name_file.Contains(@"/") || org_name_file.Contains(@"\"))
+                            {
+                                org_name_file = System.IO.Path.GetFileName(org_name_file);
+                            }
+                            string name_file = org_name_file; //helper.UniqueFileName(org_name_file);
+                            string rootPath = path + "/" + name_file;
+                            string Duongdan = "/Portals/" + model.organization_id + "/Hrm/Profile/" + model.history_id + "/" + name_file;
+                            string Dinhdang = helper.GetFileExtension(fileData.Headers.ContentDisposition.FileName);
+                            if (rootPath.Length > 260)
+                            {
+                                name_file = name_file.Substring(0, name_file.LastIndexOf('.') - 1);
+                                int le = 260 - (path.Length + 1) - Dinhdang.Length;
+                                name_file = name_file.Substring(0, le) + Dinhdang;
+                            }
+                            if (File.Exists(rootPath))
+                            {
+                                File.Delete(rootPath);
+                            }
+                            File.Move(fileData.LocalFileName, rootPath);
+                            //File.Copy(fileData.LocalFileName, rootPathFile, true);
+
+                            if (fileData.Headers.ContentDisposition.Name == "\"avatar\"")
+                            {
+                                model.avatar = Duongdan;
+                                if (!string.IsNullOrWhiteSpace(avatar_old) && avatar_old.Contains("Portals"))
+                                {
+                                    var strPath = root + "\\" + avatar_old;
+                                    bool ex = System.IO.Directory.Exists(strPath);
+                                    if (ex)
+                                    {
+                                        System.IO.Directory.Delete(strPath, true);
+                                    }
+                                }
+                            }
+                            else
+                            {
+                                var df = new hrm_file();
+                                df.key_id = model.history_id;
+                                df.file_name = name_file;
+                                df.file_path = Duongdan;
+                                df.file_type = Dinhdang;
+                                var file_info = new FileInfo(rootPath);
+                                df.file_size = file_info.Length;
+                                df.is_image = helper.IsImageFileName(name_file);
+                                if (df.is_image == true)
+                                {
+                                    //helper.ResizeImage(rootPathFile, 1024, 768, 90);
+                                }
+                                df.is_type = 0;
+                                df.status = true;
+                                df.is_order = stt++;
+                                df.created_by = uid;
+                                df.created_date = DateTime.Now;
+                                df.created_ip = ip;
+                                df.created_token_id = tid;
+                                df.organization_id = profile.organization_id;
+                                dfs.Add(df);
+                            }
+                        }
+                        if (dfs.Count > 0)
+                        {
+                            db.hrm_file.AddRange(dfs);
+                        }
+                        #endregion
+                    }
+                    await db.SaveChangesAsync();
+                    return Request.CreateResponse(HttpStatusCode.OK, new { err = "0" });
+                }
+            }
+            catch (DbEntityValidationException e)
+            {
+                string contents = helper.getCatchError(e, null);
+                helper.saveLog(uid, name, JsonConvert.SerializeObject(new { data = contents }), domainurl + "hrm_profile/update_profile_history", ip, tid, "Lỗi khi cập nhật", 0, "hrm_profile");
+                if (!helper.debug)
+                {
+                    contents = "";
+                }
+                return Request.CreateResponse(HttpStatusCode.OK, new { ms = contents, err = "1" });
+            }
+            catch (Exception e)
+            {
+                string contents = helper.ExceptionMessage(e);
+                helper.saveLog(uid, name, JsonConvert.SerializeObject(new { data = contents }), domainurl + "hrm_profile/update_profile_history", ip, tid, "Lỗi khi cập nhật", 0, "hrm_profile");
                 if (!helper.debug)
                 {
                     contents = "";
@@ -3101,6 +3495,78 @@ namespace API.Controllers.HRM.Profile
                     }
                     return Request.CreateResponse(HttpStatusCode.OK, new { ms = contents, err = "1" });
                 }
+            }
+        }
+
+        // Tim kiem nang cao freetext
+        public class sqlProcQuery
+        {
+            public string? proc { get; set; }
+            public bool query { get; set; }
+            public List<sqlParQuery>? par { get; set; }
+        }
+        public class sqlParQuery
+        {
+            public string par { get; set; }
+            public string va { get; set; }
+            public sqlParQuery(string p, string v)
+            {
+                this.par = p;
+                this.va = v;
+            }
+        }
+        [HttpPost]
+        public async Task<HttpResponseMessage> PostProc([System.Web.Mvc.Bind(Include = "")][FromBody] JObject data)
+        {
+            string strSQL = data["str"].ToObject<string>();
+            strSQL = Codec.DecryptString(strSQL, helper.psKey);
+            sqlProcQuery proc = JsonConvert.DeserializeObject<sqlProcQuery>(strSQL)!;
+            try
+            {
+                string Connection = System.Configuration.ConfigurationManager.ConnectionStrings["Connection"].ConnectionString;
+                var sqlpas = new List<SqlParameter>();
+                if (proc != null && proc.par != null)
+                {
+                    foreach (sqlParQuery p in proc.par)
+                    {
+                        sqlpas.Add(new SqlParameter("@" + p.par, p.va));
+                    }
+                }
+                var arrpas = sqlpas.ToArray();
+                DateTime sdate = DateTime.Now;
+                Task<DataTableCollection> task;
+                if (proc!.query)
+                {
+                    task = System.Threading.Tasks.Task.Run(() => SqlHelper.ExecuteDataset(Connection, CommandType.Text, proc!.proc!).Tables);
+                }
+                else
+                {
+                    task = System.Threading.Tasks.Task.Run(() => SqlHelper.ExecuteDataset(Connection, proc!.proc!, arrpas).Tables);
+                }
+                var tables = await task;
+                DateTime edate = DateTime.Now;
+                string JSONresult = JsonConvert.SerializeObject(tables);
+                int time = (int)Math.Ceiling((edate - sdate).TotalMilliseconds);
+                return Request.CreateResponse(HttpStatusCode.OK, new { data = JSONresult, err = "0", proc_name = (helper.debug ? proc!.proc : ""), time });
+            }
+            catch (Exception e)
+            {
+                string StackTrace = e.StackTrace!;
+                var messages = new List<string>();
+                do
+                {
+                    messages.Add(e.Message);
+                    e = e.InnerException!;
+                }
+                while (e != null);
+                var message = string.Join("\n", messages);
+                var contents = helper.ExceptionMessage(e);
+                if (!helper.debug)
+                {
+                    contents = helper.logCongtent;
+                }
+                Helper.Log.Error(contents);
+                return Request.CreateResponse(HttpStatusCode.OK, new { ms = message, err = "1" });
             }
         }
     }

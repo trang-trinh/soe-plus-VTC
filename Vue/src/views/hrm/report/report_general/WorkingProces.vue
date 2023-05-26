@@ -5,7 +5,6 @@ import { useToast } from "vue-toastification";
 import { useVuelidate } from "@vuelidate/core";
 import { encr } from "../../../../util/function.js";
 import moment from "moment";
-
 const cryoptojs = inject("cryptojs");
 const emitter = inject("emitter");
 
@@ -104,7 +103,8 @@ const loadData = () => {
             let data = JSON.parse(response.data.data);
             if (data[0].length > 0) {
                var baocaoct = [];
-                data[0].slice(0,10).forEach((item, index) => {
+               var temp = data[0];
+               temp.forEach((item, index) => {
                     item.is_active = false;
                     if (item.Congtac !== null) {
                         item.Congtac = JSON.parse(item.Congtac);                               
