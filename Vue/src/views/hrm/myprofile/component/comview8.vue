@@ -513,7 +513,7 @@ onMounted(() => {
 <style scoped>
 @import url(../../contract/component/stylehrm.css);
 .d-lang-table {
-  height: calc(100vh - 220px) !important;
+  height: calc(100vh - 230px) !important;
   background-color: #fff;
 }
 .icon-star {

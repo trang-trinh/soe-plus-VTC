@@ -517,7 +517,7 @@ const onPage = (event) => {
 <style scoped>
 @import url(../../contract/component/stylehrm.css);
 .d-lang-table {
-  height: calc(100vh - 275px);
+  height: calc(100vh - 286px);
   overflow-y: auto;
   background-color: #fff;
 }
