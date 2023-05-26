@@ -1,4 +1,5 @@
 ﻿using API.Models;
+using API.Helper;
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -24,6 +25,9 @@ using Microsoft.Owin;
 using OfficeOpenXml.FormulaParsing.Excel.Functions.RefAndLookup;
 using System.Diagnostics.Contracts;
 using System.Drawing;
+using Microsoft.ApplicationBlocks.Data;
+using System.Data.SqlClient;
+using System.Data;
 
 namespace API.Controllers.HRM.Profile
 {
@@ -3104,5 +3108,28 @@ namespace API.Controllers.HRM.Profile
                 }
             }
         }
+
+        // Tim kiem nang cao freetext
+        public class sqlProcQuery
+        {
+            public string? proc { get; set; }
+            public bool query { get; set; }
+            public List<sqlParQuery>? par { get; set; }
+        }
+        public class sqlParQuery
+        {
+            public string par { get; set; }
+            public string va { get; set; }
+            public sqlParQuery(string p, string v)
+            {
+                this.par = p;
+                this.va = v;
+            }
+        }
+        [HttpPost]        public async Task<HttpResponseMessage> PostProc([System.Web.Mvc.Bind(Include = "")][FromBody] JObject data)        {            string strSQL = data["str"].ToObject<string>();            strSQL = Codec.DecryptString(strSQL, helper.psKey);            sqlProcQuery proc = JsonConvert.DeserializeObject<sqlProcQuery>(strSQL)!;            try            {                string Connection = System.Configuration.ConfigurationManager.ConnectionStrings["Connection"].ConnectionString;                var sqlpas = new List<SqlParameter>();                if (proc != null && proc.par != null)                {                    foreach (sqlParQuery p in proc.par)                    {                        sqlpas.Add(new SqlParameter("@" + p.par, p.va));                    }                }                var arrpas = sqlpas.ToArray();                DateTime sdate = DateTime.Now;                Task<DataTableCollection> task;                if (proc!.query)                {                    task = System.Threading.Tasks.Task.Run(() => SqlHelper.ExecuteDataset(Connection, CommandType.Text, proc!.proc!).Tables);                }                else                {                    task = System.Threading.Tasks.Task.Run(() => SqlHelper.ExecuteDataset(Connection, proc!.proc!, arrpas).Tables);                }                var tables = await task;                DateTime edate = DateTime.Now;                string JSONresult = JsonConvert.SerializeObject(tables);                int time = (int)Math.Ceiling((edate - sdate).TotalMilliseconds);                return Request.CreateResponse(HttpStatusCode.OK, new { data = JSONresult, err = "0", proc_name = (helper.debug ? proc!.proc : ""), time });            }            catch (Exception e)            {                string StackTrace = e.StackTrace!;                var messages = new List<string>();                do                {                    messages.Add(e.Message);                    e = e.InnerException!;                }                while (e != null);                var message = string.Join("\n", messages);                var contents = helper.ExceptionMessage(e);                if (!helper.debug)
+                {                    contents = helper.logCongtent;
+                }
+                Helper.Log.Error(contents);
+                return Request.CreateResponse(HttpStatusCode.OK, new { ms = message, err = "1" });            }        }
     }
 }

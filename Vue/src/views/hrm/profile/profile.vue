@@ -1,6 +1,6 @@
 <script setup>
 import { onMounted, inject, ref, watch, nextTick } from "vue";
-import { encr } from "../../../util/function";
+import { encr, change_unsigned } from "../../../util/function";
 import { useToast } from "vue-toastification";
 import dilogprofile from "../profile/component/dilogprofile.vue";
 import dialogreceipt from "../profile/component/dialogreceipt.vue";
@@ -1851,16 +1851,385 @@ const refresh = () => {
   dataLimits.value = [];
 
   isFilter.value = false;
+  resetFilterAdvanced();
   initCount();
   initTreeOrganization();
   //initData(true);
 };
+
+// Filter nâng cao
+const opfilterAdvanced = ref();
+const toggleFilterAdvanced = (event) => {
+  opfilterAdvanced.value.toggle(event);
+};
+const closeOverlayFilterAdv = () => {
+  opfilterAdvanced.value.toggle(event);
+};
+const showFilterAdv = ref(false);
+const activeFilterAdv = () => {
+  showFilterAdv.value = true;
+};
+// const resetFilterAdv = () => {
+//   showFilterAdv.value = false;
+//   closeOverlayFilterAdv();
+// };
+
+const drTypes = ref([
+    { text: "Lớn hơn", value: ">" , types: ",1,2,3,"},
+    { text: "Lớn hơn hoặc bằng", value: ">=" , types: ",1,2,3,"},
+    { text: "Bằng", value: "=" },
+    { text: "Nhỏ hơn", value: "<", types: ",1,2,3," },
+    { text: "Nhỏ hơn hoặc bằng", value: "<=", types: ",1,2,3," },
+    { text: "Khác", value: "<>", types: ",0,1,2,3,4," },
+    { text: "Gồm", value: "Contain", types: ",0," },
+    { text: "Bắt đầu bằng", value: "StartWith", types: ",0," },
+    { text: "Kết thúc bằng", value: "EndWith", types: ",0," },
+    { text: "Trong khoảng", value: "FromTo", types: ",1,2,3," },
+    { text: "Có", value: " =1 ", types: ",4," },
+    { text: "Không", value: " =0 ", types: ",4," },
+    { text: "Có giá trị", value: " IS NOT NULL " },
+    { text: "Không có giá trị", value: " IS NULL " },
+    { text: "Tự động", value: "" },
+]);
+const groupFilterAdvanced = ref([]);
+const viewDB = 'View_SearchEngine_Copy';
+const cols = ref([]);
+const selectedCols = ref();
+const expandedKeys = ref({});
+const groupBlock = ref([
+    {
+        stt: 1,
+        AND: true,
+        datas: []
+    }
+]);
+const selectedKey = ref();
+
+const initDataFilterAdv = (f, sql) => {    
+    datas.value = [];
+    let strSQL = {
+        "query": true,
+        "proc": `Select ${f ? ' Top 1 ' : ''} * from ${viewDB}`,
+    };
+    if (cols.value.length > 0) {
+        strSQL.proc += ` order by [${cols.value[0].key}]`;
+    }
+    if (sql) {
+        strSQL.proc = sql;
+    }
+    swal.fire({
+        width: 110,
+        didOpen: () => {
+        swal.showLoading();
+        },
+    });
+    axios
+    .post(
+        basedomainURL + "api/hrm_profile/PostProc",
+        {
+            str: encr(
+                JSON.stringify(strSQL),
+                SecretKey,
+                cryoptojs
+            ).toString(),
+        },
+        config
+    )
+    .then((response) => {
+        if (response.data != null && response.data.data != null && response.data.err == "0") {
+            let dts = JSON.parse(response.data.data);
+            if (dts[0].length > 0) {
+                if (!f) {
+                    //datas.value = dts[0];
+                    var arr = [];
+                    if (dts[0] != null && dts[0].length > 0) {                      
+                      let keys = Object.keys(dts[0][0]);
+                      dts[0].forEach((item, i) => { 
+                        keys.forEach((prop) => {
+                          let key = prop.split("|")[5];
+                          if (key != null) {
+                            item[key] = item[prop];
+                            delete item[prop];
+                          }
+                        });
+                        item.diffyear = 0;
+                        item.diffmonth = 0;
+                        item.seniority = item.seniority.trim();
+                        let start_0_year = item.seniority.indexOf('0 năm');
+                        let end_0_month = item.seniority.indexOf(' 0 tháng');
+                        if (start_0_year >= 0) {
+                          item.seniority = item.seniority.substring(start_0_year + 5);
+                        }
+                        if (end_0_month >= 0) {
+                          item.seniority = item.seniority.substring(0, end_0_month);
+                        }
+                        item["STT"] = i + 1;
+                        if (item["created_date"] != null) {
+                          if (moment(item["created_date"], moment.ISO_8601, true).isValid()) {
+                            item["created_date"] = moment(new Date(item["created_date"])).format("DD/MM/YYYY");
+                          }
+                        }
+                        if (item["birthday"] != null) {
+                          if (moment(item["birthday"], moment.ISO_8601, true).isValid()) {
+                            item["birthday"] = moment(new Date(item["birthday"])).format("DD/MM/YYYY");
+                          }
+                        }
+                        if (item["recruitment_date"] != null) {
+                          if (moment(item["recruitment_date"], moment.ISO_8601, true).isValid()) {
+                            item["recruitment_date"] = moment(new Date(item["recruitment_date"])).format("DD/MM/YYYY");
+                          }
+                        }
+                        if (item.gender == "Nam") {
+                          item.gender = 1;
+                        }
+                        else if (item.gender == "Nữ") {
+                          item.gender = 2;
+                        }
+                        else {
+                          item.gender = 3;
+                        }
+                        var idx = tabs.value.findIndex(
+                          (x) => x["status"] === item["status"]
+                        );
+                        if (idx != -1) {
+                          item["status_name"] = tabs.value[idx]["title"];
+                          item["bg_color"] = tabs.value[idx]["bg_color"];
+                          item["text_color"] = tabs.value[idx]["text_color"];
+                        } else {
+                          item["status_name"] = "Nghỉ khác";
+                          item["bg_color"] = "#7F8C8D";
+                          item["text_color"] = "#fff";
+                        }
+                      });
+                      datas.value = dts[0];
+                      dataLimits.value = dataLimits.value.concat(dts[0]);
+                      var temp = groupBy(dts[0], "department_id");
+                      for (let k in temp) {
+                        var obj = {
+                          department_id: k,
+                          department_name: temp[k][0].department_name,
+                          organization_id: temp[k][0].organization_id,
+                          list: temp[k],
+                        };
+                        arr.push(obj);
+                      }
+                      if (dts[1] != null && dts[1].length > 0) {
+                        options.value.total = dts[1][0].total;
+                      }
+                    } else {
+                      arr = [];
+                      options.value.total = 0;
+                    }
+                    treeOrganization.value.forEach((o) => {
+                      o.list = arr.filter((dp) => dp.department_id == o.organization_id);
+                    });
+                  closeOverlayFilterAdv();
+                }
+                else {
+                    let keys = Object.keys(dts[0][0]).filter(x => !x.includes("id"));
+                    let grs = [];
+                    keys.forEach(k => {
+                        expandedKeys.value[k.split("|")[0]] = true;
+                        let o = {
+                            key: k,
+                            group: k.split("|")[0],
+                            title: k.split("|")[1],
+                            label: k.split("|")[1],
+                            typdata: k.split("|")[2],
+                            AND: true,
+                            type: "=",
+                            show: k.split("|")[3] == 1,
+                            frozen: k.split("|")[4] == 1,
+                            field: k.split("|")[5] || '',
+                        };
+                        o.titleen = change_unsigned(o.title);
+                        cols.value.push(o);
+                        let obj = grs.find(x => x.label == k.split("|")[0]);
+                        if (obj) {
+                            obj.col += 1;
+                            obj.items.push(o);
+                            obj.children.push(o);
+                        } else {
+                            grs.push({ key: k.split("|")[0], label: k.split("|")[0], col: 1, items: [o], children: [o] });
+                        }
+                    });
+                    groupFilterAdvanced.value = grs;              
+                    if (!selectedCols.value) {
+                        selectedCols.value = cols.value.filter(x => x.show);
+                    }
+                }
+                swal.close();
+            }
+        }
+    })
+    .catch((error) => {
+        swal.close();
+        if (error.status === 401) {
+            swal.fire({
+                text: "Mã token đã hết hạn hoặc không hợp lệ, vui lòng đăng nhập lại!",
+                confirmButtonText: "OK",
+            });
+        }
+    });
+};
+const initCountFilterAdv = () => {
+
+};
+const ipsearch = ref();
+const submitFilter = () => {
+    ipsearch.value = "";
+    let strSelect = ' Select * ';
+    let strFrom = ` from ${viewDB} `;
+    let strWhere = '';
+    let strOrderby = ` order by [${cols.value[0].key}] `;
+    groupBlock.value.forEach(g => {
+        if (strWhere != "") {
+            strWhere += ` ${AND.value ? " AND " : " OR "}`;
+        }
+        strWhere += "(";
+        g.datas.forEach((gx, kg) => {
+            if (selectedCols.value.findIndex(a => a.key == gx.key) == -1) {
+                selectedCols.value.push(gx);
+            }
+            if (strWhere != "" && kg > 0) {
+                strWhere += ` ${g.AND ? " AND " : " OR "}`;
+            }
+            strWhere += "(";
+            gx.childs.forEach((x, ix) => {
+                if (strWhere != "" && ix > 0) {
+                    strWhere += ` ${gx.AND ? " AND " : " OR "} (`;
+                }
+                switch (x.type) {
+                    case "FromTo":
+                        strWhere += "(";
+                        x.value.split(",").forEach((vl, i) => {
+                            //strWhere += ` ${i != 0 ? "OR" : ""} : ""} [${x.key}] BETWEEN ${vl.replace("-", " AND ")}`;
+                            strWhere += ` ${i != 0 ? "OR" : ""} [${x.key}] BETWEEN ${vl.replace("-", " AND ")}`;
+                        });
+                        strWhere += ")";
+                        ipsearch.value += `${ipsearch.value == "" ? "" : (g.AND ? ' và ' : ' hoặc ')}"${x.title}" trong khoảng ${x.value}`
+                        break;
+                    case "Contain":
+                        strWhere += "(";
+                        x.value.split(",").forEach((vl, i) => {
+                            //strWhere += ` ${i != 0 ? "OR" : ""} : ""} [${x.key}] like N'%${vl}%'`;
+                            strWhere += ` ${i != 0 ? "OR" : ""} [${x.key}] like N'%${vl}%'`;
+                        });
+                        strWhere += ")";
+                        ipsearch.value += `${ipsearch.value == "" ? "" : (g.AND ? ' và ' : ' hoặc ')}"${x.title}" có chữ "${x.value||''}"`
+                        break;
+                    case "StartWith":
+                        strWhere += "(";
+                        x.value.split(",").forEach((vl, i) => {
+                            //strWhere += ` ${i != 0 ? "OR" : ""} : ""} [${x.key}] like N'${vl}%'`;
+                            strWhere += ` ${i != 0 ? "OR" : ""} [${x.key}] like N'${vl}%'`;
+                        });
+                        strWhere += ")";
+                        ipsearch.value += `${ipsearch.value == "" ? "" : (g.AND ? ' và ' : ' hoặc ')}"${x.title}" bắt đầu bằng chữ "${x.value||''}"`
+                        break;
+                    case "EndWith":
+                        strWhere += "(";
+                        x.value.split(",").forEach((vl, i) => {
+                            //strWhere += ` ${i != 0 ? "OR" : ""} : ""} [${x.key}] like N'%${vl}'`;
+                            strWhere += ` ${i != 0 ? "OR" : ""} [${x.key}] like N'%${vl}'`;
+                        });
+                        strWhere += ")";
+                        ipsearch.value += `${ipsearch.value == "" ? "" : (g.AND ? ' và ' : ' hoặc ')}"${x.title}" kết thúc bằng chữ "${x.value||''}"`
+                        break;
+                    default:
+                        strWhere += "(";
+                        (x.value || "").split(",").forEach((vl, i) => {
+                            strWhere += ` ${i != 0 ? "OR" : ""} [${x.key}] ${x.type} ${vl ? `N'${vl}'` : ""}`;
+                        });
+                        strWhere += ")";
+                        ipsearch.value += `${ipsearch.value == "" ? "" : (g.AND ? ' và ' : ' hoặc ')} "${x.title}" ${x.type.trim() == "IS NOT NULL" ? 'có giá trị' : x.type.trim() == "IS NULL" ? 'không có giá trị' : x.type } "${x.value||''}"`
+                        break;
+                }
+                if (strWhere != "" && ix > 0) {
+                    strWhere += ")";
+                }
+            });
+            strWhere += ")";
+        });
+        strWhere += ")";
+    })
+
+    if (strWhere != "") {
+        strWhere = " Where " + strWhere;
+    }
+    let sql = `${strSelect} ${strFrom} ${strWhere} ${strOrderby}`;
+    sql = sql.replace(/\s{2}/igm, " ");
+    sql = sql.replace(/\(\s+/igm, "(");    
+    dataLimits.value = [];
+    options.value.search = ipsearch.value;
+    initDataFilterAdv(false, sql);
+};
+const expandedRows = ref([]);
+const blockindex = ref(0);
+const onNodeSelectAdv = (node) => {
+    if (groupBlock.value[blockindex.value].datas.findIndex(x => x.key == node.key) == -1) {
+        let obj = {
+            key: node.key,
+            title: node.title,
+            AND: node.AND,
+            type: node.type,
+            typdata:node.typdata
+        };
+        if (node.children) {
+            node.children.filter(!x.childs).forEach(x => {
+                x.childs = [obj]
+            });
+            groupBlock.value[blockindex.value].datas = groupBlock.value[blockindex.value].datas.concat(node.children);
+        } else {
+            node.childs = [obj]
+            groupBlock.value[blockindex.value].datas.push(node);
+        }
+        expandedRows.value.push(node);
+    }
+};
+const onNodeUnselectAdv = (node) => {
+    let idx = groupBlock.value[blockindex.value].datas.findIndex(x => x.key == node.key);
+    if (idx != -1) {
+        //groupBlock.value[blockindex.value].datas.splice(node, idx);
+        groupBlock.value[blockindex.value].datas.splice(idx, 1);
+    } else if (node.children) {
+        groupBlock.value[blockindex.value].datas = groupBlock.value[blockindex.value].datas.filter(x => node.children.findIndex(a => a.key == x.key) == -1);
+    }
+};
+const renderdrTypes = (dt) => {
+    return  drTypes.value.filter(x => !x.types || x.types.includes("," + dt.typdata + ","));
+};
+const delFilter = (idx, rows, type) => {
+    rows.splice(idx, 1);
+};
+const addFilter = (no) => {
+    no.childs.push({ ...no });
+};
+const addBlock = () => {
+    groupBlock.value.push({
+        stt: groupBlock.value.length + 1,
+        AND: true,
+        datas: []
+    });
+};
+const delBlock = (i) => {
+    groupBlock.value.splice(i, 1);
+};
+const resetFilterAdvanced = () => {
+  if (showFilterAdv.value == true) {
+    opfilterAdvanced.value.toggle(event);
+  }
+  showFilterAdv.value = false;
+};
+
+// end filter nang cao
 onMounted(() => {
   nextTick(() => {
     //initPlace();
     initDictionary();
     initCount();
     initTreeOrganization();
+    initDataFilterAdv(true);
     //initData(true);
 
     const el = document.getElementById("buffered-scroll");
@@ -1923,7 +2292,191 @@ const loadMoreRow = (data) => {
             spellcheck="false"
             placeholder="Tìm kiếm"
             class="input-search"
+            style="padding-right: 2rem;max-width: 500px;width:100vw;"
           />
+          <i class="pi pi-filter i-filter-advanced"
+            :class="showFilterAdv ? 'active-filter-adv' : ''"
+            @click="toggleFilterAdvanced($event)"            
+            aria:haspopup="true"
+            aria-controls="overlay_panel_adv"
+            v-tooltip.top="'Tìm kiếm nâng cao'"
+          ></i>
+          <OverlayPanel
+            :showCloseIcon="false"
+            ref="opfilterAdvanced"
+            appendTo="body"
+            class="p-0 m-0"
+            id="overlay_panel_adv"
+            style="width: 75vw"
+          >
+            <div class="flex">
+              <div>
+                  <h3 class="mb-2">Chọn tiêu chí</h3>
+                  <Tree
+                      :value="groupFilterAdvanced"
+                      v-model:selectionKeys="selectedKey"
+                      :expandedKeys="expandedKeys"
+                      @nodeSelect="onNodeSelectAdv"
+                      @nodeUnselect="onNodeUnselectAdv"
+                      :showGridlines="true"
+                      selectionMode="checkbox"
+                      :filter="true"
+                      filterPlaceholder="Tìm tiêu chí"
+                      filterBy="title,titleen" 
+                      class="p-treetable-sm tbltree-filter-adv mr-2"
+                      :rowHover="true"
+                      responsiveLayout="scroll"
+                      :scrollable="true"
+                      scrollHeight="flex"
+                      :metaKeySelection="false"
+                      style="max-height: calc(100vh - 400px);min-width:480px"
+                  >
+                      <template #default="slotProps">
+                          <b v-if="slotProps.node.children">{{ slotProps.node.label }}</b>
+                          <span v-else>{{ slotProps.node.label }}</span>
+                      </template>
+                  </Tree>
+              </div>
+              <div class="flex-1">
+                  <div class="flex mb-2 w-full align-items-center">
+                      <i class="pi pi-cog"></i>
+                      <h3 class="flex-1 ml-1">Cấu hình tiêu chí tìm kiếm</h3>
+                      <div class="flex align-items-center">
+                          <Checkbox :binary="true" v-model="AND" />
+                          <label class="ml-2"> Kết hợp tất cả nhóm tiêu chí </label>
+                      </div>
+                      <div class="flex-1"></div>
+                      <Button class="p-button-sm ml-1" 
+                          v-tooltip.top="'Thêm nhóm'"
+                          @click="addBlock()" 
+                          icon="pi pi-plus"
+                      />
+                  </div>
+                  <Accordion :activeIndex="blockindex" 
+                    style="max-height: calc(100vh - 300px);overflow-y: auto;"
+                  >
+                      <AccordionTab v-for="gr in groupBlock">
+                          <template #header="dt">
+                              <div class="flex w-full align-items-center">
+                                  <b>Nhóm tiêu chí {{ gr.stt }}</b>
+                                  <div class="flex align-items-center ml-4">
+                                      <Checkbox :binary="true" v-model="gr.AND" />
+                                      <label class="ml-2 font-normal"> Kết hợp các tiêu chí </label>
+                                  </div>
+                                  <div class="flex-1"></div>
+                                  <Button class="p-button-sm p-button-text p-button-outlined p-button-danger" 
+                                      v-tooltip.top="'Xoá nhóm'" 
+                                      @click="delBlock(dt.index)" 
+                                      icon="pi pi-trash"
+                                  />
+                              </div>
+                          </template>
+                          <DataTable 
+                              v-model:expandedRows="expandedRows" 
+                              scrollable 
+                              scrollHeight="calc(100vh - 220px)"
+                              :value="gr.datas" 
+                              showGridlines 
+                              class="p-datatable-sm w-full"
+                          >
+                              <template #empty>
+                                  <div
+                                      class="align-items-center justify-content-center p-4 text-center m-auto"
+                                      :style="{
+                                          display: 'flex',
+                                          width: '100%',
+                                          height: '100px',
+                                          backgroundColor: '#fff',
+                                      }"
+                                  >
+                                  </div>
+                              </template>
+                              <Column expander
+                                  headerStyle="max-width: 4rem" 
+                                  bodyStyle="max-width: 4rem" 
+                              />
+                              <Column header="Tiêu chí"
+                                  headerStyle="flex:1;"
+                                  bodyStyle="flex:1;"
+                              >
+                                  <template #body="dt">
+                                      <b>{{ dt.data.title }}</b>
+                                  </template>
+                              </Column>
+                              <Column header="Tất cả điều kiện" 
+                                  class="justify-content-center" 
+                                  headerStyle="max-width:10rem" 
+                                  bodyStyle="max-width:10rem"
+                              >
+                                  <template #body="dt">
+                                      <Checkbox v-model="dt.data.AND" :binary="true" />
+                                  </template>
+                              </Column>
+                              <template #expansion="slotProps">
+                                  <div class="w-full p-3">
+                                      <DataTable class="w-full" :value="slotProps.data.childs">
+                                          <Column header="Điều kiện"
+                                              headerStyle="max-width:250px"
+                                              bodyStyle="max-width:250px"
+                                          >
+                                              <template #body="dt">
+                                                  <Dropdown filter v-model="dt.data.type" :options="renderdrTypes(dt.data)"
+                                                      optionLabel="text" optionValue="value" class="w-full" />
+                                              </template>
+                                          </Column>
+                                          <Column header="Giá trị"
+                                              headerStyle="flex:1;"
+                                              bodyStyle="flex:1;"
+                                          >
+                                              <template #body="dt">
+                                                  <Textarea rows="1" spellcheck="false" v-model="dt.data.value" autoResize
+                                                      class="w-full" />
+                                              </template>
+                                          </Column>
+                                          <Column header="" 
+                                              class="justify-content-center"
+                                              headerStyle="max-width: 60px;"
+                                              bodyStyle="max-width: 60px;"
+                                          >
+                                              <template #body="dt">
+                                                  <Button class="p-button-sm p-button-text p-button-outlined p-button-danger"
+                                                      v-tooltip.top="'Xoá điều kiện'"
+                                                      @click="delFilter(dt.index, slotProps.data.childs, 1)"
+                                                      icon="pi pi-trash" 
+                                                  />
+                                              </template>
+                                          </Column>
+                                      </DataTable>
+                                  </div>
+                              </template>
+                              <Column header="" 
+                                  class="justify-content-center"
+                                  headerStyle="max-width: 8rem;"
+                                  bodyStyle="max-width: 8rem;"
+                              >
+                                  <template #body="dt">
+                                      <Button class="p-button-sm p-button-text p-button-outlined p-button-danger" 
+                                          v-tooltip.top="'Xoá tiêu chí'"
+                                          @click="delFilter(dt.index, gr.datas, 0)" 
+                                          icon="pi pi-trash"
+                                      />
+                                      <Button class="p-button-sm p-button-text p-button-outlined ml-1" 
+                                          v-tooltip.top="'Thêm điều kiện'"
+                                          @click="addFilter(dt.data)" 
+                                          icon="pi pi-plus"
+                                      />
+                                  </template>
+                              </Column>
+                          </DataTable>
+                      </AccordionTab>
+                </Accordion>
+                </div>
+            </div>
+            <div class="text-center mt-2">
+                <Button class="p-button-sm p-button-danger mr-2" @click="resetFilterAdvanced()" label="Huỷ" />
+                <Button class="p-button-sm" v-if="groupBlock.length > 0" @click="submitFilter()" label="Thực hiện" />
+            </div>
+          </OverlayPanel>
         </span>
         <Button
           @click="toggleFilter($event)"
@@ -2729,8 +3282,9 @@ const loadMoreRow = (data) => {
               <div class="mb-1">
                 <span>{{ slotProps.data.title_name }}</span>
               </div>
-              <div class="mb-1">
-                <span>{{ slotProps.data.department_name }}</span>
+              <div class="mb-1">                
+                <span v-if="slotProps.data.department_name.includes('<br/>')" v-html="slotProps.data.department_name"></span>
+                <span v-else>{{ slotProps.data.department_name }}</span>
               </div>
             </div>
           </template>
@@ -2749,6 +3303,9 @@ const loadMoreRow = (data) => {
               </span>
               <span v-if="slotProps.data.diffmonth > 0">
                 {{ slotProps.data.diffmonth }} tháng
+              </span>              
+              <span v-if="slotProps.data.seniority != null">
+                {{ slotProps.data.seniority }}
               </span>
               <!-- <span
                 v-if="
@@ -3023,7 +3580,7 @@ const loadMoreRow = (data) => {
                       <span>{{
                         item.gender == 1
                           ? "Nam"
-                          : item.gender == 1
+                          : item.gender == 2
                           ? "Nữ"
                           : "Khác"
                       }}</span>
@@ -3078,7 +3635,8 @@ const loadMoreRow = (data) => {
                       <span>{{ item.title_name }}</span>
                     </div>
                     <div class="mb-1">
-                      <span>{{ item.department_name }}</span>
+                      <span v-if="item.department_name.includes('<br/>')" v-html="item.department_name"></span>
+                      <span v-else>{{ item.department_name }}</span>
                     </div>
                   </div>
                 </td>
@@ -3538,6 +4096,23 @@ const loadMoreRow = (data) => {
   100% {
     opacity: 0;
   }
+}
+.i-filter-advanced {
+  right: 0rem;
+  color: #6c757d;
+  margin-top: -1.1rem;
+  padding: 0.6rem;
+  border-top-right-radius: 0.25rem;
+  border-bottom-right-radius: 0.25rem;
+}
+.i-filter-advanced:hover {  
+  cursor: pointer;
+  background-color: #2196f3;
+  color: #ffffff;
+}
+.i-filter-advanced.active-filter-adv {
+  background-color: #2196f3;
+  color: #ffffff;
 }
 </style>
 <style lang="scss" scoped>
