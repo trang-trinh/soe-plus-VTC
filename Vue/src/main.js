@@ -200,6 +200,19 @@ import {
   faUsers,
   faPlus,
   faMedal,
+ 
+  faNetworkWired,
+  faRightToBracket,
+  faUserGroup,
+  faGlobe,
+  faFolderOpen,
+  faBook,
+ faGift
+  
+ 
+ 
+
+
 } from "@fortawesome/free-solid-svg-icons";
 import {
   faAddressCard,
@@ -264,7 +277,13 @@ library.add(
   faFile,
   faBriefcaseMedical,
   faPrint,
-  faMedal
+  faMedal,
+ faGlobe,
+ faFolderOpen,
+ faBook,
+  faNetworkWired,
+  faRightToBracket,
+  faUserGroup,faGift
 );
 import "animate.css";
 Date.prototype.toISOString = function () {

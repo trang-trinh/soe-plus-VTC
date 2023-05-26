@@ -1391,7 +1391,9 @@ li.p-chips-token {
   overflow: unset !important;
   text-overflow: unset !important;
 }
-
+.d-dataview-design .p-grid{
+  background-color: var(--surface-100) !important;
+}
 .d-tree-missheader.p-datatable .p-datatable-tbody > tr > td, .p-treetable .p-treetable-tbody > tr > td
 {
   padding: 0.25rem !important;
