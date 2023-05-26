@@ -698,7 +698,7 @@ onMounted(() => {
                 <th class="text-center " width="300" colspan="2">Nơi ở hiện nay</th>
                 <th class="text-center " width="150" rowspan="2">Liên hệ khẩn cấp</th>
                 <th class="text-center " width="150" rowspan="2">Thành phần gia đình</th>
-                <th class="text-center " width="300" colspan="3">Theo dõi CMND</th>
+                <th class="text-center " width="400" colspan="3">Theo dõi CMND</th>
                 <th class="text-center " width="100" rowspan="2">Ngày vào đơn vị</th>
                 <th class="text-center " width="120" rowspan="2">Thâm niên công tác</th>
                 <th class="text-center " width="120" rowspan="2">Thâm niên phép tính năm</th>
@@ -715,7 +715,7 @@ onMounted(() => {
                 <th class="text-center " width="100">Xã/Phường, Quận/Huyện, Tỉnh/TP</th>
                 <th class="text-center " width="100">Số nhà, đường phố</th>
                 <th class="text-center " width="100">Xã/Phường, Quận/Huyện, Tỉnh/TP</th>
-                <th class="text-center " width="100">Số CMND</th>
+                <th class="text-center " width="200">Số CMND</th>
                 <th class="text-center " width="100">Ngày cấp CMND</th>
                 <th class="text-center " width="100">Nơi cấp CMND</th>
                 <th class="text-center " width="100">Trình độ văn hóa</th>
