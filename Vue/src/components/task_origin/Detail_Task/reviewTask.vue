@@ -757,7 +757,7 @@ onMounted(() => {
                 </div>
                 <div
                   class="col-12"
-                  style="padding-left: 4rem !important"
+                  style="padding-left: 6rem !important"
                   v-if="
                     props.isClose == false &&
                     rp.status != 1 &&
