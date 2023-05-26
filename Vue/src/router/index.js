@@ -313,8 +313,10 @@ const HRM_Report_Config = () =>
   import("../views/hrm/template/ProfileDetails.vue");
   const PayrollDetails = () =>
   import("../views/hrm/payroll/PayrollDetails.vue");
+  const HRMMyreview = () =>
+  import("../views/hrm/review/myReview.vue");
   
-
+  
   
 //end
 // TV
@@ -2157,6 +2159,11 @@ const router = createRouter({
       path: "/hrm/payroll/hrm_payroll/details/:id",
       name: "/payroll/payrolldetails",
       component: PayrollDetails,
+    },
+    {
+      path: "/hrm/review/myreview",
+      name: "HRMMyreview",
+      component: HRMMyreview,
     },
     // Request
     {

@@ -70,10 +70,10 @@ const loadFile = () => {
             ],
           }),
           SecretKey,
-          cryoptojs,
+          cryoptojs
         ).toString(),
       },
-      config,
+      config
     )
     .then((response) => {
       let data = JSON.parse(response.data.data)[0];
@@ -276,10 +276,7 @@ onMounted(() => {
 </script>
 <template>
   <div>
-    <div
-      id="table1"
-      class="col-12 p-0 m-0"
-    >
+    <div id="table1" class="col-12 p-0 m-0">
       <div
         class="row col-12 format-left font-bold p-scrollpanel-content p-0 m-0 w-full"
       >
@@ -315,11 +312,10 @@ onMounted(() => {
         <div class="col-1 my-border">Kích cỡ</div>
         <div class="col-2 my-border">Loại</div>
         <div class="col-2 my-border">Ngày tạo</div>
-        <div class="col-1 my-border">Tạo bởi</div>
-        <div
-          class="col-1"
-          style="border: none !important"
-        ></div>
+        <div class="col-2 my-border flex p-0">
+          <div class="col-6 text-left p-0">Tạo bởi</div>
+          <div class="col-6"></div>
+        </div>
       </div>
     </div>
     <ScrollPanel
@@ -329,23 +325,16 @@ onMounted(() => {
           : 'height: calc(83vh) !important'
       "
     >
-      <div
-        id="table2"
-        v-if="options.totalRecords > 0"
-        class="row col-12 p-0"
-      >
+      <div id="table2" v-if="options.totalRecords > 0" class="row col-12 p-0">
         <div
           v-for="(slotProps, index) in listFile"
           :key="index"
-          class="col-12 py-0 flex"
+          class="py-0 flex"
           v-on:dblclick="ViewFileInfo(slotProps)"
           v-tooltip="{ value: 'Nháy chuột 2 lần để xem chi tiết' }"
         >
           <div class="col-4 format-left">
-            <div
-              class=""
-              v-if="slotProps.is_image == 1"
-            >
+            <div class="" v-if="slotProps.is_image == 1">
               <Image
                 :src="basedomainURL + slotProps.file_path"
                 :alt="slotProps.file_name"
@@ -359,16 +348,13 @@ onMounted(() => {
                 "
               />
             </div>
-            <div
-              class=""
-              v-else
-            >
+            <div class="" v-else>
               <img
                 :src="
                   basedomainURL +
                   '/Portals/Image/file/' +
                   slotProps.file_name.substring(
-                    slotProps.file_name.lastIndexOf('.') + 1,
+                    slotProps.file_name.lastIndexOf('.') + 1
                   ) +
                   '.png'
                 "
@@ -416,63 +402,72 @@ onMounted(() => {
           <div class="col-2 format-center">
             {{
               moment(new Date(slotProps.created_date)).format(
-                "HH:mm DD/MM/YYYY",
+                "HH:mm DD/MM/YYYY"
               )
             }}
           </div>
-          <div class="col-1 format-center">
-            <Avatar
-              @error="
-                $event.target.src = basedomainURL + '/Portals/Image/nouser1.png'
-              "
-              v-tooltip.right="{
-                value: slotProps.creator_tooltip,
-                escape: true,
-              }"
-              v-bind:label="
-                slotProps.creator.avt
-                  ? ''
-                  : slotProps.creator.full_name
-                      .split(' ')
-                      .at(-1)
-                      .substring(0, 1)
-              "
-              v-bind:image="basedomainURL + slotProps.creator.avt"
-              style="color: #ffffff; cursor: pointer"
-              :style="{
-                background: bgColor[Math.floor(Math.random() * 10) % 7],
-                border: '2px solid' + bgColor[(Math.random() * 11) % 7],
-              }"
-              class="p-0 m-0"
-              size="small"
-              shape="circle"
-            />
-          </div>
-          <div class="col-1 p-0 format-left">
-            <a
-              style="text-decoration: none"
-              class="a-hover format-center"
-            >
-              <Button
-                icon="pi pi-download "
-                class="p-button-text p-button-secondary p-button-hover"
-                v-tooltip="{ value: 'Tải tệp xuống' }"
-                @click="Download(slotProps)"
+          <div class="col-2 p-0 format-center">
+            <div class="col-3">
+              <Avatar
+                @error="
+                  $event.target.src =
+                    basedomainURL + '/Portals/Image/nouser1.png'
+                "
+                v-tooltip.right="{
+                  value: slotProps.creator_tooltip,
+                  escape: true,
+                }"
+                v-bind:label="
+                  slotProps.creator.avt
+                    ? ''
+                    : slotProps.creator.full_name
+                        .split(' ')
+                        .at(-1)
+                        .substring(0, 1)
+                "
+                v-bind:image="basedomainURL + slotProps.creator.avt"
+                style="color: #ffffff; cursor: pointer"
+                :style="{
+                  background: bgColor[Math.floor(Math.random() * 10) % 7],
+                  border: '2px solid' + bgColor[(Math.random() * 11) % 7],
+                }"
+                class="p-0 m-0"
+                size="small"
+                shape="circle"
+              />
+            </div>
+            <div class="col-9 flex">
+              <a style="text-decoration: none" class="a-hover format-center">
+                <Button
+                  icon="pi pi-eye "
+                  class="p-button-text p-button-secondary p-button-hover"
+                  v-tooltip.bottom="{ value: 'Xem' }"
+                  @click="ViewFileInfo(slotProps)"
+                >
+                </Button
+              ></a>
+              <a style="text-decoration: none" class="a-hover format-center">
+                <Button
+                  icon="pi pi-download "
+                  class="p-button-text p-button-secondary p-button-hover"
+                  v-tooltip.bottom="{ value: 'Tải tệp xuống' }"
+                  @click="Download(slotProps)"
+                >
+                </Button
+              ></a>
+              <a
+                v-if="props.isClose == false"
+                style="text-decoration: none"
+                class="a-hover format-center"
               >
-              </Button
-            ></a>
-            <a
-              v-if="props.isClose == false"
-              style="text-decoration: none"
-              class="a-hover format-center"
-            >
-              <Button
-                icon="pi pi-trash"
-                class="p-button-text p-button-secondary p-button-hover"
-                @click="DelFile(slotProps)"
-                v-tooltip="{ value: 'Xóa' }"
-                v-if="store.state.user.user_id == slotProps.created_by"
-            /></a>
+                <Button
+                  icon="pi pi-trash"
+                  class="p-button-text p-button-secondary p-button-hover"
+                  @click="DelFile(slotProps)"
+                  v-tooltip.bottom="{ value: 'Xóa' }"
+                  v-if="store.state.user.user_id == slotProps.created_by"
+              /></a>
+            </div>
           </div>
         </div>
       </div>
@@ -480,10 +475,7 @@ onMounted(() => {
         class="row col-12 align-items-center justify-content-center p-4 text-center m-auto"
         v-else
       >
-        <img
-          src="../../../assets/background/nodata.png"
-          height="144"
-        />
+        <img src="../../../assets/background/nodata.png" height="144" />
         <h3 class="m-1">Không có tệp tài liệu</h3>
       </div>
     </ScrollPanel>
@@ -511,23 +503,12 @@ onMounted(() => {
       </FileUpload>
     </form>
     <template #footer>
-      <Button
-        label="Huỷ"
-        icon="pi pi-times"
-        @click="close()"
-      />
-      <Button
-        label="Lưu"
-        icon="pi pi-check"
-        @click="Upload"
-      />
+      <Button label="Huỷ" icon="pi pi-times" @click="close()" />
+      <Button label="Lưu" icon="pi pi-check" @click="Upload" />
     </template>
     <!-- Chức năng đang chỉnh sửa vui lòng liên hệ quản trị viên phần mềm -->
   </Dialog>
-  <FileInfoVue
-    :data="fileInfo"
-    v-if="isViewFileInfo"
-  ></FileInfoVue>
+  <FileInfoVue :data="fileInfo" v-if="isViewFileInfo"></FileInfoVue>
 </template>
 <style scoped>
 .format-center {
@@ -537,6 +518,7 @@ onMounted(() => {
   vertical-align: middle;
   text-align: center;
 }
+
 .format-right {
   display: flex;
   justify-content: flex-end;
@@ -544,6 +526,7 @@ onMounted(() => {
   vertical-align: middle;
   text-align: center;
 }
+
 .format-left {
   display: flex;
   justify-content: flex-start;
@@ -551,9 +534,11 @@ onMounted(() => {
   vertical-align: middle;
   text-align: center;
 }
+
 #table2 > div:hover {
   background-color: #d8edff;
 }
+
 .p-button-hover:hover {
   color: #0025f8 !important;
   background: #ffffff !important;
