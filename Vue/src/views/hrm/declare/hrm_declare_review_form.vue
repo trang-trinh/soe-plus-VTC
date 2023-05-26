@@ -119,6 +119,7 @@ const loadData = (rf) => {
       .then((response) => {
         let data = JSON.parse(response.data.data)[0];
         if (isFirst.value) isFirst.value = false;
+        if(data.length>0){
         data.forEach((element, i) => {
           element.STT = options.value.PageNo * options.value.PageSize + i + 1;
         });
@@ -127,12 +128,13 @@ const loadData = (rf) => {
 
         review_form.value = data[0];
         loadDataDetails(true);
+      }
         options.value.loading = false;
       })
       .catch((error) => {
         toast.error("Tải dữ liệu không thành công!");
         options.value.loading = false;
-
+        console.log(error);
         if (error && error.status === 401) {
           swal.fire({
             text: "Mã token đã hết hạn hoặc không hợp lệ, vui lòng đăng nhập lại!",
@@ -537,7 +539,7 @@ const loadDataDetails = (rf) => {
   if (rf) {
     axios
       .post(
-        baseURL + "/api/device_card/getData",
+        baseURL + "/api/HRM_SQL/getData",
         {
           str: encr(
             JSON.stringify({
@@ -567,7 +569,7 @@ const loadDataDetails = (rf) => {
       })
       .catch((error) => {
         toast.error("Tải dữ liệu không thành công!");
-
+console.log(error);
         options.value.loading = false;
       });
   }
@@ -595,7 +597,7 @@ const addRow_Item = (item) => {
       eval_criteria_child_name: null,
       complete_results: null,
       complete_time: null,
-      weight: null,
+      weight_child: null,
       parent_id: null,
       status: true,
       roman_order: item.roman_order,
@@ -959,16 +961,16 @@ const onChangeMaxVal = (item, data) => {
     listEvalChilds.value
       .filter((x) => x.roman_order == item.roman_order)
       .forEach((element) => {
-        curPercent += element.weight;
+        curPercent += element.weight_child;
       });
       if(curPercent>str.maxpercen ){
         let sum=0;
         listEvalChilds.value
       .filter((x) => x.roman_order == item.roman_order && x!=data)
       .forEach((out) => {
-        sum += out.weight;
+        sum += out.weight_child;
       });
-        listEvalChilds.value.find((x) => x == data).weight =  str.maxpercen - sum ;
+        listEvalChilds.value.find((x) => x == data).weight_child =  str.maxpercen - sum ;
       }
    
   }
@@ -1128,6 +1130,7 @@ onMounted(() => {
           </div>
         </SplitterPanel>
         <SplitterPanel :size="65">
+          <div v-if=" review_form.review_forM_id !=null">
           <div>
             <Toolbar>
               <template #start>
@@ -1284,7 +1287,17 @@ onMounted(() => {
                 </div>
               </template>
             </DataTable>
-          </div>
+          </div></div>
+          <div
+                  class="align-items-center justify-content-center p-4 text-center m-auto"
+                  v-else
+                >
+                  <img
+                    src="../../../assets/background/nodata.png"
+                    height="144"
+                  />
+                  <h3 class="m-1">Vui lòng chọn mẫu biểu!</h3>
+                </div>
         </SplitterPanel>
       </Splitter>
     </div>
@@ -1586,6 +1599,26 @@ onMounted(() => {
                         </Column>
                         <Column
                           field="form"
+                          header="Định nghĩa nội dung"
+                          headerStyle="text-align:center;max-width:250px;height:50px"
+                          bodyStyle="text-align:center;max-width:250px;"
+                          class="align-items-center justify-content-center text-center"
+                        >
+                          <template #body="slotProps">
+                            <Textarea
+                              :autoResize="true"
+                              rows="1"
+                              cols="30"
+                              v-model="slotProps.data.des"
+                              class="w-full"
+                              spellcheck="false"
+                              :disabled="isView"
+                              :style="isView ? 'opacity:1' : ''"
+                            />
+                          </template>
+                        </Column>
+                        <Column
+                          field="form"
                           header="Kết quả cần đạt"
                           headerStyle="text-align:center;max-width:250px;height:50px"
                           bodyStyle="text-align:center;max-width:250px;"
@@ -1596,7 +1629,7 @@ onMounted(() => {
                               :autoResize="true"
                               rows="1"
                               cols="30"
-                              v-model="slotProps.data.complete_results"
+                              v-model="slotProps.data.desired_results"
                               class="w-full"
                               spellcheck="false"
                               :disabled="isView"
@@ -1605,7 +1638,7 @@ onMounted(() => {
                           </template>
                         </Column>
                         <Column
-                          field="weight"
+                          field="weight_child"
                           header="Tỷ trọng"
                           headerStyle="text-align:center;max-width:120px;height:50px"
                           bodyStyle="text-align:center;max-width:120px;"
@@ -1615,7 +1648,7 @@ onMounted(() => {
                             <InputNumber
                               spellcheck="false"
                               class="w-full d-design-it duy-inpput"
-                              v-model="slotProps.data.weight"
+                              v-model="slotProps.data.weight_child"
                               :min="0"
                          
                               :disabled="isView"

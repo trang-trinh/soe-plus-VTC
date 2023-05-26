@@ -1301,9 +1301,12 @@ li.p-chips-token {
   font-size: 12px;
 }
 .d-design-disabled.p-inputtext {
-  background-color: #eee;
+  background-color: white;
+  opacity: 1 !important;
   cursor: default;
 }
+ 
+
 .d-style-hover-1 {
   display: none;
 }
@@ -1357,8 +1360,6 @@ li.p-chips-token {
 }
 /* .p-sidebar-mask ,.p-rowgroup-header{
   display: none !important;
-
-
 } */
  
 /* Style quan */
