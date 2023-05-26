@@ -96,6 +96,7 @@ const props = defineProps({
   data: Object,
   closeDialogTask: Function,
   afterSave: Function,
+  project_id:String,
 });
 const v$ = useVuelidate(rules, Task);
 const onUploadFile = (event) => {
@@ -514,7 +515,6 @@ const saveTask = (isFormValid) => {
 const user = store.getters.user;
 const OpenAddDialogTask = () => {
   submitted.value = false;
-
   Task.value = {
     task_name: "",
     is_prioritize: false,
@@ -538,6 +538,10 @@ const OpenAddDialogTask = () => {
     is_template: false,
     process_time: null,
   };
+  if(props.project_id!=null)
+  {
+    Task.value.project_id=props.project_id;
+  }
   selectcapcha.value = [];
   selectcapcha.value[-1] = true;
 
@@ -666,7 +670,7 @@ const editTask = () => {
   submitted.value = false;
   selectcapcha.value = [];
   isAdd.value = false;
-  console.log(props.data);
+
   axios
     .post(
       baseURL + "/api/TaskProc/getTaskData",
@@ -933,7 +937,6 @@ const ChangeTaskDepartment = () => {
           )[0];
           Task.value.assign_user_id.push(filter);
           Task.value.work_user_ids.push(filter);
-          console.log(Task.value.work_user_ids);
         } else {
           selectcapcha.value = [];
           selectcapcha.value[-1] = true;
@@ -966,6 +969,7 @@ onMounted(() => {
     :style="{ width: '45vw' }"
     @update:visible="closeDialogTask()"
   >
+
     <form>
       <div class="grid formgrid m-2">
         <div class="field col-12 md:col-12">
@@ -1047,7 +1051,7 @@ onMounted(() => {
           />
         </div>
 
-        <div class="field col-12 md:col-12">
+        <div class="field col-12 md:col-12" v-if="props.project_id==null">
           <label class="col-3 text-left p-0">Thuộc dự án</label>
           <Dropdown
             :filter="true"

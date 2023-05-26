@@ -160,7 +160,7 @@ const saveModel = (is_continue) => {
     }
   }
   axios
-    .put(baseURL + "/api/hrm_profile/update_profile", formData, config)
+    .put(baseURL + "/api/hrm_profile/update_profile_history", formData, config)
     .then((response) => {
       if (response.data.err === "1") {
         swal.fire({
@@ -3196,142 +3196,6 @@ onMounted(() => {
                       </template>
                     </Column>
                     <Column
-                      field="countryside"
-                      header="Quê quán"
-                      headerStyle="text-align:center;width:150px;height:50px"
-                      bodyStyle="text-align:center;width:150px;"
-                      class="align-items-center justify-content-center text-center"
-                    >
-                      <template #body="slotProps">
-                        <InputText
-                          v-model="slotProps.data.countryside"
-                          spellcheck="false"
-                          type="text"
-                          class="ip36"
-                          maxLength="500"
-                        />
-                      </template>
-                    </Column>
-                    <Column
-                      field="occupation"
-                      header="Nghề nghiệp"
-                      headerStyle="text-align:center;width:150px;height:50px"
-                      bodyStyle="text-align:center;width:150px;"
-                      class="align-items-center justify-content-center text-center"
-                    >
-                      <template #body="slotProps">
-                        <InputText
-                          v-model="slotProps.data.occupation"
-                          spellcheck="false"
-                          type="text"
-                          class="ip36"
-                          maxLength="500"
-                        />
-                      </template>
-                    </Column>
-                    <Column
-                      field="education"
-                      header="Học tập"
-                      headerStyle="text-align:center;width:150px;height:50px"
-                      bodyStyle="text-align:center;width:150px;"
-                      class="align-items-center justify-content-center text-center"
-                    >
-                      <template #body="slotProps">
-                        <InputText
-                          v-model="slotProps.data.education"
-                          spellcheck="false"
-                          type="text"
-                          class="ip36"
-                          maxLength="500"
-                        />
-                      </template>
-                    </Column>
-                    <Column
-                      field="company"
-                      header="Đơn vị công tác"
-                      headerStyle="text-align:center;width:150px;height:50px"
-                      bodyStyle="text-align:center;width:150px;"
-                      class="align-items-center justify-content-center text-center"
-                    >
-                      <template #body="slotProps">
-                        <InputText
-                          v-model="slotProps.data.company"
-                          spellcheck="false"
-                          type="text"
-                          class="ip36"
-                          maxLength="500"
-                        />
-                      </template>
-                    </Column>
-                    <Column
-                      field="title"
-                      header="Chức danh"
-                      headerStyle="text-align:center;width:150px;height:50px"
-                      bodyStyle="text-align:center;width:150px;"
-                      class="align-items-center justify-content-center text-center"
-                    >
-                      <template #body="slotProps">
-                        <InputText
-                          v-model="slotProps.data.title"
-                          spellcheck="false"
-                          type="text"
-                          class="ip36"
-                          maxLength="500"
-                        />
-                      </template>
-                    </Column>
-                    <Column
-                      field="position"
-                      header="Chức vụ"
-                      headerStyle="text-align:center;width:150px;height:50px"
-                      bodyStyle="text-align:center;width:150px;"
-                      class="align-items-center justify-content-center text-center"
-                    >
-                      <template #body="slotProps">
-                        <InputText
-                          v-model="slotProps.data.position"
-                          spellcheck="false"
-                          type="text"
-                          class="ip36"
-                          maxLength="500"
-                        />
-                      </template>
-                    </Column>
-                    <Column
-                      field="address"
-                      header="Nơi ở hiện nay"
-                      headerStyle="text-align:center;width:150px;height:50px"
-                      bodyStyle="text-align:center;width:150px;"
-                      class="align-items-center justify-content-center text-center"
-                    >
-                      <template #body="slotProps">
-                        <InputText
-                          v-model="slotProps.data.address"
-                          spellcheck="false"
-                          type="text"
-                          class="ip36"
-                          maxLength="500"
-                        />
-                      </template>
-                    </Column>
-                    <Column
-                      field="organization"
-                      header="Thành viên tổ chức CTXH"
-                      headerStyle="text-align:center;width:150px;height:50px"
-                      bodyStyle="text-align:center;width:150px;"
-                      class="align-items-center justify-content-center text-center"
-                    >
-                      <template #body="slotProps">
-                        <InputText
-                          v-model="slotProps.data.organization"
-                          spellcheck="false"
-                          type="text"
-                          class="ip36"
-                          maxLength="500"
-                        />
-                      </template>
-                    </Column>
-                    <Column
                       field="identification_citizen"
                       header="CCCD/Hộ chiếu"
                       headerStyle="text-align:center;width:150px;height:50px"
@@ -3886,7 +3750,7 @@ onMounted(() => {
         </div>
       </div>
     </form>
-    <Toolbar
+    <!-- <Toolbar
       class="outline-none surface-0 border-none w-full"
       :style="{
         position: 'sticky',
@@ -3905,7 +3769,7 @@ onMounted(() => {
       <template #end>
         <Button label="Lưu" icon="pi pi-check" @click="saveModel()"
       /></template>
-    </Toolbar>
+    </Toolbar> -->
   </Sidebar>
 
   <!--Dialog 1-->
@@ -4006,102 +3870,6 @@ onMounted(() => {
               type="text"
               class="ip36"
               maxLength="50"
-            />
-          </div>
-        </div>
-        <div class="col-4 md:col-4">
-          <div class="form-group">
-            <label>Quê quán</label>
-            <InputText
-              v-model="modeldetail.countryside"
-              spellcheck="false"
-              type="text"
-              class="ip36"
-              maxLength="500"
-            />
-          </div>
-        </div>
-        <div class="col-4 md:col-4">
-          <div class="form-group">
-            <label>Nghề nghiệp</label>
-            <InputText
-              v-model="modeldetail.occupation"
-              spellcheck="false"
-              type="text"
-              class="ip36"
-              maxLength="500"
-            />
-          </div>
-        </div>
-        <div class="col-4 md:col-4">
-          <div class="form-group">
-            <label>Học tập</label>
-            <InputText
-              v-model="modeldetail.education"
-              spellcheck="false"
-              type="text"
-              class="ip36"
-              maxLength="500"
-            />
-          </div>
-        </div>
-        <div class="col-4 md:col-4">
-          <div class="form-group">
-            <label>Đơn vị công tác</label>
-            <InputText
-              v-model="modeldetail.company"
-              spellcheck="false"
-              type="text"
-              class="ip36"
-              maxLength="500"
-            />
-          </div>
-        </div>
-        <div class="col-4 md:col-4">
-          <div class="form-group">
-            <label>Chức danh</label>
-            <InputText
-              v-model="modeldetail.title"
-              spellcheck="false"
-              type="text"
-              class="ip36"
-              maxLength="500"
-            />
-          </div>
-        </div>
-        <div class="col-4 md:col-4">
-          <div class="form-group">
-            <label>Chức vụ</label>
-            <InputText
-              v-model="modeldetail.position"
-              spellcheck="false"
-              type="text"
-              class="ip36"
-              maxLength="500"
-            />
-          </div>
-        </div>
-        <div class="col-6 md:col-6">
-          <div class="form-group">
-            <label>Nơi ở hiện nay</label>
-            <InputText
-              v-model="modeldetail.address"
-              spellcheck="false"
-              type="text"
-              class="ip36"
-              maxLength="500"
-            />
-          </div>
-        </div>
-        <div class="col-6 md:col-6">
-          <div class="form-group">
-            <label>Thành viên tổ chức CTXH</label>
-            <InputText
-              v-model="modeldetail.organization"
-              spellcheck="false"
-              type="text"
-              class="ip36"
-              maxLength="500"
             />
           </div>
         </div>
@@ -4721,7 +4489,7 @@ onMounted(() => {
   </Dialog>
 </template>
 <style scoped>
-@import url(./stylehrm.css);
+@import url(../../profile/component/stylehrm.css);
 </style>
 <style lang="scss" scoped>
 ::v-deep(.p-datatable) {

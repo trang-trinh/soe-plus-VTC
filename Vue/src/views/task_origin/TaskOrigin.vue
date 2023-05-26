@@ -1155,7 +1155,7 @@ const loadData = (rf, type) => {
               listCV[k].forEach(function (r) {
                 CVGroup.push(r);
               });
-              console.log(k);
+   
               arrNew.push({
                 isShow: true,
                 status: k,
@@ -4786,6 +4786,7 @@ const ChangeShowListCVGroup = (model) => {
     :data="DialogData"
     :closeDialogTask="closeDialogTask"
     :afterSave="afterSave"
+    :project_id="props.id"
   >
   </DialogTask>
 </template>

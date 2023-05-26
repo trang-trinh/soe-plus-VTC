@@ -12,12 +12,12 @@ watch(ModalDetail, (vl) => {
   }
 });
 const Documents2 = ref(
-  "pdf,docx,docm,dotx,dotm,doc,dot,xlsx,xlsm,xltx,xltm,xlam,xlsb,xls,xlt,csv,tsv,pptx,pptm,potx,potm,ppsx,ppsm,ppt,pps,txt,xml,tif,tiff,svg,jpg,jpeg,jfif,png,gif,webp,bmp",
+  "pdf,docx,docm,dotx,dotm,doc,dot,xlsx,xlsm,xltx,xltm,xlam,xlsb,xls,xlt,csv,tsv,pptx,pptm,potx,potm,ppsx,ppsm,ppt,pps,txt,xml,tif,tiff,svg,jpg,jpeg,jfif,png,gif,webp,bmp"
 );
 const Audios2 = ref("mp3,wma,aac,flac,alac,wav,m4a,flac");
 const Videos2 = ref("mp4,flv,mov,wmv,avi,mkv,wmv,webm,h.264,mpeg-4");
 const Documents1 = ref(
-  ".pdf,.docx,.docm,.dotx,.dotm,.doc,.dot,.xlsx,.xlsm,.xltx,.xltm,.xlam,.xlsb,.xls,.xlt,.csv,.tsv,.pptx,.pptm,.potx,.potm,.ppsx,.ppsm,.ppt,.pps,.txt,.xml,.tif,.tiff,.svg,.jpg,.jpeg,.jfif,.png,.gif,.webp,.bmp",
+  ".pdf,.docx,.docm,.dotx,.dotm,.doc,.dot,.xlsx,.xlsm,.xltx,.xltm,.xlam,.xlsb,.xls,.xlt,.csv,.tsv,.pptx,.pptm,.potx,.potm,.ppsx,.ppsm,.ppt,.pps,.txt,.xml,.tif,.tiff,.svg,.jpg,.jpeg,.jfif,.png,.gif,.webp,.bmp"
 );
 const Audios1 = ref(".mp3,.wma,.aac,.flac,.alac,.wav,.m4a,.flac");
 const Videos1 = ref(".mp4,.flv,.mov,.wmv,.avi,.mkv,.wmv,.webm,.h.264,.mpeg-4");
