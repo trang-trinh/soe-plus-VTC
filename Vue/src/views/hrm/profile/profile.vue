@@ -516,8 +516,7 @@ const deleteItem = (item) => {
                 return;
               }
               toast.success("Xoá thành công!");
-              initCount();
-              initData(true);
+              initLoad();
               swal.close();
               if (options.value.loading) options.value.loading = false;
             })
@@ -917,8 +916,7 @@ const execImportExcel = () => {
         return;
       }
       toast.success("Nhập dữ liệu thành công");
-      initData(true);
-      initCount();
+      initLoad();
     })
     .catch((error) => {
       swal.close();
@@ -1483,7 +1481,7 @@ const initTreeOrganization = () => {
             addToArray(temp, treeOrganization.value, null, 0, "is_order");
             treeOrganization.value = temp;
           }
-          initData(true);
+          initLoad();
         }
       }
     });
@@ -1654,6 +1652,18 @@ const initSave = () => {
 
   initData(true);
 };
+
+const initLoad = () => {
+  options.value.pageNo = 1;
+  options.value.pageSize = 25;
+  options.value.limitItem = 25;
+  options.value.total = 0;
+  dataLimits.value = [];
+
+  initCount();
+  initData(true);
+};
+
 onMounted(() => {
   nextTick(() => {
     //initPlace();

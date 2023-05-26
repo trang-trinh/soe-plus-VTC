@@ -37,10 +37,10 @@ const loadConfig = () => {
             par: [{ par: "user_id", va: user.user_id }],
           }),
           SecretKey,
-          cryoptojs,
+          cryoptojs
         ).toString(),
       },
-      config,
+      config
     )
     .then((response) => {
       let data = JSON.parse(response.data.data)[0];
@@ -159,10 +159,10 @@ const LoadMember = (type) => {
             ],
           }),
           SecretKey,
-          cryoptojs,
+          cryoptojs
         ).toString(),
       },
-      config,
+      config
     )
     .then((response) => {
       let mem = JSON.parse(response.data.data)[0];
@@ -314,8 +314,8 @@ const LoadMember = (type) => {
       } else {
         members.value = JSON.parse(
           JSON.stringify(
-            listUser.filter((x) => x.listType.includes(type) == true),
-          ),
+            listUser.filter((x) => x.listType.includes(type) == true)
+          )
         );
       }
 
@@ -366,10 +366,10 @@ const LoadUser = () => {
             ],
           }),
           SecretKey,
-          cryoptojs,
+          cryoptojs
         ).toString(),
       },
-      config,
+      config
     )
     .then((response) => {
       let data = JSON.parse(response.data.data)[0];
@@ -631,16 +631,17 @@ const OpenMultiple = () => {
         class="right-0 absolute z-5 my-2 mx-3"
         label="Đánh giá"
         icon="pi pi-user-edit"
-        @click="OpenMultiple()"    v-if="  (memberType == 0 ||
-                  memberType1 == 0 ||
-                  memberType2 == 0 ||
-                  memberType3 == 0)"
-      ></Button>
-
-      <TabView
-        @tab-change="changeTab($event.index)"
-        class="w-full px-3"
+        @click="OpenMultiple()"
+        v-if="
+          memberType == 0 ||
+          memberType1 == 0 ||
+          memberType2 == 0 ||
+          memberType3 == 0
+        "
       >
+      </Button>
+
+      <TabView @tab-change="changeTab($event.index)" class="w-full px-3">
         <TabPanel
           v-for="(item, index) in tabs"
           :key="index"
@@ -821,10 +822,7 @@ const OpenMultiple = () => {
               class="row col-12 align-items-center justify-content-center p-4 text-center m-auto"
               v-else
             >
-              <img
-                src="../../../assets/background/nodata.png"
-                height="144"
-              />
+              <img src="../../../assets/background/nodata.png" height="144" />
               <h3 class="m-1">Không có dữ liệu</h3>
             </div>
           </div>
@@ -960,7 +958,7 @@ const OpenMultiple = () => {
       ></Button>
       <Button
         class="mx-1"
-        icon="pi pi-times"
+        icon="pi pi-check"
         label="Lưu"
         @click="Update_Point()"
       ></Button>

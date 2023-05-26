@@ -179,7 +179,7 @@ namespace API.Controllers.Task_Origin1
                         cmtbug.created_token_id = tid;
 
                         var members = db.task_member.Where(x => x.task_id == cmtbug.task_id && x.is_type == 0).Select(x => x.user_id).ToList();
-                        members.Add(task.created_by);
+                        //members.Add(task.created_by);
                         if (members.Contains(cmtbug.created_by))
                         {
                             cmtbug.status = 1;

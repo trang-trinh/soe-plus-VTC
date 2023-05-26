@@ -97,10 +97,10 @@ const loadFile = () => {
             ],
           }),
           SecretKey,
-          cryoptojs,
+          cryoptojs
         ).toString(),
       },
-      config,
+      config
     )
     .then((response) => {
       let data = JSON.parse(response.data.data)[0];
@@ -162,10 +162,10 @@ const loadTaskMain = () => {
             ],
           }),
           SecretKey,
-          cryoptojs,
+          cryoptojs
         ).toString(),
       },
-      config,
+      config
     )
     .then((response) => {
       let data = JSON.parse(response.data.data)[0];
@@ -230,7 +230,7 @@ const loadTaskMain = () => {
         if (datalists.value.description.includes("\n")) {
           datalists.value.description = datalists.value.description.replace(
             /\n/g,
-            "<br/>",
+            "<br/>"
           );
           datalists.value.description =
             datalists.value.description.split("<br/>");
@@ -244,7 +244,7 @@ const loadTaskMain = () => {
         if (datalists.value.target.includes("\n")) {
           datalists.value.target = datalists.value.target.replace(
             /\n/g,
-            "<br/>",
+            "<br/>"
           );
           datalists.value.target = datalists.value.target.split("<br/>");
         } else {
@@ -256,7 +256,7 @@ const loadTaskMain = () => {
         if (datalists.value.difficult.includes("\n")) {
           datalists.value.difficult = datalists.value.difficult.replace(
             /\n/g,
-            "<br/>",
+            "<br/>"
           );
           datalists.value.difficult = datalists.value.difficult.split("<br/>");
         } else {
@@ -268,7 +268,7 @@ const loadTaskMain = () => {
         if (datalists.value.request.includes("\n")) {
           datalists.value.request = datalists.value.request.replace(
             /\n/g,
-            "<br/>",
+            "<br/>"
           );
           datalists.value.request = datalists.value.request.split("<br/>");
         } else {
@@ -348,10 +348,10 @@ const loadMember = () => {
             ],
           }),
           SecretKey,
-          cryoptojs,
+          cryoptojs
         ).toString(),
       },
-      config,
+      config
     )
     .then((response) => {
       let mem = JSON.parse(response.data.data)[0];
@@ -473,10 +473,10 @@ const loadComments = () => {
             par: [{ par: "id", va: props.id }],
           }),
           SecretKey,
-          cryoptojs,
+          cryoptojs
         ).toString(),
       },
-      config,
+      config
     )
     .then((response) => {
       let commentJson = JSON.parse(response.data.data)[0];
@@ -534,10 +534,10 @@ const loadTaskCheckList = () => {
             ],
           }),
           SecretKey,
-          cryoptojs,
+          cryoptojs
         ).toString(),
       },
-      config,
+      config
     )
     .then((response) => {
       let listCheckListJson = JSON.parse(response.data.data)[0];
@@ -591,10 +591,10 @@ const loadChildTaskOrigin = (type) => {
             ],
           }),
           SecretKey,
-          cryoptojs,
+          cryoptojs
         ).toString(),
       },
-      config,
+      config
     )
     .then((response) => {
       let listChild = JSON.parse(response.data.data)[0];
@@ -762,7 +762,7 @@ const RenderData = (cgr, c) => {
           ((ltlc.close_date ? new Date(ltlc.close_date) : new Date()) -
             new Date(ltlc.start_date)) /
           (1000 * 24 * 60 * 60)
-        ).toFixed(0),
+        ).toFixed(0)
       );
       if (ltlc.checklist_id == lcl.checklist_id) {
         ltlc.STT = i;
@@ -960,7 +960,7 @@ const saveData = (isFormValid) => {
         toast.success(
           response.config.method == "put"
             ? "Sửa Checklist thành công!"
-            : "Thêm Checklist thành công",
+            : "Thêm Checklist thành công"
         );
         swal.close();
         edit.value = false;
@@ -1147,7 +1147,7 @@ const saveTaskCheckList = (isFormValid) => {
   if (Task.value.task_name.lastIndexOf("\n") == Task.value.task_name.length) {
     Task.value.task_name = Task.value.task_name.substring(
       0,
-      Task.value.task_name.lastIndexOf("\n"),
+      Task.value.task_name.lastIndexOf("\n")
     );
   }
   if (Task.value.end_date != null) {
@@ -1181,7 +1181,7 @@ const saveTaskCheckList = (isFormValid) => {
         toast.success(
           response.config.method == "put"
             ? "Cập nhật công việc thành công!"
-            : "Thêm mới công việc thành công!",
+            : "Thêm mới công việc thành công!"
         );
         loadTaskCheckList();
         editTaskCheckList.value = false;
@@ -1370,10 +1370,10 @@ const listUser = () => {
             ],
           }),
           SecretKey,
-          cryoptojs,
+          cryoptojs
         ).toString(),
       },
-      config,
+      config
     )
     .then((response) => {
       let data = JSON.parse(response.data.data)[0];
@@ -1851,10 +1851,10 @@ const LoadLinkTaskOrigin = (tasklink) => {
             ],
           }),
           SecretKey,
-          cryoptojs,
+          cryoptojs
         ).toString(),
       },
-      config,
+      config
     )
     .then((response) => {
       let data = JSON.parse(response.data.data);
@@ -1864,13 +1864,13 @@ const LoadLinkTaskOrigin = (tasklink) => {
           ? element.modified_date
           : element.created_date;
         element.status_name = listDropdownStatus.value.filter(
-          (x) => x.value == element.status,
+          (x) => x.value == element.status
         )[0].text;
         element.status_bg_color = listDropdownStatus.value.filter(
-          (x) => x.value == element.status,
+          (x) => x.value == element.status
         )[0].bg_color;
         element.status_text_color = listDropdownStatus.value.filter(
-          (x) => x.value == element.status,
+          (x) => x.value == element.status
         )[0].text_color;
         element.is_check = false;
         //thời gian xử lý
@@ -1945,7 +1945,7 @@ const saveAddLinkTask = () => {
     .post(
       baseURL + "/api/task_origin/Add_LinkTask",
       listLinkTaskCheck.value,
-      config,
+      config
     )
     .then((response) => {
       if (response.data.err != "1") {
@@ -2227,7 +2227,7 @@ const UpdateStatusTaksFunc = (stt, end_date, isFormValid) => {
     .put(
       baseURL + "/api/task_origin/" + "Update_Status_TaskOrigin",
       { task_id: datalists.value.task_id, stt: stt, end_date: end_date },
-      config,
+      config
     )
     .then((response) => {
       if (response.data.err != "1") {
@@ -2302,19 +2302,19 @@ const addComment = () => {
     formData.append("task_id", JSON.stringify(datalists.value.task_id));
     formData.append(
       "is_reply",
-      JSON.stringify(reply.value == true ? true : false),
+      JSON.stringify(reply.value == true ? true : false)
     );
     if (reply.value == true) {
       formData.append(
         "parent_id",
-        JSON.stringify(replyCmtValue.value[0].comment_id),
+        JSON.stringify(replyCmtValue.value[0].comment_id)
       );
     }
     if (editComment.value == true) {
       formData.append("cmt_id", JSON.stringify(ID_Comment.value));
       formData.append(
         "Del_file_ID",
-        JSON.stringify(listIdFileEditComments_Del.value),
+        JSON.stringify(listIdFileEditComments_Del.value)
       );
     }
     if (sending.value == true) {
@@ -2339,7 +2339,7 @@ const addComment = () => {
           toast.success(
             editComment.value
               ? "Cập nhật bình luận công việc thành công!"
-              : "Thêm mới bình luận công việc thành công!",
+              : "Thêm mới bình luận công việc thành công!"
           );
           comment.value = "<p></p>";
           comment_zone_main.value.setHTML("<p>" + comment.value + "</p>");
@@ -2378,6 +2378,13 @@ const filefilefile = ref();
 const file_Created = ref();
 const FileAction = ref([
   {
+    label: "Xem tệp",
+    icon: "pi pi-eye",
+    command: () => {
+      ViewFileInfo(filefilefile.value);
+    },
+  },
+  {
     label: "Tải xuống tệp",
     icon: "pi pi-download",
     command: () => {
@@ -2386,6 +2393,13 @@ const FileAction = ref([
   },
 ]);
 const FileActionUploader = ref([
+  {
+    label: "Xem tệp",
+    icon: "pi pi-eye",
+    command: () => {
+      ViewFileInfo(filefilefile.value);
+    },
+  },
   {
     label: "Tải xuống tệp",
     icon: "pi pi-download",
@@ -2422,7 +2436,7 @@ const ReplyComment = (cmt) => {
     comt.contents != null && comt.contents != "<body><p><br></p></body>"
       ? comt.contents.replace(
           'style="width:100%;max-width:30vw;object-fit:contain">',
-          'style="width:100%;max-width:5vw;object-fit:contain">',
+          'style="width:100%;max-width:5vw;object-fit:contain">'
         )
       : null;
   replyCmtValue.value.push(comt);
@@ -2502,7 +2516,7 @@ const EditComment = (cmt) => {
     comt = cmt.parent;
     comt.contents = comt.contents.replace(
       'style="width:100%;max-width:30vw;object-fit:contain">',
-      'style="width:100%;max-width:5vw;object-fit:contain">',
+      'style="width:100%;max-width:5vw;object-fit:contain">'
     );
     replyCmtValue.value.push(comt);
   }
@@ -2610,10 +2624,10 @@ const loadTaskDoc = () => {
             par: [{ par: "id", va: props.id }],
           }),
           SecretKey,
-          cryoptojs,
+          cryoptojs
         ).toString(),
       },
-      config,
+      config
     )
     .then((response) => {
       let data = JSON.parse(response.data.data)[0];
@@ -2987,10 +3001,7 @@ const CloseVisible = () => {
           </div>
         </div>
       </div>
-      <div
-        class="text-2xl absolute"
-        style="bottom: -100px"
-      >
+      <div class="text-2xl absolute" style="bottom: -100px">
         Đang tải xin chờ trong giây lát...
       </div>
     </div>
@@ -3137,20 +3148,14 @@ const CloseVisible = () => {
                 class="thongtinchungscroll"
                 style="width: 100%; height: calc(100% - 6.5rem)"
               >
-                <div
-                  id="thongtinchung "
-                  style="margin-top: 12px"
-                >
+                <div id="thongtinchung " style="margin-top: 12px">
                   <div class="row col-12 font-bold text-xl pb-1">
                     <i class="pi pi-check-square pr-2"></i>
                     <span>
                       {{ datalists.task_name }}
                     </span>
                   </div>
-                  <div
-                    class="row col-12"
-                    style="font-size: 1.15rem !important"
-                  >
+                  <div class="row col-12" style="font-size: 1.15rem !important">
                     <div class="flex row col-12 m-0 pt-1 pb-1">
                       <div class="col-8 py-0 m-0 pl-3">
                         Tạo bởi:
@@ -3166,15 +3171,12 @@ const CloseVisible = () => {
                         >-
                         {{
                           moment(new Date(datalists.created_date)).format(
-                            "HH:mm DD/MM",
+                            "HH:mm DD/MM"
                           )
                         }}
                       </div>
 
-                      <div
-                        class="col-4 py-0 m-0"
-                        v-if="datalists.weights"
-                      >
+                      <div class="col-4 py-0 m-0" v-if="datalists.weights">
                         Trọng số:
                         <span v-html="datalists.weights"></span>
                       </div>
@@ -3217,10 +3219,7 @@ const CloseVisible = () => {
                           font-size: 1.15rem;
                         "
                       >
-                        <div
-                          class="col-6 p-0 m-0"
-                          v-if="ngv > 0"
-                        >
+                        <div class="col-6 p-0 m-0" v-if="ngv > 0">
                           <div class="row col-12">
                             <div class="col-12 p-0 m-0">
                               <i class="pi pi-user pr-2"></i>
@@ -3265,10 +3264,7 @@ const CloseVisible = () => {
                             </div>
                           </div>
                         </div>
-                        <div
-                          class="col-6 p-0 m-0"
-                          v-if="ntd > 0"
-                        >
+                        <div class="col-6 p-0 m-0" v-if="ntd > 0">
                           <div class="row col-12">
                             <div class="col-12 p-0 m-0">
                               <i class="pi pi-user pr-2"></i>
@@ -3353,10 +3349,7 @@ const CloseVisible = () => {
                           font-size: 1.15rem;
                         "
                       >
-                        <div
-                          class="col-6 p-0 m-0 pt-1"
-                          v-if="nth > 0"
-                        >
+                        <div class="col-6 p-0 m-0 pt-1" v-if="nth > 0">
                           <div class="row col-12">
                             <div class="col-12 p-0 m-0">
                               <i class="pi pi-user-edit pr-2"></i>
@@ -3433,10 +3426,7 @@ const CloseVisible = () => {
                             </div>
                           </div>
                         </div>
-                        <div
-                          class="col-6 p-0 m-0 pt-1"
-                          v-if="ndth > 0"
-                        >
+                        <div class="col-6 p-0 m-0 pt-1" v-if="ndth > 0">
                           <div class="row col-12">
                             <div class="col-12 p-0 m-0">
                               <i class="pi pi-user-edit pr-2"></i>
@@ -3520,10 +3510,7 @@ const CloseVisible = () => {
                       class="flex row col-12 p-0 m-0"
                       style="font-weight: 600; color: #888; font-size: 1.15rem"
                     >
-                      <div
-                        class="col-6 p-0 m-0"
-                        v-if="datalists.start_date"
-                      >
+                      <div class="col-6 p-0 m-0" v-if="datalists.start_date">
                         <div class="col-12">
                           <i class="pi pi-calendar pr-2"></i>
                           <span>Ngày bắt đầu (Dự kiến)</span>
@@ -3534,15 +3521,12 @@ const CloseVisible = () => {
                         >
                           {{
                             moment(new Date(datalists.start_date)).format(
-                              "DD/MM/YYYY HH:mm",
+                              "DD/MM/YYYY HH:mm"
                             )
                           }}
                         </div>
                       </div>
-                      <div
-                        class="col-6 p-0 m-0"
-                        v-if="datalists.end_date"
-                      >
+                      <div class="col-6 p-0 m-0" v-if="datalists.end_date">
                         <div class="col-12">
                           <i class="pi pi-calendar-times pr-2"></i>
                           <span>Ngày kết thúc (Dự kiến)</span>
@@ -3553,7 +3537,7 @@ const CloseVisible = () => {
                         >
                           {{
                             moment(new Date(datalists.end_date)).format(
-                              "DD/MM/YYYY HH:mm",
+                              "DD/MM/YYYY HH:mm"
                             )
                           }}
                         </div>
@@ -3577,15 +3561,12 @@ const CloseVisible = () => {
                         <div class="col-12 flex p-0 m-0 pl-5">
                           {{
                             moment(new Date(datalists.start_real_date)).format(
-                              "DD/MM/YYYY",
+                              "DD/MM/YYYY"
                             )
                           }}
                         </div>
                       </div>
-                      <div
-                        class="col-6 p-0 m-0"
-                        v-if="datalists.end_real_date"
-                      >
+                      <div class="col-6 p-0 m-0" v-if="datalists.end_real_date">
                         <div class="col-12">
                           <i class="pi pi-check-circle pr-2"></i>
                           <span>Ngày kết thúc</span>
@@ -3596,17 +3577,14 @@ const CloseVisible = () => {
                         >
                           {{
                             moment(new Date(datalists.end_real_date)).format(
-                              "DD/MM/YYYY",
+                              "DD/MM/YYYY"
                             )
                           }}
                         </div>
                       </div>
                     </div>
                   </div>
-                  <div
-                    class="row col-12"
-                    v-if="datalists.description"
-                  >
+                  <div class="row col-12" v-if="datalists.description">
                     <div
                       class="col-12 p-0 m-0"
                       style="font-weight: 600; color: #888; font-size: 1.15rem"
@@ -3632,10 +3610,7 @@ const CloseVisible = () => {
                       </div>
                     </div>
                   </div>
-                  <div
-                    class="row col-12 p-0"
-                    v-if="datalists.target"
-                  >
+                  <div class="row col-12 p-0" v-if="datalists.target">
                     <div
                       class="col-12"
                       style="font-weight: 600; color: #888; font-size: 1.15rem"
@@ -3661,10 +3636,7 @@ const CloseVisible = () => {
                       </div>
                     </div>
                   </div>
-                  <div
-                    class="row col-12"
-                    v-if="datalists.difficult"
-                  >
+                  <div class="row col-12" v-if="datalists.difficult">
                     <div
                       class="col-12 p-0 m-0"
                       style="font-weight: 600; color: #888; font-size: 1.15rem"
@@ -3689,10 +3661,7 @@ const CloseVisible = () => {
                       </div>
                     </div>
                   </div>
-                  <div
-                    class="row col-12"
-                    v-if="datalists.request"
-                  >
+                  <div class="row col-12" v-if="datalists.request">
                     <div
                       class="col-12 p-0 m-0"
                       style="font-weight: 600; color: #888; font-size: 1.15rem"
@@ -3717,10 +3686,7 @@ const CloseVisible = () => {
                       </div>
                     </div>
                   </div>
-                  <div
-                    class="row col-12"
-                    v-if="datalists.result"
-                  >
+                  <div class="row col-12" v-if="datalists.result">
                     <div
                       class="col-12 p-0 m-0"
                       style="font-weight: 600; color: #888; font-size: 1.15rem"
@@ -3832,16 +3798,9 @@ const CloseVisible = () => {
                       </div>
                     </div>
 
-                    <div
-                      class="col-12 p-0 m-0"
-                      id="Checklist"
-                    >
+                    <div class="col-12 p-0 m-0" id="Checklist">
                       <div v-if="listCheckList != null">
-                        <div
-                          class="col-12"
-                          v-for="c in listCheckList"
-                          :key="c"
-                        >
+                        <div class="col-12" v-for="c in listCheckList" :key="c">
                           <div
                             class="col-12 font-bold p-0 m-0 pl-4 text-left checklist-gr-hv-p"
                           >
@@ -3907,10 +3866,7 @@ const CloseVisible = () => {
                                       @click="onCheckboxTask(t)"
                                     />
                                   </div>
-                                  <div
-                                    class="col-1 p-0 m-0"
-                                    v-else
-                                  >
+                                  <div class="col-1 p-0 m-0" v-else>
                                     <Checkbox
                                       :binary="true"
                                       v-model="t.is_check"
@@ -3943,7 +3899,7 @@ const CloseVisible = () => {
                                         <span v-if="t.end_date"
                                           >{{
                                             moment(new Date(t.end_date)).format(
-                                              "DD/MM/YYYY",
+                                              "DD/MM/YYYY"
                                             )
                                           }}
                                         </span>
@@ -4210,11 +4166,11 @@ const CloseVisible = () => {
                                               v1$.task_name.required.$message
                                                 .replace(
                                                   "Value",
-                                                  "Tên công việc checklist",
+                                                  "Tên công việc checklist"
                                                 )
                                                 .replace(
                                                   "is required",
-                                                  "không được để trống",
+                                                  "không được để trống"
                                                 )
                                             }}</span>
                                           </small>
@@ -4314,11 +4270,11 @@ const CloseVisible = () => {
                                           v1$.task_name.required.$message
                                             .replace(
                                               "Value",
-                                              "Tên công việc checklist",
+                                              "Tên công việc checklist"
                                             )
                                             .replace(
                                               "is required",
-                                              "không được để trống",
+                                              "không được để trống"
                                             )
                                         }}</span>
                                       </small>
@@ -4404,10 +4360,7 @@ const CloseVisible = () => {
                       v-for="(ch, index) in ListChildTask"
                       :key="index"
                     >
-                      <div
-                        class="row col-12 flex p-0 m-0"
-                        @click="show(ch)"
-                      >
+                      <div class="row col-12 flex p-0 m-0" @click="show(ch)">
                         <div class="col-7 p-0 m-0">
                           <span class="font-bold text-xl">
                             {{ ch.task_name }}
@@ -4416,7 +4369,7 @@ const CloseVisible = () => {
                           <span>
                             {{
                               moment(new Date(ch.start_date)).format(
-                                "DD/MM/YYYY",
+                                "DD/MM/YYYY"
                               )
                             }}
                           </span>
@@ -4429,10 +4382,7 @@ const CloseVisible = () => {
                         </div>
                         <div class="col-4 p-0 m-0 format-center">
                           <AvatarGroup>
-                            <div
-                              v-for="(user, index) in ch.users"
-                              :key="index"
-                            >
+                            <div v-for="(user, index) in ch.users" :key="index">
                               <Avatar
                                 @error="
                                   $event.target.src =
@@ -4581,10 +4531,7 @@ const CloseVisible = () => {
                     </div>
                   </div>
 
-                  <div
-                    class="row col-12"
-                    id="file"
-                  >
+                  <div class="row col-12" id="file">
                     <div
                       class="col-12 p-0 m-0"
                       style="font-weight: 600; color: #888; font-size: 1.15rem"
@@ -4607,10 +4554,7 @@ const CloseVisible = () => {
                         </span>
                       </div>
                     </div>
-                    <div
-                      class="col-12 p-0 m-0"
-                      v-if="countFiles > 0"
-                    >
+                    <div class="col-12 p-0 m-0" v-if="countFiles > 0">
                       <div
                         v-for="(slotProps, index) in listFile"
                         :key="index"
@@ -4621,10 +4565,7 @@ const CloseVisible = () => {
                         }"
                       >
                         <div class="col-4 format-left">
-                          <div
-                            class=""
-                            v-if="slotProps.is_image == 1"
-                          >
+                          <div class="" v-if="slotProps.is_image == 1">
                             <Image
                               :src="basedomainURL + slotProps.file_path"
                               :alt="slotProps.file_name"
@@ -4638,16 +4579,13 @@ const CloseVisible = () => {
                               "
                             />
                           </div>
-                          <div
-                            class=""
-                            v-else
-                          >
+                          <div class="" v-else>
                             <img
                               :src="
                                 basedomainURL +
                                 '/Portals/Image/file/' +
                                 slotProps.file_name.substring(
-                                  slotProps.file_name.lastIndexOf('.') + 1,
+                                  slotProps.file_name.lastIndexOf('.') + 1
                                 ) +
                                 '.png'
                               "
@@ -4680,7 +4618,7 @@ const CloseVisible = () => {
                         <div class="col-3 format-center">
                           {{
                             moment(new Date(slotProps.created_date)).format(
-                              "HH:mm DD/MM/YYYY",
+                              "HH:mm DD/MM/YYYY"
                             )
                           }}
                         </div>
@@ -4715,7 +4653,19 @@ const CloseVisible = () => {
                             shape="circle"
                           />
                         </div>
-                        <div class="flex col-2 format-default ml-3">
+                        <div class="flex col-2 format-default ml-2">
+                          <a
+                            style="text-decoration: none"
+                            class="a-hover format-center"
+                          >
+                            <Button
+                              icon="pi pi-eye "
+                              class="p-button-text p-button-secondary p-button-hover"
+                              v-tooltip="{ value: 'Xem chi tiết' }"
+                              @click="ViewFileInfo(slotProps)"
+                            >
+                            </Button
+                          ></a>
                           <a
                             download
                             style="text-decoration: none"
@@ -4773,10 +4723,7 @@ const CloseVisible = () => {
                       </div>
                     </div>
 
-                    <div
-                      class="col-12 w-full"
-                      v-if="countDocMaster > 0"
-                    >
+                    <div class="col-12 w-full" v-if="countDocMaster > 0">
                       <div
                         v-for="(slotProps, index) in ListDocMaster"
                         :key="index"
@@ -4795,7 +4742,7 @@ const CloseVisible = () => {
                                   slotProps.file_type +
                                   '.png' ??
                                 slotProps.file_name.substring(
-                                  slotProps.file_name.lastIndexOf('.') + 1,
+                                  slotProps.file_name.lastIndexOf('.') + 1
                                 ) + '.png'
                               "
                               style="width: 24px; object-fit: contain"
@@ -4827,7 +4774,7 @@ const CloseVisible = () => {
                         <div class="col-3 format-center">
                           {{
                             moment(new Date(slotProps.created_date)).format(
-                              "HH:mm DD/MM/YYYY",
+                              "HH:mm DD/MM/YYYY"
                             )
                           }}
                         </div>
@@ -4894,10 +4841,7 @@ const CloseVisible = () => {
                       </div>
                     </div>
                   </div>
-                  <div
-                    class="row col-12"
-                    id="comments"
-                  >
+                  <div class="row col-12" id="comments">
                     <div
                       class="col-12 p-0 m-0"
                       style="font-weight: 600; color: #888; font-size: 1.15rem"
@@ -4912,10 +4856,7 @@ const CloseVisible = () => {
                       </div>
                     </div>
 
-                    <div
-                      class="col-12 w-full"
-                      v-if="listComments != null"
-                    >
+                    <div class="col-12 w-full" v-if="listComments != null">
                       <div
                         class="row col-12 pl-4 w-full cmt-hover relative"
                         v-for="(cmt, index) in listComments"
@@ -4986,7 +4927,7 @@ const CloseVisible = () => {
                               <span class="ml-2">
                                 {{
                                   moment(new Date(cmt.created_date)).format(
-                                    "HH:mm DD/MM/YYYY",
+                                    "HH:mm DD/MM/YYYY"
                                   )
                                 }}
                               </span>
@@ -5060,7 +5001,7 @@ const CloseVisible = () => {
                                       <span class="ml-2">
                                         {{
                                           moment(
-                                            new Date(cmt.parent.created_date),
+                                            new Date(cmt.parent.created_date)
                                           ).format("HH:mm DD/MM/YYYY")
                                         }}
                                       </span>
@@ -5138,7 +5079,7 @@ const CloseVisible = () => {
                                         toggle_panel_file(
                                           $event,
                                           slotProps,
-                                          cmt.created_by,
+                                          cmt.created_by
                                         )
                                       "
                                       aria-haspopup="true"
@@ -5324,7 +5265,7 @@ const CloseVisible = () => {
                                   <span class="ml-2">
                                     {{
                                       moment(new Date(cmt.created_date)).format(
-                                        "HH:mm DD/MM/YYYY",
+                                        "HH:mm DD/MM/YYYY"
                                       )
                                     }}
                                   </span>
@@ -5357,10 +5298,7 @@ const CloseVisible = () => {
                                 ></div>
                                 <div class="col-1"></div>
                               </div>
-                              <div
-                                class="row col-12 flex p-0 m-0"
-                                v-else
-                              >
+                              <div class="row col-12 flex p-0 m-0" v-else>
                                 <div class="col-1"></div>
                                 <div
                                   class="col pl-4 p-0 m-0 pr-4 bg-cmt-color border-1 border-round border-blue-100 format-center text-black text-4xl"
@@ -5415,7 +5353,7 @@ const CloseVisible = () => {
                                 @click="
                                   delImgComment(
                                     item.data ? item.data : item,
-                                    index,
+                                    index
                                   )
                                 "
                                 icon="pi pi-times-circle"
@@ -5423,10 +5361,7 @@ const CloseVisible = () => {
                                 v-tooltip="{ value: 'Xóa tệp' }"
                               ></Button>
 
-                              <div
-                                class=""
-                                v-if="item.checkimg == true"
-                              >
+                              <div class="" v-if="item.checkimg == true">
                                 <img
                                   :src="item.src"
                                   :alt="' '"
@@ -5455,16 +5390,13 @@ const CloseVisible = () => {
                                   {{ item.size }}
                                 </div>
                               </div>
-                              <div
-                                class=""
-                                v-else
-                              >
+                              <div class="" v-else>
                                 <img
                                   :src="
                                     basedomainURL +
                                     '/Portals/Image/file/' +
                                     item.src.substring(
-                                      item.src.lastIndexOf('.') + 1,
+                                      item.src.lastIndexOf('.') + 1
                                     ) +
                                     '.png'
                                   "
@@ -5639,10 +5571,7 @@ const CloseVisible = () => {
           <div class="row flex col-12 p-0 m-0">
             <div :class="'col-12 format-right p-0 m-0 pt-2'">
               <AvatarGroup>
-                <div
-                  v-for="(user, index) in members"
-                  :key="index"
-                >
+                <div v-for="(user, index) in members" :key="index">
                   <Avatar
                     @error="
                       $event.target.src =
@@ -5778,10 +5707,7 @@ const CloseVisible = () => {
               <i
                 class="pi pi-clock pr-2"
                 v-if="TimeToDo != 'Chưa bắt đầu'"
-              /><span
-                class="flex"
-                v-html="TimeToDo"
-              ></span>
+              /><span class="flex" v-html="TimeToDo"></span>
             </div>
           </div>
           <ScrollPanel
@@ -5798,10 +5724,7 @@ const CloseVisible = () => {
                 memberType3 == 0
               "
             >
-              <div
-                class="col-12 p-0 m-0"
-                style=""
-              >
+              <div class="col-12 p-0 m-0" style="">
                 <Button
                   icon=" pi pi-caret-down"
                   iconPos="right"
@@ -5813,12 +5736,7 @@ const CloseVisible = () => {
                   type="button"
                   :style="{ 'background-color': datalists.bgColor }"
                 />
-                <Menu
-                  id="overlay_menu"
-                  ref="menu"
-                  :model="items"
-                  :popup="true"
-                >
+                <Menu id="overlay_menu" ref="menu" :model="items" :popup="true">
                   <template #item="{ item }">
                     <div
                       class="menu-hover text-xl w-full p-2"
@@ -5843,10 +5761,7 @@ const CloseVisible = () => {
               </div>
             </div>
             <div class="row col-12 p-0 m-0 py-2 my-1 pl-1">
-              <div
-                class="col-12 p-0 m-0"
-                style=""
-              >
+              <div class="col-12 p-0 m-0" style="">
                 <Button
                   icon="p-custom pi pi-info-circle"
                   label="Thông tin chung"
@@ -5868,10 +5783,7 @@ const CloseVisible = () => {
                   memberType3 == 0)
               "
             >
-              <div
-                class="col-12 p-0 m-0"
-                style=""
-              >
+              <div class="col-12 p-0 m-0" style="">
                 <Button
                   icon="p-custom pi pi-pencil"
                   label="Chỉnh sửa công việc"
@@ -5881,10 +5793,7 @@ const CloseVisible = () => {
               </div>
             </div>
             <div class="row col-12 p-0 m-0 py-2 my-1 pl-1">
-              <div
-                class="col-12 p-0 m-0"
-                style="position: relative"
-              >
+              <div class="col-12 p-0 m-0" style="position: relative">
                 <Button
                   class="p-button-raised p-button-text w-full py-3 text-left"
                   @click="Switch('2')"
@@ -5932,10 +5841,7 @@ const CloseVisible = () => {
               class="row col-12 p-0 m-0 py-2 my-1 pl-1"
               v-if="datalists.is_deadline == true"
             >
-              <div
-                class="col-12 p-0 m-0"
-                style="position: relative"
-              >
+              <div class="col-12 p-0 m-0" style="position: relative">
                 <Button
                   class="p-button-raised p-button-text w-full py-3 text-left"
                   @click="Switch('3')"
@@ -5969,10 +5875,7 @@ const CloseVisible = () => {
               </div>
             </div>
             <div class="row col-12 p-0 m-0 py-2 my-1 pl-1">
-              <div
-                class="col-12 p-0 m-0"
-                style="position: relative"
-              >
+              <div class="col-12 p-0 m-0" style="position: relative">
                 <Button
                   icon="p-custom pi pi-list"
                   label="Công việc con"
@@ -6001,10 +5904,7 @@ const CloseVisible = () => {
               </div>
             </div>
             <div class="row col-12 p-0 m-0 py-2 my-1 pl-1">
-              <div
-                class="col-12 p-0 m-0"
-                style="position: relative"
-              >
+              <div class="col-12 p-0 m-0" style="position: relative">
                 <Button
                   icon="p-custom pi  pi-sync"
                   label="Thiết lập quy trình"
@@ -6015,10 +5915,7 @@ const CloseVisible = () => {
               </div>
             </div>
             <div class="row col-12 p-0 m-0 py-2 my-1 pl-1">
-              <div
-                class="col-12 p-0 m-0"
-                style=""
-              >
+              <div class="col-12 p-0 m-0" style="">
                 <Button
                   icon="p-custom pi pi-users"
                   label="Quản lý thành viên"
@@ -6030,10 +5927,7 @@ const CloseVisible = () => {
             </div>
 
             <div class="row col-12 p-0 m-0 py-2 my-1 pl-1">
-              <div
-                class="col-12 p-0 m-0"
-                style=""
-              >
+              <div class="col-12 p-0 m-0" style="">
                 <Button
                   icon="p-custom pi pi-folder"
                   label="Quản lý tài liệu"
@@ -6044,10 +5938,7 @@ const CloseVisible = () => {
               </div>
             </div>
             <div class="row col-12 p-0 m-0 py-2 my-1 pl-1">
-              <div
-                class="col-12 p-0 m-0"
-                style=""
-              >
+              <div class="col-12 p-0 m-0" style="">
                 <Button
                   icon="p-custom pi pi-history"
                   label="Hoạt động"
@@ -6058,10 +5949,7 @@ const CloseVisible = () => {
               </div>
             </div>
             <div class="row col-12 p-0 m-0 py-2 my-1 pl-1">
-              <div
-                class="col-12 p-0 m-0"
-                style=""
-              >
+              <div class="col-12 p-0 m-0" style="">
                 <Button
                   class="p-button-raised p-button-text w-full py-3 text-left"
                   @click="Switch('8')"
@@ -6119,10 +6007,7 @@ const CloseVisible = () => {
                   memberType3 == 0)
               "
             >
-              <div
-                class="col-12 p-0 m-0"
-                style=""
-              >
+              <div class="col-12 p-0 m-0" style="">
                 <Button
                   icon="p-custom pi pi-lock"
                   label="Đóng công việc"
@@ -6141,10 +6026,7 @@ const CloseVisible = () => {
                 memberType3 == 0
               "
             >
-              <div
-                class="col-12 p-0 m-0"
-                style=""
-              >
+              <div class="col-12 p-0 m-0" style="">
                 <Button
                   icon="p-custom pi pi-trash"
                   label="Xóa công việc"
@@ -6204,10 +6086,7 @@ const CloseVisible = () => {
         </div>
         <div class="row col-12 w-full px-0 mx-0 format-center">
           <div class="block">
-            <img
-              src="../../assets/background/nodata.png"
-              height="300"
-            />
+            <img src="../../assets/background/nodata.png" height="300" />
             <h2 class="m-1">
               Công việc bảo mật, đã bị xóa hoặc không tồn tại.
             </h2>
@@ -6303,17 +6182,11 @@ const CloseVisible = () => {
           </small>
         </div>
 
-        <div
-          style="display: flex"
-          class="col-12 field md:col-12"
-        >
+        <div style="display: flex" class="col-12 field md:col-12">
           <div class="field col-6 md:col-6 p-0">
             <label class="col-6 text-left p-0">STT </label>
 
-            <InputNumber
-              v-model="checkList.is_order"
-              class="col-6 ip36 p-0"
-            />
+            <InputNumber v-model="checkList.is_order" class="col-6 ip36 p-0" />
           </div>
           <!-- <div class="field col-6 md:col-6 p-0 flex align-items-center">
             <label class="col-6 text-center p-0">Trạng thái </label>
@@ -6332,11 +6205,7 @@ const CloseVisible = () => {
         @click="closeDialog()"
         class="p-button-text"
       />
-      <Button
-        label="Lưu"
-        icon="pi pi-check"
-        @click="saveData(!v$.$invalid)"
-      />
+      <Button label="Lưu" icon="pi pi-check" @click="saveData(!v$.$invalid)" />
     </template>
   </Dialog>
   <Dialog
@@ -6420,16 +6289,8 @@ const CloseVisible = () => {
       </FileUpload>
     </form>
     <template #footer>
-      <Button
-        label="Hủy"
-        icon="pi pi-times"
-        @click="closeFileUpload"
-      />
-      <Button
-        label="Lưu"
-        icon="pi pi-check"
-        @click="Upload"
-      />
+      <Button label="Hủy" icon="pi pi-times" @click="closeFileUpload" />
+      <Button label="Lưu" icon="pi pi-check" @click="Upload" />
     </template>
     <!-- Chức năng đang chỉnh sửa vui lòng liên hệ quản trị viên phần mềm -->
   </Dialog>
@@ -6439,10 +6300,7 @@ const CloseVisible = () => {
     :style="{ width: '30vw' }"
     :closable="true"
   >
-    <div
-      style="display: flex"
-      class="field col-12 md:col-12 px-0"
-    >
+    <div style="display: flex" class="field col-12 md:col-12 px-0">
       <small
         v-if="
           (validateStatusTask.end_date.$invalid && sbmStatusTask) ||
@@ -6476,11 +6334,7 @@ const CloseVisible = () => {
       :inline="true"
     />
     <template #footer>
-      <Button
-        label="Hủy"
-        icon="pi pi-times"
-        @click="closeStatusTask()"
-      />
+      <Button label="Hủy" icon="pi pi-times" @click="closeStatusTask()" />
       <Button
         label="Lưu"
         icon="pi pi-check"
@@ -6488,7 +6342,7 @@ const CloseVisible = () => {
           UpdateStatusTaksFunc(
             end_date.stt,
             end_date.end_date,
-            !validateStatusTask.$invalid,
+            !validateStatusTask.$invalid
           )
         "
       />
@@ -6503,11 +6357,7 @@ const CloseVisible = () => {
     id="overlay_panel"
   >
     <template #item="{ item }">
-      <a
-        download
-        style="text-decoration: none"
-        class="a-hover format-center"
-      >
+      <a download style="text-decoration: none" class="a-hover format-center">
         <Button
           :icon="item.icon"
           class="w-full p-button-text p-button-secondary p-button-hover-file"
@@ -6518,10 +6368,7 @@ const CloseVisible = () => {
       </a>
     </template>
   </Menu>
-  <FileInfoVue
-    :data="fileInfo"
-    v-if="isViewFileInfo"
-  ></FileInfoVue>
+  <FileInfoVue :data="fileInfo" v-if="isViewFileInfo"></FileInfoVue>
   <TaskCheckListDetailVue
     :id="props.id"
     :member="members"
@@ -6620,10 +6467,7 @@ const CloseVisible = () => {
               >
                 <template #body="md">
                   <div style="display: flex; align-items: center">
-                    <Checkbox
-                      v-model="md.data.is_check"
-                      :binary="true"
-                    />
+                    <Checkbox v-model="md.data.is_check" :binary="true" />
                   </div>
                 </template>
               </Column>
@@ -6691,7 +6535,7 @@ const CloseVisible = () => {
                         >{{
                           data.data.start_date
                             ? moment(new Date(data.data.start_date)).format(
-                                "DD/MM/YYYY",
+                                "DD/MM/YYYY"
                               )
                             : null
                         }}
@@ -6699,7 +6543,7 @@ const CloseVisible = () => {
                         {{
                           data.data.end_date
                             ? moment(new Date(data.data.end_date)).format(
-                                "DD/MM/YYYY",
+                                "DD/MM/YYYY"
                               )
                             : null
                         }}</span
@@ -6822,10 +6666,7 @@ const CloseVisible = () => {
                   <span v-if="data.data.progress == 0"
                     >{{ data.data.progress }} %</span
                   >
-                  <div
-                    v-if="data.data.progress != 0"
-                    style="width: 100%"
-                  >
+                  <div v-if="data.data.progress != 0" style="width: 100%">
                     <ProgressBar :value="data.data.progress" />
                   </div>
                 </template>
@@ -6872,7 +6713,7 @@ const CloseVisible = () => {
                       style="color: #ffab2b; font-size: 13px; font-weight: bold"
                       >{{
                         moment(new Date(data.data.update_date)).format(
-                          "DD/MM/YYYY",
+                          "DD/MM/YYYY"
                         )
                       }}</span
                     >
@@ -6906,10 +6747,7 @@ const CloseVisible = () => {
                   "
                   v-if="!isFirst"
                 >
-                  <img
-                    src="../../assets/background/nodata.png"
-                    height="144"
-                  />
+                  <img src="../../assets/background/nodata.png" height="144" />
                   <h3 class="m-1">Không có dữ liệu</h3>
                 </div>
               </template>
@@ -6925,11 +6763,7 @@ const CloseVisible = () => {
         @click="closeDialogLinkTask"
         class="p-button-text"
       />
-      <Button
-        label="Lưu"
-        icon="pi pi-check"
-        @click="saveAddLinkTask()"
-      />
+      <Button label="Lưu" icon="pi pi-check" @click="saveAddLinkTask()" />
     </template>
   </Dialog>
   <DialogTask

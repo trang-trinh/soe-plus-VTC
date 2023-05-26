@@ -66,6 +66,7 @@ const bgColor = ref([
 ]);
 const dictionarys = ref({});
 const profile = ref({});
+const reports = ref([]);
 
 //Fucntion
 const componentKey = ref({});
@@ -91,7 +92,103 @@ const closeDialog = () => {
   forceRerender(0);
 };
 
+//print
+const menuButPrints = ref();
+const itemButPrints = ref([
+  {
+    view: 13,
+    label: "Sơ yếu lý lịch(Mẫu 2C-BNV/2008)",
+    icon: "fa-regular fa-file",
+    command: (event) => {
+      goPrint(13);
+    },
+  },
+  {
+    view: 14,
+    label: "Sơ yếu lý lịch (Mẫu 2C/TCTW-98)",
+    icon: "fa-regular fa-file",
+    command: (event) => {
+      goPrint(14);
+    },
+  },
+  // {
+  //   view: 15,
+  //   label: "Sổ lao động mẫu 145/2020/NĐ-CP",
+  //   icon: "fa-regular fa-file",
+  //   command: (event) => {
+  //     goPrint(15);
+  //   },
+  // },
+]);
+const togglePrints = (event) => {
+  menuButPrints.value.toggle(event);
+};
+
+const goPrint = (key) => {
+  let o = {
+    id: key,
+    par: { profile_id: profile.value.profile_id },
+  };
+  let url = encodeURIComponent(
+    encr(JSON.stringify(o), SecretKey, cryoptojs).toString()
+  );
+  url =
+    "/hrm/profile/report/" +
+    url.replaceAll("%", "==") +
+    "?v=" +
+    new Date().getTime().toString();
+  if (router)
+    router.push({
+      path: url,
+    });
+  // forceRerender(3);
+  // options.value.view = view;
+};
+
 //init
+const initReport = () => {
+  reports.value = [];
+  itemButPrints.value = [];
+  axios
+    .post(
+      baseURL + "/api/hrm/callProc",
+      {
+        str: encr(
+          JSON.stringify({
+            proc: "hrm_organization_report_list",
+            par: [{ par: "user_id", va: store.getters.user.user_id }],
+          }),
+          SecretKey,
+          cryoptojs
+        ).toString(),
+      },
+      config
+    )
+    .then((response) => {
+      if (response != null && response.data != null) {
+        var data = response.data.data;
+
+        if (data != null) {
+          let tbs = JSON.parse(data);
+          if (tbs[0] && tbs[0].length > 0) {
+            reports.value = tbs[0];
+            tbs[0].forEach((item) => {
+              let obj = {
+                report_key: item.report_key,
+                view: 13,
+                label: item.report_title,
+                icon: "fa-regular fa-file",
+                command: (event) => {
+                  goPrint(item.report_key);
+                },
+              };
+              itemButPrints.value.push(obj);
+            });
+          }
+        }
+      }
+    });
+};
 const initDictionary = () => {
   axios
     .post(
@@ -197,13 +294,17 @@ const initData = (ref) => {
     });
 };
 onMounted(() => {
-  initDictionary();
   initData();
+  initDictionary();
+  initReport();
 });
 </script>
 <template>
   <div class="surface-100 p-2" style="overflow: hidden">
-    <Toolbar class="outline-none surface-0 border-none pb-0">
+    <Toolbar
+      class="outline-none surface-0 border-none"
+      :style="{ background: 'aliceblue !important' }"
+    >
       <template #start>
         <div class="flex">
           <div class="relative mr-5">
@@ -286,10 +387,51 @@ onMounted(() => {
       <template #end>
         <Button
           @click="openEditDialog('Cập nhật thông tin hồ sơ')"
-          class="p-button-warning"
+          class="p-button-warning mr-2"
           icon="pi pi-pencil"
-          label="Cập nhật thông tin"
+          label="Cập nhật thay đổi thông tin"
         />
+
+        <Button
+          @click="
+            togglePrints($event);
+            $event.stopPropagation();
+          "
+          class="p-button-outlined p-button-secondary p-button-custom'"
+        >
+          <span class="mr-2"
+            ><font-awesome-icon icon="fa-solid fa-print"
+          /></span>
+          <span class="mr-2">In</span>
+          <span><i class="pi pi-chevron-down"></i></span>
+        </Button>
+        <OverlayPanel
+          :showCloseIcon="false"
+          ref="menuButPrints"
+          appendTo="body"
+          class="p-0 m-0"
+          id="overlay_More"
+          style="min-width: max-content"
+        >
+          <ul class="m-0 p-0" style="list-style: none">
+            <li
+              v-for="(value, key) in itemButPrints"
+              :key="key"
+              @click="goPrint(value.report_key)"
+              class="item-menu"
+              :class="{
+                'item-menu-highlight': value.view === options.view,
+              }"
+            >
+              <div>
+                <span :class="{ 'mr-2': value.label != null }"
+                  ><font-awesome-icon :icon="value.icon"
+                /></span>
+                <span>{{ value.label }}</span>
+              </div>
+            </li>
+          </ul>
+        </OverlayPanel>
       </template>
     </Toolbar>
     <div class="tabview">
@@ -314,7 +456,7 @@ onMounted(() => {
       :style="{
         overflowY: 'auto',
         minHeight: 'unset',
-        maxHeight: 'calc(100vh - 220px)',
+        maxHeight: 'calc(100vh - 230px)',
       }"
     >
       <comview1
@@ -361,7 +503,7 @@ onMounted(() => {
   </div>
 
   <!--Dialog-->
-  <dialogmyprofile 
+  <dialogmyprofile
     :key="componentKey['0']"
     :headerDialog="headerDialog"
     :displayDialog="displayDialog"
@@ -407,6 +549,24 @@ onMounted(() => {
   flex: 1 1 auto;
   padding: 1rem;
   overflow: hidden;
+}
+.item-menu {
+  padding: 0.75rem 1rem;
+  cursor: pointer;
+  background: #ffffff;
+  color: #495057;
+  transition: background-color 0.2s, color 0.2s, border-color 0.2s,
+    box-shadow 0.2s;
+}
+.item-menu:hover {
+  background: #e9ecef;
+  border-color: #ced4da;
+  color: #495057;
+}
+.item-menu-highlight {
+  background: #2196f3 !important;
+  border-color: #2196f3 !important;
+  color: #ffffff !important;
 }
 </style>
 <style lang="scss" scoped>
