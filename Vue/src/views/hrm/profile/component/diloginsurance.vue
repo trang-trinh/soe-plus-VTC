@@ -270,7 +270,6 @@ const initData = (rf) => {
         }
         insurance.value.profile_id = props.profile.profile_id;
         //get child
-        debugger
         if (tbs[1] != null && tbs[1].length > 0) {
           insurance_pays.value = tbs[1];
           insurance_pays.value.forEach((item) => {

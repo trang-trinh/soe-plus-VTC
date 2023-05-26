@@ -254,14 +254,14 @@ const LoadMember = (type) => {
         x.listType = [];
         let filter = byDate.filter((a) => a.user_id === x.user_id);
         x.data = JSON.parse(JSON.stringify(filter));
-        console.log(filter);
+   
         if (filter.length > 0) {
           filter.forEach((k) => {
             x.listType.push(k.is_type);
           });
         }
       });
-      console.log(listUser);
+
       if (type == null) {
         members.value = JSON.parse(JSON.stringify(listUser));
       } else {

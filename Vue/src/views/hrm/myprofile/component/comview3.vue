@@ -344,8 +344,8 @@ const onPage = (event) => {
         <Column
           field="contract_code"
           header="Số HĐ"
-          headerStyle="text-align:center;max-width:100px;height:50px"
-          bodyStyle="text-align:center;max-width:100px;"
+          headerStyle="text-align:center;max-width:150px;height:50px"
+          bodyStyle="text-align:center;max-width:150px;"
           class="align-items-center justify-content-center text-center"
         />
         <Column
@@ -494,7 +494,7 @@ const onPage = (event) => {
 <style scoped>
 @import url(../../contract/component/stylehrm.css);
 .d-lang-table {
-  height: calc(100vh - 220px);
+  height: calc(100vh - 230px);
   overflow-y: auto;
   background-color: #fff;
 }

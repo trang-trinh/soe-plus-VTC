@@ -23,6 +23,8 @@ const ConfigAprrovedGroups = () =>
 const FollowTemplate = () => import("../views/tasks/config/FollowTemplate.vue");
 const ConfigProcess = () =>
   import("../views/hethong/process/ConfigProcess.vue");
+const Helper = () => import("../views/hethong/Helper.vue");
+const HelperView = () => import("../views/hethong/HelperView.vue");
 
 //Scraper
 // const ScraperView = () =>
@@ -311,8 +313,10 @@ const HRM_Report_Config = () =>
   import("../views/hrm/template/ProfileDetails.vue");
   const PayrollDetails = () =>
   import("../views/hrm/payroll/PayrollDetails.vue");
+  const HRMMyreview = () =>
+  import("../views/hrm/review/myReview.vue");
   
-
+  
   
 //end
 // TV
@@ -607,6 +611,16 @@ const router = createRouter({
       path: "/system/organization",
       name: "organization",
       component: Organization,
+    },
+    {
+      path: "/system/helper",
+      name: "helper",
+      component: Helper,
+    },
+    {
+      path: "/helperview",
+      name: "helperview",
+      component: HelperView,
     },
     //Danh mục
     {
@@ -2145,6 +2159,11 @@ const router = createRouter({
       path: "/hrm/payroll/hrm_payroll/details/:id",
       name: "/payroll/payrolldetails",
       component: PayrollDetails,
+    },
+    {
+      path: "/hrm/review/myreview",
+      name: "HRMMyreview",
+      component: HRMMyreview,
     },
     // Request
     {

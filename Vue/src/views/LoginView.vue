@@ -494,6 +494,7 @@ input.invalid {
   left: 0;
   display: flex;
   align-items: center;
+  min-height: 4.5rem;
 }
 
 .login-org .org-logo {

@@ -244,19 +244,19 @@ const initView2 = (rf) => {
               item["text_color"] = typestatus.value[1]["text_color"];
             }
             if (item["start_date"] != null) {
-              item["start_date"] = moment(new Date(item["start_date"])).format(
-                "DD/MM/YYYY"
-              );
+              item["start_date_string"] = moment(
+                new Date(item["start_date"])
+              ).format("DD/MM/YYYY");
             }
             if (item["end_date"] != null) {
-              item["end_date"] = moment(new Date(item["end_date"])).format(
-                "DD/MM/YYYY"
-              );
+              item["end_date_string"] = moment(
+                new Date(item["end_date"])
+              ).format("DD/MM/YYYY");
             }
             if (item["sign_date"] != null) {
-              item["sign_date"] = moment(new Date(item["sign_date"])).format(
-                "DD/MM/YYYY"
-              );
+              item["sign_date_string"] = moment(
+                new Date(item["sign_date"])
+              ).format("DD/MM/YYYY");
             }
           });
           tasks.value = tbs[0];
@@ -361,7 +361,12 @@ onMounted(() => {
             </template>
             <template #subtitle>
               <div class="w-full text-left">
-                {{ slotProps.item.start_date }}
+                <div>
+                  Từ: <b>{{ slotProps.item.start_date_string }}</b>
+                  <span v-if="slotProps.item.end_date_string">
+                    Đến: <b>{{ slotProps.item.end_date_string }}</b>
+                  </span>
+                </div>
               </div>
             </template>
             <template #content>

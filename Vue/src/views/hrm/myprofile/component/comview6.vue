@@ -322,7 +322,7 @@ onMounted(() => {
 </template>
 <style scoped>
 .box-table {
-  height: calc(100vh - 220px) !important;
+  height: calc(100vh - 230px) !important;
   background-color: #fff;
   overflow: auto;
 }

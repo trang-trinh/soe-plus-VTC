@@ -1041,7 +1041,7 @@ onMounted(() => {
                       :showClear="true"
                       :options="[
                         { value: 1, title: 'Về bản thân' },
-                        { value: 2, title: 'Về bên vợ' },
+                        { value: 2, title: 'Về bên vợ/chồng' },
                       ]"
                       optionLabel="title"
                       optionValue="value"
@@ -1152,6 +1152,142 @@ onMounted(() => {
                   />
                 </template>
               </Column>
+              <Column
+                      field="countryside"
+                      header="Quê quán"
+                      headerStyle="text-align:center;width:150px;height:50px"
+                      bodyStyle="text-align:center;width:150px;"
+                      class="align-items-center justify-content-center text-center"
+                    >
+                      <template #body="slotProps">
+                        <InputText
+                          v-model="slotProps.data.countryside"
+                          spellcheck="false"
+                          type="text"
+                          class="ip36"
+                          maxLength="500"
+                        />
+                      </template>
+                    </Column>
+                    <Column
+                      field="occupation"
+                      header="Nghề nghiệp"
+                      headerStyle="text-align:center;width:150px;height:50px"
+                      bodyStyle="text-align:center;width:150px;"
+                      class="align-items-center justify-content-center text-center"
+                    >
+                      <template #body="slotProps">
+                        <InputText
+                          v-model="slotProps.data.occupation"
+                          spellcheck="false"
+                          type="text"
+                          class="ip36"
+                          maxLength="500"
+                        />
+                      </template>
+                    </Column>
+                    <Column
+                      field="education"
+                      header="Học tập"
+                      headerStyle="text-align:center;width:150px;height:50px"
+                      bodyStyle="text-align:center;width:150px;"
+                      class="align-items-center justify-content-center text-center"
+                    >
+                      <template #body="slotProps">
+                        <InputText
+                          v-model="slotProps.data.education"
+                          spellcheck="false"
+                          type="text"
+                          class="ip36"
+                          maxLength="500"
+                        />
+                      </template>
+                    </Column>
+                    <Column
+                      field="company"
+                      header="Đơn vị công tác"
+                      headerStyle="text-align:center;width:150px;height:50px"
+                      bodyStyle="text-align:center;width:150px;"
+                      class="align-items-center justify-content-center text-center"
+                    >
+                      <template #body="slotProps">
+                        <InputText
+                          v-model="slotProps.data.company"
+                          spellcheck="false"
+                          type="text"
+                          class="ip36"
+                          maxLength="500"
+                        />
+                      </template>
+                    </Column>
+                    <Column
+                      field="title"
+                      header="Chức danh"
+                      headerStyle="text-align:center;width:150px;height:50px"
+                      bodyStyle="text-align:center;width:150px;"
+                      class="align-items-center justify-content-center text-center"
+                    >
+                      <template #body="slotProps">
+                        <InputText
+                          v-model="slotProps.data.title"
+                          spellcheck="false"
+                          type="text"
+                          class="ip36"
+                          maxLength="500"
+                        />
+                      </template>
+                    </Column>
+                    <Column
+                      field="position"
+                      header="Chức vụ"
+                      headerStyle="text-align:center;width:150px;height:50px"
+                      bodyStyle="text-align:center;width:150px;"
+                      class="align-items-center justify-content-center text-center"
+                    >
+                      <template #body="slotProps">
+                        <InputText
+                          v-model="slotProps.data.position"
+                          spellcheck="false"
+                          type="text"
+                          class="ip36"
+                          maxLength="500"
+                        />
+                      </template>
+                    </Column>
+                    <Column
+                      field="address"
+                      header="Nơi ở hiện nay"
+                      headerStyle="text-align:center;width:150px;height:50px"
+                      bodyStyle="text-align:center;width:150px;"
+                      class="align-items-center justify-content-center text-center"
+                    >
+                      <template #body="slotProps">
+                        <InputText
+                          v-model="slotProps.data.address"
+                          spellcheck="false"
+                          type="text"
+                          class="ip36"
+                          maxLength="500"
+                        />
+                      </template>
+                    </Column>
+                    <Column
+                      field="organization"
+                      header="Thành viên tổ chức CTXH"
+                      headerStyle="text-align:center;width:150px;height:50px"
+                      bodyStyle="text-align:center;width:150px;"
+                      class="align-items-center justify-content-center text-center"
+                    >
+                      <template #body="slotProps">
+                        <InputText
+                          v-model="slotProps.data.organization"
+                          spellcheck="false"
+                          type="text"
+                          class="ip36"
+                          maxLength="500"
+                        />
+                      </template>
+                    </Column>
               <Column
                 field="identification_citizen"
                 header="CCCD/Hộ chiếu"

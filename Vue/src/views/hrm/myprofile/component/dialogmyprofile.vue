@@ -44,6 +44,7 @@ const listPlaceDetails4 = ref([]);
 //Declare
 const options = ref({
   loading: true,
+  history_id: null,
 });
 const genders = ref([
   { value: 1, text: "Nam" },
@@ -58,8 +59,22 @@ const marital_status = ref([
 const model = ref({});
 const datachilds = ref([]);
 const files = ref([]);
+const historys = ref([]);
+const history_status = ref([
+  { value: -1, title: "Bản gốc", bgc: "#f7dc6f", tc: "#495057" },
+  { value: 0, title: "Dự thảo", bgc: "#dddddd", tc: "#495057" },
+  { value: 1, title: "Chờ duyệt", bgc: "#d6eaf8", tc: "#495057" },
+  { value: 2, title: "Đã duyệt", bgc: "#afe362", tc: "#495057" },
+  { value: 3, title: "Trả lại", bgc: "#f5b7b1", tc: "#495057" },
+]);
 
 //function
+const goHistory = (item) => {
+  options.value.history_id = item.history_id;
+  initData(true);
+};
+
+//
 const submitted = ref(false);
 const saveModel = (is_continue) => {
   submitted.value = true;
@@ -160,7 +175,7 @@ const saveModel = (is_continue) => {
     }
   }
   axios
-    .put(baseURL + "/api/hrm_profile/update_profile", formData, config)
+    .put(baseURL + "/api/hrm_profile/update_profile_history", formData, config)
     .then((response) => {
       if (response.data.err === "1") {
         swal.fire({
@@ -386,7 +401,6 @@ const initData = (rf) => {
       },
     });
   }
-
   datachilds.value = [];
   files.value = [];
   submitted.value = false;
@@ -397,8 +411,11 @@ const initData = (rf) => {
       {
         str: encr(
           JSON.stringify({
-            proc: "hrm_profile_get_2",
-            par: [{ par: "profile_id", va: props.profile.profile_id }],
+            proc: "hrm_myprofile_by_history",
+            par: [
+              { par: "profile_id", va: props.profile.profile_id },
+              { par: "history_id", va: options.value.history_id },
+            ],
           }),
           SecretKey,
           cryoptojs
@@ -568,10 +585,99 @@ const initData = (rf) => {
       }
     });
 };
+const initHistory = (rf) => {
+  if (rf) {
+    swal.fire({
+      width: 110,
+      didOpen: () => {
+        swal.showLoading();
+      },
+    });
+  }
+  options.value.loading = true;
+  axios
+    .post(
+      baseURL + "/api/hrm/callProc",
+      {
+        str: encr(
+          JSON.stringify({
+            proc: "hrm_profile_history_list",
+            par: [{ par: "profile_id", va: props.profile.profile_id }],
+          }),
+          SecretKey,
+          cryoptojs
+        ).toString(),
+      },
+      config
+    )
+    .then((response) => {
+      var data = response.data.data;
+      if (data != null) {
+        var tbs = JSON.parse(data);
+        if (tbs[0] != null && tbs[0].length > 0) {
+          tbs[0].forEach((item) => {
+            if (item.history_id == null) {
+              item.history_id = null;
+            }
+            if (item.created_date != null) {
+              item.created_date_string = moment(
+                new Date(item.created_date)
+              ).format("DD/MM/YYYY");
+            }
+            if (item.approve_date != null) {
+              item.approve_date_string = moment(
+                new Date(item.approve_date)
+              ).format("HH:mm DD/MM/YYYY");
+            }
+            if (item.is_approve != null) {
+            }
+            var idx = history_status.value.findIndex(
+              (x) => x.value == item.is_approve
+            );
+            if (idx !== -1) {
+              item.approve_name = history_status.value[idx].title;
+              item.bgc = history_status.value[idx].bgc;
+              item.tc = history_status.value[idx].tc;
+            }
+          });
+          historys.value = tbs[0];
+          options.value.history_id = historys.value[0].history_id || null;
+        } else {
+          historys.value = [];
+        }
+        initData(true);
+      }
+      if (rf) {
+        swal.close();
+      }
+      if (options.value.loading) options.value.loading = false;
+    })
+    .catch((error) => {
+      swal.close();
+      if (error && error.status === 401) {
+        swal.fire({
+          title: "Thông báo!",
+          text: "Mã token đã hết hạn hoặc không hợp lệ, vui lòng đăng nhập lại!",
+          icon: "error",
+          confirmButtonText: "OK",
+        });
+        store.commit("gologout");
+        return;
+      } else {
+        swal.fire({
+          title: "Thông báo!",
+          text: "Có lỗi xảy ra, vui lòng kiểm tra lại!",
+          icon: "error",
+          confirmButtonText: "OK",
+        });
+        return;
+      }
+    });
+};
 onMounted(() => {
   if (props.displayDialog) {
     if (!props.isAdd) {
-      initData(true);
+      initHistory();
     } else {
       genCode();
     }
@@ -587,7 +693,7 @@ onMounted(() => {
     :showCloseIcon="false"
     :autoZIndex="true"
     class="position-relative profile-edit"
-    :style="{ width: '72vw !important' }"
+    :style="{ width: '82vw !important' }"
   >
     <template #header>
       <Toolbar class="outline-none surface-0 border-none w-full">
@@ -605,7 +711,117 @@ onMounted(() => {
     </template>
     <form @submit.prevent="" name="submitform">
       <div class="grid formgrid m-2">
-        <div class="col-12 md:col-12">
+        <div class="p-0" :class="props.isAdd == true ? '' : 'col-3 md:col-3'">
+          <div class="row">
+            <div
+              v-if="historys && historys.length > 0"
+              class="col-12 md:col-12 p-0"
+            >
+              <Timeline
+                :value="historys"
+                align="alternate"
+                class="customized-timeline"
+              >
+                <template #marker="slotProps">
+                  <span
+                    class="flex w-2rem h-2rem align-items-center justify-content-center text-white border-circle z-1 shadow-1"
+                    :style="{
+                      backgroundColor: '#0078d4',
+                    }"
+                  >
+                    <i class="pi pi-clock"></i>
+                  </span>
+                </template>
+                <template #content="slotProps">
+                  <Card
+                    @click="goHistory(slotProps.item)"
+                    :style="{
+                      backgroundColor: slotProps.item.bgc,
+                      color: slotProps.item.tc,
+                    }"
+                    :class="{
+                      'profile-history-active':
+                        slotProps.item.history_id === options.history_id,
+                    }"
+                    class="profile-history mb-5"
+                  >
+                    <template #subtitle>
+                      <div
+                        class="w-full text-left flex justify-content-between"
+                      >
+                        <div :style="{ color: '#000' }">
+                          <span v-if="slotProps.item.is_root">Bản gốc</span>
+                          <span v-else
+                            >Lần thay đổi: {{ slotProps.item.is_order }}</span
+                          >
+                        </div>
+                        <div
+                          v-tooltip.top="'Ngày tạo'"
+                          :style="{ fontSize: '12px' }"
+                        >
+                          <span>{{ slotProps.item.created_date_string }}</span>
+                        </div>
+                      </div>
+                    </template>
+                    <template #content>
+                      <div class="w-full text-left">
+                        <div v-if="slotProps.item.is_approve > 0">
+                          <div class="mb-2">
+                            Người duyệt:
+                            <Avatar
+                              v-bind:label="
+                                slotProps.item.avatar
+                                  ? ''
+                                  : (slotProps.item.profile_last_name ?? '')
+                                      .substring(0, 1)
+                                      .toUpperCase()
+                              "
+                              v-bind:image="
+                                slotProps.item.avatar
+                                  ? basedomainURL + slotProps.item.avatar
+                                  : basedomainURL + '/Portals/Image/noimg.jpg'
+                              "
+                              v-tooltip.top="slotProps.item.profile_name"
+                              :style="{
+                                background: '#ffffff',
+                                color: bgColor[slotProps.index % 7],
+                                width: '2rem',
+                                height: '2rem',
+                                fontSize: '1rem !important',
+                                borderRadius: '50%',
+                              }"
+                              size="xlarge"
+                              class="border-radius"
+                            />
+                          </div>
+                          <div class="mb-2">
+                            Ngày duyệt:
+                            <span>{{
+                              slotProps.item.approve_date_string
+                            }}</span>
+                          </div>
+                        </div>
+                        <div>
+                          Trạng thái:
+                          <span>{{ slotProps.item.approve_name }}</span>
+                        </div>
+                      </div>
+                    </template>
+                  </Card>
+                </template>
+              </Timeline>
+            </div>
+            <div v-else-if="!options.loading" class="col-12 md:col-12 p-0">
+              <div class="description format-center">
+                Hiện chưa có lịch sử ghi nhận
+              </div>
+            </div>
+          </div>
+        </div>
+        <div
+          class="col-9 md:col-9"
+          :class="props.isAdd ? 'col-12 md:col-12' : 'col-9 md:col-9'"
+        >
           <Accordion class="w-full" :activeIndex="0">
             <!-- 1. Thông tin chung -->
             <AccordionTab>
@@ -668,6 +884,8 @@ onMounted(() => {
                                 :class="{
                                   'p-invalid': !model.profile_code && submitted,
                                 }"
+                                maxLength="250"
+                                disabled
                               />
                               <div v-if="!model.profile_code && submitted">
                                 <small class="p-error">
@@ -687,6 +905,7 @@ onMounted(() => {
                                 v-model="model.recruitment_date"
                                 :showIcon="true"
                                 placeholder="dd/mm/yyyy"
+                                disabled
                               />
                             </div>
                           </div>
@@ -704,6 +923,7 @@ onMounted(() => {
                                 :class="{
                                   'p-invalid': !model.profile_code && submitted,
                                 }"
+                                disabled
                               />
                               <div v-if="!model.profile_user_name && submitted">
                                 <small class="p-error">
@@ -719,6 +939,8 @@ onMounted(() => {
                                 spellcheck="false"
                                 class="ip36"
                                 v-model="model.superior_id"
+                                maxLength="50"
+                                disabled
                               />
                             </div>
                           </div>
@@ -752,6 +974,8 @@ onMounted(() => {
                                 spellcheck="false"
                                 class="ip36"
                                 v-model="model.check_in_id"
+                                maxLength="50"
+                                disabled
                               />
                             </div>
                           </div>
@@ -3196,142 +3420,6 @@ onMounted(() => {
                       </template>
                     </Column>
                     <Column
-                      field="countryside"
-                      header="Quê quán"
-                      headerStyle="text-align:center;width:150px;height:50px"
-                      bodyStyle="text-align:center;width:150px;"
-                      class="align-items-center justify-content-center text-center"
-                    >
-                      <template #body="slotProps">
-                        <InputText
-                          v-model="slotProps.data.countryside"
-                          spellcheck="false"
-                          type="text"
-                          class="ip36"
-                          maxLength="500"
-                        />
-                      </template>
-                    </Column>
-                    <Column
-                      field="occupation"
-                      header="Nghề nghiệp"
-                      headerStyle="text-align:center;width:150px;height:50px"
-                      bodyStyle="text-align:center;width:150px;"
-                      class="align-items-center justify-content-center text-center"
-                    >
-                      <template #body="slotProps">
-                        <InputText
-                          v-model="slotProps.data.occupation"
-                          spellcheck="false"
-                          type="text"
-                          class="ip36"
-                          maxLength="500"
-                        />
-                      </template>
-                    </Column>
-                    <Column
-                      field="education"
-                      header="Học tập"
-                      headerStyle="text-align:center;width:150px;height:50px"
-                      bodyStyle="text-align:center;width:150px;"
-                      class="align-items-center justify-content-center text-center"
-                    >
-                      <template #body="slotProps">
-                        <InputText
-                          v-model="slotProps.data.education"
-                          spellcheck="false"
-                          type="text"
-                          class="ip36"
-                          maxLength="500"
-                        />
-                      </template>
-                    </Column>
-                    <Column
-                      field="company"
-                      header="Đơn vị công tác"
-                      headerStyle="text-align:center;width:150px;height:50px"
-                      bodyStyle="text-align:center;width:150px;"
-                      class="align-items-center justify-content-center text-center"
-                    >
-                      <template #body="slotProps">
-                        <InputText
-                          v-model="slotProps.data.company"
-                          spellcheck="false"
-                          type="text"
-                          class="ip36"
-                          maxLength="500"
-                        />
-                      </template>
-                    </Column>
-                    <Column
-                      field="title"
-                      header="Chức danh"
-                      headerStyle="text-align:center;width:150px;height:50px"
-                      bodyStyle="text-align:center;width:150px;"
-                      class="align-items-center justify-content-center text-center"
-                    >
-                      <template #body="slotProps">
-                        <InputText
-                          v-model="slotProps.data.title"
-                          spellcheck="false"
-                          type="text"
-                          class="ip36"
-                          maxLength="500"
-                        />
-                      </template>
-                    </Column>
-                    <Column
-                      field="position"
-                      header="Chức vụ"
-                      headerStyle="text-align:center;width:150px;height:50px"
-                      bodyStyle="text-align:center;width:150px;"
-                      class="align-items-center justify-content-center text-center"
-                    >
-                      <template #body="slotProps">
-                        <InputText
-                          v-model="slotProps.data.position"
-                          spellcheck="false"
-                          type="text"
-                          class="ip36"
-                          maxLength="500"
-                        />
-                      </template>
-                    </Column>
-                    <Column
-                      field="address"
-                      header="Nơi ở hiện nay"
-                      headerStyle="text-align:center;width:150px;height:50px"
-                      bodyStyle="text-align:center;width:150px;"
-                      class="align-items-center justify-content-center text-center"
-                    >
-                      <template #body="slotProps">
-                        <InputText
-                          v-model="slotProps.data.address"
-                          spellcheck="false"
-                          type="text"
-                          class="ip36"
-                          maxLength="500"
-                        />
-                      </template>
-                    </Column>
-                    <Column
-                      field="organization"
-                      header="Thành viên tổ chức CTXH"
-                      headerStyle="text-align:center;width:150px;height:50px"
-                      bodyStyle="text-align:center;width:150px;"
-                      class="align-items-center justify-content-center text-center"
-                    >
-                      <template #body="slotProps">
-                        <InputText
-                          v-model="slotProps.data.organization"
-                          spellcheck="false"
-                          type="text"
-                          class="ip36"
-                          maxLength="500"
-                        />
-                      </template>
-                    </Column>
-                    <Column
                       field="identification_citizen"
                       header="CCCD/Hộ chiếu"
                       headerStyle="text-align:center;width:150px;height:50px"
@@ -4009,102 +4097,6 @@ onMounted(() => {
             />
           </div>
         </div>
-        <div class="col-4 md:col-4">
-          <div class="form-group">
-            <label>Quê quán</label>
-            <InputText
-              v-model="modeldetail.countryside"
-              spellcheck="false"
-              type="text"
-              class="ip36"
-              maxLength="500"
-            />
-          </div>
-        </div>
-        <div class="col-4 md:col-4">
-          <div class="form-group">
-            <label>Nghề nghiệp</label>
-            <InputText
-              v-model="modeldetail.occupation"
-              spellcheck="false"
-              type="text"
-              class="ip36"
-              maxLength="500"
-            />
-          </div>
-        </div>
-        <div class="col-4 md:col-4">
-          <div class="form-group">
-            <label>Học tập</label>
-            <InputText
-              v-model="modeldetail.education"
-              spellcheck="false"
-              type="text"
-              class="ip36"
-              maxLength="500"
-            />
-          </div>
-        </div>
-        <div class="col-4 md:col-4">
-          <div class="form-group">
-            <label>Đơn vị công tác</label>
-            <InputText
-              v-model="modeldetail.company"
-              spellcheck="false"
-              type="text"
-              class="ip36"
-              maxLength="500"
-            />
-          </div>
-        </div>
-        <div class="col-4 md:col-4">
-          <div class="form-group">
-            <label>Chức danh</label>
-            <InputText
-              v-model="modeldetail.title"
-              spellcheck="false"
-              type="text"
-              class="ip36"
-              maxLength="500"
-            />
-          </div>
-        </div>
-        <div class="col-4 md:col-4">
-          <div class="form-group">
-            <label>Chức vụ</label>
-            <InputText
-              v-model="modeldetail.position"
-              spellcheck="false"
-              type="text"
-              class="ip36"
-              maxLength="500"
-            />
-          </div>
-        </div>
-        <div class="col-6 md:col-6">
-          <div class="form-group">
-            <label>Nơi ở hiện nay</label>
-            <InputText
-              v-model="modeldetail.address"
-              spellcheck="false"
-              type="text"
-              class="ip36"
-              maxLength="500"
-            />
-          </div>
-        </div>
-        <div class="col-6 md:col-6">
-          <div class="form-group">
-            <label>Thành viên tổ chức CTXH</label>
-            <InputText
-              v-model="modeldetail.organization"
-              spellcheck="false"
-              type="text"
-              class="ip36"
-              maxLength="500"
-            />
-          </div>
-        </div>
         <div class="col-3 md:col-3">
           <div class="form-group">
             <label>CCCD/Hộ chiếu</label>
@@ -4721,7 +4713,18 @@ onMounted(() => {
   </Dialog>
 </template>
 <style scoped>
-@import url(./stylehrm.css);
+@import url(../../profile/component/stylehrm.css);
+.profile-history {
+  cursor: pointer;
+  box-shadow: none;
+}
+.profile-history-active {
+  box-shadow: 0 0 0 2px #fbc02d, inset 0 0 0 0px #fff !important;
+}
+
+.profile-history:hover {
+  box-shadow: 5px 5px 10px #0000003b !important;
+}
 </style>
 <style lang="scss" scoped>
 ::v-deep(.p-datatable) {
@@ -4785,6 +4788,17 @@ onMounted(() => {
 ::v-deep(.empty-full) {
   .p-datatable-emptymessage td {
     width: 100% !important;
+  }
+}
+::v-deep(.p-timeline) {
+  .p-timeline-event .p-timeline-event-opposite {
+    display: none !important;
+  }
+  .p-timeline-event:nth-child(even) {
+    flex-direction: row;
+  }
+  .p-timeline-event .p-timeline-event-content .p-card-content {
+    padding: 1rem !important;
   }
 }
 </style>

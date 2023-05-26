@@ -364,7 +364,7 @@ const onPage = (event) => {
             style="
               display: flex;
               width: 100%;
-              height: calc(100vh - 332px);
+              height: calc(100vh - 342px);
               background-color: #fff;
             "
           >
@@ -394,7 +394,7 @@ const onPage = (event) => {
 <style scoped>
 @import url(../../contract/component/stylehrm.css);
 .d-lang-table {
-  height: calc(100vh - 220px);
+  height: calc(100vh - 230px);
   overflow-y: auto;
   background-color: #fff;
 }

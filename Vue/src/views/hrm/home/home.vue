@@ -872,62 +872,65 @@ onMounted(() => {
                 ></template
               >
               <template #end>
-                <Button
-                  @click="toggleFilter($event)"
-                  type="button"
-                  class="p-button-outlined p-button-secondary ip36"
-                  aria:haspopup="true"
-                  aria-controls="overlay_panel"
-                  v-tooltip.top="'Lọc dữ liệu'"
-                >
-                  <div>
-                    <span><i class="pi pi-filter"></i></span>
-                  </div>
-                </Button>
-                <OverlayPanel
-                  :showCloseIcon="false"
-                  ref="opfilter"
-                  appendTo="body"
-                  class="p-0 m-0"
-                  id="overlay_panel"
-                  style="width: 400px"
-                >
-                  <div class="grid formgrid m-0">
-                    <div
-                      class="col-12 md:col-12 p-0"
-                      :style="{
-                        minHeight: 'unset',
-                        maxheight: 'calc(100vh - 300px)',
-                        overflow: 'auto',
-                      }"
-                    >
-                      <div class="row">
-                        <div class="col-12 md:col-12 p-0">
-                          <div class="form-group">
-                            <label>Đơn vị</label>
-                            <Dropdown
-                              :options="dictionarys[0]"
-                              :filter="true"
-                              :showClear="false"
-                              :editable="false"
-                              v-model="options.filter_organization_id"
-                              @change="changeOrganization()"
-                              optionLabel="newname"
-                              optionValue="organization_id"
-                              placeholder="Chọn đơn vị"
-                              class="ip36"
-                              :style="{
-                                whiteSpace: 'nowrap',
-                                overflow: 'hidden',
-                                textOverflow: 'ellipsis',
-                              }"
-                            />
+                <div class="ip36">
+                  <Button
+                    v-if="dictionarys[0] && dictionarys[0].length > 1"
+                    @click="toggleFilter($event)"
+                    type="button"
+                    class="p-button-outlined p-button-secondary ip36"
+                    aria:haspopup="true"
+                    aria-controls="overlay_panel"
+                    v-tooltip.top="'Lọc dữ liệu'"
+                  >
+                    <div>
+                      <span><i class="pi pi-filter"></i></span>
+                    </div>
+                  </Button>
+                  <OverlayPanel
+                    :showCloseIcon="false"
+                    ref="opfilter"
+                    appendTo="body"
+                    class="p-0 m-0"
+                    id="overlay_panel"
+                    style="width: 400px"
+                  >
+                    <div class="grid formgrid m-0">
+                      <div
+                        class="col-12 md:col-12 p-0"
+                        :style="{
+                          minHeight: 'unset',
+                          maxheight: 'calc(100vh - 300px)',
+                          overflow: 'auto',
+                        }"
+                      >
+                        <div class="row">
+                          <div class="col-12 md:col-12 p-0">
+                            <div class="form-group">
+                              <label>Đơn vị</label>
+                              <Dropdown
+                                :options="dictionarys[0]"
+                                :filter="true"
+                                :showClear="false"
+                                :editable="false"
+                                v-model="options.filter_organization_id"
+                                @change="changeOrganization()"
+                                optionLabel="newname"
+                                optionValue="organization_id"
+                                placeholder="Chọn đơn vị"
+                                class="ip36"
+                                :style="{
+                                  whiteSpace: 'nowrap',
+                                  overflow: 'hidden',
+                                  textOverflow: 'ellipsis',
+                                }"
+                              />
+                            </div>
                           </div>
                         </div>
                       </div>
                     </div>
-                  </div>
-                </OverlayPanel>
+                  </OverlayPanel>
+                </div>
               </template>
             </Toolbar>
           </div>
@@ -1504,9 +1507,7 @@ onMounted(() => {
           <div class="card-header">
             <span>Thông báo công ty</span>
           </div>
-          <div class="card-body" style="height: 125px">
-
-          </div>
+          <div class="card-body" style="height: 125px"></div>
         </div>
       </div>
     </div>

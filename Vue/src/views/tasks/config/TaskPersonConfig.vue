@@ -1,18 +1,13 @@
 <script setup>
-import { ref, inject, onMounted, watch } from "vue";
+import { ref, inject, onMounted } from "vue";
 import { useToast } from "vue-toastification";
-import { required } from "@vuelidate/validators";
-import { useVuelidate } from "@vuelidate/core";
 import { encr } from "../../../util/function.js";
-import moment from "moment";
-import treeuser from "../../../components/user/treeuser.vue";
 const toast = useToast();
 const cryoptojs = inject("cryptojs");
-const emitter = inject("emitter");
 const axios = inject("axios");
 const store = inject("store");
 const swal = inject("$swal");
-const isDynamicSQL = ref(false);
+
 const config = {
   headers: { Authorization: `Bearer ${store.getters.token}` },
 };
@@ -27,9 +22,7 @@ const bgColor = ref([
   "#FF88D3",
 ]);
 const basedomainURL = fileURL;
-const addLog = (log) => {
-  axios.post(baseURL + "/api/Proc/AddLog", log, config);
-};
+
 const receiver = ref();
 const options = ref({});
 const listDropdownUser = ref();
@@ -42,13 +35,16 @@ const loadData = () => {
         str: encr(
           JSON.stringify({
             proc: "Task_Person_Config_get",
-            par: [{ par: "user_id", va: store.getters.user.user_id }],
+            par: [
+              { par: "user_id", va: store.getters.user.user_id },
+              { par: "is_BHBQP", va: 0 },
+            ],
           }),
           SecretKey,
-          cryoptojs,
+          cryoptojs
         ).toString(),
       },
-      config,
+      config
     )
     .then((response) => {
       let data = JSON.parse(response.data.data)[0];
@@ -95,10 +91,10 @@ const listUser = () => {
             ],
           }),
           SecretKey,
-          cryoptojs,
+          cryoptojs
         ).toString(),
       },
-      config,
+      config
     )
     .then((response) => {
       let data = JSON.parse(response.data.data)[0];
@@ -239,14 +235,8 @@ onMounted(() => {
             style="height: 3.125rem"
           >
             <template #value="slotProps">
-              <div
-                class="flex"
-                v-if="slotProps.value"
-              >
-                <div
-                  class="flex"
-                  style="margin-left: 10px"
-                >
+              <div class="flex" v-if="slotProps.value">
+                <div class="flex" style="margin-left: 10px">
                   <Avatar
                     @error="
                       $event.target.src =
@@ -273,10 +263,7 @@ onMounted(() => {
                     size="xlarge"
                     shape="circle"
                   />
-                  <div
-                    class="pt-1"
-                    style="padding-left: 10px"
-                  >
+                  <div class="pt-1" style="padding-left: 10px">
                     {{ slotProps.value.name }}
                   </div>
                 </div>
@@ -317,22 +304,13 @@ onMounted(() => {
                   shape="circle"
                 />
                 <div>
-                  <div
-                    class="pt-1"
-                    style="padding-left: 10px"
-                  >
+                  <div class="pt-1" style="padding-left: 10px">
                     {{ slotProps.option.name }}
                   </div>
-                  <div
-                    class="pt-1"
-                    style="padding-left: 10px"
-                  >
+                  <div class="pt-1" style="padding-left: 10px">
                     {{ slotProps.option.position_name }}
                   </div>
-                  <div
-                    class="pt-1"
-                    style="padding-left: 10px"
-                  >
+                  <div class="pt-1" style="padding-left: 10px">
                     {{ slotProps.option.department_name }}
                   </div>
                 </div>
@@ -341,10 +319,7 @@ onMounted(() => {
           </Dropdown>
         </div>
       </div>
-      <div
-        class="format-center col-12"
-        v-if="receiver != null"
-      >
+      <div class="format-center col-12" v-if="receiver != null">
         <Button
           label="Cập nhật"
           class="p-button-raised"

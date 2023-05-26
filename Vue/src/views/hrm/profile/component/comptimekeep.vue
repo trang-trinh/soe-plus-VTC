@@ -564,13 +564,13 @@ onMounted(() => {
 @import url(./stylehrm.css);
 .list-item {
   display: grid;
-  grid-template-columns: repeat(auto-fill, minmax(100px, 1fr));
+  grid-template-columns: repeat(7, minmax(80px, 1fr));
   gap: 0.5rem;
 }
 .item-day {
   border: 1px solid rgba(0, 0, 0, 0.1);
   border-radius: 3px;
-  height: 100px;
+  height: 80px;
   padding: 0.5rem;
 }
 .item-day:hover {
