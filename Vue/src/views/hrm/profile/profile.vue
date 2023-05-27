@@ -158,7 +158,12 @@ const activeTab = (tab) => {
   dataLimits.value = [];
 
   options.value.tab = tab.status;
-  initData(true);
+  if (isFilterAdv.value) {
+    getDataTabAdvanced(tab);
+  }
+  else {
+    initData(true);
+  }
 };
 const search = () => {
   options.value.pageNo = 1;
@@ -1654,13 +1659,10 @@ const closeOverlayFilterAdv = () => {
   opfilterAdvanced.value.toggle(event);
 };
 const showFilterAdv = ref(false);
+const isFilterAdv = ref(false);
 const activeFilterAdv = () => {
   showFilterAdv.value = true;
 };
-// const resetFilterAdv = () => {
-//   showFilterAdv.value = false;
-//   closeOverlayFilterAdv();
-// };
 
 const drTypes = ref([
     { text: "Lớn hơn", value: ">" , types: ",1,2,3,"},
@@ -1679,6 +1681,16 @@ const drTypes = ref([
     { text: "Không có giá trị", value: " IS NULL " },
     { text: "Tự động", value: "" },
 ]);
+const drTypeDate = [
+    { text: "Mặc định", value: "" },
+    { text: "Ngày", value: "DAY(convert(datetime,$date,103))" },
+    { text: "Tháng", value: "MONTH(convert(datetime,$date,103))" },
+    { text: "Năm", value: "YEAR(convert(datetime,$date,103))" },
+    { text: "Giờ", value: "FORMAT(convert(datetime,$date,103),'HH')" },
+    { text: "Phút", value: "FORMAT(convert(datetime,$date,103),'mm')" },
+    { text: "Ngày tháng", value: "FORMAT(convert(datetime,$date,103),'dd/MM')" },
+    { text: "Tháng năm", value: "FORMAT(convert(datetime,$date,103),'MM/yyyy')" },
+];
 const groupFilterAdvanced = ref([]);
 const viewDB = 'View_SearchEngine_Copy';
 const cols = ref([]);
@@ -1691,9 +1703,104 @@ const groupBlock = ref([
         datas: []
     }
 ]);
+const AND = ref(true);
+const itemsComplete = ref([]);
+const selectComplete = (event) => {
+    let txt = event.value;
+    txt = txt.substring(txt.lastIndexOf(" ")).trim();
+    itemsComplete.value = cols.value.filter(x => x.title.toLowerCase().includes(txt) || x.titleen.toLowerCase().includes(txt));
+}
 const selectedKey = ref();
-
-const initDataFilterAdv = (f, sql) => {    
+const renderAutoInput = (txt) => {
+  if (!txt) txt = "";
+  let groups = [];
+  let tday = new Date();
+  txt = txt.replace(/==/igm, "=");
+  txt=txt.replace(/(sinh năm|năm sinh)\s*(\d{4})/igm,"năm sinh =$2");
+  txt=txt.replace(/(giới tính)\s*(là)?\s*([^=\s]+)/igm,"giới tính =$3");
+  txt = txt.replace(/(sinh nhật\s*(hôm nay)?)/igm, `ngày sinh =${tday.getDate() < 10 ? '0' : ''}${tday.getDate()}/${(tday.getMonth() + 1) < 10 ? '0' : ''}${tday.getMonth() + 1}%`)
+  txt=txt.replace(/(sinh\s*(nhật)?\s*tháng)\s*(\d{1,2})/igm, function (match, p1) {
+      let p2 = match.replace(p1, "").trim();
+      p2 = +(p2.length==1 ? '0' : '') + p2;
+      p2=p2.replace("00","0");
+      return `ngày sinh =%/${p2}/%`;
+  })
+  txt = txt.replace(/(sinh\s*ngày)\s*(\d{1,2}\d{1,2})/igm, `ngày sinh =%$2/%`);
+  txt = txt.replace(/(sinh\s*năm)\s*(\d{1,4})/igm, `ngày sinh =%/$2`);
+  txt = txt.replaceAll("và", "&").replaceAll("hoặc", "@");
+  let strjoin = /\(.+\)\s*@\s*\(.+\)/igm.test(txt) ? 'OR' : 'AND';
+  if (!txt.startsWith("(")) {
+      txt += `(${txt})`;
+  }
+  let match = txt.match(/\([^)]+\)/igm);
+  if (match) {
+      match.forEach(x => {
+          x = x.replace(/([^\(&@]+)(=|>=|<=|<>)/igm, (s, r) => {
+              let i = r.indexOf(">");
+              let stt = ">";
+              if (i == -1) {
+                  i = r.indexOf("<");
+                  stt = "<";
+              }
+              if (i == -1) {
+                  i = r.length;
+                  stt = "";
+              }
+              let k = r.substring(0, i).trim().toLowerCase();
+              let objk = cols.value.find(x => x.title.toLowerCase() == k || x.titleen.toLowerCase() == k);
+              if (objk) {
+                  k = objk.key;
+                  if (selectedCols.value.findIndex(a => a.key == k) == -1) {
+                      selectedCols.value.push(objk);
+                  }
+              }
+              s = s.replace(r, ` [${k}]${stt} `);
+              return s;
+          });
+          groups.push(x);
+      })
+  }
+  let rs = groups.join(` ${strjoin} `);
+  rs = rs.replace(/(>=|<=|=|<>)([^(=|>=|<=|<>|&|@)]+)/igm, " $1 N'$2' ");
+  rs = rs.replaceAll(' & ', ' AND ');
+  rs = rs.replaceAll(' @ ', ' OR ');
+  rs = rs.replaceAll("= N'%", " LIKE N'%");
+  rs = rs.replace(/(\[[^\]]+\])[^\]]+%[^\']+'/igm, (s, r) => {
+      s = s.replaceAll(" '", "");
+      let arr = s.split("LIKE N");
+      let str = "(";
+      arr[1].replaceAll("'", "").split(",").forEach((x, i) => {
+          if (i > 0) {
+              str += " OR ";
+          }
+          str += ` ${arr[0]} LIKE N'${x}' `;
+      });
+      str += ")"
+      return str;
+  })
+  rs = rs.replace(/=( N'[^']+%')/igm, "LIKE $1");
+  rs = rs.replace(/\s{2}/igm, " ");
+  rs = rs.replace(/\(\s+/igm, "(");
+  //console.log(rs);
+  return rs;
+};
+const goSearch = async () => {
+    let strSelect = ' Select * ';
+    let strFrom = ` from ${viewDB} `;
+    let strWhere = '';
+    let strOrderby = ` order by [${cols.value[0].key}] `;
+    strWhere = renderAutoInput(options.value.search);
+    if (strWhere != "") {
+        strWhere = " Where " + strWhere;
+    }
+    let sql = `${strSelect} ${strFrom} ${strWhere} ${strOrderby}`;
+    sql = sql.replace(/\s{2}/igm, " ");
+    sql = sql.replace(/\(\s+/igm, "(");  
+    dataLimits.value = [];
+    initDataFilterAdv(false, sql);
+};
+const dataAdvAll = ref([]);
+const initDataFilterAdv = (f, sql) => {
     datas.value = [];
     let strSQL = {
         "query": true,
@@ -1704,6 +1811,9 @@ const initDataFilterAdv = (f, sql) => {
     }
     if (sql) {
         strSQL.proc = sql;
+    }
+    if (!f) {
+      isFilterAdv.value = true;
     }
     swal.fire({
         width: 110,
@@ -1791,6 +1901,8 @@ const initDataFilterAdv = (f, sql) => {
                       });
                       datas.value = dts[0];
                       dataLimits.value = dataLimits.value.concat(dts[0]);
+                      dataAdvAll.value = [...dataLimits.value];
+                      initCountFilterAdv();
                       var temp = groupBy(dts[0], "department_id");
                       for (let k in temp) {
                         var obj = {
@@ -1811,7 +1923,7 @@ const initDataFilterAdv = (f, sql) => {
                     treeOrganization.value.forEach((o) => {
                       o.list = arr.filter((dp) => dp.department_id == o.organization_id);
                     });
-                  closeOverlayFilterAdv();
+                  //closeOverlayFilterAdv();
                 }
                 else {
                     let keys = Object.keys(dts[0][0]).filter(x => !x.includes("id"));
@@ -1848,7 +1960,9 @@ const initDataFilterAdv = (f, sql) => {
                 }
                 swal.close();
             }
+            swal.close();
         }
+        swal.close();
     })
     .catch((error) => {
         swal.close();
@@ -1860,8 +1974,32 @@ const initDataFilterAdv = (f, sql) => {
         }
     });
 };
+const arrayStatus = [0,1,2,3,4,5];
 const initCountFilterAdv = () => {
-
+  tabs.value.forEach((x) => {
+    if (x["status"] == -1) {
+      x["total"] = dataLimits.value.length;
+    }
+    else if (x["status"] == 6) {
+      var countStatus = dataLimits.value.filter((c) => c["status"] == null || arrayStatus.indexOf(c["status"]) < 0).length;
+      x["total"] = countStatus;
+    }
+    else {
+      var countStatus = dataLimits.value.filter((c) => c["status"] == x["status"]).length;
+      x["total"] = countStatus;
+    }
+  });
+};
+const getDataTabAdvanced = (tab) => {
+  if (tab.status == -1) {
+    dataLimits.value = [...dataAdvAll.value];
+  }
+  else if (tab.status == 6) {
+    dataLimits.value = dataAdvAll.value.filter(x => x.status == null || arrayStatus.indexOf(x.status) < 0);
+  }
+  else {
+    dataLimits.value = dataAdvAll.value.filter(x => x.status == tab.status);
+  }  
 };
 const ipsearch = ref();
 const submitFilter = () => {
@@ -1870,12 +2008,14 @@ const submitFilter = () => {
     let strFrom = ` from ${viewDB} `;
     let strWhere = '';
     let strOrderby = ` order by [${cols.value[0].key}] `;
+    let hasSmartSearch = false;
     groupBlock.value.forEach(g => {
         if (strWhere != "") {
             strWhere += ` ${AND.value ? " AND " : " OR "}`;
         }
         strWhere += "(";
         g.datas.forEach((gx, kg) => {
+            hasSmartSearch = true;
             if (selectedCols.value.findIndex(a => a.key == gx.key) == -1) {
                 selectedCols.value.push(gx);
             }
@@ -1891,8 +2031,7 @@ const submitFilter = () => {
                     case "FromTo":
                         strWhere += "(";
                         x.value.split(",").forEach((vl, i) => {
-                            //strWhere += ` ${i != 0 ? "OR" : ""} : ""} [${x.key}] BETWEEN ${vl.replace("-", " AND ")}`;
-                            strWhere += ` ${i != 0 ? "OR" : ""} [${x.key}] BETWEEN ${vl.replace("-", " AND ")}`;
+                            strWhere += ` ${i != 0 ? "OR" : ""} ${x.typedate ? x.typedate.replace("$date", "[" + x.key + "]") : "[" + x.key + "]"} BETWEEN ${vl.replace("-", " AND ")}`;
                         });
                         strWhere += ")";
                         ipsearch.value += `${ipsearch.value == "" ? "" : (g.AND ? ' và ' : ' hoặc ')}"${x.title}" trong khoảng ${x.value}`
@@ -1900,37 +2039,34 @@ const submitFilter = () => {
                     case "Contain":
                         strWhere += "(";
                         x.value.split(",").forEach((vl, i) => {
-                            //strWhere += ` ${i != 0 ? "OR" : ""} : ""} [${x.key}] like N'%${vl}%'`;
                             strWhere += ` ${i != 0 ? "OR" : ""} [${x.key}] like N'%${vl}%'`;
                         });
                         strWhere += ")";
-                        ipsearch.value += `${ipsearch.value == "" ? "" : (g.AND ? ' và ' : ' hoặc ')}"${x.title}" có chữ "${x.value||''}"`
+                        ipsearch.value += `${ipsearch.value == "" ? "" : (g.AND ? ' và ' : ' hoặc ')}"${x.title}" có chữ "${x.value || ''}"`
                         break;
                     case "StartWith":
                         strWhere += "(";
                         x.value.split(",").forEach((vl, i) => {
-                            //strWhere += ` ${i != 0 ? "OR" : ""} : ""} [${x.key}] like N'${vl}%'`;
                             strWhere += ` ${i != 0 ? "OR" : ""} [${x.key}] like N'${vl}%'`;
                         });
                         strWhere += ")";
-                        ipsearch.value += `${ipsearch.value == "" ? "" : (g.AND ? ' và ' : ' hoặc ')}"${x.title}" bắt đầu bằng chữ "${x.value||''}"`
+                        ipsearch.value += `${ipsearch.value == "" ? "" : (g.AND ? ' và ' : ' hoặc ')}"${x.title}" bắt đầu bằng chữ "${x.value || ''}"`
                         break;
                     case "EndWith":
                         strWhere += "(";
                         x.value.split(",").forEach((vl, i) => {
-                            //strWhere += ` ${i != 0 ? "OR" : ""} : ""} [${x.key}] like N'%${vl}'`;
                             strWhere += ` ${i != 0 ? "OR" : ""} [${x.key}] like N'%${vl}'`;
                         });
                         strWhere += ")";
-                        ipsearch.value += `${ipsearch.value == "" ? "" : (g.AND ? ' và ' : ' hoặc ')}"${x.title}" kết thúc bằng chữ "${x.value||''}"`
+                        ipsearch.value += `${ipsearch.value == "" ? "" : (g.AND ? ' và ' : ' hoặc ')}"${x.title}" kết thúc bằng chữ "${x.value || ''}"`
                         break;
                     default:
                         strWhere += "(";
                         (x.value || "").split(",").forEach((vl, i) => {
-                            strWhere += ` ${i != 0 ? "OR" : ""} [${x.key}] ${x.type} ${vl ? `N'${vl}'` : ""}`;
+                          strWhere += ` ${i != 0 ? "OR" : ""} ${x.typedate ? x.typedate.replace("$date", "[" + x.key + "]") : "[" + x.key + "]"} ${x.type} ${vl ? `N'${vl}'` : ""}`;
                         });
                         strWhere += ")";
-                        ipsearch.value += `${ipsearch.value == "" ? "" : (g.AND ? ' và ' : ' hoặc ')} "${x.title}" ${x.type.trim() == "IS NOT NULL" ? 'có giá trị' : x.type.trim() == "IS NULL" ? 'không có giá trị' : x.type } "${x.value||''}"`
+                        ipsearch.value += `${ipsearch.value == "" ? "" : (g.AND ? ' và ' : ' hoặc ')} "${x.title}" ${x.type.trim() == "IS NOT NULL" ? 'có giá trị' : x.type.trim() == "IS NULL" ? 'không có giá trị' : x.type } "${x.value || ''}"`
                         break;
                 }
                 if (strWhere != "" && ix > 0) {
@@ -1941,16 +2077,36 @@ const submitFilter = () => {
         });
         strWhere += ")";
     })
-
-    if (strWhere != "") {
+    if (!hasSmartSearch) {
+      strWhere = renderAutoInput(options.value.search);
+    }
+    else {      
+      options.value.search = ipsearch.value;
+    }
+    if (strWhere != "" && strWhere != "()") {
         strWhere = " Where " + strWhere;
+    }
+    else {
+      strWhere = "";
     }
     let sql = `${strSelect} ${strFrom} ${strWhere} ${strOrderby}`;
     sql = sql.replace(/\s{2}/igm, " ");
     sql = sql.replace(/\(\s+/igm, "(");    
     dataLimits.value = [];
-    options.value.search = ipsearch.value;
-    initDataFilterAdv(false, sql);
+    closeOverlayFilterAdv();
+    if (options.value.search == null || options.value.search.trim() == "") {
+      isFilterAdv.value = false;
+      options.value.tab = -1;
+      options.value.pageNo = 1;
+      options.value.pageSize = 25;
+      options.value.limitItem = 25;
+      options.value.total = 0;
+      initCount();
+      initData(true);
+    }
+    else {
+      initDataFilterAdv(false, sql);
+    }
 };
 const expandedRows = ref([]);
 const blockindex = ref(0);
@@ -1961,7 +2117,7 @@ const onNodeSelectAdv = (node) => {
             title: node.title,
             AND: node.AND,
             type: node.type,
-            typdata:node.typdata
+            typdata: node.typdata
         };
         if (node.children) {
             node.children.filter(!x.childs).forEach(x => {
@@ -1988,28 +2144,128 @@ const renderdrTypes = (dt) => {
     return  drTypes.value.filter(x => !x.types || x.types.includes("," + dt.typdata + ","));
 };
 const delFilter = (idx, rows, type) => {
+    if (type == 0) {
+      if (selectedKey.value != null) {
+        delete selectedKey.value[rows[idx].key];
+      }
+    }
     rows.splice(idx, 1);
 };
 const addFilter = (no) => {
     no.childs.push({ ...no });
 };
 const addBlock = () => {
+    let sttMax = 0; 
+    if (groupBlock.value.length > 0) {
+      let groupMax = groupBlock.value.reduce((prev, current) => (prev.stt > current.stt) ? prev : current);
+      if (groupMax != null) {
+        sttMax = groupMax.stt;
+      }
+    }
     groupBlock.value.push({
-        stt: groupBlock.value.length + 1,
+        stt: sttMax + 1,
         AND: true,
         datas: []
     });
 };
-const delBlock = (i) => {
-    groupBlock.value.splice(i, 1);
+const delBlock = (gr) => {
+  let idx = groupBlock.value.findIndex(x => x == gr);
+  if (idx >= 0) {
+    groupBlock.value.splice(idx, 1);
+  }
 };
 const resetFilterAdvanced = () => {
   if (showFilterAdv.value == true) {
     opfilterAdvanced.value.toggle(event);
   }
   showFilterAdv.value = false;
+  options.value.search = "";
+  selectedKey.value = {};
+  groupBlock.value = [
+    {
+        stt: 1,
+        AND: true,
+        datas: []
+    }
+  ];
 };
 
+// Tim kiem bang giong noi
+const opMic = ref({
+    start: false,
+    isshow: false
+});
+var SpeechRecognition = SpeechRecognition || webkitSpeechRecognition;
+var SpeechGrammarList = SpeechGrammarList || webkitSpeechGrammarList;
+var grammar = '#JSGF V1.0;'
+var recognition = new SpeechRecognition();
+var speechRecognitionList = new SpeechGrammarList();
+speechRecognitionList.addFromString(grammar, 1);
+recognition.grammars = speechRecognitionList;
+recognition.lang = 'vi-VN';
+recognition.interimResults = true;
+recognition.continuous = true;
+recognition.onresult = (evt) => {
+    for (let i = 0; i < evt.results.length; i++) {
+        var result = evt.results[i]
+        if (result.isFinal) CheckForCommand(result)
+    }
+    const t = Array.from(evt.results)
+        .map(result => result[0])
+        .map(result => result.transcript)
+        .join('')
+    ipsearch.value = t.replace(/( xong| song| ok| tìm lại)/igm, "").replace(" bằng ", "=");
+    options.value.search = ipsearch.value;
+    if (t.trim().endsWith("xong") || t.trim().endsWith("song")) {
+        stopMic(false);
+    } else if (t.trim().endsWith("ok")) {
+        goSearch();
+    } else if (t.toLocaleLowerCase().trim().includes("tìm lại")) {
+        ipsearch.value = "";
+        options.value.search = ipsearch.value;
+    }
+};
+recognition.onspeechend = () => {
+    recognition.stop();
+    opMic.value.start = false;
+};
+recognition.onend = () => {
+    opMic.value.start = false;
+}
+recognition.onerror = (event) => {
+    opMic.value.error = true;
+}
+const CheckForCommand = (result) => {
+    // const t = result[0].transcript.toLowerCase();
+    // if (t.endsWith('xong')) {
+    //     stopMic(false);
+    // }
+}
+const stopMic = (f) => {
+    ipsearch.value = "";
+    options.value.search = ipsearch.value;
+    opMic.value.isshow = f;
+    opMic.value.start = false;
+    opMic.value.error = false;
+}
+const goMic = () => {
+    ipsearch.value = "";
+    options.value.search = ipsearch.value;
+    opMic.value.isshow = true;
+    opMic.value.start = false;
+    opMic.value.error = false;
+}
+const startMic = () => {
+    if (opMic.value.start) {
+        toast.success("Bắt đầu tìm kiếm bằng giọng nói");
+        recognition.start();
+    }
+    else {
+        toast.info("Kết thúc tìm kiếm bằng giọng nói");
+        recognition.stop();
+        opMic.value.isshow = false;
+    }
+}
 // end filter nang cao
 
 const initSave = () => {
@@ -2102,10 +2358,10 @@ const loadMoreRow = (data) => {
             spellcheck="false"
             placeholder="Tìm kiếm"
             class="input-search"
-            style="padding-right: 2rem;max-width: 500px;width:100vw;"
+            style="padding-right: 2rem;max-width: 450px;width:100vw;"
           />
           <i class="pi pi-filter i-filter-advanced"
-            :class="showFilterAdv ? 'active-filter-adv' : ''"
+            :class="isFilterAdv ? 'active-filter-adv' : ''"
             @click="toggleFilterAdvanced($event)"            
             aria:haspopup="true"
             aria-controls="overlay_panel_adv"
@@ -2121,7 +2377,7 @@ const loadMoreRow = (data) => {
           >
             <div class="flex">
               <div>
-                  <h3 class="mb-2">Chọn tiêu chí</h3>
+                  <h3 class="mb-3">Chọn tiêu chí</h3>
                   <Tree
                       :value="groupFilterAdvanced"
                       v-model:selectionKeys="selectedKey"
@@ -2150,7 +2406,7 @@ const loadMoreRow = (data) => {
               <div class="flex-1">
                   <div class="flex mb-2 w-full align-items-center">
                       <i class="pi pi-cog"></i>
-                      <h3 class="flex-1 ml-1">Cấu hình tiêu chí tìm kiếm</h3>
+                      <h3 class="flex-1 ml-1">Cấu hình tìm kiếm</h3>
                       <div class="flex align-items-center">
                           <Checkbox :binary="true" v-model="AND" />
                           <label class="ml-2"> Kết hợp tất cả nhóm tiêu chí </label>
@@ -2176,7 +2432,7 @@ const loadMoreRow = (data) => {
                                   <div class="flex-1"></div>
                                   <Button class="p-button-sm p-button-text p-button-outlined p-button-danger" 
                                       v-tooltip.top="'Xoá nhóm'" 
-                                      @click="delBlock(dt.index)" 
+                                      @click="delBlock(gr)" 
                                       icon="pi pi-trash"
                                   />
                               </div>
@@ -2225,6 +2481,20 @@ const loadMoreRow = (data) => {
                               <template #expansion="slotProps">
                                   <div class="w-full p-3">
                                       <DataTable class="w-full" :value="slotProps.data.childs">
+                                          <Column header="Kiểu giá trị"
+                                            headerStyle="max-width:120px"
+                                            bodyStyle="max-width:120px"
+                                            v-if="slotProps.data.typdata == 2 || slotProps.data.typdata == 3">
+                                            <template #body="dt">
+                                                <Dropdown filter 
+                                                  v-model="dt.data.typedate" 
+                                                  :options="drTypeDate"
+                                                  optionLabel="text" 
+                                                  optionValue="value" 
+                                                  class="w-full" 
+                                                />
+                                            </template>
+                                          </Column>
                                           <Column header="Điều kiện"
                                               headerStyle="max-width:250px"
                                               bodyStyle="max-width:250px"
@@ -2288,6 +2558,24 @@ const loadMoreRow = (data) => {
             </div>
           </OverlayPanel>
         </span>
+        <Button
+          @click="goSearch()"
+          v-tooltip.top="'Thực hiện'"
+          class="ml-2 p-button-outlined p-button-secondary"
+          icon="pi pi-send"
+        >
+        </Button>
+        <Button
+          @click="goMic()"
+          v-tooltip.top="'Tìm kiếm bằng giọng nói'"
+          class="ml-2 p-button-outlined p-button-secondary search-microphone"
+          style="padding: 0.65rem 0.75rem 0.6rem;"        
+        >
+          <!-- icon="pi pi-microphone" -->
+          <font-awesome-icon icon="fa-solid fa-microphone" 
+              style="font-size:1rem; display: block; color: #607d8b"
+          />
+        </Button>
         <Button
           @click="toggleFilter($event)"
           type="button"
@@ -3805,6 +4093,27 @@ const loadMoreRow = (data) => {
       />
     </template>
   </Dialog>
+
+  <!-- Tim kiem bang giong noi -->
+  <Dialog @after-hide="stopMic(false)" v-model:visible="opMic.isshow" modal header="Tìm kiếm bằng giọng nói"
+      :style="{ width: '480px', backgroundColor: '#eee' }">
+      <div class="p-2" style="background-color: #eee;">
+          <iframe frameborder="none" style="width: 100%;height: 100%;"
+              :src="opMic.start ? 'https://embed.lottiefiles.com/animation/91427' : 'https://embed.lottiefiles.com/animation/10627'"></iframe>
+          <Card class="mt-2 mb-2" v-if="opMic.start">
+              <template #content>
+                  <div v-if="opMic.error" style="font-size: 20pt;font-weight: bold;color:red">Không thu được giọng nói của
+                      bạn, vui lòng thử lại</div>
+                  <div v-else style="font-size: 20pt;font-weight: bold;">{{ ipsearch || "Hãy nói vào mic nhé" }}</div>
+              </template>
+          </Card>
+      </div>
+      <div class="text-center mt-2">
+          <ToggleButton @click="startMic" v-model="opMic.start" onLabel="Đã xong" offLabel="Bắt đầu nói"
+              offIcon="pi pi-play" onIcon="pi pi-stop-circle" />
+      </div>
+  </Dialog>
+  <!-- ... -->
 </template>
 <style scoped>
 @import url(../profile/component/stylehrm.css);
@@ -3911,6 +4220,9 @@ const loadMoreRow = (data) => {
 .i-filter-advanced.active-filter-adv {
   background-color: #2196f3;
   color: #ffffff;
+}
+.search-microphone:hover svg {
+  color: #ffffff !important;
 }
 </style>
 <style lang="scss" scoped>
