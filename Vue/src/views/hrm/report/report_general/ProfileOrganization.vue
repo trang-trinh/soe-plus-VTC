@@ -283,7 +283,7 @@ const exportExcel = () => {
   tab_text = tab_text+ "<table><td colspan='38' class='head2'>"+(department_name.value.toUpperCase() || store.getters.user.organization_name)+"</td></table>";
   // tab_text = tab_text+ "<table><td colspan='18' class='cstd' style='text-align: left; vertical-align: left;'>CÔNG TY/PHÒNG/TRUNG TÂM "+(store.getters.user.organization_name||".......")+"</td></table>";
   tab_text =
-      tab_text +'<table><td colspan="38" class="cstd" > BÁO CÁO TỔNG HỢP NHÂN SỰ</td >';
+      tab_text +'<table><td colspan="38" class="cstd" > BÁO CÁO TỔNG HỢP NHÂN SỰ THEO CƠ CẤU TỔ CHỨC</td >';
   tab_text = tab_text + "</table>";
   //var exportTable = $('#' + id).clone();
   //exportTable.find('input').each(function (index, elem) { $(elem).remove(); });\
