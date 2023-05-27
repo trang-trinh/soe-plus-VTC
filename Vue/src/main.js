@@ -200,6 +200,7 @@ import {
   faUsers,
   faPlus,
   faMedal,
+  faMicrophone,
 } from "@fortawesome/free-solid-svg-icons";
 import {
   faAddressCard,
@@ -264,7 +265,8 @@ library.add(
   faFile,
   faBriefcaseMedical,
   faPrint,
-  faMedal
+  faMedal,
+  faMicrophone,
 );
 import "animate.css";
 Date.prototype.toISOString = function () {
