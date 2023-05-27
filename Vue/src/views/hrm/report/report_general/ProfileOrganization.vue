@@ -127,8 +127,8 @@ const loadData = () => {
                           { par: "search", va: options.value.SearchText },
                           { par: "user_id", va: store.getters.user.user_id },
                           { par: "department_id", va: department_id.value},
-                          { par: "title_id", va: title_id.value},
                           { par: "position_id", va: position_id.value},
+                          { par: "title_id", va: title_id.value},
                           { par: "is_partisan", va: is_partisan.value},
                           { par: "is_bevy", va: is_bevy.value},
                           { par: "is_link", va: options.value.is_link},
@@ -142,6 +142,7 @@ const loadData = () => {
       )
       .then((response) => {
           let data = JSON.parse(response.data.data);
+          options.value.totalRecords =data[0].length;
           if (data[0].length > 0) {
               data[0].forEach((item, index) => {
                   item.is_active = false;
@@ -150,6 +151,8 @@ const loadData = () => {
                   item.duration = moment.duration(endDate.diff(startDate));
                   item.diffyear = item.duration.years();
                   item.diffmonth = item.duration.months();
+                  item.diffAllMonth =  (item.duration.months()+ item.seniority_month)% 12;
+                  item.diffAllYear =  (item.duration.years()+ item.seniority_year) + Math.floor((item.duration.months()+ item.seniority_month)/ 12);
               });
               data[0] = groupBy(data[0], 'department_id');
                   let arr = [];
@@ -200,16 +203,21 @@ const toggleFilter = (event) => {
 const filter = (event) => {
   opfilter.value.toggle(event);
   isfilter.value = true;
-  loadData(true, true);
+  loadData();
 };
-const resetFilter = () => {
+const resetFilter = (f) => {
   options.value.positions = [];
   options.value.titles = [];
   options.value.is_bevys = [];
   options.value.is_partisans = [];
   options.value.departments = null;
+  department_id.value= null;
+  if(f) loadData(true);
 };
 //Khai báo function
+const removeFilter = (idx, array) => {
+  array.splice(idx, 1);
+};
 const toggleExport = (event) => {
   menuButs.value.toggle(event);
 };
@@ -385,7 +393,7 @@ onMounted(() => {
     <div class="main-layout true flex-grow-1 p-2 pb-0 pr-0">
       <div style="background-color: #fff; padding: 1rem;padding-left: 0;">
         <div class="bg-white format-center py-1 font-bold text-xl">
-          BÁO CÁO TỔNG HỢP NHÂN SỰ THEO CƠ CẤU TỔ CHỨC
+          BÁO CÁO TỔNG HỢP NHÂN SỰ THEO CƠ CẤU TỔ CHỨC<span v-if="options.totalRecords != null">&nbsp({{ options.totalRecords }})</span>
         </div>
         <Toolbar class="w-full custoolbar">
           <template #start>
@@ -402,7 +410,7 @@ onMounted(() => {
                 <span><i class="pi pi-chevron-down"></i></span>
               </div>
             </Button>
-            <OverlayPanel :showCloseIcon="false" ref="opfilter" appendTo="body" class="p-0 m-0 panel-filter" id="overlay_panel" style="width: 600px">
+            <OverlayPanel :showCloseIcon="false" ref="opfilter" appendTo="body" class="p-0 m-0 panel-filter" id="overlay_panel" style="width: 600px; z-index:1000">
               <div class="grid formgrid m-0">
                 <div class="col-12 md:col-12 p-0" :style="{
                   minHeight: 'unset',
@@ -413,7 +421,7 @@ onMounted(() => {
                     <div class="col-12 md:col-12">
                       <div class="form-group">
                         <label>Chọn phòng ban/ Đơn vị</label>
-                        <TreeSelect class="col-12 ip36 mt-2 p-0 text-left"  :options="treedonvis"
+                        <TreeSelect class="col-12 ip36 mt-2 p-0 text-left" style="max-width: calc(600px - 3rem);"  :options="treedonvis"
                           v-model="options.departments"  selectionMode="multiple" :metaKeySelection="false"
                           :showClear="true" :max-height="200" display="chip" placeholder="Chọn phòng ban/ Đơn vị">
                         </TreeSelect>
@@ -533,7 +541,7 @@ onMounted(() => {
                           :editable="false"
                           v-model="options.is_partisans"
                           optionLabel="text"
-                          placeholder=""
+                          placeholder="Chọn điều kiện"
                           class="w-full limit-width"
                           style="min-height: 36px"
                           panelClass="d-design-dropdown"
@@ -585,7 +593,7 @@ onMounted(() => {
                           :editable="false"
                           v-model="options.is_bevys"
                           optionLabel="text"
-                          placeholder=""
+                          placeholder="Chọn điều kiện"
                           class="w-full limit-width"
                           style="min-height: 36px"
                           panelClass="d-design-dropdown"
@@ -651,7 +659,7 @@ onMounted(() => {
             @click="goBack()"
             />
             <Button
-              @click="onRefresh"
+              @click="resetFilter(true)"
               class="mr-2 p-button-outlined p-button-secondary"
               icon="pi pi-refresh"
               v-tooltip="'Tải lại'"
@@ -702,7 +710,7 @@ onMounted(() => {
                 <th class="text-center " width="100" rowspan="2">Ngày vào đơn vị</th>
                 <th class="text-center " width="120" rowspan="2">Thâm niên công tác</th>
                 <th class="text-center " width="120" rowspan="2">Thâm niên phép tính năm</th>
-                <th class="text-center " width="500" colspan="5">Trình độ chuyên môn chính</th>
+                <th class="text-center " width="700" colspan="5">Trình độ chuyên môn chính</th>
                 <th class="text-center " width="120" rowspan="2">Số di động</th>
                 <th class="text-center " width="120" rowspan="2">Email</th>
                 <th class="text-center " width="80" rowspan="2">Chiều cao</th>
@@ -721,7 +729,7 @@ onMounted(() => {
                 <th class="text-center " width="100">Trình độ văn hóa</th>
                 <th class="text-center " width="100">Bằng cấp</th>
                 <th class="text-center " width="100">Chuyên ngành</th>
-                <th class="text-center " width="100">Trường tốt nghiệp</th>
+                <th class="text-center " width="300">Trường tốt nghiệp</th>
                 <th class="text-center " width="100">Hình thức đào tạo</th>
             </tr>
         </thead>
@@ -802,7 +810,14 @@ onMounted(() => {
                     {{ dg.diffmonth }} tháng
                   </span>
                 </td>
-                <td align="center">{{dg.countAllRecruitment}}</td>
+                <td align="center">
+                  <span v-if="dg.diffAllYear > 0">
+                    {{ dg.diffAllYear }} năm
+                  </span>
+                  <span v-if="dg.diffAllMonth > 0">
+                    {{ dg.diffAllMonth }} tháng
+                  </span>
+                </td>
                 <td align="left">{{dg.cultural_level_name}}</td>
                 <td align="left">{{dg.certificate_name}}</td>
                 <td align="left">{{dg.specialization_name}}</td>
