@@ -215,8 +215,8 @@ const initDictionary = () => {
       }
     });
 };
-const initData = (ref) => {
-  if (ref) {
+const initData = (rf) => {
+  if (rf) {
     swal.fire({
       width: 110,
       didOpen: () => {
@@ -224,7 +224,7 @@ const initData = (ref) => {
       },
     });
   }
-  profile.value = {};
+  //profile.value = {};
   axios
     .post(
       baseURL + "/api/hrm/callProc",
@@ -267,7 +267,9 @@ const initData = (ref) => {
           }
         }
       }
-      swal.close();
+      if(rf){
+        swal.close();
+      }
       if (options.value.loading) options.value.loading = false;
     })
     .catch((error) => {
@@ -512,6 +514,7 @@ onMounted(() => {
     :closeDialog="closeDialog"
     :isAdd="false"
     :profile="profile"
+    :approve="false"
     :dictionarys="dictionarys"
     :initData="initData"
   />

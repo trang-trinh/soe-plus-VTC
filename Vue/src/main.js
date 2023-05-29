@@ -207,12 +207,8 @@ import {
   faGlobe,
   faFolderOpen,
   faBook,
- faGift
-  
- 
- 
-
-
+ faGift,
+  faMicrophone,
 } from "@fortawesome/free-solid-svg-icons";
 import {
   faAddressCard,
@@ -283,7 +279,8 @@ library.add(
  faBook,
   faNetworkWired,
   faRightToBracket,
-  faUserGroup,faGift
+  faUserGroup,faGift,
+  faMicrophone,
 );
 import "animate.css";
 Date.prototype.toISOString = function () {
