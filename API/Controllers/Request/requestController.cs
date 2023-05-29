@@ -10,6 +10,7 @@ using System.Configuration;
 using System.Data.Entity;
 using System.Data.Entity.Validation;
 using System.Data.SqlClient;
+using System.Globalization;
 using System.IO;
 using System.Linq;
 using System.Net;
@@ -1958,6 +1959,130 @@ namespace API.Controllers.Request
                                     request.modified_date = DateTime.Now;
                                     request.modified_ip = ip;
                                     request.modified_token_id = tid;
+                                    if (request.request_form_id != null)
+                                    {
+                                        var formRequest = db.request_ca_form.AsNoTracking().FirstOrDefault(x => x.request_form_id == request.request_form_id);
+                                        if (formRequest != null && formRequest.request_group_id != null)
+                                        {
+                                            var groupFormRequest = db.request_ca_group.AsNoTracking().FirstOrDefault(x => x.request_group_id == formRequest.request_group_id);
+                                            if (groupFormRequest != null && groupFormRequest.is_type == 1)
+                                            {
+                                                var profileUser = db.hrm_matchaccount.Where(x => x.user_id == request.created_by).OrderByDescending(x => x.created_date).FirstOrDefault();
+                                                if (profileUser != null)
+                                                {
+                                                    var countLeaveProfile = db.hrm_leave.Where(x => x.profile_id == profileUser.profile_id).Count();
+                                                    var listDetailRequest = db.request_master_detail.Where(x => x.request_id == request.request_id && x.is_order_row != null).OrderBy(x => x.is_order_row).ThenBy(n => n.is_order).ToList();
+                                                    if (listDetailRequest.Count() > 0)
+                                                    {
+                                                        var maxOrderRow = listDetailRequest.Max(x => x.is_order_row);
+                                                        List<hrm_leave> list_hrm_leave = new List<hrm_leave>();
+                                                        List<hrm_leave_profile> list_hrm_leave_profile = new List<hrm_leave_profile>();
+                                                        var data_leave_profile = new hrm_leave_profile();
+                                                        var leaveProfile = new hrm_leave_profile();
+                                                        var newYear = false;
+                                                        for (int i = 0; i <= maxOrderRow; i++)
+                                                        {
+                                                            var listDataInRow = listDetailRequest.Where(x => x.is_order_row == i).OrderBy(x => x.is_type).ToList();
+                                                            var dayoffData = listDataInRow.Where(x => x.is_type == 6 && x.value_field != null).Count();
+                                                            if (listDataInRow.Count > 0 && dayoffData > 0)
+                                                            {
+                                                                hrm_leave le = new hrm_leave();
+                                                                le.profile_id = profileUser.profile_id;
+                                                                le.organization_id = request.organization_id;
+                                                                le.note = request.content;
+                                                                le.is_order = countLeaveProfile + 1;
+                                                                countLeaveProfile++;
+                                                                le.created_by = uid;
+                                                                le.created_date = DateTime.Now;
+                                                                le.created_ip = ip;
+                                                                le.created_token_id = tid;
+                                                                foreach (var item in listDataInRow)
+                                                                {
+                                                                    if (item.is_type == 6)
+                                                                    {
+                                                                        DateTime dayLeave = DateTime.ParseExact(item.value_field, "yyyy-MM-dd", CultureInfo.InvariantCulture);
+                                                                        le.leave_date = dayLeave;
+                                                                        le.leave_day = dayLeave.Day;
+                                                                        le.leave_month = dayLeave.Month;
+                                                                        le.leave_year = dayLeave.Year;
+                                                                        if (data_leave_profile.year == null)
+                                                                        {
+                                                                            data_leave_profile = db.hrm_leave_profile.Where(x => x.profile_id == profileUser.profile_id && x.year == le.leave_year).FirstOrDefault();
+                                                                            if (data_leave_profile == null)
+                                                                            {
+                                                                                newYear = true;
+                                                                                leaveProfile.profile_id = profileUser.profile_id;
+                                                                                leaveProfile.year = le.leave_year;
+                                                                                leaveProfile.month1 = 0;
+                                                                                leaveProfile.month2 = 0;
+                                                                                leaveProfile.month3 = 0;
+                                                                                leaveProfile.month4 = 0;
+                                                                                leaveProfile.month5 = 0;
+                                                                                leaveProfile.month6 = 0;
+                                                                                leaveProfile.month7 = 0;
+                                                                                leaveProfile.month8 = 0;
+                                                                                leaveProfile.month9 = 0;
+                                                                                leaveProfile.month10 = 0;
+                                                                                leaveProfile.month11 = 0;
+                                                                                leaveProfile.month12 = 0;
+                                                                                leaveProfile.leave = 0;
+                                                                                leaveProfile.inventory = 0;
+                                                                                leaveProfile.bonus = 0;
+                                                                                leaveProfile.seniority = 0;
+                                                                                leaveProfile.organization_id = request.organization_id;
+                                                                                leaveProfile.created_by = uid;
+                                                                                leaveProfile.created_date = DateTime.Now;
+                                                                                leaveProfile.created_ip = ip;
+                                                                                leaveProfile.created_token_id = tid;
+                                                                            }
+                                                                        }
+
+                                                                    }
+                                                                    else if (item.is_type == 9)
+                                                                    {
+                                                                        le.type_dayoff = Int32.Parse(item.value_field == null || item.value_field == "" ? "0" : item.value_field);
+                                                                        if (newYear)
+                                                                        {
+                                                                            string nameOfProperty = "month" + le.leave_month.ToString();
+                                                                            var propGetData = leaveProfile.GetType().GetProperty(nameOfProperty);
+                                                                            var valueProp = propGetData.GetValue(leaveProfile);
+                                                                            var valueSet = Convert.ToDouble(valueProp) + (le.type_dayoff == 0 ? 1 : 0.5);
+                                                                            leaveProfile.GetType().GetProperty(nameOfProperty).SetValue(leaveProfile, valueSet);
+                                                                        }
+                                                                        else
+                                                                        {
+                                                                            string nameOfProperty = "month" + le.leave_month.ToString();
+                                                                            var propGetData = data_leave_profile.GetType().GetProperty(nameOfProperty);
+                                                                            var valueProp = propGetData.GetValue(data_leave_profile);
+                                                                            var valueSet = Convert.ToDouble(valueProp) + (le.type_dayoff == 0 ? 1 : 0.5);
+                                                                            data_leave_profile.GetType().GetProperty(nameOfProperty).SetValue(data_leave_profile, valueSet);
+                                                                        }
+                                                                    }
+                                                                    else if (item.is_type == 10)
+                                                                    {
+                                                                        le.is_type = Int32.Parse(item.value_field == null || item.value_field == "" ? "0" : item.value_field);
+                                                                    }
+                                                                }
+                                                                list_hrm_leave.Add(le);
+                                                            }
+                                                        }
+                                                        if (newYear)
+                                                        {
+                                                            list_hrm_leave_profile.Add(leaveProfile);
+                                                        }
+                                                        if (list_hrm_leave.Count > 0)
+                                                        {
+                                                            db.hrm_leave.AddRange(list_hrm_leave);
+                                                        }
+                                                        if (list_hrm_leave_profile.Count > 0)
+                                                        {
+                                                            db.hrm_leave_profile.AddRange(list_hrm_leave_profile);
+                                                        }
+                                                    }
+                                                }
+                                            }
+                                        }
+                                    }
                                     break;
                                 case -1: // Hủy de xuat
                                     user_current.is_sign = -2; // Hủy de xuat

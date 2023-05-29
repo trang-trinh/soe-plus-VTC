@@ -1,5 +1,5 @@
 <script setup>
-import { onMounted, inject, ref, watch, nextTick } from "vue";
+import { onMounted, inject, ref, watch, nextTick, computed } from "vue";
 import { encr, change_unsigned } from "../../../util/function";
 import { useToast } from "vue-toastification";
 import dilogprofile from "../profile/component/dilogprofile.vue";
@@ -159,7 +159,7 @@ const activeTab = (tab) => {
 
   options.value.tab = tab.status;
   if (isFilterAdv.value) {
-    getDataTabAdvanced(tab);
+    initDataFilterAdv(false, sqlSubmit.value);
   }
   else {
     initData(true);
@@ -1665,21 +1665,20 @@ const activeFilterAdv = () => {
 };
 
 const drTypes = ref([
-    { text: "Lớn hơn", value: ">" , types: ",1,2,3,"},
-    { text: "Lớn hơn hoặc bằng", value: ">=" , types: ",1,2,3,"},
+    { text: "Lớn hơn", value: ">", types: ",1,2,3," },
+    { text: "Lớn hơn hoặc bằng", value: ">=", types: ",1,2,3," },
     { text: "Bằng", value: "=" },
     { text: "Nhỏ hơn", value: "<", types: ",1,2,3," },
     { text: "Nhỏ hơn hoặc bằng", value: "<=", types: ",1,2,3," },
-    { text: "Khác", value: "<>", types: ",0,1,2,3,4," },
-    { text: "Gồm", value: "Contain", types: ",0," },
-    { text: "Bắt đầu bằng", value: "StartWith", types: ",0," },
-    { text: "Kết thúc bằng", value: "EndWith", types: ",0," },
-    { text: "Trong khoảng", value: "FromTo", types: ",1,2,3," },
-    { text: "Có", value: " =1 ", types: ",4," },
-    { text: "Không", value: " =0 ", types: ",4," },
-    { text: "Có giá trị", value: " IS NOT NULL " },
-    { text: "Không có giá trị", value: " IS NULL " },
-    { text: "Tự động", value: "" },
+    { text: "Khác", value: "<>", types: ",0,1,2,3,4,",placeholder:"Tìm trong chuỗi khác với 'giá trị' nhập vào"  },
+    { text: "Gồm", value: "Contain", types: ",0,",placeholder:"Tìm trong chuỗi có chứa 'giá trị' nhập vào" },
+    { text: "Bắt đầu bằng", value: "StartWith", types: ",0,",placeholder:"Tìm trong chuỗi bắt đầu bằng 'giá trị' nhập vào" },
+    { text: "Kết thúc bằng", value: "EndWith", types: ",0,",placeholder:"Tìm trong chuỗi kết thúc bằng 'giá trị' nhập vào"  },
+    { text: "Trong khoảng", value: "FromTo", types: ",1,2,3,", placeholder: "Giá trị đầu và giá trị cuối cách nhau bởi dấu - , ví dụ 10-15" },
+    { text: "Có", value: " =1 ", types: ",4,", hide: true },
+    { text: "Không", value: " =0 ", types: ",4,", hide: true },
+    { text: "Có giá trị", value: " IS NOT NULL ", hide: true },
+    { text: "Không có giá trị", value: " IS NULL ", hide: true }
 ]);
 const drTypeDate = [
     { text: "Mặc định", value: "" },
@@ -1704,113 +1703,273 @@ const groupBlock = ref([
     }
 ]);
 const AND = ref(true);
-const itemsComplete = ref([]);
-const selectComplete = (event) => {
-    let txt = event.value;
-    txt = txt.substring(txt.lastIndexOf(" ")).trim();
-    itemsComplete.value = cols.value.filter(x => x.title.toLowerCase().includes(txt) || x.titleen.toLowerCase().includes(txt));
+const selectedIP = ref("");
+const showListComplete = ref(false);
+const selectListComplete = () => {
+    let txt = ipsearch.value || "";
+    let idx = txt.lastIndexOf(" ");
+    if (idx != -1) {
+        txt = txt.substring(0, idx) + " " + selectedIP.value.title;
+    } else {
+        txt = selectedIP.value.title;
+    }
+    ipsearch.value = txt;
+    document.getElementById("ipsearch").focus();
+    showListComplete.value = true;
 }
-const selectedKey = ref();
-const renderAutoInput = (txt) => {
-  if (!txt) txt = "";
-  let groups = [];
-  let tday = new Date();
-  txt = txt.replace(/==/igm, "=");
-  txt=txt.replace(/(sinh năm|năm sinh)\s*(\d{4})/igm,"năm sinh =$2");
-  txt=txt.replace(/(giới tính)\s*(là)?\s*([^=\s]+)/igm,"giới tính =$3");
-  txt = txt.replace(/(sinh nhật\s*(hôm nay)?)/igm, `ngày sinh =${tday.getDate() < 10 ? '0' : ''}${tday.getDate()}/${(tday.getMonth() + 1) < 10 ? '0' : ''}${tday.getMonth() + 1}%`)
-  txt=txt.replace(/(sinh\s*(nhật)?\s*tháng)\s*(\d{1,2})/igm, function (match, p1) {
-      let p2 = match.replace(p1, "").trim();
-      p2 = +(p2.length==1 ? '0' : '') + p2;
-      p2=p2.replace("00","0");
-      return `ngày sinh =%/${p2}/%`;
-  })
-  txt = txt.replace(/(sinh\s*ngày)\s*(\d{1,2}\d{1,2})/igm, `ngày sinh =%$2/%`);
-  txt = txt.replace(/(sinh\s*năm)\s*(\d{1,4})/igm, `ngày sinh =%/$2`);
-  txt = txt.replaceAll("và", "&").replaceAll("hoặc", "@");
-  let strjoin = /\(.+\)\s*@\s*\(.+\)/igm.test(txt) ? 'OR' : 'AND';
-  if (!txt.startsWith("(")) {
-      txt += `(${txt})`;
-  }
-  let match = txt.match(/\([^)]+\)/igm);
-  if (match) {
-      match.forEach(x => {
-          x = x.replace(/([^\(&@]+)(=|>=|<=|<>)/igm, (s, r) => {
-              let i = r.indexOf(">");
-              let stt = ">";
-              if (i == -1) {
-                  i = r.indexOf("<");
-                  stt = "<";
-              }
-              if (i == -1) {
-                  i = r.length;
-                  stt = "";
-              }
-              let k = r.substring(0, i).trim().toLowerCase();
-              let objk = cols.value.find(x => x.title.toLowerCase() == k || x.titleen.toLowerCase() == k);
-              if (objk) {
-                  k = objk.key;
-                  if (selectedCols.value.findIndex(a => a.key == k) == -1) {
-                      selectedCols.value.push(objk);
-                  }
-              }
-              s = s.replace(r, ` [${k}]${stt} `);
-              return s;
-          });
-          groups.push(x);
-      })
-  }
-  let rs = groups.join(` ${strjoin} `);
-  rs = rs.replace(/(>=|<=|=|<>)([^(=|>=|<=|<>|&|@)]+)/igm, " $1 N'$2' ");
-  rs = rs.replaceAll(' & ', ' AND ');
-  rs = rs.replaceAll(' @ ', ' OR ');
-  rs = rs.replaceAll("= N'%", " LIKE N'%");
-  rs = rs.replace(/(\[[^\]]+\])[^\]]+%[^\']+'/igm, (s, r) => {
-      s = s.replaceAll(" '", "");
-      let arr = s.split("LIKE N");
-      let str = "(";
-      arr[1].replaceAll("'", "").split(",").forEach((x, i) => {
-          if (i > 0) {
-              str += " OR ";
-          }
-          str += ` ${arr[0]} LIKE N'${x}' `;
-      });
-      str += ")"
-      return str;
-  })
-  rs = rs.replace(/=( N'[^']+%')/igm, "LIKE $1");
-  rs = rs.replace(/\s{2}/igm, " ");
-  rs = rs.replace(/\(\s+/igm, "(");
-  //console.log(rs);
-  return rs;
+const onBlur = () => {
+    if (!listfocus.value) {
+        setTimeout(() => {
+            showListComplete.value = false;
+        }, 100);
+    }
+}
+const drHelps =
+{
+    label: "Mẫu tìm kiếm",
+    items: [
+        { title: "Tên là Cường,Đức" },
+        { title: "Tên đệm là Đức,Hồng" },
+        { title: "Tuổi 20" },
+        { title: "Tuổi = 20" },
+        { title: "Tuổi >=20" },
+        { title: "Tuổi từ 20" },
+        { title: "Tuổi 20-25" },
+        { title: "Tuổi từ 20 đến 25" },
+        { title: "Tuổi <45" },
+        { title: "Tuổi đến 45" },
+        { title: "Giới tính nam" },
+        { title: "Giới tính nữ" },
+        { title: "Giới tính khác" },
+        { title: "Sinh nhật hôm nay" },
+        { title: "Sinh tháng 12" },
+        { title: "Sinh năm 1988" },
+        { title: 'Quê quán ở "Hà Nội"' },
+        { title: 'Học trường "Bách khoa"' },
+    ]
 };
+drHelps.items.forEach((x) => {
+    x.titleen = change_unsigned(x.title);
+});
+const compComplete = computed(() => {
+    let txt = ipsearch.value;
+    if (!txt) return [drHelps].concat(colgroups.value);
+    txt = txt.substring(txt.lastIndexOf(" ")).trim();
+    let drcols = cols.value.filter(x => x.title.toLowerCase().includes(txt) || x.titleen.toLowerCase().includes(txt));
+    let drcolshelps = drHelps.items.filter(x => x.title.toLowerCase().includes(txt) || x.titleen.toLowerCase().includes(txt));
+    let arr = [];
+    if (drcolshelps.length > 0) arr.push({ label: "Mẫu tìm kiếm", items: drcolshelps });
+    if (drcols.length > 0) arr.push({ label: "Kết quả tìm kiếm", items: drcols });
+    if (arr.length == 0) return [];
+    return arr;
+});
+const listfocus = ref(false);
+const goDown = () => {
+    document.getElementById("listComp").focus();
+    showListComplete.value = true;
+    listfocus.value = true;
+};
+
+const selectedKey = ref();
+let odby = [];
+const renderAutoInput = (txt) => {
+    if (!txt) txt = "";
+    let groups = [];
+    let tday = new Date();
+    txt = txt.replace(/==/igm, "=");
+    txt = txt.replace(/\s+(có|ở)\s+\"?([^\"]+)\"/igm, "=%$2%");
+    txt = txt.replace(/\s+có\s+([^\s]+)/igm, "=%$1%");
+    txt = txt.replace(/\s+bắt đầu bằng\s+\"?([^\"]+)\"/igm, "=$1%");
+    txt = txt.replace(/\s+bắt đầu bằng\s+([^\s]+)/igm, "=$1%");
+    txt = txt.replace(/\s+kết thúc bằng\s+\"?([^\"]+)\"/igm, "=%$1");
+    txt = txt.replace(/\s+kết thúc bằng\s+([^\s]+)/igm, "=%$1");
+    txt = txt.replace(/(lớn hơn)/igm, ">");
+    txt = txt.replace(/(lớn hơn hoặc bằng)/igm, ">=");
+    txt = txt.replace(/(nhỏ hơn hoặc bằng)/igm, "<=");
+    txt = txt.replace(/(nhỏ hơn)/igm, "<=");
+    txt = txt.replace(/( khác )/igm, "<>");
+    txt = txt.replace(" bằng ", "=");
+    txt = txt.replace(/(tên)\s*(nhân sự)?\s*(là)\s*([^\s]+)/igm, (a) => {
+        let arr = a.split("là");
+        return `tên nhân sự=${arr[1].split(",").map(x => '%' + x).join(",")}`;
+    })
+    txt = txt.replace(/(tên đệm)\s*(là)\s*([^\s]+)/igm, (a) => {
+        let arr = a.split("là");
+        return `tên nhân sự=${arr[1].split(",").map(x => '% ' + x + ' %').join(",")}`;
+    })
+    txt = txt.replace(/(học trường)\s*\"([^\"]+)\"/igm, "Quá trình đào tạo=%$2%");
+    txt = txt.replace(/(phòng ban)\s*\"([^\"]+)\"/igm, "Phòng ban=%$2%");
+    txt = txt.replace(/(phòng ban)\s+([^\s]+)/igm, 'Phòng ban=%$2%');
+    txt = txt.replace(/(tuổi)\s*\s*(\d+)/igm, 'tuổi=$2');
+    txt = txt.replace(/(từ|=)\s*(\d+)\s*(đến|-)\s*(\d+)/igm, '# $2 A-N-D $4');
+    txt = txt.replace(/(từ)\s*(\d+)/igm, ">=$2");
+    txt = txt.replace(/(trên)\s*(\d+)/igm, ">$2");
+    txt = txt.replace(/(đến)\s*(\d+)/igm, "<=$2");
+    txt = txt.replace(/(dưới)\s*(\d+)/igm, "<$2");
+    txt = txt.replace(/sinh năm/igm, "năm sinh");
+    txt=txt.replace(/(sinh năm|năm sinh)\s*(\d{4})/igm,"năm sinh =$2");
+    txt=txt.replace(/(giới tính)\s*(là)?\s*([^=\s]+)/igm,"giới tính =$3");
+    txt = txt.replace(/(sinh nhật\s*(hôm nay)?)/igm, `ngày sinh =${tday.getDate() < 10 ? '0' : ''}${tday.getDate()}/${(tday.getMonth() + 1) < 10 ? '0' : ''}${tday.getMonth() + 1}%`)
+    txt = txt.replace(/(sinh\s*(nhật)?\s*tháng)\s*(\d{1,2})\/?(\d{4})?/igm, function (match, p1) {
+        let p2 = match.replace(p1, "").trim();
+        if (p2.includes("/")) {
+            return `ngày sinh =%/${p2}`;
+        }
+        p2 = (p2.length == 1 ? '0' : '') + p2;
+        p2 = p2.replace("00", "0");
+        return `ngày sinh =%/${p2}/%`;
+    })
+    txt = txt.replace(/(sinh\s*ngày)\s*(\d{1,2})\/?(\d{0,2})?\/?(\d{0,4})/igm, function (match, p1) {
+        let p2 = match.replace(p1, "").trim();
+        let arrp2 = p2.split("/");
+        if (arrp2.length == 3) {
+            p2 = p2.split("/").map(x => x.trim().length == 1 ? "0" + x : x).join("/");
+            if (p2[2].length < 4) {
+                p2 = p2 + "%";
+            }
+            return `ngày sinh =${p2}`;
+        }
+        return `ngày sinh =${arrp2.map(x => x.trim().length == 1 ? "0" + x : x).join("/")}/%`;
+    });
+    txt = txt.replace(/(sinh\s*năm)\s*(\d{1,4})/igm, `ngày sinh =%/$2`);
+    txt = txt.replaceAll("và", "&").replaceAll("hoặc", "@");
+    let strjoin = /\(.+\)\s*@\s*\(.+\)/igm.test(txt) ? 'OR' : 'AND';
+    if (!txt.startsWith("(")) {
+        txt += `(${txt})`;
+    }
+    let match = txt.match(/\([^)]+\)/igm);
+    if (match) {
+        match.forEach(x => {
+            x = x.replace(/([^\(&@#]+)(=|>=|<=|<>|<|>|#)/igm, (s, r) => {
+                let i = r.indexOf(">");
+                let stt = ">";
+                if (i == -1) {
+                    i = r.indexOf("<");
+                    stt = "<";
+                }
+                if (i == -1) {
+                    i = r.length;
+                    stt = "";
+                }
+                let k = r.substring(0, i).trim().toLowerCase();
+                let ken = change_unsigned(k).toLowerCase().trim();
+                let objk = cols.value.find(x => x.title.toLowerCase() == k || x.titleen.toLowerCase() == k || x.titleen.toLowerCase() == ken);
+                if (objk) {
+                    k = objk.key;
+                    if (odby.findIndex(o => o == '[' + k + ']') == -1) {
+                        odby.push('[' + k + ']');
+                    }
+                    if (selectedCols.value.findIndex(a => a.key == k) == -1) {
+                        selectedCols.value.push(objk);
+                    }
+                }
+                s = s.replace(r, ` [${k}]${stt} `);
+                return s;
+            });
+            groups.push(x);
+        })
+    }
+    let rs = groups.join(` ${strjoin} `);
+    rs = rs.replace(/(>=|<=|=|<>|#)([^(=|>=|<=|<>|<|>|&|@|#)]+)/igm, " $1 N'$2' ");
+    rs = rs.replaceAll(' & ', ' AND ');
+    rs = rs.replaceAll(' @ ', ' OR ');
+    rs = rs.replaceAll("= N'%", " LIKE N'%");
+    rs = rs.replace(/(\[[^\]]+\])[^\]]+%[^\']+'/igm, (s, r) => {
+        if (!s.includes("LIKE N")) return s;
+        s = s.replaceAll(" '", "");
+        let arr = s.split("LIKE N");
+        let str = "(";
+        arr[1].replaceAll("'", "").split(",").forEach((x, i) => {
+            if (i > 0) {
+                str += " OR ";
+            }
+            str += ` ${arr[0]} LIKE N'${x}' `;
+        });
+        str += ")"
+        return str;
+    })
+    rs = rs.replace(/=( N'[^']+\s*%\s*')/igm, "LIKE $1");
+    rs = rs.replace(/%\s*'/igm, "%'");
+    rs = rs.replaceAll("#", "BETWEEN");
+    rs = rs.replaceAll("A-N-D", "AND");
+    rs = rs.replace(/N'\s*(\d+)\s*AND\s*(\d+)\s*'/igm, '$1 AND $2');
+    rs = rs.replace(/\s{2}/igm, " ");
+    rs = rs.replace(/\(\s+/igm, "(");
+    //For json
+    // rs = rs.replace(/(học trường)\s*\"([^\"]+)\"/igm, `
+    //     profile_id in(select distinct profile_id from View_SearchEngine cross apply OPENJSON([Hồ sơ nhân sự|Quá trình đào tạo|5]) where JSON_VALUE(value,'$.json') like N'%$2%')
+    // `);
+    return rs;
+};
+let cacheSQL = '';
 const goSearch = async () => {
+    if (showListComplete.value == true) showListComplete.value = false;
     let strSelect = ' Select * ';
+    //let strSelect = ' Select ';
     let strFrom = ` from ${viewDB} `;
     let strWhere = '';
-    let strOrderby = ` order by [${cols.value[0].key}] `;
     strWhere = renderAutoInput(options.value.search);
     if (strWhere != "") {
         strWhere = " Where " + strWhere;
     }
+    let strOrderby = ` order by [${cols.value[0].key}] `;
+    //let selectColumn = selectedCols.value.map(x => '[' + x.key + ']').join(",");
+    //let strOrderby = ` order by ${odby.length > 0 ? odby.join(",") : '[' + cols.value[0].key + ']'} `;
     let sql = `${strSelect} ${strFrom} ${strWhere} ${strOrderby}`;
+    //let sql = `${strSelect} ${selectColumn} ${strFrom} ${strWhere} ${strOrderby}`;
     sql = sql.replace(/\s{2}/igm, " ");
-    sql = sql.replace(/\(\s+/igm, "(");  
-    dataLimits.value = [];
-    initDataFilterAdv(false, sql);
+    sql = sql.replace(/\(\s+/igm, "(");
+    if (cacheSQL != sql) {
+        cacheSQL = sql;
+        //await initData(false, sql);
+        dataLimits.value = [];
+        await initDataFilterAdv(false, sql);
+    }
 };
 const dataAdvAll = ref([]);
 const initDataFilterAdv = (f, sql) => {
     datas.value = [];
     let strSQL = {
         "query": true,
-        "proc": `Select ${f ? ' Top 1 ' : ''} * from ${viewDB}`,
+        "proc": `Select ${f ? ' Top 1 ' : ' distinct '} * from ${viewDB}`,
     };
     if (cols.value.length > 0) {
         strSQL.proc += ` order by [${cols.value[0].key}]`;
+        strSQL.proc += ` offset (` + (options.value.pageNo - 1).toString() + `) * ` + options.value.pageSize + ` rows fetch next ` + options.value.pageSize + ` rows only`;
     }
     if (sql) {
         strSQL.proc = sql;
+        sqlSubmit.value = sql;
+        
+        if (options.value.tab != -1) {            
+            let hasWhereQuery = strSQL.proc.replaceAll("Where", "where").indexOf("where");
+            let hasOrderQuery = strSQL.proc.indexOf("order by");
+            let subQuery_start = strSQL.proc.substring(0, hasOrderQuery);
+            let subQuery_end = strSQL.proc.substring(hasOrderQuery);
+            let strtab = '';
+            if (options.value.tab == 6) {
+                strtab = ' ([Hồ sơ nhân sự|Trạng thái nhân sự|0|0|0|status] is null or [Hồ sơ nhân sự|Trạng thái nhân sự|0|0|0|status] not in (0,1,2,3,4,5)) ';
+                if (hasWhereQuery >= 0) {
+                    strSQL.proc = subQuery_start + ' and ' + strtab + subQuery_end;
+                }
+                else {
+                    strSQL.proc = subQuery_start + ' where ' + strtab + subQuery_end;
+                }
+            }
+            else if (arrayStatus.indexOf(options.value.tab) >= 0) {
+                strtab = ' ([Hồ sơ nhân sự|Trạng thái nhân sự|0|0|0|status] = ' + options.value.tab.toString() + ') ';                
+                if (hasWhereQuery >= 0) {
+                    strSQL.proc = subQuery_start + ' and ' + strtab + subQuery_end;
+                }
+                else {
+                    strSQL.proc = subQuery_start + ' where ' + strtab + subQuery_end;
+                }
+            }
+        }
+
+        if (strSQL.proc.indexOf("offset (") < 0) {
+          strSQL.proc += ` offset (` + (options.value.pageNo - 1).toString() + `) * ` + options.value.pageSize + ` rows fetch next ` + options.value.pageSize + ` rows only`;
+        }
     }
     if (!f) {
       isFilterAdv.value = true;
@@ -1902,7 +2061,7 @@ const initDataFilterAdv = (f, sql) => {
                       datas.value = dts[0];
                       dataLimits.value = dataLimits.value.concat(dts[0]);
                       dataAdvAll.value = [...dataLimits.value];
-                      initCountFilterAdv();
+                      initCountFilterAdv(sql);
                       var temp = groupBy(dts[0], "department_id");
                       for (let k in temp) {
                         var obj = {
@@ -1919,6 +2078,8 @@ const initDataFilterAdv = (f, sql) => {
                     } else {
                       arr = [];
                       options.value.total = 0;
+                      dataAdvAll.value = [...dataLimits.value];
+                      initCountFilterAdv(sql);
                     }
                     treeOrganization.value.forEach((o) => {
                       o.list = arr.filter((dp) => dp.department_id == o.organization_id);
@@ -1960,7 +2121,14 @@ const initDataFilterAdv = (f, sql) => {
                 }
                 swal.close();
             }
-            swal.close();
+            else {
+              options.value.total = 0;
+              dataAdvAll.value = [...dataLimits.value];
+              if (sql) {
+                initCountFilterAdv(sql);
+              }
+              swal.close();
+            }
         }
         swal.close();
     })
@@ -1974,37 +2142,80 @@ const initDataFilterAdv = (f, sql) => {
         }
     });
 };
+const initCountFilterAdv = (sql) => {
+  let sqlDataGet = sql ? sql.substring(0, sql.lastIndexOf('order by [')) : '';
+  if (sqlDataGet != "") {
+    let proc = `Select (tbn.FieldValue) status, Count(p.[Hồ sơ nhân sự|ID profile|0|0|0|profile_id]) total 
+              from (${sqlDataGet}) p
+              cross join (Select * from dbo.udf_PivotParameters('-1,0,1,2,3,4,5,6',',')) as tbn
+              where ((tbn.FieldValue = -1)
+                    or (tbn.FieldValue in (0,1,2,3,4,5) and tbn.FieldValue = p.[Hồ sơ nhân sự|Trạng thái nhân sự|0|0|0|status])
+                    or (tbn.FieldValue = 6 and (p.[Hồ sơ nhân sự|Trạng thái nhân sự|0|0|0|status] is null or p.[Hồ sơ nhân sự|Trạng thái nhân sự|0|0|0|status] not in (0,1,2,3,4,5)))
+                  ) 
+              group by tbn.FieldValue`;
+    let strSQLCount = {
+      "query": true,
+      "proc": proc,
+    };
+    axios
+      .post(
+          basedomainURL + "api/hrm_profile/PostProc",
+          {
+              str: encr(
+                  JSON.stringify(strSQLCount),
+                  SecretKey,
+                  cryoptojs
+              ).toString(),
+          },
+          config
+      )
+      .then((response) => {
+        var data = response.data.data;
+          if (data != null) {
+            let tbs = JSON.parse(data);
+            if (tbs[0] != null && tbs[0].length > 0) {
+              counts.value = tbs[0];
+              tabs.value.forEach((x) => {
+                var idx = counts.value.findIndex((c) => c["status"] == x["status"]);
+                if (idx !== -1) {
+                  x["total"] = counts.value[idx]["total"];
+                }
+                else {
+                  x["total"] = 0;
+                }
+              });
+            }
+          }
+      })
+      .catch((error) => {
+          swal.close();
+          if (error.status === 401) {
+              swal.fire({
+                  text: "Mã token đã hết hạn hoặc không hợp lệ, vui lòng đăng nhập lại!",
+                  confirmButtonText: "OK",
+              });
+          }
+      });
+  }
+};
 const arrayStatus = [0,1,2,3,4,5];
-const initCountFilterAdv = () => {
-  tabs.value.forEach((x) => {
-    if (x["status"] == -1) {
-      x["total"] = dataLimits.value.length;
-    }
-    else if (x["status"] == 6) {
-      var countStatus = dataLimits.value.filter((c) => c["status"] == null || arrayStatus.indexOf(c["status"]) < 0).length;
-      x["total"] = countStatus;
-    }
-    else {
-      var countStatus = dataLimits.value.filter((c) => c["status"] == x["status"]).length;
-      x["total"] = countStatus;
-    }
-  });
-};
-const getDataTabAdvanced = (tab) => {
-  if (tab.status == -1) {
-    dataLimits.value = [...dataAdvAll.value];
-  }
-  else if (tab.status == 6) {
-    dataLimits.value = dataAdvAll.value.filter(x => x.status == null || arrayStatus.indexOf(x.status) < 0);
-  }
-  else {
-    dataLimits.value = dataAdvAll.value.filter(x => x.status == tab.status);
-  }  
-};
+// const getDataTabAdvanced = (tab) => {
+//   if (tab.status == -1) {
+//     dataLimits.value = [...dataAdvAll.value];
+//   }
+//   else if (tab.status == 6) {
+//     dataLimits.value = dataAdvAll.value.filter(x => x.status == null || arrayStatus.indexOf(x.status) < 0);
+//   }
+//   else {
+//     dataLimits.value = dataAdvAll.value.filter(x => x.status == tab.status);
+//   }  
+// };
 const ipsearch = ref();
+const sqlSubmit = ref();
 const submitFilter = () => {
     ipsearch.value = "";
     let strSelect = ' Select * ';
+    //let strSelect = ' Select ';
     let strFrom = ` from ${viewDB} `;
     let strWhere = '';
     let strOrderby = ` order by [${cols.value[0].key}] `;
@@ -2090,6 +2301,8 @@ const submitFilter = () => {
       strWhere = "";
     }
     let sql = `${strSelect} ${strFrom} ${strWhere} ${strOrderby}`;
+    //let selectColumn = selectedCols.value.map(x => '[' + x.key + ']').join(",");
+    //let sql = `${strSelect} ${selectColumn} ${strFrom} ${strWhere} ${strOrderby}`;
     sql = sql.replace(/\s{2}/igm, " ");
     sql = sql.replace(/\(\s+/igm, "(");    
     dataLimits.value = [];
@@ -2101,10 +2314,11 @@ const submitFilter = () => {
       options.value.pageSize = 25;
       options.value.limitItem = 25;
       options.value.total = 0;
+      isFilterAdv.value = false;
       initCount();
       initData(true);
     }
-    else {
+    else {        
       initDataFilterAdv(false, sql);
     }
 };
@@ -2205,24 +2419,37 @@ recognition.grammars = speechRecognitionList;
 recognition.lang = 'vi-VN';
 recognition.interimResults = true;
 recognition.continuous = true;
-recognition.onresult = (evt) => {
-    for (let i = 0; i < evt.results.length; i++) {
-        var result = evt.results[i]
+let isok = false;
+let resultIndex = 0;
+recognition.onresult = async (evt) => {
+    let reArr = [];
+    for (let i = resultIndex; i < evt.results.length; i++) {
+        var result = evt.results[i];
+        reArr.push(result);
         if (result.isFinal) CheckForCommand(result)
     }
-    const t = Array.from(evt.results)
+    const t = reArr
         .map(result => result[0])
         .map(result => result.transcript)
         .join('')
-    ipsearch.value = t.replace(/( xong| song| ok| tìm lại)/igm, "").replace(" bằng ", "=");
-    options.value.search = ipsearch.value;
-    if (t.trim().endsWith("xong") || t.trim().endsWith("song")) {
+    let str = t.replace(/( xong rồi| song rồi| ok| xoá| tìm| xóa)/igm, "");
+    if (ipsearch.value.trim() != str.trim()) {
+        ipsearch.value = str.trim();
+        options.value.search = ipsearch.value;
+    }
+    str = t.toLocaleLowerCase().trim();
+    if (str.endsWith("xong rồi") || str.endsWith("song rồi")) {
         stopMic(false);
-    } else if (t.trim().endsWith("ok")) {
-        goSearch();
-    } else if (t.toLocaleLowerCase().trim().includes("tìm lại")) {
+    } else if (str.endsWith("ok") || str.endsWith("tìm")) {
+        if (!isok) {
+            isok = true;
+            await goSearch();
+            isok = false;
+        }
+    } else if (str.endsWith("xoá") || str.endsWith("xóa")) {
         ipsearch.value = "";
         options.value.search = ipsearch.value;
+        resultIndex = evt.results.length - 1;
     }
 };
 recognition.onspeechend = () => {
@@ -2236,19 +2463,22 @@ recognition.onerror = (event) => {
     opMic.value.error = true;
 }
 const CheckForCommand = (result) => {
-    // const t = result[0].transcript.toLowerCase();
-    // if (t.endsWith('xong')) {
-    //     stopMic(false);
-    // }
+    const t = result[0].transcript.toLowerCase();
+    if (t.endsWith('ok')) {
+        //goSearch();
+    }
 }
 const stopMic = (f) => {
-    ipsearch.value = "";
-    options.value.search = ipsearch.value;
+    //ipsearch.value = "";
+    //options.value.search = ipsearch.value;
     opMic.value.isshow = f;
     opMic.value.start = false;
     opMic.value.error = false;
+    recognition.stop();
 }
 const goMic = () => {
+    isok = false;
+    resultIndex = 0;
     ipsearch.value = "";
     options.value.search = ipsearch.value;
     opMic.value.isshow = true;
@@ -2265,6 +2495,12 @@ const startMic = () => {
         recognition.stop();
         opMic.value.isshow = false;
     }
+}
+const checkValidkey = (k) => {
+    return true;
+}
+const validText = (txt) => {
+    return txt;
 }
 // end filter nang cao
 
@@ -2320,7 +2556,12 @@ const loadMoreRow = (data) => {
       options.value.limitItem += 25;
       options.value.pageNo += 1;
       //dataLimits.value = datas.value.slice(0, options.value.limitItem);
-      initData(false);
+      if (isFilterAdv.value) {
+        initDataFilterAdv(false, sqlSubmit.value);
+      }
+      else {
+        initData(false);
+      }
     } else {
       options.value.limitItem = data.length;
       //dataLimits.value = datas.value.slice(0, options.value.limitItem);
@@ -2508,10 +2749,15 @@ const loadMoreRow = (data) => {
                                               headerStyle="flex:1;"
                                               bodyStyle="flex:1;"
                                           >
-                                              <template #body="dt">
-                                                  <Textarea rows="1" spellcheck="false" v-model="dt.data.value" autoResize
-                                                      class="w-full" />
-                                              </template>
+                                            <template #body="dt">
+                                                <Textarea rows="1" spellcheck="false" 
+                                                    v-if="!drTypes.find(x => x.value == dt.data.type).hide"
+                                                    :placeholder="drTypes.find(x => x.value == dt.data.type).placeholder"
+                                                    v-model="dt.data.value" 
+                                                    autoResize
+                                                    class="w-full" 
+                                                />
+                                            </template>
                                           </Column>
                                           <Column header="" 
                                               class="justify-content-center"
@@ -2553,14 +2799,14 @@ const loadMoreRow = (data) => {
                 </div>
             </div>
             <div class="text-center mt-2">
-                <Button class="p-button-sm p-button-danger mr-2" @click="resetFilterAdvanced()" label="Huỷ" />
-                <Button class="p-button-sm" v-if="groupBlock.length > 0" @click="submitFilter()" label="Thực hiện" />
+                <Button class="p-button-sm p-button-danger mr-2 w-7rem" @click="resetFilterAdvanced()" label="Huỷ" />
+                <Button class="p-button-sm w-7rem" v-if="groupBlock.length > 0" @click="submitFilter()" label="Thực hiện" />
             </div>
           </OverlayPanel>
         </span>
         <Button
           @click="goSearch()"
-          v-tooltip.top="'Thực hiện'"
+          v-tooltip.top="'Thực hiện tìm kiếm nâng cao'"
           class="ml-2 p-button-outlined p-button-secondary"
           icon="pi pi-send"
         >
@@ -4095,7 +4341,7 @@ const loadMoreRow = (data) => {
   </Dialog>
 
   <!-- Tim kiem bang giong noi -->
-  <Dialog @after-hide="stopMic(false)" v-model:visible="opMic.isshow" modal header="Tìm kiếm bằng giọng nói"
+  <Dialog @hide="stopMic(false)" v-model:visible="opMic.isshow" modal header="Tìm kiếm bằng giọng nói"
       :style="{ width: '480px', backgroundColor: '#eee' }">
       <div class="p-2" style="background-color: #eee;">
           <iframe frameborder="none" style="width: 100%;height: 100%;"
