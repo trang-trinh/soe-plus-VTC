@@ -171,7 +171,7 @@ const search = () => {
   options.value.limitItem = 25;
   options.value.total = 0;
   dataLimits.value = [];
-
+  isFilterAdv.value = false;
   initCount();
   initData(true);
 };
@@ -2185,6 +2185,11 @@ const initCountFilterAdv = (sql) => {
                   x["total"] = 0;
                 }
               });
+            }
+            else {
+                tabs.value.forEach((x) => {
+                    x["total"] = 0;
+                });
             }
           }
       })
