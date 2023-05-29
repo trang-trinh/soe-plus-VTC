@@ -6,9 +6,8 @@ import { required } from "@vuelidate/validators";
 import moment from "moment";
 import { concat } from "lodash";
 import { encr } from "../../util/function.js";
-import treeuser from "../../components/user/treeuser.vue";
+import treeuser from "../../components/task_origin/treeuser.vue/tree_user_task.vue";
 import DetailProject from "../../components/project_main/DetailedProject.vue";
-import DataTable from "primevue/datatable";
 const cryoptojs = inject("cryptojs");
 const basedomainURL = fileURL;
 
@@ -54,7 +53,6 @@ const treelistProjectMains = ref();
 const sttProjectMain = ref();
 const selectedProjectMainDel = ref([]);
 const selectedProjectMain = ref();
-const selectedKey = ref();
 const selectedNodes = ref([]);
 const listProjectGroups = ref();
 const first = ref(0);
@@ -157,7 +155,7 @@ const onPage = (event) => {
 };
 
 const listThanhVien = ref([]);
-
+const user = store.getters.user;
 const listUser = () => {
   axios
     .post(
@@ -165,22 +163,10 @@ const listUser = () => {
       {
         str: encr(
           JSON.stringify({
-            proc: "sys_users_list_task_origin",
+            proc: "sys_user_list_tree_task",
             par: [
-              { par: "search", va: opition.value.SearchTextUser },
-              { par: "user_id", va: store.getters.user.user_id },
-              { par: "role_id", va: null },
-              {
-                par: "organization_id",
-                va: store.getters.user.organization_id,
-              },
-              { par: "department_id", va: null },
-              { par: "position_id", va: null },
-
-              { par: "isadmin", va: null },
-              { par: "status", va: null },
-              { par: "start_date", va: null },
-              { par: "end_date", va: null },
+              { par: "user_id", va: user.user_id },
+              { par: "types", va: 1 },
             ],
           }),
           SecretKey,
@@ -190,13 +176,43 @@ const listUser = () => {
       config
     )
     .then((response) => {
-      let data = JSON.parse(response.data.data)[0];
-      listDropdownUser.value = data.map((x) => ({
-        name: x.full_name,
-        code: x.user_id,
-        avatar: x.avatar,
-        ten: x.last_name,
-      }));
+      var data = response.data.data;
+      if (data != null) {
+        let tbs = JSON.parse(data);
+
+        if (tbs[0] != null && tbs[0].length > 0) {
+          tbs[0].forEach((element, i) => {
+            if (element["created_date"] != null) {
+              var ldate = element["created_date"].split(" ");
+              element["created_date"] = ldate[0];
+            }
+          });
+          if (tbs[0].length > 0) {
+            tbs[0].forEach((element, i) => {
+              element["STT"] = i + 1;
+            });
+          }
+          listDropdownUser.value = tbs[0].map((x) => ({
+            user_id: x.user_id,
+            full_name: x.full_name,
+            full_name_en: x.full_name_en,
+            is_order: x.is_order,
+            user_key: x.user_key,
+            last_name: x.last_name,
+            avatar: x.avatar,
+            organization_id: x.organization_id,
+            position_id: x.position_id,
+            position_name: x.position_name,
+            department_id: x.department_id,
+            organization_name: x.organization_name,
+            STT: x.STT,
+            orgID: x.orgID,
+            org_name: x.org_name,
+          }));
+        }
+        swal.close();
+      }
+
       if (listDropdownUser.value.length > 10) {
         listThanhVien.value = listDropdownUser.value.slice(0, 10);
       } else {
@@ -738,10 +754,13 @@ const saveProjectMain = (isFormValid) => {
   if (!isFormValid) {
     return;
   }
-  if (Object.keys(selectcapcha.value)[0] == "-1" || !selectcapcha.value) {
+  if (!selectcapcha.value) {
     selectcapcha.value = [];
   } else {
     ProjectMain.value.parent_id = Object.keys(selectcapcha.value)[0];
+    if (ProjectMain.value.parent_id == -1) {
+      ProjectMain.value.parent_id = null;
+    }
   }
   if (ProjectMain.value.keywords != null) {
     ProjectMain.value.keywords = ProjectMain.value.keywords.toString();
@@ -771,11 +790,11 @@ const saveProjectMain = (isFormValid) => {
       let member = {
         project_id: null,
         task_id: null,
-        user_id: t,
+        user_id: t.user_id,
         is_type: 0, // 0: người quản lý, 1: người tham gia
         status: true,
       };
-      member.user_id = t;
+      member.user_id = t.user_id;
       ProjectMainMember.value.push(member);
     });
   }
@@ -784,11 +803,11 @@ const saveProjectMain = (isFormValid) => {
       let member1 = {
         project_id: null,
         task_id: null,
-        user_id: t,
+        user_id: t.user_id,
         is_type: 1, // 0: người quản lý, 1: người tham gia
         status: true,
       };
-      member1.user_id = t;
+      member1.user_id = t.user_id;
       ProjectMainMember.value.push(member1);
     });
   }
@@ -847,79 +866,15 @@ const saveProjectMain = (isFormValid) => {
 };
 const emitter = inject("emitter");
 
-const RenderData = (response) => {
-  opition.value.allRecord = null;
-  let list1 = [];
-  let list2 = [];
-  let list3 = [];
-  let d1 = JSON.parse(response.data.data)[0];
-  d1.forEach((element, i) => {
-    let c = {
-      key: element.project_id,
-      data: {
-        place_id: element.project_id,
-        parent_id: element.parent_id,
-        project_name: element.project_name,
-        status: element.status,
-        is_order: element.is_order,
-        STT: null,
-        created_by: element.created_by,
-      },
-      children: null,
-    };
-    if (opition.value.PageNo > 0) {
-      c.data.STT = opition.value.PageNo * opition.value.PageSize + i + 1;
-    } else {
-      c.data.STT = i + 1;
-    }
-    if (d1[i].children) {
-      list2 = JSON.parse(d1[i].children);
-      if (list2 != null) {
-        list2.forEach((element, i) => {
-          //đổi dạng stt=> true/false
-          if (element.data.status == 1) {
-            element.data.status = true;
-          } else {
-            element.data.status = false;
-          }
-          //đổi is_order
-          element.data.STT = c.data.STT + "." + (i + 1);
-          let temp = list2[i].data.STT;
-          if (list2[i].children != null) {
-            list3 = list2[i].children;
-            list3.forEach((element, i) => {
-              element.data.STT = temp + "." + (i + 1);
-              if (element.data.status == 1) {
-                element.data.status = true;
-              } else {
-                element.data.status = false;
-              }
-            });
-            list2[i].children = list3;
-          }
-        });
-      }
-      c.children = list2;
-    }
-    list1.push(c);
-  });
-  listProjectMains.value = list1;
-  if (JSON.parse(response.data.data)[1]) {
-    let data2 = JSON.parse(response.data.data)[1];
-    opition.value.allRecord = data2[0].allRecord;
-  } else {
-    opition.value.allRecord = datalists.value.length;
-  }
-};
-const ChangeCheckProjectMain = (model) => {
-  let data = listData.value.filter((x) => x.project_id == model.project_id);
-  if (model.is_check) {
-    selectedProjectMainDel.value.push(model.project_id);
-  }
-};
 const renderTreeDV = (data, id, name, title) => {
   let arrChils = [];
   let arrtreeChils = [];
+
+  data
+    .filter((x) => x.parent_id == "-1")
+    .forEach((m, i) => {
+      m.parent_id = null;
+    });
   data
     .filter((x) => x.parent_id == null)
     .forEach((m, i) => {
@@ -931,9 +886,11 @@ const renderTreeDV = (data, id, name, title) => {
       } else {
         m.STT = i + 1;
       }
+      m.countChild = 0;
       let om = { key: m[id], data: m };
       const rechildren = (mm, pid) => {
         let dts = data.filter((x) => x.parent_id == pid);
+        mm.count_child = dts.length;
         if (dts.length > 0) {
           if (!mm.children) mm.children = [];
           dts.forEach((em, index) => {
@@ -1029,7 +986,7 @@ const listtreeProjectMain = () => {
 // const delLogo = () => {
 
 // };
-const delLogo = (datafile) => {
+const delLogo = () => {
   files["LogoDonvi"] = [];
   isDisplayAvt.value = false;
   var output = document.getElementById("LogoDonvi");
@@ -1230,13 +1187,13 @@ const OpenDialogTreeUser = (one, type) => {
   if (type == 1) {
     ProjectMain.value.managers.forEach((t) => {
       let select = { user_id: t };
-      selectedUser.value.push(select);
+      selectedUser.value.push(t);
     });
     headerDialogUser.value = "Chọn người quản lý";
   } else if (type == 2) {
     ProjectMain.value.participants.forEach((t) => {
       let select = { user_id: t };
-      selectedUser.value.push(select);
+      selectedUser.value.push(t);
     });
     headerDialogUser.value = "Chọn người tham gia";
   }
@@ -1248,13 +1205,16 @@ const OpenDialogTreeUser = (one, type) => {
 const closeDialog = () => {
   displayDialogUser.value = false;
 };
-const choiceTreeUser = () => {
+const choiceTreeUser = (e) => {
+  debugger;
+  selectedUser.value = [];
+  selectedUser.value = JSON.parse(JSON.stringify(e));
   switch (is_type.value) {
     case 1:
       if (selectedUser.value.length > 0) {
         ProjectMain.value.managers = [];
         selectedUser.value.forEach((t) => {
-          ProjectMain.value.managers.push(t.user_id);
+          ProjectMain.value.managers.push(t);
         });
       }
       break;
@@ -1262,7 +1222,7 @@ const choiceTreeUser = () => {
       if (selectedUser.value.length > 0) {
         ProjectMain.value.participants = [];
         selectedUser.value.forEach((t) => {
-          ProjectMain.value.participants.push(t.user_id);
+          ProjectMain.value.participants.push(t);
         });
       }
       break;
@@ -1310,7 +1270,7 @@ const onRowSelect = (id) => {
   showDetailProject.value = true;
   selectedProjectMainID.value = id.project_id;
 };
-const onRowUnselect = (id) => {};
+const onRowUnselect = () => {};
 const menuListTypeButs = ref();
 const toggleListType = (event) => {
   menuListTypeButs.value.toggle(event);
@@ -1321,7 +1281,7 @@ const itemSortButs = ref([
     sort: "is_order",
     ob: "ASC",
     active: false,
-    command: (event) => {
+    command: () => {
       ChangeSortProject("is_order", "ASC");
     },
   },
@@ -1330,7 +1290,7 @@ const itemSortButs = ref([
     sort: "is_order",
     ob: "DESC",
     active: false,
-    command: (event) => {
+    command: () => {
       ChangeSortProject("is_order", "DESC");
     },
   },
@@ -1339,7 +1299,7 @@ const itemSortButs = ref([
     sort: "created_date",
     ob: "DESC",
     active: true,
-    command: (event) => {
+    command: () => {
       ChangeSortProject("created_date", "DESC");
     },
   },
@@ -1348,7 +1308,7 @@ const itemSortButs = ref([
     sort: "created_date",
     ob: "ASC",
     active: false,
-    command: (event) => {
+    command: () => {
       ChangeSortProject("created_date", "ASC");
     },
   },
@@ -1357,7 +1317,7 @@ const itemSortButs = ref([
     sort: "project_name",
     ob: "ASC",
     active: false,
-    command: (event) => {
+    command: () => {
       ChangeSortProject("project_name", "ASC");
     },
   },
@@ -1366,7 +1326,7 @@ const itemSortButs = ref([
     sort: "project_name",
     ob: "DESC",
     active: false,
-    command: (event) => {
+    command: () => {
       ChangeSortProject("project_name", "DESC");
     },
   },
@@ -1653,7 +1613,7 @@ const itemListTypeButs = ref([
     active: false,
     icon: "pi pi-list",
     type: 1,
-    command: (event) => {
+    command: () => {
       ChangeView(1);
     },
   },
@@ -1662,7 +1622,7 @@ const itemListTypeButs = ref([
     active: true,
     icon: "pi pi-list",
     type: 2,
-    command: (event) => {
+    command: () => {
       ChangeView(2);
     },
   },
@@ -1671,7 +1631,7 @@ const itemListTypeButs = ref([
     active: false,
     icon: "pi pi-table",
     type: 3,
-    command: (event) => {
+    command: () => {
       ChangeView(3);
     },
   },
@@ -1680,7 +1640,7 @@ const itemListTypeButs = ref([
     active: false,
     icon: "pi pi-calendar-plus",
     type: 4,
-    command: (event) => {
+    command: () => {
       ChangeView(4);
     },
   },
@@ -1689,7 +1649,7 @@ const itemListTypeButs = ref([
     active: false,
     icon: "pi pi-user-plus",
     type: 5,
-    command: (event) => {
+    command: () => {
       ChangeView(5);
     },
   },
@@ -2047,7 +2007,7 @@ onMounted(() => {
               <Button
                 @click="ChangeFilter(opition.filter_type, true)"
                 label="Thực hiện"
-              />``
+              />
               <Button
                 @click="Del_ChangeFilter"
                 id="btn_huy"
@@ -2138,6 +2098,12 @@ onMounted(() => {
               {{
                 md.node.data.count_taskHT + "/" + md.node.data.count_task
               }}</span
+            >
+            <span
+              style="color: rgb(152, 169, 188); margin-top: 5px"
+              v-if="md.node.data.count_child > 0"
+            >
+              Dự án con: {{ md.node.data.count_child }}</span
             >
           </div>
         </template>
@@ -2553,6 +2519,7 @@ onMounted(() => {
                 <span>
                   Công việc ({{ cv.count_taskHT + "/" + cv.count_task }})
                 </span>
+
                 <span>
                   <span
                     v-if="cv.isQL"
@@ -3506,6 +3473,7 @@ onMounted(() => {
           </div>
           <div class="field col-12 md:col-12">
             <label class="col-3 text-left p-0">Cấp cha</label>
+
             <TreeSelect
               class="col-9"
               v-model="selectcapcha"
@@ -3650,8 +3618,7 @@ onMounted(() => {
               :filter="true"
               v-model="ProjectMain.managers"
               :options="listDropdownUser"
-              optionValue="code"
-              optionLabel="name"
+              optionLabel="full_name"
               class="col-9 ip36 p-0"
               placeholder="Người quản lý"
               display="chip"
@@ -3665,7 +3632,7 @@ onMounted(() => {
                     v-bind:label="
                       slotProps.option.avatar
                         ? ''
-                        : (slotProps.option.name ?? '').substring(0, 1)
+                        : (slotProps.option.last_name ?? '').substring(0, 1)
                     "
                     v-bind:image="basedomainURL + slotProps.option.avatar"
                     style="
@@ -3683,8 +3650,18 @@ onMounted(() => {
                     size="xlarge"
                     shape="circle"
                   />
-                  <div class="pt-1" style="padding-left: 10px">
-                    {{ slotProps.option.name }}
+                  <div class="flex justify-content-left ml-3">
+                    <div>
+                      <div style="text-align: left">
+                        {{ slotProps.option.full_name }}
+                      </div>
+                      <div class="description" style="text-align: left">
+                        {{ slotProps.option.position_name }}
+                      </div>
+                      <div class="description" style="text-align: left">
+                        {{ slotProps.option.organization_name }}
+                      </div>
+                    </div>
                   </div>
                 </div>
               </template>
@@ -3700,10 +3677,9 @@ onMounted(() => {
               :filter="true"
               v-model="ProjectMain.participants"
               :options="listDropdownUser"
-              optionValue="code"
-              optionLabel="name"
+              optionLabel="full_name"
               class="col-9 ip36 p-0"
-              placeholder="Người tham gia"
+              placeholder="Người quản lý"
               display="chip"
             >
               <template #option="slotProps">
@@ -3715,7 +3691,7 @@ onMounted(() => {
                     v-bind:label="
                       slotProps.option.avatar
                         ? ''
-                        : (slotProps.option.name ?? '').substring(0, 1)
+                        : (slotProps.option.last_name ?? '').substring(0, 1)
                     "
                     v-bind:image="basedomainURL + slotProps.option.avatar"
                     style="
@@ -3733,8 +3709,18 @@ onMounted(() => {
                     size="xlarge"
                     shape="circle"
                   />
-                  <div class="pt-1" style="padding-left: 10px">
-                    {{ slotProps.option.name }}
+                  <div class="flex justify-content-left ml-3">
+                    <div>
+                      <div style="text-align: left">
+                        {{ slotProps.option.full_name }}
+                      </div>
+                      <div class="description" style="text-align: left">
+                        {{ slotProps.option.position_name }}
+                      </div>
+                      <div class="description" style="text-align: left">
+                        {{ slotProps.option.organization_name }}
+                      </div>
+                    </div>
                   </div>
                 </div>
               </template>
@@ -3835,6 +3821,7 @@ onMounted(() => {
       </template>
     </Dialog>
   </div>
+
   <treeuser
     v-if="displayDialogUser === true"
     :headerDialog="headerDialogUser"

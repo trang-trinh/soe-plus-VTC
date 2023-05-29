@@ -70,6 +70,7 @@ const send = () => {
       swal.showLoading();
     },
   });
+  
   var obj = { ...props.modelsend };
   let formData = new FormData();
   if (props.modelsend.type_send == 2) {
@@ -90,7 +91,7 @@ const send = () => {
   obj.content = process.value.content;
 else
 obj.content ="";
-
+debugger
   formData.append("type_send", obj["type_send"]);
   formData.append("key_id", obj["key_id"]);
   formData.append("type_module", obj["type_module"]);
@@ -368,7 +369,7 @@ const initTudien = () => {
         data.forEach((element, i) => {
           listUsers.value.push({
             name: element.full_name,
-            code: element.user_id,
+            code: element.user_key,
             avatar: element.avatar,
             department_name: element.department_name,
             role_name: element.role_name,
@@ -462,8 +463,8 @@ onMounted(() => {
   >
     <form>
       <div class="grid formgrid m-2">
-        <div class="col-12 md-col-12">
-          <div class="form-group">
+        <div class="col-12  py-0 ">
+          <div class="form-group pb-0 mb-0">
             <label
               >{{
                 props.modelsend.type_send === 0
@@ -536,7 +537,7 @@ onMounted(() => {
                               v-tooltip.top="item.full_name"
                               :key="item.user_id"
                               style="border: 2px solid white; color: white"
-                              @click="onTaskUserFilter(item)"
+                     
                               @error="
                                 basedomainURL + '/Portals/Image/noimg.jpg'
                               "
@@ -812,8 +813,8 @@ onMounted(() => {
           </div>
         </div>
 
-        <div class="col-12 md:col-12">
-          <div class="form-group">
+        <div class="col-12 md:col-12 py-0">
+          <div class="form-group pb-0">
             <label>Loại duyệt</label>
             <Dropdown
               v-model="process.aproved_type"
@@ -895,6 +896,7 @@ onMounted(() => {
               :autoResize="true"
               rows="5"
               cols="30"
+              class="w-full"
             />
           </div>
         </div>

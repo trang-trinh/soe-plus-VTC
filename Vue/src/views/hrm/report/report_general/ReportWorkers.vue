@@ -1,6 +1,6 @@
 <script setup>
 import { ref, inject, onMounted, watch } from "vue";
-import { required, maxLength, minLength, email } from "@vuelidate/validators";
+import { useRouter, useRoute } from "vue-router";
 import { useToast } from "vue-toastification";
 import { useVuelidate } from "@vuelidate/core";
 import { encr } from "../../../../util/function.js";
@@ -8,6 +8,7 @@ import moment from "moment";
 
 const cryoptojs = inject("cryptojs");
 const emitter = inject("emitter");
+const router = useRoute();
 
 //color
 const bgColor = ref([
@@ -23,35 +24,20 @@ const bgColor = ref([
 //Khai báo biến
 const store = inject("store");
 var data_org = [];
-const expandedKeys = ref({})
-const id_active = ref();
 const department_name = ref();
 department_name.value= store.getters.user.organization_name;
 const datalists = ref();
-const personel_groups = ref();
-const selectedNodes = ref([]);
-const filters = ref({});
-const router = inject("router");
 const options = ref({
-    IsNext: true,
-    sort: "created_date",
-    SearchText: null,
-    PageNo: 0,
-    PageSize: 20,
-    loading: true,
     totalRecords: null,
-    loadingP: true,
-    pagenoP: 0,
-    pagesizeP: 20,
-    searchP: "",
-    sortP: "created_date",
-    department_id: store.getters.user.organization_id,
-    gender: null,
-    academic_level_id: null, 
-    specialization_id: null,
-    professional_work_id: null,
-    title_id: null,
-    description: null
+    departments: null,
+    genders: null,
+    academic_levels: null, 
+    specializations: null,
+    professional_works: null,
+    titles: null,
+    description: null,
+    is_partisans: null,
+    is_link : null,
   });
 const genders = ref(
   [
@@ -59,8 +45,16 @@ const genders = ref(
     {text: "Nữ",value:2}
   ]
 )
-const tudiens= ref();
-const isFirst = ref(true);
+const is_partisans = ref(
+  [
+    {text: "Có",value:1},
+    {text: "Không",value:0}
+  ]
+);
+const titles = ref([]);
+const positions = ref([]);
+const academic_levels = ref([]);
+const specializations = ref([]);
 const toast = useToast();
 const swal = inject("$swal");
 const axios = inject("axios"); // inject axios
@@ -74,8 +68,31 @@ const selectCapcha = ref();
 selectCapcha.value = {};
 
 // on event
-
+var department_id
+  ,is_partisan
+  ,gender
+  ,academic_level_id
+  ,specialization_id
+  ,professional_work_id
+  ,title_id
+  ,position_id;
 const loadData = () => {
+  if (options.value.departments != null && Object.keys(options.value.departments).length > 0) {
+    var dep_ids = [];
+    for (var key in options.value.departments) {
+      if (options.value.departments[key]) {
+        dep_ids.push(key);
+      }
+    }
+    department_id = dep_ids.join(",");
+  }
+  gender = getListStringfromArr(options.value.genders, 'value');
+  is_partisan = getListStringfromArr(options.value.is_partisans, 'value');
+  academic_level_id = getListStringfromArr(options.value.academic_levels, 'academic_level_id');
+  specialization_id = getListStringfromArr(options.value.specializations, 'specialization_id');
+  professional_work_id = getListStringfromArr(options.value.professional_works, 'professional_work_id');
+  title_id = getListStringfromArr(options.value.titles, 'title_id');
+  position_id = getListStringfromArr(options.value.position_ids, 'position_id');
   swal.fire({
     width: 110,
     didOpen: () => {
@@ -88,19 +105,19 @@ const loadData = () => {
             {
                 str: encr(
                     JSON.stringify({
-                        proc: "hrm_report_workers_list1",
+                        proc: "hrm_report_workers_list",
                         par: [
-                            { par: "search", va: options.value.SearchText },
                             { par: "user_id", va: store.getters.user.user_id },
-                            { par: "department_id", va: options.value.department_id},
-                            { par: "gender", va: options.value.gender},
-                            { par: "academic_level_id", va: options.value.academic_level_id},
-                            { par: "specialization_id", va: options.value.specialization_id},
-                            { par: "professional_work_id", va: options.value.professional_work_id},
-                            { par: "title_id", va: options.value.title_id},
+                            { par: "department_id", va: department_id},
+                            { par: "gender", va: gender},
+                            { par: "is_partisan", va: is_partisan},
+                            { par: "academic_level_id", va: academic_level_id},
+                            { par: "specialization_id", va: specialization_id},
+                            { par: "professional_work_id", va: professional_work_id},
+                            { par: "title_id", va: title_id},
+                            { par: "position_id", va: position_id},
                             { par: "description", va: options.value.description},
-                            { par: "pageno", va: options.value.PageNo},
-                            { par: "pagesize", va: options.value.PageSize},
+                            { par: "is_link", va: options.value.is_link},
                         ],
                     }),
                     SecretKey,
@@ -111,8 +128,9 @@ const loadData = () => {
         )
         .then((response) => {
             let data = JSON.parse(response.data.data);
+            options.value.totalRecords =data[0].length;
             if (data[0].length > 0) {
-              data[0] = groupBy(data[0], 'personel_groups_id');
+              data[0] = groupBy(data[0], 'department_id');
                     let arr = [];
                     var count = 1;
                     for (let pb in data[0]) {
@@ -120,39 +138,56 @@ const loadData = () => {
                           item.stt = count;
                           count++
                         })
-                        arr.push({ group_pb: pb, name_group_pb: data[0][pb][0].personel_groups_name, list_ns: data[0][pb] });
-                    }
+                        arr.push({ group_pb: pb, name_group_pb: data[0][pb][0].organization_name, list_ns: data[0][pb] });
+                    };
                 datalists.value = arr;
             }
             else datalists.value = [];
-            swal.close();
-            options.value.loading = false;
+          if (data[1].length > 0) {
+            data_org = data[1];
+            let obj = renderTreeDV(
+              data[1],
+              "organization_id",
+              "organization_name",
+              "phòng ban"
+            );
+            treedonvis.value = obj.arrtreeChils;
+          }
+          titles.value= data[2];
+          positions.value= data[3];
+          academic_levels.value= data[4];
+          specializations.value= data[5];
+          swal.close();
+          options.value.loading = false;
         })
         .catch((error) => {
+            swal.close();
             toast.error("Tải dữ liệu không thành công!");
             options.value.loading = false;
         });
 };
 //filter
-const filterButs = ref();
-const checkFilter = ref(false);
+const opfilter = ref();
+const isfilter = ref(false)
 const toggleFilter = (event) => {
-  filterButs.value.toggle(event);
+  opfilter.value.toggle(event);
 };
-const filterReport = ()=>{
-  let keys = Object.keys(selectCapcha.value);
-  if (keys.length> 0) {
-    options.value.department_id = parseInt(keys[0]);
-    department_name.value= data_org.filter(x=>x.organization_id == options.value.department_id )[0].organization_name || '';
-  }
-  checkFilter.value = true;
-  loadData(true);
-}
-const refilterReport = () => {
-  checkFilter.value = false;
-  selectCapcha.value[store.getters.user.organization_id] = true;
-  options.value.department_id = store.getters.user.organization_id;
-  //loadData(true);
+const filter = (event) => {
+  opfilter.value.toggle(event);
+  isfilter.value = true;
+  loadData();
+};
+const resetFilter = (f) => {
+  options.value.positions = [];
+  options.value.titles = [];
+  options.value.academic_levels = [];
+  options.value.specializations = [];
+  options.value.is_partisans = [];
+  options.value.genders = [];
+  options.value.description = null;
+  options.value.departments = null;
+  department_id.value= null;
+  if(f) loadData(true);
 };
 //Khai báo function
 const toggleExport = (event) => {
@@ -167,35 +202,6 @@ const itemButs = ref([
     },
 }]);
 const treedonvis = ref();
-const initTudien = () => {
-  axios
-    .post(
-        baseURL + "/api/hrm/callProc",
-        {
-          str: encr(JSON.stringify({
-            proc: "hrm_report_dictionary",
-            par: [{ par: "user_id", va: store.getters.user.user_id }],
-              }), SecretKey, cryoptojs
-              ).toString()
-            },
-        config
-      )
-    .then((response) => {
-      let data = JSON.parse(response.data.data);
-      if (data[0].length > 0) {
-        data_org = data[0];
-        let obj = renderTreeDV(
-          data[0],
-          "organization_id",
-          "organization_name",
-          "phòng ban"
-        );
-        treedonvis.value = obj.arrtreeChils;
-      }
-      tudiens.value= data;
-    })
-    .catch((error) => {});
-};
 const exportExcel = () => {
   
   let name = "BC.HS003";
@@ -260,6 +266,9 @@ const exportExcel = () => {
     document.body.removeChild(elem);
   }
 };
+const removeFilter = (idx, array) => {
+  array.splice(idx, 1);
+};
 const activeRow = (row)=>{
   datalists.value.forEach((item)=>{
     item.list_ns.forEach((item2)=>{
@@ -312,164 +321,415 @@ const renderTreeDV = (data, id, name, title) => {
   return { arrChils: arrChils, arrtreeChils: arrtreeChils };
 };
 function groupBy(list, props) {
-      return list.reduce((a, b) => {
-          (a[b[props]] = a[b[props]] || []).push(b);
-          return a;
-      }, {});
-  }
+    return list.reduce((a, b) => {
+        (a[b[props]] = a[b[props]] || []).push(b);
+        return a;
+    }, {});
+}
+function getListStringfromArr(arr, type){
+  debugger
+  let id = null
+  if (arr != null && arr.length > 0) {
+    id = arr.map((x) => x[type]).join(",");
+  } else id = null;
+  return id;
+}
 onMounted(() => {
     //init
+    if (router.fullPath != null)
+      options.value.is_link = router.fullPath;
     loadData();
-    initTudien();
+   // initTudien();
 });
 </script>
 
 <template>
     <div class="main-layout true flex-grow-1 p-2 pb-0 pr-0">
-        <div style="background-color: #fff; padding: 1rem;padding-left: 0;">
-          <h3 class="module-title module-title-hidden mt-0 ml-3 mb-2">
-            <i class="pi pi-chart-bar"></i> Báo cáo danh sách lao động
-          </h3>
+      <div style="background-color: #fff; padding: 1rem;padding-left: 0;">
+        <div class="bg-white format-center py-1 font-bold text-xl">
+          BÁO CÁO DANH SÁCH LAO ĐỘNG<span v-if="options.totalRecords != null">&nbsp({{ options.totalRecords }})</span>
+        </div>
         <Toolbar class="w-full custoolbar">
           <template #start>
+            <Button
+              @click="toggleFilter($event)"
+              type="button"
+              class="ml-2 p-button-outlined p-button-secondary"
+              aria:haspopup="true"
+              aria-controls="overlay_panel"
+            >
+              <div>
+                <span class="mr-2"><i class="pi pi-filter"></i></span>
+                <span class="mr-2">Chọn điều kiện lập báo cáo</span>
+                <span><i class="pi pi-chevron-down"></i></span>
+              </div>
+            </Button>
+            <OverlayPanel :showCloseIcon="false" ref="opfilter" appendTo="body" class="p-0 m-0 panel-filter" id="overlay_panel" style="width: 600px; z-index:1000">
+              <div class="grid formgrid m-0">
+                <div class="col-12 md:col-12 p-0" :style="{
+                  minHeight: 'unset',
+                  maxheight: 'calc(100vh - 300px)',
+                  overflow: 'auto',
+                }">
+                  <div class="row">
+                    <div class="col-12 md:col-12">
+                      <div class="form-group">
+                        <label>Chọn phòng ban/ Đơn vị</label>
+                        <TreeSelect class="col-12 ip36 mt-2 p-0 text-left" style="max-width: calc(600px - 3rem);"  :options="treedonvis"
+                          v-model="options.departments"  selectionMode="multiple" :metaKeySelection="false"
+                          :showClear="true" :max-height="200" display="chip" placeholder="Chọn phòng ban/ Đơn vị">
+                        </TreeSelect>
+                      </div>
+                    </div>
+                    <div class="col-6 md:col-6">
+                      <div class="form-group">
+                        <label>Chức danh</label>
+                        <MultiSelect
+                          :options="titles"
+                          :filter="true"
+                          :showClear="true"
+                          :editable="false"
+                          v-model="options.titles"
+                          optionLabel="title_name"
+                          placeholder="Chọn chức danh"
+                          class="w-full limit-width"
+                          style="min-height: 36px"
+                          panelClass="d-design-dropdown"
+                        >
+                          <template #value="slotProps">
+                            <ul
+                              class="p-ulchip"
+                              v-if="
+                                slotProps.value && slotProps.value.length > 0
+                              "
+                            >
+                              <li
+                                class="p-lichip"
+                                v-for="(value, index) in slotProps.value"
+                                :key="index"
+                              >
+                                <Chip class="mr-2 mb-2 px-3 py-2">
+                                  <div class="flex">
+                                    <div>
+                                      <span>{{ value.title_name }}</span>
+                                    </div>
+                                    <span
+                                      tabindex="0"
+                                      class="p-chip-remove-icon pi pi-times-circle format-flex-center"
+                                      @click="
+                                        removeFilter(index, options.titles);
+                                        $event.stopPropagation();
+                                      "
+                                      v-tooltip.top="'Xóa'"
+                                    ></span>
+                                  </div>
+                                </Chip>
+                              </li>
+                            </ul>
+                            <span v-else>
+                              {{ slotProps.placeholder }}
+                            </span>
+                          </template>
+                        </MultiSelect>
+                      </div>
+                    </div>
+                    <div class="col-6 md:col-6">
+                      <div class="form-group">
+                        <label>Chức vụ</label>
+                        <MultiSelect
+                          :options="positions"
+                          :filter="true"
+                          :showClear="true"
+                          :editable="false"
+                          v-model="options.positions"
+                          optionLabel="position_name"
+                          placeholder="Chọn chức vụ"
+                          class="w-full limit-width"
+                          style="min-height: 36px"
+                          panelClass="d-design-dropdown"
+                        >
+                          <template #value="slotProps">
+                            <ul
+                              class="p-ulchip"
+                              v-if="
+                                slotProps.value && slotProps.value.length > 0
+                              "
+                            >
+                              <li
+                                class="p-lichip"
+                                v-for="(value, index) in slotProps.value"
+                                :key="index"
+                              >
+                                <Chip class="mr-2 mb-2 px-3 py-2">
+                                  <div class="flex">
+                                    <div>
+                                      <span>{{ value.position_name }}</span>
+                                    </div>
+                                    <span
+                                      tabindex="0"
+                                      class="p-chip-remove-icon pi pi-times-circle format-flex-center"
+                                      @click="
+                                        removeFilter(index, options.positions);
+                                        $event.stopPropagation();
+                                      "
+                                      v-tooltip.top="'Xóa'"
+                                    ></span>
+                                  </div>
+                                </Chip>
+                              </li>
+                            </ul>
+                            <span v-else>
+                              {{ slotProps.placeholder }}
+                            </span>
+                          </template>
+                        </MultiSelect>
+                      </div>
+                    </div>
+                    <div class="col-6 md:col-6">
+                      <div class="form-group">
+                        <label>Chuyên ngành</label>
+                        <MultiSelect
+                          :options="specializations"
+                          :filter="true"
+                          :showClear="true"
+                          :editable="false"
+                          v-model="options.specializations"
+                          optionLabel="text"
+                          placeholder="Chọn chuyên ngành"
+                          class="w-full limit-width"
+                          style="min-height: 36px"
+                          panelClass="d-design-dropdown"
+                        >
+                          <template #value="slotProps">
+                            <ul
+                              class="p-ulchip"
+                              v-if="
+                                slotProps.value && slotProps.value.length > 0
+                              "
+                            >
+                              <li
+                                class="p-lichip"
+                                v-for="(value, index) in slotProps.value"
+                                :key="index"
+                              >
+                                <Chip class="mr-2 mb-2 px-3 py-2">
+                                  <div class="flex">
+                                    <div>
+                                      <span>{{ value.specialization_name }}</span>
+                                    </div>
+                                    <span
+                                      tabindex="0"
+                                      class="p-chip-remove-icon pi pi-times-circle format-flex-center"
+                                      @click="
+                                        removeFilter(index, options.specializations);
+                                        $event.stopPropagation();
+                                      "
+                                      v-tooltip.top="'Xóa'"
+                                    ></span>
+                                  </div>
+                                </Chip>
+                              </li>
+                            </ul>
+                            <span v-else>
+                              {{ slotProps.placeholder }}
+                            </span>
+                          </template>
+                        </MultiSelect>
+                      </div>
+                    </div>  
+                    <div class="col-6 md:col-6">
+                      <div class="form-group">
+                        <label>Trình độ chuyên môn</label>
+                        <MultiSelect
+                          :options="academic_levels"
+                          :filter="true"
+                          :showClear="true"
+                          :editable="false"
+                          v-model="options.academic_levels"
+                          optionLabel="text"
+                          placeholder="Chọn trình độ"
+                          class="w-full limit-width"
+                          style="min-height: 36px"
+                          panelClass="d-design-dropdown"
+                        >
+                          <template #value="slotProps">
+                            <ul
+                              class="p-ulchip"
+                              v-if="
+                                slotProps.value && slotProps.value.length > 0
+                              "
+                            >
+                              <li
+                                class="p-lichip"
+                                v-for="(value, index) in slotProps.value"
+                                :key="index"
+                              >
+                                <Chip class="mr-2 mb-2 px-3 py-2">
+                                  <div class="flex">
+                                    <div>
+                                      <span>{{ value.academic_level_name }}</span>
+                                    </div>
+                                    <span
+                                      tabindex="0"
+                                      class="p-chip-remove-icon pi pi-times-circle format-flex-center"
+                                      @click="
+                                        removeFilter(index, options.academic_levels);
+                                        $event.stopPropagation();
+                                      "
+                                      v-tooltip.top="'Xóa'"
+                                    ></span>
+                                  </div>
+                                </Chip>
+                              </li>
+                            </ul>
+                            <span v-else>
+                              {{ slotProps.placeholder }}
+                            </span>
+                          </template>
+                        </MultiSelect>
+                      </div>
+                    </div>   
+                    <div class="col-6 md:col-6">
+                      <div class="form-group">
+                        <label>Đảng viên</label>
+                        <MultiSelect
+                          :options="is_partisans"
+                          :filter="true"
+                          :showClear="true"
+                          :editable="false"
+                          v-model="options.is_partisans"
+                          optionLabel="text"
+                          placeholder="Chọn điều kiện"
+                          class="w-full limit-width"
+                          style="min-height: 36px"
+                          panelClass="d-design-dropdown"
+                        >
+                          <template #value="slotProps">
+                            <ul
+                              class="p-ulchip"
+                              v-if="
+                                slotProps.value && slotProps.value.length > 0
+                              "
+                            >
+                              <li
+                                class="p-lichip"
+                                v-for="(value, index) in slotProps.value"
+                                :key="index"
+                              >
+                                <Chip class="mr-2 mb-2 px-3 py-2">
+                                  <div class="flex">
+                                    <div>
+                                      <span>{{ value.text }}</span>
+                                    </div>
+                                    <span
+                                      tabindex="0"
+                                      class="p-chip-remove-icon pi pi-times-circle format-flex-center"
+                                      @click="
+                                        removeFilter(index, options.is_partisans);
+                                        $event.stopPropagation();
+                                      "
+                                      v-tooltip.top="'Xóa'"
+                                    ></span>
+                                  </div>
+                                </Chip>
+                              </li>
+                            </ul>
+                            <span v-else>
+                              {{ slotProps.placeholder }}
+                            </span>
+                          </template>
+                        </MultiSelect>
+                      </div>
+                    </div> 
+                    <div class="col-6 md:col-6">
+                      <div class="form-group">
+                        <label>Giới tính</label>
+                        <MultiSelect
+                          :options="genders"
+                          :filter="true"
+                          :showClear="true"
+                          :editable="false"
+                          v-model="options.genders"
+                          optionLabel="text"
+                          placeholder="Chọn giới tính"
+                          class="w-full limit-width"
+                          style="min-height: 36px"
+                          panelClass="d-design-dropdown"
+                        >
+                          <template #value="slotProps">
+                            <ul
+                              class="p-ulchip"
+                              v-if="
+                                slotProps.value && slotProps.value.length > 0
+                              "
+                            >
+                              <li
+                                class="p-lichip"
+                                v-for="(value, index) in slotProps.value"
+                                :key="index"
+                              >
+                                <Chip class="mr-2 mb-2 px-3 py-2">
+                                  <div class="flex">
+                                    <div>
+                                      <span>{{ value.text }}</span>
+                                    </div>
+                                    <span
+                                      tabindex="0"
+                                      class="p-chip-remove-icon pi pi-times-circle format-flex-center"
+                                      @click="
+                                        removeFilter(index, options.genders);
+                                        $event.stopPropagation();
+                                      "
+                                      v-tooltip.top="'Xóa'"
+                                    ></span>
+                                  </div>
+                                </Chip>
+                              </li>
+                            </ul>
+                            <span v-else>
+                              {{ slotProps.placeholder }}
+                            </span>
+                          </template>
+                        </MultiSelect>
+                      </div>
+                    </div>     
+                    <div class="col-12 md:col-12">
+                      <div class="form-group">
+                        <label>Mô tả chi tiết công việc</label>
+                        <InputText
+                            type="text"
+                            class="ip34"
+                            spellcheck="false"
+                            v-model="options.description"
+                            placeholder="Tìm kiếm"
+                          />
+                      </div>
+                    </div>            
+                  </div>
+                  <div class="col-12 md:col-12 p-0">
+                    <Toolbar class="border-none surface-0 outline-none px-0 pb-0 w-full">
+                      <template #start>
+                        <Button @click="resetFilter()" class="p-button-outlined" label="Bỏ chọn"></Button>
+                      </template>
+                      <template #end>
+                        <Button @click="filter($event)" label="Lọc"></Button>
+                      </template>
+                    </Toolbar>
+                  </div>
+                </div>
+              </div>
+            </OverlayPanel>
+        </template>
+
+          <template #end>
             <Button
             label="Quay lại"
             icon="pi pi-arrow-left"
             class="p-button-outlined mr-2 p-button-secondary"
             @click="goBack()"
             />
-            <span class="p-input-icon-left">
-              <i class="pi pi-search" />
-              <InputText
-                v-model="options.SearchText"
-                v-on:keyup.enter="loadData()"
-                type="text"
-                spellcheck="false"
-                placeholder="Tìm kiếm"
-              />            
-            </span>
             <Button
-            :class="
-              checkFilter ? 'ml-2' : 'ml-2 p-button-secondary p-button-outlined'
-            "
-            icon="pi pi-filter"
-            @click="toggleFilter"
-            aria-haspopup="true"
-            aria-controls="overlay_panelS"
-          />
-          <OverlayPanel
-            ref="filterButs"
-            appendTo="body"
-            :showCloseIcon="false"
-            id="overlay_panelS"
-            style="width: 500px"
-            :breakpoints="{ '960px': '20vw' }"
-          >
-            <div class="grid formgrid m-2">
-              <div class="field col-12 md:col-12 flex align-items-center">
-                <div class="col-4 p-0">Phòng ban:</div>
-                <TreeSelect
-                  class="col-8 p-0 ip36"
-                  v-model="selectCapcha"
-                  :options="treedonvis"
-                  :showClear="true"
-                  :max-height="200"
-                  placeholder="Chọn đơn vị/phòng ban"
-                  optionLabel="organization_name"
-                  optionValue="organization_id"
-                >
-                </TreeSelect>
-              </div>
-              <div class="field col-12 md:col-12 flex align-items-center">
-                <div class="col-4">Giới tính</div>
-                <Dropdown
-                  class="ip36 col-8"
-                  v-model="options.gender"
-                  :options="genders"
-                  optionLabel="text"
-                  optionValue="value"
-                  placeholder="Chọn giới tính"
-                  :showClear="true"
-                />
-               
-              </div>
-              <div class="field col-12 md:col-12 flex align-items-center">
-                <div class="col-4">Trình độ chuyên môn</div>
-                <Dropdown
-                  class="ip36 col-8"
-                  v-model="options.academic_level_id"
-                  :options="tudiens[1]"
-                  optionLabel="academic_level_name"
-                  optionValue="academic_level_id"
-                  placeholder="Chọn trình độ chuyên môn"
-                  :showClear="true"
-                />              
-              </div>
-              <div class="field col-12 md:col-12 flex align-items-center">
-                <div class="col-4">Chuyên ngành học</div>
-                <Dropdown
-                  class="ip36 col-8"
-                  v-model="options.specialization_id"
-                  :options="tudiens[5]"
-                  optionLabel="specialization_name"
-                  optionValue="specialization_id"
-                  placeholder="Chọn chuyên ngành"
-                  :showClear="true"
-                />              
-              </div>
-              <div class="field col-12 md:col-12 flex align-items-center">
-                <div class="col-4">Công việc chuyên môn</div>
-                <Dropdown
-                  class="ip36 col-8"
-                  v-model="options.professional_work_id"
-                  :options="tudiens[2]"
-                  optionLabel="professional_work_name"
-                  optionValue="professional_work_id"
-                  placeholder="Chọn công việc chuyên môn"
-                  :showClear="true"
-                />              
-              </div>
-              <div class="field col-12 md:col-12 flex align-items-center">
-                <div class="col-4">Chức danh</div>
-                <Dropdown
-                  class="ip36 col-8"
-                  v-model="options.title_id"
-                  :options="tudiens[3]"
-                  optionLabel="title_name"
-                  optionValue="title_id"
-                  placeholder="Chọn chức danh"
-                  :showClear="true"
-                />              
-              </div>
-              <div class="field col-12 md:col-12 flex align-items-center">
-                <div class="col-4">Mô tả công việc</div>
-                <InputText
-                  spellcheck="false"
-                  class="col-8 ip36"
-                  v-model="options.description"
-                />           
-              </div>
-              <div class="col-12 field p-0">
-                <Toolbar class="toolbar-filter">
-                  <template #start>
-                    <Button
-                      @click="refilterReport"
-                      class="p-button-outlined"
-                      label="Xóa"
-                    ></Button>
-                  </template>
-                  <template #end>
-                    <Button @click="filterReport" label="Lọc"></Button>
-                  </template>
-                </Toolbar>
-              </div>
-            </div>
-          </OverlayPanel>
-        </template>
-
-          <template #end>
-            <Button
-              @click="onRefresh"
+              @click="resetFilter(true)"
               class="mr-2 p-button-outlined p-button-secondary"
               icon="pi pi-refresh"
               v-tooltip="'Tải lại'"
@@ -491,90 +751,92 @@ onMounted(() => {
             /> 
           </template>
         </Toolbar>
-    </div>
-        <div style="overflow: scroll;max-height: calc(100vh - 147px);min-height: calc(100vh - 147px);background-color: #fff;">
-        <table cellspacing=0 id="table-bc" class="table table-condensed table-hover tbpad" style="table-layout: fixed;width: 100%;">
-        <thead style="position: sticky; z-index: 6; top:0">
-            <tr>
-                <th class="text-center sticky left-sticky1 left-1" width="50" >STT</th>
-                <th class="text-center sticky left-sticky1 left-2" width="120">Mã nhân viên</th>
-                <th class="text-center sticky left-sticky1 left-3" width="150">Họ và tên</th>
-                <th class="text-center" width="220">Đơn vị/phòng ban</th>
-                <th class="text-center" width="80">Giới tính</th>
-                <th class="text-center" width="100">Ngày sinh</th>
-                <th class="text-center" width="60">Tuổi</th>
-                <th class="text-center" width="80">Dân tộc</th>
-                <th class="text-center" width="120">Trình độ văn hóa</th>
-                <th class="text-center" width="120">Trình độ chuyên môn</th>
-                <th class="text-center" width="120">Chuyên ngành</th>
-                <th class="text-center" width="150">Công việc chuyên môn</th>
-                <th class="text-center" width="150">Mô tả chi tiết công việc</th>
-                <th class="text-center" width="100">Ngày vào đơn vị</th>
-                <th class="text-center" width="90">Đảng viên</th>
-                <th class="text-center" width="150">Chức vụ</th>
-                <th class="text-center" width="120">Chức danh</th>
-                <th class="text-center" width="200">Nơi ở hiện nay</th>
-                <th class="text-center" width="100">Ghi chú</th>
+      </div>
+      <div style="overflow: scroll;max-height: calc(100vh - 147px);min-height: calc(100vh - 147px);background-color: #fff;">
+          <table cellspacing=0 id="table-bc" class="table table-condensed table-hover tbpad" style="table-layout: fixed;width: 100%;">
+          <thead style="position: sticky; z-index: 6; top:0">
+              <tr>
+                  <th class="text-center sticky left-sticky1 left-1" width="50" >STT</th>
+                  <th class="text-center sticky left-sticky1 left-2" width="120">Mã nhân viên</th>
+                  <th class="text-center sticky left-sticky1 left-3" width="150">Họ và tên</th>
+                  <th class="text-center" width="220">Đơn vị/phòng ban</th>
+                  <th class="text-center" width="80">Giới tính</th>
+                  <th class="text-center" width="100">Ngày sinh</th>
+                  <th class="text-center" width="60">Tuổi</th>
+                  <th class="text-center" width="80">Dân tộc</th>
+                  <th class="text-center" width="120">Trình độ văn hóa</th>
+                  <th class="text-center" width="120">Trình độ chuyên môn</th>
+                  <th class="text-center" width="120">Chuyên ngành</th>
+                  <th class="text-center" width="150">Công việc chuyên môn</th>
+                  <th class="text-center" width="150">Mô tả chi tiết công việc</th>
+                  <th class="text-center" width="100">Ngày vào đơn vị</th>
+                  <th class="text-center" width="90">Đảng viên</th>
+                  <th class="text-center" width="150">Chức vụ</th>
+                  <th class="text-center" width="120">Chức danh</th>
+                  <th class="text-center" width="200">Nơi ở hiện nay</th>
+                  <th class="text-center" width="100">Ghi chú</th>
 
-            </tr>
-        </thead>
-        <tbody v-for="(bc, index1) in datalists" :key="index1">
-            <tr>
-                <td colspan="38" class="bg-group"><b>{{bc.name_group_pb}}</b></td>
-            </tr>
-            <tr v-for="(dg, index2) in bc.list_ns" :key="index2" class="item-hover" @click="activeRow(dg)">
-                <td class="text-center bg-stt left-sticky1 left-1" :class="dg.is_active?'active-item':'bg-stt'">{{dg.stt}}</td>
-                <td align="left" class="bg-aliceblue left-sticky1 left-2">
-                   {{dg.profile_code}}
-                </td>
-                <td align="left" class="bg-aliceblue left-sticky1 left-3">      
-                    {{dg.profile_user_name}}
-                </td>
-                <td align="left">
-                    {{dg.organization_name}}
-                </td>
-                <td align="center">
-                    {{dg.gender}}
-                </td>
-                <td align="center">
-                  <span v-if="dg.birthday"> {{ moment(new Date(dg.birthday)).format("DD/MM/YYYY ") }}</span>
-                </td>
-                <td align="center">
-                    {{dg.age}}
-                </td>
-                <td align="center">
-                    {{dg.ethnic_name}}
-                </td>
-                <td align="center">
-                    {{dg.cultural_level_name}}
-                </td>
-                <td align="center">
-                    {{dg.academic_level_name}}
-                </td>
-                <td align="center">
-                    {{dg.specialization_name}}
-                </td>
-                <td align="left">{{dg.professional_work_name}}</td>
-                <td align="left">{{dg.description}}</td>
-                <td align="center">
-                  <span v-if="dg.start_date"> {{ moment(new Date(dg.start_date)).format("DD/MM/YYYY ") }}</span>
-                </td>
-                <td align="center">
-                  <span v-if="dg.is_partisan">X</span>
-                </td>
-                <td align="left">{{dg.position_name}}</td>
-                <td align="left">{{dg.title_name}}</td>
-                <td align="left">{{dg.place_permanent}}</td>                
-                <td align="left">{{dg.note}}</td>
-            </tr> 
-      
-          </tbody>
-    </table>
-    </div>
+              </tr>
+          </thead>
+          <tbody v-for="(bc, index1) in datalists" :key="index1">
+              <tr>
+                  <td colspan="38" class="bg-group"><b>{{bc.name_group_pb}}</b></td>
+              </tr>
+              <tr v-for="(dg, index2) in bc.list_ns" :key="index2" class="item-hover" @click="activeRow(dg)">
+                  <td class="text-center bg-stt left-sticky1 left-1" :class="dg.is_active?'active-item':'bg-stt'">{{dg.stt}}</td>
+                  <td align="left" class="bg-aliceblue left-sticky1 left-2">
+                    {{dg.profile_code}}
+                  </td>
+                  <td align="left" class="bg-aliceblue left-sticky1 left-3">      
+                      {{dg.profile_user_name}}
+                  </td>
+                  <td align="left">
+                      {{dg.organization_name}}
+                  </td>
+                  <td align="center">
+                      {{dg.gender}}
+                  </td>
+                  <td align="center">
+                    <span v-if="dg.birthday"> {{ moment(new Date(dg.birthday)).format("DD/MM/YYYY ") }}</span>
+                  </td>
+                  <td align="center">
+                      {{dg.age}}
+                  </td>
+                  <td align="center">
+                      {{dg.ethnic_name}}
+                  </td>
+                  <td align="center">
+                      {{dg.cultural_level_name}}
+                  </td>
+                  <td align="center">
+                      {{dg.academic_level_name}}
+                  </td>
+                  <td align="center">
+                      {{dg.specialization_name}}
+                  </td>
+                  <td align="left">{{dg.professional_work_name}}</td>
+                  <td align="left">{{dg.description}}</td>
+                  <td align="center">
+                    <span v-if="dg.start_date"> {{ moment(new Date(dg.start_date)).format("DD/MM/YYYY ") }}</span>
+                  </td>
+                  <td align="center">
+                    <span v-if="dg.is_partisan">X</span>
+                  </td>
+                  <td align="left">{{dg.position_name}}</td>
+                  <td align="left">{{dg.title_name}}</td>
+                  <td align="left">{{dg.place_permanent}}</td>                
+                  <td align="left">{{dg.note}}</td>
+              </tr> 
+        
+            </tbody>
+      </table>
+      </div>
     </div>
 </template>
 
 <style scoped>
+@import url(../style_report.css);
+
   .item-hover:hover{
     background-color: #f0f8ff!important;
   }
@@ -680,6 +942,25 @@ td.bg-group>b {
 ::v-deep(.p-datatable-emptymessage) {
   td {
     flex:1 1 0 !important;
+  }
+}
+::v-deep(.form-group) {
+  .p-multiselect .p-multiselect-label, .p-treeselect .p-multiselect-label {
+    height: 100%;
+    display: flex;
+    align-items: center;
+    padding:0px 0.5rem !important
+
+  }
+}
+::v-deep(.p-treeselect) {
+   .p-multiselect-label {
+    height: 100%;
+    display: flex;
+    align-items: center;
+  }
+  .p-treeselect-label,.p-treeselect-token{
+    height: 100%;
   }
 }
 </style>
