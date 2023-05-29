@@ -351,7 +351,7 @@ const loadDataDetail = (id) => {
       options.value.loading = false;
     });
 };
-const divZoom = ref(0.8);
+const divZoom = ref(1);
 const toogledivZoom = (f) => {
   if (f) {
     divZoom.value = (divZoom.value * 10 + 1) / 10;
@@ -745,33 +745,14 @@ onUpdated(() => {
 <style lang="scss" scoped>
 .d-lang-table-sl {
   margin: 0px;
-  height: calc(100vh - 105px);
+  height: calc(100vh - 110px);
 }
 
 .d-lang-table-sl-1 {
   margin: 0px;
-  height: 120vh;
+  height: calc(100vh  - 110px);
   
   
 }
-// ::v-deep(.p-splitter) {
-//   .p-toolbar {
-//     background: none !important;
-//     border: none !important;
-//   }
-
-//   .p-treetable-wrapper {
-//     margin-top: 6px;
-//   }
-
-//   .p-treetable .p-treetable-thead > tr > th {
-//     background: #fff !important;
-//   }
-// }
-
-// ::v-deep(.p-tree-wrapper) {
-//   .p-treenode-label {
-//     width: 100%;
-//   }
-// }
+ 
 </style>

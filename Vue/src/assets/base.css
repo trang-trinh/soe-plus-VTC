@@ -1394,6 +1394,11 @@ li.p-chips-token {
 .d-dataview-design .p-grid{
   background-color: var(--surface-100) !important;
 }
+.d-lang-table-sl-1 img {
+  max-width: 100% !important;
+    
+    
+  }
 .d-tree-missheader.p-datatable .p-datatable-tbody > tr > td, .p-treetable .p-treetable-tbody > tr > td
 {
   padding: 0.25rem !important;
