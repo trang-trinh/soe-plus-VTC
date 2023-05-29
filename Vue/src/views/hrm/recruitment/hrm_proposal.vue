@@ -70,7 +70,8 @@ const loadCount = () => {
         options.value.totalRecords1 = data1[0].totalRecords1;
         options.value.totalRecords2 = data2[0].totalRecords2;
         options.value.totalRecords3 = data3[0].totalRecords3;
-        options.value.totalRecords4 = data4[0].totalRecords4;
+        debugger
+        options.value.totalRecords4 = data4[0].totalRecord4;
         options.value.totalRecords5 = data5[0].totalRecords5;
         options.value.totalRecords6 = data6[0].totalRecords6;
         sttStamp.value = data[0].totalRecords + 1;
@@ -172,7 +173,7 @@ const onPage = (event) => {
 const dataSelected = ref([]);
 
 const isSaveTem = ref(true);
-const datalists = ref();
+const datalists = ref([]);
 const toast = useToast();
 const basedomainURL = baseURL;
 const checkDelList = ref(false);
@@ -524,7 +525,7 @@ const onCheckBox = (value, check) => {
         if (response.data.err != "1") {
           swal.close();
           toast.success("Sửa trạng thái đề xuất thành công!");
-          loadData(true);
+        
           closeDialog();
         } else {
           swal.fire({
@@ -560,7 +561,7 @@ const onCheckBox = (value, check) => {
         if (response.data.err != "1") {
           swal.close();
           toast.success("Sửa trạng thái đề xuất thành công!");
-          loadData(true);
+     
           closeDialog();
         } else {
           swal.fire({
@@ -1641,7 +1642,8 @@ onMounted(() => {
         </div>
       </div>
       <div class="d-container">
-        <div class="d-lang-table">
+      
+        <div class="d-lang-table"  >
           <DataTable
             @page="onPage($event)"
             @sort="onSort($event)"
@@ -1668,7 +1670,7 @@ onMounted(() => {
             responsiveLayout="scroll"
             v-model:selection="dataSelected"
             :row-hover="true"
-             selectionMode="multiple"  v-if="store.getters.user.is_super==true"
+             selectionMode="multiple"  
           >
             <Column
               class="align-items-center justify-content-center text-center overflow-hidden"
@@ -1690,7 +1692,7 @@ onMounted(() => {
               field="recruitment_proposal_name"
               header="Tên đề xuất"
               :sortable="true"
-              headerClass="align-items-center justify-content-center text-center overflow-hidden"
+          
               headerStyle="text-align:left;height:50px"
               bodyStyle="text-align:left"
             >
