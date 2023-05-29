@@ -38,11 +38,18 @@ const options = ref({
   total: 0,
   sort: "created_date desc",
   orderBy: "DESC",
+  tab: 1,
 });
+const tabs = ref([
+  { id: 1, title: "Chờ duyệt", icon: "", total: 0 },
+  { id: 2, title: "Đã duyệt", icon: "", total: 0 },
+  { id: 3, title: "Trả lại", icon: "", total: 0 },
+]);
 const selectedNodes = ref([]);
 const isFilter = ref(false);
 const isFirst = ref(true);
 const dictionarys = ref([]);
+const counts = ref([]);
 const datas = ref([]);
 const dataLimits = ref([]);
 const profile = ref({});
@@ -59,6 +66,17 @@ const search = () => {
   options.value.total = 0;
   dataLimits.value = [];
 
+  initCount();
+  initData(true);
+};
+const activeTab = (tab) => {
+  options.value.pageNo = 1;
+  options.value.pageSize = 25;
+  options.value.limitItem = 25;
+  options.value.total = 0;
+  dataLimits.value = [];
+
+  options.value.tab = tab.id;
   initData(true);
 };
 
@@ -120,6 +138,7 @@ const closeDialog = () => {
 };
 const goProfile = (item) => {
   if (selectedNodes.value && selectedNodes.value.length === 1) {
+    selectedNodes.value = selectedNodes.value.filter((x) => x.is_approve === 1);
     profile.value = item;
     openEditDialog("Cập nhật thông tin hồ sơ");
   }
@@ -152,6 +171,46 @@ const initDictionary = () => {
       }
     });
 };
+const initCount = () => {
+  tabs.value.forEach((x) => {
+    x["total"] = 0;
+  });
+  axios
+    .post(
+      baseURL + "/api/hrm/callProc",
+      {
+        str: encr(
+          JSON.stringify({
+            proc: "hrm_myprofile_approve_count",
+            par: [
+              { par: "user_id", va: store.getters.user.user_id },
+              { par: "search", va: options.value.search },
+            ],
+          }),
+          SecretKey,
+          cryoptojs
+        ).toString(),
+      },
+      config
+    )
+    .then((response) => {
+      if (response != null && response.data != null) {
+        var data = response.data.data;
+        if (data != null) {
+          let tbs = JSON.parse(data);
+          if (tbs[0] != null && tbs[0].length > 0) {
+            counts.value = tbs[0];
+            tabs.value.forEach((x) => {
+              var idx = counts.value.findIndex((c) => c["is_approve"] == x["id"]);
+              if (idx !== -1) {
+                x["total"] = counts.value[idx]["total"];
+              }
+            });
+          }
+        }
+      }
+    });
+};
 const initData = (ref) => {
   if (ref) {
     swal.fire({
@@ -179,7 +238,7 @@ const initData = (ref) => {
               { par: "search", va: options.value.search },
               { par: "pageNo", va: options.value.pageNo },
               { par: "pageSize", va: options.value.pageSize },
-              { par: "tab", va: -1 },
+              { par: "tab", va: options.value.tab },
             ],
           }),
           SecretKey,
@@ -269,9 +328,9 @@ const refresh = () => {
 };
 onMounted(() => {
   nextTick(() => {
-    initDictionary();
     initData();
-
+    initCount();
+    initDictionary();
     const el = document.getElementById("buffered-scroll");
     if (el) {
       el.addEventListener("scroll", (event) => {
@@ -306,17 +365,6 @@ const loadMoreRow = (data) => {
 <template>
   <div class="surface-100 p-3">
     <Toolbar class="outline-none surface-0 border-none pb-0">
-      <template #start>
-        <div>
-          <h3 class="module-title m-0">
-            <i class="pi pi-briefcase"></i> Danh hồ sơ chờ duyệt ({{
-              options.total
-            }})
-          </h3>
-        </div>
-      </template>
-    </Toolbar>
-    <Toolbar class="outline-none surface-0 border-none">
       <template #start>
         <span class="p-input-icon-left">
           <i class="pi pi-search" />
@@ -365,6 +413,24 @@ const loadMoreRow = (data) => {
         />
       </template>
     </Toolbar>
+    <div class="tabview">
+      <div class="tableview-nav-content">
+        <ul class="tableview-nav">
+          <li
+            v-for="(tab, key) in tabs"
+            :key="key"
+            @click="activeTab(tab)"
+            class="tableview-header"
+            :class="{ highlight: options.tab === tab.id }"
+          >
+            <a>
+              <i :class="tab.icon"></i>
+              <span>{{ tab.title }} ({{ tab.total }})</span>
+            </a>
+          </li>
+        </ul>
+      </div>
+    </div>
     <div
       id="buffered-scroll"
       class="d-lang-table"
@@ -387,6 +453,7 @@ const loadMoreRow = (data) => {
         class="disable-header"
       >
         <Column
+          v-if="options.tab === 1"
           selectionMode="multiple"
           headerStyle="text-align:center;max-width:50px"
           bodyStyle="text-align:center;max-width:50px"
@@ -636,8 +703,8 @@ const loadMoreRow = (data) => {
     :initData="initData"
   />
 
-    <!--Send-->
-    <dialogapprove
+  <!--Send-->
+  <dialogapprove
     :key="componentKey['1']"
     :headerDialog="headerDialogApprove"
     :displayDialog="displayDialogApprove"
@@ -646,7 +713,6 @@ const loadMoreRow = (data) => {
     :selectedNodes="selectedNodes"
     :initData="initData"
   />
-
 </template>
 <style scoped>
 @import url(../../profile/component/stylehrm.css);

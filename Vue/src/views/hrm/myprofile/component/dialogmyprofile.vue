@@ -90,7 +90,10 @@ const sendProfile = (rf, is_approve) => {
   formData.append("ids", JSON.stringify([history.value.history_id]));
   formData.append("content", "");
   formData.append("is_approve", is_approve);
-  formData.append("approve_date", moment(new Date()).format("YYYY-MM-DDTHH:mm:ss"));
+  formData.append(
+    "approve_date",
+    moment(new Date()).format("YYYY-MM-DDTHH:mm:ss")
+  );
   axios
     .put(baseURL + "/api/hrm_profile/send_profile_history", formData, config)
     .then((response) => {
@@ -878,9 +881,7 @@ onMounted(() => {
                           </div>
                           <div class="mb-2">
                             Nội dung:
-                            <span>{{
-                              slotProps.item.approve_content
-                            }}</span>
+                            <span>{{ slotProps.item.approve_content }}</span>
                           </div>
                         </div>
                         <div>
@@ -4074,14 +4075,14 @@ onMounted(() => {
       /></template>
       <template #end>
         <Button
-          v-if="props.approve === true"
+          v-if="props.approve === true && history.is_approve === 1"
           label="Duyệt hồ sơ"
           class="mr-2"
           icon="pi pi-check"
           @click="sendProfile(true, 2)"
         />
         <Button
-          v-if="props.approve === true"
+          v-if="props.approve === true && history.is_approve === 1"
           label="Trả lại"
           class="mr-2 p-button-danger"
           icon="pi pi-undo"
@@ -4102,10 +4103,7 @@ onMounted(() => {
           @click="saveModel(true)"
         />
         <Button
-          v-if="
-            !props.approve &&
-            (history.is_root === true || history.is_approve === 0)
-          "
+          v-if="!props.approve"
           label="Lưu"
           icon="pi pi-check"
           @click="saveModel()"
@@ -4919,8 +4917,8 @@ onMounted(() => {
     padding: 1rem !important;
   }
 }
-::v-deep(.border-radius){
-  img{
+::v-deep(.border-radius) {
+  img {
     border-radius: 50%;
   }
 }
