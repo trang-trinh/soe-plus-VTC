@@ -1644,6 +1644,7 @@ const refresh = () => {
   dataLimits.value = [];
 
   isFilter.value = false;
+  isFilterAdv.value = false;
   resetFilterAdvanced();
   initCount();
   initTreeOrganization();
@@ -2145,7 +2146,7 @@ const initDataFilterAdv = (f, sql) => {
 const initCountFilterAdv = (sql) => {
   let sqlDataGet = sql ? sql.substring(0, sql.lastIndexOf('order by [')) : '';
   if (sqlDataGet != "") {
-    let proc = `Select (tbn.FieldValue) status, Count(p.[Hồ sơ nhân sự|ID profile|0|0|0|profile_id]) total 
+    let proc = `Select (tbn.FieldValue) status, Count(p.profile_id) total 
               from (${sqlDataGet}) p
               cross join (Select * from dbo.udf_PivotParameters('-1,0,1,2,3,4,5,6',',')) as tbn
               where ((tbn.FieldValue = -1)
@@ -2645,9 +2646,9 @@ const loadMoreRow = (data) => {
                   </Tree>
               </div>
               <div class="flex-1">
-                  <div class="flex mb-2 w-full align-items-center">
+                  <div class="flex mb-0 w-full align-items-center">
                       <i class="pi pi-cog"></i>
-                      <h3 class="flex-1 ml-1">Cấu hình tìm kiếm</h3>
+                      <h3 class="flex-1 ml-1 mb-3">Cấu hình tìm kiếm</h3>
                       <div class="flex align-items-center">
                           <Checkbox :binary="true" v-model="AND" />
                           <label class="ml-2"> Kết hợp tất cả nhóm tiêu chí </label>
