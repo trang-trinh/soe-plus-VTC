@@ -226,57 +226,20 @@ const loadTaskMain = () => {
       });
       datalists.value.weights =
         datalists.value.weight != null ? weigth[datalists.value.weight] : null;
-      if (datalists.value.description != null) {
-        if (datalists.value.description.includes("\n")) {
-          datalists.value.description = datalists.value.description.replace(
-            /\n/g,
-            "<br/>"
-          );
-          datalists.value.description =
-            datalists.value.description.split("<br/>");
+      let listprops = ["description", "target", "difficult", "request"];
+      listprops.forEach((x) => {
+        if (datalists.value[x] != null && datalists.value[x].trim() != "") {
+          if (datalists.value[x].includes("\n")) {
+            datalists.value[x] = datalists.value[x].replace(/\n/g, "<br/>");
+            datalists.value[x] = datalists.value[x].split("<br/>");
+          } else {
+            datalists.value[x] += "<br/>";
+            datalists.value[x] = datalists.value[x].split("<br/>");
+          }
         } else {
-          datalists.value.description += "<br/>";
-          datalists.value.description =
-            datalists.value.description.split("<br/>");
+          datalists.value[x] != null;
         }
-      }
-      if (datalists.value.target != null) {
-        if (datalists.value.target.includes("\n")) {
-          datalists.value.target = datalists.value.target.replace(
-            /\n/g,
-            "<br/>"
-          );
-          datalists.value.target = datalists.value.target.split("<br/>");
-        } else {
-          datalists.value.target += "<br/>";
-          datalists.value.target = datalists.value.target.split("<br/>");
-        }
-      }
-      if (datalists.value.difficult != null) {
-        if (datalists.value.difficult.includes("\n")) {
-          datalists.value.difficult = datalists.value.difficult.replace(
-            /\n/g,
-            "<br/>"
-          );
-          datalists.value.difficult = datalists.value.difficult.split("<br/>");
-        } else {
-          datalists.value.difficult += "<br/>";
-          datalists.value.difficult = datalists.value.difficult.split("<br/>");
-        }
-      }
-      if (datalists.value.request != null) {
-        if (datalists.value.request.includes("\n")) {
-          datalists.value.request = datalists.value.request.replace(
-            /\n/g,
-            "<br/>"
-          );
-          datalists.value.request = datalists.value.request.split("<br/>");
-        } else {
-          datalists.value.request += "<br/>";
-          datalists.value.request = datalists.value.request.split("<br/>");
-        }
-      }
-
+      });
       datalists.value.progress = datalists.value.progress
         ? datalists.value.progress
         : 0;
@@ -3739,7 +3702,13 @@ const CloseVisible = () => {
                       </div>
                     </div>
                   </div>
-                  <div class="row col-12">
+                  <div
+                    class="row col-12"
+                    v-if="
+                      isClose == false ||
+                      (isCLose == true && countChecklists > 0)
+                    "
+                  >
                     <div
                       class="flex col-12 p-0 m-0"
                       style="font-weight: 600; color: #888; font-size: 1.15rem"
@@ -4296,7 +4265,10 @@ const CloseVisible = () => {
                       </div>
                     </div>
                   </div>
-                  <div class="row col-12">
+                  <div
+                    class="row col-12"
+                    v-if="isClose == false || (isCLose == true && AllChild > 0)"
+                  >
                     <div
                       class="flex col-12 p-0 m-0"
                       style="font-weight: 600; color: #888; font-size: 1.15rem"
@@ -4531,7 +4503,13 @@ const CloseVisible = () => {
                     </div>
                   </div>
 
-                  <div class="row col-12" id="file">
+                  <div
+                    class="row col-12"
+                    id="file"
+                    v-if="
+                      isClose == false || (isCLose == true && countFiles > 0)
+                    "
+                  >
                     <div
                       class="col-12 p-0 m-0"
                       style="font-weight: 600; color: #888; font-size: 1.15rem"
@@ -4698,7 +4676,13 @@ const CloseVisible = () => {
                       </div>
                     </div>
                   </div>
-                  <div class="row col-12">
+                  <div
+                    class="row col-12"
+                    v-if="
+                      isClose == false ||
+                      (isCLose == true && countDocMaster > 0)
+                    "
+                  >
                     <div
                       class="col-12 p-0 m-0"
                       style="font-weight: 600; color: #888; font-size: 1.15rem"
@@ -6775,6 +6759,7 @@ const CloseVisible = () => {
     :data="DialogData"
     :closeDialogTask="closeDialogTask"
     :afterSave="afterSave"
+    :STT="AllChild"
   >
   </DialogTask>
 </template>
