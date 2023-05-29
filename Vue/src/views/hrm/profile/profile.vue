@@ -2166,7 +2166,9 @@ const initDataFilterAdv = (f, sql, rf) => {
               datas.value = dts[0];
               dataLimits.value = dataLimits.value.concat(dts[0]);
               dataAdvAll.value = [...dataLimits.value];
-              initCountFilterAdv(sql);
+              if(rf){
+                initCountFilterAdv(sql);
+              }
               var temp = groupBy(dts[0], "department_id");
               for (let k in temp) {
                 var obj = {
@@ -2184,7 +2186,9 @@ const initDataFilterAdv = (f, sql, rf) => {
               arr = [];
               options.value.total = 0;
               dataAdvAll.value = [...dataLimits.value];
-              initCountFilterAdv(sql);
+              if (rf) {
+                initCountFilterAdv(sql);
+              }
             }
             treeOrganization.value.forEach((o) => {
               o.list = arr.filter(
@@ -2235,7 +2239,7 @@ const initDataFilterAdv = (f, sql, rf) => {
         } else {
           options.value.total = 0;
           dataAdvAll.value = [...dataLimits.value];
-          if (sql) {
+          if (sql && rf) {
             initCountFilterAdv(sql);
           }
           swal.close();
@@ -2681,7 +2685,7 @@ onMounted(() => {
     initDictionary();
     initCount();
     initTreeOrganization();
-    initDataFilterAdv(true, '', true);
+    initDataFilterAdv(true, "", true);
     //initData(true);
 
     const el = document.getElementById("buffered-scroll");
