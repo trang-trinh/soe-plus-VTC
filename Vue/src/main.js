@@ -200,6 +200,14 @@ import {
   faUsers,
   faPlus,
   faMedal,
+ 
+  faNetworkWired,
+  faRightToBracket,
+  faUserGroup,
+  faGlobe,
+  faFolderOpen,
+  faBook,
+ faGift,
   faMicrophone,
 } from "@fortawesome/free-solid-svg-icons";
 import {
@@ -266,6 +274,12 @@ library.add(
   faBriefcaseMedical,
   faPrint,
   faMedal,
+ faGlobe,
+ faFolderOpen,
+ faBook,
+  faNetworkWired,
+  faRightToBracket,
+  faUserGroup,faGift,
   faMicrophone,
 );
 import "animate.css";

@@ -25,6 +25,7 @@ const ConfigProcess = () =>
   import("../views/hethong/process/ConfigProcess.vue");
 const Helper = () => import("../views/hethong/Helper.vue");
 const HelperView = () => import("../views/hethong/HelperView.vue");
+const DetailsHelper = () => import("../views/hethong/helperDetails.vue");
 
 //Scraper
 // const ScraperView = () =>
@@ -617,6 +618,11 @@ const router = createRouter({
       path: "/system/helper",
       name: "helper",
       component: Helper,
+    },
+    {
+      path: "/helperview/:id",
+      name: "helperDetails",
+      component: DetailsHelper,
     },
     {
       path: "/helperview",

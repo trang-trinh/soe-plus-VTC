@@ -128,6 +128,10 @@ const passModuleToSidebar = () => {
         (data[1].filter((x) => x.is_link == "/hrm/payroll/hrm_payroll")
           .length == 0 ||
           !root_path.includes("/hrm/payroll/hrm_payroll/details"))
+          &&
+        (data[1].filter((x) => x.is_link == "/helperview/")
+          .length == 0 ||
+          !root_path.includes("/helperview/"))
       )
         route.push({ path: "/" });
       else if (data[0].length > 0) {
