@@ -971,18 +971,18 @@ const itemButMores = ref([
 ]);
 const getFuncRequest = () => {
     if (detail_request.value.status_processing == 0) {
-        return itemButMores.filter(x => x.class == "" || x.class.includes("status-process-0"));
+        return itemButMores.value.filter(x => x.class == "" || x.class.includes("status-process-0"));
     }
     else if (detail_request.value.status_processing == 1) {
-        return itemButMores.filter(x => x.class == "" || x.class.includes("status-process-1"));
+        return itemButMores.value.filter(x => x.class == "" || x.class.includes("status-process-1"));
     }
     else if (detail_request.value.status_processing == 4) {
-        return itemButMores.filter(x => x.class == "" || x.class.includes("status-process-4"));
+        return itemButMores.value.filter(x => x.class == "" || x.class.includes("status-process-4"));
     }
     if (detail_request.value.status_processing != 4) {
-        return itemButMores.filter(x => !x.class.includes("status-process-4"));
+        return itemButMores.value.filter(x => !x.class.includes("status-process-4"));
     }
-    return itemButMores;
+    return itemButMores.value;
 };
 
 // Đề xuất liên quan

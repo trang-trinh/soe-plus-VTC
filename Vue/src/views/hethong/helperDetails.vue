@@ -159,6 +159,19 @@ const swalMessage = (title, icon, ms) => {
 const toggleExport = (event) => {
   menuButs.value.toggle(event);
 };
+
+const onRowSelected =(item)=>{
+  let srcMs = removeVietnameseTones(item.label);
+
+if (router)
+  router.push({
+    path:
+      "/helperview/" +
+      srcMs.replace(/','|'.'/g, "").replace(/\s+/g, "-") +
+      "-orient-" +
+      item.key,
+  });
+}
 const onNodeSelect = (data) => {
   let srcMs = removeVietnameseTones(data.data.title_name);
 
@@ -230,8 +243,30 @@ const onChangeParent = (item) => {
     });
 };
 //Thêm sửa xoá
+function findPath(root, target) {
+  // Kiểm tra nút gốc
+  if (root.key === target) {
+    return [{ label: root.data.title_name, key: root.key }];
+  }
+
+  if (root.children)
+    // Duyệt qua các con của nút hiện tại
+    for (let child of root.children) {
+      const path = findPath(child, target);
+
+      // Nếu đường đi từ con đến mục tiêu được tìm thấy, thêm nút hiện tại vào đầu đường đi và trả về
+      if (path.length > 0) {
+        path.unshift({ label: root.data.title_name, key: root.key });
+        return path;
+      }
+    }
+
+  // Không tìm thấy đường đi
+  return [];
+}
 
 const renderTree = (data, id, name, title) => {
+  // listLinks.value=[];
   let arrChils = [];
   let arrtreeChils = [];
   data
@@ -240,6 +275,10 @@ const renderTree = (data, id, name, title) => {
       m.IsOrder = i + 1;
       m.label_order = m.IsOrder.toString();
       let om = { key: m[id], data: m };
+
+      //       listLinks.value.push({
+      // label:m.title_name, to:  m[id]
+      //       });
       expandedKeys.value[m[id]] = true;
       const rechildren = (mm, pid) => {
         let dts = data.filter((x) => x.parent_id == pid);
@@ -248,7 +287,7 @@ const renderTree = (data, id, name, title) => {
           dts.forEach((em, index) => {
             em.label_order = mm.data.label_order + "." + (index + 1);
             let om1 = { key: em[id], data: em };
-            expandedKeys.value[em[id]] = true;
+            // expandedKeys.value[em[id]] = true;
             rechildren(om1, em[id]);
             mm.children.push(om1);
           });
@@ -302,6 +341,14 @@ const loadTudien = (f) => {
         selectedKey.value = {};
         if (f) loadDataDetail(Number(idNewsLoaded.value));
         selectedKey.value[Number(idNewsLoaded.value)] = true;
+        listLinks.value = [];
+        for (const child in datalists.value) {
+          if (listLinks.value.length == 0)
+            listLinks.value = findPath(
+              datalists.value[child],
+              Number(idNewsLoaded.value)
+            );
+        }
       }
       options.value.loading = false;
     })
@@ -358,10 +405,6 @@ const toogledivZoom = (f) => {
   } else {
     divZoom.value = (divZoom.value * 10 - 1) / 10;
   }
-};
-const editMenuName = (data) => {
-  menuNameNew.value = data.data.title_name;
-  checkEditMenuName.value = data.key;
 };
 const cancelEditMenuName = () => {
   menuNameNew.value = null;
@@ -577,8 +620,14 @@ const delMenu = (data) => {
       }
     });
 };
+
+const homeLinks = ref({ icon: "pi pi-home", url: "https://primevue.org/" });
+const listLinks = ref([
+  { icon: "pi pi-sitemap", label: "Bắt đầu sử dụng" },
+  { icon: "pi pi-book", label: "Tổng quan về phần mềm" },
+]);
+
 onMounted(() => {
-  //init
   idNewsLoaded.value = window.location.href.substring(
     window.location.href.lastIndexOf("orient-") + 7
   );
@@ -600,8 +649,8 @@ onUpdated(() => {
         <SplitterPanel :size="25" style="min-width: 150px">
           <Toolbar class="w-full p-0">
             <template #start>
-              <div class="px-3">
-                <h3>Mục lục</h3>
+              <div class=" ">
+                <div class="p-3 font-bold">Mục lục</div>
               </div>
             </template>
           </Toolbar>
@@ -612,7 +661,6 @@ onUpdated(() => {
               @nodeSelect="onNodeSelect"
               @nodeUnselect="onNodeUnselect"
               v-model:selectionKeys="selectedKey"
-              :loading="options.loading"
               :expandedKeys="expandedKeys"
               :showGridlines="false"
               selectionMode="single"
@@ -654,15 +702,42 @@ onUpdated(() => {
           </div>
         </SplitterPanel>
         <SplitterPanel :size="75">
-          <div class="w-full ">
-            <div >
+          <div class="w-full">
+            <div>
               <Toolbar class="w-full p-0">
                 <template #start>
-                  <div class="px-3">
-                    <h3>
-                      Nội dung
-                      <span v-if="help_data">{{ help_data.title_name }}</span>
-                    </h3>
+                  <div class="p-3">
+                    <Breadcrumb
+                      :home="homeLinks"
+                      :model="listLinks"
+                      style="
+                        background-color: transparent;
+                        border: unset;
+                        color: black;
+                      "
+                      class="w-full h-full p-0"
+                    >
+                      <template #item="{ item }">
+                        <a
+                          class="d-hover-a"
+                          href="/helperview"
+                          v-if="item.icon == 'pi pi-home'"
+                        >
+                          <span :class="item.icon"></span>
+                        </a>
+                        <a
+                          v-else
+
+                          
+ @click="onRowSelected(item)"
+                        href="#"
+                          class="text-sm d-hover-a"
+                          style="text-decoration: none; color: black"
+                        >
+                          <span> {{ item.label }}</span>
+                        </a>
+                      </template>
+                    </Breadcrumb>
                   </div>
                 </template>
 
@@ -688,21 +763,19 @@ onUpdated(() => {
               </Toolbar>
 
               <div
-                class=" w-full d-lang-table-sl-1 "  
+                class="w-full d-lang-table-sl-1"
                 v-if="help_data"
                 :style="'zoom:' + divZoom"
-                style="overflow:scroll "
+                style="overflow: scroll"
               >
+                <h3
+                  class="px-2 text-xl"
+                  style="color: #2196f3"
+                  v-if="help_data"
+                >
+                  {{ help_data.title_name }}
+                </h3>
                 <div class="px-2" v-html="help_data.content"></div>
-              </div>
-
-              <div v-else class="w-full">
-                <div class="w-full format-center">
-                  <img src="../../assets/background/nodata.png" height="144" />
-                </div>
-                <div class="w-full format-center">
-                  <h3 class="m-1">Không có dữ liệu</h3>
-                </div>
               </div>
             </div>
           </div>
@@ -750,9 +823,9 @@ onUpdated(() => {
 
 .d-lang-table-sl-1 {
   margin: 0px;
-  height: calc(100vh  - 110px);
-  
-  
+  height: calc(100vh - 110px);
 }
- 
+.d-hover-a:hover {
+  color: rgb(33, 150, 243) !important;
+}
 </style>

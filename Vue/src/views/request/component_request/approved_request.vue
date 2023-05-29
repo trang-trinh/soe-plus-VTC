@@ -52,14 +52,24 @@ const approve = () => {
     }
     formData.append("requests", JSON.stringify(requests));
     axios
-        .post(basedomainURL + "/api/request/Approved_Request", formData, config)
+        .post(basedomainURL
+         + "/api/request/Approved_Request", formData, config)
         .then((response) => {
             if (response.data.err === "1") {
                 swal.fire({
-                title: "Thông báo!",
-                text: response.data.ms,
-                icon: "error",
-                confirmButtonText: "OK",
+                    title: "Thông báo!",
+                    text: response.data.ms,
+                    icon: "error",
+                    confirmButtonText: "OK",
+                });
+                return;
+            }
+            else if (response.data.err === "2") {
+                swal.fire({
+                    title: "Thông báo!",
+                    text: "Tài khoản chưa được thiết lập phép năm " + response.data.year,
+                    icon: "error",
+                    confirmButtonText: "OK",
                 });
                 return;
             }
@@ -96,6 +106,7 @@ const approve = () => {
                     <div class="form-group flex mb-3" style="flex-direction: column;">
                         <label class="font-bold mb-2">Nội dung</label>
                         <Textarea
+                            class="w-full"
                             v-model="props.modelApproved.content"
                             :autoResize="true"
                             rows="4"

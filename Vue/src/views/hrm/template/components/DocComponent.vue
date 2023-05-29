@@ -1638,11 +1638,13 @@ export default {
         props.report.report_config.trim() != ""
       ) {
         try {
+          
           objConfig = JSON.parse(props.report.report_config.trim());
  
           if (isUrlReport.value && Object.keys(props.pars).length > 0) {
             await initURLReport();
           } else if (Object.keys(objConfig.proc).length > 0) {
+             
             await initReportData(objConfig);
           }
           if (objConfig.data) {
@@ -2488,12 +2490,13 @@ export default {
         objConfig.proc = procchild;
       }
       if (!objConfig.proc.sql) {
+         
         objConfig.proc.sql = props.report.proc_get;
       }
       if (!objConfig.proc.name) {
         objConfig.proc.name = props.report.proc_name;
       }
-debugger
+ 
       dtDataReports.value = await goProc(
         objConfig.proc.issql,
         objConfig.proc.sql,
@@ -2624,7 +2627,7 @@ debugger
           });
         });
 
-      ;
+ 
        
       let dts = await goProc(false, objConfig.proc.name, pas, true);
       //init với kiểu lưu
@@ -4854,6 +4857,7 @@ debugger
       />
     </div>
     <div class="p-1">
+   
       <Accordion v-if="opTypeDB.value == 2" :multiple="false" :activeIndex="0">
         <AccordionTab v-for="(r, index) in datamaps">
           <template #header>
@@ -5002,6 +5006,7 @@ debugger
         class="p-2"
         style="height: calc(100vh - 170px); overflow-y: auto"
       >
+    
         <Panel
           v-if="oneRow"
           toggleable
@@ -5013,6 +5018,7 @@ debugger
               <i class="pi pi-user"></i> Thông tin lấy dữ liệu
             </h3>
           </template>
+       
           <DataTable
             class="p-datatable-sm"
             showGridlines
@@ -5098,7 +5104,7 @@ debugger
                   ><b>{{ r.value.replace(/\[(.+)\]/g, "$1") }}</b></label
                 >
               </div>
-              <InputComponent :okey="'key'" :col="r" :ipmodel="r" />
+             <div class="h-full " style="max-height:40px"> <InputComponent :okey="'key'" :col="r" :ipmodel="r" /></div>
             </div>
           </div>
         </Panel>

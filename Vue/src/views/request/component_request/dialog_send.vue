@@ -874,7 +874,8 @@ onMounted(() => {
                 <div class="col-12 md:col-12">
                     <div class="form-group">
                         <label>Nội dung</label>
-                        <Textarea v-model="process.content" :autoResize="true" rows="4" cols="30" spellcheck="false" />
+                        <Textarea class="w-full"
+                            v-model="process.content" :autoResize="true" rows="4" cols="30" spellcheck="false" />
                     </div>
                 </div>
                 <div class="col-12 md-col-12">

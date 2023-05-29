@@ -702,7 +702,7 @@ onMounted(() => {
               </div>
             </template>
           </Toolbar>
-          <div class="w-full h-full ck-helper ck-content">
+          <div class="w-full   ck-helper ck-content d-lang-table-sl">
             <ckeditor
               :editor="editor"
               :config="editorConfig"
@@ -794,8 +794,8 @@ onMounted(() => {
 </template>
 <style scoped>
 .ck-editor__editable {
-  min-height: calc(100vh - 200px) !important;
-  max-height: calc(100vh - 200px) !important;
+  min-height: calc(100vh - 100px) !important;
+  max-height: calc(100vh - 100px) !important;
 }
  .d-hover {
   display: none;
@@ -862,7 +862,7 @@ onMounted(() => {
 // }
 ::v-deep(.ck-editor__main) {
   .ck-editor__editable {
-    height: calc(100vh - 177px) !important;
+    height: calc(100vh - 250px) !important;
   }
 }
 </style>

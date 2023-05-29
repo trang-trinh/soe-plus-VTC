@@ -83,7 +83,7 @@ const treemodules = ref();
 
 const checkShow = ref(false);
 const listEvalCriterias = ref([]);
- 
+
 const listEvalChilds = ref([]);
 const listTypeEvals = ref([
   {
@@ -119,16 +119,16 @@ const loadData = (rf) => {
       .then((response) => {
         let data = JSON.parse(response.data.data)[0];
         if (isFirst.value) isFirst.value = false;
-        if(data.length>0){
-        data.forEach((element, i) => {
-          element.STT = options.value.PageNo * options.value.PageSize + i + 1;
-        });
+        if (data.length > 0) {
+          data.forEach((element, i) => {
+            element.STT = options.value.PageNo * options.value.PageSize + i + 1;
+          });
 
-        datalists.value = data;
+          datalists.value = data;
 
-        review_form.value = data[0];
-        loadDataDetails(true);
-      }
+          review_form.value = data[0];
+          loadDataDetails(true);
+        }
         options.value.loading = false;
       })
       .catch((error) => {
@@ -356,10 +356,6 @@ const editTem = (dataTem, header, view) => {
     });
 };
 
-
-
-
-
 const delUser = (Tem) => {
   swal
     .fire({
@@ -383,8 +379,7 @@ const delUser = (Tem) => {
 
         axios
           .delete(
-            baseURL +
-              "/api/hrm_review_form_users/delete_hrm_review_form_users",
+            baseURL + "/api/hrm_review_form_users/delete_hrm_review_form_users",
             {
               headers: { Authorization: `Bearer ${store.getters.token}` },
               data: Tem != null ? [Tem.profile_id] : 1,
@@ -395,8 +390,8 @@ const delUser = (Tem) => {
             if (response.data.err != "1") {
               swal.close();
               toast.success("Xoá mẫu biểu thành công!");
-              
-        loadDataDetails(true);
+
+              loadDataDetails(true);
             } else {
               swal.fire({
                 title: "Error!",
@@ -569,7 +564,7 @@ const loadDataDetails = (rf) => {
       })
       .catch((error) => {
         toast.error("Tải dữ liệu không thành công!");
-console.log(error);
+        console.log(error);
         options.value.loading = false;
       });
   }
@@ -734,7 +729,6 @@ const showTreeUser = () => {
   selectedUser.value = listProfilesSave.value;
   displayDialogUser.value = true;
 };
- 
 
 const checkMultile = ref(false);
 const listProfiles = ref([]);
@@ -931,20 +925,21 @@ const loadDataSQL = () => {
     });
 };
 const onChangeMaxPercen = (item) => {
-  var max=0;
-  listEvalCriterias.value.forEach(element => {
-    max+=element.percen;
+  var max = 0;
+  listEvalCriterias.value.forEach((element) => {
+    max += element.percen;
   });
-  if(max>100){
-    let sum=0;
+  if (max > 100) {
+    let sum = 0;
     listEvalCriterias.value
       .filter((x) => x != item)
       .forEach((out) => {
         sum += out.percen;
       });
-      listEvalCriterias.value.find((x) => x == item).percen = 100 - sum ;
 
-
+   
+      listEvalCriterias.value.find((x) => x == item).maxpercen =   100 - sum;
+    listEvalCriterias.value.find((x) => x == item).percen = 100 - sum;
   }
   // var str = listEvalCriterias.value.find((x) => x == item);
   // if (str != null) {
@@ -954,8 +949,8 @@ const onChangeMaxPercen = (item) => {
 const onChangeMaxVal = (item, data) => {
   var str = listEvalCriterias.value.find((x) => x == item);
   if (str != null) {
-    if (str.maxpercen == null){
-      str.maxpercen=str.percen;
+    if (str.maxpercen == null) {
+      str.maxpercen = str.percen;
     }
     var curPercent = 0;
     listEvalChilds.value
@@ -963,16 +958,16 @@ const onChangeMaxVal = (item, data) => {
       .forEach((element) => {
         curPercent += element.weight_child;
       });
-      if(curPercent>str.maxpercen ){
-        let sum=0;
-        listEvalChilds.value
-      .filter((x) => x.roman_order == item.roman_order && x!=data)
-      .forEach((out) => {
-        sum += out.weight_child;
-      });
-        listEvalChilds.value.find((x) => x == data).weight_child =  str.maxpercen - sum ;
-      }
-   
+    if (curPercent > str.maxpercen) {
+      let sum = 0;
+      listEvalChilds.value
+        .filter((x) => x.roman_order == item.roman_order && x != data)
+        .forEach((out) => {
+          sum += out.weight_child;
+        });
+      listEvalChilds.value.find((x) => x == data).weight_child =
+        str.maxpercen - sum;
+    }
   }
 };
 onMounted(() => {
@@ -1130,174 +1125,174 @@ onMounted(() => {
           </div>
         </SplitterPanel>
         <SplitterPanel :size="65">
-          <div v-if=" review_form.review_forM_id !=null">
-          <div>
-            <Toolbar>
-              <template #start>
-                <span class="p-input-icon-left">
-                  <i class="pi pi-search" />
-                  <InputText
-                    v-model="options.search"
-                    @keyup="searchStamp"
-                    type="text"
-                    spellcheck="false"
-                    placeholder="Tìm kiếm nhân sự"
-                  />
-                </span>
-              </template>
-              <template #end>
-                <Button
-                  v-tooltip.top="'Thêm nhân sự'"
-                  @click="showTreeUser()"
-                  label="Thêm nhân sự"
-                  icon="pi pi-plus"
-                  class="mr-2"
-                />
-              </template>
-            </Toolbar>
-          </div>
-          <div class="d-lang-table-d" v-if="listProfiles.length > 0">
-            <DataTable
-              @page="onPageP($event)"
-              @sort="onSortP($event)"
-              @filter="onFilterP($event)"
-              v-model:filters="filters"
-              selectionMode="single"
-              filterDisplay="menu"
-              filterMode="lenient"
-              :scrollable="true"
-              scrollHeight="flex"
-              :showGridlines="true"
-              columnResizeMode="fit"
-              :lazy="true"
-              :loading="options.loading"
-              :totalRecords="options.totalRecordsP"
-              :reorderableColumns="true"
-              :value="listProfiles"
-              removableSort
-              v-model:rows="options.PageSizeP"
-              paginatorTemplate="FirstPageLink PrevPageLink PageLinks NextPageLink LastPageLink RowsPerPageDropdown"
-              :rowsPerPageOptions="[20, 30, 50, 100, 200]"
-              :paginator="true"
-              dataKey="profile_id"
-              responsiveLayout="scroll"
-              :row-hover="true"
-            >
-              <Column
-                field="STT"
-                header="STT"
-                class="align-items-center justify-content-center text-center overflow-hidden"
-                headerStyle="text-align:center;max-width:55px;height:50px"
-                bodyStyle="text-align:center;max-width:55px"
-              ></Column>
-              <Column
-                field="candidate_code"
-                header="Ảnh"
-                headerStyle="text-align:center;max-width:70px;height:50px"
-                bodyStyle="text-align:center;max-width:70px"
-                class="align-items-center justify-content-center text-center overflow-hidden"
-              >
-                <template #body="slotProps">
-                  <div>
-                    <Avatar
-                      style="color: #fff"
-                      v-bind:label="
-                        slotProps.data.avatar
-                          ? ''
-                          : slotProps.data.profile_user_name.substring(
-                              slotProps.data.profile_user_name.lastIndexOf(
-                                ' '
-                              ) + 1,
-                              slotProps.data.profile_user_name.lastIndexOf(
-                                ' '
-                              ) + 2
-                            )
-                      "
-                      :image="basedomainURL + slotProps.data.avatar"
-                      class="w-3rem"
-                      size="large"
-                      :style="
-                        slotProps.data.avatar
-                          ? 'background-color: #2196f3'
-                          : 'background:' +
-                            bgColor[slotProps.data.profile_user_name.length % 7]
-                      "
-                      shape="circle"
-                      @error="
-                        $event.target.src =
-                          basedomainURL + '/Portals/Image/nouser1.png'
-                      "
+          <div v-if="review_form.review_form_id != null">
+            <div>
+              <Toolbar>
+                <template #start>
+                  <span class="p-input-icon-left">
+                    <i class="pi pi-search" />
+                    <InputText
+                      v-model="options.search"
+                      @keyup="searchStamp"
+                      type="text"
+                      spellcheck="false"
+                      placeholder="Tìm kiếm nhân sự"
                     />
+                  </span>
+                </template>
+                <template #end>
+                  <Button
+                    v-tooltip.top="'Thêm nhân sự'"
+                    @click="showTreeUser()"
+                    label="Thêm nhân sự"
+                    icon="pi pi-plus"
+                    class="mr-2"
+                  />
+                </template>
+              </Toolbar>
+            </div>
+            <div class="d-lang-table-d" v-if="listProfiles.length > 0">
+              <DataTable
+                @page="onPageP($event)"
+                @sort="onSortP($event)"
+                @filter="onFilterP($event)"
+                v-model:filters="filters"
+                selectionMode="single"
+                filterDisplay="menu"
+                filterMode="lenient"
+                :scrollable="true"
+                scrollHeight="flex"
+                :showGridlines="true"
+                columnResizeMode="fit"
+                :lazy="true"
+                :loading="options.loading"
+                :totalRecords="options.totalRecordsP"
+                :reorderableColumns="true"
+                :value="listProfiles"
+                removableSort
+                v-model:rows="options.PageSizeP"
+                paginatorTemplate="FirstPageLink PrevPageLink PageLinks NextPageLink LastPageLink RowsPerPageDropdown"
+                :rowsPerPageOptions="[20, 30, 50, 100, 200]"
+                :paginator="true"
+                dataKey="profile_id"
+                responsiveLayout="scroll"
+                :row-hover="true"
+              >
+                <Column
+                  field="STT"
+                  header="STT"
+                  class="align-items-center justify-content-center text-center overflow-hidden"
+                  headerStyle="text-align:center;max-width:55px;height:50px"
+                  bodyStyle="text-align:center;max-width:55px"
+                ></Column>
+                <Column
+                  field="candidate_code"
+                  header="Ảnh"
+                  headerStyle="text-align:center;max-width:70px;height:50px"
+                  bodyStyle="text-align:center;max-width:70px"
+                  class="align-items-center justify-content-center text-center overflow-hidden"
+                >
+                  <template #body="slotProps">
+                    <div>
+                      <Avatar
+                        style="color: #fff"
+                        v-bind:label="
+                          slotProps.data.avatar
+                            ? ''
+                            : slotProps.data.profile_user_name.substring(
+                                slotProps.data.profile_user_name.lastIndexOf(
+                                  ' '
+                                ) + 1,
+                                slotProps.data.profile_user_name.lastIndexOf(
+                                  ' '
+                                ) + 2
+                              )
+                        "
+                        :image="basedomainURL + slotProps.data.avatar"
+                        class="w-3rem"
+                        size="large"
+                        :style="
+                          slotProps.data.avatar
+                            ? 'background-color: #2196f3'
+                            : 'background:' +
+                              bgColor[
+                                slotProps.data.profile_user_name.length % 7
+                              ]
+                        "
+                        shape="circle"
+                        @error="
+                          $event.target.src =
+                            basedomainURL + '/Portals/Image/nouser1.png'
+                        "
+                      />
+                    </div>
+                  </template>
+                </Column>
+
+                <Column
+                  field="profile_user_name"
+                  header="Họ và tên"
+                  headerStyle=" height:50px"
+                  bodyStyle="text-align:left"
+                  class="overflow-hidden"
+                >
+                </Column>
+
+                <Column
+                  field="position_name"
+                  header="Chức vụ"
+                  headerStyle="text-align:center;max-width:200px;height:50px"
+                  bodyStyle="text-align:center;max-width:200px"
+                  class="align-items-center justify-content-center text-center overflow-hidden"
+                >
+                </Column>
+
+                <Column
+                  field="department_name"
+                  header="Phòng ban"
+                  headerStyle="text-align:center;max-width:200px;height:50px"
+                  bodyStyle="text-align:center;max-width:200px"
+                  class="align-items-center justify-content-center text-center overflow-hidden"
+                >
+                </Column>
+
+                <Column
+                  header=""
+                  headerStyle="text-align:center;max-width:70px"
+                  bodyStyle="text-align:center;max-width:70px"
+                  class="align-items-center justify-content-center text-center"
+                >
+                  <template #body="slotProps">
+                    <Button
+                      @click="delUser(slotProps.data)"
+                      icon="pi pi-trash"
+                      class="p-button-rounded p-button-danger p-button-outlined ml-2"
+                    />
+                  </template>
+                </Column>
+
+                <template #empty>
+                  <div
+                    class="align-items-center justify-content-center p-4 text-center m-auto"
+                    v-if="!isFirst"
+                  >
+                    <img
+                      src="../../../assets/background/nodata.png"
+                      height="144"
+                    />
+                    <h3 class="m-1">Không có dữ liệu</h3>
                   </div>
                 </template>
-              </Column>
-
-              <Column
-                field="profile_user_name"
-                header="Họ và tên"
-                headerStyle=" height:50px"
-                bodyStyle="text-align:left"
-                class="overflow-hidden"
-              >
-              </Column>
-
-              <Column
-                field="position_name"
-                header="Chức vụ"
-                headerStyle="text-align:center;max-width:200px;height:50px"
-                bodyStyle="text-align:center;max-width:200px"
-                class="align-items-center justify-content-center text-center overflow-hidden"
-              >
-              </Column>
-
-              <Column
-                field="department_name"
-                header="Phòng ban"
-                headerStyle="text-align:center;max-width:200px;height:50px"
-                bodyStyle="text-align:center;max-width:200px"
-                class="align-items-center justify-content-center text-center overflow-hidden"
-              >
-              </Column>
-
-              <Column
-                header=""
-                headerStyle="text-align:center;max-width:70px"
-                bodyStyle="text-align:center;max-width:70px"
-                class="align-items-center justify-content-center text-center"
-              >
-                <template #body="slotProps">
-                  <Button
-                  @click="delUser(slotProps.data)"
-                    icon="pi pi-trash"
-                    class="p-button-rounded p-button-danger p-button-outlined ml-2"
-                  />
-                </template>
-              </Column>
-
-              <template #empty>
-                <div
-                  class="align-items-center justify-content-center p-4 text-center m-auto"
-                  v-if="!isFirst"
-                >
-                  <img
-                    src="../../../assets/background/nodata.png"
-                    height="144"
-                  />
-                  <h3 class="m-1">Không có dữ liệu</h3>
-                </div>
-              </template>
-            </DataTable>
-          </div></div>
+              </DataTable>
+            </div>
+          </div>
           <div
-                  class="align-items-center justify-content-center p-4 text-center m-auto"
-                  v-else
-                >
-                  <img
-                    src="../../../assets/background/nodata.png"
-                    height="144"
-                  />
-                  <h3 class="m-1">Vui lòng chọn mẫu biểu!</h3>
-                </div>
+            class="align-items-center justify-content-center p-4 text-center m-auto"
+            v-else
+          >
+            <img src="../../../assets/background/nodata.png" height="144" />
+            <h3 class="m-1">Vui lòng chọn mẫu biểu!</h3>
+          </div>
         </SplitterPanel>
       </Splitter>
     </div>
@@ -1650,7 +1645,6 @@ onMounted(() => {
                               class="w-full d-design-it duy-inpput"
                               v-model="slotProps.data.weight_child"
                               :min="0"
-                         
                               :disabled="isView"
                               :style="isView ? 'opacity:1' : ''"
                               @update:modelValue="
@@ -1837,7 +1831,6 @@ onMounted(() => {
     v-if="displayDialogUser === true"
     :headerDialog="'Chọn nhân sự'"
     :displayDialog="displayDialogUser"
- 
     :one="checkMultile"
     :selected="selectedUser"
     :choiceUser="choiceUser"
