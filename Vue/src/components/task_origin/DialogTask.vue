@@ -96,7 +96,8 @@ const props = defineProps({
   data: Object,
   closeDialogTask: Function,
   afterSave: Function,
-  project_id:String,
+  project_id: String,
+  STT: Intl,
 });
 const v$ = useVuelidate(rules, Task);
 const onUploadFile = (event) => {
@@ -167,10 +168,10 @@ const listtreeOrganization = () => {
             par: [{ par: "user_id", va: store.getters.user.user_id }],
           }),
           SecretKey,
-          cryoptojs,
+          cryoptojs
         ).toString(),
       },
-      config,
+      config
     )
     .then((response) => {
       let data = JSON.parse(response.data.data)[0];
@@ -178,7 +179,7 @@ const listtreeOrganization = () => {
         data.filter((x) => x.organization_type != 0),
         "organization_id",
         "organization_name",
-        "phòng ban",
+        "phòng ban"
       );
       listOrganization.value = data;
       listDropdownorganization.value = obj.arrtreeChils;
@@ -205,18 +206,14 @@ const listUser = () => {
             proc: "sys_user_list_tree_task",
             par: [
               { par: "user_id", va: user.user_id },
-              {
-                par: "filter_organization_id",
-                va: null,
-              },
-              { par: "search", va: null },
+              { par: "types", va: 1 },
             ],
           }),
           SecretKey,
-          cryoptojs,
+          cryoptojs
         ).toString(),
       },
-      config,
+      config
     )
     .then((response) => {
       var data = response.data.data;
@@ -265,6 +262,38 @@ const listUser = () => {
       }
     });
 };
+const renderTreePJ = (data, id, name, title) => {
+  let arrChils = [];
+  let arrtreeChils = [];
+
+  data
+    .filter((x) => x.parent_id == "-1")
+    .forEach((m, i) => {
+      m.parent_id = null;
+    });
+  data
+    .filter((x) => x.parent_id == null)
+    .forEach((m, i) => {
+      let om = { key: m[id], data: m };
+      const rechildren = (mm, pid) => {
+        let dts = data.filter((x) => x.parent_id == pid);
+        if (dts.length > 0) {
+          if (!mm.children) mm.children = [];
+          dts.forEach((em, index) => {
+            em.STT = mm.data.STT + "." + (index + 1);
+            em.padding_left = em.STT.split(".").length - 1;
+            em.is_check = false;
+            let om1 = { key: em[id], data: em };
+            rechildren(om1, em[id]);
+            mm.children.push(om1);
+          });
+        }
+      };
+      rechildren(om, m[id]);
+    });
+
+  return data;
+};
 const listProjectMain = () => {
   axios
     .post(
@@ -281,14 +310,16 @@ const listProjectMain = () => {
             ],
           }),
           SecretKey,
-          cryoptojs,
+          cryoptojs
         ).toString(),
       },
-      config,
+      config
     )
     .then((response) => {
       let data = JSON.parse(response.data.data);
-      listDropdownProject.value = data[0];
+      let obj = renderTreePJ(data[0], "project_id", "project_name", "cấp cha");
+      listDropdownProject.value = obj;
+
       listDropdownTaskGroup.value = data[1];
       listDropdownweight.value = data[2];
       listDropdownweight.value.forEach((x) => {
@@ -480,14 +511,14 @@ const saveTask = (isFormValid) => {
         "/api/task_origin/" +
         (isAdd.value == true ? "Add_TaskOrigin" : "Update_TaskOrigin"),
       formData,
-      config,
+      config
     )
     .then((response) => {
       if (response.data.err != "1") {
         swal.close();
         toast.success(
           (isAdd.value != true ? "Cập nhật" : "Thêm mới") +
-            " công việc thành công!",
+            " công việc thành công!"
         );
         closeDialogTask();
 
@@ -538,10 +569,10 @@ const OpenAddDialogTask = () => {
     is_template: false,
     process_time: null,
   };
-  if(props.project_id!=null)
-  {
-    Task.value.project_id=props.project_id;
+  if (props.project_id != null) {
+    Task.value.project_id = props.project_id;
   }
+  Task.value.is_order = props.STT + 1;
   selectcapcha.value = [];
   selectcapcha.value[-1] = true;
 
@@ -551,7 +582,7 @@ const OpenAddDialogTask = () => {
       Task.value.assign_user_id.push(x);
     });
   Task.value.work_user_ids = listDropdownUser.value.filter(
-    (x) => x.user_id == user.user_id,
+    (x) => x.user_id == user.user_id
   );
   if (props.is_template == true) Task.value.is_template = true;
   if (Task.value.is_template != true) {
@@ -615,6 +646,7 @@ const OpenAddDialogChildTask = (e) => {
     is_template: false,
     process_time: null,
   };
+  Task.value.is_order = props.STT + 1;
   Task.value.parent_id = e.task_id;
   if (e.is_template != true) {
     Task.value.ParentStartDate = e.start_date;
@@ -629,7 +661,7 @@ const OpenAddDialogChildTask = (e) => {
       Task.value.assign_user_id.push(x);
     });
   Task.value.work_user_ids = listDropdownUser.value.filter(
-    (x) => x.user_id == user.user_id,
+    (x) => x.user_id == user.user_id
   );
   if (Task.value.is_template != true) {
     rules.value = {
@@ -681,10 +713,10 @@ const editTask = () => {
             par: [{ par: "task_id", va: props.data.task_id }],
           }),
           SecretKey,
-          cryoptojs,
+          cryoptojs
         ).toString(),
       },
-      config,
+      config
     )
     .then((response) => {
       let data = JSON.parse(response.data.data);
@@ -785,28 +817,28 @@ const editTask = () => {
         Task.value.Thanhviens.forEach((t) => {
           if (t.is_type == "0") {
             let filter = listDropdownUser.value.filter(
-              (x) => x.user_id == t.user_id,
+              (x) => x.user_id == t.user_id
             )[0];
             Task.value.assign_user_id.push(filter);
           } else if (t.is_type == "1") {
             let filter = listDropdownUser.value.filter(
-              (x) => x.user_id == t.user_id,
+              (x) => x.user_id == t.user_id
             )[0];
             Task.value.work_user_ids.push(filter);
           } else if (t.is_type == "2") {
             let filter = listDropdownUser.value.filter(
-              (x) => x.user_id == t.user_id,
+              (x) => x.user_id == t.user_id
             )[0];
             Task.value.works_user_ids.push(filter);
           } else if (t.is_type == "3") {
             let filter = listDropdownUser.value.filter(
-              (x) => x.user_id == t.user_id,
+              (x) => x.user_id == t.user_id
             )[0];
             Task.value.follow_user_ids.push(filter);
           }
         });
       }
-      Task.value.is_order = Task.value.STT;
+
       headerAddTask.value = "Sửa công việc";
       displayTask.value = true;
     })
@@ -823,9 +855,7 @@ const editTask = () => {
     });
 };
 const getData = async () => {
-  console.time("time");
   await Promise.all([listProjectMain(), listUser(), listtreeOrganization()]);
-  console.timeEnd("time");
 };
 const MountTask = async () => {
   await getData();
@@ -917,10 +947,10 @@ const ChangeIsDepartment = (model) => {
       : listDropdownUser.value.filter((x) => x.user_id == user.user_id);
   selectcapcha.value[-1] = true;
   Task.value.assign_user_id = listDropdownUser.value.filter(
-    (x) => x.user_id == user.user_id,
+    (x) => x.user_id == user.user_id
   );
   Task.value.work_user_ids = listDropdownUser.value.filter(
-    (x) => x.user_id == user.user_id,
+    (x) => x.user_id == user.user_id
   );
 };
 const ChangeTaskDepartment = () => {
@@ -933,7 +963,7 @@ const ChangeTaskDepartment = () => {
       .forEach((t) => {
         if (t.user_id) {
           let filter = listDropdownUser.value.filter(
-            (x) => x.user_id == t.user_id,
+            (x) => x.user_id == t.user_id
           )[0];
           Task.value.assign_user_id.push(filter);
           Task.value.work_user_ids.push(filter);
@@ -941,10 +971,10 @@ const ChangeTaskDepartment = () => {
           selectcapcha.value = [];
           selectcapcha.value[-1] = true;
           Task.value.assign_user_id = listDropdownUser.value.filter(
-            (x) => x.user_id == user.user_id,
+            (x) => x.user_id == user.user_id
           );
           Task.value.work_user_ids = listDropdownUser.value.filter(
-            (x) => x.user_id == user.user_id,
+            (x) => x.user_id == user.user_id
           );
           swal.fire({
             title: "Thông báo!",
@@ -956,6 +986,73 @@ const ChangeTaskDepartment = () => {
       });
   }
 };
+const autoFillDate = (event, model, prop_name) => {
+  var ip_val = event.value;
+
+  if (ip_val.length >= 9) {
+    return;
+  }
+  var today = new Date();
+  var minutes = today.getMinutes();
+  var hour = today.getHours();
+  var dd = today.getDate();
+  var mm = today.getMonth();
+  var yyyy = today.getFullYear();
+  if (dd < 10) dd = "0" + dd;
+  if (mm < 10) mm = "0" + mm;
+  if (hour < 10) hour = "0" + hour;
+  if (minutes < 10) minutes = "0" + minutes;
+  let tempDate = dd,
+    tempMonth = mm,
+    tempYear = yyyy;
+  let [d, m, y] =
+    ip_val.includes("/") == true
+      ? ip_val.split("/")
+      : [ip_val.substring(0, 2), ip_val.substring(2, 4), ip_val.substring(4)];
+
+  if (d != undefined && d != null && d != "") {
+    if (parseInt(d, 10) <= 1) {
+      tempDate = 1;
+    } else if (
+      parseInt(d, 10) > 1 &&
+      parseInt(d, 10) <= parseInt(new Date(yyyy, mm + 1, 0).getDate(), 10)
+    ) {
+      tempDate = d;
+    } else {
+      tempDate = dd;
+    }
+  }
+  if (m != undefined && m != null && m != "") {
+    if (m.includes("/") == true) {
+      m = m.replace("/", "");
+    }
+    m = parseInt(m, 10) - 1;
+    if ((parseInt(m, 10) >= 0) & (parseInt(m, 10) <= 11)) {
+      if (parseInt(m, 10) < 10) {
+        tempMonth = "0" + m;
+      } else {
+        tempMonth = m;
+      }
+    } else {
+      tempMonth = mm;
+    }
+  }
+  if (y != undefined && y != null && y != "") {
+    if (y.includes("/") == true) {
+      y = y.replace("/", "");
+    }
+    if (y.length == 4) {
+      tempYear = y;
+    } else if (y.length < 2 && parseInt(y, 10) < 10) {
+      tempYear = "200" + y;
+    } else {
+      tempYear = "20" + y;
+    }
+  }
+  event.value = "";
+  model[prop_name] = new Date(tempYear, tempMonth, tempDate, hour, minutes);
+  return;
+};
 onMounted(() => {
   MountTask();
 });
@@ -966,10 +1063,9 @@ onMounted(() => {
     v-model:visible="displayTask"
     :closable="true"
     :maximizable="true"
-    :style="{ width: '45vw' }"
+    :style="{ width: '50vw' }"
     @update:visible="closeDialogTask()"
   >
-
     <form>
       <div class="grid formgrid m-2">
         <div class="field col-12 md:col-12">
@@ -983,10 +1079,7 @@ onMounted(() => {
             :class="{ 'p-invalid': v$.task_name.$invalid && submitted }"
           />
         </div>
-        <div
-          style="display: flex"
-          class="field col-12 md:col-12"
-        >
+        <div style="display: flex" class="field col-12 md:col-12">
           <div class="col-3 text-left"></div>
           <small
             v-if="
@@ -1014,16 +1107,10 @@ onMounted(() => {
             />
           </div>
 
-          <label
-            class="col-3 text-left p-0"
-            v-if="props.is_template == 'dp'"
-          >
+          <label class="col-3 text-left p-0" v-if="props.is_template == 'dp'">
             Công việc mẫu
           </label>
-          <div
-            class="col-3"
-            v-if="props.is_template == 'dp'"
-          >
+          <div class="col-3" v-if="props.is_template == 'dp'">
             <InputSwitch
               v-model="Task.is_template"
               @update:modelValue="
@@ -1033,10 +1120,7 @@ onMounted(() => {
           </div>
         </div>
 
-        <div
-          class="field col-12 md:col-12"
-          v-if="Task.is_department"
-        >
+        <div class="field col-12 md:col-12" v-if="Task.is_department">
           <label class="col-3 text-left p-0">Phòng ban</label>
           <TreeSelect
             class="col-9"
@@ -1051,7 +1135,7 @@ onMounted(() => {
           />
         </div>
 
-        <div class="field col-12 md:col-12" v-if="props.project_id==null">
+        <div class="field col-12 md:col-12" v-if="props.project_id == null">
           <label class="col-3 text-left p-0">Thuộc dự án</label>
           <Dropdown
             :filter="true"
@@ -1066,7 +1150,19 @@ onMounted(() => {
           >
             <template #option="slotProps">
               <div class="country-item flex">
-                <div class="pt-1">{{ slotProps.option.project_name }}</div>
+                <div
+                  class=""
+                  :style="[
+                    {
+                      'padding-left': slotProps.option.padding_left * 10 + 'px',
+                    },
+                  ]"
+                >
+                  <span v-for="n in slotProps.option.padding_left" :key="n"
+                    >-</span
+                  >
+                  {{ slotProps.option.project_name }}
+                </div>
               </div>
             </template>
           </Dropdown>
@@ -1122,10 +1218,7 @@ onMounted(() => {
                   size="xlarge"
                   shape="circle"
                 />
-                <div
-                  class="pt-1"
-                  style="padding-left: 10px"
-                >
+                <div class="pt-1" style="padding-left: 10px">
                   {{ slotProps.option.full_name }}
                 </div>
               </div>
@@ -1152,10 +1245,7 @@ onMounted(() => {
             }}</span>
           </small>
         </div>
-        <div
-          v-if="!Task.is_department"
-          class="field col-12 md:col-12"
-        >
+        <div v-if="!Task.is_department" class="field col-12 md:col-12">
           <label class="col-3 text-left p-0"
             >Người thực hiện
             <Button
@@ -1205,10 +1295,7 @@ onMounted(() => {
                   size="xlarge"
                   shape="circle"
                 />
-                <div
-                  class="pt-1"
-                  style="padding-left: 10px"
-                >
+                <div class="pt-1" style="padding-left: 10px">
                   {{ slotProps.option.full_name }}
                 </div>
               </div>
@@ -1235,10 +1322,7 @@ onMounted(() => {
             }}</span>
           </small>
         </div>
-        <div
-          v-if="!Task.is_department"
-          class="field col-12 md:col-12"
-        >
+        <div v-if="!Task.is_department" class="field col-12 md:col-12">
           <label class="col-3 text-left p-0"
             >Người đồng thực hiện
             <Button
@@ -1283,20 +1367,14 @@ onMounted(() => {
                   size="xlarge"
                   shape="circle"
                 />
-                <div
-                  class="pt-1"
-                  style="padding-left: 10px"
-                >
+                <div class="pt-1" style="padding-left: 10px">
                   {{ slotProps.option.full_name }}
                 </div>
               </div>
             </template>
           </MultiSelect>
         </div>
-        <div
-          v-if="!Task.is_department"
-          class="field col-12 md:col-12"
-        >
+        <div v-if="!Task.is_department" class="field col-12 md:col-12">
           <label class="col-3 text-left p-0"
             >Người theo dõi
             <Button
@@ -1341,10 +1419,7 @@ onMounted(() => {
                   size="xlarge"
                   shape="circle"
                 />
-                <div
-                  class="pt-1"
-                  style="padding-left: 10px"
-                >
+                <div class="pt-1 font-bold" style="padding-left: 10px">
                   {{ slotProps.option.full_name }}
                 </div>
               </div>
@@ -1371,15 +1446,9 @@ onMounted(() => {
             </template>
           </Dropdown>
         </div>
-        <div
-          class="field col-12 md:col-12"
-          style="display: flex"
-        >
+        <div class="field col-12 md:col-12" style="display: flex">
           <div class="col-3"></div>
-          <div
-            class="col-9"
-            style="display: flex"
-          >
+          <div class="col-9" style="display: flex">
             <div class="col-5">
               <Checkbox
                 style="margin-right: 5px"
@@ -1410,7 +1479,6 @@ onMounted(() => {
           </div>
         </div>
         <div
-          v-if="Task.is_template != true && Task.is_deadline == true"
           class="field col-12 md:col-12"
           style="display: flex; align-items: center"
         >
@@ -1420,39 +1488,39 @@ onMounted(() => {
             style="display: flex; padding: 0px; align-items: center"
           >
             <Calendar
+              :showOnFocus="false"
+              @blur="autoFillDate($event, Task, 'start_date')"
               :showIcon="true"
-              id="time24"
               :showTime="true"
-              autocomplete="on"
-              class="col-5 ip36 title-lable"
-              style="margin-top: 5px; padding: 0px"
               v-model="Task.start_date"
+              :manualInput="true"
+              id="start_date"
+              class="col-5"
             />
-            <div
-              class="col-7"
-              style="display: flex; padding: 0px; align-items: center"
+            <label
+              class="col-2 text-center"
+              v-if="Task.is_template != true && Task.is_deadline == true"
+              >Ngày kết thúc</label
             >
-              <label class="col-5 text-center">Ngày kết thúc</label>
-
-              <Calendar
-                :showTime="true"
-                :showIcon="true"
-                class="col-7 ip36 title-lable"
-                style="margin-top: 5px; padding: 0px"
-                id="time2"
-                placeholder="dd/MM/yy"
-                autocomplete="on"
-                v-model="Task.end_date"
-                :class="{
-                  'p-invalid':
-                    v$.end_date.$invalid &&
-                    submitted &&
-                    Task.is_deadline &&
-                    Task.is_template != true,
-                }"
-                :minDate="Task.start_date"
-              />
-            </div>
+            <Calendar
+              class="col-5"
+              v-if="Task.is_template != true && Task.is_deadline == true"
+              :showTime="true"
+              :showIcon="true"
+              id="time2"
+              placeholder="DD/MM/YYYY"
+              autocomplete="on"
+              v-model="Task.end_date"
+              :class="{
+                'p-invalid':
+                  v$.end_date.$invalid &&
+                  submitted &&
+                  Task.is_deadline &&
+                  Task.is_template != true,
+              }"
+              :minDate="Task.start_date"
+              @blur="autoFillDate($event, Task, 'end_date')"
+            />
           </div>
         </div>
         <div
@@ -1462,7 +1530,7 @@ onMounted(() => {
           style="display: flex"
           class="field col-12 md:col-12"
         >
-          <div class="col-9 text-left"></div>
+          <div class="col-8 text-left"></div>
           <small
             v-if="
               (v$.end_date.$invalid &&
@@ -1474,7 +1542,7 @@ onMounted(() => {
                 Task.is_deadline &&
                 Task.is_template != true)
             "
-            class="col-3 p-error p-0"
+            class="col-4 p-error p-0"
           >
             <span class="col-12 p-0">{{
               v$.end_date.required.$message
@@ -1590,10 +1658,7 @@ onMounted(() => {
             </div>
           </div>
         </div>
-        <div
-          class="field col-12 md:col-12"
-          v-if="Task.is_template != true"
-        >
+        <div class="field col-12 md:col-12" v-if="Task.is_template != true">
           <label class="col-3 text-left p-0">Trạng thái công việc</label>
           <Dropdown
             :filter="true"
@@ -1633,10 +1698,7 @@ onMounted(() => {
         <div class="field col-12 md:col-12">
           <Accordion :multiple="true">
             <AccordionTab header="THÔNG TIN KHÁC">
-              <div
-                v-if="Task.is_department"
-                class="field col-12 md:col-12"
-              >
+              <div v-if="Task.is_department" class="field col-12 md:col-12">
                 <label class="col-3 text-left p-0"
                   >Người thực hiện
                   <Button
@@ -1683,20 +1745,14 @@ onMounted(() => {
                         size="xlarge"
                         shape="circle"
                       />
-                      <div
-                        class="pt-1"
-                        style="padding-left: 10px"
-                      >
+                      <div class="pt-1" style="padding-left: 10px">
                         {{ slotProps.option.full_name }}
                       </div>
                     </div>
                   </template>
                 </MultiSelect>
               </div>
-              <div
-                v-if="Task.is_department"
-                class="field col-12 md:col-12"
-              >
+              <div v-if="Task.is_department" class="field col-12 md:col-12">
                 <label class="col-3 text-left p-0"
                   >Người đồng thực hiện
                   <Button
@@ -1742,20 +1798,14 @@ onMounted(() => {
                         size="xlarge"
                         shape="circle"
                       />
-                      <div
-                        class="pt-1"
-                        style="padding-left: 10px"
-                      >
+                      <div class="pt-1" style="padding-left: 10px">
                         {{ slotProps.option.full_name }}
                       </div>
                     </div>
                   </template>
                 </MultiSelect>
               </div>
-              <div
-                v-if="Task.is_department"
-                class="field col-12 md:col-12"
-              >
+              <div v-if="Task.is_department" class="field col-12 md:col-12">
                 <label class="col-3 text-left p-0"
                   >Người theo dõi
                   <Button
@@ -1801,10 +1851,7 @@ onMounted(() => {
                         size="xlarge"
                         shape="circle"
                       />
-                      <div
-                        class="pt-1"
-                        style="padding-left: 10px"
-                      >
+                      <div class="pt-1" style="padding-left: 10px">
                         {{ slotProps.option.full_name }}
                       </div>
                     </div>
@@ -1922,10 +1969,7 @@ onMounted(() => {
                       responsiveLayout="scroll"
                     >
                       <template #list="slotProps">
-                        <Toolbar
-                          class="w-full"
-                          style="display: flex"
-                        >
+                        <Toolbar class="w-full" style="display: flex">
                           <template #start>
                             <div class="flex align-items-center task-file-list">
                               <img
@@ -1974,11 +2018,7 @@ onMounted(() => {
         class="p-button-text"
       />
 
-      <Button
-        label="Lưu"
-        icon="pi pi-check"
-        @click="saveTask(!v$.$invalid)"
-      />
+      <Button label="Lưu" icon="pi pi-check" @click="saveTask(!v$.$invalid)" />
     </template>
   </Dialog>
 

@@ -7,7 +7,7 @@ import { encr, checkURL } from "../../../../util/function.js";
 //import moment from "moment";
 import treeuser from "../../../../components/user/treeuser.vue";
 import dialogShowFormTeam from "./dialog_show_form_team.vue";
-//const cryoptojs = inject("cryptojs");
+const cryoptojs = inject("cryptojs");
 const toast = useToast();
 const axios = inject("axios");
 const store = inject("store");
@@ -276,7 +276,64 @@ emitter.on("listTeamUses", (obj) => {
 		request_form.value.is_use_all = true;
 	}
 });
+
+// Mau bao cao de xuat
+const listTypeReport = ref([]);
+const initTuDienContract = () => {
+	listTypeReport.value = [];
+	axios
+		.post(
+			baseURL + "/api/hrm_ca_SQL/getData",
+			{
+				str: encr(
+					JSON.stringify({
+						proc: "smartreport_list ",
+						par: [{ par: "user_id", va: store.getters.user.user_id }],
+					}),
+					SecretKey,
+					cryoptojs
+				).toString(),
+			},
+			config
+		)
+		.then((response) => {
+			let data = JSON.parse(response.data.data)[0];
+			var arrGroups = [];
+			data.forEach((element) => {
+				var strchk = arrGroups.find((x) => x == element.report_group);
+				if (strchk == null) {
+					arrGroups.push(element.report_group);
+				}
+			});
+			
+			arrGroups.forEach((item) => {
+				var ardf = {
+				label: item,
+				items: [],
+				};
+				data.filter((x) => x.report_group == item)
+					.forEach((z) => {
+						ardf.items.push({ label: z.report_name, value: z.report_key });
+					});
+				listTypeReport.value.push(ardf);
+			});
+			//options.value.loading = false;
+		})
+		.catch((error) => {
+			toast.error("Tải dữ liệu không thành công!");
+			//options.value.loading = false;
+			if (error && error.status === 401) {
+				swal.fire({
+					text: "Mã token đã hết hạn hoặc không hợp lệ, vui lòng đăng nhập lại!",
+					confirmButtonText: "OK",
+				});
+				store.commit("gologout");
+			}
+		});
+};
+
 onMounted(() => {
+	initTuDienContract();
 	return {};
 });
 </script>
@@ -439,6 +496,25 @@ onMounted(() => {
 						v-model="request_form.is_process" optionLabel="type" optionValue="value"
 						placeholder="Chọn kiểu duyệt" class="col-9 ip36">
 					</Dropdown>
+				</div>
+				<div class="field col-12 md:col-12 algn-items-center flex p-0">
+					<div class="col-3 text-left flex p-0" style="align-items:center;">
+						Mẫu báo cáo
+					</div>
+					<Dropdown
+						:filter="true"
+						:showClear="true"
+						v-model="request_form.report_key"
+						:options="listTypeReport"
+						optionLabel="label"
+						optionValue="value"
+						optionGroupLabel="label" 
+						optionGroupChildren="items"
+						class="col-9 ip36"
+						panelClass="d-design-dropdown"
+						placeholder="Chọn mẫu báo cáo"
+				
+					/>
 				</div>
 				<div class="field col-12 md:col-12 algn-items-center flex p-0">
 					<div class="col-12 text-left flex p-0" style="align-items:center;color: #0d89ec;">
