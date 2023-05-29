@@ -327,7 +327,6 @@ function groupBy(list, props) {
     }, {});
 }
 function getListStringfromArr(arr, type){
-  debugger
   let id = null
   if (arr != null && arr.length > 0) {
     id = arr.map((x) => x[type]).join(",");
