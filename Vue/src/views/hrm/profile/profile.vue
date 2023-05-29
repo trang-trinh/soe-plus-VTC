@@ -2675,6 +2675,7 @@ const loadMoreRow = (data) => {
                                   <Button class="p-button-sm p-button-text p-button-outlined p-button-danger" 
                                       v-tooltip.top="'Xoá nhóm'" 
                                       @click="delBlock(gr)" 
+                                      v-if="groupBlock.length > 1"
                                       icon="pi pi-trash"
                                   />
                               </div>
