@@ -345,9 +345,15 @@ const initUser = (rf) => {
     .post(
       baseURL + "/api/Proc/CallProc",
       {
-        proc: "hrm_profile_list_all",
-        par: [{ par: "user_id", va: store.getters.user.user_id }],
+        proc: "hrm_profile_list_2",
+            par: [{ par: "user_id", va: store.getters.user.user_id },
+            { par: "search", va: null },
+            { par: "pageNo ", va:1},
+            { par: "pageSize ", va: 100000 },
+            { par: "tab ", va: 1 },
+          ],
       },
+
       config
     )
     .then((response) => {

@@ -5,9 +5,11 @@ import { useToast } from "vue-toastification";
 import { useVuelidate } from "@vuelidate/core";
 import { encr } from "../../../../util/function.js";
 import moment from "moment";
+import { useRouter, useRoute } from "vue-router";
 
 const cryoptojs = inject("cryptojs");
 const emitter = inject("emitter");
+const router = useRoute();
 
 //color
 const bgColor = ref([
@@ -23,15 +25,11 @@ const bgColor = ref([
 //Khai báo biến
 const store = inject("store");
 var data_org = [];
-const expandedKeys = ref({})
-const id_active = ref();
 const department_name = ref();
 department_name.value= store.getters.user.organization_name;
 const datalists = ref();
-const personel_groups = ref();
-const selectedNodes = ref([]);
+const treedonvis = ref();
 const filters = ref({});
-const router = inject("router");
 const options = ref({
     IsNext: true,
     sort: "created_date",
@@ -45,13 +43,12 @@ const options = ref({
     pagesizeP: 20,
     searchP: "",
     sortP: "created_date",
-    department_id: store.getters.user.organization_id,
     gender: null,
     academic_level_id: null, 
     specialization_id: null,
     professional_work_id: null,
     title_id: null,
-    description: null
+    departments: null,
   });
 const genders = ref(
   [
@@ -74,8 +71,17 @@ const selectCapcha = ref();
 selectCapcha.value = {};
 
 // on event
-
+var department_id;
 const loadData = () => {
+  if (options.value.departments != null && Object.keys(options.value.departments).length > 0) {
+    var dep_ids = [];
+    for (var key in options.value.departments) {
+      if (options.value.departments[key]) {
+        dep_ids.push(key);
+      }
+    }
+    department_id = dep_ids.join(",");
+  }
   swal.fire({
     width: 110,
     didOpen: () => {
@@ -88,11 +94,11 @@ const loadData = () => {
             {
                 str: encr(
                     JSON.stringify({
-                        proc: "hrm_report_academic_level_member_list",
+                        proc: "hrm_report_academic_level_member_list1",
                         par: [
-                            { par: "search", va: options.value.SearchText },
                             { par: "user_id", va: store.getters.user.user_id },
-                            { par: "department_id", va: options.value.department_id}
+                            { par: "department_id", va: department_id},
+                            { par: "is_link", va: options.value.is_link},
                         ],
                     }),
                     SecretKey,
@@ -104,6 +110,7 @@ const loadData = () => {
         .then((response) => {
             let data = JSON.parse(response.data.data);
             if (data[0].length > 0) {
+              options.value.totalRecords =data[0].length;
                var baocaoct = [];
                 data[0].forEach((item, index) => {
                     item.is_active = false;
@@ -133,34 +140,42 @@ const loadData = () => {
                 datalists.value = data[0];
             }
             else datalists.value = [];
-            swal.close();
-            options.value.loading = false;
+            if (data[1].length > 0) {
+            data_org = data[1];
+            let obj = renderTreeDV(
+              data[1],
+              "organization_id",
+              "organization_name",
+              "phòng ban"
+            );
+            treedonvis.value = obj.arrtreeChils;
+          }
+          swal.close();
+          options.value.loading = false;
         })
         .catch((error) => {
+            swal.close();
             toast.error("Tải dữ liệu không thành công!");
             options.value.loading = false;
+            swal.close();
         });
 };
 //filter
-const filterButs = ref();
-const checkFilter = ref(false);
+const opfilter = ref();
+const isfilter = ref(false)
 const toggleFilter = (event) => {
-  filterButs.value.toggle(event);
+  opfilter.value.toggle(event);
 };
-const filterReport = ()=>{
-  let keys = Object.keys(selectCapcha.value);
-  if (keys.length> 0) {
-    options.value.department_id = parseInt(keys[0]);
-    department_name.value= data_org.filter(x=>x.organization_id == options.value.department_id )[0].organization_name || '';
-  }
-  checkFilter.value = true;
-  loadData(true);
-}
-const refilterReport = () => {
-  checkFilter.value = false;
-  selectCapcha.value[store.getters.user.organization_id] = true;
-  options.value.department_id = store.getters.user.organization_id;
-  //loadData(true);
+const filter = (event) => {
+  opfilter.value.toggle(event);
+  isfilter.value = true;
+  loadData();
+};
+const resetFilter = (f) => {
+  options.value.description = null;
+  options.value.departments = null;
+  department_id.value= null;
+  if(f) loadData(true);
 };
 //Khai báo function
 const toggleExport = (event) => {
@@ -174,36 +189,7 @@ const itemButs = ref([
       exportExcel();
     },
 }]);
-const treedonvis = ref();
-const initTudien = () => {
-  axios
-    .post(
-        baseURL + "/api/hrm/callProc",
-        {
-          str: encr(JSON.stringify({
-            proc: "hrm_report_dictionary",
-            par: [{ par: "user_id", va: store.getters.user.user_id }],
-              }), SecretKey, cryoptojs
-              ).toString()
-            },
-        config
-      )
-    .then((response) => {
-      let data = JSON.parse(response.data.data);
-      if (data[0].length > 0) {
-        data_org = data[0];
-        let obj = renderTreeDV(
-          data[0],
-          "organization_id",
-          "organization_name",
-          "phòng ban"
-        );
-        treedonvis.value = obj.arrtreeChils;
-      }
-      tudiens.value= data;
-    })
-    .catch((error) => {});
-};
+
 const exportExcel = () => {
   
   let name = "BC.HS006";
@@ -343,114 +329,77 @@ function formatNumber(a, b, c, d) {
   );
 }
 onMounted(() => {
-    //init
-    loadData();
-    initTudien();
+  //init
+  if (router.fullPath != null)
+    options.value.is_link = router.fullPath;
+  loadData();
+  //initTudien();
 });
 </script>
 
 <template>
     <div class="main-layout true flex-grow-1 p-2 pb-0 pr-0">
-        <div style="background-color: #fff; padding: 1rem;padding-left: 0;">
-          <h3 class="module-title module-title-hidden mt-0 ml-3 mb-2">
-            <i class="pi pi-chart-bar"></i> Báo cáo nhân sự theo trình độ học vấn
-          </h3>
+      <div style="background-color: #fff; padding: 1rem;padding-left: 0;">
+        <div class="bg-white format-center py-1 font-bold text-xl">
+          BÁO CÁO NHÂN SỰ THEO TRÌNH ĐỘ HỌC VẤN &nbsp<span v-if="options.totalRecords != null">({{ options.totalRecords }})</span>
+        </div>
         <Toolbar class="w-full custoolbar">
           <template #start>
+            <Button
+              @click="toggleFilter($event)"
+              type="button"
+              class="ml-2 p-button-outlined p-button-secondary"
+              aria:haspopup="true"
+              aria-controls="overlay_panel"
+            >
+              <div>
+                <span class="mr-2"><i class="pi pi-filter"></i></span>
+                <span class="mr-2">Chọn điều kiện lập báo cáo</span>
+                <span><i class="pi pi-chevron-down"></i></span>
+              </div>
+            </Button>
+            <OverlayPanel :showCloseIcon="false" ref="opfilter" appendTo="body" class="p-0 m-0 panel-filter" id="overlay_panel" style="width: 600px; z-index:1000">
+              <div class="grid formgrid m-0">
+                <div class="col-12 md:col-12 p-0" :style="{
+                  minHeight: 'unset',
+                  maxheight: 'calc(100vh - 300px)',
+                  overflow: 'auto',
+                }">
+                  <div class="row">
+                    <div class="col-12 md:col-12">
+                      <div class="form-group">
+                        <label>Chọn phòng ban/ Đơn vị</label>
+                        <TreeSelect class="col-12 ip36 mt-2 p-0 text-left" style="max-width: calc(600px - 3rem);"  :options="treedonvis"
+                          v-model="options.departments"  selectionMode="multiple" :metaKeySelection="false"
+                          :showClear="true" :max-height="200" display="chip" placeholder="Chọn phòng ban/ Đơn vị">
+                        </TreeSelect>
+                      </div>
+                    </div>        
+                  </div>
+                  <div class="col-12 md:col-12 p-0">
+                    <Toolbar class="border-none surface-0 outline-none px-0 pb-0 w-full">
+                      <template #start>
+                        <Button @click="resetFilter()" class="p-button-outlined" label="Bỏ chọn"></Button>
+                      </template>
+                      <template #end>
+                        <Button @click="filter($event)" label="Lọc"></Button>
+                      </template>
+                    </Toolbar>
+                  </div>
+                </div>
+              </div>
+            </OverlayPanel>
+        </template>
+
+          <template #end>
             <Button
             label="Quay lại"
             icon="pi pi-arrow-left"
             class="p-button-outlined mr-2 p-button-secondary"
             @click="goBack()"
             />
-            <span class="p-input-icon-left">
-              <i class="pi pi-search" />
-              <InputText
-                v-model="options.SearchText"
-                v-on:keyup.enter="loadDataDetail(id_active,department_name)"
-                type="text"
-                spellcheck="false"
-                placeholder="Tìm kiếm"
-              />            
-            </span>
             <Button
-            :class="
-              checkFilter ? 'ml-2' : 'ml-2 p-button-secondary p-button-outlined'
-            "
-            icon="pi pi-filter"
-            @click="toggleFilter"
-            aria-haspopup="true"
-            aria-controls="overlay_panelS"
-          />
-          <OverlayPanel
-            ref="filterButs"
-            appendTo="body"
-            :showCloseIcon="false"
-            id="overlay_panelS"
-            style="width: 400px"
-            :breakpoints="{ '960px': '20vw' }"
-          >
-            <div class="grid formgrid m-2">
-              <div class="field col-12 md:col-12 flex align-items-center">
-                <div class="col-4 p-0">Phòng ban:</div>
-                <TreeSelect
-                  class="col-8 p-0 ip36"
-                  v-model="selectCapcha"
-                  :options="treedonvis"
-                  :showClear="true"
-                  :max-height="200"
-                  placeholder="Chọn đơn vị/phòng ban"
-                  optionLabel="organization_name"
-                  optionValue="organization_id"
-                >
-                </TreeSelect>
-              </div>
-              <div class="field col-12 md:col-12 flex align-items-center">
-                <div class="col-4">Giới tính</div>
-                <Dropdown
-                  class="ip36 col-8"
-                  v-model="options.gender"
-                  :options="genders"
-                  optionLabel="text"
-                  optionValue="value"
-                  placeholder="Chọn giới tính"
-                  :showClear="true"
-                />
-               
-              </div>
-              <div class="field col-12 md:col-12 flex align-items-center">
-                <div class="col-4">Chức danh</div>
-                <Dropdown
-                  class="ip36 col-8"
-                  v-model="options.title_id"
-                  :options="tudiens[3]"
-                  optionLabel="title_name"
-                  optionValue="title_id"
-                  placeholder="Chọn chức danh"
-                  :showClear="true"
-                />              
-              </div>
-              <div class="col-12 field p-0">
-                <Toolbar class="toolbar-filter">
-                  <template #start>
-                    <Button
-                      @click="refilterReport"
-                      class="p-button-outlined"
-                      label="Xóa"
-                    ></Button>
-                  </template>
-                  <template #end>
-                    <Button @click="filterReport" label="Lọc"></Button>
-                  </template>
-                </Toolbar>
-              </div>
-            </div>
-          </OverlayPanel>
-        </template>
-
-          <template #end>
-            <Button
-              @click="onRefresh"
+              @click="resetFilter(true)"
               class="mr-2 p-button-outlined p-button-secondary"
               icon="pi pi-refresh"
               v-tooltip="'Tải lại'"
@@ -472,69 +421,70 @@ onMounted(() => {
             /> 
           </template>
         </Toolbar>
-    </div>
-    <div style="overflow: scroll;max-height: calc(100vh - 147px);min-height: calc(100vh - 147px);background-color: #fff;">
-        <table cellspacing=0 id="table-bc" class="table table-condensed table-hover tbpad" style="width: max-content;">
-        <thead style="position: sticky; z-index: 6; top:0">
-            <tr>
-             <th class="text-center left-sticky1 left-1" rowspan="2" width="50">STT</th>
-              <th class="text-center left-sticky1 left-2" colspan="4">Nhân viên</th>
-              <th class="text-center" rowspan="2" width="150">Công việc chuyên môn</th>
-              <th class="text-center" rowspan="2" width="150">Mô tả chi tiết công việc</th>
-              <th class="text-center" rowspan="2" width="120">Trình độ văn hóa</th>
-              <th class="text-center" colspan="6">Quá trình học</th>
-            </tr>
-            <tr>
-                <th class="text-center left-sticky1 left-2" width="100">Mã nhân viên</th>
-                <th class="text-center left-sticky1 left-3" width="150">Tên nhân viên</th>
-                <th class="text-center left-sticky1 left-4" width="150">Ngày sinh</th>
-                <th class="text-center left-sticky1 left-5" width="200">Đơn vị/ Phòng ban</th>
-                <th class="text-center" width="200">Nơi đào tạo</th>
-                <th class="text-center" width="130">Thời gian đào tạo</th>
-                <th class="text-center" width="100">Trình độ chuyên môn</th>
-                <th class="text-center" width="100">Chuyên ngành học</th>
-                <th class="text-center" width="120">Tốt nghiệp loại</th>
-                <th class="text-center" width="80">Trình độ chính</th>
-            </tr>
-        </thead>
-        <tbody v-for="(bc, index1) in datalists" :key="index1">
-            <tr v-for="(qt, index3) in bc.Congtac" :key="index3" class="item-hover" @click="activeRow(bc)"> 
-                <td v-if="index3 ==0" :rowspan="bc.Congtac.length" class="text-center bg-stt left-sticky1 left-1" :class="bc.is_active?'active-item':'bg-stt'">{{index1+1}}</td>
-                <td v-if="index3 ==0"  :rowspan="bc.Congtac.length" align="left" class="left-sticky1 left-2">
-                    {{bc.profile_code}}
-                </td>
-                <td v-if="index3 ==0"  :rowspan="bc.Congtac.length" align="left" class="left-sticky1 left-3">
-                    {{bc.profile_user_name}}
-                </td>
-                <td v-if="index3 ==0"  :rowspan="bc.Congtac.length" align="center" class="left-sticky1 left-4">
-                    <span v-if="bc.birthday"> {{ moment(new Date(bc.birthday)).format("DD/MM/YYYY ") }}</span>
-                </td>
-                <td v-if="index3 ==0"  :rowspan="bc.Congtac.length" align="left" class="left-sticky1 left-5">
-                    {{bc.department_name}}
-                </td>
-                <td align="left" v-if="index3 ==0"  :rowspan="bc.Congtac.length" >{{}}</td>
-                <td align="left" v-if="index3 ==0"  :rowspan="bc.Congtac.length" >{{}}</td>
-                <td align="left" v-if="index3 ==0"  :rowspan="bc.Congtac.length" >{{bc.personel_groups_name}}</td>
-                <td align="left">{{qt.university_name}}</td>
-                <td align="center">
-                    <span v-if="qt.start_date">{{ moment(new Date(qt.start_date)).format("MM/YYYY ") }}</span>
-                    <span v-if="qt.start_date || qt.end_date"> - </span>
-                    <span v-if="qt.end_date">{{ moment(new Date(qt.end_date)).format("MM/YYYY ") }}</span>
-                </td>
-                <td align="center">{{qt.academic_level_name}}</td>
-                <td align="left">{{qt.specialization_name}}</td>
-                <td align="center">{{qt.rating}}</td>
-                <td align="center">
-                    <span v-if="qt.is_man_degree=='1'">X</span>
-                </td>
-            </tr>      
-          </tbody>
-    </table>
-    
-    </div>
+      </div>
+      <div style="overflow: scroll;max-height: calc(100vh - 147px);min-height: calc(100vh - 147px);background-color: #fff;">
+          <table cellspacing=0 id="table-bc" class="table table-condensed table-hover tbpad" style="width: max-content;">
+          <thead style="position: sticky; z-index: 6; top:0">
+              <tr>
+              <th class="text-center left-sticky1 left-1" rowspan="2" width="50">STT</th>
+                <th class="text-center left-sticky1 left-2" colspan="4">Nhân viên</th>
+                <th class="text-center" rowspan="2" width="150">Công việc chuyên môn</th>
+                <th class="text-center" rowspan="2" width="150">Mô tả chi tiết công việc</th>
+                <th class="text-center" rowspan="2" width="120">Trình độ văn hóa</th>
+                <th class="text-center" colspan="6">Quá trình học</th>
+              </tr>
+              <tr>
+                  <th class="text-center left-sticky1 left-2" width="100">Mã nhân viên</th>
+                  <th class="text-center left-sticky1 left-3" width="150">Tên nhân viên</th>
+                  <th class="text-center left-sticky1 left-4" width="100">Ngày sinh</th>
+                  <th class="text-center left-sticky1 left-5" width="200">Đơn vị/ Phòng ban</th>
+                  <th class="text-center" width="200">Nơi đào tạo</th>
+                  <th class="text-center" width="130">Thời gian đào tạo</th>
+                  <th class="text-center" width="100">Trình độ chuyên môn</th>
+                  <th class="text-center" width="150">Chuyên ngành học</th>
+                  <th class="text-center" width="110">Tốt nghiệp loại</th>
+                  <th class="text-center" width="80">Trình độ chính</th>
+              </tr>
+          </thead>
+          <tbody v-for="(bc, index1) in datalists" :key="index1">
+              <tr v-for="(qt, index3) in bc.Congtac" :key="index3" class="item-hover" @click="activeRow(bc)"> 
+                  <td v-if="index3 ==0" :rowspan="bc.Congtac.length" class="text-center bg-stt left-sticky1 left-1" :class="bc.is_active?'active-item':'bg-stt'">{{index1+1}}</td>
+                  <td v-if="index3 ==0"  :rowspan="bc.Congtac.length" align="left" class="left-sticky1 left-2">
+                      {{bc.profile_code}}
+                  </td>
+                  <td v-if="index3 ==0"  :rowspan="bc.Congtac.length" align="left" class="left-sticky1 left-3">
+                      {{bc.profile_user_name}}
+                  </td>
+                  <td v-if="index3 ==0"  :rowspan="bc.Congtac.length" align="center" class="left-sticky1 left-4">
+                      <span v-if="bc.birthday"> {{ moment(new Date(bc.birthday)).format("DD/MM/YYYY ") }}</span>
+                  </td>
+                  <td v-if="index3 ==0"  :rowspan="bc.Congtac.length" align="left" class="left-sticky1 left-5">
+                      {{bc.department_name}}
+                  </td>
+                  <td align="left" v-if="index3 ==0"  :rowspan="bc.Congtac.length" >{{}}</td>
+                  <td align="left" v-if="index3 ==0"  :rowspan="bc.Congtac.length" >{{}}</td>
+                  <td align="left" v-if="index3 ==0"  :rowspan="bc.Congtac.length" >{{bc.personel_groups_name}}</td>
+                  <td align="left">{{qt.university_name}}</td>
+                  <td align="center">
+                      <span v-if="qt.start_date">{{  qt.start_date}}</span>
+                      <span v-if="qt.start_date && qt.end_date"> - </span>
+                      <span v-if="qt.end_date">{{ qt.end_date}}</span>
+                  </td>
+                  <td align="center">{{qt.academic_level_name}}</td>
+                  <td align="left">{{qt.specialization_name}}</td>
+                  <td align="center">{{qt.rating}}</td>
+                  <td align="center">
+                      <span v-if="qt.is_man_degree=='1'">X</span>
+                  </td>
+              </tr>      
+            </tbody>
+      </table>
+      
+      </div>
     </div>
 </template>
 <style scoped>
+@import url(../style_report.css);
   .item-hover:hover{
     background-color: #f0f8ff!important;
   }
@@ -574,7 +524,7 @@ onMounted(() => {
         left: 299px;
     }
     .left-5 {
-        left: 449px;
+        left: 399px;
     }
     .btn.btn-secondary:hover {
         background-color: #e6f0f8 !important;
@@ -646,6 +596,17 @@ td.bg-group>b {
 ::v-deep(.p-datatable-emptymessage) {
   td {
     flex:1 1 0 !important;
+  }
+}
+::v-deep(.p-treeselect) {
+   .p-multiselect-label {
+    height: 100%;
+    display: flex;
+    align-items: center;
+    padding:0px 0.5rem !important;
+  }
+  .p-treeselect-label,.p-treeselect-token{
+    height: 100%;
   }
 }
 </style>

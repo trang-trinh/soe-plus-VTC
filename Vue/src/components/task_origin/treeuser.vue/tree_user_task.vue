@@ -38,27 +38,53 @@ const opition = ref({
 
 const renderTree = (data, id, name, title) => {
   let arrChils = [];
-  data
-    .filter((x) => x.parent_id == null)
-    .forEach((m, i) => {
-      let om = { key: m[id], data: m };
-      const rechildren = (mm, pid) => {
-        let dts = data.filter((x) => x.parent_id == pid);
-        if (dts.length > 0) {
-          if (!mm.children) mm.children = [];
-          dts.forEach((em, index) => {
-            em.label_order = em.is_order;
-            em.STT = mm.data.STT ? mm.data.STT + "." + (index + 1) : index + 1;
-            let om1 = { key: em[id], data: em };
-            rechildren(om1, em[id]);
-            mm.children.push(om1);
-          });
-        }
-      };
-      rechildren(om, m[id]);
-      arrChils.push(om);
-    });
-
+  if (data.filter((x) => x.parent_id == null).length > 0) {
+    data
+      .filter((x) => x.parent_id == null)
+      .forEach((m, i) => {
+        let om = { key: m[id], data: m };
+        const rechildren = (mm, pid) => {
+          let dts = data.filter((x) => x.parent_id == pid);
+          if (dts.length > 0) {
+            if (!mm.children) mm.children = [];
+            dts.forEach((em, index) => {
+              em.label_order = em.is_order;
+              em.STT = mm.data.STT
+                ? mm.data.STT + "." + (index + 1)
+                : index + 1;
+              let om1 = { key: em[id], data: em };
+              rechildren(om1, em[id]);
+              mm.children.push(om1);
+            });
+          }
+        };
+        rechildren(om, m[id]);
+        arrChils.push(om);
+      });
+  } else {
+    data
+      .filter((x) => x.organization_type == 0)
+      .forEach((m, i) => {
+        let om = { key: m[id], data: m };
+        const rechildren = (mm, pid) => {
+          let dts = data.filter((x) => x.parent_id == pid);
+          if (dts.length > 0) {
+            if (!mm.children) mm.children = [];
+            dts.forEach((em, index) => {
+              em.label_order = em.is_order;
+              em.STT = mm.data.STT
+                ? mm.data.STT + "." + (index + 1)
+                : index + 1;
+              let om1 = { key: em[id], data: em };
+              rechildren(om1, em[id]);
+              mm.children.push(om1);
+            });
+          }
+        };
+        rechildren(om, m[id]);
+        arrChils.push(om);
+      });
+  }
   return { arrChils: arrChils[0].children, arrtreeChils: arrChils };
 };
 const listDepartmentsTemp = ref([]);
@@ -86,13 +112,14 @@ const loadData = (rf) => {
               // { par: "search", va: opition.value.search },
               // { par: "organization_type", va: opition.value.organization_type },
               { par: "user_id", va: store.getters.user.user_id },
+              { par: "type", va: 1 },
             ],
           }),
           SecretKey,
-          cryoptojs,
+          cryoptojs
         ).toString(),
       },
-      config,
+      config
     )
     .then((response) => {
       let data = JSON.parse(response.data.data);
@@ -102,7 +129,7 @@ const loadData = (rf) => {
           data[0],
           "organization_id",
           "organization_name",
-          "đơn vị",
+          "đơn vị"
         );
         listDepartments.value = obj.arrtreeChils;
         listDepartments.value.forEach((element) => {
@@ -117,7 +144,7 @@ const loadData = (rf) => {
     })
     .catch((error) => {
       toast.error("Tải dữ liệu không thành công!");
-
+      console.log(error);
       addLog({
         title: "Lỗi Console loadData",
         controller: "LogsView.vue",
@@ -154,18 +181,14 @@ const loadUsers = () => {
             proc: "sys_user_list_tree_task",
             par: [
               { par: "user_id", va: store.getters.user.user_id },
-              {
-                par: "filter_organization_id",
-                va: options.value.filter_organization_id,
-              },
-              { par: "search", va: options.value.search },
+              { par: "type", va: 1 },
             ],
           }),
           SecretKey,
-          cryoptojs,
+          cryoptojs
         ).toString(),
       },
-      config,
+      config
     )
     .then((response) => {
       var data = response.data.data;
@@ -256,7 +279,7 @@ const changeOrganizationChecked = () => {
   for (var o in choses) {
     if (choses[o]["checked"] == true) {
       let organization = listDepartmentsTemp.value.find(
-        (x) => x["organization_id"] === parseInt(o),
+        (x) => x["organization_id"] === parseInt(o)
       );
       filters1.value["orgID"].value.push(parseInt(o));
       let filters = [];
@@ -266,8 +289,8 @@ const changeOrganizationChecked = () => {
             (a) =>
               a["organization_id"] === organization["organization_id"] &&
               selectedNodeUser.value.findIndex(
-                (b) => b["user_id"] === a["user_id"],
-              ) === -1,
+                (b) => b["user_id"] === a["user_id"]
+              ) === -1
           );
           selectedNodeUser.value = selectedNodeUser.value.concat(filters);
           break;
@@ -276,8 +299,8 @@ const changeOrganizationChecked = () => {
             (a) =>
               a["department_id"] === organization["organization_id"] &&
               selectedNodeUser.value.findIndex(
-                (b) => b["user_id"] === a["user_id"],
-              ) === -1,
+                (b) => b["user_id"] === a["user_id"]
+              ) === -1
           );
 
           selectedNodeUser.value = selectedNodeUser.value.concat(filters);
@@ -287,7 +310,7 @@ const changeOrganizationChecked = () => {
   }
   let notexists = listDepartmentsTemp.value.filter(
     (a) =>
-      selectedNodeOrganization.value[a["organization_id"].toString()] == null,
+      selectedNodeOrganization.value[a["organization_id"].toString()] == null
   );
   if (notexists.length > 0) {
     for (var i = 0; i < notexists.length; i++) {
@@ -298,8 +321,8 @@ const changeOrganizationChecked = () => {
             (a) =>
               a["organization_id"] === notexists[i]["organization_id"] &&
               selectedNodeUser.value.findIndex(
-                (b) => b["user_id"] === a["user_id"],
-              ) !== -1,
+                (b) => b["user_id"] === a["user_id"]
+              ) !== -1
           );
           break;
         case 1:
@@ -307,14 +330,14 @@ const changeOrganizationChecked = () => {
             (a) =>
               a["department_id"] === notexists[i]["organization_id"] &&
               selectedNodeUser.value.findIndex(
-                (b) => b["user_id"] === a["user_id"],
-              ) !== -1,
+                (b) => b["user_id"] === a["user_id"]
+              ) !== -1
           );
           break;
       }
       for (var j = 0; j < deleted.length; j++) {
         var idx = selectedNodeUser.value.findIndex(
-          (x) => x["user_id"] === deleted[j]["user_id"],
+          (x) => x["user_id"] === deleted[j]["user_id"]
         );
         if (idx != -1) {
           selectedNodeUser.value = selectedNodeUser.value.splice(idx, 0);
@@ -361,10 +384,7 @@ onMounted(() => {
           class="outline-none surface-0 border-none px-0 pt-0 custom-search"
         >
           <template #start>
-            <span
-              class="p-input-icon-left"
-              style="width: 100%"
-            >
+            <span class="p-input-icon-left" style="width: 100%">
               <i class="pi pi-search" />
 
               <InputText
@@ -420,10 +440,7 @@ onMounted(() => {
           class="outline-none surface-0 border-none px-0 pt-0 custom-search"
         >
           <template #start>
-            <span
-              class="p-input-icon-left"
-              style="width: 100%"
-            >
+            <span class="p-input-icon-left" style="width: 100%">
               <i class="pi pi-search" />
               <InputText
                 type="text"
@@ -452,10 +469,7 @@ onMounted(() => {
             <div
               class="row col-12 align-items-center justify-content-center p-4 text-center m-auto"
             >
-              <img
-                src="../../../assets/background/nodata.png"
-                height="144"
-              />
+              <img src="../../../assets/background/nodata.png" height="144" />
               <h3 class="m-1">Không có dữ liệu</h3>
             </div>
           </template>
@@ -505,16 +519,10 @@ onMounted(() => {
                     <div style="text-align: left">
                       {{ slotProps.data.full_name }}
                     </div>
-                    <div
-                      class="description"
-                      style="text-align: left"
-                    >
+                    <div class="description" style="text-align: left">
                       {{ slotProps.data.position_name }}
                     </div>
-                    <div
-                      class="description"
-                      style="text-align: left"
-                    >
+                    <div class="description" style="text-align: left">
                       {{ slotProps.data.organization_name }}
                     </div>
                   </div>

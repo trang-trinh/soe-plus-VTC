@@ -1093,12 +1093,13 @@ const loadUserProfiles = () => {
       {
         str: encr(
           JSON.stringify({
-            proc: "hrm_profile_list_all",
-            par: [
-           
-              { par: "user_id", va: store.getters.user.user_id },
-         
-            ],
+            proc: "hrm_profile_list_2",
+            par: [{ par: "user_id", va: store.getters.user.user_id },
+            { par: "search", va: null },
+            { par: "pageNo ", va:1},
+            { par: "pageSize ", va: 100000 },
+            { par: "tab ", va: 1 },
+          ],
           }),
           SecretKey,
           cryoptojs
@@ -1426,14 +1427,16 @@ onMounted(() => {
             @sort="onSort($event)"
             @filter="onFilter($event)"
             v-model:filters="filters"
+            responsiveLayout="scroll"
             filterDisplay="menu"
             filterMode="lenient"
-            :filters="filters"
+     
             :scrollable="true"
             scrollHeight="flex"
             :showGridlines="true"
             columnResizeMode="fit"
             :lazy="true"
+            :filters="filters"
             :totalRecords="options.totalRecords"
             :loading="options.loading"
             :reorderableColumns="true"
@@ -1444,7 +1447,7 @@ onMounted(() => {
             :rowsPerPageOptions="[20, 30, 50, 100, 200]"
             :paginator="true"
             dataKey="reward_id"
-            responsiveLayout="scroll"
+       
             v-model:selection="selectedStamps"
             :row-hover="true"
           >

@@ -79,14 +79,15 @@ const configBaocao = async (row) => {
       swal.showLoading();
     },
   });
+  
   const axResponse = await execSQL(row.report_id);
-
+  
   if (axResponse.status == 200) {
     if (axResponse.data.error) {
       toast.error("Không mở được bản ghi");
     } else {
       smart_report.value = JSON.parse(axResponse.data.data)[0][0];
-
+debugger
       if (smart_report.value.proc_name)
         smart_report.value.proc_name1 =
           smart_report.value.proc_name.split(" ")[0];
@@ -1506,6 +1507,7 @@ onMounted(() => {
       </h2>
     </template>
     <div style="padding: 0 20px">
+   <!-- {{ smart_report }} -->
       <DocComponent
         :isedit="true"
         :report="smart_report"
