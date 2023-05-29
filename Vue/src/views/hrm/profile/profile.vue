@@ -2805,23 +2805,23 @@ const loadMoreRow = (data) => {
           </OverlayPanel>
         </span>
         <Button
+          v-if="options.search"
           @click="goSearch()"
           v-tooltip.top="'Thực hiện tìm kiếm nâng cao'"
           class="ml-2 p-button-outlined p-button-secondary"
           icon="pi pi-send"
         >
         </Button>
-        <Button
+        <!-- <Button
           @click="goMic()"
           v-tooltip.top="'Tìm kiếm bằng giọng nói'"
           class="ml-2 p-button-outlined p-button-secondary search-microphone"
           style="padding: 0.65rem 0.75rem 0.6rem;"        
         >
-          <!-- icon="pi pi-microphone" -->
           <font-awesome-icon icon="fa-solid fa-microphone" 
               style="font-size:1rem; display: block; color: #607d8b"
           />
-        </Button>
+        </Button> -->
         <Button
           @click="toggleFilter($event)"
           type="button"

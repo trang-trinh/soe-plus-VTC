@@ -1441,11 +1441,11 @@ const configRole = (md) => {
             r.module_functions = arrs;
           });
         renderTree(data);
-        swal.close();
-        displayConfigRole.value = true;
       } else {
         modules.value = [];
       }
+      swal.close();
+      displayConfigRole.value = true;
     })
     .catch((error) => {
       opition.value.moduleloading = false;
