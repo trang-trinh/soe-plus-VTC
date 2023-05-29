@@ -2158,6 +2158,9 @@ const initCountFilterAdv = (sql) => {
       "query": true,
       "proc": proc,
     };
+    tabs.value.forEach((x) => {
+        x["total"] = 0;
+    });
     axios
       .post(
           basedomainURL + "api/hrm_profile/PostProc",
@@ -2185,11 +2188,6 @@ const initCountFilterAdv = (sql) => {
                   x["total"] = 0;
                 }
               });
-            }
-            else {
-                tabs.value.forEach((x) => {
-                    x["total"] = 0;
-                });
             }
           }
       })
