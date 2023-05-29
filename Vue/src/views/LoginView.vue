@@ -377,6 +377,7 @@ onMounted(() => {
  .bg-img {
   background-size: cover;
   font-size:16px;
+  background-color:#0253a2 ;
   }
 
   .bg-glass {
@@ -494,7 +495,7 @@ input.invalid {
   left: 0;
   display: flex;
   align-items: center;
-  min-height: 4.5rem;
+  min-height: 3.5rem;
 }
 
 .login-org .org-logo {

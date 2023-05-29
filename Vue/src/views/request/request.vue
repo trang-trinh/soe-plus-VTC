@@ -581,7 +581,7 @@ const hideall = () => {
             //router.go(0);
         });
     } else {
-        listRequest(true);
+        //listRequest(true);
     }
 };
 const openViewRequest = (dataRequest) => {
@@ -1365,6 +1365,7 @@ onMounted(() => {
             width: PositionSideBar == 'right' ? (widthWindow > 1800 ? '65vw' : '75vw') : '100%',
             'min-height': '100vh !important',
         }"
+        :modal="true"
         :showCloseIcon="false"
         @hide="hideall()"
         >

@@ -25,6 +25,7 @@ const ConfigProcess = () =>
   import("../views/hethong/process/ConfigProcess.vue");
 const Helper = () => import("../views/hethong/Helper.vue");
 const HelperView = () => import("../views/hethong/HelperView.vue");
+const DetailsHelper = () => import("../views/hethong/helperDetails.vue");
 
 //Scraper
 // const ScraperView = () =>
@@ -276,6 +277,7 @@ const HrmIframe = () => import("../views/hrm/profile/tool/iframedoc.vue");
 const Hrm_Info = () => import("../views/hrm/Hrm_Info.vue");
 const HrmProfile = () => import("../views/hrm/profile/profile.vue");
 const HrmMyProfile = () => import("../views/hrm/myprofile/myprofile.vue");
+const HrmApproveProfile = () => import("../views/hrm/myprofile/approve/approveprofile.vue");
 const HrmProfileInfo = () =>
   import("../views/hrm/profile/component/profileinfo.vue");
 const HrmContract = () => import("../views/hrm/contract/contract.vue");
@@ -616,6 +618,11 @@ const router = createRouter({
       path: "/system/helper",
       name: "helper",
       component: Helper,
+    },
+    {
+      path: "/helperview/:id",
+      name: "helperDetails",
+      component: DetailsHelper,
     },
     {
       path: "/helperview",
@@ -1661,6 +1668,11 @@ const router = createRouter({
       path: "/hrm/myprofile",
       name: "myprofile",
       component: HrmMyProfile,
+    },
+    {
+      path: "/hrm/approveprofile",
+      name: "approveprofile",
+      component: HrmApproveProfile,
     },
     {
       path: "/hrm/profile/:id",

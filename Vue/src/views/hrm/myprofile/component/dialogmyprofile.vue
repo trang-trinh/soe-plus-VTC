@@ -20,6 +20,7 @@ const props = defineProps({
   closeDialog: Function,
   isAdd: Boolean,
   profile: Object,
+  approve: Boolean,
   dictionarys: Array,
   initData: Function,
 });
@@ -60,6 +61,7 @@ const model = ref({});
 const datachilds = ref([]);
 const files = ref([]);
 const historys = ref([]);
+const history = ref({});
 const history_status = ref([
   { value: -1, title: "Bản gốc", bgc: "#f7dc6f", tc: "#495057" },
   { value: 0, title: "Dự thảo", bgc: "#dddddd", tc: "#495057" },
@@ -71,12 +73,86 @@ const history_status = ref([
 //function
 const goHistory = (item) => {
   options.value.history_id = item.history_id;
+  history.value = item;
   initData(true);
+};
+const sendProfile = (rf, is_approve) => {
+  if (rf) {
+    swal.fire({
+      width: 110,
+      didOpen: () => {
+        swal.showLoading();
+      },
+    });
+  }
+  options.value.loading = true;
+  let formData = new FormData();
+  formData.append("ids", JSON.stringify([history.value.history_id]));
+  formData.append("content", "");
+  formData.append("is_approve", is_approve);
+  formData.append(
+    "approve_date",
+    moment(new Date()).format("YYYY-MM-DDTHH:mm:ss")
+  );
+  axios
+    .put(baseURL + "/api/hrm_profile/send_profile_history", formData, config)
+    .then((response) => {
+      if (response.data.err === "1") {
+        swal.fire({
+          title: "Thông báo!",
+          text: response.data.ms,
+          icon: "error",
+          confirmButtonText: "OK",
+        });
+        return;
+      }
+      switch (is_approve) {
+        case 1:
+          toast.success("Gửi thành công!");
+          break;
+        case 2:
+          toast.success("Duyệt thành công!");
+          break;
+        case 3:
+          toast.success("Trả lại thành công!");
+          break;
+        default:
+          break;
+      }
+
+      initHistory();
+      props.initData(false);
+      swal.close();
+      if (options.value.loading) options.value.loading = false;
+    })
+    .catch((error) => {
+      swal.close();
+      if (options.value.loading) options.value.loading = false;
+      if (error && error.status === 401) {
+        swal.fire({
+          title: "Thông báo!",
+          text: "Mã token đã hết hạn hoặc không hợp lệ, vui lòng đăng nhập lại!",
+          icon: "error",
+          confirmButtonText: "OK",
+        });
+        store.commit("gologout");
+        return;
+      } else {
+        swal.fire({
+          title: "Thông báo!",
+          text: "Có lỗi xảy ra, vui lòng kiểm tra lại!",
+          icon: "error",
+          confirmButtonText: "OK",
+        });
+        return;
+      }
+    });
+  if (submitted.value) submitted.value = true;
 };
 
 //
 const submitted = ref(false);
-const saveModel = (is_continue) => {
+const saveModel = (rf) => {
   submitted.value = true;
   if (
     !model.value.profile_code ||
@@ -97,6 +173,7 @@ const saveModel = (is_continue) => {
       swal.showLoading();
     },
   });
+  options.value.loading = true;
   var obj = { ...model.value };
   if (obj["select_birthplace"] != null) {
     // obj["birthplace_id"] =
@@ -186,20 +263,21 @@ const saveModel = (is_continue) => {
         });
         return;
       }
-      swal.close();
       toast.success(
         props.isAdd ? "Thêm mới thành công!" : "Cập nhật thành công!"
       );
-      if (is_continue) {
-        model.value.profile = null;
-        model.value.contract_code = "";
+      if (rf) {
+        sendProfile(true);
       } else {
-        props.closeDialog();
+        swal.close();
+        initHistory();
+        props.initData(false);
       }
-      props.initData(true);
+      if (options.value.loading) options.value.loading = false;
     })
     .catch((error) => {
       swal.close();
+      if (options.value.loading) options.value.loading = false;
       if (error && error.status === 401) {
         swal.fire({
           title: "Thông báo!",
@@ -642,6 +720,7 @@ const initHistory = (rf) => {
           });
           historys.value = tbs[0];
           options.value.history_id = historys.value[0].history_id || null;
+          history.value = historys.value[0];
         } else {
           historys.value = [];
         }
@@ -765,7 +844,7 @@ onMounted(() => {
                     </template>
                     <template #content>
                       <div class="w-full text-left">
-                        <div v-if="slotProps.item.is_approve > 0">
+                        <div v-if="slotProps.item.is_approve > 1">
                           <div class="mb-2">
                             Người duyệt:
                             <Avatar
@@ -799,6 +878,10 @@ onMounted(() => {
                             <span>{{
                               slotProps.item.approve_date_string
                             }}</span>
+                          </div>
+                          <div class="mb-2">
+                            Nội dung:
+                            <span>{{ slotProps.item.approve_content }}</span>
                           </div>
                         </div>
                         <div>
@@ -3991,8 +4074,41 @@ onMounted(() => {
           class="p-button-text"
       /></template>
       <template #end>
-        <Button label="Lưu" icon="pi pi-check" @click="saveModel()"
-      /></template>
+        <Button
+          v-if="props.approve === true && history.is_approve === 1"
+          label="Duyệt hồ sơ"
+          class="mr-2"
+          icon="pi pi-check"
+          @click="sendProfile(true, 2)"
+        />
+        <Button
+          v-if="props.approve === true && history.is_approve === 1"
+          label="Trả lại"
+          class="mr-2 p-button-danger"
+          icon="pi pi-undo"
+          @click="sendProfile(true, 3)"
+        />
+        <Button
+          v-if="history.is_approve === 0"
+          label="Gửi duyệt"
+          class="mr-2"
+          icon="pi pi-send"
+          @click="sendProfile(true, 1)"
+        />
+        <Button
+          v-if="history.is_approve === 0"
+          label="Lưu và gửi duyệt"
+          class="mr-2"
+          icon="pi pi-check"
+          @click="saveModel(true)"
+        />
+        <Button
+          v-if="!props.approve"
+          label="Lưu"
+          icon="pi pi-check"
+          @click="saveModel()"
+        />
+      </template>
     </Toolbar>
   </Sidebar>
 
@@ -4799,6 +4915,11 @@ onMounted(() => {
   }
   .p-timeline-event .p-timeline-event-content .p-card-content {
     padding: 1rem !important;
+  }
+}
+::v-deep(.border-radius) {
+  img {
+    border-radius: 50%;
   }
 }
 </style>

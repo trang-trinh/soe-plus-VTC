@@ -662,7 +662,7 @@ const loadPhongban = (rf) => {
     .then((response) => {
       let data = JSON.parse(response.data.data)[0];
       if (isFirst.value) isFirst.value = false;
-      let obj = renderTree(
+      let obj = renderTreeDV(
         data,
         "organization_id",
         "organization_name",
@@ -1332,51 +1332,28 @@ const exportUser = (method) => {
 
 const displayConfigRole = ref(false);
 const modules = ref([]);
-const renderTree = (data, id, name, title) => {
+const renderTree = (data) => {
   let arrChils = [];
-  let arrtreeChils = [];
   data
     .filter((x) => x.parent_id == null)
     .forEach((m, i) => {
       m.IsOrder = i + 1;
-      m.label_order = m.IsOrder.toString();
-      let om = { key: m[id], data: m };
-      const rechildren = (mm, pid) => {
-        let dts = data.filter((x) => x.parent_id == pid);
-        if (dts.length > 0) {
-          if (!mm.children) mm.children = [];
-          dts.forEach((em, index) => {
-            em.label_order = mm.data.label_order + "." + (index + 1);
-            let om1 = { key: em[id], data: em };
-            rechildren(om1, em[id]);
-            mm.children.push(om1);
-          });
-        }
-      };
-      rechildren(om, m[id]);
-      arrChils.push(om);
-      //
-      om = { key: m[id], data: m[id], label: m[name] };
-      const retreechildren = (mm, pid) => {
-        let dts = data.filter((x) => x.parent_id == pid);
+      let om = { key: m.module_id, data: m };
+      const rechildren = (mm, module_id) => {
+        let dts = data.filter((x) => x.parent_id == module_id);
         if (dts.length > 0) {
           if (!mm.children) mm.children = [];
           dts.forEach((em) => {
-            let om1 = { key: em[id], data: em[id], label: em[name] };
-            retreechildren(om1, em[id]);
+            let om1 = { key: em.module_id, data: em };
+            rechildren(om1, em.module_id);
             mm.children.push(om1);
           });
         }
       };
-      retreechildren(om, m[id]);
-      arrtreeChils.push(om);
+      rechildren(om, m.module_id);
+      arrChils.push(om);
     });
-  arrtreeChils.unshift({
-    key: -1,
-    data: -1,
-    label: "-----Chọn " + title + "----",
-  });
-  return { arrChils: arrChils, arrtreeChils: arrtreeChils };
+  modules.value = arrChils;
 };
 const changePermission = () => {
   swal
@@ -1510,11 +1487,11 @@ const configRole = (md) => {
             r.module_functions = arrs;
           });
         renderTree(data);
-        swal.close();
-        displayConfigRole.value = true;
       } else {
         modules.value = [];
       }
+      swal.close();
+      displayConfigRole.value = true;
     })
     .catch((error) => {
       opition.value.moduleloading = false;
@@ -3174,7 +3151,7 @@ onMounted(() => {
 }
 </style>
 <style lang="scss" scoped>
-::v-deep(.p-treetable-tbody) {
+::v-deep(.main-layout .p-treetable-tbody) {
   tr {
     cursor: pointer;
   }

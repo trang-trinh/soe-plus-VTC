@@ -192,14 +192,12 @@ onMounted(() => {
       <div class="bg-white format-center py-3 font-bold text-xl">
         HỆ THỐNG BÁO CÁO TỔNG HỢP, THỐNG KÊ
       </div>
-      <div class="overflow-auto flex" style="max-height: calc(100vh - 68px);flex-flow:wrap;">
+      <div class="overflow-auto flex" style="max-height: calc(100vh - 108px);flex-flow:wrap;min-height: calc(100vh - 108px)">
         <div class="col-6" style="padding-left:60px" v-for="(item, index) in datalists" :key="index" v-show="item.is_level == 0">
-        <h3 :style="([370, 358, 361, 362, 371, 374]).includes(item.module_id) ? 'color:green' : ''"
-          class=""
-          >
+        <h3 class="text-xl">
           {{ item.label_module }}
         </h3>
-        <div class="py-3 pl-2 item-hover cursor-pointer" @click="goDetailReport(item1)" v-for="(item1, index1) in datalists" :key="index1" v-show="item1.is_level !== 0 && item1.parent_id == item.module_id">
+        <div class="py-3 pl-2 item-hover cursor-pointer text-lg" @click="goDetailReport(item1)" v-for="(item1, index1) in datalists" :key="index1" v-show="item1.is_level !== 0 && item1.parent_id == item.module_id">
           <span :style="([370, 358, 361, 362, 371, 374, 363,379]).includes(item1.module_id) ? 'color:#007ad4' : ''" class="ml-2"
           >
           {{ item1.label_module }}
