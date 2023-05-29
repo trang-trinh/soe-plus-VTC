@@ -3151,7 +3151,7 @@ onMounted(() => {
 }
 </style>
 <style lang="scss" scoped>
-::v-deep(.p-treetable-tbody) {
+::v-deep(.main-layout .p-treetable-tbody) {
   tr {
     cursor: pointer;
   }

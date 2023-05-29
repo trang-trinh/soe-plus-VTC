@@ -1,0 +1,65 @@
+.ip34{
+    height: 34px !important;
+}
+.format-flex-center {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    text-align: center;
+}
+
+.format-grid-center {
+    display: grid;
+    align-items: center;
+    justify-content: center;
+    text-align: center;
+}
+
+.row {
+    width: 100%;
+    display: -webkit-box;
+    display: -ms-flexbox;
+    display: flex;
+    -ms-flex-wrap: wrap;
+    flex-wrap: wrap;
+}
+
+.form-group {
+    display: grid;
+    margin-bottom: 1rem;
+    flex: 1;
+}
+
+.form-group>label {
+    margin-bottom: 0.5rem;
+}
+
+.ip36 {
+    width: 100%;
+}
+
+.p-ulchip {
+    margin: 0;
+    margin-top: 0.5rem;
+    padding: 0;
+    list-style: none;
+}
+
+.p-lichip {
+    float: left;
+    white-space: normal;
+}
+
+.p-multiselect-label {
+    height: 100%;
+    display: flex;
+    align-items: center;
+}
+.p-treeselect-label,.p-treeselect-token{
+    height: 100%;
+}
+
+
+
+
+

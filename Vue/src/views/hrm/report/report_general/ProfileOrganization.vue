@@ -62,13 +62,13 @@ const is_partisans = ref(
     {text: "Có",value:1},
     {text: "Không",value:0}
   ]
-)
+);
 const is_bevys = ref(
   [
     {text: "Có",value:1},
     {text: "Không",value:0}
   ]
-)
+);
 const titles = ref([]);
 const positions = ref([]);
 const tudiens= ref();
@@ -190,6 +190,7 @@ const loadData = () => {
           options.value.loading = false;
       })
       .catch((error) => {
+          swal.close();
           toast.error("Tải dữ liệu không thành công!");
           options.value.loading = false;
       });
@@ -835,7 +836,7 @@ onMounted(() => {
     </div>
 </template>
 <style scoped>
-@import url(../../profile/component/stylehrm.css);
+@import url(../style_report.css);
 
   .item-hover:hover{
     background-color: #f0f8ff!important;
@@ -949,6 +950,7 @@ td.bg-group>b {
     height: 100%;
     display: flex;
     align-items: center;
+    padding:0px 0.5rem !important;
   }
 }
 ::v-deep(.p-treeselect) {
@@ -956,6 +958,9 @@ td.bg-group>b {
     height: 100%;
     display: flex;
     align-items: center;
+  }
+  .p-treeselect-label,.p-treeselect-token{
+    height: 100%;
   }
 }
 </style>

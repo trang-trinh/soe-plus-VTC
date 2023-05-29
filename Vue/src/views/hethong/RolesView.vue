@@ -447,7 +447,30 @@ const loadRole = (rf) => {
 };
 const displayConfigRole = ref(false);
 const modules = ref([]);
-const renderTree = (data, id, name, title) => {
+const renderTree = (data) => {
+  let arrChils = [];
+  data
+    .filter((x) => x.parent_id == null)
+    .forEach((m, i) => {
+      m.IsOrder = i + 1;
+      let om = { key: m.module_id, data: m };
+      const rechildren = (mm, module_id) => {
+        let dts = data.filter((x) => x.parent_id == module_id);
+        if (dts.length > 0) {
+          if (!mm.children) mm.children = [];
+          dts.forEach((em) => {
+            let om1 = { key: em.module_id, data: em };
+            rechildren(om1, em.module_id);
+            mm.children.push(om1);
+          });
+        }
+      };
+      rechildren(om, m.module_id);
+      arrChils.push(om);
+    });
+  modules.value = arrChils;
+};
+const renderTreeDV = (data, id, name, title) => {
   let arrChils = [];
   let arrtreeChils = [];
   data
@@ -547,13 +570,12 @@ const configRole = (md, type) => {
             r.module_functions = arrs;
           });
         //renderTree(data);
-        let obj = renderTree(data, "module_id", "module_name", "module");
-        modules.value = obj.arrChils;
-        swal.close();
-        displayConfigRole.value = true;
+        renderTree(data);
       } else {
         modules.value = [];
       }
+      swal.close();
+      displayConfigRole.value = true;
     })
     .catch((error) => {
       opition.value.moduleloading = false;
@@ -1225,7 +1247,7 @@ const initTudien = () => {
     .then((response) => {
       let data = JSON.parse(response.data.data);
       if (data.length > 0) {
-        let obj = renderTree(
+        let obj = renderTreeDV(
           data[0],
           "organization_id",
           "organization_name",
