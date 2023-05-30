@@ -564,7 +564,7 @@ onMounted(() => {
                     <span v-if="bc.recruitment_date"> {{ moment(new Date(bc.recruitment_date)).format("DD/MM/YYYY ") }}</span>
                   </td>
                   <td v-if="index3 ==0"  :rowspan="bc.Congtac.length" align="left" class="center"></td>
-                  <td align="center" v-if="qt.contract_code">Lần {{index3+1}}</td>
+                  <td align="center">Lần {{index3+1}}</td>
                   <td align="left">{{qt.contract_code}}</td>
                   <td align="center">{{qt.sign_date}}</td>
                   <td align="left">{{qt.type_contract_name}}</td>

@@ -697,7 +697,7 @@ onMounted(() => {
                         <label>Mô tả chi tiết công việc</label>
                         <InputText
                             type="text"
-                            class="ip34"
+                            class="ip34 col-12 md:col-12"
                             spellcheck="false"
                             v-model="options.description"
                             placeholder="Tìm kiếm"
