@@ -4,7 +4,9 @@ import { encr } from "../../../util/function";
 import { useToast } from "vue-toastification";
 import moment from "moment";
 import { groupBy } from "lodash";
+import { useRoute } from "vue-router";
 
+const route = useRoute();
 const store = inject("store");
 const swal = inject("$swal");
 const axios = inject("axios");
@@ -587,16 +589,19 @@ const excel = (id, name) => {
 
 //init
 const initDictionary = () => {
+  let path = route.path;
+  let name = route.name;
   axios
     .post(
       baseURL + "/api/hrm/callProc",
       {
         str: encr(
           JSON.stringify({
-            proc: "hrm_timekeep_dictionary",
+            proc: "hrm_timekeep_dictionary_2",
             par: [
               { par: "user_id", va: store.getters.user.user_id },
               { par: "year", va: options.value.year },
+              { par: "is_link", va: path },
             ],
           }),
           SecretKey,
@@ -615,12 +620,13 @@ const initDictionary = () => {
           } else {
             weeks.value = [];
           }
-          if (tbs[1] != null && tbs[1].length > 0) {
+          if (tbs[1] != null && tbs[1].length > 1) {
             var temp1 = [];
             addToArray(temp1, tbs[1], null, 0, "is_order");
             tbs[1] = temp1;
+          } else if (tbs[1] != null && tbs[1].length > 0) {
+            tbs[1][0].newname = tbs[1][0].organization_name;
           }
-          tbs[1].unshift({ organization_id: null, newname: "Tất cả" });
           if (tbs[3] != null && tbs[3].length > 0) {
             department.value = JSON.parse(JSON.stringify(tbs[3]));
             var temp2 = [];
@@ -673,6 +679,8 @@ const initDay = (start_date, end_date) => {
   });
 };
 const initData = (ref) => {
+  let path = route.path;
+  let name = route.name;
   selectedNodes.value = [];
   datas.value = [];
   if (ref) {
@@ -695,7 +703,7 @@ const initData = (ref) => {
       {
         str: encr(
           JSON.stringify({
-            proc: "hrm_timekeep_list",
+            proc: "hrm_timekeep_list_2",
             par: [
               { par: "user_id", va: store.getters.user.user_id },
               { par: "start_date", va: options.value.start_date },
@@ -709,6 +717,7 @@ const initData = (ref) => {
                 par: "departments",
                 va: departments,
               },
+              { par: "is_link", va: path },
             ],
           }),
           SecretKey,
@@ -721,6 +730,7 @@ const initData = (ref) => {
       if (response != null && response.data != null) {
         let data = JSON.parse(response.data.data);
         if (data != null) {
+          
           if (data[0] != null && data[0].length > 0) {
             data[0].forEach((user, i) => {
               user["STT"] = i + 1;
@@ -795,18 +805,70 @@ const initData = (ref) => {
       }
     });
 };
+const initRoleFunction = () => {
+  let path = route.path;
+  let name = route.name;
+  axios
+    .post(
+      baseURL + "/api/hrm/callProc",
+      {
+        str: encr(
+          JSON.stringify({
+            proc: "hrm_timekeep_funciton",
+            par: [
+              { par: "user_id", va: store.getters.user.user_id },
+              { par: "is_link", va: path },
+              { par: "name", va: name },
+            ],
+          }),
+          SecretKey,
+          cryoptojs
+        ).toString(),
+      },
+      config
+    )
+    .then((response) => {
+      if (response != null && response.data != null) {
+        var data = response.data.data;
+        if (data != null) {
+          let tbs = JSON.parse(data);
+          if (tbs[0] != null && tbs[0].length > 0) {
+            let is_permission = tbs[0][0].is_permission;
+            let func = [
+              { text: "Thêm mới", value: 1 },
+              { text: "Chỉnh sửa phòng ban", value: 2 },
+              { text: "Chỉnh sửa đơn vị", value: 3 },
+              { text: "Chỉnh sửa tất cả", value: 4 },
+              { text: "Xem phòng ban", value: 5 },
+              { text: "Xem đơn vị", value: 6 },
+              { text: "Xem tất cả", value: 7 },
+              { text: "Duyệt", value: 8 },
+            ];
+            isFunction.value =
+              is_permission
+                .split(",")
+                .findIndex((a) => a === "2" || a === "3" || a === "4") !== -1;
+          } else {
+          }
+        }
+      }
+    })
+    .catch((error) => {
+      swal.fire({
+        title: "Thông báo!",
+        text: "Có lỗi xảy ra, vui lòng kiểm tra lại!",
+        icon: "error",
+        confirmButtonText: "OK",
+      });
+      return;
+    });
+};
 const refresh = () => {
   selectedNodes.value = [];
   initData(true);
 };
 onMounted(() => {
-  if (
-    store.getters.user.is_super ||
-    store.getters.user.is_admin ||
-    store.getters.user.role_code === "admin"
-  ) {
-    isFunction.value = true;
-  }
+  initRoleFunction();
   initDictionary();
 });
 </script>

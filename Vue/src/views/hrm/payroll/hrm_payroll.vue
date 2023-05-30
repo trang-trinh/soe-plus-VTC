@@ -480,7 +480,7 @@ const configPayroll = async (row) => {
         report.value.report_config &&
         report.value.report_config.trim() != ""
       ) {
-        debugger
+         
         cg = JSON.parse(report.value.report_config);
       }
       cg.proc = {

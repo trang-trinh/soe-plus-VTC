@@ -157,7 +157,7 @@ const configQuyetdinh = async (row) => {
       headers: { Authorization: `Bearer ${store.getters.token}` },
     }
   );
-
+ 
   if (axResponse.status == 200) {
     if (axResponse.data.error) {
       toast.error("Không mở được bản ghi");

@@ -227,26 +227,17 @@ const openBasic = (str) => {
           is_system: store.getters.user.is_super ? true : false,
         };
         if (dt2) {
-        
           dt2.forEach((element) => {
             element.review_imp_name = element.eval_criteria_name;
-           
           });
 
           liEvcalCriterias.value = dt2;
-           
-        
-        }if (dt3) {
-
-       
+        }
+        if (dt3) {
           dt3.forEach((element) => {
-            
             element.child_name = element.eval_criteria_child_name;
-                
-        
-            });
-            liEvcalCriteriasChild.value=dt3;
-
+          });
+          liEvcalCriteriasChild.value = dt3;
         }
 
         checkIsmain.value = false;
@@ -1229,6 +1220,24 @@ onMounted(() => {
             </div>
           </div>
         </div>
+        <div class="col-12 field md:col-12 flex">
+          <div class="field col-6 md:col-6 p-0 align-items-center flex">
+            <div class="w-11rem text-left p-0">STT</div>
+            <InputNumber
+              v-model="reviewuser.is_order"
+              style="width: calc(100% - 11rem)"
+              class="pr-3 ip36 p-0"
+            />
+          </div>
+          <div class="field col-6 md:col-6 p-0 align-items-center flex">
+            <div class="w-11rem text-left p-0">Trạng thái</div>
+            <InputSwitch
+              v-model="reviewuser.status"
+              class="w-4rem lck-checked"
+              style="width: calc(100% - 11rem)"
+            />
+          </div>
+        </div>
         <div
           class="col-12 field md:col-12"
           v-for="(item, index) in liEvcalCriterias"
@@ -1251,34 +1260,61 @@ onMounted(() => {
               "
               filterDisplay="menu"
               filterMode="lenient"
-              :scrollable="true"
               scrollHeight="flex"
               :showGridlines="true"
               columnResizeMode="fit"
               :lazy="true"
               :reorderableColumns="true"
               tableStyle="width:100%"
+              responsiveLayout="scroll"
             >
               <ColumnGroup type="header">
                 <Row>
                   <Column
-                    header="Tiêu chí đánh giá"
+                    header="Nhóm nội dung đánh giá"
                     :rowspan="3"
                     v-if="item.type == 1"
+                    headerStyle=" width:15% ; height:50px"
+                    bodyStyle="text-align:center;width:15% !important;   "
                   />
-                  <Column header="Chuyên môn nghiệp vụ" :rowspan="3" v-else />
-                  <Column header="Nội dung đánh giá" :rowspan="3" />
-                  <Column header="Tỷ trọng nhóm" :rowspan="3" />
+                  <Column
+                    header="Chuyên môn nghiệp vụ"
+                    :rowspan="3"
+                    v-else
+                    headerStyle=" width:15% ; height:50px"
+                    bodyStyle="text-align:center;width:15% !important;   "
+                  />
+                  <Column header="Nội dung đánh giá" :rowspan="3"
+                  headerStyle=" width:20% ; height:50px"
+                    bodyStyle="text-align:center;width:20% !important;   " />
+                  <Column header="Tỷ trọng" :rowspan="3" 
+                  headerStyle=" width:3% ; height:50px"
+                  class="align-items-center justify-content-center text-center"
+                    bodyStyle="text-align:center;width:3% !important;   "
+                  />
 
                   <Column
                     header="Công việc được giao"
                     :rowspan="item.type == 1 ? 3 : 2"
                     :colspan="item.type == 1 ? 1 : 2"
+
+                    headerStyle=" width:20% ; height:50px"
+                    bodyStyle="text-align:center;width:20% !important;   "
                   />
-                  <Column header="Tỷ trọng đầu việc" :rowspan="3" />
-                  <Column header="Kết quả công việc  " :rowspan="3" />
-                  <Column header="Điểm tối đa" :rowspan="3" />
-                  <Column header="Điểm cá nhân tự đánh giá" :rowspan="3" />
+                  <Column header="Đầu việc" :rowspan="3"    
+                  class="align-items-center justify-content-center text-center"      headerStyle=" width:5% ; height:50px"
+                    bodyStyle="text-align:center;width:5% !important;   " />
+                  <Column header="Kết quả công việc  " :rowspan="3"
+                  headerStyle=" width:12% ; height:50px"
+                    bodyStyle="text-align:center;width:12% !important;   "
+                  />
+                  <Column header="Tối đa" :rowspan="3"  
+                  class="align-items-center justify-content-center text-center"        headerStyle=" width:3% ; height:50px"
+                    bodyStyle="text-align:center;width:3% !important;   " />
+                  <Column header="Tự đánh giá" :rowspan="3"
+                  class="align-items-center justify-content-center text-center"
+                  headerStyle=" width:7% ; height:50px"
+                    bodyStyle="text-align:center;width:7% !important;   "/>
                 </Row>
                 <Row> </Row>
                 <Row>
@@ -1286,28 +1322,27 @@ onMounted(() => {
                     header="Đầu việc"
                     field="lastYearSale"
                     v-if="item.type == 2"
+                    headerStyle=" width:10% ; height:50px"
+                    bodyStyle="text-align:center;width:10% !important;   "
                   />
                   <Column
                     header="Khối lượng, chất lượng, tiến độ công việc"
                     field="thisYearSale"
+                    headerStyle=" width:10% ; height:50px"
+                    bodyStyle="text-align:center;width:10% !important;   "
                     v-if="item.type == 2"
                   />
                 </Row>
               </ColumnGroup>
-              <Column
-                field="child_name"
-                class="align-items-center justify-content-center text-center"
-                headerStyle="text-align:center;max-width:150px;height:50px"
-                bodyStyle="text-align:center;max-width:150px"
-              />
+              <Column field="child_name" />
 
               <Column
                 field="des"
-                class="align-items-center justify-content-center text-center"
+             
                 headerStyle="text-align:center;max-width:150px;height:50px"
                 bodyStyle="text-align:center;max-width:150px"
               />
-              <Column field="weight">
+              <Column field="weight"    class="align-items-center justify-content-center text-center">
                 <template #body="slotProps">
                   {{ slotProps.data.weight }} %
                 </template>
@@ -1318,25 +1353,20 @@ onMounted(() => {
                 headerStyle="text-align:center;max-width:150px;height:50px"
                 bodyStyle="text-align:center;max-width:150px"
               />
-              <Column field="weight_child">
+              <Column field="weight_child"    class="align-items-center justify-content-center text-center">
                 <template #body="slotProps">
                   {{ slotProps.data.weight_child }} %
                 </template>
               </Column>
               <Column field="complete_results">
-                <template #body="slotProps">
-                  Inpu
-                </template>
+                <template #body="slotProps"> Inpu </template>
               </Column>
-              <Column field="max_score">
-                <template #body="slotProps">
-                 
-                </template>
-              </Column>       <Column field="self_ccore">
-                <template #body="slotProps">
-                 
-                </template>
-              </Column> 
+              <Column field="max_score"    class="align-items-center justify-content-center text-center">
+                <template #body="slotProps"> </template>
+              </Column>
+              <Column field="self_ccore"    class="align-items-center justify-content-center text-center">
+                <template #body="slotProps"> </template>
+              </Column>
               <ColumnGroup type="footer">
                 <Row>
                   <Column
@@ -1349,28 +1379,6 @@ onMounted(() => {
                 </Row>
               </ColumnGroup>
             </DataTable>
-          </div>
-        </div>
-
-        <div class="col-12 field md:col-12 flex">
-          {{ liEvcalCriteriasChild }}
-        </div>
-
-        <div class="col-12 field md:col-12 flex">
-          <div class="field col-4 md:col-4 p-0 align-items-center flex">
-            <div class="col-9 text-left p-0">STT</div>
-            <InputNumber v-model="reviewuser.is_order" class="col-3 ip36 p-0" />
-          </div>
-          <div class="field col-4 md:col-4 p-0 align-items-center flex">
-            <div class="col-6 text-center p-0">Trạng thái</div>
-            <InputSwitch v-model="reviewuser.status" />
-          </div>
-          <div
-            class="field col-4 md:col-4 p-0 align-items-center flex"
-            v-if="store.getters.user.is_super"
-          >
-            <div class="col-6 text-center p-0">Hệ thống</div>
-            <InputSwitch v-model="reviewuser.is_system" />
           </div>
         </div>
       </div>
