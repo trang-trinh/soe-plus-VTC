@@ -8,13 +8,13 @@ import DropdownProfile from "../component/DropdownProfile.vue";
 import { encr, checkURL } from "../../../util/function.js";
 //Khai báo
 const getProfileUser = (user, obj) => {
-  if (obj) {
-    reviewuser.value[user] = obj.profile_id;
-    if (obj.profile_user_name)
-      reviewuser.value["profile_user_name"] = obj.profile_user_name;
-  } else {
-    reviewuser.value[user] = null;
-  }
+    if (obj) {
+        reviewuser.value[user] = obj.profile_id;
+        if (obj.profile_user_name)
+            reviewuser.value["profile_user_name"] = obj.profile_user_name;
+    } else {
+        reviewuser.value[user] = null;
+    }
 };
 const cryoptojs = inject("cryptojs");
 const axios = inject("axios");
@@ -22,148 +22,147 @@ const store = inject("store");
 const swal = inject("$swal");
 const isDynamicSQL = ref(false);
 const config = {
-  headers: { Authorization: `Bearer ${store.getters.token}` },
+    headers: { Authorization: `Bearer ${store.getters.token}` },
 };
 const filters = ref({
-  global: { value: null, matchMode: FilterMatchMode.CONTAINS },
-  reviewuser_name: {
-    operator: FilterOperator.AND,
-    constraints: [{ value: null, matchMode: FilterMatchMode.STARTS_WITH }],
-  },
+    global: { value: null, matchMode: FilterMatchMode.CONTAINS },
+    reviewuser_name: {
+        operator: FilterOperator.AND,
+        constraints: [{ value: null, matchMode: FilterMatchMode.STARTS_WITH }],
+    },
 });
 const rules = {
-  reviewuser_name: {
-    required,
-    $errors: [
-      {
-        $property: "reviewuser_name",
-        $validator: "required",
-        $message: "Tên mẫu đánh giá không được để trống!",
-      },
-    ],
-  },
+    reviewuser_name: {
+        required,
+        $errors: [
+            {
+                $property: "reviewuser_name",
+                $validator: "required",
+                $message: "Tên mẫu đánh giá không được để trống!",
+            },
+        ],
+    },
 };
 const listQuarters = ref([
-  { name: "Qúy một", code: 1 },
-
-  { name: "Qúy hai", code: 2 },
-  { name: "Qúy ba", code: 3 },
-  { name: "Qúy bốn", code: 4 },
+    { name: "Qúy một", code: 1 },
+    { name: "Qúy hai", code: 2 },
+    { name: "Qúy ba", code: 3 },
+    { name: "Qúy bốn", code: 4 },
 ]);
 //Lấy số bản ghi
 const loadCount = () => {
-  axios
-    .post(
-      baseURL + "/api/HRM_SQL/getData",
-      {
-        str: encr(
-          JSON.stringify({
-            proc: "hrm_review_user_count",
-            par: [{ par: "user_id", va: store.getters.user.user_id }],
-          }),
-          SecretKey,
-          cryoptojs
-        ).toString(),
-      },
-      config
-    )
-    .then((response) => {
-      let data = JSON.parse(response.data.data)[0];
-      if (data.length > 0) {
-        options.value.totalRecords = data[0].totalRecords;
-        sttStamp.value = data[0].totalRecords + 1;
-      }
-    })
-    .catch((error) => {});
+    axios
+        .post(
+            baseURL + "/api/HRM_SQL/getData",
+            {
+                str: encr(
+                    JSON.stringify({
+                        proc: "hrm_review_user_count",
+                        par: [{ par: "user_id", va: store.getters.user.user_id }],
+                    }),
+                    SecretKey,
+                    cryoptojs
+                ).toString(),
+            },
+            config
+        )
+        .then((response) => {
+            let data = JSON.parse(response.data.data)[0];
+            if (data.length > 0) {
+                options.value.totalRecords = data[0].totalRecords;
+                sttStamp.value = data[0].totalRecords + 1;
+            }
+        })
+        .catch((error) => { });
 };
 //Lấy dữ liệu reviewuser
 const loadData = (rf) => {
-  if (rf) {
-    if (isDynamicSQL.value) {
-      loadDataSQL();
-      return false;
-    }
     if (rf) {
-      if (options.value.PageNo == 0) {
-        loadCount();
-      }
-    }
-    axios
-      .post(
-        baseURL + "/api/HRM_SQL/getData",
-        {
-          str: encr(
-            JSON.stringify({
-              proc: "hrm_review_user_list",
-              par: [
-                { par: "pageno", va: options.value.PageNo },
-                { par: "pagesize", va: options.value.PageSize },
-                { par: "user_id", va: store.getters.user.user_id },
-              ],
-            }),
-            SecretKey,
-            cryoptojs
-          ).toString(),
-        },
-        config
-      )
-      .then((response) => {
-        let data = JSON.parse(response.data.data)[0];
-        if (isFirst.value) isFirst.value = false;
-        data.forEach((element, i) => {
-          element.STT = options.value.PageNo * options.value.PageSize + i + 1;
-        });
-        datalists.value = data;
-
-        options.value.loading = false;
-      })
-      .catch((error) => {
-        toast.error("Tải dữ liệu không thành công!");
-        options.value.loading = false;
-
-        if (error && error.status === 401) {
-          swal.fire({
-            text: "Mã token đã hết hạn hoặc không hợp lệ, vui lòng đăng nhập lại!",
-            confirmButtonText: "OK",
-          });
-          store.commit("gologout");
+        if (isDynamicSQL.value) {
+            loadDataSQL();
+            return false;
         }
-      });
-  }
+        if (rf) {
+            if (options.value.PageNo == 0) {
+                loadCount();
+            }
+        }
+        axios
+            .post(
+                baseURL + "/api/HRM_SQL/getData",
+                {
+                    str: encr(
+                        JSON.stringify({
+                            proc: "hrm_review_user_list",
+                            par: [
+                                { par: "pageno", va: options.value.PageNo },
+                                { par: "pagesize", va: options.value.PageSize },
+                                { par: "user_id", va: store.getters.user.user_id },
+                            ],
+                        }),
+                        SecretKey,
+                        cryoptojs
+                    ).toString(),
+                },
+                config
+            )
+            .then((response) => {
+                let data = JSON.parse(response.data.data)[0];
+                if (isFirst.value) isFirst.value = false;
+                data.forEach((element, i) => {
+                    element.STT = options.value.PageNo * options.value.PageSize + i + 1;
+                });
+                datalists.value = data;
+
+                options.value.loading = false;
+            })
+            .catch((error) => {
+                toast.error("Tải dữ liệu không thành công!");
+                options.value.loading = false;
+
+                if (error && error.status === 401) {
+                    swal.fire({
+                        text: "Mã token đã hết hạn hoặc không hợp lệ, vui lòng đăng nhập lại!",
+                        confirmButtonText: "OK",
+                    });
+                    store.commit("gologout");
+                }
+            });
+    }
 };
 //Phân trang dữ liệu
 const onPage = (event) => {
-  if (event.rows != options.value.PageSize) {
-    options.value.PageSize = event.rows;
-  }
-  if (event.page == 0) {
-    //Trang đầu
-    options.value.id = null;
-    options.value.IsNext = true;
-  } else if (event.page > options.value.PageNo + 1) {
-    //Trang cuối
-    options.value.id = -1;
-    options.value.IsNext = false;
-  } else if (event.page > options.value.PageNo) {
-    //Trang sau
+    if (event.rows != options.value.PageSize) {
+        options.value.PageSize = event.rows;
+    }
+    if (event.page == 0) {
+        //Trang đầu
+        options.value.id = null;
+        options.value.IsNext = true;
+    } else if (event.page > options.value.PageNo + 1) {
+        //Trang cuối
+        options.value.id = -1;
+        options.value.IsNext = false;
+    } else if (event.page > options.value.PageNo) {
+        //Trang sau
 
-    options.value.id =
-      datalists.value[datalists.value.length - 1].reviewuser_id;
-    options.value.IsNext = true;
-  } else if (event.page < options.value.PageNo) {
-    //Trang trước
-    options.value.id = datalists.value[0].reviewuser_id;
-    options.value.IsNext = false;
-  }
-  options.value.PageNo = event.page;
-  loadData(true);
+        options.value.id =
+            datalists.value[datalists.value.length - 1].reviewuser_id;
+        options.value.IsNext = true;
+    } else if (event.page < options.value.PageNo) {
+        //Trang trước
+        options.value.id = datalists.value[0].reviewuser_id;
+        options.value.IsNext = false;
+    }
+    options.value.PageNo = event.page;
+    loadData(true);
 };
 
 const reviewuser = ref({
-  reviewuser_name: "",
-  emote_file: "",
-  status: true,
-  is_order: 1,
+    reviewuser_name: "",
+    emote_file: "",
+    status: true,
+    is_order: 1,
 });
 
 const selectedStamps = ref();
@@ -176,13 +175,13 @@ const basedomainURL = baseURL;
 const checkDelList = ref(false);
 
 const options = ref({
-  IsNext: true,
-  sort: "created_date",
-  SearchText: "",
-  PageNo: 0,
-  PageSize: 20,
-  loading: true,
-  totalRecords: null,
+    IsNext: true,
+    sort: "created_date",
+    SearchText: "",
+    PageNo: 0,
+    PageSize: 20,
+    loading: true,
+    totalRecords: null,
 });
 
 //Hiển thị dialog
@@ -191,756 +190,685 @@ const displayBasic = ref(false);
 const liEvcalCriterias = ref([]);
 const liEvcalCriteriasChild = ref([]);
 const openBasic = (str) => {
-  axios
-    .post(
-      baseURL + "/api/HRM_SQL/getData",
-      {
-        str: encr(
-          JSON.stringify({
-            proc: "hrm_review_user_get_form",
-            par: [{ par: "user_id", va: store.getters.user.user_id }],
-          }),
-          SecretKey,
-          cryoptojs
-        ).toString(),
-      },
-      config
-    )
-    .then((response) => {
-      let data = JSON.parse(response.data.data);
+    axios
+        .post(
+            baseURL + "/api/HRM_SQL/getData",
+            {
+                str: encr(
+                    JSON.stringify({
+                        proc: "hrm_review_user_get_form",
+                        par: [{ par: "user_id", va: store.getters.user.user_id }],
+                    }),
+                    SecretKey,
+                    cryoptojs
+                ).toString(),
+            },
+            config
+        )
+        .then((response) => {
+            let data = JSON.parse(response.data.data);
 
-      if (data.length > 0) {
-        submitted.value = false;
-        var dt1 = data[0][0];
-        var dt2 = data[1];
-        var dt3 = data[2];
-        reviewuser.value = {
-          review_form_name: dt1.review_form_name,
-          is_period_month: true,
-          status: true,
-          is_order: sttStamp.value,
-          year_fake: new Date(),
-          month_fake: new Date(
-            new Date().getMonth() + "/" + "01/" + new Date().getFullYear()
-          ),
-          organization_id: store.getters.user.organization_id,
-          is_system: store.getters.user.is_super ? true : false,
-        };
-        if (dt2) {
-          dt2.forEach((element) => {
-            element.review_imp_name = element.eval_criteria_name;
-          });
+            if (data.length > 0) {
+                submitted.value = false;
+                var dt1 = data[0][0];
+                var dt2 = data[1];
+                var dt3 = data[2];
+                reviewuser.value = {
+                    review_form_name: dt1.review_form_name,
+                    is_period_month: true,
+                    status: true,
+                    is_order: sttStamp.value,
+                    year_fake: new Date(),
+                    month_fake: new Date(
+                        new Date().getMonth() + "/" + "01/" + new Date().getFullYear()
+                    ),
+                    organization_id: store.getters.user.organization_id,
+                    is_system: store.getters.user.is_super ? true : false,
+                };
+                if (dt2) {
+                    dt2.forEach((element) => {
+                        element.review_imp_name = element.eval_criteria_name;
+                    });
 
-          liEvcalCriterias.value = dt2;
-        }
-        if (dt3) {
-          dt3.forEach((element) => {
-            element.child_name = element.eval_criteria_child_name;
-          });
-          liEvcalCriteriasChild.value = dt3;
-        }
+                    liEvcalCriterias.value = dt2;
+                }
+                if (dt3) {
+                    dt3.forEach((element) => {
+                        element.child_name = element.eval_criteria_child_name;
+                    });
+                    liEvcalCriteriasChild.value = dt3;
+                }
 
-        checkIsmain.value = false;
-        isSaveTem.value = false;
-        headerDialog.value = str;
-        displayBasic.value = true;
-      } else {
-        swal.close();
-        swal.fire({
-          title: "Error!",
-          text: "Nhân sự chưa được khai báo mẫu đánh giá!",
-          icon: "error",
-          confirmButtonText: "OK",
+                checkIsmain.value = false;
+                isSaveTem.value = false;
+                headerDialog.value = str;
+                displayBasic.value = true;
+            } else {
+                swal.close();
+                swal.fire({
+                    title: "Error!",
+                    text: "Nhân sự chưa được khai báo mẫu đánh giá!",
+                    icon: "error",
+                    confirmButtonText: "OK",
+                });
+            }
+        })
+        .catch((error) => {
+            console.log(error);
+            swal.close();
+            swal.fire({
+                title: "Error!",
+                text: "Có lỗi xảy ra, vui lòng kiểm tra lại!",
+                icon: "error",
+                confirmButtonText: "OK",
+            });
         });
-      }
-    })
-    .catch((error) => {
-      console.log(error);
-      swal.close();
-      swal.fire({
-        title: "Error!",
-        text: "Có lỗi xảy ra, vui lòng kiểm tra lại!",
-        icon: "error",
-        confirmButtonText: "OK",
-      });
-    });
 };
 const closeDialog = () => {
-  reviewuser.value = {
-    reviewuser_name: "",
-    emote_file: "",
-    status: true,
-    is_order: 1,
-  };
+    reviewuser.value = {
+        reviewuser_name: "",
+        emote_file: "",
+        status: true,
+        is_order: 1,
+    };
 
-  displayBasic.value = false;
-  loadData(true);
+    displayBasic.value = false;
+    loadData(true);
 };
 
 //Thêm bản ghi
 
 const sttStamp = ref(1);
 const saveData = (isFormValid) => {
-  submitted.value = true;
-  if (!isFormValid) {
-    return;
-  }
+    submitted.value = true;
+    if (!isFormValid) {
+        return;
+    }
 
-  if (reviewuser.value.profile_id == null) {
-    return;
-  }
+    if (reviewuser.value.profile_id == null) {
+        return;
+    }
 
-  if (reviewuser.value.reviewuser_name.length > 250) {
+    if (reviewuser.value.reviewuser_name.length > 250) {
+        swal.fire({
+            title: "Error!",
+            text: "Tên mẫu đánh giá không được vượt quá 250 ký tự!",
+            icon: "error",
+            confirmButtonText: "OK",
+        });
+        return;
+    }
+    let formData = new FormData();
+
+    if (reviewuser.value.countryside_fake)
+        reviewuser.value.countryside = reviewuser.value.countryside_fake;
+    formData.append("hrm_review_user", JSON.stringify(reviewuser.value));
     swal.fire({
-      title: "Error!",
-      text: "Tên mẫu đánh giá không được vượt quá 250 ký tự!",
-      icon: "error",
-      confirmButtonText: "OK",
+        width: 110,
+        didOpen: () => {
+            swal.showLoading();
+        },
     });
-    return;
-  }
-  let formData = new FormData();
+    if (!isSaveTem.value) {
+        axios
+            .post(
+                baseURL + "/api/hrm_review_user/add_hrm_review_user",
+                formData,
+                config
+            )
+            .then((response) => {
+                if (response.data.err != "1") {
+                    swal.close();
+                    toast.success("Thêm mẫu đánh giá thành công!");
 
-  if (reviewuser.value.countryside_fake)
-    reviewuser.value.countryside = reviewuser.value.countryside_fake;
-  formData.append("hrm_review_user", JSON.stringify(reviewuser.value));
-  swal.fire({
-    width: 110,
-    didOpen: () => {
-      swal.showLoading();
-    },
-  });
-  if (!isSaveTem.value) {
-    axios
-      .post(
-        baseURL + "/api/hrm_review_user/add_hrm_review_user",
-        formData,
-        config
-      )
-      .then((response) => {
-        if (response.data.err != "1") {
-          swal.close();
-          toast.success("Thêm mẫu đánh giá thành công!");
+                    closeDialog();
+                } else {
+                    swal.fire({
+                        title: "Error!",
+                        text: response.data.ms,
+                        icon: "error",
+                        confirmButtonText: "OK",
+                    });
+                }
+            })
+            .catch((error) => {
+                swal.close();
+                swal.fire({
+                    title: "Error!",
+                    text: "Có lỗi xảy ra, vui lòng kiểm tra lại!",
+                    icon: "error",
+                    confirmButtonText: "OK",
+                });
+            });
+    } else {
+        axios
+            .put(
+                baseURL + "/api/hrm_review_user/update_hrm_review_user",
+                formData,
+                config
+            )
+            .then((response) => {
+                if (response.data.err != "1") {
+                    swal.close();
+                    toast.success("Sửa mẫu đánh giá thành công!");
 
-          closeDialog();
-        } else {
-          swal.fire({
-            title: "Error!",
-            text: response.data.ms,
-            icon: "error",
-            confirmButtonText: "OK",
-          });
-        }
-      })
-      .catch((error) => {
-        swal.close();
-        swal.fire({
-          title: "Error!",
-          text: "Có lỗi xảy ra, vui lòng kiểm tra lại!",
-          icon: "error",
-          confirmButtonText: "OK",
-        });
-      });
-  } else {
-    axios
-      .put(
-        baseURL + "/api/hrm_review_user/update_hrm_review_user",
-        formData,
-        config
-      )
-      .then((response) => {
-        if (response.data.err != "1") {
-          swal.close();
-          toast.success("Sửa mẫu đánh giá thành công!");
-
-          closeDialog();
-        } else {
-          swal.fire({
-            title: "Error!",
-            text: response.data.ms,
-            icon: "error",
-            confirmButtonText: "OK",
-          });
-        }
-      })
-      .catch((error) => {
-        swal.close();
-        swal.fire({
-          title: "Error!",
-          text: "Có lỗi xảy ra, vui lòng kiểm tra lại!",
-          icon: "error",
-          confirmButtonText: "OK",
-        });
-      });
-  }
+                    closeDialog();
+                } else {
+                    swal.fire({
+                        title: "Error!",
+                        text: response.data.ms,
+                        icon: "error",
+                        confirmButtonText: "OK",
+                    });
+                }
+            })
+            .catch((error) => {
+                swal.close();
+                swal.fire({
+                    title: "Error!",
+                    text: "Có lỗi xảy ra, vui lòng kiểm tra lại!",
+                    icon: "error",
+                    confirmButtonText: "OK",
+                });
+            });
+    }
 };
 const checkIsmain = ref(true);
 //Sửa bản ghi
 const editTem = (dataTem) => {
-  submitted.value = false;
-  reviewuser.value = dataTem;
-  if (reviewuser.value.countryside)
-    reviewuser.value.countryside_fake = reviewuser.value.countryside;
-  if (reviewuser.value.is_default) {
-    checkIsmain.value = false;
-  } else {
-    checkIsmain.value = true;
-  }
-  headerDialog.value = "Sửa mẫu đánh giá";
-  isSaveTem.value = true;
-  displayBasic.value = true;
+    submitted.value = false;
+    reviewuser.value = dataTem;
+    if (reviewuser.value.countryside)
+        reviewuser.value.countryside_fake = reviewuser.value.countryside;
+    if (reviewuser.value.is_default) {
+        checkIsmain.value = false;
+    } else {
+        checkIsmain.value = true;
+    }
+    headerDialog.value = "Sửa mẫu đánh giá";
+    isSaveTem.value = true;
+    displayBasic.value = true;
 };
 //Xóa bản ghi
 const delTem = (Tem) => {
-  swal
-    .fire({
-      title: "Thông báo",
-      text: "Bạn có muốn xoá bản ghi này không!",
-      icon: "warning",
-      showCancelButton: true,
-      confirmButtonColor: "#3085d6",
-      cancelButtonColor: "#d33",
-      confirmButtonText: "Có",
-      cancelButtonText: "Không",
-    })
-    .then((result) => {
-      if (result.isConfirmed) {
-        swal.fire({
-          width: 110,
-          didOpen: () => {
-            swal.showLoading();
-          },
-        });
+    swal
+        .fire({
+            title: "Thông báo",
+            text: "Bạn có muốn xoá bản ghi này không!",
+            icon: "warning",
+            showCancelButton: true,
+            confirmButtonColor: "#3085d6",
+            cancelButtonColor: "#d33",
+            confirmButtonText: "Có",
+            cancelButtonText: "Không",
+        })
+        .then((result) => {
+            if (result.isConfirmed) {
+                swal.fire({
+                    width: 110,
+                    didOpen: () => {
+                        swal.showLoading();
+                    },
+                });
 
-        axios
-          .delete(baseURL + "/api/hrm_review_user/delete_hrm_review_user", {
-            headers: { Authorization: `Bearer ${store.getters.token}` },
-            data: Tem != null ? [Tem.reviewuser_id] : 1,
-          })
-          .then((response) => {
-            swal.close();
-            if (response.data.err != "1") {
-              swal.close();
-              toast.success("Xoá mẫu đánh giá thành công!");
-              loadData(true);
-            } else {
-              swal.fire({
-                title: "Error!",
-                text: response.data.ms,
-                icon: "error",
-                confirmButtonText: "OK",
-              });
+                axios
+                    .delete(baseURL + "/api/hrm_review_user/delete_hrm_review_user", {
+                        headers: { Authorization: `Bearer ${store.getters.token}` },
+                        data: Tem != null ? [Tem.reviewuser_id] : 1,
+                    })
+                    .then((response) => {
+                        swal.close();
+                        if (response.data.err != "1") {
+                            swal.close();
+                            toast.success("Xoá mẫu đánh giá thành công!");
+                            loadData(true);
+                        } else {
+                            swal.fire({
+                                title: "Error!",
+                                text: response.data.ms,
+                                icon: "error",
+                                confirmButtonText: "OK",
+                            });
+                        }
+                    })
+                    .catch((error) => {
+                        swal.close();
+                        if (error.status === 401) {
+                            swal.fire({
+                                text: "Mã token đã hết hạn hoặc không hợp lệ, vui lòng đăng nhập lại!",
+                                confirmButtonText: "OK",
+                            });
+                        }
+                    });
             }
-          })
-          .catch((error) => {
-            swal.close();
-            if (error.status === 401) {
-              swal.fire({
-                text: "Mã token đã hết hạn hoặc không hợp lệ, vui lòng đăng nhập lại!",
-                confirmButtonText: "OK",
-              });
-            }
-          });
-      }
-    });
+        });
 };
 //Xuất excel
 
 //Sort
 const onSort = (event) => {
-  options.value.PageNo = 0;
+    options.value.PageNo = 0;
 
-  if (event.sortField == null) {
-    isDynamicSQL.value = false;
-    loadData(true);
-  } else {
-    options.value.sort =
-      event.sortField + (event.sortOrder == 1 ? " ASC" : " DESC");
-    if (event.sortField == "STT") {
-      options.value.sort =
-        "is_order" + (event.sortOrder == 1 ? " ASC" : " DESC");
+    if (event.sortField == null) {
+        isDynamicSQL.value = false;
+        loadData(true);
+    } else {
+        options.value.sort =
+            event.sortField + (event.sortOrder == 1 ? " ASC" : " DESC");
+        if (event.sortField == "STT") {
+            options.value.sort =
+                "is_order" + (event.sortOrder == 1 ? " ASC" : " DESC");
+        }
+        isDynamicSQL.value = true;
+        loadDataSQL();
     }
-    isDynamicSQL.value = true;
-    loadDataSQL();
-  }
 };
 const checkFilter = ref(false);
 const filterSQL = ref([]);
 const isFirst = ref(true);
 const loadDataSQL = () => {
-  datalists.value = [];
+    datalists.value = [];
 
-  let data = {
-    id: "reviewuser_id",
-    sqlS: filterTrangthai.value != null ? filterTrangthai.value : null,
-    sqlO: options.value.sort,
-    Search: options.value.SearchText,
-    PageNo: options.value.PageNo,
-    PageSize: options.value.PageSize,
-    next: true,
-    sqlF: null,
-    fieldSQLS: filterSQL.value,
-  };
-  options.value.loading = true;
-  axios
-    .post(baseURL + "/api/hrm_ca_SQL/Filter_hrm_review_user", data, config)
-    .then((response) => {
-      let dt = JSON.parse(response.data.data);
-      let data = dt[0];
-      if (data.length > 0) {
-        data.forEach((element, i) => {
-          element.STT = options.value.PageNo * options.value.PageSize + i + 1;
+    let data = {
+        id: "reviewuser_id",
+        sqlS: filterTrangthai.value != null ? filterTrangthai.value : null,
+        sqlO: options.value.sort,
+        Search: options.value.SearchText,
+        PageNo: options.value.PageNo,
+        PageSize: options.value.PageSize,
+        next: true,
+        sqlF: null,
+        fieldSQLS: filterSQL.value,
+    };
+    options.value.loading = true;
+    axios
+        .post(baseURL + "/api/hrm_ca_SQL/Filter_hrm_review_user", data, config)
+        .then((response) => {
+            let dt = JSON.parse(response.data.data);
+            let data = dt[0];
+            if (data.length > 0) {
+                data.forEach((element, i) => {
+                    element.STT = options.value.PageNo * options.value.PageSize + i + 1;
+                });
+
+                datalists.value = data;
+            } else {
+                datalists.value = [];
+            }
+            if (isFirst.value) isFirst.value = false;
+            options.value.loading = false;
+            //Show Count nếu có
+            if (dt.length == 2) {
+                options.value.totalRecords = dt[1][0].totalRecords;
+            }
+        })
+        .catch((error) => {
+            options.value.loading = false;
+            toast.error("Tải dữ liệu không thành công!");
+
+            if (error && error.status === 401) {
+                swal.fire({
+                    title: "Thông báo",
+                    text: "Mã token đã hết hạn hoặc không hợp lệ, vui lòng đăng nhập lại!",
+                    icon: "error",
+                    confirmButtonText: "OK",
+                });
+                store.commit("gologout");
+            }
         });
-
-        datalists.value = data;
-      } else {
-        datalists.value = [];
-      }
-      if (isFirst.value) isFirst.value = false;
-      options.value.loading = false;
-      //Show Count nếu có
-      if (dt.length == 2) {
-        options.value.totalRecords = dt[1][0].totalRecords;
-      }
-    })
-    .catch((error) => {
-      options.value.loading = false;
-      toast.error("Tải dữ liệu không thành công!");
-
-      if (error && error.status === 401) {
-        swal.fire({
-          title: "Thông báo",
-          text: "Mã token đã hết hạn hoặc không hợp lệ, vui lòng đăng nhập lại!",
-          icon: "error",
-          confirmButtonText: "OK",
-        });
-        store.commit("gologout");
-      }
-    });
 };
 //Tìm kiếm
 const searchStamp = (event) => {
-  if (event.code == "Enter") {
-    if (options.value.SearchText == "") {
-      isDynamicSQL.value = false;
-      options.value.loading = true;
-      loadData(true);
-    } else {
-      isDynamicSQL.value = true;
-      options.value.loading = true;
-      loadData(true);
+    if (event.code == "Enter") {
+        if (options.value.SearchText == "") {
+            isDynamicSQL.value = false;
+            options.value.loading = true;
+            loadData(true);
+        } else {
+            isDynamicSQL.value = true;
+            options.value.loading = true;
+            loadData(true);
+        }
     }
-  }
 };
 const refreshStamp = () => {
-  options.value.SearchText = null;
-  filterTrangthai.value = null;
-  options.value.loading = true;
-  selectedStamps.value = [];
-  isDynamicSQL.value = false;
-  filterSQL.value = [];
-  loadData(true);
+    options.value.SearchText = null;
+    filterTrangthai.value = null;
+    options.value.loading = true;
+    selectedStamps.value = [];
+    isDynamicSQL.value = false;
+    filterSQL.value = [];
+    loadData(true);
 };
 const onFilter = (event) => {
-  filterSQL.value = [];
+    filterSQL.value = [];
 
-  for (const [key, value] of Object.entries(event.filters)) {
-    if (key != "global") {
-      let obj = {
-        key: key,
-        filteroperator: value.operator,
-        filterconstraints: value.constraints,
-      };
+    for (const [key, value] of Object.entries(event.filters)) {
+        if (key != "global") {
+            let obj = {
+                key: key,
+                filteroperator: value.operator,
+                filterconstraints: value.constraints,
+            };
 
-      if (value.value && value.value.length > 0) {
-        obj.filteroperator = value.matchMode;
-        obj.filterconstraints = [];
-        value.value.forEach(function (vl) {
-          obj.filterconstraints.push({ value: vl[obj.key] });
-        });
-      } else if (value.matchMode) {
-        obj.filteroperator = "and";
-        obj.filterconstraints = [value];
-      }
-      if (
-        obj.filterconstraints &&
-        obj.filterconstraints.filter((x) => x.value != null).length > 0
-      )
-        filterSQL.value.push(obj);
+            if (value.value && value.value.length > 0) {
+                obj.filteroperator = value.matchMode;
+                obj.filterconstraints = [];
+                value.value.forEach(function (vl) {
+                    obj.filterconstraints.push({ value: vl[obj.key] });
+                });
+            } else if (value.matchMode) {
+                obj.filteroperator = "and";
+                obj.filterconstraints = [value];
+            }
+            if (
+                obj.filterconstraints &&
+                obj.filterconstraints.filter((x) => x.value != null).length > 0
+            )
+                filterSQL.value.push(obj);
+        }
     }
-  }
-  options.value.PageNo = 0;
-  options.value.id = null;
-  isDynamicSQL.value = true;
-  loadDataSQL();
+    options.value.PageNo = 0;
+    options.value.id = null;
+    isDynamicSQL.value = true;
+    loadDataSQL();
 };
 //Checkbox
 const onCheckBox = (value, check, checkIsmain) => {
-  if (check) {
-    let data = {
-      IntID: value.reviewuser_id,
-      TextID: value.reviewuser_id + "",
-      IntTrangthai: 1,
-      BitTrangthai: value.status,
-    };
-    axios
-      .put(
-        baseURL + "/api/hrm_review_user/update_s_hrm_review_user",
-        data,
-        config
-      )
-      .then((response) => {
-        if (response.data.err != "1") {
-          swal.close();
-          toast.success("Sửa trạng thái mẫu đánh giá thành công!");
-          loadData(true);
-          closeDialog();
-        } else {
-          swal.fire({
-            title: "Error!",
-            text: response.data.ms,
-            icon: "error",
-            confirmButtonText: "OK",
-          });
-        }
-      })
-      .catch((error) => {
-        swal.close();
-        swal.fire({
-          title: "Error!",
-          text: "Có lỗi xảy ra, vui lòng kiểm tra lại!",
-          icon: "error",
-          confirmButtonText: "OK",
-        });
-      });
-  } else {
-    let data1 = {
-      IntID: value.reviewuser_id,
-      TextID: value.reviewuser_id + "",
-      BitMain: value.is_default,
-    };
-    axios
-      .put(baseURL + "/api/hrm_review_user/Update_DefaultStamp", data1, config)
-      .then((response) => {
-        if (response.data.err != "1") {
-          swal.close();
-          toast.success("Sửa trạng thái mẫu đánh giá thành công!");
-          loadData(true);
-          closeDialog();
-        } else {
-          swal.fire({
-            title: "Error!",
-            text: response.data.ms,
-            icon: "error",
-            confirmButtonText: "OK",
-          });
-        }
-      })
-      .catch((error) => {
-        swal.close();
-        swal.fire({
-          title: "Error!",
-          text: "Có lỗi xảy ra, vui lòng kiểm tra lại!",
-          icon: "error",
-          confirmButtonText: "OK",
-        });
-      });
-  }
+    if (check) {
+        let data = {
+            IntID: value.reviewuser_id,
+            TextID: value.reviewuser_id + "",
+            IntTrangthai: 1,
+            BitTrangthai: value.status,
+        };
+        axios
+            .put(
+                baseURL + "/api/hrm_review_user/update_s_hrm_review_user",
+                data,
+                config
+            )
+            .then((response) => {
+                if (response.data.err != "1") {
+                    swal.close();
+                    toast.success("Sửa trạng thái mẫu đánh giá thành công!");
+                    loadData(true);
+                    closeDialog();
+                } else {
+                    swal.fire({
+                        title: "Error!",
+                        text: response.data.ms,
+                        icon: "error",
+                        confirmButtonText: "OK",
+                    });
+                }
+            })
+            .catch((error) => {
+                swal.close();
+                swal.fire({
+                    title: "Error!",
+                    text: "Có lỗi xảy ra, vui lòng kiểm tra lại!",
+                    icon: "error",
+                    confirmButtonText: "OK",
+                });
+            });
+    } else {
+        let data1 = {
+            IntID: value.reviewuser_id,
+            TextID: value.reviewuser_id + "",
+            BitMain: value.is_default,
+        };
+        axios
+            .put(baseURL + "/api/hrm_review_user/Update_DefaultStamp", data1, config)
+            .then((response) => {
+                if (response.data.err != "1") {
+                    swal.close();
+                    toast.success("Sửa trạng thái mẫu đánh giá thành công!");
+                    loadData(true);
+                    closeDialog();
+                } else {
+                    swal.fire({
+                        title: "Error!",
+                        text: response.data.ms,
+                        icon: "error",
+                        confirmButtonText: "OK",
+                    });
+                }
+            })
+            .catch((error) => {
+                swal.close();
+                swal.fire({
+                    title: "Error!",
+                    text: "Có lỗi xảy ra, vui lòng kiểm tra lại!",
+                    icon: "error",
+                    confirmButtonText: "OK",
+                });
+            });
+    }
 };
 //Xóa nhiều
 const deleteList = () => {
-  let listId = new Array(selectedStamps.value.length);
-  let checkD = false;
-  selectedStamps.value.forEach((item) => {
-    if (item.is_default) {
-      toast.error("Không được xóa mẫu đánh giá mặc định!");
-      checkD = true;
-      return;
-    }
-  });
-  if (!checkD) {
-    swal
-      .fire({
-        title: "Thông báo",
-        text: "Bạn có muốn xoá mẫu đánh giá này không!",
-        icon: "warning",
-        showCancelButton: true,
-        confirmButtonColor: "#3085d6",
-        cancelButtonColor: "#d33",
-        confirmButtonText: "Có",
-        cancelButtonText: "Không",
-      })
-      .then((result) => {
-        if (result.isConfirmed) {
-          swal.fire({
-            width: 110,
-            didOpen: () => {
-              swal.showLoading();
-            },
-          });
-
-          selectedStamps.value.forEach((item) => {
-            listId.push(item.reviewuser_id);
-          });
-          axios
-            .delete(baseURL + "/api/hrm_review_user/delete_hrm_review_user", {
-              headers: { Authorization: `Bearer ${store.getters.token}` },
-              data: listId != null ? listId : 1,
-            })
-            .then((response) => {
-              swal.close();
-              if (response.data.err != "1") {
-                swal.close();
-                toast.success("Xoá mẫu đánh giá thành công!");
-                checkDelList.value = false;
-
-                loadData(true);
-              } else {
-                swal.fire({
-                  title: "Error!",
-                  text: response.data.ms,
-                  icon: "error",
-                  confirmButtonText: "OK",
-                });
-              }
-            })
-            .catch((error) => {
-              swal.close();
-              if (error.status === 401) {
-                swal.fire({
-                  title: "Error!",
-                  text: "Mã token đã hết hạn hoặc không hợp lệ, vui lòng đăng nhập lại!",
-                  icon: "error",
-                  confirmButtonText: "OK",
-                });
-              }
-            });
+    let listId = new Array(selectedStamps.value.length);
+    let checkD = false;
+    selectedStamps.value.forEach((item) => {
+        if (item.is_default) {
+            toast.error("Không được xóa mẫu đánh giá mặc định!");
+            checkD = true;
+            return;
         }
-      });
-  }
+    });
+    if (!checkD) {
+        swal
+            .fire({
+                title: "Thông báo",
+                text: "Bạn có muốn xoá mẫu đánh giá này không!",
+                icon: "warning",
+                showCancelButton: true,
+                confirmButtonColor: "#3085d6",
+                cancelButtonColor: "#d33",
+                confirmButtonText: "Có",
+                cancelButtonText: "Không",
+            })
+            .then((result) => {
+                if (result.isConfirmed) {
+                    swal.fire({
+                        width: 110,
+                        didOpen: () => {
+                            swal.showLoading();
+                        },
+                    });
+
+                    selectedStamps.value.forEach((item) => {
+                        listId.push(item.reviewuser_id);
+                    });
+                    axios
+                        .delete(baseURL + "/api/hrm_review_user/delete_hrm_review_user", {
+                            headers: { Authorization: `Bearer ${store.getters.token}` },
+                            data: listId != null ? listId : 1,
+                        })
+                        .then((response) => {
+                            swal.close();
+                            if (response.data.err != "1") {
+                                swal.close();
+                                toast.success("Xoá mẫu đánh giá thành công!");
+                                checkDelList.value = false;
+
+                                loadData(true);
+                            } else {
+                                swal.fire({
+                                    title: "Error!",
+                                    text: response.data.ms,
+                                    icon: "error",
+                                    confirmButtonText: "OK",
+                                });
+                            }
+                        })
+                        .catch((error) => {
+                            swal.close();
+                            if (error.status === 401) {
+                                swal.fire({
+                                    title: "Error!",
+                                    text: "Mã token đã hết hạn hoặc không hợp lệ, vui lòng đăng nhập lại!",
+                                    icon: "error",
+                                    confirmButtonText: "OK",
+                                });
+                            }
+                        });
+                }
+            });
+    }
 };
 
 //Filter
 const trangThai = ref([
-  { name: "Hiển thị", code: 1 },
-  { name: "Không hiển thị", code: 0 },
+    { name: "Hiển thị", code: 1 },
+    { name: "Không hiển thị", code: 0 },
 ]);
 
 const filterTrangthai = ref();
 
 const reFilterEmail = () => {
-  filterTrangthai.value = null;
-  isDynamicSQL.value = false;
-  checkFilter.value = false;
-  filterSQL.value = [];
-  options.value.SearchText = null;
-  op.value.hide();
-  loadData(true);
+    filterTrangthai.value = null;
+    isDynamicSQL.value = false;
+    checkFilter.value = false;
+    filterSQL.value = [];
+    options.value.SearchText = null;
+    op.value.hide();
+    loadData(true);
 };
 const filterFileds = () => {
-  filterSQL.value = [];
-  checkFilter.value = true;
-  let filterS = {
-    filterconstraints: [{ value: filterTrangthai.value, matchMode: "equals" }],
-    filteroperator: "and",
-    key: "status",
-  };
-  filterSQL.value.push(filterS);
-  loadDataSQL();
+    filterSQL.value = [];
+    checkFilter.value = true;
+    let filterS = {
+        filterconstraints: [{ value: filterTrangthai.value, matchMode: "equals" }],
+        filteroperator: "and",
+        key: "status",
+    };
+    filterSQL.value.push(filterS);
+    loadDataSQL();
 };
 watch(selectedStamps, () => {
-  if (selectedStamps.value.length > 0) {
-    checkDelList.value = true;
-  } else {
-    checkDelList.value = false;
-  }
+    if (selectedStamps.value.length > 0) {
+        checkDelList.value = true;
+    } else {
+        checkDelList.value = false;
+    }
 });
 const op = ref();
 const toggle = (event) => {
-  op.value.toggle(event);
+    op.value.toggle(event);
 };
 
 const onChangePriod1 = () => {
-  if (reviewuser.value.is_period_month) {
-    reviewuser.value.is_period_year = false;
-    reviewuser.value.is_period_quarter = false;
-  } else {
-    reviewuser.value.is_period_month = true;
-  }
+    if (reviewuser.value.is_period_month) {
+        reviewuser.value.is_period_year = false;
+        reviewuser.value.is_period_quarter = false;
+    } else {
+        reviewuser.value.is_period_month = true;
+    }
 };
 const onChangePriod2 = () => {
-  if (reviewuser.value.is_period_quarter) {
-    reviewuser.value.is_period_year = false;
-    reviewuser.value.is_period_month = false;
-  } else {
-    reviewuser.value.is_period_month = true;
-  }
+    if (reviewuser.value.is_period_quarter) {
+        reviewuser.value.is_period_year = false;
+        reviewuser.value.is_period_month = false;
+    } else {
+        reviewuser.value.is_period_month = true;
+    }
 };
 const onChangePriod3 = () => {
-  if (reviewuser.value.is_period_year) {
-    reviewuser.value.is_period_month = false;
-    reviewuser.value.is_period_quarter = false;
-  } else {
-    reviewuser.value.is_period_month = true;
-  }
+    if (reviewuser.value.is_period_year) {
+        reviewuser.value.is_period_month = false;
+        reviewuser.value.is_period_quarter = false;
+    } else {
+        reviewuser.value.is_period_month = true;
+    }
 };
 onMounted(() => {
-  loadData(true);
-  return {
-    datalists,
-    options,
-    onPage,
-    loadData,
-    loadCount,
-    openBasic,
-    closeDialog,
-    basedomainURL,
+    loadData(true);
+    return {
+        datalists,
+        options,
+        onPage,
+        loadData,
+        loadCount,
+        openBasic,
+        closeDialog,
+        basedomainURL,
 
-    saveData,
-    isFirst,
-    searchStamp,
-    onCheckBox,
-    selectedStamps,
-    deleteList,
-  };
+        saveData,
+        isFirst,
+        searchStamp,
+        onCheckBox,
+        selectedStamps,
+        deleteList,
+    };
 });
 </script>
-    <template>
-  <div class="main-layout true flex-grow-1 p-2 pb-0 pr-0">
-    <DataTable
-      @page="onPage($event)"
-      @sort="onSort($event)"
-      @filter="onFilter($event)"
-      v-model:filters="filters"
-      :filters="filters"
-      filterDisplay="menu"
-      filterMode="lenient"
-      :scrollable="true"
-      scrollHeight="flex"
-      :showGridlines="true"
-      columnResizeMode="fit"
-      :lazy="true"
-      :reorderableColumns="true"
-      :totalRecords="options.totalRecords"
-      :loading="options.loading"
-      :value="datalists"
-      removableSort
-      v-model:rows="options.PageSize"
-      paginatorTemplate="FirstPageLink PrevPageLink PageLinks NextPageLink LastPageLink RowsPerPageDropdown"
-      :rowsPerPageOptions="[20, 30, 50, 100, 200]"
-      :paginator="true"
-      dataKey="reviewuser_id"
-      responsiveLayout="scroll"
-      v-model:selection="selectedStamps"
-      :row-hover="true"
-    >
-      <template #header>
-        <h3 class="module-title mt-0 ml-1 mb-2">
-          <i class="pi pi-user-edit"></i> Danh sách mẫu biểu của tôi ({{
-            options.totalRecords
-          }})
-        </h3>
-        <Toolbar class="w-full custoolbar">
-          <template #start>
-            <span class="p-input-icon-left">
-              <i class="pi pi-search" />
-              <InputText
-                v-model="options.SearchText"
-                @keyup="searchStamp"
-                type="text"
-                spellcheck="false"
-                placeholder="Tìm kiếm"
-              />
-              <Button
-                type="button"
-                class="ml-2"
-                icon="pi pi-filter"
-                @click="toggle"
-                aria:haspopup="true"
-                aria-controls="overlay_panel"
-                v-tooltip="'Bộ lọc'"
-                :class="
-                  filterTrangthai != null && checkFilter
-                    ? ''
-                    : 'p-button-secondary p-button-outlined'
-                "
-              />
-              <OverlayPanel
-                ref="op"
-                appendTo="body"
-                class="p-0 m-0"
-                :showCloseIcon="false"
-                id="overlay_panel"
-                style="width: 300px"
-              >
-                <div class="grid formgrid m-0">
-                  <div class="flex field col-12 p-0">
-                    <div
-                      class="col-4 text-left pt-2 p-0"
-                      style="text-align: left"
-                    >
-                      Trạng thái
-                    </div>
-                    <div class="col-8">
-                      <Dropdown
-                        class="col-12 p-0 m-0"
-                        v-model="filterTrangthai"
-                        :options="trangThai"
-                        optionLabel="name"
-                        optionValue="code"
-                        placeholder="Trạng thái"
-                      />
-                    </div>
-                  </div>
-                  <div class="flex col-12 p-0">
-                    <Toolbar
-                      class="border-none surface-0 outline-none pb-0 w-full"
-                    >
-                      <template #start>
-                        <Button
-                          @click="reFilterEmail"
-                          class="p-button-outlined"
-                          label="Xóa"
-                        ></Button>
-                      </template>
-                      <template #end>
-                        <Button @click="filterFileds" label="Lọc"></Button>
-                      </template>
-                    </Toolbar>
-                  </div>
-                </div>
-              </OverlayPanel>
-            </span>
-          </template>
+<template>
+    <div class="main-layout true flex-grow-1 p-2 pb-0 pr-0">
+        <DataTable @page="onPage($event)" @sort="onSort($event)" @filter="onFilter($event)" v-model:filters="filters"
+            :filters="filters" filterDisplay="menu" filterMode="lenient" :scrollable="true" scrollHeight="flex"
+            :showGridlines="true" columnResizeMode="fit" :lazy="true" :reorderableColumns="true"
+            :totalRecords="options.totalRecords" :loading="options.loading" :value="datalists" removableSort
+            v-model:rows="options.PageSize"
+            paginatorTemplate="FirstPageLink PrevPageLink PageLinks NextPageLink LastPageLink RowsPerPageDropdown"
+            :rowsPerPageOptions="[20, 30, 50, 100, 200]" :paginator="true" dataKey="reviewuser_id" responsiveLayout="scroll"
+            v-model:selection="selectedStamps" :row-hover="true">
+            <template #header>
+                <h3 class="module-title mt-0 ml-1 mb-2">
+                    <i class="pi pi-user-edit"></i> Danh sách mẫu biểu của tôi ({{
+                        options.totalRecords
+                    }})
+                </h3>
+                <Toolbar class="w-full custoolbar">
+                    <template #start>
+                        <span class="p-input-icon-left">
+                            <i class="pi pi-search" />
+                            <InputText v-model="options.SearchText" @keyup="searchStamp" type="text" spellcheck="false"
+                                placeholder="Tìm kiếm" />
+                            <Button type="button" class="ml-2" icon="pi pi-filter" @click="toggle" aria:haspopup="true"
+                                aria-controls="overlay_panel" v-tooltip="'Bộ lọc'" :class="filterTrangthai != null && checkFilter
+                                        ? ''
+                                        : 'p-button-secondary p-button-outlined'
+                                    " />
+                            <OverlayPanel ref="op" appendTo="body" class="p-0 m-0" :showCloseIcon="false" id="overlay_panel"
+                                style="width: 300px">
+                                <div class="grid formgrid m-0">
+                                    <div class="flex field col-12 p-0">
+                                        <div class="col-4 text-left pt-2 p-0" style="text-align: left">
+                                            Trạng thái
+                                        </div>
+                                        <div class="col-8">
+                                            <Dropdown class="col-12 p-0 m-0" v-model="filterTrangthai" :options="trangThai"
+                                                optionLabel="name" optionValue="code" placeholder="Trạng thái" />
+                                        </div>
+                                    </div>
+                                    <div class="flex col-12 p-0">
+                                        <Toolbar class="border-none surface-0 outline-none pb-0 w-full">
+                                            <template #start>
+                                                <Button @click="reFilterEmail" class="p-button-outlined"
+                                                    label="Xóa"></Button>
+                                            </template>
+                                            <template #end>
+                                                <Button @click="filterFileds" label="Lọc"></Button>
+                                            </template>
+                                        </Toolbar>
+                                    </div>
+                                </div>
+                            </OverlayPanel>
+                        </span>
+                    </template>
 
-          <template #end>
-            <Button
-              v-if="checkDelList"
-              @click="deleteList()"
-              label="Xóa"
-              icon="pi pi-trash"
-              class="mr-2 p-button-danger"
-            />
-            <Button
-              @click="openBasic('Thêm mẫu đánh giá')"
-              label="Thêm mới"
-              icon="pi pi-plus"
-              class="mr-2"
-            />
-            <Button
-              @click="openBasic('Thêm mẫu đánh giá')"
-              label="Lập cho nhân sự"
-              icon="pi pi-plus"
-              class="mr-2"
-            />
-            <Button
-              @click="refreshStamp"
-              class="mr-2 p-button-outlined p-button-secondary"
-              icon="pi pi-refresh"
-              v-tooltip="'Tải lại'"
-            />
+                    <template #end>
+                        <Button v-if="checkDelList" @click="deleteList()" label="Xóa" icon="pi pi-trash"
+                            class="mr-2 p-button-danger" />
+                        <Button @click="openBasic('Thêm mẫu đánh giá')" label="Thêm mới" icon="pi pi-plus" class="mr-2" />
+                        <Button @click="openBasic('Thêm mẫu đánh giá')" label="Lập cho nhân sự" icon="pi pi-plus"
+                            class="mr-2" />
+                        <Button @click="refreshStamp" class="mr-2 p-button-outlined p-button-secondary" icon="pi pi-refresh"
+                            v-tooltip="'Tải lại'" />
 
-            <!-- <Button
+                        <!-- <Button
               label="Tiện ích"
               icon="pi pi-file-excel"
               class="mr-2 p-button-outlined p-button-secondary"
@@ -954,471 +882,307 @@ onMounted(() => {
               :model="itemButs"
               :popup="true"
             /> -->
-          </template>
-        </Toolbar></template
-      >
+                    </template>
+                </Toolbar>
+            </template>
 
-      <Column
-        class="align-items-center justify-content-center text-center"
-        headerStyle="text-align:center;max-width:70px;height:50px"
-        bodyStyle="text-align:center;max-width:70px"
-        selectionMode="multiple"
-        v-if="store.getters.user.is_super == true"
-      >
-      </Column>
+            <Column class="align-items-center justify-content-center text-center"
+                headerStyle="text-align:center;max-width:70px;height:50px" bodyStyle="text-align:center;max-width:70px"
+                selectionMode="multiple" v-if="store.getters.user.is_super == true">
+            </Column>
 
-      <Column
-        field="STT"
-        header="STT"
-        class="align-items-center justify-content-center text-center"
-        headerStyle="text-align:center;max-width:70px;height:50px"
-        bodyStyle="text-align:center;max-width:70px"
-        :sortable="true"
-      ></Column>
+            <Column field="STT" header="STT" class="align-items-center justify-content-center text-center"
+                headerStyle="text-align:center;max-width:70px;height:50px" bodyStyle="text-align:center;max-width:70px"
+                :sortable="true"></Column>
 
-      <Column
-        field="reviewuser_name"
-        header="Tên mẫu đánh giá"
-        :sortable="true"
-        headerStyle="text-align:left;height:50px"
-        bodyStyle="text-align:left"
-      >
-        <template #filter="{ filterModel }">
-          <InputText
-            type="text"
-            v-model="filterModel.value"
-            class="p-column-filter"
-            placeholder="Từ khoá"
-          />
-        </template>
-      </Column>
-
-      <Column
-        field="status"
-        header="Trạng thái"
-        headerStyle="text-align:center;max-width:150px;height:50px"
-        bodyStyle="text-align:center;max-width:150px"
-        class="align-items-center justify-content-center text-center"
-      >
-        <template #body="data">
-          <Checkbox
-            :disabled="
-              !(
-                store.state.user.is_super == true ||
-                store.state.user.user_id == data.data.created_by ||
-                (store.state.user.role_id == 'admin' &&
-                  store.state.user.organization_id == data.data.organization_id)
-              )
-            "
-            :binary="true"
-            v-model="data.data.status"
-            @click="onCheckBox(data.data, true, true)"
-          /> </template
-      ></Column>
-      <Column
-        field="organization_id"
-        header="Hệ thống"
-        headerStyle="text-align:center;max-width:125px;height:50px"
-        bodyStyle="text-align:center;max-width:125px;;max-height:60px"
-        class="align-items-center justify-content-center text-center"
-      >
-        <template #body="data">
-          <div v-if="data.data.is_system == true">
-            <i class="pi pi-check text-blue-400" style="font-size: 1.5rem"></i>
-          </div>
-          <div v-else></div>
-        </template>
-      </Column>
-      <Column
-        header="Chức năng"
-        class="align-items-center justify-content-center text-center"
-        headerStyle="text-align:center;max-width:150px;height:50px"
-        bodyStyle="text-align:center;max-width:150px"
-      >
-        <template #body="Tem">
-          <div
-            v-if="
-              store.state.user.is_super == true ||
-              store.state.user.user_id == Tem.data.created_by ||
-              (store.state.user.role_id == 'admin' &&
-                store.state.user.organization_id == Tem.data.organization_id)
-            "
-          >
-            <Button
-              @click="editTem(Tem.data)"
-              class="p-button-rounded p-button-secondary p-button-outlined mx-1"
-              type="button"
-              icon="pi pi-pencil"
-              v-tooltip.top="'Sửa'"
-            ></Button>
-            <Button
-              class="p-button-rounded p-button-secondary p-button-outlined mx-1"
-              type="button"
-              icon="pi pi-trash"
-              @click="delTem(Tem.data)"
-              v-tooltip.top="'Xóa'"
-            ></Button>
-          </div>
-        </template>
-      </Column>
-      <template #empty>
-        <div
-          class="align-items-center justify-content-center p-4 text-center m-auto"
-          v-if="!isFirst"
-        >
-          <img src="../../../assets/background/nodata.png" height="144" />
-          <h3 class="m-1">Không có dữ liệu</h3>
-        </div>
-      </template>
-    </DataTable>
-  </div>
-
-  <Dialog
-    :header="headerDialog"
-    v-model:visible="displayBasic"
-    :style="{ width: '65vw' }"
-    :closable="true"
-    :modal="true"
-  >
-    <form>
-      <div class="grid formgrid m-2">
-        <div class="field col-12 md:col-12">
-          <label class="w-11rem text-left p-0">Mẫu biểu đánh giá</label>
-          <InputText
-            v-model="reviewuser.review_form_name"
-            spellcheck="false"
-            class="ip36 px-2 d-design-disabled"
-            style="width: calc(100% - 11rem)"
-            disabled
-          />
-        </div>
-        <div class="field col-12 md:col-12 flex align-items-center">
-          <div class="w-11rem text-left p-0">
-            Người đánh giá <span class="redsao pl-1"> (*)</span>
-          </div>
-          <div class="p-0" style="width: calc(100% - 11rem)">
-            <DropdownProfile
-              :model="reviewuser.profile_id"
-              :placeholder="'Chọn người đánh giá'"
-              :class="
-                reviewuser.profile_id == null && submitted
-                  ? 'p-invalid w-full p-0'
-                  : ' w-full p-0'
-              "
-              :editable="false"
-              optionLabel="profile_user_name"
-              optionValue="code"
-              :callbackFun="getProfileUser"
-              :key_user="'profile_id'"
-            />
-          </div>
-        </div>
-        <div
-          style="display: flex"
-          class="field col-12 md:col-12"
-          v-if="reviewuser.profile_id == null && submitted"
-        >
-          <div class="w-11rem text-left"></div>
-          <small class="p-error" style="width: calc(100% - 11rem)">
-            <span class="col-12 p-0"
-              >Nhân sự đánh giá không được để trống!</span
-            >
-          </small>
-        </div>
-        <div class="field col-12 md:col-12 align-items-center flex">
-          <div class="w-11rem p-0 align-items-center flex">Kỳ đánh giá</div>
-          <div
-            style="width: calc(100% - 11rem)"
-            class="align-items-center flex"
-          >
-            <div class="w-full p-0 align-items-center flex">
-              <div>Đánh giá theo tháng</div>
-              <div class="pl-3">
-                <InputSwitch
-                  v-model="reviewuser.is_period_month"
-                  class="lck-checked w-4rem"
-                  @change="onChangePriod1"
-                />
-              </div>
-            </div>
-
-            <div class="w-full p-0 align-items-center flex">
-              <div>Đánh giá theo quý</div>
-              <div class="pl-3">
-                <InputSwitch
-                  v-model="reviewuser.is_period_quarter"
-                  class="lck-checked w-4rem"
-                  @change="onChangePriod2"
-                />
-              </div>
-            </div>
-            <div class="w-full p-0 align-items-center flex">
-              <div>Đánh giá theo năm</div>
-              <div class="pl-3">
-                <InputSwitch
-                  v-model="reviewuser.is_period_year"
-                  class="lck-checked w-4rem"
-                  @change="onChangePriod3"
-                />
-              </div>
-            </div>
-          </div>
-        </div>
-        <div class="field col-12 md:col-12 align-items-center flex">
-          <div class="col-6 p-0 flex pr-3" v-if="reviewuser.is_period_month">
-            <div class="w-11rem p-0 align-items-center flex">
-              Tháng đánh giá
-            </div>
-            <div
-              style="width: calc(100% - 11rem)"
-              class="align-items-center flex"
-            >
-              <Calendar
-                v-model="reviewuser.month_fake"
-                view="month"
-                dateFormat="mm"
-                class="w-full"
-                panelClass="d-calendar-design-m"
-                :showIcon="true"
-              >
-              </Calendar>
-            </div>
-          </div>
-          <div class="col-6 p-0 flex pr-3" v-if="reviewuser.is_period_quarter">
-            <div class="w-11rem p-0 align-items-center flex">Qúy đánh giá</div>
-            <div
-              style="width: calc(100% - 11rem)"
-              class="align-items-center flex"
-            >
-              <Dropdown
-                class="col-12 p-0 m-0"
-                v-model="reviewuser.is_quarter_fake"
-                :options="listQuarters"
-                optionLabel="name"
-                optionValue="code"
-                placeholder="Chọn quý đánhg giá"
-              />
-            </div>
-          </div>
-
-          <div class="w-full p-0 flex">
-            <div class="w-11rem p-0 align-items-center flex">
-              Năm đánh giá <span class="redsao pl-1"> (*)</span>
-            </div>
-            <div
-              style="width: calc(100% - 11rem)"
-              class="align-items-center flex"
-            >
-              <Calendar
-                v-model="reviewuser.year_fake"
-                view="year"
-                dateFormat="yy"
-                class="w-full"
-                :showIcon="true"
-              >
-              </Calendar>
-            </div>
-          </div>
-        </div>
-        <div class="col-12 field md:col-12 flex">
-          <div class="field col-6 md:col-6 p-0 align-items-center flex">
-            <div class="w-11rem text-left p-0">STT</div>
-            <InputNumber
-              v-model="reviewuser.is_order"
-              style="width: calc(100% - 11rem)"
-              class="pr-3 ip36 p-0"
-            />
-          </div>
-          <div class="field col-6 md:col-6 p-0 align-items-center flex">
-            <div class="w-11rem text-left p-0">Trạng thái</div>
-            <InputSwitch
-              v-model="reviewuser.status"
-              class="w-4rem lck-checked"
-              style="width: calc(100% - 11rem)"
-            />
-          </div>
-        </div>
-        <div
-          class="col-12 field md:col-12"
-          v-for="(item, index) in liEvcalCriterias"
-          :key="index"
-        >
-          <div class="col-12 p-0 font-bold">
-            <h3 class="text-blue-500">
-              PHẦN {{ item.roman_order }}: {{ item.review_imp_name }} ({{
-                item.percen
-              }}
-              %)
-            </h3>
-          </div>
-          <div class="col-12 p-0">
-            <DataTable
-              :value="
-                liEvcalCriteriasChild.filter(
-                  (x) => x.roman_order == item.roman_order
-                )
-              "
-              filterDisplay="menu"
-              filterMode="lenient"
-              scrollHeight="flex"
-              :showGridlines="true"
-              columnResizeMode="fit"
-              :lazy="true"
-              :reorderableColumns="true"
-              tableStyle="width:100%"
-              responsiveLayout="scroll"
-            >
-              <ColumnGroup type="header">
-                <Row>
-                  <Column
-                    header="Nhóm nội dung đánh giá"
-                    :rowspan="3"
-                    v-if="item.type == 1"
-                    headerStyle=" width:15% ; height:50px"
-                    bodyStyle="text-align:center;width:15% !important;   "
-                  />
-                  <Column
-                    header="Chuyên môn nghiệp vụ"
-                    :rowspan="3"
-                    v-else
-                    headerStyle=" width:15% ; height:50px"
-                    bodyStyle="text-align:center;width:15% !important;   "
-                  />
-                  <Column header="Nội dung đánh giá" :rowspan="3"
-                  headerStyle=" width:20% ; height:50px"
-                    bodyStyle="text-align:center;width:20% !important;   " />
-                  <Column header="Tỷ trọng" :rowspan="3" 
-                  headerStyle=" width:3% ; height:50px"
-                  class="align-items-center justify-content-center text-center"
-                    bodyStyle="text-align:center;width:3% !important;   "
-                  />
-
-                  <Column
-                    header="Công việc được giao"
-                    :rowspan="item.type == 1 ? 3 : 2"
-                    :colspan="item.type == 1 ? 1 : 2"
-
-                    headerStyle=" width:20% ; height:50px"
-                    bodyStyle="text-align:center;width:20% !important;   "
-                  />
-                  <Column header="Đầu việc" :rowspan="3"    
-                  class="align-items-center justify-content-center text-center"      headerStyle=" width:5% ; height:50px"
-                    bodyStyle="text-align:center;width:5% !important;   " />
-                  <Column header="Kết quả công việc  " :rowspan="3"
-                  headerStyle=" width:12% ; height:50px"
-                    bodyStyle="text-align:center;width:12% !important;   "
-                  />
-                  <Column header="Tối đa" :rowspan="3"  
-                  class="align-items-center justify-content-center text-center"        headerStyle=" width:3% ; height:50px"
-                    bodyStyle="text-align:center;width:3% !important;   " />
-                  <Column header="Tự đánh giá" :rowspan="3"
-                  class="align-items-center justify-content-center text-center"
-                  headerStyle=" width:7% ; height:50px"
-                    bodyStyle="text-align:center;width:7% !important;   "/>
-                </Row>
-                <Row> </Row>
-                <Row>
-                  <Column
-                    header="Đầu việc"
-                    field="lastYearSale"
-                    v-if="item.type == 2"
-                    headerStyle=" width:10% ; height:50px"
-                    bodyStyle="text-align:center;width:10% !important;   "
-                  />
-                  <Column
-                    header="Khối lượng, chất lượng, tiến độ công việc"
-                    field="thisYearSale"
-                    headerStyle=" width:10% ; height:50px"
-                    bodyStyle="text-align:center;width:10% !important;   "
-                    v-if="item.type == 2"
-                  />
-                </Row>
-              </ColumnGroup>
-              <Column field="child_name" />
-
-              <Column
-                field="des"
-             
-                headerStyle="text-align:center;max-width:150px;height:50px"
-                bodyStyle="text-align:center;max-width:150px"
-              />
-              <Column field="weight"    class="align-items-center justify-content-center text-center">
-                <template #body="slotProps">
-                  {{ slotProps.data.weight }} %
+            <Column field="reviewuser_name" header="Tên mẫu đánh giá" :sortable="true"
+                headerStyle="text-align:left;height:50px" bodyStyle="text-align:left">
+                <template #filter="{ filterModel }">
+                    <InputText type="text" v-model="filterModel.value" class="p-column-filter" placeholder="Từ khoá" />
                 </template>
-              </Column>
-              <Column
-                field="desired_results"
-                class="align-items-center justify-content-center text-center"
-                headerStyle="text-align:center;max-width:150px;height:50px"
-                bodyStyle="text-align:center;max-width:150px"
-              />
-              <Column field="weight_child"    class="align-items-center justify-content-center text-center">
-                <template #body="slotProps">
-                  {{ slotProps.data.weight_child }} %
-                </template>
-              </Column>
-              <Column field="complete_results">
-                <template #body="slotProps"> Inpu </template>
-              </Column>
-              <Column field="max_score"    class="align-items-center justify-content-center text-center">
-                <template #body="slotProps"> </template>
-              </Column>
-              <Column field="self_ccore"    class="align-items-center justify-content-center text-center">
-                <template #body="slotProps"> </template>
-              </Column>
-              <ColumnGroup type="footer">
-                <Row>
-                  <Column
-                    footer="Totals:"
-                    :colspan="3"
-                    footerStyle="text-align:right"
-                  />
-                  <Column :footer="lastYearTotal" />
-                  <Column :footer="thisYearTotal" />
-                </Row>
-              </ColumnGroup>
-            </DataTable>
-          </div>
-        </div>
-      </div>
-    </form>
-    <template #footer>
-      <Button
-        label="Hủy"
-        icon="pi pi-times"
-        @click="closeDialog"
-        class="p-button-outlined"
-      />
+            </Column>
 
-      <Button
-        label="Lưu"
-        icon="pi pi-check"
-        @click="saveData(!v$.$invalid)"
-        autofocus
-      />
-    </template>
-  </Dialog>
+            <Column field="status" header="Trạng thái" headerStyle="text-align:center;max-width:150px;height:50px"
+                bodyStyle="text-align:center;max-width:150px" class="align-items-center justify-content-center text-center">
+                <template #body="data">
+                    <Checkbox :disabled="!(
+                            store.state.user.is_super == true ||
+                            store.state.user.user_id == data.data.created_by ||
+                            (store.state.user.role_id == 'admin' &&
+                                store.state.user.organization_id == data.data.organization_id)
+                        )
+                        " :binary="true" v-model="data.data.status" @click="onCheckBox(data.data, true, true)" />
+                </template>
+            </Column>
+            <Column field="organization_id" header="Hệ thống" headerStyle="text-align:center;max-width:125px;height:50px"
+                bodyStyle="text-align:center;max-width:125px;;max-height:60px"
+                class="align-items-center justify-content-center text-center">
+                <template #body="data">
+                    <div v-if="data.data.is_system == true">
+                        <i class="pi pi-check text-blue-400" style="font-size: 1.5rem"></i>
+                    </div>
+                    <div v-else></div>
+                </template>
+            </Column>
+            <Column header="Chức năng" class="align-items-center justify-content-center text-center"
+                headerStyle="text-align:center;max-width:150px;height:50px" bodyStyle="text-align:center;max-width:150px">
+                <template #body="Tem">
+                    <div v-if="store.state.user.is_super == true ||
+                        store.state.user.user_id == Tem.data.created_by ||
+                        (store.state.user.role_id == 'admin' &&
+                            store.state.user.organization_id == Tem.data.organization_id)
+                        ">
+                        <Button @click="editTem(Tem.data)"
+                            class="p-button-rounded p-button-secondary p-button-outlined mx-1" type="button"
+                            icon="pi pi-pencil" v-tooltip.top="'Sửa'"></Button>
+                        <Button class="p-button-rounded p-button-secondary p-button-outlined mx-1" type="button"
+                            icon="pi pi-trash" @click="delTem(Tem.data)" v-tooltip.top="'Xóa'"></Button>
+                    </div>
+                </template>
+            </Column>
+            <template #empty>
+                <div class="align-items-center justify-content-center p-4 text-center m-auto" v-if="!isFirst">
+                    <img src="../../../assets/background/nodata.png" height="144" />
+                    <h3 class="m-1">Không có dữ liệu</h3>
+                </div>
+            </template>
+        </DataTable>
+    </div>
+
+    <Dialog :header="headerDialog" v-model:visible="displayBasic" :style="{ width: '65vw' }" :closable="true" :modal="true">
+        <form>
+            <div class="grid formgrid m-2">
+                <div class="field col-12 md:col-12">
+                    <label class="w-11rem text-left p-0">Mẫu biểu đánh giá</label>
+                    <InputText v-model="reviewuser.review_form_name" spellcheck="false" class="ip36 px-2 d-design-disabled"
+                        style="width: calc(100% - 11rem)" disabled />
+                </div>
+                <div class="field col-12 md:col-12 flex align-items-center">
+                    <div class="w-11rem text-left p-0">
+                        Người đánh giá <span class="redsao pl-1"> (*)</span>
+                    </div>
+                    <div class="p-0" style="width: calc(100% - 11rem)">
+                        <DropdownProfile :model="reviewuser.profile_id" :placeholder="'Chọn người đánh giá'" :class="reviewuser.profile_id == null && submitted
+                                ? 'p-invalid w-full p-0'
+                                : ' w-full p-0'
+                            " :editable="false" optionLabel="profile_user_name" optionValue="code" :callbackFun="getProfileUser"
+                            :key_user="'profile_id'" />
+                    </div>
+                </div>
+                <div style="display: flex" class="field col-12 md:col-12" v-if="reviewuser.profile_id == null && submitted">
+                    <div class="w-11rem text-left"></div>
+                    <small class="p-error" style="width: calc(100% - 11rem)">
+                        <span class="col-12 p-0">Nhân sự đánh giá không được để trống!</span>
+                    </small>
+                </div>
+                <div class="field col-12 md:col-12 align-items-center flex">
+                    <div class="w-11rem p-0 align-items-center flex">Kỳ đánh giá</div>
+                    <div style="width: calc(100% - 11rem)" class="align-items-center flex">
+                        <div class="w-full p-0 align-items-center flex">
+                            <div>Đánh giá theo tháng</div>
+                            <div class="pl-3">
+                                <InputSwitch v-model="reviewuser.is_period_month" class="lck-checked w-4rem"
+                                    @change="onChangePriod1" />
+                            </div>
+                        </div>
+
+                        <div class="w-full p-0 align-items-center flex">
+                            <div>Đánh giá theo quý</div>
+                            <div class="pl-3">
+                                <InputSwitch v-model="reviewuser.is_period_quarter" class="lck-checked w-4rem"
+                                    @change="onChangePriod2" />
+                            </div>
+                        </div>
+                        <div class="w-full p-0 align-items-center flex">
+                            <div>Đánh giá theo năm</div>
+                            <div class="pl-3">
+                                <InputSwitch v-model="reviewuser.is_period_year" class="lck-checked w-4rem"
+                                    @change="onChangePriod3" />
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                <div class="field col-12 md:col-12 align-items-center flex">
+                    <div class="col-6 p-0 flex pr-3" v-if="reviewuser.is_period_month">
+                        <div class="w-11rem p-0 align-items-center flex">
+                            Tháng đánh giá
+                        </div>
+                        <div style="width: calc(100% - 11rem)" class="align-items-center flex">
+                            <Calendar v-model="reviewuser.month_fake" view="month" dateFormat="mm" class="w-full"
+                                panelClass="d-calendar-design-m" :showIcon="true">
+                            </Calendar>
+                        </div>
+                    </div>
+                    <div class="col-6 p-0 flex pr-3" v-if="reviewuser.is_period_quarter">
+                        <div class="w-11rem p-0 align-items-center flex">Qúy đánh giá</div>
+                        <div style="width: calc(100% - 11rem)" class="align-items-center flex">
+                            <Dropdown class="col-12 p-0 m-0" v-model="reviewuser.is_quarter_fake" :options="listQuarters"
+                                optionLabel="name" optionValue="code" placeholder="Chọn quý đánhg giá" />
+                        </div>
+                    </div>
+
+                    <div class="w-full p-0 flex">
+                        <div class="w-11rem p-0 align-items-center flex">
+                            Năm đánh giá <span class="redsao pl-1"> (*)</span>
+                        </div>
+                        <div style="width: calc(100% - 11rem)" class="align-items-center flex">
+                            <Calendar v-model="reviewuser.year_fake" view="year" dateFormat="yy" class="w-full"
+                                :showIcon="true">
+                            </Calendar>
+                        </div>
+                    </div>
+                </div>
+                <div class="col-12 field md:col-12 flex">
+                    <div class="col-6 md:col-6 p-0 align-items-center flex">
+                        <div class="w-11rem text-left p-0">STT</div>
+                        <InputNumber v-model="reviewuser.is_order" style="width: calc(100% - 11rem)"
+                            class="pr-3 ip36 p-0" />
+                    </div>
+                    <div class="col-6 md:col-6 p-0 align-items-center flex">
+                        <div class="w-11rem text-left p-0">Trạng thái</div>
+                        <InputSwitch v-model="reviewuser.status" class="w-4rem lck-checked"
+                            style="width: calc(100% - 11rem)" />
+                    </div>
+                </div>
+                <div class="col-12 field md:col-12" v-for="(item, index) in liEvcalCriterias" :key="index">
+                    <div class="col-12 p-0 font-bold">
+                        <h3 class="text-blue-500">
+                            PHẦN {{ item.roman_order }}: {{ item.review_imp_name }} ({{
+                                item.percen
+                            }}
+                            %)
+                        </h3>
+                    </div>
+                    <div class="col-12 p-0">
+                        <DataTable :value="liEvcalCriteriasChild.filter(
+                                    (x) => x.roman_order == item.roman_order
+                                )
+                                " filterDisplay="menu" filterMode="lenient" scrollHeight="flex" :showGridlines="true"
+                            columnResizeMode="fit" :lazy="true" :reorderableColumns="true" tableStyle="width:100%"
+                            responsiveLayout="scroll">
+                            <ColumnGroup type="header">
+                                <Row>
+                                    <Column header="Nhóm nội dung đánh giá" 
+                                        :rowspan="3"
+                                        headerStyle=" width:15% ; height:50px"
+                                        bodyStyle="text-align:center;width:15% !important;" 
+                                        v-if="item.type == 1"
+                                    />
+                                    <Column header="Chuyên môn nghiệp vụ" :rowspan="3" v-else
+                                        headerStyle=" width:15% ; height:50px"
+                                        bodyStyle="text-align:center;width:15% !important;" />
+                                    <Column header="Nội dung đánh giá" :rowspan="3" 
+                                        headerStyle=" width:20% ; height:50px"
+                                        bodyStyle="text-align:left;width:20% !important;" />
+                                    <Column header="Tỷ trọng đánh giá" :rowspan="3" 
+                                        headerStyle=" width:3% ; height:50px"
+                                        class="align-items-center justify-content-center text-center"
+                                        bodyStyle="text-align:center;width:3% !important;" />
+
+                                    <Column header="Công việc được giao" 
+                                        :rowspan="item.type == 1 ? 3 : 2"
+                                        :colspan="item.type == 1 ? 1 : 2" 
+                                        headerStyle=" width:20% ; height:50px"
+                                        bodyStyle="text-align:left;width:20% !important;" />
+                                    <Column header="Tỷ trọng đầu việc" :rowspan="3"
+                                        class="align-items-center justify-content-center text-center"
+                                        headerStyle=" width:5% ; height:50px"
+                                        bodyStyle="text-align:center;width:5% !important;" />
+                                    <Column header="Kết quả công việc  " :rowspan="3" 
+                                        headerStyle=" width:12% ; height:50px"
+                                        bodyStyle="text-align:center;width:12% !important;" />
+                                    <Column header="Tối đa" :rowspan="3"
+                                        class="align-items-center justify-content-center text-center"
+                                        headerStyle=" width:3% ; height:50px"
+                                        bodyStyle="text-align:center;width:3% !important;" />
+                                    <Column header="Tự đánh giá" :rowspan="3"
+                                        class="align-items-center justify-content-center text-center"
+                                        headerStyle=" width:7% ; height:50px"
+                                        bodyStyle="text-align:center;width:7% !important;" />
+                                </Row>
+                                <Row> </Row>
+                                <Row>
+                                    <Column header="Đầu việc" field="lastYearSale" v-if="item.type == 2"
+                                        headerStyle=" width:10% ; height:50px"
+                                        bodyStyle="text-align:center;width:10% !important;" />
+                                    <Column header="Khối lượng, chất lượng, tiến độ công việc" field="thisYearSale"
+                                        headerStyle=" width:10% ; height:50px"
+                                        bodyStyle="text-align:center;width:10% !important;" v-if="item.type == 2" />
+                                </Row>
+                            </ColumnGroup>
+                            <Column field="child_name" />
+
+                            <Column field="des" headerStyle="text-align:center;max-width:150px;height:50px"
+                                bodyStyle="text-align:center;max-width:150px" />
+                            <Column field="weight" class="align-items-center justify-content-center text-center">
+                                <template #body="slotProps">
+                                    {{ slotProps.data.weight }} %
+                                </template>
+                            </Column>
+                            <Column field="desired_results" class="align-items-center justify-content-center text-center"
+                                headerStyle="text-align:center;max-width:150px;height:50px"
+                                bodyStyle="text-align:center;max-width:150px" />
+                            <Column field="weight_child" class="align-items-center justify-content-center text-center">
+                                <template #body="slotProps">
+                                    {{ slotProps.data.weight_child }} %
+                                </template>
+                            </Column>
+                            <Column field="complete_results">
+                                <template #body="slotProps">
+                                    <Textarea
+                                        class=""
+                                        rows="2"
+                                        autoResize
+                                        v-model="slotProps.data.complete_results"
+                                    ></Textarea>
+                                </template>
+                            </Column>
+                            <Column field="max_score" class="align-items-center justify-content-center text-center">
+                                <template #body="slotProps"> </template>
+                            </Column>
+                            <Column field="self_ccore" class="align-items-center justify-content-center text-center">
+                                <template #body="slotProps"> </template>
+                            </Column>
+                            <ColumnGroup type="footer">
+                                <Row>
+                                    <Column footer="Totals:" :colspan="3" footerStyle="text-align:right" />
+                                    <Column :footer="lastYearTotal" />
+                                    <Column :footer="thisYearTotal" />
+                                </Row>
+                            </ColumnGroup>
+                        </DataTable>
+                    </div>
+                </div>
+            </div>
+        </form>
+        <template #footer>
+            <Button label="Hủy" icon="pi pi-times" @click="closeDialog" class="p-button-outlined" />
+
+            <Button label="Lưu" icon="pi pi-check" @click="saveData(!v$.$invalid)" autofocus />
+        </template>
+    </Dialog>
 </template>
     
-    <style scoped>
+<style scoped>
 .inputanh {
-  border: 1px solid #ccc;
-  width: 8rem;
-  height: 8rem;
-  cursor: pointer;
-  padding: 0.063rem;
-  display: block;
-  margin-left: auto;
-  margin-right: auto;
+    border: 1px solid #ccc;
+    width: 8rem;
+    height: 8rem;
+    cursor: pointer;
+    padding: 0.063rem;
+    display: block;
+    margin-left: auto;
+    margin-right: auto;
 }
+
 .ipnone {
-  display: none;
+    display: none;
 }
+
 .inputanh img {
-  object-fit: cover;
-  width: 100%;
-  height: 100%;
+    object-fit: cover;
+    width: 100%;
+    height: 100%;
 }
 </style>
     

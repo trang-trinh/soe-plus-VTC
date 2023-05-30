@@ -1844,7 +1844,7 @@ namespace API.Controllers.Request
                                             }
                                             else
                                             {
-                                                request.status = 2; //Ban hành
+                                                request.status = 2; // Hoan thanh
                                                 request.modified_by = uid;
                                                 request.modified_date = DateTime.Now;
                                                 request.modified_ip = ip;
@@ -1988,6 +1988,24 @@ namespace API.Controllers.Request
                                                 request.modified_date = DateTime.Now;
                                                 request.modified_ip = ip;
                                                 request.modified_token_id = tid;
+                                                // ---
+                                                request.status_processing = request.is_evaluate == true ? 2 : 3;
+                                                user_current.is_sign = 2; // Hoan thanh
+                                                request.completed_date = DateTime.Now;
+                                                request.completed_by = uid;
+                                                DateTime complete_time_process = request.completed_date ?? DateTime.Now;
+                                                DateTime start_time_process = request.start_send_date ?? DateTime.Now;
+                                                TimeSpan span_process = complete_time_process.Subtract(start_time_process);
+                                                request.times_processing = Math.Round(span_process.TotalHours);
+                                                await System.Threading.Tasks.Task.Run(async () =>
+                                                {
+                                                    try
+                                                    {
+                                                        await getRequestToHrm(request, us);
+                                                    }
+                                                    catch { }
+                                                });
+                                                // ----
                                             }
                                         }
                                         else if (procedure.is_type == 2) // quy trình ngẫu nhiên
@@ -2037,6 +2055,24 @@ namespace API.Controllers.Request
                                             request.modified_date = DateTime.Now;
                                             request.modified_ip = ip;
                                             request.modified_token_id = tid;
+                                            // ---
+                                            request.status_processing = request.is_evaluate == true ? 2 : 3;
+                                            user_current.is_sign = 2; // Hoan thanh
+                                            request.completed_date = DateTime.Now;
+                                            request.completed_by = uid;
+                                            DateTime complete_time_process = request.completed_date ?? DateTime.Now;
+                                            DateTime start_time_process = request.start_send_date ?? DateTime.Now;
+                                            TimeSpan span_process = complete_time_process.Subtract(start_time_process);
+                                            request.times_processing = Math.Round(span_process.TotalHours);
+                                            await System.Threading.Tasks.Task.Run(async () =>
+                                            {
+                                                try
+                                                {
+                                                    await getRequestToHrm(request, us);
+                                                }
+                                                catch { }
+                                            });
+                                            // ----
                                         }
                                     }
                                     else if (request.is_type_send == 2)
@@ -2046,6 +2082,24 @@ namespace API.Controllers.Request
                                         request.modified_date = DateTime.Now;
                                         request.modified_ip = ip;
                                         request.modified_token_id = tid;
+                                        // ---
+                                        request.status_processing = request.is_evaluate == true ? 2 : 3;
+                                        user_current.is_sign = 2; // Hoan thanh
+                                        request.completed_date = DateTime.Now;
+                                        request.completed_by = uid;
+                                        DateTime complete_time_process = request.completed_date ?? DateTime.Now;
+                                        DateTime start_time_process = request.start_send_date ?? DateTime.Now;
+                                        TimeSpan span_process = complete_time_process.Subtract(start_time_process);
+                                        request.times_processing = Math.Round(span_process.TotalHours);
+                                        await System.Threading.Tasks.Task.Run(async () =>
+                                        {
+                                            try
+                                            {
+                                                await getRequestToHrm(request, us);
+                                            }
+                                            catch { }
+                                        });
+                                        // ----
                                     }
                                     break;
                                 case -2: // Trả lại

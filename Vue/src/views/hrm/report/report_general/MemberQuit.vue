@@ -4,10 +4,12 @@ import { required, maxLength, minLength, email } from "@vuelidate/validators";
 import { useToast } from "vue-toastification";
 import { useVuelidate } from "@vuelidate/core";
 import { encr } from "../../../../util/function.js";
+import { useRouter, useRoute } from "vue-router";
 import moment from "moment";
 
 const cryoptojs = inject("cryptojs");
 const emitter = inject("emitter");
+const router = useRoute();
 
 //color
 const bgColor = ref([
@@ -28,30 +30,15 @@ const id_active = ref();
 const department_name = ref();
 department_name.value= store.getters.user.organization_name;
 const datalists = ref();
-const personel_groups = ref();
-const selectedNodes = ref([]);
 const filters = ref({});
-const router = inject("router");
 const options = ref({
-    IsNext: true,
-    sort: "created_date",
-    SearchText: null,
-    PageNo: 0,
-    PageSize: 20,
     loading: true,
-    totalRecords: null,
-    loadingP: true,
-    pagenoP: 0,
-    pagesizeP: 20,
-    searchP: "",
-    sortP: "created_date",
-    department_id: store.getters.user.organization_id,
-    gender: null,
-    academic_level_id: null, 
-    specialization_id: null,
-    professional_work_id: null,
-    title_id: null,
-    description: null
+    departments: null,
+    genders: null,
+    personel_groups: null, 
+    titles: null,
+    positions: null,
+    is_link : null,
   });
 const genders = ref(
   [
@@ -59,7 +46,6 @@ const genders = ref(
     {text: "Nữ",value:2}
   ]
 )
-const tudiens= ref();
 const isFirst = ref(true);
 const toast = useToast();
 const swal = inject("$swal");
@@ -72,9 +58,15 @@ const menuButs = ref();
 const first = ref(0);
 const selectCapcha = ref();
 selectCapcha.value = {};
-
+const positions = ref();
+const titles = ref();
+const personel_groups = ref();
 // on event
-
+var department_id
+  ,gender
+  ,personel_group_id
+  ,title_id
+  ,position_id;
 const loadData = () => {
   swal.fire({
     width: 110,
@@ -82,29 +74,45 @@ const loadData = () => {
       swal.showLoading();
     },
   });
-    axios
-        .post(
-            baseURL + "/api/hrm/callProc",
-            {
-                str: encr(
-                    JSON.stringify({
-                        proc: "hrm_report_member_quit",
-                        par: [
-                            { par: "search", va: options.value.SearchText },
-                            { par: "user_id", va: store.getters.user.user_id },
-                            { par: "department_id", va: options.value.department_id},
-                            { par: "gender", va: options.value.gender},
-                            { par: "title_id", va: options.value.title_id},
-                        ],
-                    }),
-                    SecretKey,
-                    cryoptojs,
-                ).toString(),
-            },
-            config,
+  if (options.value.departments != null && Object.keys(options.value.departments).length > 0) {
+    var dep_ids = [];
+    for (var key in options.value.departments) {
+      if (options.value.departments[key]) {
+        dep_ids.push(key);
+      }
+    }
+    department_id = dep_ids.join(",");
+  }
+  gender = getListStringfromArr(options.value.genders, 'value');
+  personel_group_id = getListStringfromArr(options.value.professional_works, 'personel_group_id');
+  title_id = getListStringfromArr(options.value.titles, 'title_id');
+  position_id = getListStringfromArr(options.value.positions, 'position_id');
+  axios
+      .post(
+          baseURL + "/api/hrm/callProc",
+          {
+              str: encr(
+                  JSON.stringify({
+                      proc: "hrm_report_member_quit1",
+                      par: [
+                          { par: "user_id", va: store.getters.user.user_id },
+                          { par: "department_id", va: department_id},
+                          { par: "gender", va: gender},
+                          { par: "title_id", va: title_id},
+                          { par: "position_id", va: position_id},
+                          { par: "personel_group_id", va: personel_group_id},
+                          { par: "is_link", va: options.value.is_link},
+                      ],
+                  }),
+                  SecretKey,
+                  cryoptojs,
+              ).toString(),
+          },
+          config,
         )
         .then((response) => {
             let data = JSON.parse(response.data.data);
+            options.value.totalRecords =data[0].length;
             if (data[0].length > 0) {
                 data[0].forEach((item, index) => {
                     item.is_active = false;
@@ -130,39 +138,55 @@ const loadData = () => {
                           count++
                         })
                         arr.push({ group_pb: pb, name_group_pb: data[0][pb][0].department_name, list_ns: data[0][pb] });
-                    }
+                }
                 datalists.value = arr;
                 options.totalRecords = arr.length;
             }
             else datalists.value = [];
+            if (data[1].length > 0) {
+              data_org = data[1];
+              let obj = renderTreeDV(
+                data[1],
+                "organization_id",
+                "organization_name",
+                "phòng ban"
+              );
+              treedonvis.value = obj.arrtreeChils;
+            }
+            titles.value= data[2];
+            positions.value= data[3];
+            personel_groups.value= data[4];
             swal.close();
             options.value.loading = false;
         })
         .catch((error) => {
+            swal.close();
             toast.error("Tải dữ liệu không thành công!");
             options.value.loading = false;
         });
 };
 //filter
-const filterButs = ref();
-const checkFilter = ref(false);
+const opfilter = ref();
+const isfilter = ref(false)
 const toggleFilter = (event) => {
-  filterButs.value.toggle(event);
+  opfilter.value.toggle(event);
 };
-const filterReport = ()=>{
-  let keys = Object.keys(selectCapcha.value);
-  if (keys.length> 0) {
-    options.value.department_id = parseInt(keys[0]);
-    department_name.value= data_org.filter(x=>x.organization_id == options.value.department_id )[0].organization_name || '';
-  }
-  checkFilter.value = true;
-  loadData(true);
-}
-const refilterReport = () => {
-  checkFilter.value = false;
-  selectCapcha.value[store.getters.user.organization_id] = true;
-  options.value.department_id = store.getters.user.organization_id;
-  //loadData(true);
+const filter = (event) => {
+  opfilter.value.toggle(event);
+  isfilter.value = true;
+  loadData();
+};
+const resetFilter = (f) => {
+  options.value.positions = [];
+  options.value.titles = [];
+  options.value.academic_levels = [];
+  options.value.specializations = [];
+  options.value.is_partisans = [];
+  options.value.genders = [];
+  options.value.description = null;
+  options.value.departments = null;
+  department_id.value= null;
+  if(f) loadData(true);
 };
 //Khai báo function
 const toggleExport = (event) => {
@@ -177,35 +201,6 @@ const itemButs = ref([
     },
 }]);
 const treedonvis = ref();
-const initTudien = () => {
-  axios
-    .post(
-        baseURL + "/api/hrm/callProc",
-        {
-          str: encr(JSON.stringify({
-            proc: "hrm_report_dictionary",
-            par: [{ par: "user_id", va: store.getters.user.user_id }],
-              }), SecretKey, cryoptojs
-              ).toString()
-            },
-        config
-      )
-    .then((response) => {
-      let data = JSON.parse(response.data.data);
-      if (data[0].length > 0) {
-        data_org = data[0];
-        let obj = renderTreeDV(
-          data[0],
-          "organization_id",
-          "organization_name",
-          "phòng ban"
-        );
-        treedonvis.value = obj.arrtreeChils;
-      }
-      tudiens.value= data;
-    })
-    .catch((error) => {});
-};
 const exportExcel = () => {
   
   let name = "BC.HS005";
@@ -283,6 +278,9 @@ const activeRow = (row, value)=>{
 const goBack = () => {
   history.back();
 };
+const removeFilter = (idx, array) => {
+  array.splice(idx, 1);
+};
 //Khai báo function
 const renderTreeDV = (data, id, name, title) => {
   let arrChils = [];
@@ -329,10 +327,19 @@ function groupBy(list, props) {
         return a;
     }, {});
 }
+function getListStringfromArr(arr, type){
+  let id = null
+  if (arr != null && arr.length > 0) {
+    id = arr.map((x) => x[type]).join(",");
+  } else id = null;
+  return id;
+}
 onMounted(() => {
-    //init
+ //init
+ if (router.fullPath != null)
+      options.value.is_link = router.fullPath;
     loadData();
-    initTudien();
+   // initTudien();
 });
 </script>
 
@@ -480,162 +487,6 @@ onMounted(() => {
                     </div>
                     <div class="col-6 md:col-6">
                       <div class="form-group">
-                        <label>Chuyên ngành</label>
-                        <MultiSelect
-                          :options="specializations"
-                          :filter="true"
-                          :showClear="true"
-                          :editable="false"
-                          v-model="options.specializations"
-                          optionLabel="text"
-                          placeholder="Chọn chuyên ngành"
-                          class="w-full limit-width"
-                          style="min-height: 36px"
-                          panelClass="d-design-dropdown"
-                        >
-                          <template #value="slotProps">
-                            <ul
-                              class="p-ulchip"
-                              v-if="
-                                slotProps.value && slotProps.value.length > 0
-                              "
-                            >
-                              <li
-                                class="p-lichip"
-                                v-for="(value, index) in slotProps.value"
-                                :key="index"
-                              >
-                                <Chip class="mr-2 mb-2 px-3 py-2">
-                                  <div class="flex">
-                                    <div>
-                                      <span>{{ value.specialization_name }}</span>
-                                    </div>
-                                    <span
-                                      tabindex="0"
-                                      class="p-chip-remove-icon pi pi-times-circle format-flex-center"
-                                      @click="
-                                        removeFilter(index, options.specializations);
-                                        $event.stopPropagation();
-                                      "
-                                      v-tooltip.top="'Xóa'"
-                                    ></span>
-                                  </div>
-                                </Chip>
-                              </li>
-                            </ul>
-                            <span v-else>
-                              {{ slotProps.placeholder }}
-                            </span>
-                          </template>
-                        </MultiSelect>
-                      </div>
-                    </div>  
-                    <div class="col-6 md:col-6">
-                      <div class="form-group">
-                        <label>Trình độ chuyên môn</label>
-                        <MultiSelect
-                          :options="academic_levels"
-                          :filter="true"
-                          :showClear="true"
-                          :editable="false"
-                          v-model="options.academic_levels"
-                          optionLabel="text"
-                          placeholder="Chọn trình độ"
-                          class="w-full limit-width"
-                          style="min-height: 36px"
-                          panelClass="d-design-dropdown"
-                        >
-                          <template #value="slotProps">
-                            <ul
-                              class="p-ulchip"
-                              v-if="
-                                slotProps.value && slotProps.value.length > 0
-                              "
-                            >
-                              <li
-                                class="p-lichip"
-                                v-for="(value, index) in slotProps.value"
-                                :key="index"
-                              >
-                                <Chip class="mr-2 mb-2 px-3 py-2">
-                                  <div class="flex">
-                                    <div>
-                                      <span>{{ value.academic_level_name }}</span>
-                                    </div>
-                                    <span
-                                      tabindex="0"
-                                      class="p-chip-remove-icon pi pi-times-circle format-flex-center"
-                                      @click="
-                                        removeFilter(index, options.academic_levels);
-                                        $event.stopPropagation();
-                                      "
-                                      v-tooltip.top="'Xóa'"
-                                    ></span>
-                                  </div>
-                                </Chip>
-                              </li>
-                            </ul>
-                            <span v-else>
-                              {{ slotProps.placeholder }}
-                            </span>
-                          </template>
-                        </MultiSelect>
-                      </div>
-                    </div>   
-                    <div class="col-6 md:col-6">
-                      <div class="form-group">
-                        <label>Đảng viên</label>
-                        <MultiSelect
-                          :options="is_partisans"
-                          :filter="true"
-                          :showClear="true"
-                          :editable="false"
-                          v-model="options.is_partisans"
-                          optionLabel="text"
-                          placeholder="Chọn điều kiện"
-                          class="w-full limit-width"
-                          style="min-height: 36px"
-                          panelClass="d-design-dropdown"
-                        >
-                          <template #value="slotProps">
-                            <ul
-                              class="p-ulchip"
-                              v-if="
-                                slotProps.value && slotProps.value.length > 0
-                              "
-                            >
-                              <li
-                                class="p-lichip"
-                                v-for="(value, index) in slotProps.value"
-                                :key="index"
-                              >
-                                <Chip class="mr-2 mb-2 px-3 py-2">
-                                  <div class="flex">
-                                    <div>
-                                      <span>{{ value.text }}</span>
-                                    </div>
-                                    <span
-                                      tabindex="0"
-                                      class="p-chip-remove-icon pi pi-times-circle format-flex-center"
-                                      @click="
-                                        removeFilter(index, options.is_partisans);
-                                        $event.stopPropagation();
-                                      "
-                                      v-tooltip.top="'Xóa'"
-                                    ></span>
-                                  </div>
-                                </Chip>
-                              </li>
-                            </ul>
-                            <span v-else>
-                              {{ slotProps.placeholder }}
-                            </span>
-                          </template>
-                        </MultiSelect>
-                      </div>
-                    </div> 
-                    <div class="col-6 md:col-6">
-                      <div class="form-group">
                         <label>Giới tính</label>
                         <MultiSelect
                           :options="genders"
@@ -686,18 +537,58 @@ onMounted(() => {
                         </MultiSelect>
                       </div>
                     </div>     
-                    <div class="col-12 md:col-12">
+                    <div class="col-6 md:col-6">
                       <div class="form-group">
-                        <label>Mô tả chi tiết công việc</label>
-                        <InputText
-                            type="text"
-                            class="ip34"
-                            spellcheck="false"
-                            v-model="options.description"
-                            placeholder="Tìm kiếm"
-                          />
+                        <label>Loại nhân sự</label>
+                        <MultiSelect
+                          :options="personel_groups"
+                          :filter="true"
+                          :showClear="true"
+                          :editable="false"
+                          v-model="options.personel_groups"
+                          optionLabel="personel_groups_name"
+                          placeholder="Chọn loại nhân sự"
+                          class="w-full limit-width"
+                          style="min-height: 36px"
+                          panelClass="d-design-dropdown"
+                        >
+                          <template #value="slotProps">
+                            <ul
+                              class="p-ulchip"
+                              v-if="
+                                slotProps.value && slotProps.value.length > 0
+                              "
+                            >
+                              <li
+                                class="p-lichip"
+                                v-for="(value, index) in slotProps.value"
+                                :key="index"
+                              >
+                                <Chip class="mr-2 mb-2 px-3 py-2">
+                                  <div class="flex">
+                                    <div>
+                                      <span>{{ value.personel_groups_name }}</span>
+                                    </div>
+                                    <span
+                                      tabindex="0"
+                                      class="p-chip-remove-icon pi pi-times-circle format-flex-center"
+                                      @click="
+                                        removeFilter(index, options.personel_groups);
+                                        $event.stopPropagation();
+                                      "
+                                      v-tooltip.top="'Xóa'"
+                                    ></span>
+                                  </div>
+                                </Chip>
+                              </li>
+                            </ul>
+                            <span v-else>
+                              {{ slotProps.placeholder }}
+                            </span>
+                          </template>
+                        </MultiSelect>
                       </div>
-                    </div>            
+                    </div>         
                   </div>
                   <div class="col-12 md:col-12 p-0">
                     <Toolbar class="border-none surface-0 outline-none px-0 pb-0 w-full">
@@ -759,14 +650,14 @@ onMounted(() => {
                   <th class="text-center" width="100">Giới tính</th>
                   <th class="text-center" width="150">Số chứng thực</th>
                   <th class="text-center" width="150">Ngày chứng thực</th>
-                  <th class="text-center" width="100">Nơi cấp chứng thực</th>
+                  <th class="text-center" width="150">Nơi cấp chứng thực</th>
                   <th class="text-center" width="100">Loại nhân sự</th>
-                  <th class="text-center" width="100">Chức vụ</th>
-                  <th class="text-center" width="100">Chức danh</th>
+                  <th class="text-center" width="150">Chức vụ</th>
+                  <th class="text-center" width="150">Chức danh</th>
                   <th class="text-center" width="150">Chức vụ kiêm nghiệm</th>
                   <th class="text-center" width="150">Công việc mô tả</th>
-                  <th class="text-center" width="100">Di động</th>
-                  <th class="text-center" width="100">Email</th>
+                  <th class="text-center" width="120">Di động</th>
+                  <th class="text-center" width="120">Email</th>
                   <th class="text-center" width="200">Nơi ở hiện tại</th>
                   <th class="text-center" width="200">Hợp đồng lao động</th>
                   <th class="text-center" width="100">Số hợp đồng</th>
@@ -850,6 +741,8 @@ onMounted(() => {
     </div>
 </template>
 <style scoped>
+@import url(../style_report.css);
+
   .item-hover:hover{
     background-color: #f0f8ff!important;
   }
@@ -963,6 +856,16 @@ td {
     display: flex;
     align-items: center;
     padding:0px 0.5rem !important
+  }
+}
+::v-deep(.p-treeselect) {
+   .p-multiselect-label {
+    height: 100%;
+    display: flex;
+    align-items: center;
+  }
+  .p-treeselect-label,.p-treeselect-token{
+    height: 100%;
   }
 }
 </style>
