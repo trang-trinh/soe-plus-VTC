@@ -2026,32 +2026,34 @@ const initDataFilterAdv = (f, sql, rf) => {
   if (sql) {
     strSQL.proc = sql;
     sqlSubmit.value = sql;
+
+    let hasWhereQuery = strSQL.proc
+      .replaceAll("Where", "where")
+      .indexOf("where");
+    let hasOrderQuery = strSQL.proc.indexOf("order by");
+    let subQuery_start = strSQL.proc.substring(0, hasOrderQuery);
+    let subQuery_end = strSQL.proc.substring(hasOrderQuery);
+    let strtab = "";
+    let strPermis = `(organization_id in (Select organization_id from #temp2 where organization_type = 0)
+      or id_department in (Select organization_id from #temp2 where organization_type = 1)
+    )`;
     if (options.value.tab != -1) {
-      let hasWhereQuery = strSQL.proc
-        .replaceAll("Where", "where")
-        .indexOf("where");
-      let hasOrderQuery = strSQL.proc.indexOf("order by");
-      let subQuery_start = strSQL.proc.substring(0, hasOrderQuery);
-      let subQuery_end = strSQL.proc.substring(hasOrderQuery);
-      let strtab = "";
       if (options.value.tab == 6) {
-        strtab =
-          " ([Hồ sơ nhân sự|Trạng thái nhân sự|0|0|0|status] is null or [Hồ sơ nhân sự|Trạng thái nhân sự|0|0|0|status] not in (0,1,2,3,4,5)) ";
-        if (hasWhereQuery >= 0) {
-          strSQL.proc = subQuery_start + " and " + strtab + subQuery_end;
-        } else {
-          strSQL.proc = subQuery_start + " where " + strtab + subQuery_end;
-        }
+        strtab = " ([Hồ sơ nhân sự|Trạng thái nhân sự|0|0|0|status] is null or [Hồ sơ nhân sự|Trạng thái nhân sự|0|0|0|status] not in (0,1,2,3,4,5)) ";
       } else if (arrayStatus.indexOf(options.value.tab) >= 0) {
-        strtab =
-          " ([Hồ sơ nhân sự|Trạng thái nhân sự|0|0|0|status] = " +
-          options.value.tab.toString() +
-          ") ";
-        if (hasWhereQuery >= 0) {
-          strSQL.proc = subQuery_start + " and " + strtab + subQuery_end;
-        } else {
-          strSQL.proc = subQuery_start + " where " + strtab + subQuery_end;
-        }
+        strtab = " ([Hồ sơ nhân sự|Trạng thái nhân sự|0|0|0|status] = " + options.value.tab.toString() + ") ";
+      }
+      if (hasWhereQuery >= 0) {
+        strSQL.proc = subQuery_start + (strtab != "" ? (" and " + strtab) : " ") + " and " + strPermis + " " + subQuery_end;
+      } else {
+        strSQL.proc = subQuery_start + " where " + (strtab != "" ? (strtab + " and ") : " ") + strPermis + " " + subQuery_end;
+      }
+    }
+    else {
+      if (hasWhereQuery >= 0) {
+        strSQL.proc = subQuery_start + " and " + strPermis + " " + subQuery_end;
+      } else {
+        strSQL.proc = subQuery_start + " where " + strPermis + " " + subQuery_end;
       }
     }
 
@@ -2065,8 +2067,17 @@ const initDataFilterAdv = (f, sql, rf) => {
         options.value.pageSize +
         ` rows only`;
     }
+    let sqlStart = `if object_id(N'tempdb..#temp1') is not null
+      begin drop2table #temp1 end
+      if object_id(N'tempdb..#temp2') is not null
+      begin drop2table #temp2 end
+      create2table #temp1 (module_functions nvarchar(500))
+      insert2into #temp1 (module_functions) exec hrm_rolefunction_get '${store.getters.user.user_id}', '/hrm/profile', 1
+      create2table #temp2 (organization_id int, organization_type int)
+      insert2into #temp2 (organization_id, organization_type) exec hrm_rolefunction_get '${store.getters.user.user_id}', '/hrm/profile', 2
+    `;
     let sqlCount = strSQL.proc.substring(0, strSQL.proc.indexOf("order by")).replace("Select *", "Select count(*) as total");
-    strSQL.proc += (" " + sqlCount);
+    strSQL.proc = sqlStart  + " " + strSQL.proc + (" " + sqlCount);
   }
   if (!f) {
     isFilterAdv.value = true;
@@ -2274,6 +2285,16 @@ const initDataFilterAdv = (f, sql, rf) => {
 const initCountFilterAdv = (sql) => {
   let sqlDataGet = sql ? sql.substring(0, sql.lastIndexOf("order by [")) : "";
   if (sqlDataGet != "") {
+    let sqlStart = `if object_id(N'tempdb..#temp1') is not null
+      begin drop2table #temp1 end
+      if object_id(N'tempdb..#temp2') is not null
+      begin drop2table #temp2 end
+      create2table #temp1 (module_functions nvarchar(500))
+      insert2into #temp1 (module_functions) exec hrm_rolefunction_get '${store.getters.user.user_id}', '/hrm/profile', 1
+      create2table #temp2 (organization_id int, organization_type int)
+      insert2into #temp2 (organization_id, organization_type) exec hrm_rolefunction_get '${store.getters.user.user_id}', '/hrm/profile', 2
+    `;
+    
     let proc = `Select (tbn.FieldValue) status, Count(p.profile_id) total 
               from (${sqlDataGet}) p
               cross join (Select * from dbo.udf_PivotParameters('-1,0,1,2,3,4,5,6',',')) as tbn
@@ -2281,10 +2302,11 @@ const initCountFilterAdv = (sql) => {
                     or (tbn.FieldValue in (0,1,2,3,4,5) and tbn.FieldValue = p.[Hồ sơ nhân sự|Trạng thái nhân sự|0|0|0|status])
                     or (tbn.FieldValue = 6 and (p.[Hồ sơ nhân sự|Trạng thái nhân sự|0|0|0|status] is null or p.[Hồ sơ nhân sự|Trạng thái nhân sự|0|0|0|status] not in (0,1,2,3,4,5)))
                   ) 
+                  and (p.organization_id in (Select organization_id from #temp2 where organization_type = 0) or p.id_department in (Select organization_id from #temp2 where organization_type = 1))
               group by tbn.FieldValue`;
     let strSQLCount = {
       query: true,
-      proc: proc,
+      proc: sqlStart + " " + proc,
     };
     tabs.value.forEach((x) => {
       x["total"] = 0;

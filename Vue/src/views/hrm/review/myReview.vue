@@ -813,7 +813,9 @@ onMounted(() => {
             v-model:rows="options.PageSize"
             paginatorTemplate="FirstPageLink PrevPageLink PageLinks NextPageLink LastPageLink RowsPerPageDropdown"
             :rowsPerPageOptions="[20, 30, 50, 100, 200]" :paginator="true" dataKey="reviewuser_id" responsiveLayout="scroll"
-            v-model:selection="selectedStamps" :row-hover="true">
+            v-model:selection="selectedStamps" :row-hover="true"
+            class="tbl-myreview-hrm"
+        >
             <template #header>
                 <h3 class="module-title mt-0 ml-1 mb-2">
                     <i class="pi pi-user-edit"></i> Danh sách mẫu biểu của tôi ({{
@@ -1064,13 +1066,13 @@ onMounted(() => {
                                 <Row>
                                     <Column header="Nhóm nội dung đánh giá" 
                                         :rowspan="3"
-                                        headerStyle=" width:15% ; height:50px"
-                                        bodyStyle="text-align:center;width:15% !important;" 
+                                        headerStyle="max-width:100px; height:50px"
+                                        bodyStyle="text-align:left;max-width:100px;" 
                                         v-if="item.type == 1"
                                     />
                                     <Column header="Chuyên môn nghiệp vụ" :rowspan="3" v-else
-                                        headerStyle=" width:15% ; height:50px"
-                                        bodyStyle="text-align:center;width:15% !important;" />
+                                        headerStyle=" width:120px; height:50px"
+                                        bodyStyle="text-align:center;width:120px;" />
                                     <Column header="Nội dung đánh giá" :rowspan="3" 
                                         headerStyle=" width:20% ; height:50px"
                                         bodyStyle="text-align:left;width:20% !important;" />
@@ -1110,18 +1112,22 @@ onMounted(() => {
                                         bodyStyle="text-align:center;width:10% !important;" v-if="item.type == 2" />
                                 </Row>
                             </ColumnGroup>
-                            <Column field="child_name" />
-
-                            <Column field="des" headerStyle="text-align:center;max-width:150px;height:50px"
-                                bodyStyle="text-align:center;max-width:150px" />
+                            <Column field="child_name" 
+                                headerStyle="text-align:center;max-width:100px;height:50px"
+                                bodyStyle="text-align:justify;max-width:100px"
+                            />
+                            <Column field="des" 
+                                headerStyle="text-align:center;max-width:100px;height:50px"
+                                bodyStyle="text-align:justify;max-width:100px" />
                             <Column field="weight" class="align-items-center justify-content-center text-center">
                                 <template #body="slotProps">
                                     {{ slotProps.data.weight }} %
                                 </template>
                             </Column>
-                            <Column field="desired_results" class="align-items-center justify-content-center text-center"
+                            <Column field="desired_results" 
+                                class="align-items-center justify-content-center"
                                 headerStyle="text-align:center;max-width:150px;height:50px"
-                                bodyStyle="text-align:center;max-width:150px" />
+                                bodyStyle="text-align:justify;max-width:150px" />
                             <Column field="weight_child" class="align-items-center justify-content-center text-center">
                                 <template #body="slotProps">
                                     {{ slotProps.data.weight_child }} %
@@ -1131,7 +1137,7 @@ onMounted(() => {
                                 <template #body="slotProps">
                                     <Textarea
                                         class=""
-                                        rows="2"
+                                        rows="5"
                                         autoResize
                                         v-model="slotProps.data.complete_results"
                                     ></Textarea>
@@ -1183,6 +1189,13 @@ onMounted(() => {
     object-fit: cover;
     width: 100%;
     height: 100%;
+}
+</style>
+<style lang="scss" scoped>
+::v-deep(.tbl-myreview-hrm) {
+    .p-datatable-emptymessage td {
+        height: calc(100vh - 19.5rem);
+    }
 }
 </style>
     
