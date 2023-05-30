@@ -4,10 +4,12 @@ import { encr } from "../../../util/function";
 import { useToast } from "vue-toastification";
 import moment from "moment";
 import { groupBy } from "lodash";
+import { useRoute } from "vue-router";
 import dialogleaveprofile from "./component/dialogleaveprofile.vue";
 import dialogtransferinventory from "./component/dialogtransferinventory.vue";
 import dialogconfigleaveyear from "./component/dialogconfigleaveyear.vue";
 
+const route = useRoute();
 const store = inject("store");
 const swal = inject("$swal");
 const axios = inject("axios");
@@ -44,11 +46,14 @@ const options = ref({
   end_date: null,
   filter_organization_id: store.getters.user.organization_id,
   departments: [],
+  path: null,
+  name: null,
 });
 const isFirst = ref(true);
 const selectedNodes = ref({});
 const datas = ref([]);
 const profile = ref({});
+const functions = ref({});
 
 //Declare dictionary
 const dictionarys = ref([]);
@@ -150,10 +155,12 @@ const forceRerender = (type) => {
 const headerDialogLeaveProfile = ref();
 const displayDialogLeaveProfile = ref(false);
 const openDialogLeaveProfile = (item, str) => {
-  profile.value = item;
-  headerDialogLeaveProfile.value = str;
-  displayDialogLeaveProfile.value = true;
-  forceRerender(0);
+  if (item.is_function) {
+    profile.value = item;
+    headerDialogLeaveProfile.value = str;
+    displayDialogLeaveProfile.value = true;
+    forceRerender(0);
+  }
 };
 const closeDialogLeaveProfile = () => {
   displayDialogLeaveProfile.value = false;
@@ -317,8 +324,11 @@ const initDictionary = () => {
       {
         str: encr(
           JSON.stringify({
-            proc: "hrm_leave_dictionary",
-            par: [{ par: "user_id", va: store.getters.user.user_id }],
+            proc: "hrm_leave_dictionary_2",
+            par: [
+              { par: "user_id", va: store.getters.user.user_id },
+              { par: "is_link", va: options.value.path },
+            ],
           }),
           PASS_KEY,
           cryoptojs
@@ -331,12 +341,14 @@ const initDictionary = () => {
         var data = response.data.data;
         if (data != null) {
           let tbs = JSON.parse(data);
-          if (tbs[0] != null && tbs[0].length > 0) {
+          if (tbs[0] != null && tbs[0].length > 1) {
             var temp1 = [];
             addToArray(temp1, tbs[0], null, 0, "is_order");
             tbs[0] = temp1;
+          } else if (tbs[0] != null && tbs[0].length > 0) {
+            tbs[0][0].newname = tbs[0][0].organization_name;
           }
-          tbs[0].unshift({ organization_id: null, newname: "Tất cả" });
+          // tbs[0].unshift({ organization_id: null, newname: "Tất cả" });
           if (tbs[1] != null && tbs[1].length > 0) {
             department.value = JSON.parse(JSON.stringify(tbs[1]));
             var temp2 = [];
@@ -348,6 +360,12 @@ const initDictionary = () => {
               "is_order"
             );
             department.value = temp2;
+          }
+          if (tbs[2] != null && tbs[2].length > 0) {
+            let module_functions = tbs[2][0].module_functions.split(",");
+            for (var key in module_functions) {
+              functions.value[module_functions[key]] = true;
+            }
           }
           dictionarys.value = tbs;
         }
@@ -390,7 +408,7 @@ const initData = (ref) => {
       {
         str: encr(
           JSON.stringify({
-            proc: "hrm_leave_list",
+            proc: "hrm_leave_list_2",
             par: [
               { par: "user_id", va: store.getters.user.user_id },
               { par: "year", va: options.value.year },
@@ -403,6 +421,7 @@ const initData = (ref) => {
                 par: "departments",
                 va: departments,
               },
+              { par: "is_link", va: options.value.path },
             ],
           }),
           SecretKey,
@@ -470,6 +489,8 @@ const refresh = () => {
   initData(true);
 };
 onMounted(() => {
+  options.value.path = route.path;
+  options.value.name = route.name;
   initDictionary();
   initData(true);
 });
@@ -486,12 +507,14 @@ onMounted(() => {
       </template>
       <template #end>
         <Button
+          v-if="functions.chuyephepton"
           @click="openDialogTransferInventory('Chuyển phép tồn')"
           label="Chuyển phép tồn"
           icon="pi pi-calendar"
           class="mr-2"
         />
         <Button
+          v-if="functions.phepnam"
           @click="openDialogConfigLeaveYear('Thiết lâp phép năm')"
           label="Thiết lập phép năm"
           icon="pi pi-cog"
@@ -702,16 +725,28 @@ onMounted(() => {
             >
               {{ item.name }}
             </th>
-            <th class="text-center" :style="{ top: '0', width: '90px', backgroundColor: '#FFFEEC' }">
+            <th
+              class="text-center"
+              :style="{ top: '0', width: '90px', backgroundColor: '#FFFEEC' }"
+            >
               Phép năm
             </th>
-            <th class="text-center" :style="{ top: '0', width: '90px', backgroundColor: '#FFFEEC' }">
+            <th
+              class="text-center"
+              :style="{ top: '0', width: '90px', backgroundColor: '#FFFEEC' }"
+            >
               Phép tồn
             </th>
-            <th class="text-center" :style="{ top: '0', width: '90px', backgroundColor: '#FFFEEC' }">
+            <th
+              class="text-center"
+              :style="{ top: '0', width: '90px', backgroundColor: '#FFFEEC' }"
+            >
               Phép thưởng
             </th>
-            <th class="text-center" :style="{ top: '0', width: '90px', backgroundColor: '#FFFEEC' }">
+            <th
+              class="text-center"
+              :style="{ top: '0', width: '90px', backgroundColor: '#FFFEEC' }"
+            >
               Thâm niên
             </th>
             <th
@@ -810,7 +845,7 @@ onMounted(() => {
               class="text-center"
               :style="{
                 width: '150px',
-                backgroundColor: '#FFFEEC'
+                backgroundColor: '#FFFEEC',
               }"
             >
               <span> {{ user.leaveYear }}</span>
@@ -819,7 +854,7 @@ onMounted(() => {
               class="text-center"
               :style="{
                 width: '150px',
-                backgroundColor: '#FFFEEC'
+                backgroundColor: '#FFFEEC',
               }"
             >
               <span> {{ user.leaveInventory }}</span>
@@ -828,7 +863,7 @@ onMounted(() => {
               class="text-center"
               :style="{
                 width: '150px',
-                backgroundColor: '#FFFEEC'
+                backgroundColor: '#FFFEEC',
               }"
             >
               <span> {{ user.leaveBonus }}</span>
@@ -837,7 +872,7 @@ onMounted(() => {
               class="text-center"
               :style="{
                 width: '150px',
-                backgroundColor: '#FFFEEC'
+                backgroundColor: '#FFFEEC',
               }"
             >
               <span> {{ user.leaveSeniority }}</span>
