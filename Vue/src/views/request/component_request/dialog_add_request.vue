@@ -864,7 +864,7 @@ onMounted(() => {
                         </label>
                         <Textarea v-model="request_data.request_name" 
                             spellcheck="false" 
-                            class="p-2" 
+                            class="p-2 w-full" 
                             autoResize
                             rows="1" 
                             :class="{ 'p-invalid': v$.request_name.$invalid && submitted, }" 
@@ -916,7 +916,7 @@ onMounted(() => {
                     <div class="col-8 md:col-4 p-0">
                         <div class="form-group">
                             <label class="label-form">Số giờ xử lý</label>
-                            <InputNumber class="ip36"
+                            <InputNumber class="ip36 w-full"
                                 spellcheck="false"
                                 :min="0"
                                 v-model="request_data.times_processing_max"
@@ -933,7 +933,7 @@ onMounted(() => {
                         </label>
                         <Textarea v-model="request_data.content" 
                             spellcheck="false" 
-                            class="p-2" 
+                            class="p-2 w-full" 
                             autoResize
                             rows="2" 
                             :class="{ 'p-invalid': v$.content.$invalid && submitted, }" 
@@ -1052,7 +1052,7 @@ onMounted(() => {
                                                 type="email" 
                                                 spellcheck="false" 
                                                 v-model="d.value_field"
-                                                class="form-control col-12 ip36 p-2"
+                                                class="form-control col-12 ip36 p-2 w-full"
                                                 :class="{ 'p-invalid': d.is_required && !d.value_field && submitted, }"
                                             />
                                         </div>
@@ -1061,7 +1061,7 @@ onMounted(() => {
                                                 type="text" 
                                                 spellcheck="false" 
                                                 v-model="d.value_field"
-                                                class="form-control col-12 ip36 p-2"
+                                                class="form-control col-12 ip36 p-2 w-full"
                                                 :class="{ 'p-invalid': d.is_required && !d.value_field && submitted, }"
                                             />
                                         </div>
@@ -1069,7 +1069,7 @@ onMounted(() => {
                                             <InputNumber
                                                 spellcheck="false" 
                                                 v-model="d.value_field" 
-                                                class="form-control col-12 ip36 p-2"
+                                                class="form-control col-12 ip36 p-2 w-full"
                                                 :class="{ 'p-invalid': d.is_required && !d.value_field && submitted, }"
                                             />
                                         </div>
@@ -1077,7 +1077,7 @@ onMounted(() => {
                                             <Textarea :max="d.is_length" 
                                                 spellcheck="false" 
                                                 v-model="d.value_field" 
-                                                class="form-control col-12 p-2"
+                                                class="form-control col-12 p-2 w-full"
                                                 :class="{ 'p-invalid': d.is_required && !d.value_field && submitted, }"
                                                 rows="2"
                                                 autoResize
@@ -1202,7 +1202,7 @@ onMounted(() => {
                                                                 type="email" 
                                                                 spellcheck="false" 
                                                                 v-model="td.value_field"
-                                                                class="form-control col-12 ip36 p-2"
+                                                                class="form-control col-12 ip36 p-2 w-full"
                                                                 :class="{ 'p-invalid': td.is_required && !td.value_field && submitted, }"
                                                                 style="border:none;"
                                                             />
@@ -1212,7 +1212,7 @@ onMounted(() => {
                                                                 type="text" 
                                                                 spellcheck="false" 
                                                                 v-model="td.value_field"
-                                                                class="form-control col-12 ip36 p-2"
+                                                                class="form-control col-12 ip36 p-2 w-full"
                                                                 :class="{ 'p-invalid': td.is_required && !td.value_field && submitted, }"
                                                                 style="border:none;"
                                                             />
@@ -1221,7 +1221,7 @@ onMounted(() => {
                                                             <InputNumber
                                                                 spellcheck="false" 
                                                                 v-model="td.value_field" 
-                                                                class="form-control col-12 ip36 p-2"
+                                                                class="form-control col-12 ip36 p-2 w-full"
                                                                 :class="{ 'p-invalid': td.is_required && !td.value_field && submitted, }"
                                                                 style="border:none;"
                                                             />
@@ -1230,7 +1230,7 @@ onMounted(() => {
                                                             <Textarea :max="td.is_length" 
                                                                 spellcheck="false" 
                                                                 v-model="td.value_field" 
-                                                                class="form-control col-12 p-2"
+                                                                class="form-control col-12 p-2 w-full"
                                                                 :class="{ 'p-invalid': td.is_required && !td.value_field && submitted, }"
                                                                 style="border:none;"
                                                                 rows="1"
