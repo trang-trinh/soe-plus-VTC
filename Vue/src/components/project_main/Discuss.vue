@@ -21,7 +21,19 @@ const user = store.state.user;
 const props = defineProps({
   id: String,
 });
-
+const handleEmojiClick = (event) => {
+  comment.value = comment.value.replace("<p>", "").replace("</p>", "");
+  line1 = line ? line : comment.value.length;
+  let str1 = comment.value.slice(0, line1);
+  let str2 = comment.value.slice(line1);
+  if (comment.value)
+    comment.value =
+      line1 > 0 ? str1 + event.unicode + str2 : comment.value + event.unicode;
+  else comment.value = comment.value + event.unicode;
+  comment.value = comment.value.replace("<p>", "").replace("</p>", "");
+  comment_zone_main.value.setHTML("<p>" + comment.value + "</p>");
+  line1 += 1;
+};
 const rules_discuss = {
   discuss_project_content: {
     required,
@@ -109,10 +121,10 @@ const loadData = () => {
             ],
           }),
           SecretKey,
-          cryoptojs,
+          cryoptojs
         ).toString(),
       },
-      config,
+      config
     )
     .then((response) => {
       let data = JSON.parse(response.data.data);
@@ -168,10 +180,10 @@ const loadDiscuss = () => {
             ],
           }),
           SecretKey,
-          cryoptojs,
+          cryoptojs
         ).toString(),
       },
-      config,
+      config
     )
     .then((response) => {
       let commentJson = JSON.parse(response.data.data)[0];
@@ -233,7 +245,7 @@ const ReplyComment = (cmt) => {
     comt.contents != null && comt.contents != "<body><p><br></p></body>"
       ? comt.contents.replace(
           'style="width:100%;max-width:30vw;object-fit:contain">',
-          'style="width:100%;max-width:5vw;object-fit:contain">',
+          'style="width:100%;max-width:5vw;object-fit:contain">'
         )
       : null;
   replyCmtValue.value.push(comt);
@@ -351,10 +363,10 @@ const editDiscuss = (model) => {
             par: [{ par: "discuss_project_id", va: model.discuss_project_id }],
           }),
           SecretKey,
-          cryoptojs,
+          cryoptojs
         ).toString(),
       },
-      config,
+      config
     )
     .then((response) => {
       let data = JSON.parse(response.data.data);
@@ -430,7 +442,7 @@ const saveDiscussProjectMain = (isFormValid) => {
           ? "Add_DiscussProjectMain"
           : "Update_DiscussProjectMain"),
       formData,
-      config,
+      config
     )
     .then((response) => {
       if (response.data.err != "1") {
@@ -487,23 +499,23 @@ const addComment = () => {
     formData.append("discuss", JSON.stringify(bugComment));
     formData.append(
       "discuss_project_id",
-      JSON.stringify(selectedDiscussProjectID.value),
+      JSON.stringify(selectedDiscussProjectID.value)
     );
     formData.append(
       "is_reply",
-      JSON.stringify(reply.value == true ? true : false),
+      JSON.stringify(reply.value == true ? true : false)
     );
     if (reply.value == true) {
       formData.append(
         "parent_id",
-        JSON.stringify(replyCmtValue.value[0].discuss_id),
+        JSON.stringify(replyCmtValue.value[0].discuss_id)
       );
     }
     if (editComment.value == true) {
       formData.append("cmt_id", JSON.stringify(ID_Comment.value));
       formData.append(
         "Del_file_ID",
-        JSON.stringify(listIdFileEditComments_Del.value),
+        JSON.stringify(listIdFileEditComments_Del.value)
       );
     }
     if (sending.value == true) {
@@ -528,7 +540,7 @@ const addComment = () => {
           toast.success(
             editComment.value
               ? "Cập nhật bình luận công việc thành công!"
-              : "Thêm mới bình luận công việc thành công!",
+              : "Thêm mới bình luận công việc thành công!"
           );
           comment.value = "";
           comment_zone_main.value.setHTML("<p>" + comment.value + "</p>");
@@ -874,7 +886,6 @@ onMounted(() => {
             :totalRecords="opition.totalRecords"
             :row-hover="true"
             dataKey="discuss_project_id"
-
             @page="onPage($event)"
             @sort="onSort($event)"
             @filter="onFilter($event)"
@@ -1086,10 +1097,7 @@ onMounted(() => {
                 "
                 v-if="listProjectMainDiscuss != null"
               >
-                <img
-                  src="../../assets/background/nodata.png"
-                  height="144"
-                />
+                <img src="../../assets/background/nodata.png" height="144" />
                 <h3 class="m-1">Không có dữ liệu</h3>
               </div>
             </template>
@@ -1106,10 +1114,7 @@ onMounted(() => {
         class="row"
         style="font-size: 13px; height: 85%; width: 98%"
       >
-        <div
-          class="row col-12"
-          id="comments"
-        >
+        <div class="row col-12" id="comments">
           <div
             class="col-12 p-0 m-0"
             style="font-weight: 600; color: #888; font-size: 1.15rem"
@@ -1202,7 +1207,7 @@ onMounted(() => {
                     <span class="ml-2">
                       {{
                         moment(new Date(cmt.created_date)).format(
-                          "HH:mm DD/MM/YYYY",
+                          "HH:mm DD/MM/YYYY"
                         )
                       }}
                     </span>
@@ -1273,7 +1278,7 @@ onMounted(() => {
                             <span class="ml-2">
                               {{
                                 moment(
-                                  new Date(cmt.parent.created_date),
+                                  new Date(cmt.parent.created_date)
                                 ).format("HH:mm DD/MM/YYYY")
                               }}
                             </span>
@@ -1310,10 +1315,7 @@ onMounted(() => {
                         </div>
                       </div>
                     </div>
-                    <div
-                      class="pl-4 p-0 m-0 pr-4"
-                      v-html="cmt.contents"
-                    ></div>
+                    <div class="pl-4 p-0 m-0 pr-4" v-html="cmt.contents"></div>
                   </div>
 
                   <div class="col-1"></div>
@@ -1345,7 +1347,7 @@ onMounted(() => {
                               toggle_panel_file(
                                 $event,
                                 slotProps,
-                                cmt.created_by,
+                                cmt.created_by
                               )
                             "
                             aria-haspopup="true"
@@ -1442,14 +1444,8 @@ onMounted(() => {
           </div>
         </div>
       </div>
-      <div
-        class="row"
-        style="padding: 15px; font-size: 13px; height: 15%"
-      >
-        <div
-          class="grid formgrid m-2"
-          style="position: relative"
-        >
+      <div class="row" style="padding: 15px; font-size: 13px; height: 15%">
+        <div class="grid formgrid m-2" style="position: relative">
           <div
             v-if="selectedDiscussProjectID"
             class="field col-12 md:col-12 absolute border-1 format-center col-12 p-0 m-0 border-round-xs border-600"
@@ -1519,14 +1515,8 @@ onMounted(() => {
         v-if="listFileComment.length > 0"
         style="position: absolute; bottom: 100px; width: 100%; display: flex"
       >
-        <div
-          class="col-12"
-          style="background-color: #f5f5f5"
-        >
-          <div
-            class="row"
-            style="display: flex"
-          >
+        <div class="col-12" style="background-color: #f5f5f5">
+          <div class="row" style="display: flex">
             <div
               v-for="(item, index) in listFileComment"
               :key="index"
@@ -1541,10 +1531,7 @@ onMounted(() => {
                   v-tooltip="{ value: 'Xóa tệp' }"
                 ></Button>
 
-                <div
-                  class=""
-                  v-if="item.checkimg == true"
-                >
+                <div class="" v-if="item.checkimg == true">
                   <img
                     :src="item.src"
                     :alt="' '"
@@ -1573,10 +1560,7 @@ onMounted(() => {
                     {{ item.size }}
                   </div>
                 </div>
-                <div
-                  class=""
-                  v-else
-                >
+                <div class="" v-else>
                   <img
                     :src="
                       basedomainURL +
@@ -1679,7 +1663,7 @@ onMounted(() => {
                   <span class="ml-2">
                     {{
                       moment(new Date(replyCmtValue[0].created_date)).format(
-                        "HH:mm DD/MM/YYYY",
+                        "HH:mm DD/MM/YYYY"
                       )
                     }}
                   </span>
@@ -1752,7 +1736,7 @@ onMounted(() => {
                           <span class="ml-2">
                             {{
                               moment(
-                                new Date(replyCmtValue[0].parent.created_date),
+                                new Date(replyCmtValue[0].parent.created_date)
                               ).format("HH:mm DD/MM/YYYY")
                             }}
                           </span>
@@ -1824,7 +1808,7 @@ onMounted(() => {
                             toggle_panel_file(
                               $event,
                               slotProps,
-                              replyCmtValue[0].created_by,
+                              replyCmtValue[0].created_by
                             )
                           "
                           aria-haspopup="true"
@@ -1927,11 +1911,7 @@ onMounted(() => {
     id="overlay_panel"
   >
     <template #item="{ item }">
-      <a
-        download
-        style="text-decoration: none"
-        class="a-hover format-center"
-      >
+      <a download style="text-decoration: none" class="a-hover format-center">
         <Button
           :icon="item.icon"
           class="w-full p-button-text p-button-secondary p-button-hover-file"
@@ -1942,10 +1922,7 @@ onMounted(() => {
       </a>
     </template>
   </Menu>
-  <FileInfoVue
-    :data="fileInfo"
-    v-if="isViewFileInfo"
-  ></FileInfoVue>
+  <FileInfoVue :data="fileInfo" v-if="isViewFileInfo"></FileInfoVue>
   <Dialog
     :header="headerAddDiscuss"
     v-model:visible="displayDiscuss"
@@ -1968,10 +1945,7 @@ onMounted(() => {
             }"
           />
         </div>
-        <div
-          style="display: flex"
-          class="field col-12 md:col-12"
-        >
+        <div style="display: flex" class="field col-12 md:col-12">
           <div class="col-3 text-left"></div>
           <small
             v-if="
@@ -2036,10 +2010,7 @@ onMounted(() => {
         </div>
         <div class="field col-12 md:col-12 flex">
           <label class="col-3 text-left p-0">Public thảo luận</label>
-          <div
-            class="col-9"
-            style="position: relative"
-          >
+          <div class="col-9" style="position: relative">
             <InputSwitch
               class="col-12"
               style="position: absolute; top: 0px; left: 0px"
@@ -2053,9 +2024,7 @@ onMounted(() => {
         >
           <label class="col-3 text-left p-0"
             >Người tham gia
-            <span
-              @click="OpenDialogTreeUser(false, 1)"
-              class="choose-user"
+            <span @click="OpenDialogTreeUser(false, 1)" class="choose-user"
               ><i class="pi pi-user-plus"></i></span
           ></label>
           <MultiSelect
@@ -2099,10 +2068,7 @@ onMounted(() => {
                   size="xlarge"
                   shape="circle"
                 />
-                <div
-                  class="pt-1"
-                  style="padding-left: 10px"
-                >
+                <div class="pt-1" style="padding-left: 10px">
                   {{ slotProps.option.name }}
                 </div>
               </div>

@@ -645,10 +645,13 @@ const editProjectMain = (dataProjectMain) => {
       ProjectMain.value.participants = [];
       if (data[2].length > 0) {
         data[2].forEach((t) => {
+          let x = listDropdownUser.value.filter(
+            (x) => x.user_id == t.user_id
+          )[0];
           if (t.is_type == 0) {
-            ProjectMain.value.managers.push(t.user_id);
+            ProjectMain.value.managers.push(x);
           } else if (t.is_type == 1) {
-            ProjectMain.value.participants.push(t.user_id);
+            ProjectMain.value.participants.push(x);
           }
         });
       }
