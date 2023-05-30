@@ -101,7 +101,7 @@ const loadData = () => {
                temp.forEach((item, index) => {
                     item.is_active = false;
                     if (item.Congtac !== null) {
-                      item.Congtac = JSON.parse(item.Congtac.replaceAll('\n', ' '));                               
+                      item.Congtac = JSON.parse(item.Congtac);                               
                     } if (item.Congtac == null) {
                         item.Congtac = [];
                         item.Congtac.push(baocaoct);
@@ -408,7 +408,6 @@ onMounted(() => {
                   <th class="text-center" width="180">Chức vụ</th>
                   <th class="text-center" width="150">Chức danh</th>
                   <th class="text-center" width="200">Mô tả công việc</th>
-                  <th class="text-center" width="140">Kết quả</th>
                   <th class="text-center" width="150">Phòng ban, đơn vị</th>
                   <th class="text-center" width="120">Chức vụ hiện tại</th>
                   <th class="text-center" width="120">Chức vụ kiêm nghiệm</th>
@@ -441,7 +440,6 @@ onMounted(() => {
                   </td>
                   <td align="left">{{qt.position_name}}</td>
                   <td align="left">{{qt.title_name}}</td>
-                  <td align="left"></td>
                   <td align="left">{{qt.description}}</td>
                   <td align="left">{{qt.department_name}}</td>
                   <td align="center">

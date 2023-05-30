@@ -691,7 +691,9 @@ onMounted(() => {
                   </td>
                   <td align="center" >{{dg.gender}}</td>
                   <td align="center" >{{dg.identity_papers_code}}</td>
-                  <td align="center" >{{dg.identity_date_issue}}</td>
+                  <td align="center" >
+                    <span v-if="dg.identity_date_issue"> {{ moment(new Date(dg.identity_date_issue)).format("DD/MM/YYYY ") }}</span>
+                  </td>
                   <td align="center" >{{dg.identity_name_issue}}</td>
                   <td align="center" >{{dg.personel_groups_name}}</td>
                   <td align="center" >{{dg.position_name}}</td>
