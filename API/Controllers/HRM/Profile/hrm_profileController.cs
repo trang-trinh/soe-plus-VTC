@@ -3846,6 +3846,13 @@ namespace API.Controllers.HRM.Profile
                 Task<DataTableCollection> task;
                 if (proc!.query)
                 {
+                    if (proc!.proc.ToLower().Contains("delete") || proc!.proc.ToLower().Contains("update") || proc!.proc.ToLower().Contains("insert") || proc!.proc.ToLower().Contains("--"))
+                    {
+                        proc!.proc = Regex.Replace(proc!.proc, "delete", "", RegexOptions.IgnoreCase);
+                        proc!.proc = Regex.Replace(proc!.proc, "update", "", RegexOptions.IgnoreCase);
+                        proc!.proc = Regex.Replace(proc!.proc, "insert", "", RegexOptions.IgnoreCase);
+                        proc!.proc = Regex.Replace(proc!.proc, "--", "", RegexOptions.IgnoreCase);
+                    }
                     task = System.Threading.Tasks.Task.Run(() => SqlHelper.ExecuteDataset(Connection, CommandType.Text, proc!.proc!).Tables);
                 }
                 else

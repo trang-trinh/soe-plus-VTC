@@ -2014,7 +2014,6 @@ const initDataFilterAdv = (f, sql, rf) => {
   if (sql) {
     strSQL.proc = sql;
     sqlSubmit.value = sql;
-
     if (options.value.tab != -1) {
       let hasWhereQuery = strSQL.proc
         .replaceAll("Where", "where")
@@ -2054,6 +2053,8 @@ const initDataFilterAdv = (f, sql, rf) => {
         options.value.pageSize +
         ` rows only`;
     }
+    let sqlCount = strSQL.proc.substring(0, strSQL.proc.indexOf("order by")).replace("Select *", "Select count(*) as total");
+    strSQL.proc += (" " + sqlCount);
   }
   if (!f) {
     isFilterAdv.value = true;
@@ -2450,7 +2451,6 @@ const submitFilter = () => {
   dataLimits.value = [];
   closeOverlayFilterAdv();
   if (options.value.search == null || options.value.search.trim() == "") {
-    isFilterAdv.value = false;
     options.value.tab = -1;
     options.value.pageNo = 1;
     options.value.pageSize = 25;
@@ -2460,6 +2460,11 @@ const submitFilter = () => {
     initCount();
     initData(true);
   } else {
+    options.value.tab = -1;
+    options.value.pageNo = 1;
+    options.value.pageSize = 25;
+    options.value.limitItem = 25;
+    options.value.total = 0;
     initDataFilterAdv(false, sql, true);
   }
 };
