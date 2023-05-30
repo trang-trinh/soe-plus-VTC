@@ -13,6 +13,9 @@ import dialogstatus from "../profile/component/dialogstatus.vue";
 import dialogmatchaccount from "../profile/component/dialogmatchaccount.vue";
 import moment from "moment";
 import { groupBy } from "lodash";
+import { useRoute } from "vue-router";
+
+const route = useRoute();
 const router = inject("router");
 const store = inject("store");
 const swal = inject("$swal");
@@ -51,6 +54,8 @@ const options = ref({
   birthday_start_date: null,
   birthday_end_date: null,
   tags: [],
+  path: null,
+  name: null,
 });
 const isFilter = ref(false);
 const isFirst = ref(true);
@@ -1080,8 +1085,11 @@ const initDictionary = () => {
       {
         str: encr(
           JSON.stringify({
-            proc: "hrm_profile_dictionary",
-            par: [{ par: "user_id", va: store.getters.user.user_id }],
+            proc: "hrm_profile_dictionary_2",
+            par: [
+              { par: "user_id", va: store.getters.user.user_id },
+              { par: "is_link", va: options.value.path },
+            ],
           }),
           SecretKey,
           cryoptojs
@@ -1168,7 +1176,7 @@ const initCountFilter = () => {
       {
         str: encr(
           JSON.stringify({
-            proc: "hrm_profile_count_filter_2",
+            proc: "hrm_profile_count_filter_3",
             par: [
               { par: "user_id", va: store.getters.user.user_id },
               { par: "search", va: options.value.search },
@@ -1184,6 +1192,7 @@ const initCountFilter = () => {
               },
               { par: "birthday_end_date", va: options.value.birthday_end_date },
               { par: "tags", va: tags },
+              { par: "is_link", va: options.value.path },
             ],
           }),
           SecretKey,
@@ -1248,10 +1257,11 @@ const initCount = () => {
       {
         str: encr(
           JSON.stringify({
-            proc: "hrm_profile_count",
+            proc: "hrm_profile_count_2",
             par: [
               { par: "user_id", va: store.getters.user.user_id },
               { par: "search", va: options.value.search },
+              { par: "is_link", va: options.value.path },
             ],
           }),
           SecretKey,
@@ -1337,7 +1347,7 @@ const initDataFilter = () => {
       {
         str: encr(
           JSON.stringify({
-            proc: "hrm_profile_list_filter_3",
+            proc: "hrm_profile_list_filter_4",
             par: [
               { par: "user_id", va: store.getters.user.user_id },
               { par: "search", va: options.value.search },
@@ -1356,6 +1366,7 @@ const initDataFilter = () => {
               },
               { par: "birthday_end_date", va: options.value.birthday_end_date },
               { par: "tags", va: tags },
+              { par: "is_link", va: options.value.path },
             ],
           }),
           SecretKey,
@@ -1511,13 +1522,14 @@ const initData = (ref) => {
       {
         str: encr(
           JSON.stringify({
-            proc: "hrm_profile_list_2",
+            proc: "hrm_profile_list_4",
             par: [
               { par: "user_id", va: store.getters.user.user_id },
               { par: "search", va: options.value.search },
               { par: "pageNo", va: options.value.pageNo },
               { par: "pageSize", va: options.value.pageSize },
               { par: "tab", va: options.value.tab },
+              { par: "is_link", va: options.value.path },
             ],
           }),
           SecretKey,
@@ -2014,7 +2026,6 @@ const initDataFilterAdv = (f, sql, rf) => {
   if (sql) {
     strSQL.proc = sql;
     sqlSubmit.value = sql;
-
     if (options.value.tab != -1) {
       let hasWhereQuery = strSQL.proc
         .replaceAll("Where", "where")
@@ -2054,6 +2065,8 @@ const initDataFilterAdv = (f, sql, rf) => {
         options.value.pageSize +
         ` rows only`;
     }
+    let sqlCount = strSQL.proc.substring(0, strSQL.proc.indexOf("order by")).replace("Select *", "Select count(*) as total");
+    strSQL.proc += (" " + sqlCount);
   }
   if (!f) {
     isFilterAdv.value = true;
@@ -2166,7 +2179,7 @@ const initDataFilterAdv = (f, sql, rf) => {
               datas.value = dts[0];
               dataLimits.value = dataLimits.value.concat(dts[0]);
               dataAdvAll.value = [...dataLimits.value];
-              if(rf){
+              if (rf) {
                 initCountFilterAdv(sql);
               }
               var temp = groupBy(dts[0], "department_id");
@@ -2450,7 +2463,6 @@ const submitFilter = () => {
   dataLimits.value = [];
   closeOverlayFilterAdv();
   if (options.value.search == null || options.value.search.trim() == "") {
-    isFilterAdv.value = false;
     options.value.tab = -1;
     options.value.pageNo = 1;
     options.value.pageSize = 25;
@@ -2460,6 +2472,11 @@ const submitFilter = () => {
     initCount();
     initData(true);
   } else {
+    options.value.tab = -1;
+    options.value.pageNo = 1;
+    options.value.pageSize = 25;
+    options.value.limitItem = 25;
+    options.value.total = 0;
     initDataFilterAdv(false, sql, true);
   }
 };
@@ -2681,6 +2698,8 @@ const initLoad = () => {
 
 onMounted(() => {
   nextTick(() => {
+    options.value.path = route.path;
+    options.value.name = route.name;
     //initPlace();
     initDictionary();
     initCount();
@@ -2751,8 +2770,7 @@ const loadMoreRow = (data) => {
             type="text"
             spellcheck="false"
             placeholder="Tìm kiếm"
-            class="input-search"
-            style="padding-right: 2rem; max-width: 450px; width: 100vw"
+            class="input-search pr-2"
           />
           <i
             class="pi pi-filter i-filter-advanced"
@@ -3573,8 +3591,7 @@ const loadMoreRow = (data) => {
           icon="pi pi-plus"
           class="mr-2"
         />
-
-        <Button
+        <!-- <Button
           icon="pi pi-trash"
           label="Xóa"
           :class="{
@@ -3583,7 +3600,7 @@ const loadMoreRow = (data) => {
           }"
           @click="deleteItem()"
           class="mr-2"
-        />
+        /> -->
         <Button
           @click="toggleExport"
           label="Tiện ích"

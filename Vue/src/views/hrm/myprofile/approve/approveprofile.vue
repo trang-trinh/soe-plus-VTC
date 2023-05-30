@@ -374,6 +374,7 @@ const loadMoreRow = (data) => {
             type="text"
             spellcheck="false"
             placeholder=" Tìm kiếm"
+            class="input-search"
           />
         </span>
       </template>
