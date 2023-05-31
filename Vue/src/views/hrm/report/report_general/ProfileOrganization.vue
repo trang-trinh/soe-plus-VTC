@@ -141,6 +141,7 @@ const loadData = () => {
           config,
       )
       .then((response) => {
+        debugger
           let data = JSON.parse(response.data.data);
           options.value.totalRecords =data[0].length;
           if (data[0].length > 0) {

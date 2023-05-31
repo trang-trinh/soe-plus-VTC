@@ -68,11 +68,13 @@ namespace API.Controllers.HRM.Payroll
                         {
                             Request.CreateErrorResponse(HttpStatusCode.InternalServerError, t.Exception);
                         }
+                        bool super = claims.Where(p => p.Type == "super").FirstOrDefault()?.Value == "True";
+
                         fdhrm_payroll_user = provider.FormData.GetValues("hrm_payroll_user").SingleOrDefault();
                         hrm_payroll_user hrm_payroll_user = JsonConvert.DeserializeObject<hrm_payroll_user>(fdhrm_payroll_user);
 
 
-                        bool super = claims.Where(p => p.Type == "super").FirstOrDefault()?.Value == "True";
+
                         hrm_payroll_user.organization_id = int.Parse(dvid);
                         hrm_payroll_user.created_by = uid;
                         hrm_payroll_user.created_date = DateTime.Now;
@@ -81,7 +83,7 @@ namespace API.Controllers.HRM.Payroll
                         db.hrm_payroll_user.Add(hrm_payroll_user);
                         db.SaveChanges();
 
-                         
+
                         return Request.CreateResponse(HttpStatusCode.OK, new { err = "0" });
                     });
                     return await task;
@@ -110,6 +112,101 @@ namespace API.Controllers.HRM.Payroll
                 return Request.CreateResponse(HttpStatusCode.OK, new { ms = contents, err = "1" });
             }
         }
+        [HttpPost]
+        public async Task<HttpResponseMessage> add_li_hrm_payroll_user()
+        {
+            var identity = User.Identity as ClaimsIdentity;
+            if (identity == null)
+            {
+                return Request.CreateResponse(HttpStatusCode.OK, new { ms = "Bạn không có quyền truy cập chức năng này!", err = "1" });
+            }
+            string fdhrm_payroll_user = "";
+            IEnumerable<Claim> claims = identity.Claims;
+            string ip = getipaddress();
+            string name = claims.Where(p => p.Type == "fname").FirstOrDefault()?.Value;
+            string tid = claims.Where(p => p.Type == "tid").FirstOrDefault()?.Value;
+            string dvid = claims.Where(p => p.Type == "dvid").FirstOrDefault()?.Value;
+            string uid = claims.Where(p => p.Type == "uid").FirstOrDefault()?.Value;
+
+            string domainurl = HttpContext.Current.Request.Url.Scheme + "://" + HttpContext.Current.Request.Url.Host + ":" + HttpContext.Current.Request.Url.Port + "/";
+
+            try
+            {
+                using (DBEntities db = new DBEntities())
+                {
+                    if (!Request.Content.IsMimeMultipartContent())
+                    {
+                        throw new HttpResponseException(HttpStatusCode.UnsupportedMediaType);
+                    }
+
+                    string root = HttpContext.Current.Server.MapPath("~/Portals");
+
+                    var provider = new MultipartFormDataStreamProvider(root);
+
+                    // Read the form data and return an async task.
+                    var task = Request.Content.ReadAsMultipartAsync(provider).
+                    ContinueWith<HttpResponseMessage>(t =>
+                    {
+                        if (t.IsFaulted || t.IsCanceled)
+                        {
+                            Request.CreateErrorResponse(HttpStatusCode.InternalServerError, t.Exception);
+                        }
+                        bool super = claims.Where(p => p.Type == "super").FirstOrDefault()?.Value == "True";
+
+                        fdhrm_payroll_user = provider.FormData.GetValues("hrm_payroll_user").SingleOrDefault();
+                        List<hrm_payroll_user> hrm_payroll_user = JsonConvert.DeserializeObject<List<hrm_payroll_user>>(fdhrm_payroll_user);
+                        var idc = 1;
+                         
+                        foreach (var item in hrm_payroll_user)
+                        {
+                            idc = item.payroll_id;
+                            item.organization_id = int.Parse(dvid);
+                            item.created_by = uid;
+                            item.created_date = DateTime.Now;
+                            item.created_ip = ip;
+                            item.created_token_id = tid;
+                            db.Entry(item).State = EntityState.Modified;
+                            db.SaveChanges();
+                        }
+                        var dass = db.hrm_payroll_user.Where(a => a.payroll_id == idc && a.is_data == null).ToArray();
+                        if (dass.Length > 0)
+                        {
+                            db.hrm_payroll_user.RemoveRange(dass);
+                            db.SaveChanges();
+
+                        }
+                        
+                     
+                        return Request.CreateResponse(HttpStatusCode.OK, new { err = "0" });
+                    });
+                    return await task;
+                }
+            }
+            catch (DbEntityValidationException e)
+            {
+                string contents = helper.getCatchError(e, null);
+                helper.saveLog(uid, name, JsonConvert.SerializeObject(new { data = fdhrm_payroll_user, contents }), domainurl + "hrm_payroll_user/Add_hrm_payroll_user", ip, tid, "Lỗi khi thêm cấp nhân sự", 0, "cấp nhân sự");
+                if (!helper.debug)
+                {
+                    contents = "";
+                }
+                Log.Error(contents);
+                return Request.CreateResponse(HttpStatusCode.OK, new { ms = contents, err = "1" });
+            }
+            catch (Exception e)
+            {
+                string contents = helper.ExceptionMessage(e);
+                helper.saveLog(uid, name, JsonConvert.SerializeObject(new { data = fdhrm_payroll_user, contents }), domainurl + "hrm_payroll_user/Add_hrm_payroll_user", ip, tid, "Lỗi khi thêm cấp nhân sự", 0, "cấp nhân sự  ");
+                if (!helper.debug)
+                {
+                    contents = "";
+                }
+                Log.Error(contents);
+                return Request.CreateResponse(HttpStatusCode.OK, new { ms = contents, err = "1" });
+            }
+        }
+
+
         [HttpPut]
         public async Task<HttpResponseMessage> update_hrm_payroll_user()
         {
@@ -166,7 +263,7 @@ namespace API.Controllers.HRM.Payroll
                         db.SaveChanges();
 
 
-                    
+
                         return Request.CreateResponse(HttpStatusCode.OK, new { err = "0" });
                     });
                     return await task;
@@ -232,7 +329,7 @@ namespace API.Controllers.HRM.Payroll
 
                                 del.Add(da);
 
-                                
+
 
                             }
                             if (del.Count == 0)
