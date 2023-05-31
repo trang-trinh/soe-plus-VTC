@@ -2530,7 +2530,7 @@ export default {
           swal.showLoading();
         },
       });
-debugger
+
       const axResponse = await axios.post(
         baseURL + "/api/HRM_SQL/PostProc",
         {
