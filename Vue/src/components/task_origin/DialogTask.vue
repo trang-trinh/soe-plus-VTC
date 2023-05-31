@@ -117,39 +117,41 @@ const closeDialogTask = () => {
 const renderTreeDV = (data, id, name, title) => {
   let arrChils = [];
   let arrtreeChils = [];
-  // .filter((x) => x.parent_id == null)
-  data.forEach((m, i) => {
-    m.IsOrder = i + 1;
-    let om = { key: m[id], data: m };
-    const rechildren = (mm, pid) => {
-      let dts = data.filter((x) => x.parent_id == pid);
-      if (dts.length > 0) {
-        if (!mm.children) mm.children = [];
-        dts.forEach((em) => {
-          let om1 = { key: em[id], data: em };
-          rechildren(om1, em[id]);
-          mm.children.push(om1);
-        });
-      }
-    };
-    rechildren(om, m[id]);
-    arrChils.push(om);
-    //
-    om = { key: m[id], data: m[id], label: m[name] };
-    const retreechildren = (mm, pid) => {
-      let dts = data.filter((x) => x.parent_id == pid);
-      if (dts.length > 0) {
-        if (!mm.children) mm.children = [];
-        dts.forEach((em) => {
-          let om1 = { key: em[id], data: em[id], label: em[name] };
-          retreechildren(om1, em[id]);
-          mm.children.push(om1);
-        });
-      }
-    };
-    retreechildren(om, m[id]);
-    arrtreeChils.push(om);
-  });
+  let len = data.filter((x) => x.parent_id == null).length;
+  data
+    .filter((x) => (len > 0 ? x.parent_id == null : x.organization_type == 0))
+    .forEach((m, i) => {
+      m.IsOrder = i + 1;
+      let om = { key: m[id], data: m };
+      const rechildren = (mm, pid) => {
+        let dts = data.filter((x) => x.parent_id == pid);
+        if (dts.length > 0) {
+          if (!mm.children) mm.children = [];
+          dts.forEach((em) => {
+            let om1 = { key: em[id], data: em };
+            rechildren(om1, em[id]);
+            mm.children.push(om1);
+          });
+        }
+      };
+      rechildren(om, m[id]);
+      arrChils.push(om);
+      //
+      om = { key: m[id], data: m[id], label: m[name] };
+      const retreechildren = (mm, pid) => {
+        let dts = data.filter((x) => x.parent_id == pid);
+        if (dts.length > 0) {
+          if (!mm.children) mm.children = [];
+          dts.forEach((em) => {
+            let om1 = { key: em[id], data: em[id], label: em[name] };
+            retreechildren(om1, em[id]);
+            mm.children.push(om1);
+          });
+        }
+      };
+      retreechildren(om, m[id]);
+      arrtreeChils.push(om);
+    });
   arrtreeChils.unshift({
     key: -1,
     data: -1,
@@ -176,7 +178,7 @@ const listtreeOrganization = () => {
     .then((response) => {
       let data = JSON.parse(response.data.data)[0];
       let obj = renderTreeDV(
-        data.filter((x) => x.organization_type != 0),
+        data,
         "organization_id",
         "organization_name",
         "phòng ban"
@@ -1053,6 +1055,15 @@ const autoFillDate = (event, model, prop_name) => {
   model[prop_name] = new Date(tempYear, tempMonth, tempDate, hour, minutes);
   return;
 };
+const listRepeatType = ref([
+  { value: 0, label: "Hằng ngày" },
+  { value: 1, label: "Hằng tuần" },
+  { value: 2, label: "Hằng tháng" },
+  { value: 3, label: "Hằng quí" },
+  { value: 4, label: "Hằng năm" },
+  { value: 5, label: "Khoảng thời gian" },
+  { value: 6, label: "Ngày/Tháng tự chọn" },
+]);
 onMounted(() => {
   MountTask();
 });
@@ -1118,8 +1129,32 @@ onMounted(() => {
               "
             />
           </div>
+          <!-- <label
+            class="col-3 text-left p-0"
+            v-if="props.is_template != true && isAdd == true"
+          >
+            Công việc lặp lại
+          </label>
+          <div class="col-3" v-if="props.is_template != true && isAdd == true">
+            <InputSwitch v-model="Task.is_repeat" />
+          </div> -->
         </div>
 
+        <div class="field col-12 md:col-12" v-if="Task.is_repeat == true">
+          <label class="col-3 text-left p-0">Loại lặp</label>
+          <Dropdown
+            :filter="true"
+            v-model="Task.repeat_type"
+            panelClass="d-design-dropdown"
+            selectionLimit="1"
+            :options="listRepeatType"
+            optionLabel="label"
+            optionValue="value"
+            spellcheck="false"
+            class="col-9 ip36 p-0"
+          >
+          </Dropdown>
+        </div>
         <div class="field col-12 md:col-12" v-if="Task.is_department">
           <label class="col-3 text-left p-0">Phòng ban</label>
           <TreeSelect

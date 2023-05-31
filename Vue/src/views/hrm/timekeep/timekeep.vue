@@ -730,7 +730,6 @@ const initData = (ref) => {
       if (response != null && response.data != null) {
         let data = JSON.parse(response.data.data);
         if (data != null) {
-          
           if (data[0] != null && data[0].length > 0) {
             data[0].forEach((user, i) => {
               user["STT"] = i + 1;
@@ -873,7 +872,7 @@ onMounted(() => {
 });
 </script>
 <template>
-  <div class="surface-100 p-3" style="overflow: hidden">
+  <div class="surface-100 p-2" style="overflow: hidden">
     <Toolbar class="outline-none surface-0 border-none pb-0">
       <template #start>
         <div>
@@ -1480,7 +1479,7 @@ onMounted(() => {
 </template>
 <style scoped>
 .box-table {
-  height: calc(100vh - 180px) !important;
+  height: calc(100vh - 170px) !important;
   background-color: #fff;
   overflow: auto;
 }

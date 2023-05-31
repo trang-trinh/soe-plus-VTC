@@ -445,6 +445,8 @@ li.p-chips-token {
 
 .p-inputtext {
   max-width: 100%;
+}
+.input-search.p-inputtext{
   width: 20vw;
 }
 .duy-inpput .p-inputtext {

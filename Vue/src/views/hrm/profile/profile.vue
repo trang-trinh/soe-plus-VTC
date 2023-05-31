@@ -13,6 +13,9 @@ import dialogstatus from "../profile/component/dialogstatus.vue";
 import dialogmatchaccount from "../profile/component/dialogmatchaccount.vue";
 import moment from "moment";
 import { groupBy } from "lodash";
+import { useRoute } from "vue-router";
+
+const route = useRoute();
 const router = inject("router");
 const store = inject("store");
 const swal = inject("$swal");
@@ -51,6 +54,8 @@ const options = ref({
   birthday_start_date: null,
   birthday_end_date: null,
   tags: [],
+  path: null,
+  name: null,
 });
 const isFilter = ref(false);
 const isFirst = ref(true);
@@ -59,6 +64,8 @@ const dataLimits = ref([]);
 const counts = ref([]);
 const profile = ref({});
 const selectedNodes = ref({});
+const rolefunctions = ref([]);
+const functions = ref({});
 const dictionarys = ref([]);
 const treeOrganization = ref([]);
 const datachilds = ref([]);
@@ -1073,6 +1080,49 @@ const initPlaceFilter = (event, type) => {
       }
     });
 };
+const initRoleFunction = () => {
+  axios
+    .post(
+      baseURL + "/api/hrm/callProc",
+      {
+        str: encr(
+          JSON.stringify({
+            proc: "hrm_profile_rolefunction_get",
+            par: [
+              { par: "user_id", va: store.getters.user.user_id },
+              { par: "is_link", va: options.value.path },
+            ],
+          }),
+          SecretKey,
+          cryoptojs
+        ).toString(),
+      },
+      config
+    )
+    .then((response) => {
+      if (response != null && response.data != null) {
+        var data = response.data.data;
+        if (data != null) {
+          let tbs = JSON.parse(data);
+          if (tbs[0] != null && tbs[0].length > 0) {
+            let permissions = Object.entries(tbs[0][0]);
+            for (const [key, value] of permissions) {
+              functions.value[key] = value;
+            }
+          }
+          if (tbs[1] != null && tbs[1].length > 0) {
+            if (tbs[1][0].module_functions != null) {
+              let module_functions = tbs[1][0].module_functions.split(",");
+              for (var key in module_functions) {
+                functions.value[module_functions[key]] = true;
+              }
+            }
+          }
+          rolefunctions.value = tbs;
+        }
+      }
+    });
+};
 const initDictionary = () => {
   axios
     .post(
@@ -1080,8 +1130,11 @@ const initDictionary = () => {
       {
         str: encr(
           JSON.stringify({
-            proc: "hrm_profile_dictionary",
-            par: [{ par: "user_id", va: store.getters.user.user_id }],
+            proc: "hrm_profile_dictionary_2",
+            par: [
+              { par: "user_id", va: store.getters.user.user_id },
+              { par: "is_link", va: options.value.path },
+            ],
           }),
           SecretKey,
           cryoptojs
@@ -1168,7 +1221,7 @@ const initCountFilter = () => {
       {
         str: encr(
           JSON.stringify({
-            proc: "hrm_profile_count_filter_2",
+            proc: "hrm_profile_count_filter_3",
             par: [
               { par: "user_id", va: store.getters.user.user_id },
               { par: "search", va: options.value.search },
@@ -1184,6 +1237,7 @@ const initCountFilter = () => {
               },
               { par: "birthday_end_date", va: options.value.birthday_end_date },
               { par: "tags", va: tags },
+              { par: "is_link", va: options.value.path },
             ],
           }),
           SecretKey,
@@ -1248,10 +1302,11 @@ const initCount = () => {
       {
         str: encr(
           JSON.stringify({
-            proc: "hrm_profile_count",
+            proc: "hrm_profile_count_2",
             par: [
               { par: "user_id", va: store.getters.user.user_id },
               { par: "search", va: options.value.search },
+              { par: "is_link", va: options.value.path },
             ],
           }),
           SecretKey,
@@ -1337,7 +1392,7 @@ const initDataFilter = () => {
       {
         str: encr(
           JSON.stringify({
-            proc: "hrm_profile_list_filter_3",
+            proc: "hrm_profile_list_filter_4",
             par: [
               { par: "user_id", va: store.getters.user.user_id },
               { par: "search", va: options.value.search },
@@ -1356,6 +1411,7 @@ const initDataFilter = () => {
               },
               { par: "birthday_end_date", va: options.value.birthday_end_date },
               { par: "tags", va: tags },
+              { par: "is_link", va: options.value.path },
             ],
           }),
           SecretKey,
@@ -1485,7 +1541,7 @@ const initTreeOrganization = () => {
             addToArray(temp, treeOrganization.value, null, 0, "is_order");
             treeOrganization.value = temp;
           }
-          initLoad();
+          initSave();
         }
       }
     });
@@ -1511,13 +1567,14 @@ const initData = (ref) => {
       {
         str: encr(
           JSON.stringify({
-            proc: "hrm_profile_list_2",
+            proc: "hrm_profile_list_4",
             par: [
               { par: "user_id", va: store.getters.user.user_id },
               { par: "search", va: options.value.search },
               { par: "pageNo", va: options.value.pageNo },
               { par: "pageSize", va: options.value.pageSize },
               { par: "tab", va: options.value.tab },
+              { par: "is_link", va: options.value.path },
             ],
           }),
           SecretKey,
@@ -2015,32 +2072,49 @@ const initDataFilterAdv = (f, sql, rf) => {
     strSQL.proc = sql;
     sqlSubmit.value = sql;
 
+    let hasWhereQuery = strSQL.proc
+      .replaceAll("Where", "where")
+      .indexOf("where");
+    let hasOrderQuery = strSQL.proc.indexOf("order by");
+    let subQuery_start = strSQL.proc.substring(0, hasOrderQuery);
+    let subQuery_end = strSQL.proc.substring(hasOrderQuery);
+    let strtab = "";
+    let strPermis = `(organization_id in (Select organization_id from #temp2 where organization_type = 0)
+      or id_department in (Select organization_id from #temp2 where organization_type = 1)
+    )`;
     if (options.value.tab != -1) {
-      let hasWhereQuery = strSQL.proc
-        .replaceAll("Where", "where")
-        .indexOf("where");
-      let hasOrderQuery = strSQL.proc.indexOf("order by");
-      let subQuery_start = strSQL.proc.substring(0, hasOrderQuery);
-      let subQuery_end = strSQL.proc.substring(hasOrderQuery);
-      let strtab = "";
       if (options.value.tab == 6) {
         strtab =
           " ([Hồ sơ nhân sự|Trạng thái nhân sự|0|0|0|status] is null or [Hồ sơ nhân sự|Trạng thái nhân sự|0|0|0|status] not in (0,1,2,3,4,5)) ";
-        if (hasWhereQuery >= 0) {
-          strSQL.proc = subQuery_start + " and " + strtab + subQuery_end;
-        } else {
-          strSQL.proc = subQuery_start + " where " + strtab + subQuery_end;
-        }
       } else if (arrayStatus.indexOf(options.value.tab) >= 0) {
         strtab =
           " ([Hồ sơ nhân sự|Trạng thái nhân sự|0|0|0|status] = " +
           options.value.tab.toString() +
           ") ";
-        if (hasWhereQuery >= 0) {
-          strSQL.proc = subQuery_start + " and " + strtab + subQuery_end;
-        } else {
-          strSQL.proc = subQuery_start + " where " + strtab + subQuery_end;
-        }
+      }
+      if (hasWhereQuery >= 0) {
+        strSQL.proc =
+          subQuery_start +
+          (strtab != "" ? " and " + strtab : " ") +
+          " and " +
+          strPermis +
+          " " +
+          subQuery_end;
+      } else {
+        strSQL.proc =
+          subQuery_start +
+          " where " +
+          (strtab != "" ? strtab + " and " : " ") +
+          strPermis +
+          " " +
+          subQuery_end;
+      }
+    } else {
+      if (hasWhereQuery >= 0) {
+        strSQL.proc = subQuery_start + " and " + strPermis + " " + subQuery_end;
+      } else {
+        strSQL.proc =
+          subQuery_start + " where " + strPermis + " " + subQuery_end;
       }
     }
 
@@ -2054,6 +2128,28 @@ const initDataFilterAdv = (f, sql, rf) => {
         options.value.pageSize +
         ` rows only`;
     }
+    let sqlStart = `if object_id(N'tempdb..#temp0') is not null begin drop2table #temp0 end
+      if object_id(N'tempdb..#temp1') is not null begin drop2table #temp1 end
+      if object_id(N'tempdb..#temp2') is not null begin drop2table #temp2 end
+      declare @organization_id int = (Select organization_id from sys_users where user_id = '${store.getters.user.user_id}')
+      create2table #temp0 (is_permission nvarchar(500))
+      insert2into #temp0 (is_permission) exec hrm_rolefunction_get '${store.getters.user.user_id}', '/hrm/profile', 0
+      declare @is_permission nvarchar(500) = (select top 1 is_permission from #temp0)
+      create2table #temp1 (module_functions nvarchar(500))
+      insert2into #temp1 (module_functions) exec hrm_rolefunction_get '${store.getters.user.user_id}', '/hrm/profile', 1
+      declare @module_functions nvarchar(500) = (select top 1 module_functions from #temp1)
+      create2table #temp2 (organization_id int, organization_type int)
+      insert2into #temp2 (organization_id, organization_type) exec hrm_rolefunction_get '${store.getters.user.user_id}', '/hrm/profile', 2
+    `;
+    let sqlIsFunc = `cast(case 
+		when charindex('4', @is_permission) > 0 and organization_id in (Select organization_id from #temp2 where #temp2.organization_type = 0) then 1
+		when charindex('3', @is_permission) > 0 and organization_id = @organization_id then 1
+		when charindex('2', @is_permission) > 0 and id_department in (Select organization_id from #temp2 where #temp2.organization_type = 1) then 1
+		else 0 end as bit) as is_function`;
+    let sqlCount = strSQL.proc
+      .substring(0, strSQL.proc.indexOf("order by"))
+      .replace("Select *", "Select count(*) as total");
+    strSQL.proc = sqlStart + " " + strSQL.proc.replace("Select *", "Select *, " + sqlIsFunc) + (" " + sqlCount);
   }
   if (!f) {
     isFilterAdv.value = true;
@@ -2166,7 +2262,7 @@ const initDataFilterAdv = (f, sql, rf) => {
               datas.value = dts[0];
               dataLimits.value = dataLimits.value.concat(dts[0]);
               dataAdvAll.value = [...dataLimits.value];
-              if(rf){
+              if (rf) {
                 initCountFilterAdv(sql);
               }
               var temp = groupBy(dts[0], "department_id");
@@ -2261,6 +2357,16 @@ const initDataFilterAdv = (f, sql, rf) => {
 const initCountFilterAdv = (sql) => {
   let sqlDataGet = sql ? sql.substring(0, sql.lastIndexOf("order by [")) : "";
   if (sqlDataGet != "") {
+    let sqlStart = `if object_id(N'tempdb..#temp1') is not null
+      begin drop2table #temp1 end
+      if object_id(N'tempdb..#temp2') is not null
+      begin drop2table #temp2 end
+      create2table #temp1 (module_functions nvarchar(500))
+      insert2into #temp1 (module_functions) exec hrm_rolefunction_get '${store.getters.user.user_id}', '/hrm/profile', 1
+      create2table #temp2 (organization_id int, organization_type int)
+      insert2into #temp2 (organization_id, organization_type) exec hrm_rolefunction_get '${store.getters.user.user_id}', '/hrm/profile', 2
+    `;
+
     let proc = `Select (tbn.FieldValue) status, Count(p.profile_id) total 
               from (${sqlDataGet}) p
               cross join (Select * from dbo.udf_PivotParameters('-1,0,1,2,3,4,5,6',',')) as tbn
@@ -2268,10 +2374,11 @@ const initCountFilterAdv = (sql) => {
                     or (tbn.FieldValue in (0,1,2,3,4,5) and tbn.FieldValue = p.[Hồ sơ nhân sự|Trạng thái nhân sự|0|0|0|status])
                     or (tbn.FieldValue = 6 and (p.[Hồ sơ nhân sự|Trạng thái nhân sự|0|0|0|status] is null or p.[Hồ sơ nhân sự|Trạng thái nhân sự|0|0|0|status] not in (0,1,2,3,4,5)))
                   ) 
+                  and (p.organization_id in (Select organization_id from #temp2 where organization_type = 0) or p.id_department in (Select organization_id from #temp2 where organization_type = 1))
               group by tbn.FieldValue`;
     let strSQLCount = {
       query: true,
-      proc: proc,
+      proc: sqlStart + " " + proc,
     };
     tabs.value.forEach((x) => {
       x["total"] = 0;
@@ -2450,7 +2557,6 @@ const submitFilter = () => {
   dataLimits.value = [];
   closeOverlayFilterAdv();
   if (options.value.search == null || options.value.search.trim() == "") {
-    isFilterAdv.value = false;
     options.value.tab = -1;
     options.value.pageNo = 1;
     options.value.pageSize = 25;
@@ -2460,6 +2566,11 @@ const submitFilter = () => {
     initCount();
     initData(true);
   } else {
+    options.value.tab = -1;
+    options.value.pageNo = 1;
+    options.value.pageSize = 25;
+    options.value.limitItem = 25;
+    options.value.total = 0;
     initDataFilterAdv(false, sql, true);
   }
 };
@@ -2681,11 +2792,14 @@ const initLoad = () => {
 
 onMounted(() => {
   nextTick(() => {
+    options.value.path = route.path;
+    options.value.name = route.name;
     //initPlace();
+    initRoleFunction();
     initDictionary();
     initCount();
     initTreeOrganization();
-    initDataFilterAdv(true, "", true);
+    initDataFilterAdv(true, "", false);
     //initData(true);
 
     const el = document.getElementById("buffered-scroll");
@@ -2751,8 +2865,7 @@ const loadMoreRow = (data) => {
             type="text"
             spellcheck="false"
             placeholder="Tìm kiếm"
-            class="input-search"
-            style="padding-right: 2rem; max-width: 450px; width: 100vw"
+            class="input-search pr-2"
           />
           <i
             class="pi pi-filter i-filter-advanced"
@@ -3568,13 +3681,13 @@ const loadMoreRow = (data) => {
       <template #end>
         <!-- <Button @click="test()" label="test" icon="pi pi-plus" class="mr-2" /> -->
         <Button
+          v-if="functions.is_add"
           @click="openAddDialog('Thêm mới hồ sơ')"
           label="Thêm mới"
           icon="pi pi-plus"
           class="mr-2"
         />
-
-        <Button
+        <!-- <Button
           icon="pi pi-trash"
           label="Xóa"
           :class="{
@@ -3583,8 +3696,9 @@ const loadMoreRow = (data) => {
           }"
           @click="deleteItem()"
           class="mr-2"
-        />
+        /> -->
         <Button
+          v-if="functions.tienich"
           @click="toggleExport"
           label="Tiện ích"
           icon="pi pi-file-excel"
@@ -3621,16 +3735,16 @@ const loadMoreRow = (data) => {
         </SelectButton>
         <Button
           @click="refresh()"
-          class="p-button-outlined p-button-secondary mr-2"
+          class="p-button-outlined p-button-secondary"
           icon="pi pi-refresh"
           v-tooltip.top="'Tải lại'"
         />
-        <Button
+        <!-- <Button
           @click=""
           icon="pi pi-question-circle"
           class="p-button-outlined p-button-secondary"
           v-tooltip.top="'Hướng dẫn sử dụng'"
-        />
+        /> -->
       </template>
     </Toolbar>
     <div class="tabview">
@@ -3679,7 +3793,17 @@ const loadMoreRow = (data) => {
       <DataTable
         @rowSelect="
           (event) => {
-            goProfile(event.data);
+            if (functions.xemchitiet) {
+              goProfile(event.data);
+            } else {
+              swal.fire({
+                title: 'Thông báo!',
+                text: 'Bạn không có quyền truy cập hồ sơ này!',
+                icon: 'error',
+                confirmButtonText: 'OK',
+              });
+              return;
+            }
           }
         "
         :value="dataLimits"
@@ -3908,7 +4032,20 @@ const loadMoreRow = (data) => {
               <li v-if="slotProps.data.is_matchaccount">
                 <Button
                   @click="
-                    openMatchAccount(slotProps.data, 'liên kết tài khoản')
+                    () => {
+                      if (slotProps.data.is_function) {
+                        openMatchAccount(slotProps.data, 'liên kết tài khoản');
+                        $event.stopPropagation();
+                      } else {
+                        swal.fire({
+                          title: 'Thông báo!',
+                          text: 'Bạn không có quyền sử dụng tính năng này!',
+                          icon: 'error',
+                          confirmButtonText: 'OK',
+                        });
+                        return;
+                      }
+                    }
                   "
                   icon="pi pi-user"
                   class="p-button-rounded p-button-text"
@@ -3924,8 +4061,20 @@ const loadMoreRow = (data) => {
                   :class="{ 'icon-star': slotProps.data.is_star }"
                   class="p-button-rounded p-button-text"
                   @click="
-                    setStar(slotProps.data);
-                    $event.stopPropagation();
+                    () => {
+                      if (slotProps.data.is_function) {
+                        setStar(slotProps.data);
+                        $event.stopPropagation();
+                      } else {
+                        swal.fire({
+                          title: 'Thông báo!',
+                          text: 'Bạn không có quyền sử dụng tính năng này!',
+                          icon: 'error',
+                          confirmButtonText: 'OK',
+                        });
+                        return;
+                      }
+                    }
                   "
                   aria-haspopup="true"
                   aria-controls="overlay_MorePlus"
@@ -3935,7 +4084,7 @@ const loadMoreRow = (data) => {
                   style="font-size: 15px; color: #000"
                 />
               </li>
-              <li>
+              <li v-if="slotProps.data.is_function">
                 <Button
                   icon="pi pi-plus-circle"
                   class="p-button-rounded p-button-text"
@@ -3948,7 +4097,7 @@ const loadMoreRow = (data) => {
                   v-tooltip.top="'Nhập bổ sung hồ sơ'"
                 />
               </li>
-              <li>
+              <li v-if="slotProps.data.is_function">
                 <Button
                   icon="pi pi-ellipsis-h"
                   class="p-button-rounded p-button-text"

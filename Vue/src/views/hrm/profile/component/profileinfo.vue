@@ -8,14 +8,13 @@ import dialoginfo from "../../profile/component/dialoginfo.vue";
 import dialogtraining from "../../training/component/dialog_training.vue";
 import dialogfile from "../../profile/component/dialogfile.vue";
 import printprofile from "../component/printprofile.vue";
-// import diloginsurance from "../../insurance/component/diloginsurance.vue";
 
 import comptask from "../../profile/component/comptask.vue";
 import comptimekeep from "../component/comptimekeep.vue";
 import diloginsurance from "../../profile/component/diloginsurance.vue";
-import comreward from "../../profile/component/comreward.vue";
 import leaveyear from "../../myprofile/component/comview6.vue";
 import decision from "../../myprofile/component/comview8.vue";
+import reward from "../../myprofile/component/comview9.vue";
 import DocComponent from "../../template/components/DocComponent.vue";
 import moment from "moment";
 
@@ -80,7 +79,9 @@ const bgColor = ref([
   "#CCADD7",
 ]);
 const selectedNodes = ref([]);
-watch(selectedNodes, () => {});
+const rolefunctions = ref([]);
+const functions = ref({});
+
 const selectRow = (event) => {
   if (event && event.data) {
     goProfile(event.data);
@@ -139,7 +140,6 @@ const filter = (event) => {
 //data view 1
 const isAdd = ref(false);
 const profile = ref({});
-const places = ref([]);
 const marital_status = ref([
   { value: 0, text: "Độc thân" },
   { value: 1, text: "Kết hôn" },
@@ -472,9 +472,9 @@ const formatBytes = (bytes, decimals = 2) => {
 const headerDialogFile = ref();
 const displayDialogFile = ref(false);
 const openViewDialogFile = (str) => {
-  forceRerender(3);
   headerDialogFile.value = str;
   displayDialogFile.value = true;
+  forceRerender(3);
 };
 const closeDialogFile = () => {
   displayDialogFile.value = false;
@@ -536,7 +536,8 @@ const goPrint = (key) => {
 };
 //filter
 const goFile = (file) => {
-  window.open(basedomainURL + file.file_path, "_blank");
+  options.value.file = file;
+  openViewDialogFile(file.file_name);
 };
 const goBack = () => {
   router.push({ name: "profile" });
@@ -855,80 +856,6 @@ const togglePrints = (event) => {
 };
 
 //init Dictionary view 1
-const initPlace = () => {
-  axios
-    .post(
-      baseURL + "/api/hrm/callProc",
-      {
-        str: encr(
-          JSON.stringify({
-            proc: "ca_places_list",
-            par: [
-              { par: "pageno", va: 0 },
-              { par: "pagesize", va: 100 },
-            ],
-          }),
-          SecretKey,
-          cryoptojs
-        ).toString(),
-      },
-      config
-    )
-    .then((response) => {
-      renderPlace(response);
-    })
-    .catch((error) => {
-      console.log(error);
-      toast.error("Tải dữ liệu không thành công!");
-
-      if (error && error.status === 401) {
-        swal.fire({
-          title: "Thông báo",
-          text: "Mã token đã hết hạn hoặc không hợp lệ, vui lòng đăng nhập lại!",
-          icon: "error",
-          confirmButtonText: "OK",
-        });
-        store.commit("gologout");
-      }
-    });
-};
-const renderPlace = (response) => {
-  let list1 = [];
-  let list2 = [];
-  let list3 = [];
-  let d1 = JSON.parse(response.data.data)[0];
-  d1.forEach((element, i) => {
-    let c = {
-      key: element.place_id,
-      data: element.place_id,
-      label: element.name,
-      children: null,
-    };
-    if (d1[i].children) {
-      list2 = JSON.parse(d1[i].children);
-      if (list2 != null) {
-        list2.forEach((element, i) => {
-          element.label = element.data.name;
-          element.data = parseInt(element.data.place_id);
-          element.key = element.data;
-          //đổi is_order
-          if (list2[i].children != null && list2[i].children.length > 0) {
-            // list3 = list2[i].children;
-            // list2[i].children = list3;
-            list2[i].children.forEach((element, i) => {
-              element.label = element.data.name;
-              element.data = parseInt(element.data.place_id);
-              element.key = element.data;
-            });
-          }
-        });
-      }
-      c.children = list2;
-    }
-    list1.push(c);
-  });
-  places.value = list1;
-};
 const initDictionary1 = () => {
   dictionarys.value = [];
   axios
@@ -954,9 +881,6 @@ const initDictionary1 = () => {
           dictionarys.value = tbs;
         }
       }
-    })
-    .then(() => {
-      initPlace();
     })
     .then(() => {
       initView1(true);
@@ -1169,27 +1093,6 @@ const initView1 = (rf) => {
               : profile.value["gender"] == 2
               ? "Nữ"
               : "";
-          var idx = places.value.findIndex(
-            (x) => x["place_id"] === profile.value["birthplace_id"]
-          );
-          if (idx !== -1) {
-            profile.value["select_birthplace"] =
-              places.value[idx]["place_name"];
-          }
-          var idx = places.value.findIndex(
-            (x) => x["place_id"] === profile.value["birthplace_origin_id"]
-          );
-          if (idx !== -1) {
-            profile.value["select_birthplace_origin"] =
-              places.value[idx]["place_name"];
-          }
-          var idx = places.value.findIndex(
-            (x) => x["place_id"] === profile.value["place_register_permanent"]
-          );
-          if (idx !== -1) {
-            profile.value["select_place_register_permanent"] =
-              places.value[idx]["place_name"];
-          }
           if (profile.value["recruitment_date"] != null) {
             profile.value["recruitment_date"] = moment(
               new Date(profile.value["recruitment_date"])
@@ -2498,6 +2401,10 @@ const initView12 = (rf) => {
 };
 const replates = ref([]);
 const initRelate = (rf) => {
+  var path = options.value.path;
+  if (options.value.name === "profileinfo") {
+    path = "/hrm/profile";
+  }
   if (rf) {
     swal.fire({
       width: 110,
@@ -2512,8 +2419,12 @@ const initRelate = (rf) => {
       {
         str: encr(
           JSON.stringify({
-            proc: "hrm_profile_relate_get",
-            par: [{ par: "profile_id", va: options.value["profile_id"] }],
+            proc: "hrm_profile_relate_get_2",
+            par: [
+              { par: "user_id", va: store.getters.user.user_id },
+              { par: "profile_id", va: options.value.profile_id },
+              { par: "is_link", va: path },
+            ],
           }),
           SecretKey,
           cryoptojs
@@ -2577,6 +2488,53 @@ const initData = () => {
     initDictionary12();
   }
 };
+const initRoleFunction = () => {
+  var path = options.value.path;
+  if (options.value.name === "profileinfo") {
+    path = "/hrm/profile";
+  }
+  axios
+    .post(
+      baseURL + "/api/hrm/callProc",
+      {
+        str: encr(
+          JSON.stringify({
+            proc: "hrm_profile_rolefunction_get",
+            par: [
+              { par: "user_id", va: store.getters.user.user_id },
+              { par: "is_link", va: options.value.path },
+            ],
+          }),
+          SecretKey,
+          cryoptojs
+        ).toString(),
+      },
+      config
+    )
+    .then((response) => {
+      if (response != null && response.data != null) {
+        var data = response.data.data;
+        if (data != null) {
+          let tbs = JSON.parse(data);
+          if (tbs[0] != null && tbs[0].length > 0) {
+            let permissions = Object.entries(tbs[0][0]);
+            for (const [key, value] of permissions) {
+              functions.value[key] = value;
+            }
+          }
+          if (tbs[1] != null && tbs[1].length > 0) {
+            if (tbs[1][0].module_functions != null) {
+              let module_functions = tbs[1][0].module_functions.split(",");
+              for (var key in module_functions) {
+                functions.value[module_functions[key]] = true;
+              }
+            }
+          }
+          rolefunctions.value = tbs;
+        }
+      }
+    });
+};
 const initDictionary = () => {
   reports.value = [];
   itemButPrints.value = [];
@@ -2622,8 +2580,11 @@ const initDictionary = () => {
 };
 onMounted(() => {
   if (route.params.id != null) {
-    options.value["key_id"] = route.params.id;
-    options.value["profile_id"] = route.query.id;
+    options.value.key_id = route.params.id;
+    options.value.profile_id = route.query.id;
+    options.value.path = route.path;
+    options.value.name = route.name;
+    initRoleFunction();
     initData();
     initRelate();
     //initDictionaryInsurance();
@@ -2681,6 +2642,7 @@ const formatViewNumber = (value, partDecimal) => {
           </li>
         </ul>
         <Button
+          v-if="functions.is_edit"
           @click="toggleEdit"
           label="Cập nhật thay đổi thông tin"
           class="p-button-warning mr-2"
@@ -4860,7 +4822,11 @@ const formatViewNumber = (value, partDecimal) => {
               </div>
             </div>
             <div v-if="options.view === 2" class="f-full">
-              <comptask :profile_id="options.profile_id" :view="options.view" />
+              <comptask
+                :profile_id="options.profile_id"
+                :view="options.view"
+                :functions="functions"
+              />
             </div>
             <div v-show="options.view === 3" class="f-full">
               <div class="d-lang-table-1 p-2">
@@ -6213,10 +6179,7 @@ const formatViewNumber = (value, partDecimal) => {
               </div>
             </div>
             <div v-if="options.view === 16" class="f-full">
-              <comreward
-                :profile_id="options.profile_id"
-                :view="options.view"
-              />
+              <reward :profile_id="profile.profile_id" />
             </div>
           </div>
         </div>

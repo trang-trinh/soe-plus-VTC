@@ -21,20 +21,29 @@ const props = defineProps({
   closeDialog: Function,
   file: Object,
 });
+const display = ref(props.displayDialog);
 </script>
 <template>
   <Dialog
     :header="props.headerDialog"
-    v-model:visible="props.displayDialog"
+    v-model:visible="display"
     :style="{ width: '60vw' }"
     :maximizable="true"
-    :closable="false"
+    :closable="true"
     style="z-index: 9000"
   >
-    <form @submit.prevent="" name="submitform" class="h-full" :style="{ overflow: 'hidden' }">
-      <div class="grid formgrid m-2 h-full" :style="{ minHeight: 'calc(100vh - 300px)' }">
+    <form
+      @submit.prevent=""
+      name="submitform"
+      class="h-full"
+      :style="{ overflow: 'hidden' }"
+    >
+      <div
+        class="grid formgrid m-2 h-full"
+        :style="{ minHeight: 'calc(100vh - 300px)' }"
+      >
         <div class="col-12 md:col-12">
-          <div class="form-group h-full">
+          <div class="form-group m-0 h-full">
             <iframe
               v-if="props.file.file_path"
               :src="

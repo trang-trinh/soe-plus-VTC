@@ -19,6 +19,7 @@ const basedomainURL = baseURL;
 const props = defineProps({
   profile_id: String,
   view: Number,
+  functions: Object,
 });
 
 //Declare
@@ -299,6 +300,7 @@ onMounted(() => {
     <template #start> </template>
     <template #end>
       <Button
+        v-if="props.functions.is_add"
         @click="openAddDialogAssignment('Thêm mới công việc')"
         label="Thêm mới"
         icon="pi pi-plus"
@@ -346,6 +348,7 @@ onMounted(() => {
                 </template>
                 <template #end>
                   <Button
+                    v-if="props.functions.is_edit"
                     icon="pi pi-ellipsis-h"
                     class="p-button-rounded p-button-text"
                     @click="

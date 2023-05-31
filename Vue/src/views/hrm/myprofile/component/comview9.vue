@@ -3,6 +3,7 @@ import { onMounted, inject, ref } from "vue";
 import { useToast } from "vue-toastification";
 import { encr } from "../../../../util/function";
 import moment from "moment";
+import dialogfile from "../../profile/component/dialogfile.vue";
 
 const store = inject("store");
 const swal = inject("$swal");
@@ -20,7 +21,9 @@ const props = defineProps({
 });
 
 //Declare
-const options = ref({});
+const options = ref({
+  file: null,
+});
 const rewards = ref([]);
 const disciplines = ref([]);
 
@@ -33,9 +36,30 @@ const typestatus = ref([
 ]);
 
 //Function
-const goFile = (file) => {
-  window.open(basedomainURL + file.file_path, "_blank");
+const componentKey = ref({});
+const forceRerender = (type) => {
+  if (!componentKey.value[type]) {
+    componentKey.value[type] = 0;
+  }
+  componentKey.value[type] += 1;
 };
+const goFile = (file) => {
+  options.value.file = file;
+  openViewDialogFile(file.file_name);
+};
+
+const headerDialogFile = ref();
+const displayDialogFile = ref(false);
+const openViewDialogFile = (str) => {
+  headerDialogFile.value = str;
+  displayDialogFile.value = true;
+  forceRerender(0);
+};
+const closeDialogFile = () => {
+  displayDialogFile.value = false;
+  forceRerender(0);
+};
+
 
 //init
 const initView9 = (rf) => {
@@ -255,6 +279,15 @@ onMounted(() => {
       </div>
     </div>
   </div>
+
+  <!--Dailog-->
+  <dialogfile
+    :key="componentKey['0']"
+    :headerDialog="headerDialogFile"
+    :displayDialog="displayDialogFile"
+    :file="options.file"
+    :closeDialog="closeDialogFile"
+  />
 </template>
 <style scoped>
 .row {
@@ -289,6 +322,8 @@ onMounted(() => {
 </style>
 <style lang="scss" scoped>
 ::v-deep(.p-timeline) {
+  background-color: transparent !important;
+  padding: 0 !important;
   .p-timeline-event .p-timeline-event-opposite {
     display: none !important;
   }
