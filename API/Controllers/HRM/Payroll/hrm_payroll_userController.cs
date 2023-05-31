@@ -159,9 +159,7 @@ namespace API.Controllers.HRM.Payroll
                          
                         foreach (var item in hrm_payroll_user)
                         {
-
                             idc = item.payroll_id;
-                         
                             item.organization_id = int.Parse(dvid);
                             item.created_by = uid;
                             item.created_date = DateTime.Now;
@@ -175,24 +173,10 @@ namespace API.Controllers.HRM.Payroll
                         {
                             db.hrm_payroll_user.RemoveRange(dass);
                             db.SaveChanges();
+
                         }
-                        var dasss = db.hrm_payroll_user.AsNoTracking().Where(a => a.payroll_id == idc && a.is_data != null).ToArray();
-                        var strG = "";
-                        var strGP = "";
-                        if (dasss.Length > 0)
-                        {
-                            foreach (var item in dasss)
-                            {
-                                strG += strGP + item.profile_id;
-                                strGP = ",";
-               
                         
-                            }
-                            var hrm_Payroll = db.hrm_payroll.AsNoTracking().Where(a => a.payroll_id == idc ).FirstOrDefault();
-                            hrm_Payroll.list_profile_id = strG;
-                            db.Entry(hrm_Payroll).State = EntityState.Modified;
-                            db.SaveChanges();
-                        }
+                     
                         return Request.CreateResponse(HttpStatusCode.OK, new { err = "0" });
                     });
                     return await task;

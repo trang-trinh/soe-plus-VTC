@@ -312,7 +312,8 @@ const saveData = (isFormValid) => {
   if (
     payroll.value.profile_id_fake == null ||
     payroll.value.payroll_name == null ||
-    payroll.value.declare_paycheck_id == null
+    payroll.value.declare_paycheck_id == null||
+    payroll.value.sign_user == null 
   ) {
     return;
   }
@@ -503,26 +504,118 @@ const configPayroll = async (row) => {
   }
   swal.close();
 };
-const reloadDocComponent = () => {};
-const callbackFun = (obj, check) => {
-  if (check == false) {
+const reloadDocComponent = async () => {
+  visibleSidebarDoc.value= false;
+  let strSQL = {
+    query: false,
+    proc: "payroll_config",
+    par: [
+      {
+        par: "payroll_id",
+        va: payroll.value.payroll_id,
+      },
+      {
+        par: "report_key",
+        va:  payroll.value.report_key,
+      },
+    ],
+  };
+  swal.fire({
+    width: 110,
+    didOpen: () => {
+      swal.showLoading();
+    },
+  });
+
+  const axResponse = await axios.post(
+    baseURL + "/api/HRM_SQL/getData",
+    {
+      str: encr(JSON.stringify(strSQL), SecretKey, cryoptojs).toString(),
+    },
+    {
+      headers: { Authorization: `Bearer ${store.getters.token}` },
+    }
+  );
+
+  if (axResponse.status == 200) {
+    if (axResponse.data.error) {
+      toast.error("Không mở được bản ghi");
+    } else {
+      let dt = JSON.parse(axResponse.data.data);
+
+      payroll.value = dt[2][0];
+      report.value = dt[1][0];
+
+      report.value.datadic = [{ title: "Bảng lương", data: dt[0][0] }];
+      report.value.proc_name = `payroll_profile_list '${store.getters.user.user_id}', '${ payroll.value.payroll_id}'`;
+      report.value.proc_all = `payroll_profile_list_all '${store.getters.user.user_id}', '${ payroll.value.payroll_id}'`;
+      let cg = {};
+      if (
+        report.value.report_config &&
+        report.value.report_config.trim() != ""
+      ) {
+        cg = JSON.parse(report.value.report_config);
+      }
+      cg.proc = {
+        name: "payroll_user_get",
+        parameters: [
+          {
+            Parameter_name: "@payroll_user_id",
+            Type: "varchar",
+            Length: 50,
+            Param_order: 1,
+          },
+        ],
+        sql: report.value.proc_name,
+        data: JSON.stringify(cg.data),
+        issql: true,
+      };
+      report.value.report_config = JSON.stringify(cg);
+      if (payroll.value.payroll_config)
+        report.value.is_config = JSON.parse(payroll.value.payroll_config);
+
+      visibleSidebarDoc.value = true;
+    }
+  }
+  swal.close();
+};
+let list_profile_id ="";
+ 
+let list_profile_f ="";
+const callbackFun = (obj) => {
+   
+  if (Array.isArray(obj) == false) {
+    debugger
     if (obj.is_config) {
       payroll.value.payroll_config = obj.is_config;
-
       saveDGLuong();
-
+      list_profile_id="";
+    
       return false;
     }
-  } else if (check == true) {
-    obj.forEach((r) => {
-      var arrck = null;
+    if (obj.is_data) {
+      saveDGLuongUser([obj]);
+      return false;
+    }
+  } else if (Array.isArray(obj) == true) {
+    saveDGLuongUser(obj);
+    }
 
+ 
+};
+const saveDGLuongUser =   (obj) => {
+   
+  obj.forEach((r) => {
+      var arrck = null;
       if (r.is_data) arrck = r.is_data[0][report.value.sum_key];
       if (!arrck) arrck = null;
       else arrck = Number(arrck);
       r.payroll_id = payroll.value.payroll_id;
       r.salary=arrck;
+   
       r.is_data = JSON.stringify(r.is_data);
+      list_profile_id+=list_profile_f+r.profile_id;
+      list_profile_f=",";
     })
       
     let formData = new FormData();
@@ -534,7 +627,6 @@ const callbackFun = (obj, check) => {
         swal.showLoading();
       },
     });
-
     axios
       .post(
         baseURL + "/api/hrm_payroll_user/add_li_hrm_payroll_user",
@@ -563,41 +655,8 @@ const callbackFun = (obj, check) => {
           confirmButtonText: "OK",
         });
       });
-  }
-
-  // saveDGLuongUser(obj);
+  
 };
-// const saveDGLuongUser = async (r) => {
-//   let strSQL = {
-//     query: false,
-//     proc: "hrm_payroll_user_addd ",
-//     par: [
-//       { par: "payroll_user_id", va: r.payroll_user_id },
-//       { par: "payroll_id", va: r.payroll_id },
-//       { par: "profile_id", va: r.profile_id },
-//       { par: "is_data", va: JSON.stringify(r.is_data) },
-//       { par: "user_id", va: store.getters.user.user_id },
-//       { par: "ip", va: store.getters.ip },
-//       { par: "organization_id", va: store.getters.user.organization_id },
-//       { par: "salary", va: arrck },
-//     ],
-//   };
-//   // console.log("error",strSQL);
-//   try {
-//     const axResponse = await axios.post(
-//       baseURL + "/api/HRM_SQL/getData",
-//       {
-//         str: encr(JSON.stringify(strSQL), SecretKey, cryoptojs).toString(),
-//       },
-//       {
-//         headers: { Authorization: `Bearer ${store.getters.token}` },
-//       }
-//     );
-//     // console.log("error",axResponse);
-//   } catch (e) {
-//     console.log(e);
-//   }
-// };
 const goProfile = (profile) => {
   router.push({
     name: "profileinfo",
@@ -624,6 +683,7 @@ const saveDGLuong = async () => {
     ok = false;
   }
   if (ok) {
+     
     options.value.loading = true;
     let strSQL = {
       query: false,
@@ -634,12 +694,12 @@ const saveDGLuong = async () => {
         { par: "payroll_year", va: payroll.value.payroll_year },
         { par: "payroll_name", va: payroll.value.payroll_name },
         { par: "payroll_config", va: payroll.value.payroll_config },
-        { par: "list_profile_id", va: payroll.value.list_profile_id || null },
+        { par: "list_profile_id", va: list_profile_id || null },
+      
         { par: "sign_date", va: payroll.value.sign_date },
         { par: "sign_user", va: payroll.value.sign_user },
         { par: "profile_sign_id", va: payroll.value.profile_sign_id },
         { par: "declare_paycheck_id", va: payroll.value.declare_paycheck_id },
-
         { par: "report_key", va: payroll.value.report_key },
         { par: "status ", va: payroll.value.status },
         { par: "user_id", va: store.getters.user.user_id },
@@ -1431,11 +1491,12 @@ onMounted(() => {
 
           <template #end>
             <Button
-              v-if="checkDelList"
+              v-if="checkDelList && store.getters.user.is_super == true"
               @click="deleteList()"
               label="Xóa"
               icon="pi pi-trash"
               class="mr-2 p-button-danger"
+            
             />
             <Button
               @click="openBasic('Thêm bảng lương')"
@@ -1717,7 +1778,7 @@ onMounted(() => {
         <i class="pi pi-cog mr-2"></i>{{ payroll.payroll_name }}
       </h2>
     </template>
-    <div style="padding: 0 20px">
+    <div style="padding: 0 20px" v-if="visibleSidebarDoc">
       <DocComponent
         :isedit="true"
         :report="report"
@@ -1850,20 +1911,40 @@ onMounted(() => {
             </div>
           </div>
           <div class="col-6 md:col-6 p-0 align-items-center pl-3">
-            <div class="col-12 text-left p-0 pb-2">Người ký</div>
+            <div class="col-12 text-left p-0 pb-2">Người ký <span class="redsao">(*)</span></div>
             <div class="col-12 p-0">
               <DropdownProfile
                 :model="payroll.sign_user"
-                :class="'w-full p-0'"
+                :class="(payroll.sign_user==null && submitted) ?  'p-invalid w-full p-0':'w-full p-0 '"
                 :editable="true"
                 optionLabel="profile_user_name"
                 optionValue="profile_user_name"
                 :callbackFun="getProfileUser"
                 :key_user="'sign_user'"
+              
               />
             </div>
           </div>
         </div>
+        <div class="col-12   md:col-12 flex align-items-center">
+          <div class="col-6 md:col-6 p-0 align-items-center">
+           
+          </div>
+          <div class="col-6 md:col-6 p-0 align-items-center pl-2">
+            <div
+          v-if="
+            (payroll.sign_user == null && submitted) 
+          "
+          style="display: flex"
+          class="field col-12 md:col-12 p-0"
+        >
+          <small class="col-9 p-error">
+            <span class="col-12 p-0"> Người ký không được để trống!  </span>
+          </small>
+        </div>
+          </div>
+        </div>
+      
         <div class="field flex align-items-center col-12 md:col-12">
           <div class="col-6 md:col-6 p-0 align-items-center flex">
             <div class="p-0 flex align-items-center">Duyệt</div>
