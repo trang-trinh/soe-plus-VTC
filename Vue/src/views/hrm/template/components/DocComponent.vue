@@ -1469,7 +1469,7 @@ export default {
             rows.push(obj);
           }
         }
-        console.log("aaa", dtDataReports.value, "sss", rows);
+     
         dtDataReports.value.forEach((r) => {
           let rr = rows.find(
             (x) =>
@@ -1500,7 +1500,7 @@ export default {
     };
     const importJsonData = (event) => {
       let file = event.files[0];
-      if (file.name.includes("xlsx")) {
+      if (file.name.includes("xls")) {
         myDocUploader(event);
         return false;
       }
@@ -2628,13 +2628,16 @@ export default {
         });
 
  
-       
+        
       let dts = await goProc(false, objConfig.proc.name, pas, true);
       //init với kiểu lưu
       let tbs = [];
       if (dts[0][0].is_data) {
+        dts[0][0].is_data= dts[0][0].is_data.replaceAll("\\n","");
+         
         try {
           tbs = JSON.parse(dts[0][0].is_data);
+          
           objDataTemp.value.forEach((ot, i) => {
             let tb = tbs[i];
             ot.cols.forEach((co) => {
@@ -2781,12 +2784,13 @@ export default {
     }
     const initURLReport = async () => {
       objConfig = JSON.parse(props.report.report_config);
-      
+       
       //Xử lý for Word
       renderTableWord(props.pars);
     };
     let selectdata = {};
     const onRowSelectReport = async (event) => {
+       
       let tselect = document.querySelector("tr.selected");
       if (tselect) tselect.classList.remove("selected");
       if (event.originalEvent)
@@ -2962,6 +2966,7 @@ export default {
               if (th.getAttribute("tname")) {
                 tn = th.getAttribute("tname") + " (" + tn + ")";
               }
+              debugger
               addRowXls(td, tn, false, true);
             }
           }

@@ -660,30 +660,31 @@ const callbackFun = (obj) => {
 
   let formData = new FormData();
   formData.append("smart_report", JSON.stringify(smart_report.value));
-  axios
-    .put(baseURL + "/api/smart_report/update_smart_report", formData, config)
-    .then((response) => {
-      if (response.data.err != "1") {
-        swal.close();
-      } else {
-        swal.fire({
-          title: "Error!",
-          text: response.data.ms,
-          icon: "error",
-          confirmButtonText: "OK",
-        });
-      }
-    })
-    .catch((error) => {
-      swal.close();
-      swal.fire({
-        title: "Error!",
-        text: "Có lỗi xảy ra, vui lòng kiểm tra lại!",
-        icon: "error",
-        confirmButtonText: "OK",
-      });
-    });
-};
+  debugger
+  // axios
+  //   .put(baseURL + "/api/smart_report/update_smart_report", formData, config)
+  //   .then((response) => {
+  //     if (response.data.err != "1") {
+  //       swal.close();
+  //     } else {
+  //       swal.fire({
+  //         title: "Error!",
+  //         text: response.data.ms,
+  //         icon: "error",
+  //         confirmButtonText: "OK",
+  //       });
+  //     }
+  //   })
+  //   .catch((error) => {
+  //     swal.close();
+  //     swal.fire({
+  //       title: "Error!",
+  //       text: "Có lỗi xảy ra, vui lòng kiểm tra lại!",
+  //       icon: "error",
+  //       confirmButtonText: "OK",
+  //     });
+  //   });
+  };
 //Xóa bản ghi
 const delTem = (Tem) => {
   swal

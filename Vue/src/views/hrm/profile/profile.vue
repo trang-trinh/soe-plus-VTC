@@ -2128,19 +2128,28 @@ const initDataFilterAdv = (f, sql, rf) => {
         options.value.pageSize +
         ` rows only`;
     }
-    let sqlStart = `if object_id(N'tempdb..#temp1') is not null
-      begin drop2table #temp1 end
-      if object_id(N'tempdb..#temp2') is not null
-      begin drop2table #temp2 end
+    let sqlStart = `if object_id(N'tempdb..#temp0') is not null begin drop2table #temp0 end
+      if object_id(N'tempdb..#temp1') is not null begin drop2table #temp1 end
+      if object_id(N'tempdb..#temp2') is not null begin drop2table #temp2 end
+      declare @organization_id int = (Select organization_id from sys_users where user_id = '${store.getters.user.user_id}')
+      create2table #temp0 (is_permission nvarchar(500))
+      insert2into #temp0 (is_permission) exec hrm_rolefunction_get '${store.getters.user.user_id}', '/hrm/profile', 0
+      declare @is_permission nvarchar(500) = (select top 1 is_permission from #temp0)
       create2table #temp1 (module_functions nvarchar(500))
       insert2into #temp1 (module_functions) exec hrm_rolefunction_get '${store.getters.user.user_id}', '/hrm/profile', 1
+      declare @module_functions nvarchar(500) = (select top 1 module_functions from #temp1)
       create2table #temp2 (organization_id int, organization_type int)
       insert2into #temp2 (organization_id, organization_type) exec hrm_rolefunction_get '${store.getters.user.user_id}', '/hrm/profile', 2
     `;
+    let sqlIsFunc = `cast(case 
+		when charindex('4', @is_permission) > 0 and organization_id in (Select organization_id from #temp2 where #temp2.organization_type = 0) then 1
+		when charindex('3', @is_permission) > 0 and organization_id = @organization_id then 1
+		when charindex('2', @is_permission) > 0 and id_department in (Select organization_id from #temp2 where #temp2.organization_type = 1) then 1
+		else 0 end as bit) as is_function`;
     let sqlCount = strSQL.proc
       .substring(0, strSQL.proc.indexOf("order by"))
       .replace("Select *", "Select count(*) as total");
-    strSQL.proc = sqlStart + " " + strSQL.proc + (" " + sqlCount);
+    strSQL.proc = sqlStart + " " + strSQL.proc.replace("Select *", "Select *, " + sqlIsFunc) + (" " + sqlCount);
   }
   if (!f) {
     isFilterAdv.value = true;
