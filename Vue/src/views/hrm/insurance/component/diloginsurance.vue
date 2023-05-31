@@ -85,6 +85,7 @@ const openAddRow = ()=>{
     company_payment: null,
     member_payment: null,
   }
+  onChangeDate(model.value.start_date, model.value.end_date);
 }
 const changeProfile = (profile_id) => {
   axios
@@ -162,15 +163,15 @@ const saveData = () => {
     });
     return;
   }
-  if (isEmpty(props.model.insurance_code)) {
-    swal.fire({
-      title: "Thông báo!",
-      text: "Số thẻ BHYT không được để trống!",
-      icon: "error",
-      confirmButtonText: "OK",
-    });
-    return;
-  }
+  // if (isEmpty(props.model.insurance_code)) {
+  //   swal.fire({
+  //     title: "Thông báo!",
+  //     text: "Số thẻ BHYT không được để trống!",
+  //     icon: "error",
+  //     confirmButtonText: "OK",
+  //   });
+  //   return;
+  // }
   props.insurance_pays.forEach((item) => {
     item.is_duplicate = false;
   });
@@ -258,6 +259,83 @@ const saveData = () => {
       });
     }
   });
+};
+var social_ins_company = 0, social_ins_employee=0;
+const onChangePayment = ()=>{
+  model.value.company_payment = Math.floor(model.value.total_payment/100*social_ins_company)
+  model.value.member_payment = Math.floor(model.value.total_payment/100*social_ins_employee);
+}
+const onChangeDate = (start_date, end_date)=>{
+  var list_date = props.dictionarys[7];
+  var check_vaild = false;
+  social_ins_company= 0;
+  social_ins_employee= 0;
+  if (start_date == null){
+    swal.fire({
+        title: "Thông báo!",
+        text: "Vui lòng nhập tháng bắt đầu!",
+        icon: "error",
+        confirmButtonText: "OK",
+      });
+      return;
+  }
+  else if(end_date<= start_date && end_date != null){
+    swal.fire({
+        title: "Thông báo!",
+        text: "Tháng bắt đầu phải nhỏ hơn tháng kết thúc!",
+        icon: "error",
+        confirmButtonText: "OK",
+      });
+      return;
+  }
+  else{
+    for (let i = 0; i < list_date.length; i++) {
+      if(i < list_date.length-1){
+      if(isAboutDate(list_date[i].from_month, list_date[i+1].from_month, start_date, end_date))
+      {
+        social_ins_company = list_date[i].social_ins_company;
+        social_ins_employee = list_date[i].social_ins_employee;
+        check_vaild = true;
+        break;
+      }
+    }
+    else{
+      if(getValueDate(start_date)>= getValueDate(list_date[i].from_month)){
+        social_ins_company = list_date[i].social_ins_company;
+        social_ins_employee = list_date[i].social_ins_employee;
+        check_vaild = true;
+        break;
+      }
+    }
+   }
+   if(!check_vaild){
+    swal.fire({
+        title: "Thông báo!",
+        text: "Vui lòng chọn khoảng thời gian có sẵn cấu hình trong hệ thống!",
+        icon: "error",
+        confirmButtonText: "OK",
+      });
+      return;
+   }
+  }
+}
+const isAboutDate = (start_date, end_date, start_date_check, end_date_check)=>{
+  if(!end_date_check)
+    return ((getValueDate(start_date_check)>= getValueDate(start_date))
+    && (getValueDate(start_date_check) < getValueDate(end_date)))
+  else{
+    return (getValueDate(start_date_check)>=getValueDate(start_date) &&  getValueDate(start_date_check)<getValueDate(end_date)
+      && getValueDate(end_date_check)>=getValueDate(start_date) &&  getValueDate(end_date_check)<getValueDate(end_date)
+    )
+  }
+}
+const getValueDate = (date)=>{
+  return moment(date).toDate();
+}
+//more
+const opMore = ref();
+const toggleMore = (event) => {
+  opMore.value.toggle(event);
 };
 //check month  date
 function isMonth(data1, data2) {
@@ -530,7 +608,7 @@ onMounted(() => {
         </div>
         <div class="col-6 md:col-6">
           <div class="form-group">
-            <label>Số thẻ BHYT <span class="redsao">(*)</span></label>
+            <label>Số thẻ BHYT</label>
             <InputText
               spellcheck="false"
               class="ip36"
@@ -623,8 +701,16 @@ onMounted(() => {
         </div>
         <div v-if="model != null" class="grid formgrid m-0">
           <div class="col-12 md:col-12">
-            <div class="form-group">
+            <div class="mb-3">
               <label>Thời gian đóng bảo hiểm:</label>
+              <label style="float:right; font-style: italic;">
+                <i 
+                class="pi pi-info-circle mr-2 text-lg cursor-pointer"
+                aria:haspopup="true" aria-controls="overlay_Users"
+                @click="toggleMore($event)"
+                ></i>
+                Tham khảo cấu hình hệ thống ở đây
+              </label>
             </div>
           </div>
           <div class="col-3 md:col-3">
@@ -637,6 +723,7 @@ onMounted(() => {
                 class="ip36"
                 placeholder="mm/yyyy"
                 v-model="model.start_date"
+                @update:modelValue="onChangeDate(model.start_date, model.end_date)"
               />
             </div>
           </div>
@@ -650,6 +737,7 @@ onMounted(() => {
                 class="ip36"
                 placeholder="mm/yyyy"
                 v-model="model.end_date"
+                @update:modelValue="onChangeDate(model.start_date, model.end_date)"
               />
             </div>
           </div>
@@ -743,12 +831,13 @@ onMounted(() => {
           <div class="col-6 md:col-6">
             <div class="form-group">
               <label>Mức đóng bảo hiểm</label>
-              <InputNumber
+              <InputText
+                  type="number"
                   spellcheck="false"
                   mode="decimal"
                   class="ip36 text-right input-money"
                   v-model="model.total_payment"
-                  maxLength="250"
+                  @input="onChangePayment()"
                 />
             </div>
           </div>
@@ -760,7 +849,7 @@ onMounted(() => {
                   mode="decimal"
                   class="ip36 text-right input-money"
                   v-model="model.company_payment"
-                  maxLength="250"
+                  disabled="true"
                 />
             </div>
           </div>
@@ -772,7 +861,7 @@ onMounted(() => {
                   mode="decimal"
                   class="ip36 text-right input-money"
                   v-model="model.member_payment"
-                  maxLength="250"
+                  disabled="true"
                 />
             </div>
           </div>
@@ -995,7 +1084,6 @@ onMounted(() => {
                   mode="decimal"
                   class="ip36 text-right input-money"
                   v-model="slotProps.data.total_payment"
-                  maxLength="250"
                 />
               </template>
             </Column>
@@ -1007,15 +1095,13 @@ onMounted(() => {
               class="align-items-center justify-content-center text-center"
             >
               <template #body="slotProps">
-                <div class="form-group m-0">
-                  <InputNumber
+                <InputNumber
                   mode="decimal"
                   spellcheck="false"
                   class="ip36 text-right input-money"
                   v-model="slotProps.data.organization_payment"
-                  maxLength="250"
+                  disabled="true"
                 />
-                </div>
               </template>
             </Column>
             <Column
@@ -1031,7 +1117,7 @@ onMounted(() => {
                   spellcheck="false"
                   class="ip36 text-right input-money"
                   v-model="slotProps.data.member_payment"
-                  maxLength="250"
+                  disabled="true"
                 />
               </template>
             </Column>
@@ -1198,9 +1284,53 @@ onMounted(() => {
       /> -->
     </template>
   </Dialog>
+  <OverlayPanel :showCloseIcon="false" ref="opMore" appendTo="body" class="p-0 m-0" id="overlay_Users" style="z-index:10000">
+    <div class="grid formgrid m-0 p-0">
+      <DataTable
+        :value="props.dictionarys[7]"
+        :scrollable="true"
+        :lazy="true"
+        :rowHover="true"
+        :showGridlines="true"
+        scrollDirection="both"
+      >
+        <Column
+          field="from_month"
+          header="Từ tháng"
+          headerStyle="text-align:center;width:100px;height:50px"
+          bodyStyle="text-align:center;width:100px;"
+          class="align-items-center justify-content-center text-center"
+        >
+          <template #body="slotProps">
+            <span v-if="slotProps.data.from_month">{{
+                moment(new Date(slotProps.data.from_month)).format(
+                  "MM/YYYY "
+                )
+              }}</span>
+          </template>
+        </Column>
+        <Column
+          field="social_ins_company"
+          header="Công ty đóng(%)"
+          headerStyle="text-align:center;width:120px;height:50px"
+          bodyStyle="text-align:center;width:120px;"
+          class="align-items-center justify-content-center text-center"
+        >
+        </Column>
+        <Column
+          field="social_ins_employee"
+          header="Nhân viên đóng(%)"
+          headerStyle="text-align:center;width:120px;height:50px"
+          bodyStyle="text-align:center;width:120px;"
+          class="align-items-center justify-content-center text-center"
+        >
+        </Column>
+      </DataTable>
+    </div>
+  </OverlayPanel>
 </template>
     
-    <style scoped>
+<style scoped>
     @import url(../../profile/component/stylehrm.css);
 
 .ip33 {
