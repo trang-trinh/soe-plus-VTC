@@ -2530,7 +2530,7 @@ export default {
           swal.showLoading();
         },
       });
-debugger
+
       const axResponse = await axios.post(
         baseURL + "/api/HRM_SQL/PostProc",
         {
@@ -2781,7 +2781,7 @@ debugger
     }
     const initURLReport = async () => {
       objConfig = JSON.parse(props.report.report_config);
-      debugger
+      
       //Xử lý for Word
       renderTableWord(props.pars);
     };
