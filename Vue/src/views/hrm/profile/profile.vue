@@ -64,6 +64,8 @@ const dataLimits = ref([]);
 const counts = ref([]);
 const profile = ref({});
 const selectedNodes = ref({});
+const rolefunctions = ref([]);
+const functions = ref({});
 const dictionarys = ref([]);
 const treeOrganization = ref([]);
 const datachilds = ref([]);
@@ -1078,6 +1080,49 @@ const initPlaceFilter = (event, type) => {
       }
     });
 };
+const initRoleFunction = () => {
+  axios
+    .post(
+      baseURL + "/api/hrm/callProc",
+      {
+        str: encr(
+          JSON.stringify({
+            proc: "hrm_profile_rolefunction_get",
+            par: [
+              { par: "user_id", va: store.getters.user.user_id },
+              { par: "is_link", va: options.value.path },
+            ],
+          }),
+          SecretKey,
+          cryoptojs
+        ).toString(),
+      },
+      config
+    )
+    .then((response) => {
+      if (response != null && response.data != null) {
+        var data = response.data.data;
+        if (data != null) {
+          let tbs = JSON.parse(data);
+          if (tbs[0] != null && tbs[0].length > 0) {
+            let permissions = Object.entries(tbs[0][0]);
+            for (const [key, value] of permissions) {
+              functions.value[key] = value;
+            }
+          }
+          if (tbs[1] != null && tbs[1].length > 0) {
+            if (tbs[1][0].module_functions != null) {
+              let module_functions = tbs[1][0].module_functions.split(",");
+              for (var key in module_functions) {
+                functions.value[module_functions[key]] = true;
+              }
+            }
+          }
+          rolefunctions.value = tbs;
+        }
+      }
+    });
+};
 const initDictionary = () => {
   axios
     .post(
@@ -1496,7 +1541,7 @@ const initTreeOrganization = () => {
             addToArray(temp, treeOrganization.value, null, 0, "is_order");
             treeOrganization.value = temp;
           }
-          initLoad();
+          initSave();
         }
       }
     });
@@ -2039,21 +2084,37 @@ const initDataFilterAdv = (f, sql, rf) => {
     )`;
     if (options.value.tab != -1) {
       if (options.value.tab == 6) {
-        strtab = " ([Hồ sơ nhân sự|Trạng thái nhân sự|0|0|0|status] is null or [Hồ sơ nhân sự|Trạng thái nhân sự|0|0|0|status] not in (0,1,2,3,4,5)) ";
+        strtab =
+          " ([Hồ sơ nhân sự|Trạng thái nhân sự|0|0|0|status] is null or [Hồ sơ nhân sự|Trạng thái nhân sự|0|0|0|status] not in (0,1,2,3,4,5)) ";
       } else if (arrayStatus.indexOf(options.value.tab) >= 0) {
-        strtab = " ([Hồ sơ nhân sự|Trạng thái nhân sự|0|0|0|status] = " + options.value.tab.toString() + ") ";
+        strtab =
+          " ([Hồ sơ nhân sự|Trạng thái nhân sự|0|0|0|status] = " +
+          options.value.tab.toString() +
+          ") ";
       }
       if (hasWhereQuery >= 0) {
-        strSQL.proc = subQuery_start + (strtab != "" ? (" and " + strtab) : " ") + " and " + strPermis + " " + subQuery_end;
+        strSQL.proc =
+          subQuery_start +
+          (strtab != "" ? " and " + strtab : " ") +
+          " and " +
+          strPermis +
+          " " +
+          subQuery_end;
       } else {
-        strSQL.proc = subQuery_start + " where " + (strtab != "" ? (strtab + " and ") : " ") + strPermis + " " + subQuery_end;
+        strSQL.proc =
+          subQuery_start +
+          " where " +
+          (strtab != "" ? strtab + " and " : " ") +
+          strPermis +
+          " " +
+          subQuery_end;
       }
-    }
-    else {
+    } else {
       if (hasWhereQuery >= 0) {
         strSQL.proc = subQuery_start + " and " + strPermis + " " + subQuery_end;
       } else {
-        strSQL.proc = subQuery_start + " where " + strPermis + " " + subQuery_end;
+        strSQL.proc =
+          subQuery_start + " where " + strPermis + " " + subQuery_end;
       }
     }
 
@@ -2076,8 +2137,10 @@ const initDataFilterAdv = (f, sql, rf) => {
       create2table #temp2 (organization_id int, organization_type int)
       insert2into #temp2 (organization_id, organization_type) exec hrm_rolefunction_get '${store.getters.user.user_id}', '/hrm/profile', 2
     `;
-    let sqlCount = strSQL.proc.substring(0, strSQL.proc.indexOf("order by")).replace("Select *", "Select count(*) as total");
-    strSQL.proc = sqlStart  + " " + strSQL.proc + (" " + sqlCount);
+    let sqlCount = strSQL.proc
+      .substring(0, strSQL.proc.indexOf("order by"))
+      .replace("Select *", "Select count(*) as total");
+    strSQL.proc = sqlStart + " " + strSQL.proc + (" " + sqlCount);
   }
   if (!f) {
     isFilterAdv.value = true;
@@ -2294,7 +2357,7 @@ const initCountFilterAdv = (sql) => {
       create2table #temp2 (organization_id int, organization_type int)
       insert2into #temp2 (organization_id, organization_type) exec hrm_rolefunction_get '${store.getters.user.user_id}', '/hrm/profile', 2
     `;
-    
+
     let proc = `Select (tbn.FieldValue) status, Count(p.profile_id) total 
               from (${sqlDataGet}) p
               cross join (Select * from dbo.udf_PivotParameters('-1,0,1,2,3,4,5,6',',')) as tbn
@@ -2723,10 +2786,11 @@ onMounted(() => {
     options.value.path = route.path;
     options.value.name = route.name;
     //initPlace();
+    initRoleFunction();
     initDictionary();
     initCount();
     initTreeOrganization();
-    initDataFilterAdv(true, "", true);
+    initDataFilterAdv(true, "", false);
     //initData(true);
 
     const el = document.getElementById("buffered-scroll");
@@ -3608,6 +3672,7 @@ const loadMoreRow = (data) => {
       <template #end>
         <!-- <Button @click="test()" label="test" icon="pi pi-plus" class="mr-2" /> -->
         <Button
+          v-if="functions.is_add"
           @click="openAddDialog('Thêm mới hồ sơ')"
           label="Thêm mới"
           icon="pi pi-plus"
@@ -3624,6 +3689,7 @@ const loadMoreRow = (data) => {
           class="mr-2"
         /> -->
         <Button
+          v-if="functions.tienich"
           @click="toggleExport"
           label="Tiện ích"
           icon="pi pi-file-excel"
@@ -3660,16 +3726,16 @@ const loadMoreRow = (data) => {
         </SelectButton>
         <Button
           @click="refresh()"
-          class="p-button-outlined p-button-secondary mr-2"
+          class="p-button-outlined p-button-secondary"
           icon="pi pi-refresh"
           v-tooltip.top="'Tải lại'"
         />
-        <Button
+        <!-- <Button
           @click=""
           icon="pi pi-question-circle"
           class="p-button-outlined p-button-secondary"
           v-tooltip.top="'Hướng dẫn sử dụng'"
-        />
+        /> -->
       </template>
     </Toolbar>
     <div class="tabview">
@@ -3718,7 +3784,17 @@ const loadMoreRow = (data) => {
       <DataTable
         @rowSelect="
           (event) => {
-            goProfile(event.data);
+            if (functions.xemchitiet) {
+              goProfile(event.data);
+            } else {
+              swal.fire({
+                title: 'Thông báo!',
+                text: 'Bạn không có quyền truy cập hồ sơ này!',
+                icon: 'error',
+                confirmButtonText: 'OK',
+              });
+              return;
+            }
           }
         "
         :value="dataLimits"
@@ -3947,7 +4023,20 @@ const loadMoreRow = (data) => {
               <li v-if="slotProps.data.is_matchaccount">
                 <Button
                   @click="
-                    openMatchAccount(slotProps.data, 'liên kết tài khoản')
+                    () => {
+                      if (slotProps.data.is_function) {
+                        openMatchAccount(slotProps.data, 'liên kết tài khoản');
+                        $event.stopPropagation();
+                      } else {
+                        swal.fire({
+                          title: 'Thông báo!',
+                          text: 'Bạn không có quyền sử dụng tính năng này!',
+                          icon: 'error',
+                          confirmButtonText: 'OK',
+                        });
+                        return;
+                      }
+                    }
                   "
                   icon="pi pi-user"
                   class="p-button-rounded p-button-text"
@@ -3963,8 +4052,20 @@ const loadMoreRow = (data) => {
                   :class="{ 'icon-star': slotProps.data.is_star }"
                   class="p-button-rounded p-button-text"
                   @click="
-                    setStar(slotProps.data);
-                    $event.stopPropagation();
+                    () => {
+                      if (slotProps.data.is_function) {
+                        setStar(slotProps.data);
+                        $event.stopPropagation();
+                      } else {
+                        swal.fire({
+                          title: 'Thông báo!',
+                          text: 'Bạn không có quyền sử dụng tính năng này!',
+                          icon: 'error',
+                          confirmButtonText: 'OK',
+                        });
+                        return;
+                      }
+                    }
                   "
                   aria-haspopup="true"
                   aria-controls="overlay_MorePlus"
@@ -3974,7 +4075,7 @@ const loadMoreRow = (data) => {
                   style="font-size: 15px; color: #000"
                 />
               </li>
-              <li>
+              <li v-if="slotProps.data.is_function">
                 <Button
                   icon="pi pi-plus-circle"
                   class="p-button-rounded p-button-text"
@@ -3987,7 +4088,7 @@ const loadMoreRow = (data) => {
                   v-tooltip.top="'Nhập bổ sung hồ sơ'"
                 />
               </li>
-              <li>
+              <li v-if="slotProps.data.is_function">
                 <Button
                   icon="pi pi-ellipsis-h"
                   class="p-button-rounded p-button-text"
