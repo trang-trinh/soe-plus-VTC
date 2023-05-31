@@ -951,16 +951,18 @@ onMounted(() => {
         </DataTable>
     </div>
 
-    <Dialog :header="headerDialog" v-model:visible="displayBasic" :style="{ width: '65vw' }" :closable="true" :modal="true">
+    <Dialog :header="headerDialog" v-model:visible="displayBasic" :style="{ width: '65vw' }" :closable="true" :modal="true"
+        position="top"
+    >
         <form>
             <div class="grid formgrid m-2">
                 <div class="field col-12 md:col-12">
-                    <label class="w-11rem text-left p-0">Mẫu biểu đánh giá</label>
+                    <label class="w-11rem text-left p-0 title-form-myreview">Mẫu biểu đánh giá</label>
                     <InputText v-model="reviewuser.review_form_name" spellcheck="false" class="ip36 px-2 d-design-disabled"
                         style="width: calc(100% - 11rem)" disabled />
                 </div>
                 <div class="field col-12 md:col-12 flex align-items-center">
-                    <div class="w-11rem text-left p-0">
+                    <div class="w-11rem text-left p-0 title-form-myreview">
                         Người đánh giá <span class="redsao pl-1"> (*)</span>
                     </div>
                     <div class="p-0" style="width: calc(100% - 11rem)">
@@ -978,7 +980,7 @@ onMounted(() => {
                     </small>
                 </div>
                 <div class="field col-12 md:col-12 align-items-center flex">
-                    <div class="w-11rem p-0 align-items-center flex">Kỳ đánh giá</div>
+                    <div class="w-11rem p-0 align-items-center flex title-form-myreview">Kỳ đánh giá</div>
                     <div style="width: calc(100% - 11rem)" class="align-items-center flex">
                         <div class="w-full p-0 align-items-center flex">
                             <div>Đánh giá theo tháng</div>
@@ -1006,7 +1008,7 @@ onMounted(() => {
                 </div>
                 <div class="field col-12 md:col-12 align-items-center flex">
                     <div class="col-6 p-0 flex pr-3" v-if="reviewuser.is_period_month">
-                        <div class="w-11rem p-0 align-items-center flex">
+                        <div class="w-11rem p-0 align-items-center flex title-form-myreview">
                             Tháng đánh giá
                         </div>
                         <div style="width: calc(100% - 11rem)" class="align-items-center flex">
@@ -1016,7 +1018,7 @@ onMounted(() => {
                         </div>
                     </div>
                     <div class="col-6 p-0 flex pr-3" v-if="reviewuser.is_period_quarter">
-                        <div class="w-11rem p-0 align-items-center flex">Qúy đánh giá</div>
+                        <div class="w-11rem p-0 align-items-center flex title-form-myreview">Quý đánh giá</div>
                         <div style="width: calc(100% - 11rem)" class="align-items-center flex">
                             <Dropdown class="col-12 p-0 m-0" v-model="reviewuser.is_quarter_fake" :options="listQuarters"
                                 optionLabel="name" optionValue="code" placeholder="Chọn quý đánhg giá" />
@@ -1024,7 +1026,7 @@ onMounted(() => {
                     </div>
 
                     <div class="w-full p-0 flex">
-                        <div class="w-11rem p-0 align-items-center flex">
+                        <div class="w-11rem p-0 align-items-center flex title-form-myreview" style="justify-content: center;">
                             Năm đánh giá <span class="redsao pl-1"> (*)</span>
                         </div>
                         <div style="width: calc(100% - 11rem)" class="align-items-center flex">
@@ -1036,129 +1038,198 @@ onMounted(() => {
                 </div>
                 <div class="col-12 field md:col-12 flex">
                     <div class="col-6 md:col-6 p-0 align-items-center flex">
-                        <div class="w-11rem text-left p-0">STT</div>
+                        <div class="w-11rem text-left p-0 title-form-myreview">STT</div>
                         <InputNumber v-model="reviewuser.is_order" style="width: calc(100% - 11rem)"
                             class="pr-3 ip36 p-0" />
                     </div>
                     <div class="col-6 md:col-6 p-0 align-items-center flex">
-                        <div class="w-11rem text-left p-0">Trạng thái</div>
+                        <div class="w-11rem align-items-center flex p-0 title-form-myreview" style="justify-content: center;">Trạng thái</div>
                         <InputSwitch v-model="reviewuser.status" class="w-4rem lck-checked"
                             style="width: calc(100% - 11rem)" />
                     </div>
                 </div>
-                <div class="col-12 field md:col-12" v-for="(item, index) in liEvcalCriterias" :key="index">
-                    <div class="col-12 p-0 font-bold">
-                        <h3 class="text-blue-500">
-                            PHẦN {{ item.roman_order }}: {{ item.review_imp_name }} ({{
-                                item.percen
-                            }}
-                            %)
-                        </h3>
-                    </div>
-                    <div class="col-12 p-0">
-                        <DataTable :value="liEvcalCriteriasChild.filter(
-                                    (x) => x.roman_order == item.roman_order
-                                )
-                                " filterDisplay="menu" filterMode="lenient" scrollHeight="flex" :showGridlines="true"
-                            columnResizeMode="fit" :lazy="true" :reorderableColumns="true" tableStyle="width:100%"
-                            responsiveLayout="scroll">
-                            <ColumnGroup type="header">
-                                <Row>
-                                    <Column header="Nhóm nội dung đánh giá" 
-                                        :rowspan="3"
-                                        headerStyle="max-width:100px; height:50px"
-                                        bodyStyle="text-align:left;max-width:100px;" 
-                                        v-if="item.type == 1"
+                <div class="col-12 md:col-12" v-for="(item, index) in liEvcalCriterias" :key="index">
+                    <Accordion class="w-full mb-2 accordion-form-myreview" :activeIndex="0">
+                        <AccordionTab>
+                            <template #header>
+                                <Toolbar
+                                    class="w-full custoolbar p-0 font-bold py-0"
+                                    :style="{ minHeight: '40px' }"
+                                >
+                                    <template #start>
+                                        <h3 class="text-blue-500 font-bold m-0">
+                                            PHẦN {{ item.roman_order }}: {{ item.review_imp_name }} ({{item.percen}}%)
+                                        </h3>
+                                    </template>
+                                    <template #end>
+                                        <div>
+                                            <Button></Button>
+                                        </div>
+                                    </template>
+                                </Toolbar>
+                            </template>
+                            <div class="col-12 p-0">
+                                <DataTable :value="liEvcalCriteriasChild.filter(
+                                            (x) => x.roman_order == item.roman_order
+                                        )
+                                        " filterDisplay="menu" filterMode="lenient" scrollHeight="flex" :showGridlines="true"
+                                    columnResizeMode="fit" :lazy="true" :reorderableColumns="true" tableStyle="width:100%"
+                                    responsiveLayout="scroll">
+                                    <ColumnGroup type="header">
+                                        <Row>
+                                            <!-- <Column header="Nhóm nội dung đánh giá" 
+                                                :rowspan="3"
+                                                headerStyle="max-width:100px; height:50px"
+                                                bodyStyle="text-align:left;max-width:100px;" 
+                                                v-if="item.type == 1"
+                                            />
+                                            <Column header="Chuyên môn nghiệp vụ" :rowspan="3" v-else
+                                                headerStyle=" width:120px; height:50px"
+                                                bodyStyle="text-align:center;width:120px;" 
+                                            /> -->
+                                            <Column header="Nhóm nội dung đánh giá" 
+                                                :rowspan="3"
+                                                headerStyle="max-width:100px; height:50px"
+                                                bodyStyle="text-align:left;max-width:100px;" 
+                                            />
+                                            <Column header="Nội dung đánh giá" 
+                                                :rowspan="3" 
+                                                headerStyle="max-width:100px; height:50px"
+                                                bodyStyle="text-align:left;max-width:100px;" 
+                                            />
+                                            <Column header="Tỷ trọng đánh giá" 
+                                                :rowspan="3"
+                                                class="align-items-center justify-content-center text-center"
+                                                headerStyle="max-width:50px; height:50px;padding:0.5rem;"
+                                                bodyStyle="text-align:center;max-width:50px;" 
+                                            />
+                                            <Column header="Công việc được giao" 
+                                                :rowspan="item.type == 1 ? 3 : 2"
+                                                :colspan="item.type == 1 ? 1 : 2" 
+                                                headerStyle="max-width:200px; height:50px"
+                                                bodyStyle="text-align:left;max-width:200px;" 
+                                            />
+                                            <Column header="Tỷ trọng đầu việc" 
+                                                :rowspan="3"
+                                                class="align-items-center justify-content-center text-center"
+                                                headerStyle="max-width:50px; height:50px;padding:0.5rem;"
+                                                bodyStyle="text-align:center;max-width:50px;" 
+                                            />
+                                            <Column header="Kết quả công việc  " 
+                                                :rowspan="3" 
+                                                headerStyle="max-width:100px; height:50px"
+                                                bodyStyle="text-align:center;max-width:100px;" 
+                                            />
+                                            <Column header="Điểm tối đa" 
+                                                :rowspan="3"
+                                                class="align-items-center justify-content-center text-center"
+                                                headerStyle="max-width:50px; height:50px;padding:0.5rem;"
+                                                bodyStyle="text-align:center;max-width:50px;" 
+                                            />
+                                            <Column header="Tự đánh giá" 
+                                                :rowspan="3"
+                                                class="align-items-center justify-content-center text-center"
+                                                headerStyle="max-width:50px; height:50px;padding:0.5rem;"
+                                                bodyStyle="text-align:center;max-width:50px;" 
+                                            />
+                                        </Row>
+                                        <Row> </Row>
+                                        <Row>
+                                            <Column header="Đầu việc" field="lastYearSale" v-if="item.type == 2"
+                                                headerStyle="max-width:100px; height:50px"
+                                                bodyStyle="text-align:center;max-width:100px;" 
+                                            />
+                                            <Column header="Khối lượng, chất lượng, tiến độ công việc" 
+                                                field="thisYearSale"
+                                                headerStyle="max-width:100px; height:50px"
+                                                bodyStyle="text-align:center;max-width:100px;" v-if="item.type == 2" 
+                                            />
+                                        </Row>
+                                    </ColumnGroup>
+                                    <Column field="child_name" 
+                                        headerStyle="text-align:center;max-width:100px;height:50px"
+                                        bodyStyle="text-align:justify;max-width:100px"
                                     />
-                                    <Column header="Chuyên môn nghiệp vụ" :rowspan="3" v-else
-                                        headerStyle=" width:120px; height:50px"
-                                        bodyStyle="text-align:center;width:120px;" />
-                                    <Column header="Nội dung đánh giá" :rowspan="3" 
-                                        headerStyle=" width:20% ; height:50px"
-                                        bodyStyle="text-align:left;width:20% !important;" />
-                                    <Column header="Tỷ trọng đánh giá" :rowspan="3" 
-                                        headerStyle=" width:3% ; height:50px"
+                                    <Column field="des" 
+                                        headerStyle="text-align:center;max-width:100px;height:50px"
+                                        bodyStyle="text-align:justify;max-width:100px" />
+                                    <Column field="weight" 
                                         class="align-items-center justify-content-center text-center"
-                                        bodyStyle="text-align:center;width:3% !important;" />
-
-                                    <Column header="Công việc được giao" 
-                                        :rowspan="item.type == 1 ? 3 : 2"
-                                        :colspan="item.type == 1 ? 1 : 2" 
-                                        headerStyle=" width:20% ; height:50px"
-                                        bodyStyle="text-align:left;width:20% !important;" />
-                                    <Column header="Tỷ trọng đầu việc" :rowspan="3"
+                                        headerStyle="text-align:center;max-width:50px;height:50px"
+                                        bodyStyle="text-align:center;max-width:50px;" 
+                                    >
+                                        <template #body="slotProps">
+                                            {{ slotProps.data.weight }} %
+                                        </template>
+                                    </Column>
+                                    <Column field="desired_results" 
+                                        class="align-items-center justify-content-center"
+                                        headerStyle="text-align:center;max-width:100px;height:50px"
+                                        bodyStyle="text-align:justify;max-width:100px" 
+                                    />
+                                    <Column field="weight_child" 
                                         class="align-items-center justify-content-center text-center"
-                                        headerStyle=" width:5% ; height:50px"
-                                        bodyStyle="text-align:center;width:5% !important;" />
-                                    <Column header="Kết quả công việc  " :rowspan="3" 
-                                        headerStyle=" width:12% ; height:50px"
-                                        bodyStyle="text-align:center;width:12% !important;" />
-                                    <Column header="Tối đa" :rowspan="3"
-                                        class="align-items-center justify-content-center text-center"
-                                        headerStyle=" width:3% ; height:50px"
-                                        bodyStyle="text-align:center;width:3% !important;" />
-                                    <Column header="Tự đánh giá" :rowspan="3"
-                                        class="align-items-center justify-content-center text-center"
-                                        headerStyle=" width:7% ; height:50px"
-                                        bodyStyle="text-align:center;width:7% !important;" />
-                                </Row>
-                                <Row> </Row>
-                                <Row>
-                                    <Column header="Đầu việc" field="lastYearSale" v-if="item.type == 2"
-                                        headerStyle=" width:10% ; height:50px"
-                                        bodyStyle="text-align:center;width:10% !important;" />
-                                    <Column header="Khối lượng, chất lượng, tiến độ công việc" field="thisYearSale"
-                                        headerStyle=" width:10% ; height:50px"
-                                        bodyStyle="text-align:center;width:10% !important;" v-if="item.type == 2" />
-                                </Row>
-                            </ColumnGroup>
-                            <Column field="child_name" 
-                                headerStyle="text-align:center;max-width:100px;height:50px"
-                                bodyStyle="text-align:justify;max-width:100px"
-                            />
-                            <Column field="des" 
-                                headerStyle="text-align:center;max-width:100px;height:50px"
-                                bodyStyle="text-align:justify;max-width:100px" />
-                            <Column field="weight" class="align-items-center justify-content-center text-center">
-                                <template #body="slotProps">
-                                    {{ slotProps.data.weight }} %
-                                </template>
-                            </Column>
-                            <Column field="desired_results" 
-                                class="align-items-center justify-content-center"
-                                headerStyle="text-align:center;max-width:150px;height:50px"
-                                bodyStyle="text-align:justify;max-width:150px" />
-                            <Column field="weight_child" class="align-items-center justify-content-center text-center">
-                                <template #body="slotProps">
-                                    {{ slotProps.data.weight_child }} %
-                                </template>
-                            </Column>
-                            <Column field="complete_results">
-                                <template #body="slotProps">
-                                    <Textarea
-                                        class=""
-                                        rows="5"
-                                        autoResize
-                                        v-model="slotProps.data.complete_results"
-                                    ></Textarea>
-                                </template>
-                            </Column>
-                            <Column field="max_score" class="align-items-center justify-content-center text-center">
-                                <template #body="slotProps"> </template>
-                            </Column>
-                            <Column field="self_ccore" class="align-items-center justify-content-center text-center">
-                                <template #body="slotProps"> </template>
-                            </Column>
-                            <ColumnGroup type="footer">
-                                <Row>
-                                    <Column footer="Totals:" :colspan="3" footerStyle="text-align:right" />
-                                    <Column :footer="lastYearTotal" />
-                                    <Column :footer="thisYearTotal" />
-                                </Row>
-                            </ColumnGroup>
-                        </DataTable>
-                    </div>
+                                        headerStyle="text-align:center;max-width:50px;height:50px"
+                                        bodyStyle="text-align:justify;max-width:50px" 
+                                    >
+                                        <template #body="slotProps">
+                                            {{ slotProps.data.weight_child || 0 }} %
+                                        </template>
+                                    </Column>
+                                    <Column field="complete_results"
+                                        headerStyle="text-align:center;max-width:100px;height:50px"
+                                        bodyStyle="text-align:justify;max-width:100px;padding:0 !important;vertical-align: middle;"
+                                    >
+                                        <template #body="slotProps">
+                                            <Textarea class=""
+                                                rows="3"
+                                                autoResize
+                                                v-model="slotProps.data.complete_results"
+                                                style="border-radius: 0;border:none;background-color: aliceblue;"
+                                            ></Textarea>
+                                        </template>
+                                    </Column>
+                                    <Column field="max_score" class="align-items-center justify-content-center text-center"
+                                        headerStyle="max-width:50px;height:50px"
+                                        bodyStyle="max-width:50px"
+                                    >
+                                        <template #body="slotProps">
+                                            <InputNumber class="w-full input-myreview"
+                                                v-model="slotProps.data.max_score"
+                                                :min="0"
+                                                :max="slotProps.data.weight_child || 0"
+                                            ></InputNumber>
+                                        </template>
+                                    </Column>
+                                    <Column field="self_score" class="align-items-center justify-content-center text-center"
+                                        headerStyle="max-width:50px;height:50px;padding:0.5rem;"
+                                        bodyStyle="max-width:50px"
+                                    >
+                                        <template #body="slotProps">
+                                            <InputNumber class="w-full input-myreview"
+                                                v-model="slotProps.data.self_score"
+                                                :min="0"
+                                                :max="slotProps.data.max_score || 0"
+                                            ></InputNumber>
+                                        </template>
+                                    </Column>
+                                    <ColumnGroup type="footer">
+                                        <Row>
+                                            <Column footer="Totals:" :colspan="2" footerStyle="text-align:right" />
+                                            <Column :footer="weightTotal" footerStyle="text-align:center;max-width:50px;" />
+                                            <Column />
+                                            <Column :footer="weightChildTotal" footerStyle="text-align:center;max-width:50px;" />
+                                            <Column />
+                                            <Column :footer="maxScoreTotal" footerStyle="text-align:center;max-width:50px;" />
+                                            <Column :footer="selfScoreTotal" footerStyle="text-align:center;max-width:50px;" />
+                                        </Row>
+                                    </ColumnGroup>
+                                </DataTable>
+                            </div>
+                        </AccordionTab>
+                    </Accordion>                    
                 </div>
+                <!-- ... -->
             </div>
         </form>
         <template #footer>
@@ -1190,11 +1261,30 @@ onMounted(() => {
     width: 100%;
     height: 100%;
 }
+.title-form-myreview {
+    font-weight: bold;
+}
 </style>
 <style lang="scss" scoped>
 ::v-deep(.tbl-myreview-hrm) {
+    .p-datatable-thead {
+        z-index: 0;
+    }
     .p-datatable-emptymessage td {
         height: calc(100vh - 19.5rem);
+    }
+}
+::v-deep(.accordion-form-myreview) {
+    .p-accordion-header-link {
+        padding: 0.25rem 1rem;
+    }
+    .p-accordion-content {
+        padding: 0.5rem;
+    }
+}
+::v-deep(.input-myreview) { 
+    input {
+        border-radius: 0;
     }
 }
 </style>
