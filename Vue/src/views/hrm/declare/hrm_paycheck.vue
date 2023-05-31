@@ -1076,7 +1076,7 @@ const exportData = (method) => {
         swal.close();
 
         toast.success("Kết xuất Data thành công!");
-        debugger
+         
         if (response.data.path != null) {
           let pathReplace = response.data.path
             .replace(/\\+/g, "/")

@@ -94,7 +94,6 @@ const loadCount = () => {
 };
 //Lấy dữ liệu payroll
 const loadData = (rf) => {
-  debugger
   if (rf) {
     if (isDynamicSQL.value) {
       loadDataSQL();
@@ -133,11 +132,10 @@ const loadData = (rf) => {
           element.STT = options.value.PageNo * options.value.PageSize + i + 1;
 
           if (element.report_key) {
-            var arr=listTypeContractSave.value.find(
+            var arr = listTypeContractSave.value.find(
               (x) => x.report_key == element.report_key
             );
-            if(arr)
-            element.report_key_name = arr.report_name;
+            if (arr) element.report_key_name = arr.report_name;
           }
           if (element.listUsers) {
             element.listUsers = JSON.parse(element.listUsers);
@@ -186,7 +184,7 @@ const loadData = (rf) => {
       .catch((error) => {
         toast.error("Tải dữ liệu không thành công!");
         options.value.loading = false;
-console.log("0e",error)
+        console.log("0e", error);
         if (error && error.status === 401) {
           swal.fire({
             text: "Mã token đã hết hạn hoặc không hợp lệ, vui lòng đăng nhập lại!",
@@ -452,7 +450,7 @@ const configPayroll = async (row) => {
       swal.showLoading();
     },
   });
-  
+
   const axResponse = await axios.post(
     baseURL + "/api/HRM_SQL/getData",
     {
@@ -468,7 +466,7 @@ const configPayroll = async (row) => {
       toast.error("Không mở được bản ghi");
     } else {
       let dt = JSON.parse(axResponse.data.data);
-       
+
       payroll.value = dt[2][0];
       report.value = dt[1][0];
 
@@ -480,7 +478,6 @@ const configPayroll = async (row) => {
         report.value.report_config &&
         report.value.report_config.trim() != ""
       ) {
-         
         cg = JSON.parse(report.value.report_config);
       }
       cg.proc = {
@@ -506,55 +503,101 @@ const configPayroll = async (row) => {
   }
   swal.close();
 };
-const callbackFun = (obj) => {
-   
-  if (obj.is_config) {
-    payroll.value.payroll_config = obj.is_config;
+const reloadDocComponent = () => {};
+const callbackFun = (obj, check) => {
+  if (check == false) {
+    if (obj.is_config) {
+      payroll.value.payroll_config = obj.is_config;
 
-    saveDGLuong();
-    return false;
-  }
+      saveDGLuong();
 
-  saveDGLuongUser(obj);
-};
-const saveDGLuongUser = async (r) => {
-  var arrck = null;
-   
-  if (r.is_data) arrck = r.is_data[0][report.value.sum_key];
-  if (!arrck) arrck = null;
-  else
-  arrck=Number(arrck);
-  let strSQL = {
-    query: false,
-    proc: "hrm_payroll_user_addd ",
-    par: [
-      { par: "payroll_user_id", va: r.payroll_user_id },
-      { par: "payroll_id", va: r.payroll_id },
-      { par: "profile_id", va: r.profile_id },
-      { par: "is_data", va: JSON.stringify(r.is_data) },
-      { par: "user_id", va: store.getters.user.user_id },
-      { par: "ip", va: store.getters.ip },
-      { par: "organization_id", va: store.getters.user.organization_id },
-      { par: "salary", va: arrck },
-    ],
-  };
-  console.log(strSQL);
-  try {
-    const axResponse = await axios.post(
-      baseURL + "/api/HRM_SQL/getData",
-      {
-        str: encr(JSON.stringify(strSQL), SecretKey, cryoptojs).toString(),
+      return false;
+    }
+  } else if (check == true) {
+    obj.forEach((r) => {
+      var arrck = null;
+
+      if (r.is_data) arrck = r.is_data[0][report.value.sum_key];
+      if (!arrck) arrck = null;
+      else arrck = Number(arrck);
+      r.payroll_id = payroll.value.payroll_id;
+      r.salary=arrck;
+      r.is_data = JSON.stringify(r.is_data);
+    })
+      
+    let formData = new FormData();
+    formData.append("hrm_payroll_user", JSON.stringify(obj));
+
+    swal.fire({
+      width: 110,
+      didOpen: () => {
+        swal.showLoading();
       },
-      {
-        headers: { Authorization: `Bearer ${store.getters.token}` },
-      }
-    );
+    });
 
-    console.log(axResponse.value);
-  } catch (e) {
-    console.log(e);
+    axios
+      .post(
+        baseURL + "/api/hrm_payroll_user/add_li_hrm_payroll_user",
+        formData,
+        config
+      )
+      .then((response) => {
+        if (response.data.err != "1") {
+          swal.close();
+          console.log("okkke");
+        } else {
+          swal.fire({
+            title: "Error!",
+            text: response.data.ms,
+            icon: "error",
+            confirmButtonText: "OK",
+          });
+        }
+      })
+      .catch((error) => {
+        swal.close();
+        swal.fire({
+          title: "Error!",
+          text: "Có lỗi xảy ra, vui lòng kiểm tra lại!",
+          icon: "error",
+          confirmButtonText: "OK",
+        });
+      });
   }
+
+  // saveDGLuongUser(obj);
 };
+// const saveDGLuongUser = async (r) => {
+//   let strSQL = {
+//     query: false,
+//     proc: "hrm_payroll_user_addd ",
+//     par: [
+//       { par: "payroll_user_id", va: r.payroll_user_id },
+//       { par: "payroll_id", va: r.payroll_id },
+//       { par: "profile_id", va: r.profile_id },
+//       { par: "is_data", va: JSON.stringify(r.is_data) },
+//       { par: "user_id", va: store.getters.user.user_id },
+//       { par: "ip", va: store.getters.ip },
+//       { par: "organization_id", va: store.getters.user.organization_id },
+//       { par: "salary", va: arrck },
+//     ],
+//   };
+//   // console.log("error",strSQL);
+//   try {
+//     const axResponse = await axios.post(
+//       baseURL + "/api/HRM_SQL/getData",
+//       {
+//         str: encr(JSON.stringify(strSQL), SecretKey, cryoptojs).toString(),
+//       },
+//       {
+//         headers: { Authorization: `Bearer ${store.getters.token}` },
+//       }
+//     );
+//     // console.log("error",axResponse);
+//   } catch (e) {
+//     console.log(e);
+//   }
+// };
 const goProfile = (profile) => {
   router.push({
     name: "profileinfo",
@@ -564,7 +607,7 @@ const goProfile = (profile) => {
 };
 const saveDGLuong = async () => {
   let ok = true;
-   
+
   if (!payroll.value.report_key) {
     toast.warning("Vui lòng chọn mẫu bảng lương.");
 
@@ -641,10 +684,10 @@ const editTem = (dataTem) => {
       payroll.value.profile_id_fake.push(element.profile_id);
     });
   }
- 
+
   if (payroll.value.payroll_month)
     payroll.value.payroll_month_fake = new Date(
-     payroll.value.payroll_month +  "/01" +  "/2023"
+      payroll.value.payroll_month + "/01" + "/2023"
     );
   if (payroll.value.payroll_year)
     payroll.value.payroll_year_fake = new Date(
@@ -1680,6 +1723,7 @@ onMounted(() => {
         :report="report"
         :callbackFun="callbackFun"
         :readonly="true"
+        :reload="reloadDocComponent"
       ></DocComponent>
     </div>
   </Sidebar>

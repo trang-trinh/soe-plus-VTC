@@ -1308,7 +1308,11 @@ li.p-chips-token {
   opacity: 1 !important;
   cursor: default;
 }
- 
+.d-design-disabled-1.p-inputtext {
+  background-color: rgb(238, 238, 238);
+  opacity: 1 !important;
+  cursor: default;
+}
 
 .d-style-hover-1 {
   display: none;
@@ -1361,10 +1365,10 @@ li.p-chips-token {
 .p-rowgroup-header td{
   width: 100%;
 }
-/* .p-sidebar-mask  {
+.p-sidebar-mask  {
   display: none !important;
 }
-  */
+ 
 /* Style quan */
 .menu-request .red-text .p-menuitem-link .p-menuitem-icon,
 .menu-request .red-text .p-menuitem-link .p-menuitem-text {
