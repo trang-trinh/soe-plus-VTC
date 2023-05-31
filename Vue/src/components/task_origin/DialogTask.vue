@@ -81,6 +81,11 @@ const Task = ref({
   day: null,
   hour: null,
   minutes: null,
+  is_repeat: null,
+  repeat_type: null,
+  repeat_to_date: null,
+  repeat_time: null,
+  repeat_time_select: null,
 });
 const rules = ref({});
 const listDropdownorganization = ref([]);
@@ -503,6 +508,27 @@ const saveTask = (isFormValid) => {
       Task.value.end_date = new Date(Task.value.end_date);
     }
   }
+  if (Task.value.is_repeat == true) {
+    if (Task.value.repeat_type == 5) {
+      let list = JSON.parse(JSON.stringify(Task.value.repeat_time_select));
+      let temp = null;
+      list.forEach((x) => {
+        let t = moment(new Date(x)).format("DD/MM");
+        temp = temp == null ? t : temp + "," + t;
+      });
+      Task.value.repeat_time = temp
+        .toString()
+        .replaceAll('"', "")
+        .replaceAll("[", "")
+        .replaceAll("]", "");
+    }
+  } else {
+    Task.value.is_repeat = null;
+    Task.value.repeat_type = null;
+    Task.value.repeat_to_date = null;
+    Task.value.repeat_time = null;
+  }
+
   formData.append("isXML", JSON.stringify(Task.value.is_XML));
   formData.append("taskmember", JSON.stringify(TaskMembers.value));
   formData.append("taskOrigin", JSON.stringify(Task.value));
@@ -570,6 +596,11 @@ const OpenAddDialogTask = () => {
     is_XML: false,
     is_template: false,
     process_time: null,
+    is_repeat: null,
+    repeat_type: null,
+    repeat_to_date: null,
+    repeat_time: null,
+    repeat_time_select: null,
   };
   if (props.project_id != null) {
     Task.value.project_id = props.project_id;
@@ -619,7 +650,10 @@ const OpenAddDialogTask = () => {
     };
   }
   isAdd.value = true;
-  displayTask.value = true;
+  setTimeout(() => {
+    displayTask.value = true;
+  }, 200);
+
   headerAddTask.value = props.header;
 };
 const OpenAddDialogChildTask = (e) => {
@@ -647,6 +681,11 @@ const OpenAddDialogChildTask = (e) => {
     is_XML: false,
     is_template: false,
     process_time: null,
+    is_repeat: null,
+    repeat_type: null,
+    repeat_to_date: null,
+    repeat_time: null,
+    repeat_time_select: null,
   };
   Task.value.is_order = props.STT + 1;
   Task.value.parent_id = e.task_id;
@@ -733,6 +772,19 @@ const editTask = () => {
         });
       }
       Task.value = data[0][0];
+      if (Task.value.is_repeat == true) {
+        if (Task.value.repeat_time != null) {
+          let temp = Task.value.repeat_time.split(",");
+          Task.value.repeat_time_select = temp.map(
+            (x) =>
+              (x = new Date(
+                new Date().getFullYear(),
+                x.split("/")[1],
+                x.split("/")[0]
+              ))
+          );
+        }
+      }
       if (Task.value.is_template == true) {
         if (Task.value.is_deadline == true) {
           Task.value.minutes = Task.value.process_time % 60;
@@ -989,80 +1041,83 @@ const ChangeTaskDepartment = () => {
   }
 };
 const autoFillDate = (event, model, prop_name) => {
-  var ip_val = event.value;
-
-  if (ip_val.length >= 9) {
+  var ip_val;
+  if (prop_name == "repeat_time") {
     return;
-  }
-  var today = new Date();
-  var minutes = today.getMinutes();
-  var hour = today.getHours();
-  var dd = today.getDate();
-  var mm = today.getMonth();
-  var yyyy = today.getFullYear();
-  if (dd < 10) dd = "0" + dd;
-  if (mm < 10) mm = "0" + mm;
-  if (hour < 10) hour = "0" + hour;
-  if (minutes < 10) minutes = "0" + minutes;
-  let tempDate = dd,
-    tempMonth = mm,
-    tempYear = yyyy;
-  let [d, m, y] =
-    ip_val.includes("/") == true
-      ? ip_val.split("/")
-      : [ip_val.substring(0, 2), ip_val.substring(2, 4), ip_val.substring(4)];
+  } else {
+    ip_val = event.value;
+    if (ip_val.length >= 9) {
+      return;
+    }
+    var today = new Date();
+    var minutes = today.getMinutes();
+    var hour = today.getHours();
+    var dd = today.getDate();
+    var mm = today.getMonth();
+    var yyyy = today.getFullYear();
+    if (dd < 10) dd = "0" + dd;
+    if (mm < 10) mm = "0" + mm;
+    if (hour < 10) hour = "0" + hour;
+    if (minutes < 10) minutes = "0" + minutes;
+    let tempDate = dd,
+      tempMonth = mm,
+      tempYear = yyyy;
+    let [d, m, y] =
+      ip_val.includes("/") == true
+        ? ip_val.split("/")
+        : [ip_val.substring(0, 2), ip_val.substring(2, 4), ip_val.substring(4)];
 
-  if (d != undefined && d != null && d != "") {
-    if (parseInt(d, 10) <= 1) {
-      tempDate = 1;
-    } else if (
-      parseInt(d, 10) > 1 &&
-      parseInt(d, 10) <= parseInt(new Date(yyyy, mm + 1, 0).getDate(), 10)
-    ) {
-      tempDate = d;
-    } else {
-      tempDate = dd;
-    }
-  }
-  if (m != undefined && m != null && m != "") {
-    if (m.includes("/") == true) {
-      m = m.replace("/", "");
-    }
-    m = parseInt(m, 10) - 1;
-    if ((parseInt(m, 10) >= 0) & (parseInt(m, 10) <= 11)) {
-      if (parseInt(m, 10) < 10) {
-        tempMonth = "0" + m;
+    if (d != undefined && d != null && d != "") {
+      if (parseInt(d, 10) <= 1) {
+        tempDate = 1;
+      } else if (
+        parseInt(d, 10) > 1 &&
+        parseInt(d, 10) <= parseInt(new Date(yyyy, mm + 1, 0).getDate(), 10)
+      ) {
+        tempDate = d;
       } else {
-        tempMonth = m;
+        tempDate = dd;
       }
-    } else {
-      tempMonth = mm;
     }
+    if (m != undefined && m != null && m != "") {
+      if (m.includes("/") == true) {
+        m = m.replace("/", "");
+      }
+      m = parseInt(m, 10) - 1;
+      if ((parseInt(m, 10) >= 0) & (parseInt(m, 10) <= 11)) {
+        if (parseInt(m, 10) < 10) {
+          tempMonth = "0" + m;
+        } else {
+          tempMonth = m;
+        }
+      } else {
+        tempMonth = mm;
+      }
+    }
+    if (y != undefined && y != null && y != "") {
+      if (y.includes("/") == true) {
+        y = y.replace("/", "");
+      }
+      if (y.length == 4) {
+        tempYear = y;
+      } else if (y.length < 2 && parseInt(y, 10) < 10) {
+        tempYear = "200" + y;
+      } else {
+        tempYear = "20" + y;
+      }
+    }
+    event.value = "";
+    model[prop_name] = new Date(tempYear, tempMonth, tempDate, hour, minutes);
   }
-  if (y != undefined && y != null && y != "") {
-    if (y.includes("/") == true) {
-      y = y.replace("/", "");
-    }
-    if (y.length == 4) {
-      tempYear = y;
-    } else if (y.length < 2 && parseInt(y, 10) < 10) {
-      tempYear = "200" + y;
-    } else {
-      tempYear = "20" + y;
-    }
-  }
-  event.value = "";
-  model[prop_name] = new Date(tempYear, tempMonth, tempDate, hour, minutes);
   return;
 };
 const listRepeatType = ref([
   { value: 0, label: "Hằng ngày" },
   { value: 1, label: "Hằng tuần" },
   { value: 2, label: "Hằng tháng" },
-  { value: 3, label: "Hằng quí" },
+  { value: 3, label: "Hằng quý" },
   { value: 4, label: "Hằng năm" },
-  { value: 5, label: "Khoảng thời gian" },
-  { value: 6, label: "Ngày/Tháng tự chọn" },
+  { value: 5, label: "Ngày/Tháng tự chọn" },
 ]);
 onMounted(() => {
   MountTask();
@@ -1110,7 +1165,7 @@ onMounted(() => {
         </div>
 
         <div class="field col-12 md:col-12 flex">
-          <label class="col-3 text-left p-0"> Công việc của phòng </label>
+          <label class="col-3 text-left p-0">Công việc của phòng </label>
           <div class="col-3">
             <InputSwitch
               @change="ChangeIsDepartment(Task.is_department)"
@@ -1129,15 +1184,12 @@ onMounted(() => {
               "
             />
           </div>
-          <!-- <label
-            class="col-3 text-left p-0"
-            v-if="props.is_template != true && isAdd == true"
-          >
+          <label class="col-3 text-left p-0" v-if="props.is_template != true">
             Công việc lặp lại
           </label>
-          <div class="col-3" v-if="props.is_template != true && isAdd == true">
+          <div class="col-3" v-if="props.is_template != true">
             <InputSwitch v-model="Task.is_repeat" />
-          </div> -->
+          </div>
         </div>
 
         <div class="field col-12 md:col-12" v-if="Task.is_repeat == true">
@@ -1154,6 +1206,43 @@ onMounted(() => {
             class="col-9 ip36 p-0"
           >
           </Dropdown>
+        </div>
+        <div
+          v-if="Task.is_repeat == true"
+          class="field col-12 md:col-12"
+          style="display: flex; align-items: center"
+        >
+          <label class="col-3 text-left p-0">Ngày kết thúc lặp </label>
+          <div
+            class="col-9 p-0"
+            style="display: flex; padding: 0px; align-items: center"
+          >
+            <Calendar
+              :showOnFocus="false"
+              @blur="autoFillDate($event, Task, 'repeat_to_date')"
+              :showIcon="true"
+              :showTime="false"
+              v-model="Task.repeat_to_date"
+              :manualInput="true"
+              class="col-3 p-0"
+              :minDate="Task.start_date"
+              showButtonBar
+            />
+            <label class="col-3 text-center" v-if="Task.repeat_type == 5">
+              Thời gian lặp lại
+            </label>
+            <Calendar
+              v-if="Task.repeat_type == 5"
+              class="col-6 p-0"
+              :showTime="false"
+              :showIcon="true"
+              placeholder="DD/MM"
+              dateFormat="dd/mm"
+              autocomplete="off"
+              v-model="Task.repeat_time_select"
+              selectionMode="multiple"
+            />
+          </div>
         </div>
         <div class="field col-12 md:col-12" v-if="Task.is_department">
           <label class="col-3 text-left p-0">Phòng ban</label>
@@ -1519,7 +1608,7 @@ onMounted(() => {
         >
           <label class="col-3 text-left p-0">Ngày bắt đầu</label>
           <div
-            class="col-9"
+            class="col-9 p-0"
             style="display: flex; padding: 0px; align-items: center"
           >
             <Calendar
@@ -1530,7 +1619,7 @@ onMounted(() => {
               v-model="Task.start_date"
               :manualInput="true"
               id="start_date"
-              class="col-5"
+              class="col-5 p-0"
             />
             <label
               class="col-2 text-center"
@@ -1544,7 +1633,7 @@ onMounted(() => {
               :showIcon="true"
               id="time2"
               placeholder="DD/MM/YYYY"
-              autocomplete="on"
+              autocomplete="off"
               v-model="Task.end_date"
               :class="{
                 'p-invalid':
