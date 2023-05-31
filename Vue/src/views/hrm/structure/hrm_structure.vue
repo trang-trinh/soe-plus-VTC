@@ -1847,8 +1847,7 @@ onMounted(() => {
           <div
             class="col-6 md:col-6 text-right"
             v-if="
-              store.state.user.is_super == true ||
-              store.state.user.user_id == donvi.created_by ||
+            
               (store.state.user.role_id == 'admin' &&
                 store.state.user.organization_id == donvi.organization_id)
             "

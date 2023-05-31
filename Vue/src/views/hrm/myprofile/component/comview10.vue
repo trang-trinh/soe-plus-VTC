@@ -3,7 +3,7 @@ import { onMounted, ref, inject, nextTick } from "vue";
 import { encr } from "../../../../util/function";
 import { useToast } from "vue-toastification";
 import moment from "moment";
-import dialogcontract from "../../contract/component/dialogcontract.vue";
+import dialogfile from "../../profile/component/dialogfile.vue";
 
 const router = inject("router");
 const store = inject("store");
@@ -30,7 +30,7 @@ const options = ref({
   pageNo: 1,
   pageSize: 25,
   total: 0,
-  file: {},
+  file: null,
   type_files: [],
   is_type_files: [],
 });

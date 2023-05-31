@@ -176,7 +176,7 @@ const saveData = (isFormValid, type) => {
           toast.success(
             response.config.method == "put"
               ? "Cập nhật báo cáo công việc cá nhân thành công!"
-              : "Thêm báo cáo công việc cá nhân thành công",
+              : "Thêm báo cáo công việc cá nhân thành công"
           );
         }
         isEdit.value = false;
@@ -237,13 +237,6 @@ const onPage = (event) => {
 const first = ref();
 const LoadLinkTaskOrigin = () => {
   optionsLinkTask.value.loading = true;
-
-  swal.fire({
-    width: 110,
-    didOpen: () => {
-      swal.showLoading();
-    },
-  });
   axios
     .post(
       baseURL + "/api/TaskProc/getTaskData",
@@ -258,10 +251,10 @@ const LoadLinkTaskOrigin = () => {
             ],
           }),
           SecretKey,
-          cryoptojs,
+          cryoptojs
         ).toString(),
       },
-      config,
+      config
     )
     .then((response) => {
       let data1 = JSON.parse(response.data.data)[0];
@@ -274,19 +267,19 @@ const LoadLinkTaskOrigin = () => {
           element.status_name =
             element.status != null
               ? listDropdownStatus.value.filter(
-                  (x) => x.value == element.status,
+                  (x) => x.value == element.status
                 )[0].text
               : "";
           element.status_bg_color =
             element.status != null
               ? listDropdownStatus.value.filter(
-                  (x) => x.value == element.status,
+                  (x) => x.value == element.status
                 )[0].bg_color
               : "";
           element.status_text_color =
             element.status != null
               ? listDropdownStatus.value.filter(
-                  (x) => x.value == element.status,
+                  (x) => x.value == element.status
                 )[0].text_color
               : "";
           //thời gian xử lý
@@ -336,7 +329,6 @@ const LoadLinkTaskOrigin = () => {
       optionsLinkTask.value.month = today.getMonth();
       optionsLinkTask.value.year = today.getFullYear();
       optionsLinkTask.value.loading = false;
-      swal.close();
     })
     .catch((error) => {
       //   toast.error("Tải dữ liệu không thành công6!");
@@ -406,10 +398,10 @@ const loadData = () => {
             ],
           }),
           SecretKey,
-          cryoptojs,
+          cryoptojs
         ).toString(),
       },
-      config,
+      config
     )
     .then((response) => {
       let data = JSON.parse(response.data.data)[0];
@@ -467,10 +459,10 @@ const loadTaskInfo = (user, list_task_id) => {
             ],
           }),
           SecretKey,
-          cryoptojs,
+          cryoptojs
         ).toString(),
       },
-      config,
+      config
     )
     .then((response) => {
       let data1 = JSON.parse(response.data.data)[0];
@@ -483,19 +475,19 @@ const loadTaskInfo = (user, list_task_id) => {
           element.status_name =
             element.status != null
               ? listDropdownStatus.value.filter(
-                  (x) => x.value == element.status,
+                  (x) => x.value == element.status
                 )[0].text
               : "";
           element.status_bg_color =
             element.status != null
               ? listDropdownStatus.value.filter(
-                  (x) => x.value == element.status,
+                  (x) => x.value == element.status
                 )[0].bg_color
               : "";
           element.status_text_color =
             element.status != null
               ? listDropdownStatus.value.filter(
-                  (x) => x.value == element.status,
+                  (x) => x.value == element.status
                 )[0].text_color
               : "";
           //thời gian xử lý
@@ -741,13 +733,13 @@ const loadGroupOrUser = (type) => {
               : {
                   proc: "task_browse_group_list_select",
                   par: [{ par: "user_id", va: store.getters.user.user_id }],
-                },
+                }
           ),
           SecretKey,
-          cryoptojs,
+          cryoptojs
         ).toString(),
       },
-      config,
+      config
     )
     .then((response) => {
       let data = JSON.parse(response.data.data)[0];
@@ -803,10 +795,10 @@ const loadDefaultUser = () => {
             ],
           }),
           SecretKey,
-          cryoptojs,
+          cryoptojs
         ).toString(),
       },
-      config,
+      config
     )
     .then((response) => {
       let data = JSON.parse(response.data.data)[0];
@@ -1179,10 +1171,7 @@ onMounted(() => {
         headerClass="align-items-center justify-content-center"
       >
         <template #body="data">
-          <div
-            class="name-hover"
-            @click="showInfo(data.data)"
-          >
+          <div class="name-hover" @click="showInfo(data.data)">
             <span>{{ data.data.report_name }}</span>
           </div>
         </template>
@@ -1295,14 +1284,8 @@ onMounted(() => {
         </template>
       </Column>
       <template #empty>
-        <div
-          class="block w-full h-full format-center"
-          v-if="noData == true"
-        >
-          <img
-            src="../../../assets/background/nodata.png"
-            height="144"
-          />
+        <div class="block w-full h-full format-center" v-if="noData == true">
+          <img src="../../../assets/background/nodata.png" height="144" />
           <h3 class="m-1">Không có dữ liệu</h3>
         </div>
       </template>
@@ -1332,11 +1315,7 @@ onMounted(() => {
           @input="checkLenght()"
         />
       </div>
-      <div
-        style="display: flex"
-        class="col-12 py-0"
-        v-if="length == true"
-      >
+      <div style="display: flex" class="col-12 py-0" v-if="length == true">
         <div class="col-2 p-0 text-left"></div>
         <small class="col-10 p-0 p-error">
           <span class="col-12">Tên báo cáo không quá 250 ký tự!</span>
@@ -1400,7 +1379,7 @@ onMounted(() => {
             <span class="col-12">{{
               v$.list_task_id.required.$message.replace(
                 "Value is required",
-                "Bạn chưa chọn công việc!",
+                "Bạn chưa chọn công việc!"
               )
             }}</span>
           </small>
@@ -1466,7 +1445,7 @@ onMounted(() => {
                     >{{
                       data.item.start_date
                         ? moment(new Date(data.item.start_date)).format(
-                            "DD/MM/YYYY",
+                            "DD/MM/YYYY"
                           )
                         : null
                     }}
@@ -1474,7 +1453,7 @@ onMounted(() => {
                     {{
                       data.item.end_date
                         ? moment(new Date(data.item.end_date)).format(
-                            "DD/MM/YYYY",
+                            "DD/MM/YYYY"
                           )
                         : null
                     }}</span
@@ -1587,10 +1566,7 @@ onMounted(() => {
                     <span v-if="data.item.progress == 0"
                       >{{ data.item.progress }} %</span
                     >
-                    <div
-                      v-if="data.item.progress != 0"
-                      style="width: 100%"
-                    >
+                    <div v-if="data.item.progress != 0" style="width: 100%">
                       <ProgressBar :value="data.item.progress" />
                     </div>
                   </div>
@@ -1625,7 +1601,7 @@ onMounted(() => {
                       style="color: #ffab2b; font-size: 13px; font-weight: bold"
                       >{{
                         moment(new Date(data.item.end_date)).format(
-                          "DD/MM/YYYY",
+                          "DD/MM/YYYY"
                         )
                       }}</span
                     >
@@ -1684,7 +1660,7 @@ onMounted(() => {
             <span class="col-12">{{
               v$.messages.required.$message.replace(
                 "Value is required",
-                "Nội dung báo cáo không được để trống!",
+                "Nội dung báo cáo không được để trống!"
               )
             }}</span>
           </small>
@@ -1723,7 +1699,7 @@ onMounted(() => {
             <span class="col-12">{{
               v$.self_point.required.$message.replace(
                 "Value is required",
-                "Điểm tự đánh giá không được để trống!",
+                "Điểm tự đánh giá không được để trống!"
               )
             }}</span>
           </small>
@@ -1757,10 +1733,7 @@ onMounted(() => {
     :closable="true"
   >
     <form>
-      <div
-        v-if="store.getters.islogin"
-        style="height: 100%"
-      >
+      <div v-if="store.getters.islogin" style="height: 100%">
         <DataTable
           v-model:first="first"
           :rowHover="true"
@@ -1868,7 +1841,7 @@ onMounted(() => {
                     >{{
                       data.data.start_date
                         ? moment(new Date(data.data.start_date)).format(
-                            "DD/MM/YYYY",
+                            "DD/MM/YYYY"
                           )
                         : null
                     }}
@@ -1876,7 +1849,7 @@ onMounted(() => {
                     {{
                       data.data.end_date
                         ? moment(new Date(data.data.end_date)).format(
-                            "DD/MM/YYYY",
+                            "DD/MM/YYYY"
                           )
                         : null
                     }}</span
@@ -1992,10 +1965,7 @@ onMounted(() => {
               <span v-if="data.data.progress == 0"
                 >{{ data.data.progress }} %</span
               >
-              <div
-                v-if="data.data.progress != 0"
-                style="width: 100%"
-              >
+              <div v-if="data.data.progress != 0" style="width: 100%">
                 <ProgressBar :value="data.data.progress" />
               </div>
             </template>
@@ -2069,10 +2039,7 @@ onMounted(() => {
               style="display: flex; flex-direction: column"
               v-if="!noData"
             >
-              <img
-                src="../../../assets/background/nodata.png"
-                height="144"
-              />
+              <img src="../../../assets/background/nodata.png" height="144" />
               <h3 class="m-1">Không có dữ liệu</h3>
             </div>
           </template>
@@ -2086,11 +2053,7 @@ onMounted(() => {
         @click="displayLinkTask = false"
         class="p-button-text"
       />
-      <Button
-        label="Lưu"
-        icon="pi pi-check"
-        @click="saveAddLinkTask()"
-      />
+      <Button label="Lưu" icon="pi pi-check" @click="saveAddLinkTask()" />
     </template>
   </Dialog>
   <Dialog
@@ -2131,10 +2094,7 @@ onMounted(() => {
           @change="loadGroupOrUser($event.value)"
         />
       </div>
-      <div
-        class="col-12 flex"
-        v-if="sendto != null"
-      >
+      <div class="col-12 flex" v-if="sendto != null">
         <div class="col-2 format-left">
           <span v-if="sendto == 1">Người duyệt</span>
           <span v-if="sendto == 0">Nhóm duyệt</span>
@@ -2153,14 +2113,8 @@ onMounted(() => {
           @change="changeUserReview($event.value)"
         >
           <template #value="slotProps">
-            <div
-              class="flex"
-              v-if="slotProps.value"
-            >
-              <div
-                class="flex"
-                style="margin-left: 10px"
-              >
+            <div class="flex" v-if="slotProps.value">
+              <div class="flex" style="margin-left: 10px">
                 <Avatar
                   @error="
                     $event.target.src =
@@ -2187,10 +2141,7 @@ onMounted(() => {
                   size="xlarge"
                   shape="circle"
                 />
-                <div
-                  class="pt-1"
-                  style="padding-left: 10px"
-                >
+                <div class="pt-1" style="padding-left: 10px">
                   {{ slotProps.value.name }}
                 </div>
               </div>
@@ -2237,16 +2188,10 @@ onMounted(() => {
                 >
                   {{ slotProps.option.name }}
                 </div>
-                <div
-                  class="pt-1 description"
-                  style="padding-left: 10px"
-                >
+                <div class="pt-1 description" style="padding-left: 10px">
                   {{ slotProps.option.position_name }}
                 </div>
-                <div
-                  class="pt-1 description"
-                  style="padding-left: 10px"
-                >
+                <div class="pt-1 description" style="padding-left: 10px">
                   {{ slotProps.option.department_name }}
                 </div>
               </div>
@@ -2264,10 +2209,7 @@ onMounted(() => {
           @change="changeUserReview($event.value)"
         >
           <template #value="slotProps">
-            <div
-              class="col-12"
-              v-if="slotProps.value"
-            >
+            <div class="col-12" v-if="slotProps.value">
               <div class="col-12">{{ slotProps.value.group_name }}</div>
               <div class="col-12 description py-0 elipsis">
                 {{ slotProps.value.group_role_label }}

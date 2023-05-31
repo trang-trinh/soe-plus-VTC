@@ -660,6 +660,7 @@ const callbackFun = (obj) => {
 
   let formData = new FormData();
   formData.append("smart_report", JSON.stringify(smart_report.value));
+   
   axios
     .put(baseURL + "/api/smart_report/update_smart_report", formData, config)
     .then((response) => {
@@ -683,7 +684,7 @@ const callbackFun = (obj) => {
         confirmButtonText: "OK",
       });
     });
-};
+  };
 //Xóa bản ghi
 const delTem = (Tem) => {
   swal
