@@ -44,6 +44,7 @@ export default {
     readonly: Boolean,
     callbackFun: Function,
     header: String,
+    reload:Function
   },
   components: {
     Editor,
@@ -1253,24 +1254,31 @@ export default {
         //Save file quyết định, lương...
         let users = [];
         if (!oneRow.value) {
-          let objt = {};
+       
+        let arr=[];
+        debugger
           dtDataReports.value.forEach((dr) => {
+            let objt = {};
             Object.keys(dr)
               .filter((x) => x.includes("_"))
               .forEach((el) => {
                 objt[el] = dr[el];
               });
+               
             if (dr.datatemp) {
               dr.ok = true;
+               
               objt.is_data = [dr.datatemp];
             } else {
               dr.ok = false;
               objt.is_data = null;
             }
-
-            props.callbackFun(objt);
+            arr.push(objt);
+            props.callbackFun(objt,false);
           });
+          props.callbackFun(arr,true);
           isdataSidebar.value = false;
+          //  props.reload();
           return false;
         }
         let idx = objDataTemp.value[0].cols.findIndex(
@@ -1439,7 +1447,7 @@ export default {
         dochtml.innerHTML = html;
         isxls.value = true;
         addExcelStyle();
-
+        
         await initDataTempAuto(true);
 
         let rowmnumber = dtExcels.value[0].rowmnumber || 1;
@@ -1453,6 +1461,9 @@ export default {
           if (trs[i].children.length >= cols.length) {
             let obj = {};
             cols.forEach((c, j) => {
+              if(c){
+                c.value=c.value.replaceAll("\n","");
+              }
               if (trs[i].children[j + 1]) {
                 //console.log(c.value+" - "+trs[i].children[j + 1].innerText);
                 if (trs[i].children[j + 1].innerText.trim().includes("%")) {
@@ -1466,11 +1477,16 @@ export default {
                 obj[c.value] = null;
               }
             });
+            
             rows.push(obj);
           }
         }
-     
+       
+ 
+      let arrF=[];
         dtDataReports.value.forEach((r) => {
+
+    
           let rr = rows.find(
             (x) =>
               x["HỌ VÀ TÊN"].trim().toUpperCase() ==
@@ -1479,15 +1495,20 @@ export default {
                 (x["Mã NS"] == r["profile_code"] ||
                   x["Mã Nhân sự"] == r["profile_code"]))
           );
+ 
+          
           if (rr) {
+            
             r.datatemp = rr;
+            arrF.push(r);
           } else {
             delete r.datatemp;
           }
         });
-
+ 
+        dtDataReports.value=arrF;
         await saveDatamap(false);
-
+     
         props.callbackFun({ is_config: JSON.stringify(objDataTemp.value) });
 
         showLoadding.value = false;
@@ -2447,7 +2468,6 @@ export default {
         if (document.getElementById("app-body"))
           document.getElementById("app-body").classList.remove("p-2");
       }
-
       if (props.report) {
         initTemplate();
       }
@@ -2496,12 +2516,13 @@ export default {
       if (!objConfig.proc.name) {
         objConfig.proc.name = props.report.proc_name;
       }
- 
+  
       dtDataReports.value = await goProc(
         objConfig.proc.issql,
         objConfig.proc.sql,
         []
       );
+      
       if (dtDataReports.value.length > 0) {
         let obj = dtDataReports.value[0];
         dtColumns.value = Object.keys(obj).filter((x) => !x.includes("_"));
@@ -2530,7 +2551,7 @@ export default {
           swal.showLoading();
         },
       });
-debugger
+ 
       const axResponse = await axios.post(
         baseURL + "/api/HRM_SQL/PostProc",
         {
@@ -2966,7 +2987,7 @@ debugger
               if (th.getAttribute("tname")) {
                 tn = th.getAttribute("tname") + " (" + tn + ")";
               }
-              debugger
+               
               addRowXls(td, tn, false, true);
             }
           }
@@ -3153,7 +3174,7 @@ debugger
       if (props.report.is_config) {
         objDataTemp.value = props.report.is_config;
       }
-      ;
+      
       let dts = await goProc(true, props.report.proc_all, [], true);
       dtDataReports.value.forEach((dt) => {
         let tb = dts[0].find((x) => x.profile_id == dt.profile_id);
@@ -5241,6 +5262,7 @@ debugger
                 {{ c.value.toString().replace(/\[(.+)\]/g, "$1") }}
               </template>
               <template #body="slotProps">
+                
                 <InputComponent
                   :div="true"
                   :okey="c.value"
