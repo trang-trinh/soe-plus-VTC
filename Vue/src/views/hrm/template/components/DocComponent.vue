@@ -101,6 +101,7 @@ export default {
     const spans = ref([]);
     const axios = inject("axios");
     const objDataTemp = ref([]);
+    const objDataTempSave = ref([]);
     let delElements = [];
     const rfUserComp = ref(null);
     const store = inject("store");
@@ -1220,6 +1221,7 @@ export default {
     };
     const showDataSidebar = () => {
       isdataSidebar.value = true;
+      checkHide=false;
       if (datamaps.value.length == 0) {
         initMapData();
       }
@@ -1520,6 +1522,7 @@ export default {
     const importJsonData = (event) => {
       let file = event.files[0];
       if (file.name.includes("xls")) {
+        checkHide=true;
         myDocUploader(event);
         return false;
       }
@@ -1690,6 +1693,8 @@ export default {
           console.log(e);
         }
       }
+
+      objDataTempSave.value=[...objDataTemp.value]
       if (isxls.value) initdbXLS();
       if (objDataTemp.value[0].cols.length == 0) {
         await initTempAI();
@@ -2629,7 +2634,7 @@ export default {
     };
     let cacheobjDataTemp = [];
     async function renderTableWord(objpar) {
-      
+       
       let pas = [];
       
       if (cacheobjDataTemp.length == 0) {
@@ -2684,7 +2689,7 @@ export default {
       //
       datausers = dts;
       dochtml.innerHTML = tempHTMLGoc;
-      console.log("L", objDataTemp.value)
+ 
       dochtml
         .querySelectorAll('[style*="background-color:#ffff00"]')
         .forEach((el) => {
@@ -2701,6 +2706,7 @@ export default {
               function (s, ke) {
                 let obj = objDataTemp.value[0].cols.find((x) => x.value == ke);
                 let k = obj ? obj.key : ke;
+                 
                 // if (k == "Số người phụ thuộc") {
                 //     console.log(dts[0][0][k]);
                 // }
@@ -3172,6 +3178,7 @@ export default {
       );
       if (dts.length > 0) {
         dtProfile = dts[0];
+        
       }
     };
     const oneRow = ref(true);
@@ -3419,6 +3426,12 @@ export default {
         editDataAll(objvalue);
       }
     };
+    let checkHide=false;
+    const onHideSidebarM=()=>{
+      if(!checkHide)
+      objDataTemp.value=[...objDataTempSave.value];
+
+    }
     const optionTypeDBs = ref([
       { name: "Lấy dữ liệu động từ hệ thống", value: 1 },
       { name: "Tải dữ liệu dưới máy", value: 2 },
@@ -3492,6 +3505,7 @@ export default {
       itemtypeInputs,
       //toggleMenuInput,
       //menuInput,
+      onHideSidebarM,
       addRowWord,
       editForm,
       objForm,
@@ -4060,7 +4074,7 @@ export default {
               </template>
             </Column>
           </DataTable>
-        <!-- {{ objDataTemp  }} -->
+     
         </div>
         <div v-else style="height: calc(100vh - 130px); overflow-y: auto">
           <div class="p-0">
@@ -4174,7 +4188,8 @@ export default {
                 <div class="py-3 w-full" v-if="row.data.cols">
                   <Toolbar class="w-full custoolbar">
                     <template #start>
-                      <div><h3 class="p-0 m-0 mb-2">Cột</h3></div>
+                      <div><h3 class="p-0 m-0 mb-2" v-if="report.report_type == 1">Tổng lương</h3>
+                        <h3 class="p-0 m-0 mb-2" v-else>Cột</h3></div>
                     </template>
                     <template #end>
                       <div v-if="report.report_type == 1">
@@ -4846,6 +4861,7 @@ export default {
       :class="
         'w-full d-sidebar-full' + (isfullSidebar ? '  ' : ' md:w-8 lg:w-8')
       "
+      @hide="onHideSidebarM"
     >
       <template #header>
         <div class="flex w-full">
