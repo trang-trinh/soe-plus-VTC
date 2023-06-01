@@ -2523,7 +2523,7 @@ const initRoleFunction = () => {
             }
           }
           if (tbs[1] != null && tbs[1].length > 0) {
-            if (tbs[1][0].module_functions != null) {
+            if (tbs[1][0].module_functions != null && tbs[1][0].module_functions != "") {
               let module_functions = tbs[1][0].module_functions.split(",");
               for (var key in module_functions) {
                 functions.value[module_functions[key]] = true;
