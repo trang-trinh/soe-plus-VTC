@@ -388,7 +388,7 @@ const renderTree = (data, id, name, title) => {
     return a.parent_id - b.parent_id;
   });
   let parent_id = null;
-  if(data && data.length > 0){
+  if (data && data.length > 0) {
     parent_id = data[0].parent_id;
   }
   data
@@ -1611,7 +1611,7 @@ const initDataFilter = () => {
       }
     });
 };
-const initTreeOrganization = () => {
+const initTreeOrganization = (rf) => {
   treeOrganization.value = [];
   axios
     .post(
@@ -1663,7 +1663,9 @@ const initTreeOrganization = () => {
               }
             }
           }
-          initSave();
+          if (rf) {
+            initSave();
+          }
         }
       }
     });
@@ -1821,6 +1823,7 @@ const refresh = () => {
   isFilter.value = false;
   isFilterAdv.value = false;
   resetFilterAdvanced();
+  initData(true);
   initCount();
   initTreeOrganization();
   //initData(true);
@@ -2908,12 +2911,12 @@ onMounted(() => {
     options.value.path = route.path;
     options.value.name = route.name;
     //initPlace();
+    initData(true);
+    initCount();
     initRoleFunction();
     initDictionary();
-    initCount();
-    initTreeOrganization();
     initDataFilterAdv(true, "", false);
-    //initData(true);
+    initTreeOrganization();
 
     const el = document.getElementById("buffered-scroll");
     if (el) {
