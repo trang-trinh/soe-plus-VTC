@@ -236,10 +236,9 @@ const goOrganization = (item) => {
   options.value.organizations = [];
   options.value.departments = [];
 
-  if(item.data.organization_type === 0 && item.data.parent_id == null){
+  if (item.data.organization_type === 0 && item.data.parent_id == null) {
     options.value.organizations = [];
-  }
-  else if (item.data.organization_type === 0) {
+  } else if (item.data.organization_type === 0) {
     options.value.organizations = [
       {
         organization_id: item.data.organization_id,
@@ -385,8 +384,15 @@ const findMinParent = (data) => {
 const renderTree = (data, id, name, title) => {
   let arrChils = [];
   let arrtreeChils = [];
+  data = data.sort((a, b) => {
+    return a.parent_id - b.parent_id;
+  });
+  let parent_id = null;
+  if(data && data.length > 0){
+    parent_id = data[0].parent_id;
+  }
   data
-    .filter((x) => x.parent_id == null)
+    .filter((x) => x.parent_id == parent_id)
     .forEach((m, i) => {
       m.IsOrder = i + 1;
       m.label_order = m.IsOrder.toString();
@@ -1206,7 +1212,10 @@ const initRoleFunction = () => {
             }
           }
           if (tbs[1] != null && tbs[1].length > 0) {
-            if (tbs[1][0].module_functions != null && tbs[1][0].module_functions != "") {
+            if (
+              tbs[1][0].module_functions != null &&
+              tbs[1][0].module_functions != ""
+            ) {
               let module_functions = tbs[1][0].module_functions.split(",");
               for (var key in module_functions) {
                 functions.value[module_functions[key]] = true;
@@ -2989,7 +2998,7 @@ const rowClass = (data) => {
             appendTo="body"
             class="p-0 m-0"
             id="overlay_panel_adv"
-            style="width: 65vw;"
+            style="width: 65vw"
           >
             <div class="flex">
               <div>
@@ -3011,7 +3020,12 @@ const rowClass = (data) => {
                   :scrollable="true"
                   scrollHeight="flex"
                   :metaKeySelection="false"
-                  style="max-height: calc(100vh - 400px); min-width:22rem; max-width:25rem;padding:0.5rem;"
+                  style="
+                    max-height: calc(100vh - 400px);
+                    min-width: 22rem;
+                    max-width: 25rem;
+                    padding: 0.5rem;
+                  "
                 >
                   <template #default="slotProps">
                     <b v-if="slotProps.node.children">{{
@@ -3128,7 +3142,7 @@ const rowClass = (data) => {
                                   optionLabel="text"
                                   optionValue="value"
                                   class="w-full"
-                                  style="border:none;box-shadow: none;"
+                                  style="border: none; box-shadow: none"
                                 />
                               </template>
                             </Column>
@@ -3145,7 +3159,7 @@ const rowClass = (data) => {
                                   optionLabel="text"
                                   optionValue="value"
                                   class="w-full"
-                                  style="border:none;box-shadow: none;"
+                                  style="border: none; box-shadow: none"
                                 />
                               </template>
                             </Column>
@@ -3170,7 +3184,7 @@ const rowClass = (data) => {
                                   v-model="dt.data.value"
                                   autoResize
                                   class="w-full"
-                                  style="border:none;box-shadow: none;"
+                                  style="border: none; box-shadow: none"
                                 />
                               </template>
                             </Column>
@@ -4210,7 +4224,10 @@ const rowClass = (data) => {
                 <template #body="md">
                   <div class="row-active">
                     <span :style="{ color: 'rgb(0, 90, 158)' }">
-                      {{ md.node.data.organization_name }} <span v-if="md.node.data.total && md.node.data.total > 0">({{md.node.data.total}})</span>
+                      {{ md.node.data.organization_name }}
+                      <span v-if="md.node.data.total && md.node.data.total > 0"
+                        >({{ md.node.data.total }})</span
+                      >
                     </span>
                   </div>
                 </template>
