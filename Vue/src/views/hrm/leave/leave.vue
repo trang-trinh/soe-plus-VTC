@@ -362,9 +362,14 @@ const initDictionary = () => {
             department.value = temp2;
           }
           if (tbs[2] != null && tbs[2].length > 0) {
-            let module_functions = tbs[2][0].module_functions.split(",");
-            for (var key in module_functions) {
-              functions.value[module_functions[key]] = true;
+            if (
+              tbs[2][0].module_functions != null &&
+              tbs[2][0].module_functions != ""
+            ) {
+              let module_functions = tbs[2][0].module_functions.split(",");
+              for (var key in module_functions) {
+                functions.value[module_functions[key]] = true;
+              }
             }
           }
           dictionarys.value = tbs;
