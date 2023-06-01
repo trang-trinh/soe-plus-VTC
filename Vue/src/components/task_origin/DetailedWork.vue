@@ -243,36 +243,35 @@ const loadTaskMain = () => {
       datalists.value.progress = datalists.value.progress
         ? datalists.value.progress
         : 0;
-      var now = new Date();
-      var d1 = new Date(now + 1);
-      // data.start_real_date != null
-      //   ? data.start_real_date
-      //   : data.start_date,
-      var d2 = new Date(datalists.value.end_date);
-
-      var diff = d2.getTime() - d1.getTime();
-
-      var daydiff = diff / (1000 * 60 * 60 * 24);
-
-      var stdate = new Date(datalists.value.start_date);
-      if (stdate > today.value) {
-        TimeToDo.value = "Chưa bắt đầu";
-        return;
+      if (datalists.value.end_date != null) {
+        let time = datalists.value.thoigianquahan;
+        let x = { minutes: 0, hour: 0, day: 0 };
+        if (time != null || time != 0) {
+          x.minutes = Math.abs(time) % 60;
+          x.hour = Math.floor(Math.abs(time) / 60);
+          let temp = x.hour;
+          if (temp > 24) {
+            x.hour = Math.floor(temp % 24);
+            x.day = Math.floor(temp / 24);
+          }
+        }
+        if (time > 0) {
+          TimeToDo.value =
+            "<div class='flex format-center font-bold text-xl' style='background-color: #fffbd8;color: #ff0000'> Quá hạn: " +
+            (x.day > 0 ? x.day + " ngày " : "") +
+            (x.hour > 0 ? x.hour + " giờ " : "") +
+            (x.minutes > 0 ? x.minutes + " phút" : "") +
+            "</div>";
+        } else {
+          TimeToDo.value =
+            "<div class='flex format-center font-bold text-xl' style='background-color: #fffbd8;color: #2196F3'>Còn lại: " +
+            (x.day > 0 ? x.day + " ngày " : "") +
+            (x.hour > 0 ? x.hour + " giờ " : "") +
+            (x.minutes > 0 ? x.minutes + " phút" : "") +
+            "</div>";
+        }
+        debugger;
       }
-      if (0 < daydiff + 1 && daydiff + 1 < 1) {
-        TimeToDo.value =
-          "<div class='flex format-center font-bold text-xl' style='background-color: #fffbd8;color: #6DD230'> Đến hạn hoàn thành </div>";
-        return;
-      }
-      let displayTime = Math.abs(Math.floor(daydiff + 1));
-      TimeToDo.value =
-        daydiff + 1 < 0
-          ? "<div class='flex format-center font-bold text-xl' style='background-color: #fffbd8;color: red'> Quá hạn " +
-            displayTime +
-            " ngày</div>"
-          : "<div class='flex format-center font-bold text-xl' style='background-color: #fffbd8;color: #6DD230'> Còn " +
-            displayTime +
-            " ngày</div>";
     })
     .catch((error) => {
       //toast.error("Tải dữ liệu không thành công!");
