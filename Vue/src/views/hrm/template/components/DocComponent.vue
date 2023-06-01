@@ -2297,7 +2297,7 @@ export default {
               downloadFileExport(
                 "GetDownloadXLS",
                 dataHtml.filename,
-                axResponse.data.fileName + ".html",
+                axResponse.data.fileName,
                 ".xlsx"
               );
             } else {

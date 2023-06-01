@@ -403,10 +403,10 @@ namespace API.Controllers
                 // Auto-fitting the 3rd row of the worksheet
                 worksheet.AutoFitRows();
                 worksheet.AutoFitColumns();
-                // Saving the modified Excel file
-                workbook.Save(filePath);
                 // Closing the file stream to free all resources
                 fstream.Close();
+                // Saving the modified Excel file
+                workbook.Save(filePath);
                 return Request.CreateResponse(HttpStatusCode.OK, new { err = "0", filePath, fileName });
             }
             catch (Exception e)
