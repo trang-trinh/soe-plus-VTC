@@ -191,7 +191,8 @@ const headerDialog = ref();
 const displayBasic = ref(false);
 const liEvcalCriterias = ref([]);
 const liEvcalCriteriasChild = ref([]);
-const openBasic = (str) => {
+const createdForMyself = ref(true);
+const openBasic = (str, type) => {
     axios
         .post(
             baseURL + "/api/HRM_SQL/getData",
@@ -228,6 +229,13 @@ const openBasic = (str) => {
                     is_system: store.getters.user.is_super ? true : false,
                     created_date: new Date(),
                 };
+                if (type == 0) {
+                    reviewuser.value.fullname_self_review = store.getters.user.full_name;
+                    createdForMyself.value = true;
+                }
+                else {
+                    createdForMyself.value = false;
+                }
                 if (dt2) {
                     dt2.forEach((element) => {
                         element.review_imp_name = element.eval_criteria_name;
@@ -927,8 +935,8 @@ onMounted(() => {
                     <template #end>
                         <Button v-if="checkDelList" @click="deleteList()" label="Xóa" icon="pi pi-trash"
                             class="mr-2 p-button-danger" />
-                        <Button @click="openBasic('Thêm mẫu đánh giá')" label="Thêm mới" icon="pi pi-plus" class="mr-2" />
-                        <Button @click="openBasic('Thêm mẫu đánh giá')" label="Lập cho nhân sự" icon="pi pi-plus"
+                        <Button @click="openBasic('Đánh giá nhân sự định kỳ', 0)" label="Thêm mới" icon="pi pi-plus" class="mr-2" />
+                        <Button @click="openBasic('Đánh giá nhân sự định kỳ', 1)" label="Lập cho nhân sự" icon="pi pi-plus"
                             class="mr-2" />
                         <Button @click="refreshStamp" class="mr-2 p-button-outlined p-button-secondary" icon="pi pi-refresh"
                             v-tooltip="'Tải lại'" />
@@ -1020,6 +1028,22 @@ onMounted(() => {
     >
         <form>
             <div class="grid formgrid m-2">
+                <div class="field col-12 md:col-12 flex align-items-center" v-if="!createdForMyself">
+                    <div class="w-11rem text-left p-0 title-form-myreview">
+                        Người được lập hộ <span class="redsao pl-1"> (*)</span>
+                    </div>
+                    <div class="p-0" style="width: calc(100% - 11rem)">
+                        <DropdownProfile :model="reviewuser.profile_id_assist" 
+                            :placeholder="'Chọn người đánh giá'" 
+                            :class="reviewuser.profile_id_assist == null && submitted
+                                ? 'p-invalid w-full p-0'
+                                : ' w-full p-0'
+                            " 
+                            :editable="false" :optionLabel="'profile_user_name'" :optionValue="'code'" :callbackFun="getProfileUser"
+                            :key_user="'profile_id'" 
+                        />
+                    </div>
+                </div>
                 <div class="field col-12 md:col-12">
                     <label class="w-11rem text-left p-0 title-form-myreview">Mẫu biểu đánh giá</label>
                     <InputText v-model="reviewuser.review_form_name" spellcheck="false" class="ip36 px-2 d-design-disabled"
@@ -1030,11 +1054,15 @@ onMounted(() => {
                         Người đánh giá <span class="redsao pl-1"> (*)</span>
                     </div>
                     <div class="p-0" style="width: calc(100% - 11rem)">
-                        <DropdownProfile :model="reviewuser.profile_id" :placeholder="'Chọn người đánh giá'" :class="reviewuser.profile_id == null && submitted
+                        <DropdownProfile :model="reviewuser.profile_id" 
+                            :placeholder="'Chọn người đánh giá'" 
+                            :class="reviewuser.profile_id == null && submitted
                                 ? 'p-invalid w-full p-0'
                                 : ' w-full p-0'
-                            " :editable="false" optionLabel="profile_user_name" optionValue="code" :callbackFun="getProfileUser"
-                            :key_user="'profile_id'" />
+                            " 
+                            :editable="false" :optionLabel="'profile_user_name'" :optionValue="'code'" :callbackFun="getProfileUser"
+                            :key_user="'profile_id'" 
+                        />
                     </div>
                 </div>
                 <div style="display: flex" class="field col-12 md:col-12" v-if="reviewuser.profile_id == null && submitted">
@@ -1455,10 +1483,10 @@ onMounted(() => {
                                             >
                                             </Textarea>
                                             <div class="flex" style="align-items:center;height:40px;">
-                                                Họ và tên: <b>{{ reviewuser.fullname_self_review || '' }}</b>
+                                                Họ và tên: <b class="pl-2">{{ reviewuser.fullname_self_review || '' }}</b>
                                             </div>
                                             <div class="input-group mT-5">
-                                                <label class="label-form mr-2">Ngày</label>
+                                                <label class="label-form mr-2">Ngày: </label>
                                                 <Calendar
                                                     :showIcon="true"
                                                     class="ip36"

@@ -1806,11 +1806,7 @@ const toggleFilterAdvanced = (event) => {
 const closeOverlayFilterAdv = () => {
   opfilterAdvanced.value.toggle(event);
 };
-const showFilterAdv = ref(false);
 const isFilterAdv = ref(false);
-const activeFilterAdv = () => {
-  showFilterAdv.value = true;
-};
 
 const drTypes = ref([
   { text: "Lớn hơn", value: ">", types: ",1,2,3," },
@@ -2745,10 +2741,9 @@ const delBlock = (gr) => {
   }
 };
 const resetFilterAdvanced = () => {
-  if (showFilterAdv.value == true) {
+  if (groupBlock.value[0].datas != null && groupBlock.value[0].datas.length == 0) {
     opfilterAdvanced.value.toggle(event);
   }
-  showFilterAdv.value = false;
   options.value.search = "";
   selectedKey.value = {};
   groupBlock.value = [
@@ -2975,7 +2970,7 @@ const rowClass = (data) => {
             appendTo="body"
             class="p-0 m-0"
             id="overlay_panel_adv"
-            style="width: 75vw"
+            style="width: 65vw;"
           >
             <div class="flex">
               <div>
@@ -2997,7 +2992,7 @@ const rowClass = (data) => {
                   :scrollable="true"
                   scrollHeight="flex"
                   :metaKeySelection="false"
-                  style="max-height: calc(100vh - 400px); min-width: 480px"
+                  style="max-height: calc(100vh - 400px); min-width:22rem; max-width:25rem;padding:0.5rem;"
                 >
                   <template #default="slotProps">
                     <b v-if="slotProps.node.children">{{
@@ -3024,6 +3019,7 @@ const rowClass = (data) => {
                   />
                 </div>
                 <Accordion
+                  class="accor-group-criterias"
                   :activeIndex="blockindex"
                   style="max-height: calc(100vh - 300px); overflow-y: auto"
                 >
@@ -3053,7 +3049,7 @@ const rowClass = (data) => {
                       scrollHeight="calc(100vh - 220px)"
                       :value="gr.datas"
                       showGridlines
-                      class="p-datatable-sm w-full"
+                      class="p-datatable-sm w-full tbl-filter-criterias"
                     >
                       <template #empty>
                         <div
@@ -3091,15 +3087,15 @@ const rowClass = (data) => {
                         </template>
                       </Column>
                       <template #expansion="slotProps">
-                        <div class="w-full p-3">
+                        <div class="w-full p-0">
                           <DataTable
                             class="w-full"
                             :value="slotProps.data.childs"
                           >
                             <Column
                               header="Kiểu giá trị"
-                              headerStyle="max-width:120px"
-                              bodyStyle="max-width:120px"
+                              headerStyle="max-width:9rem"
+                              bodyStyle="max-width:9rem"
                               v-if="
                                 slotProps.data.typdata == 2 ||
                                 slotProps.data.typdata == 3
@@ -3113,13 +3109,14 @@ const rowClass = (data) => {
                                   optionLabel="text"
                                   optionValue="value"
                                   class="w-full"
+                                  style="border:none;box-shadow: none;"
                                 />
                               </template>
                             </Column>
                             <Column
                               header="Điều kiện"
-                              headerStyle="max-width:250px"
-                              bodyStyle="max-width:250px"
+                              headerStyle="max-width:13rem"
+                              bodyStyle="max-width:13rem"
                             >
                               <template #body="dt">
                                 <Dropdown
@@ -3129,6 +3126,7 @@ const rowClass = (data) => {
                                   optionLabel="text"
                                   optionValue="value"
                                   class="w-full"
+                                  style="border:none;box-shadow: none;"
                                 />
                               </template>
                             </Column>
@@ -3153,14 +3151,15 @@ const rowClass = (data) => {
                                   v-model="dt.data.value"
                                   autoResize
                                   class="w-full"
+                                  style="border:none;box-shadow: none;"
                                 />
                               </template>
                             </Column>
                             <Column
                               header=""
                               class="justify-content-center"
-                              headerStyle="max-width: 60px;"
-                              bodyStyle="max-width: 60px;"
+                              headerStyle="max-width: 5rem;"
+                              bodyStyle="max-width: 5rem;"
                             >
                               <template #body="dt">
                                 <Button
@@ -3183,21 +3182,21 @@ const rowClass = (data) => {
                       <Column
                         header=""
                         class="justify-content-center"
-                        headerStyle="max-width: 8rem;"
-                        bodyStyle="max-width: 8rem;"
+                        headerStyle="max-width:100px;"
+                        bodyStyle="max-width:100px;"
                       >
                         <template #body="dt">
-                          <Button
-                            class="p-button-sm p-button-text p-button-outlined p-button-danger"
-                            v-tooltip.top="'Xoá tiêu chí'"
-                            @click="delFilter(dt.index, gr.datas, 0)"
-                            icon="pi pi-trash"
-                          />
                           <Button
                             class="p-button-sm p-button-text p-button-outlined ml-1"
                             v-tooltip.top="'Thêm điều kiện'"
                             @click="addFilter(dt.data)"
                             icon="pi pi-plus"
+                          />
+                          <Button
+                            class="p-button-sm p-button-text p-button-outlined p-button-danger"
+                            v-tooltip.top="'Xoá tiêu chí'"
+                            @click="delFilter(dt.index, gr.datas, 0)"
+                            icon="pi pi-trash"
                           />
                         </template>
                       </Column>
@@ -5072,5 +5071,21 @@ const rowClass = (data) => {
 ::-deep(.bgcolor-tree) {
   background-color: rgb(248, 249, 250) !important;
   color: rgb(0, 90, 158) !important;
+}
+::v-deep(.accor-group-criterias) {
+  .p-accordion-tab .p-accordion-header .p-accordion-header-link {
+    padding: 0.75rem;
+  }
+  .p-accordion-tab .p-toggleable-content .p-accordion-content {
+    padding: 0.75rem;
+  }
+}
+::v-deep(.tbl-filter-criterias) {
+  .p-datatable-row-expansion td {
+    padding: 0 !important;
+  }
+  ::-webkit-input-placeholder {
+    color: #b5b5b5;
+  }
 }
 </style>
