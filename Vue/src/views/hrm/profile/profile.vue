@@ -59,6 +59,7 @@ const options = ref({
 });
 const isFilter = ref(false);
 const isFirst = ref(true);
+const expandedKeys2 = ref([]);
 const datas = ref([]);
 const dataLimits = ref([]);
 const counts = ref([]);
@@ -252,6 +253,14 @@ const goOrganization = (item) => {
   }
   initCount();
   initData(true);
+};
+const expandNode = (node) => {
+  if (node.children && node.children.length) {
+    expandedKeys2.value[node.key] = true;
+    // for (let child of node.children) {
+    //   expandNode(child);
+    // }
+  }
 };
 
 //Xuất excel
@@ -1194,7 +1203,7 @@ const initRoleFunction = () => {
             }
           }
           if (tbs[1] != null && tbs[1].length > 0) {
-            if (tbs[1][0].module_functions != null) {
+            if (tbs[1][0].module_functions != null && tbs[1][0].module_functions != "") {
               let module_functions = tbs[1][0].module_functions.split(",");
               for (var key in module_functions) {
                 functions.value[module_functions[key]] = true;
@@ -1634,6 +1643,13 @@ const initTreeOrganization = () => {
               "đơn vị"
             );
             organizationtrees.value = obj.arrChils;
+
+            for (let node of organizationtrees.value) {
+              if (node.data.level < 1) {
+                expandedKeys2.value[node.key] = true;
+                expandNode(node);
+              }
+            }
           }
           initSave();
         }
@@ -4159,13 +4175,13 @@ const rowClass = (data) => {
             :style="{
               overflowY: 'auto',
               height: 'calc(100vh - 170px)',
-              background: '#fff'
+              background: '#fff',
             }"
           >
             <TreeTable
               :value="organizationtrees"
               v-model:selectionKeys="selectedKey"
-              :expandedKeys="expandedKeys"
+              :expandedKeys="expandedKeys2"
               :showGridlines="false"
               :rowHover="true"
               :scrollable="true"
@@ -4190,9 +4206,11 @@ const rowClass = (data) => {
               >
                 <template #body="md">
                   <div class="row-active">
-                    <span :style="{ color: 'rgb(0, 90, 158)' }">{{
-                      md.node.data.organization_name 
-                    }} ({{md.node.data.total}})</span>
+                    <span :style="{ color: 'rgb(0, 90, 158)' }"
+                      >{{ md.node.data.organization_name }} ({{
+                        md.node.data.total
+                      }})</span
+                    >
                   </div>
                 </template>
               </Column>

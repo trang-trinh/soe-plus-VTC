@@ -1072,9 +1072,6 @@ li.p-chips-token {
 .modal-tivi-config.p-dialog .p-dialog-footer {
   padding: 1rem 1.5rem 1rem 1.5rem;
 }
-.dialog-add-myreview.p-dialog .p-dialog-footer {
-  padding-top: 1rem;
-}
 
 .modal-tivi-config.p-dialog .p-paginator {
   border-bottom: none;
@@ -1368,9 +1365,9 @@ li.p-chips-token {
 .p-rowgroup-header td{
   width: 100%;
 }
-.p-sidebar-mask  {
+/* .p-sidebar-mask , .p-datatable-thead, .p-rowgroup-header   {
   display: none !important;
-}
+} */
  
 /* Style quan */
 .menu-request .red-text .p-menuitem-link .p-menuitem-icon,

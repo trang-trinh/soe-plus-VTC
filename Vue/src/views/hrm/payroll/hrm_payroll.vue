@@ -496,8 +496,11 @@ const configPayroll = async (row) => {
         issql: true,
       };
       report.value.report_config = JSON.stringify(cg);
+       
       if (payroll.value.payroll_config)
+      {
         report.value.is_config = JSON.parse(payroll.value.payroll_config);
+      }
 
       visibleSidebarDoc.value = true;
     }
@@ -585,7 +588,7 @@ let list_profile_f ="";
 const callbackFun = (obj) => {
    
   if (Array.isArray(obj) == false) {
-    debugger
+     
     if (obj.is_config) {
       payroll.value.payroll_config = obj.is_config;
       saveDGLuong();
@@ -683,11 +686,11 @@ const saveDGLuong = async () => {
     ok = false;
   }
   if (ok) {
-     
+     debugger
     options.value.loading = true;
     let strSQL = {
       query: false,
-      proc: "hrm_payroll_add",
+      proc: "hrm_payroll_addd",
       par: [
         { par: "payroll_id", va: payroll.value.payroll_id },
         { par: "payroll_month", va: payroll.value.payroll_month },
