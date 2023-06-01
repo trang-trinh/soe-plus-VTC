@@ -1463,6 +1463,7 @@ export default {
             cols.forEach((c, j) => {
               if (c) {
                 c.value = c.value.replaceAll("\n", "");
+             
               }
               if (trs[i].children[j + 1]) {
                 //console.log(c.value+" - "+trs[i].children[j + 1].innerText);
@@ -1539,6 +1540,7 @@ export default {
     };
     let dtUser = {};
     const initDataTempAuto = async (tf) => {
+       
       if (!isUrlReport.value) {
         let dts = await goProc(
           false,
@@ -2627,12 +2629,15 @@ export default {
     };
     let cacheobjDataTemp = [];
     async function renderTableWord(objpar) {
+      
       let pas = [];
+      
       if (cacheobjDataTemp.length == 0) {
         cacheobjDataTemp = JSON.parse(JSON.stringify(objDataTemp.value));
       } else {
         objDataTemp.value = JSON.parse(JSON.stringify(cacheobjDataTemp));
       }
+      
       if (objConfig.proc.parameters)
         objConfig.proc.parameters.forEach((pa) => {
           pas.push({
@@ -2642,14 +2647,16 @@ export default {
         });
 
       let dts = await goProc(false, objConfig.proc.name, pas, true);
+       
       //init với kiểu lưu
       let tbs = [];
       if (dts[0][0].is_data) {
+         
         dts[0][0].is_data = dts[0][0].is_data.replaceAll("\\n", "");
 
         try {
           tbs = JSON.parse(dts[0][0].is_data);
-
+           
           objDataTemp.value.forEach((ot, i) => {
             let tb = tbs[i];
             ot.cols.forEach((co) => {
@@ -2669,11 +2676,15 @@ export default {
               }
             });
           });
+           
         } catch (e) {}
       }
+
+        
       //
       datausers = dts;
       dochtml.innerHTML = tempHTMLGoc;
+      console.log("L", objDataTemp.value)
       dochtml
         .querySelectorAll('[style*="background-color:#ffff00"]')
         .forEach((el) => {
@@ -2802,6 +2813,7 @@ export default {
     };
     let selectdata = {};
     const onRowSelectReport = async (event) => {
+       
       let tselect = document.querySelector("tr.selected");
       if (tselect) tselect.classList.remove("selected");
       if (event.originalEvent)
@@ -3234,6 +3246,7 @@ export default {
       if (props.report.is_config) {
         objDataTemp.value = props.report.is_config;
       }
+      
       objDataTemp.value.forEach((ot) => {
         ot.cols.forEach((co) => {
           if (co.inputtype == "Number" || co.inputtype == "Currency") {
@@ -3242,6 +3255,7 @@ export default {
             }
           }
         });
+         
         if (ot.rows) {
           ot.rows.forEach((r) => {
             if (r.cols)
@@ -4046,7 +4060,7 @@ export default {
               </template>
             </Column>
           </DataTable>
-        
+        <!-- {{ objDataTemp  }} -->
         </div>
         <div v-else style="height: calc(100vh - 130px); overflow-y: auto">
           <div class="p-0">

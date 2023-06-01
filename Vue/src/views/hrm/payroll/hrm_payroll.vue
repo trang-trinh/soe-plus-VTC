@@ -496,8 +496,11 @@ const configPayroll = async (row) => {
         issql: true,
       };
       report.value.report_config = JSON.stringify(cg);
+      debugger
       if (payroll.value.payroll_config)
+      {
         report.value.is_config = JSON.parse(payroll.value.payroll_config);
+      }
 
       visibleSidebarDoc.value = true;
     }
