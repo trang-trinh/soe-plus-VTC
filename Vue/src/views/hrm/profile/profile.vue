@@ -2757,9 +2757,9 @@ const delBlock = (gr) => {
   }
 };
 const resetFilterAdvanced = () => {
-  if (groupBlock.value[0].datas != null && groupBlock.value[0].datas.length == 0) {
-    opfilterAdvanced.value.toggle(event);
-  }
+  // if (groupBlock.value[0].datas != null && groupBlock.value[0].datas.length == 0) {
+  //   opfilterAdvanced.value.toggle(event);
+  // }
   options.value.search = "";
   selectedKey.value = {};
   groupBlock.value = [
