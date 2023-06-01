@@ -166,8 +166,10 @@ const configQuyetdinh = async (row) => {
       decision.value = dt[0][0];
       report.value = dt[1][0];
       report.value.datadic = [{ title: "Quyết định", data: decision.value }];
-      report.value.proc_name = `smartreport_decide_profile_list '${store.getters.user.user_id}', '${row.decision_id}'`;
-      report.value.proc_all = `smartreport_decide_profile_list_all '${store.getters.user.user_id}', '${row.decision_id}'`;
+      // report.value.proc_name = `smartreport_decide_profile_list `;
+      // report.value.proc_all = `smartreport_decide_profile_list_all`;
+      report.value.proc_name = `decision_profile_list '${store.getters.user.user_id}', '${row.decision_id}'`;
+      report.value.proc_all = `decision_profile_list_all '${store.getters.user.user_id}', '${row.decision_id}'`;
       let cg = {};
       if (report.value.report_config) {
         cg = JSON.parse(report.value.report_config);
