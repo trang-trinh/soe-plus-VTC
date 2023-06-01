@@ -2756,8 +2756,8 @@ const delBlock = (gr) => {
     groupBlock.value.splice(idx, 1);
   }
 };
-const resetFilterAdvanced = () => {
-  if (groupBlock.value[0].datas != null && groupBlock.value[0].datas.length == 0) {
+const resetFilterAdvanced = (inFilter) => {
+  if (inFilter && groupBlock.value[0].datas != null && groupBlock.value[0].datas.length == 0) {
     opfilterAdvanced.value.toggle(event);
   }
   options.value.search = "";
@@ -2957,6 +2957,12 @@ const loadMoreRow = (data) => {
 const rowClass = (data) => {
   return "bgcolor-tree";
 };
+const rowClassTc = () => {
+  return "row-tbl-tc";
+};
+const rowClassDk = () => {
+  return "row-tbl-dk";
+};
 </script>
 <template>
   <div class="surface-100 p-2">
@@ -2973,7 +2979,7 @@ const rowClass = (data) => {
             class="input-search pr-2"
           />
           <i
-            class="pi pi-filter i-filter-advanced"
+            class="pi pi-sort-down i-filter-advanced"
             :class="isFilterAdv ? 'active-filter-adv' : ''"
             @click="toggleFilterAdvanced($event)"
             aria:haspopup="true"
@@ -3066,6 +3072,7 @@ const rowClass = (data) => {
                       :value="gr.datas"
                       showGridlines
                       class="p-datatable-sm w-full tbl-filter-criterias"
+                      :rowClass="rowClassTc"
                     >
                       <template #empty>
                         <div
@@ -3107,6 +3114,7 @@ const rowClass = (data) => {
                           <DataTable
                             class="w-full"
                             :value="slotProps.data.childs"
+                            :rowClass="rowClassDk"
                           >
                             <Column
                               header="Kiểu giá trị"
@@ -3175,11 +3183,11 @@ const rowClass = (data) => {
                               header=""
                               class="justify-content-center"
                               headerStyle="max-width: 5rem;"
-                              bodyStyle="max-width: 5rem;"
+                              bodyStyle="max-width: 5rem;min-height:42px;padding-top: 0.25rem !important;padding-bottom: 0.25rem !important;"
                             >
                               <template #body="dt">
                                 <Button
-                                  class="p-button-sm p-button-text p-button-outlined p-button-danger"
+                                  class="p-button-text p-button-rounded p-button-outlined p-button-danger"
                                   v-tooltip.top="'Xoá điều kiện'"
                                   @click="
                                     delFilter(
@@ -3189,6 +3197,7 @@ const rowClass = (data) => {
                                     )
                                   "
                                   icon="pi pi-trash"
+                                  style="display:none;"
                                 />
                               </template>
                             </Column>
@@ -3199,20 +3208,22 @@ const rowClass = (data) => {
                         header=""
                         class="justify-content-center"
                         headerStyle="max-width:100px;"
-                        bodyStyle="max-width:100px;"
+                        bodyStyle="max-width:100px;min-height:50px;"
                       >
                         <template #body="dt">
                           <Button
-                            class="p-button-sm p-button-text p-button-outlined ml-1"
+                            class="p-button-text p-button-rounded p-button-outlined mr-1"
                             v-tooltip.top="'Thêm điều kiện'"
                             @click="addFilter(dt.data)"
                             icon="pi pi-plus"
+                            style="display:none;"
                           />
                           <Button
-                            class="p-button-sm p-button-text p-button-outlined p-button-danger"
+                            class="p-button-text p-button-rounded p-button-outlined p-button-danger"
                             v-tooltip.top="'Xoá tiêu chí'"
                             @click="delFilter(dt.index, gr.datas, 0)"
                             icon="pi pi-trash"
+                            style="display:none;"
                           />
                         </template>
                       </Column>
@@ -3223,12 +3234,12 @@ const rowClass = (data) => {
             </div>
             <div class="text-center mt-2">
               <Button
-                class="p-button-sm p-button-danger mr-2 w-7rem"
-                @click="resetFilterAdvanced()"
+                class="p-button-danger mr-2 w-7rem"
+                @click="resetFilterAdvanced(true)"
                 label="Huỷ"
               />
               <Button
-                class="p-button-sm w-7rem"
+                class="w-7rem"
                 v-if="groupBlock.length > 0"
                 @click="submitFilter()"
                 label="Thực hiện"
@@ -5058,6 +5069,12 @@ const rowClass = (data) => {
 }
 .search-microphone:hover svg {
   color: #ffffff !important;
+}
+.row-tbl-tc:hover > td button {
+  display: block !important;
+}
+.row-tbl-dk:hover > td button {
+  display: block !important;
 }
 </style>
 <style lang="scss" scoped>

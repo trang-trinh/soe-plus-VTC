@@ -10,8 +10,10 @@ import { encr, checkURL } from "../../../util/function.js";
 const getProfileUser = (user, obj) => {
     if (obj) {
         reviewuser.value[user] = obj.profile_id;
-        if (obj.profile_user_name)
+        if (obj.profile_user_name) {
             reviewuser.value["profile_user_name"] = obj.profile_user_name;
+            reviewuser.value.fullname_self_review = obj.profile_user_name;
+        }
     } else {
         reviewuser.value[user] = null;
     }
@@ -44,10 +46,10 @@ const rules = {
     },
 };
 const listQuarters = ref([
-    { name: "Qúy một", code: 1 },
-    { name: "Qúy hai", code: 2 },
-    { name: "Qúy ba", code: 3 },
-    { name: "Qúy bốn", code: 4 },
+    { name: "Quý một", code: 1 },
+    { name: "Quý hai", code: 2 },
+    { name: "Quý ba", code: 3 },
+    { name: "Quý bốn", code: 4 },
 ]);
 //Lấy số bản ghi
 const loadCount = () => {
@@ -250,7 +252,16 @@ const openBasic = (str, type) => {
                     liEvcalCriteriasChild.value = dt3;
                 }
                 if (data[3] != null && data[3].length > 0) {
-                    reviewuser.times_evaluation = (data[3][0].countReviewCreated || 0) + 1;
+                    reviewuser.value.times_evaluation = (data[3][0].countReviewCreated || 0) + 1;
+                    if (createdForMyself.value) {
+                        reviewuser.value.profile_id = data[3][0].profile_id;
+                        reviewuser.value.profile_user_name = data[3][0].profile_name;
+                    }
+                    else {
+                        reviewuser.value.profile_id = null;
+                        reviewuser.value.profile_user_name = null;
+                        reviewuser.value.profile_id_user_created = data[3][0].profile_id;
+                    }
                 }
                 checkIsmain.value = false;
                 isSaveTem.value = false;
@@ -811,7 +822,7 @@ const addTaskToMyreview = (item) => {
     let listTaskInGroup = liEvcalCriteriasChild.value.filter((x) => x.roman_order == item.roman_order);
     let sttTaskMax = 0;
     if (listTaskInGroup.length > 1) {
-        sttTaskMax = listTaskInGroup.value.reduce((a, b) => {
+        sttTaskMax = listTaskInGroup.reduce((a, b) => {
             return a.is_order > b.is_order ? a.is_order : b.is_order;
         });
     }
@@ -819,10 +830,11 @@ const addTaskToMyreview = (item) => {
         listTaskInGroup[0].is_order = 1;
         sttTaskMax = listTaskInGroup[0].is_order;
     }
-    let taskAdd = { 
+    let taskAdd = {
+        STT: sttTaskMax + 1,
         child_name: "", des: "", weight: null, 
-        desired_results: "", work_progress: "", complete_results: "", 
         roman_order: item.roman_order, is_order: sttTaskMax + 1, 
+        desired_results: "", work_progress: "", complete_results: "",
     };
     liEvcalCriteriasChild.value.push(taskAdd);
 };
@@ -854,6 +866,46 @@ const setMaxForTask = (item) => {
     }
     return 0;
 };
+const getScoreSelf = () => {
+    reviewuser.value.percent_score = 0;
+    liEvcalCriteriasChild.value.forEach((el) => {
+        reviewuser.value.percent_score += (el.self_score || 0);
+    });
+    return reviewuser.value.percent_score;
+};
+const addItemToTask = (dataAdd, item) => {
+    let listTaskInGroup = liEvcalCriteriasChild.value.filter((x) => x.roman_order == item.roman_order);
+    let sttTaskMax = 0;
+    if (listTaskInGroup.length > 1) {
+        sttTaskMax = listTaskInGroup.reduce((a, b) => {
+            return a.is_order > b.is_order ? a.is_order : b.is_order;
+        });
+    }
+    else if (listTaskInGroup.length == 1) {
+        listTaskInGroup[0].is_order = 1;
+        sttTaskMax = listTaskInGroup[0].is_order;
+    }
+    let idxTaskMax = 0;
+    if (dataAdd.STT == null) {
+    listTaskInGroup.every((el) => {
+        if (el.child_name != dataAdd.child_name) {
+            idxTaskMax++;
+        }
+        else {
+            return false;
+        }
+    });
+}
+    dataAdd.STT = dataAdd.STT != null ? dataAdd.STT : (idxTaskMax + 1);
+    let taskAdd = {
+        STT: dataAdd.STT,
+        child_name: dataAdd.child_name, des: dataAdd.des, weight: dataAdd.weight, 
+        roman_order: item.roman_order, is_order: sttTaskMax + 1, 
+        desired_results: "", work_progress: "", complete_results: "",
+    };
+    liEvcalCriteriasChild.value.push(taskAdd);
+};
+
 onMounted(() => {
     loadData(true);
     return {
@@ -865,7 +917,6 @@ onMounted(() => {
         openBasic,
         closeDialog,
         basedomainURL,
-
         saveData,
         isFirst,
         searchStamp,
@@ -1033,14 +1084,15 @@ onMounted(() => {
                         Người được lập hộ <span class="redsao pl-1"> (*)</span>
                     </div>
                     <div class="p-0" style="width: calc(100% - 11rem)">
-                        <DropdownProfile :model="reviewuser.profile_id_assist" 
-                            :placeholder="'Chọn người đánh giá'" 
-                            :class="reviewuser.profile_id_assist == null && submitted
+                        <DropdownProfile :model="reviewuser.profile_id" 
+                            :placeholder="'Chọn người được lập hộ'" 
+                            :class="reviewuser.profile_id == null && submitted
                                 ? 'p-invalid w-full p-0'
                                 : ' w-full p-0'
                             " 
                             :editable="false" :optionLabel="'profile_user_name'" :optionValue="'code'" :callbackFun="getProfileUser"
                             :key_user="'profile_id'" 
+                            :except_user_now="reviewuser.profile_id_user_created"
                         />
                     </div>
                 </div>
@@ -1048,22 +1100,6 @@ onMounted(() => {
                     <label class="w-11rem text-left p-0 title-form-myreview">Mẫu biểu đánh giá</label>
                     <InputText v-model="reviewuser.review_form_name" spellcheck="false" class="ip36 px-2 d-design-disabled"
                         style="width: calc(100% - 11rem)" disabled />
-                </div>
-                <div class="field col-12 md:col-12 flex align-items-center">
-                    <div class="w-11rem text-left p-0 title-form-myreview">
-                        Người đánh giá <span class="redsao pl-1"> (*)</span>
-                    </div>
-                    <div class="p-0" style="width: calc(100% - 11rem)">
-                        <DropdownProfile :model="reviewuser.profile_id" 
-                            :placeholder="'Chọn người đánh giá'" 
-                            :class="reviewuser.profile_id == null && submitted
-                                ? 'p-invalid w-full p-0'
-                                : ' w-full p-0'
-                            " 
-                            :editable="false" :optionLabel="'profile_user_name'" :optionValue="'code'" :callbackFun="getProfileUser"
-                            :key_user="'profile_id'" 
-                        />
-                    </div>
                 </div>
                 <div style="display: flex" class="field col-12 md:col-12" v-if="reviewuser.profile_id == null && submitted">
                     <div class="w-11rem text-left"></div>
@@ -1184,19 +1220,18 @@ onMounted(() => {
                                     columnResizeMode="fit" :lazy="true" :reorderableColumns="true" tableStyle="width:100%"
                                     responsiveLayout="scroll"
                                     class="tbl-part-myreview"
+                                    rowGroupMode="rowspan"
+                                    :groupRowsBy="['STT','child_name','des','weight']"
                                 >
                                     <ColumnGroup type="header">
                                         <Row>
-                                            <!-- <Column header="Nhóm nội dung đánh giá" 
+                                            <Column header="" 
                                                 :rowspan="3"
-                                                headerStyle="max-width:100px; height:50px"
-                                                bodyStyle="text-align:left;max-width:100px;" 
-                                                v-if="item.type == 1"
+                                                class="align-items-center justify-content-center text-center"
+                                                headerStyle="max-width:25px; height:50px;padding:0.5rem;"
+                                                bodyStyle="text-align:center;max-width:25px;"
+                                                v-if="item.type == 2" 
                                             />
-                                            <Column header="Chuyên môn nghiệp vụ" :rowspan="3" v-else
-                                                headerStyle=" width:120px; height:50px"
-                                                bodyStyle="text-align:center;width:120px;" 
-                                            /> -->
                                             <Column header="Nhóm nội dung đánh giá" 
                                                 :rowspan="3"
                                                 headerStyle="max-width:100px; height:50px"
@@ -1215,8 +1250,8 @@ onMounted(() => {
                                             />
                                             <Column header="Công việc được giao" 
                                                 class="align-items-center justify-content-center text-center"
-                                                :rowspan="item.type == 1 ? 3 : 2"
-                                                :colspan="item.type == 1 ? 1 : 2" 
+                                                :rowspan="item.type != 2 ? 3 : 2"
+                                                :colspan="item.type != 2 ? 1 : 2" 
                                                 headerStyle="max-width:200px; height:50px"
                                                 bodyStyle="max-width:200px;" 
                                             />
@@ -1246,8 +1281,8 @@ onMounted(() => {
                                             <Column header="" 
                                                 :rowspan="3"
                                                 class="align-items-center justify-content-center text-center"
-                                                headerStyle="max-width:30px; height:50px;padding:0.5rem;"
-                                                bodyStyle="text-align:center;max-width:30px;"
+                                                headerStyle="max-width:25px; height:50px;padding:0.5rem;"
+                                                bodyStyle="text-align:center;max-width:25px;"
                                                 v-if="item.type == 2" 
                                             />
                                         </Row>
@@ -1264,6 +1299,22 @@ onMounted(() => {
                                             />
                                         </Row>
                                     </ColumnGroup>
+                                    
+                                    <Column field="STT" class="align-items-center justify-content-center text-center"
+                                        headerStyle="max-width:25px;height:50px;padding:0.5rem;"
+                                        bodyStyle="max-width:25px;padding: 0.5rem 0 !important;"
+                                        v-if="item.type == 2"
+                                    >
+                                        <template #body="slotProps">
+                                            <div class="flex" style="justify-content: center;">
+                                                <Button class="p-button-text p-button-info p-button-rounded ml-1"
+                                                    v-tooltip.top="'Thêm mới đầu việc'"
+                                                    icon="pi pi-plus-circle"
+                                                    @click="addItemToTask(slotProps.data, item)"
+                                                />
+                                            </div>
+                                        </template>
+                                    </Column>
                                     <Column field="child_name" 
                                         headerStyle="text-align:center;max-width:100px;height:50px"
                                         bodyStyle="text-align:justify;max-width:100px;"
@@ -1416,8 +1467,8 @@ onMounted(() => {
                                         </template>
                                     </Column>
                                     <Column field="" class="align-items-center justify-content-center text-center"
-                                        headerStyle="max-width:30px;height:50px;padding:0.5rem;"
-                                        bodyStyle="max-width:30px;padding: 0.5rem 0 !important;"
+                                        headerStyle="max-width:25px;height:50px;padding:0.5rem;"
+                                        bodyStyle="max-width:25px;padding: 0.5rem 0 !important;"
                                         v-if="item.type == 2"
                                     >
                                         <template #body="slotProps">
@@ -1432,9 +1483,9 @@ onMounted(() => {
                                     </Column>
                                     <ColumnGroup type="footer">
                                         <Row>
-                                            <Column footer="Tổng:" :colspan="2" footerStyle="text-align:right" />
+                                            <Column footer="Tổng:" :colspan="item.type != 2 ? 2 : 3" footerStyle="text-align:right" />
                                             <Column :footer="resultTotal(item, 0) + '%'" footerStyle="text-align:center;max-width:50px;" />
-                                            <Column :colspan="item.type == 1 ? 1 : 2"/>
+                                            <Column :colspan="item.type != 2 ? 1 : 2"/>
                                             <Column :footer="resultTotal(item, 1) + '%'" footerStyle="text-align:center;max-width:50px;" />
                                             <Column />
                                             <Column :footer="resultTotal(item, 2)" footerStyle="text-align:center;max-width:50px;" />
@@ -1458,13 +1509,29 @@ onMounted(() => {
                         <table class="table table-white table-condensed table-bordered table-hover tbpad">
                             <thead>
                                 <tr>
-                                    <th>CBNV TỰ ĐÁNH GIÁ</th>
+                                    <th style="text-align: left; width:25rem;">CBNV TỰ ĐÁNH GIÁ</th>
                                 </tr>
                             </thead>
                             <tbody>
                                 <tr>
-                                    <td style="height:40px;">
-                                        Tổng điểm (%): <b>{{reviewuser.percent_score}}<span v-if="reviewuser.percent_score">%</span></b>
+                                    <td>
+                                        <div class="flex" style="align-items:center;height:40px;">
+                                            Họ và tên: <b class="pl-2">{{ reviewuser.fullname_self_review || '' }}</b>
+                                        </div>
+                                        <div class="flex" style="align-items: center;">
+                                            <label class="label-form mr-2">Ngày: </label>
+                                            <Calendar
+                                                :showIcon="true"
+                                                class="ip36 flex-1"
+                                                autocomplete="on"
+                                                inputId="time24"
+                                                v-model="reviewuser.created_date"
+                                                placeholder="DD/MM/yyyy"
+                                            />
+                                        </div>
+                                        <div class="py-3">                                            
+                                            Tổng điểm (%): <b>{{ getScoreSelf()}}<span v-if="reviewuser.percent_score != null">%</span></b>
+                                        </div>
                                     </td>
                                 </tr>
                                 <tr>
@@ -1481,22 +1548,7 @@ onMounted(() => {
                                                 autoResize
                                                 spellcheck="false"
                                             >
-                                            </Textarea>
-                                            <div class="flex" style="align-items:center;height:40px;">
-                                                Họ và tên: <b class="pl-2">{{ reviewuser.fullname_self_review || '' }}</b>
-                                            </div>
-                                            <div class="input-group mT-5">
-                                                <label class="label-form mr-2">Ngày: </label>
-                                                <Calendar
-                                                    :showIcon="true"
-                                                    class="ip36"
-                                                    autocomplete="on"
-                                                    inputId="time24"
-                                                    v-model="reviewuser.created_date"
-                                                    placeholder="DD/MM/yyyy"
-                                                    disabled
-                                                />
-                                            </div>
+                                            </Textarea>                                            
                                             <!-- <div ng-if="Danhgia.Noidungdi">
                                                 Nội dung trình: <b>{{Danhgia.Noidungdi}}</b>
                                             </div> -->
@@ -1511,7 +1563,6 @@ onMounted(() => {
         </form>
         <template #footer>
             <Button label="Hủy" icon="pi pi-times" @click="closeDialog" class="p-button-outlined" />
-
             <Button label="Lưu" icon="pi pi-check" @click="saveData(!v$.$invalid)" autofocus />
         </template>
     </Dialog>

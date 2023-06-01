@@ -50,22 +50,24 @@ const loadUserProfiles = () => {
       let data = JSON.parse(response.data.data)[0];
 
       data.forEach((element, i) => {
-        listDataUsers.value.push({
-          profile_user_name: element.profile_user_name,
-          code: {
-            profile_id: element.profile_id,
+        if (props.except_user_now == null || (props.except_user_now != null && element.profile_id != props.except_user_now)) {
+          listDataUsers.value.push({
             profile_user_name: element.profile_user_name,
+            code: {
+              profile_id: element.profile_id,
+              profile_user_name: element.profile_user_name,
+              avatar: element.avatar,
+            },
+            profile_id: element.profile_id,
             avatar: element.avatar,
-          },
-          profile_id: element.profile_id,
-          avatar: element.avatar,
-          department_name: element.department_name,
-          department_id: element.department_id,
-          work_position_name: element.work_position_name,
-          position_name: element.position_name,
-          profile_code: element.profile_code,
-          organization_id: element.organization_id,
-        });
+            department_name: element.department_name,
+            department_id: element.department_id,
+            work_position_name: element.work_position_name,
+            position_name: element.position_name,
+            profile_code: element.profile_code,
+            organization_id: element.organization_id,
+          });
+        }
       });
       var models = null;
       if (props.optionValue == "code") {
@@ -113,6 +115,7 @@ const props = defineProps({
   style: String,
   callbackFun: Function,
   key_user: String,
+  except_user_now: String,
 });
 const model = ref();
 const submitModel = () => {
