@@ -709,6 +709,7 @@ export default {
             @uploader="importJsonData"
             name="doc[]"
             accept=".xls,.xlsx"
+            v-if="report.report_type == 1"
           />
         </span>
         <span class="p-input-icon-left">
