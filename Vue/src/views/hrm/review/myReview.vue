@@ -163,6 +163,8 @@ const reviewuser = ref({
     emote_file: "",
     status: true,
     is_order: 1,
+    times_evaluation: 1,
+    created_date: new Date(),
 });
 
 const selectedStamps = ref();
@@ -224,6 +226,7 @@ const openBasic = (str) => {
                     ),
                     organization_id: store.getters.user.organization_id,
                     is_system: store.getters.user.is_super ? true : false,
+                    created_date: new Date(),
                 };
                 if (dt2) {
                     dt2.forEach((element) => {
@@ -238,7 +241,9 @@ const openBasic = (str) => {
                     });
                     liEvcalCriteriasChild.value = dt3;
                 }
-
+                if (data[3] != null && data[3].length > 0) {
+                    reviewuser.times_evaluation = (data[3][0].countReviewCreated || 0) + 1;
+                }
                 checkIsmain.value = false;
                 isSaveTem.value = false;
                 headerDialog.value = str;
@@ -783,6 +788,64 @@ const onChangePriod3 = () => {
         reviewuser.value.is_period_month = true;
     }
 };
+// -----
+const resultTotal = (item, type) => { // 0=sum weight, 1=sum weightChild, 2=sumMaxScore, 3=sumSelfScore
+    let listChild = liEvcalCriteriasChild.value.filter((x) => x.roman_order == item.roman_order);
+    let sumValue = 0;
+    if (listChild.length > 0) {
+        listChild.forEach((el) => {
+            sumValue += (type == 0 ? (el.weight || 0) : type == 1 ? (el.weight_child || 0) : type == 2 ? (el.max_score || 0) : (el.self_score || 0));
+        });
+    }
+    return sumValue;
+};
+const addTaskToMyreview = (item) => {
+    let listTaskInGroup = liEvcalCriteriasChild.value.filter((x) => x.roman_order == item.roman_order);
+    let sttTaskMax = 0;
+    if (listTaskInGroup.length > 1) {
+        sttTaskMax = listTaskInGroup.value.reduce((a, b) => {
+            return a.is_order > b.is_order ? a.is_order : b.is_order;
+        });
+    }
+    else if (listTaskInGroup.length == 1) {
+        listTaskInGroup[0].is_order = 1;
+        sttTaskMax = listTaskInGroup[0].is_order;
+    }
+    let taskAdd = { 
+        child_name: "", des: "", weight: null, 
+        desired_results: "", work_progress: "", complete_results: "", 
+        roman_order: item.roman_order, is_order: sttTaskMax + 1, 
+    };
+    liEvcalCriteriasChild.value.push(taskAdd);
+};
+const dialogListTaskReview = ref(false);
+const headerListTaskReview = ref("");
+const getTaskToMyreview = (item) => {
+    dialogListTaskReview.value = true;
+    headerListTaskReview.value = "Chọn công việc thực hiện";
+};
+const del_task_review = (dataDel, item) => {
+    let idxDel = liEvcalCriteriasChild.value.findIndex(x => x.roman_order == item.roman_order && x.is_order == dataDel.is_order);
+    if (idxDel >= 0) {
+        liEvcalCriteriasChild.value.splice(idxDel, 1);
+    }
+};
+const setMaxForTask = (item) => {
+    if (item.percen) {
+        let listTaskInGroup = liEvcalCriteriasChild.value.filter((x) => x.roman_order == item.roman_order);
+        if (listTaskInGroup.length > 0) {
+            let sumAvaiable = item.percen;
+            listTaskInGroup.forEach((el) => {
+                sumAvaiable -= (el.weight || 0);
+            });
+            return sumAvaiable;
+        }
+        else {
+            return item.percen;
+        }
+    }
+    return 0;
+};
 onMounted(() => {
     loadData(true);
     return {
@@ -951,8 +1014,9 @@ onMounted(() => {
         </DataTable>
     </div>
 
-    <Dialog :header="headerDialog" v-model:visible="displayBasic" :style="{ width: '65vw' }" :closable="true" :modal="true"
+    <Dialog :header="headerDialog" v-model:visible="displayBasic" :style="{ width: '80vw' }" :closable="true" :modal="true"
         position="top"
+        class="dialog-add-myreview"
     >
         <form>
             <div class="grid formgrid m-2">
@@ -1037,19 +1101,24 @@ onMounted(() => {
                     </div>
                 </div>
                 <div class="col-12 field md:col-12 flex">
-                    <div class="col-6 md:col-6 p-0 align-items-center flex">
-                        <div class="w-11rem text-left p-0 title-form-myreview">STT</div>
+                    <div class="col-4 md:col-4 p-0 align-items-center flex">
+                        <div class="w-11rem text-left p-0 title-form-myreview">Lần đánh giá</div>
+                        <InputNumber v-model="reviewuser.times_evaluation" style="width: calc(100% - 11rem)"
+                            class="pr-3 ip36 p-0" />
+                    </div>
+                    <div class="col-4 md:col-4 p-0 align-items-center flex">
+                        <div class="w-11rem align-items-center flex p-0 title-form-myreview" style="justify-content: center;">STT</div>
                         <InputNumber v-model="reviewuser.is_order" style="width: calc(100% - 11rem)"
                             class="pr-3 ip36 p-0" />
                     </div>
-                    <div class="col-6 md:col-6 p-0 align-items-center flex">
+                    <div class="col-4 md:col-4 p-0 align-items-center flex">
                         <div class="w-11rem align-items-center flex p-0 title-form-myreview" style="justify-content: center;">Trạng thái</div>
                         <InputSwitch v-model="reviewuser.status" class="w-4rem lck-checked"
                             style="width: calc(100% - 11rem)" />
                     </div>
                 </div>
                 <div class="col-12 md:col-12" v-for="(item, index) in liEvcalCriterias" :key="index">
-                    <Accordion class="w-full mb-2 accordion-form-myreview" :activeIndex="0">
+                    <Accordion class="w-full mb-2 accordion-form-myreview" :activeIndex="0" >
                         <AccordionTab>
                             <template #header>
                                 <Toolbar
@@ -1057,24 +1126,37 @@ onMounted(() => {
                                     :style="{ minHeight: '40px' }"
                                 >
                                     <template #start>
-                                        <h3 class="text-blue-500 font-bold m-0">
+                                        <h3 class="text-blue-500 font-bold m-0" style="font-size: 1.1rem;">
                                             PHẦN {{ item.roman_order }}: {{ item.review_imp_name }} ({{item.percen}}%)
                                         </h3>
                                     </template>
                                     <template #end>
-                                        <div>
-                                            <Button></Button>
+                                        <div v-if="item.type == 2">
+                                            <Button class="mr-2"
+                                                v-tooltip.top="'Chọn công việc'"
+                                                @click="getTaskToMyreview(item);$event.stopPropagation();"
+                                                style="padding: 0.5rem;"
+                                            >
+                                                <font-awesome-icon icon="fa-solid fa-list-check" 
+                                                    style="font-size:1.25rem; display: block; color: #ffffff"
+                                                />
+                                            </Button>
+                                            <Button class=""
+                                                icon="pi pi-plus-circle"
+                                                v-tooltip.top="'Thêm công việc'"
+                                                @click="addTaskToMyreview(item);$event.stopPropagation();"
+                                            ></Button>
                                         </div>
                                     </template>
                                 </Toolbar>
                             </template>
                             <div class="col-12 p-0">
-                                <DataTable :value="liEvcalCriteriasChild.filter(
-                                            (x) => x.roman_order == item.roman_order
-                                        )
-                                        " filterDisplay="menu" filterMode="lenient" scrollHeight="flex" :showGridlines="true"
+                                <DataTable :value="liEvcalCriteriasChild.filter((x) => x.roman_order == item.roman_order)" 
+                                    filterDisplay="menu" filterMode="lenient" scrollHeight="flex" :showGridlines="true"
                                     columnResizeMode="fit" :lazy="true" :reorderableColumns="true" tableStyle="width:100%"
-                                    responsiveLayout="scroll">
+                                    responsiveLayout="scroll"
+                                    class="tbl-part-myreview"
+                                >
                                     <ColumnGroup type="header">
                                         <Row>
                                             <!-- <Column header="Nhóm nội dung đánh giá" 
@@ -1092,7 +1174,7 @@ onMounted(() => {
                                                 headerStyle="max-width:100px; height:50px"
                                                 bodyStyle="text-align:left;max-width:100px;" 
                                             />
-                                            <Column header="Nội dung đánh giá" 
+                                            <Column header="Định nghĩa nội dung đánh giá" 
                                                 :rowspan="3" 
                                                 headerStyle="max-width:100px; height:50px"
                                                 bodyStyle="text-align:left;max-width:100px;" 
@@ -1104,10 +1186,11 @@ onMounted(() => {
                                                 bodyStyle="text-align:center;max-width:50px;" 
                                             />
                                             <Column header="Công việc được giao" 
+                                                class="align-items-center justify-content-center text-center"
                                                 :rowspan="item.type == 1 ? 3 : 2"
                                                 :colspan="item.type == 1 ? 1 : 2" 
                                                 headerStyle="max-width:200px; height:50px"
-                                                bodyStyle="text-align:left;max-width:200px;" 
+                                                bodyStyle="max-width:200px;" 
                                             />
                                             <Column header="Tỷ trọng đầu việc" 
                                                 :rowspan="3"
@@ -1132,6 +1215,13 @@ onMounted(() => {
                                                 headerStyle="max-width:50px; height:50px;padding:0.5rem;"
                                                 bodyStyle="text-align:center;max-width:50px;" 
                                             />
+                                            <Column header="" 
+                                                :rowspan="3"
+                                                class="align-items-center justify-content-center text-center"
+                                                headerStyle="max-width:30px; height:50px;padding:0.5rem;"
+                                                bodyStyle="text-align:center;max-width:30px;"
+                                                v-if="item.type == 2" 
+                                            />
                                         </Row>
                                         <Row> </Row>
                                         <Row>
@@ -1148,32 +1238,112 @@ onMounted(() => {
                                     </ColumnGroup>
                                     <Column field="child_name" 
                                         headerStyle="text-align:center;max-width:100px;height:50px"
-                                        bodyStyle="text-align:justify;max-width:100px"
-                                    />
+                                        bodyStyle="text-align:justify;max-width:100px;"
+                                        :bodyStyle="item.type == 2 ? 'padding:0 !important;vertical-align: middle;' : ''"
+                                    >
+                                        <template #body="slotProps">
+                                            <div v-if="item.type != 2">{{ slotProps.data.child_name }}</div>
+                                            <div v-else>
+                                                <Textarea class="w-full"
+                                                    rows="3"
+                                                    autoResize
+                                                    spellcheck="false"
+                                                    placeholder="Nhập nội dung đánh giá"
+                                                    v-model="slotProps.data.child_name"
+                                                    style="border-radius: 0;border:none;background-color: aliceblue;"
+                                                ></Textarea>
+                                            </div>
+                                        </template>
+                                    </Column>
                                     <Column field="des" 
                                         headerStyle="text-align:center;max-width:100px;height:50px"
-                                        bodyStyle="text-align:justify;max-width:100px" />
+                                        bodyStyle="text-align:justify;max-width:100px;" 
+                                        :bodyStyle="item.type == 2 ? 'padding:0 !important;vertical-align: middle;' : ''"
+                                    >
+                                        <template #body="slotProps">
+                                            <div v-if="item.type != 2">{{ slotProps.data.des }}</div>
+                                            <div v-else>
+                                                <Textarea class="w-full"
+                                                    rows="3"
+                                                    autoResize
+                                                    spellcheck="false"
+                                                    placeholder="Nhập định nghĩa nội dung đánh giá"
+                                                    v-model="slotProps.data.des"
+                                                    style="border-radius: 0;border:none;background-color: aliceblue;"
+                                                ></Textarea>
+                                            </div>
+                                        </template>
+                                    </Column>
                                     <Column field="weight" 
                                         class="align-items-center justify-content-center text-center"
                                         headerStyle="text-align:center;max-width:50px;height:50px"
                                         bodyStyle="text-align:center;max-width:50px;" 
                                     >
                                         <template #body="slotProps">
-                                            {{ slotProps.data.weight }} %
+                                            <div v-if="item.type != 2">{{ slotProps.data.weight || 0 }} %</div>
+                                            <div v-else>
+                                                <InputNumber class="w-full input-myreview"
+                                                    v-model="slotProps.data.weight"
+                                                    :min="0"
+                                                    :max="setMaxForTask(item)"
+                                                    spellcheck="false"
+                                                ></InputNumber>
+                                                %
+                                            </div>
                                         </template>
                                     </Column>
                                     <Column field="desired_results" 
                                         class="align-items-center justify-content-center"
                                         headerStyle="text-align:center;max-width:100px;height:50px"
                                         bodyStyle="text-align:justify;max-width:100px" 
-                                    />
+                                    >
+                                        <template #body="slotProps">
+                                            <div v-if="item.type != 2">{{ slotProps.data.desired_results }}</div>
+                                            <div v-else>
+                                                <Textarea class="w-full"
+                                                    rows="3"
+                                                    autoResize
+                                                    spellcheck="false"
+                                                    placeholder="Nhập đầu việc"
+                                                    v-model="slotProps.data.desired_results"
+                                                    style="border-radius: 0;border:none;background-color: aliceblue;"
+                                                ></Textarea>
+                                            </div>
+                                        </template>
+                                    </Column>
+                                    <Column field="work_progress" 
+                                        class="align-items-center justify-content-center"
+                                        headerStyle="text-align:center;max-width:100px;height:50px"
+                                        bodyStyle="text-align:justify;max-width:100px;padding:0 !important;vertical-align: middle;" 
+                                        v-if="item.type == 2"
+                                    >
+                                        <template #body="slotProps">
+                                            <Textarea class="w-full"
+                                                rows="3"
+                                                autoResize
+                                                spellcheck="false"
+                                                placeholder="Nhập tiến độ công việc"
+                                                v-model="slotProps.data.work_progress"
+                                                style="border-radius: 0;border:none;background-color: aliceblue;"
+                                            ></Textarea>
+                                        </template>
+                                    </Column>
                                     <Column field="weight_child" 
                                         class="align-items-center justify-content-center text-center"
                                         headerStyle="text-align:center;max-width:50px;height:50px"
                                         bodyStyle="text-align:justify;max-width:50px" 
                                     >
                                         <template #body="slotProps">
-                                            {{ slotProps.data.weight_child || 0 }} %
+                                            <div v-if="item.type != 2">{{ slotProps.data.weight_child || 0 }} %</div>
+                                            <div v-else>
+                                                <InputNumber class="w-full input-myreview"
+                                                    v-model="slotProps.data.weight_child"
+                                                    :min="0"
+                                                    :max="item.percen || 0"
+                                                    spellcheck="false"
+                                                ></InputNumber>
+                                                %
+                                            </div>
                                         </template>
                                     </Column>
                                     <Column field="complete_results"
@@ -1181,9 +1351,11 @@ onMounted(() => {
                                         bodyStyle="text-align:justify;max-width:100px;padding:0 !important;vertical-align: middle;"
                                     >
                                         <template #body="slotProps">
-                                            <Textarea class=""
+                                            <Textarea class="w-full"
                                                 rows="3"
                                                 autoResize
+                                                spellcheck="false"
+                                                placeholder="Nhập kết quả công việc"
                                                 v-model="slotProps.data.complete_results"
                                                 style="border-radius: 0;border:none;background-color: aliceblue;"
                                             ></Textarea>
@@ -1198,6 +1370,7 @@ onMounted(() => {
                                                 v-model="slotProps.data.max_score"
                                                 :min="0"
                                                 :max="slotProps.data.weight_child || 0"
+                                                spellcheck="false"
                                             ></InputNumber>
                                         </template>
                                     </Column>
@@ -1210,18 +1383,35 @@ onMounted(() => {
                                                 v-model="slotProps.data.self_score"
                                                 :min="0"
                                                 :max="slotProps.data.max_score || 0"
+                                                spellcheck="false"
                                             ></InputNumber>
+                                        </template>
+                                    </Column>
+                                    <Column field="" class="align-items-center justify-content-center text-center"
+                                        headerStyle="max-width:30px;height:50px;padding:0.5rem;"
+                                        bodyStyle="max-width:30px;padding: 0.5rem 0 !important;"
+                                        v-if="item.type == 2"
+                                    >
+                                        <template #body="slotProps">
+                                            <div class="flex" style="justify-content: center;">
+                                                <Button class="p-button-text p-button-danger p-button-rounded ml-1"
+                                                    v-tooltip.top="'Xóa'"
+                                                    icon="pi pi-trash"
+                                                    @click="del_task_review(slotProps.data, item)"
+                                                />
+                                            </div>
                                         </template>
                                     </Column>
                                     <ColumnGroup type="footer">
                                         <Row>
-                                            <Column footer="Totals:" :colspan="2" footerStyle="text-align:right" />
-                                            <Column :footer="weightTotal" footerStyle="text-align:center;max-width:50px;" />
+                                            <Column footer="Tổng:" :colspan="2" footerStyle="text-align:right" />
+                                            <Column :footer="resultTotal(item, 0) + '%'" footerStyle="text-align:center;max-width:50px;" />
+                                            <Column :colspan="item.type == 1 ? 1 : 2"/>
+                                            <Column :footer="resultTotal(item, 1) + '%'" footerStyle="text-align:center;max-width:50px;" />
                                             <Column />
-                                            <Column :footer="weightChildTotal" footerStyle="text-align:center;max-width:50px;" />
-                                            <Column />
-                                            <Column :footer="maxScoreTotal" footerStyle="text-align:center;max-width:50px;" />
-                                            <Column :footer="selfScoreTotal" footerStyle="text-align:center;max-width:50px;" />
+                                            <Column :footer="resultTotal(item, 2)" footerStyle="text-align:center;max-width:50px;" />
+                                            <Column :footer="resultTotal(item, 3)" footerStyle="text-align:center;max-width:50px;" />
+                                            <Column v-if="item.type == 2" />
                                         </Row>
                                     </ColumnGroup>
                                 </DataTable>
@@ -1230,6 +1420,65 @@ onMounted(() => {
                     </Accordion>                    
                 </div>
                 <!-- ... -->
+                <div class="col-12 field md:col-12 flex" style="flex-direction: column;">
+                    <div class="col-12 md:col-12 p-0 flex font-bold">
+                        <h3 class="text-blue-500">
+                            TỔNG HỢP, XẾP LOẠI:
+                        </h3>
+                    </div>
+                    <div class="col-12 md:col-12 p-0 flex">
+                        <table class="table table-white table-condensed table-bordered table-hover tbpad">
+                            <thead>
+                                <tr>
+                                    <th>CBNV TỰ ĐÁNH GIÁ</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                <tr>
+                                    <td style="height:40px;">
+                                        Tổng điểm (%): <b>{{reviewuser.percent_score}}<span v-if="reviewuser.percent_score">%</span></b>
+                                    </td>
+                                </tr>
+                                <tr>
+                                    <td>
+                                        <div class="flex" style="flex-direction: column;">
+                                            <label class="mb-2" style="text-decoration: underline">
+                                                <i>Ý kiến CBNV tự đánh giá: </i>
+                                                <span class="redsao pl-1"> (*)</span>
+                                            </label>
+                                            <Textarea ng-readonly="Danhgia.DanhgiaSend_ID" 
+                                                v-model="reviewuser.opinion"
+                                                class="form-control" 
+                                                rows="3"
+                                                autoResize
+                                                spellcheck="false"
+                                            >
+                                            </Textarea>
+                                            <div class="flex" style="align-items:center;height:40px;">
+                                                Họ và tên: <b>{{ reviewuser.fullname_self_review || '' }}</b>
+                                            </div>
+                                            <div class="input-group mT-5">
+                                                <label class="label-form mr-2">Ngày</label>
+                                                <Calendar
+                                                    :showIcon="true"
+                                                    class="ip36"
+                                                    autocomplete="on"
+                                                    inputId="time24"
+                                                    v-model="reviewuser.created_date"
+                                                    placeholder="DD/MM/yyyy"
+                                                    disabled
+                                                />
+                                            </div>
+                                            <!-- <div ng-if="Danhgia.Noidungdi">
+                                                Nội dung trình: <b>{{Danhgia.Noidungdi}}</b>
+                                            </div> -->
+                                        </div>
+                                    </td>
+                                </tr>
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
             </div>
         </form>
         <template #footer>
@@ -1262,7 +1511,7 @@ onMounted(() => {
     height: 100%;
 }
 .title-form-myreview {
-    font-weight: bold;
+    font-weight: 500;
 }
 </style>
 <style lang="scss" scoped>
@@ -1285,6 +1534,17 @@ onMounted(() => {
 ::v-deep(.input-myreview) { 
     input {
         border-radius: 0;
+    }
+}
+::v-deep(.p-inputnumber.input-myreview) { 
+    input {
+        text-align: center;
+    }
+}
+::v-deep(.tbl-part-myreview) {
+    .p-column-header-content {
+        justify-content: center;
+        text-align: center;
     }
 }
 </style>
