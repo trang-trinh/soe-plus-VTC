@@ -2502,7 +2502,7 @@ const initRoleFunction = () => {
             proc: "hrm_profile_rolefunction_get",
             par: [
               { par: "user_id", va: store.getters.user.user_id },
-              { par: "is_link", va: options.value.path },
+              { par: "is_link", va: path },
             ],
           }),
           SecretKey,
