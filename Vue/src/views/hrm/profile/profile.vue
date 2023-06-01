@@ -236,7 +236,10 @@ const goOrganization = (item) => {
   options.value.organizations = [];
   options.value.departments = [];
 
-  if (item.data.organization_type === 0) {
+  if(item.data.organization_type === 0 && item.data.parent_id == null){
+    options.value.organizations = [];
+  }
+  else if (item.data.organization_type === 0) {
     options.value.organizations = [
       {
         organization_id: item.data.organization_id,
@@ -4171,7 +4174,7 @@ const rowClass = (data) => {
       <div class="row">
         <div v-if="options.view === 2" class="col-3 md:col-3 p-0">
           <div
-            class=""
+            class="mr-2"
             :style="{
               overflowY: 'auto',
               height: 'calc(100vh - 170px)',
@@ -4206,11 +4209,9 @@ const rowClass = (data) => {
               >
                 <template #body="md">
                   <div class="row-active">
-                    <span :style="{ color: 'rgb(0, 90, 158)' }"
-                      >{{ md.node.data.organization_name }} ({{
-                        md.node.data.total
-                      }})</span
-                    >
+                    <span :style="{ color: 'rgb(0, 90, 158)' }">
+                      {{ md.node.data.organization_name }} <span v-if="md.node.data.total && md.node.data.total > 0">({{md.node.data.total}})</span>
+                    </span>
                   </div>
                 </template>
               </Column>
