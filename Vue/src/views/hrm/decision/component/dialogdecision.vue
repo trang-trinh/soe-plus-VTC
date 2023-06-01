@@ -382,8 +382,7 @@ onMounted(() => {
     initDictionary();
     if (!props.isAdd || props.isCopy) {
       initData(true);
-    } else {
-    }
+    }  
   }
 });
 </script>
@@ -394,7 +393,8 @@ onMounted(() => {
     :style="{ width: '70vw' }"
     :maximizable="true"
     :closable="true"
-    style="z-index: 9000"
+   
+    :modal="true"
   >
     <form @submit.prevent="" name="submitform">
       <div class="grid formgrid m-2">
