@@ -68,6 +68,7 @@ const rolefunctions = ref([]);
 const functions = ref({});
 const dictionarys = ref([]);
 const treeOrganization = ref([]);
+const organizationtrees = ref([]);
 const datachilds = ref([]);
 const groups = ref([
   { view: 1, icon: "pi pi-list", title: "list" },
@@ -224,6 +225,34 @@ const changeView = (view) => {
     options.value.view = options.value.view_copy;
   }
 };
+const goOrganization = (item) => {
+  isFilter.value = true;
+  options.value.pageNo = 1;
+  options.value.pageSize = 25;
+  options.value.limitItem = 25;
+  options.value.total = 0;
+  dataLimits.value = [];
+  options.value.organizations = [];
+  options.value.departments = [];
+
+  if (item.data.organization_type === 0) {
+    options.value.organizations = [
+      {
+        organization_id: item.data.organization_id,
+        organization_name: item.data.organization_name,
+      },
+    ];
+  } else if (item.data.organization_type === 1) {
+    options.value.departments = [
+      {
+        department_id: item.data.organization_id,
+        department_name: item.data.organization_name,
+      },
+    ];
+  }
+  initCount();
+  initData(true);
+};
 
 //Xuất excel
 const menuButs = ref();
@@ -334,6 +363,60 @@ const addToArray = (temp, array, id, lv, od) => {
     });
   }
 };
+const findMinParent = (data) => {
+  const minParent = data.reduce((min, current) => {
+    return current.parent < min ? current.parent : min;
+  }, data);
+
+  return minParent;
+};
+const renderTree = (data, id, name, title) => {
+  let arrChils = [];
+  let arrtreeChils = [];
+  data
+    .filter((x) => x.parent_id == null)
+    .forEach((m, i) => {
+      m.IsOrder = i + 1;
+      m.label_order = m.IsOrder.toString();
+      let om = { key: m[id], data: m };
+      const rechildren = (mm, pid) => {
+        let dts = data.filter((x) => x.parent_id == pid);
+        if (dts.length > 0) {
+          if (!mm.children) mm.children = [];
+          dts.forEach((em, index) => {
+            em.label_order = mm.data.label_order + "." + (index + 1);
+            let om1 = { key: em[id], data: em };
+            rechildren(om1, em[id]);
+            mm.children.push(om1);
+          });
+        }
+      };
+      rechildren(om, m[id]);
+      arrChils.push(om);
+      //
+      om = { key: m[id], data: m[id], label: m[name] };
+      const retreechildren = (mm, pid) => {
+        let dts = data.filter((x) => x.parent_id == pid);
+        if (dts.length > 0) {
+          if (!mm.children) mm.children = [];
+          dts.forEach((em) => {
+            let om1 = { key: em[id], data: em[id], label: em[name] };
+            retreechildren(om1, em[id]);
+            mm.children.push(om1);
+          });
+        }
+      };
+      retreechildren(om, m[id]);
+      arrtreeChils.push(om);
+    });
+  arrtreeChils.unshift({
+    key: -1,
+    data: -1,
+    label: "-----Chọn " + title + "----",
+  });
+  return { arrChils: arrChils, arrtreeChils: arrtreeChils };
+};
+
 const menuButMores = ref();
 const itemButMores = ref([
   {
@@ -1515,8 +1598,11 @@ const initTreeOrganization = () => {
       {
         str: encr(
           JSON.stringify({
-            proc: "hrm_profile_treeOrganization",
-            par: [{ par: "user_id", va: store.getters.user.user_id }],
+            proc: "hrm_profile_organization_tree",
+            par: [
+              { par: "user_id", va: store.getters.user.user_id },
+              { par: "is_link", va: options.value.path },
+            ],
           }),
           SecretKey,
           cryoptojs
@@ -1530,16 +1616,24 @@ const initTreeOrganization = () => {
         if (data != null) {
           let tbs = JSON.parse(data);
           if (tbs[0] != null && tbs[0].length > 0) {
-            treeOrganization.value = JSON.parse(JSON.stringify(tbs[0]));
-            // treeOrganization.value.push({
-            //   organization_id: -1,
-            //   organization_name: "Chưa phân đơn vị",
-            //   parent_id: null,
-            //   is_order: -1,
+            // treeOrganization.value = JSON.parse(JSON.stringify(tbs[0]));
+            // let parent = null;
+            // let orderby = tbs[0];
+            // orderby = orderby.sort((a, b) => {
+            //   return a.parent_id - b.parent_id;
             // });
-            var temp = [];
-            addToArray(temp, treeOrganization.value, null, 0, "is_order");
-            treeOrganization.value = temp;
+            // parent = orderby[0].parent_id;
+            // var temp = [];
+            // addToArray(temp, treeOrganization.value, parent, 0, "is_order");
+            // treeOrganization.value = temp;
+
+            let obj = renderTree(
+              tbs[0],
+              "organization_id",
+              "organization_name",
+              "đơn vị"
+            );
+            organizationtrees.value = obj.arrChils;
           }
           initSave();
         }
@@ -1645,9 +1739,6 @@ const initData = (ref) => {
             arr = [];
             options.value.total = 0;
           }
-          treeOrganization.value.forEach((o) => {
-            o.list = arr.filter((dp) => dp.department_id == o.organization_id);
-          });
         }
       }
       if (isFirst.value) isFirst.value = false;
@@ -2149,7 +2240,11 @@ const initDataFilterAdv = (f, sql, rf) => {
     let sqlCount = strSQL.proc
       .substring(0, strSQL.proc.indexOf("order by"))
       .replace("Select *", "Select count(*) as total");
-    strSQL.proc = sqlStart + " " + strSQL.proc.replace("Select *", "Select *, " + sqlIsFunc) + (" " + sqlCount);
+    strSQL.proc =
+      sqlStart +
+      " " +
+      strSQL.proc.replace("Select *", "Select *, " + sqlIsFunc) +
+      (" " + sqlCount);
   }
   if (!f) {
     isFilterAdv.value = true;
@@ -2286,11 +2381,6 @@ const initDataFilterAdv = (f, sql, rf) => {
                 initCountFilterAdv(sql);
               }
             }
-            treeOrganization.value.forEach((o) => {
-              o.list = arr.filter(
-                (dp) => dp.department_id == o.organization_id
-              );
-            });
             //closeOverlayFilterAdv();
           } else {
             let keys = Object.keys(dts[0][0]).filter((x) => !x.includes("id"));
@@ -2852,6 +2942,10 @@ const loadMoreRow = (data) => {
 //   ).toString();
 //   console.log(str);
 // };
+
+const rowClass = (data) => {
+  return "bgcolor-tree";
+};
 </script>
 <template>
   <div class="surface-100 p-2">
@@ -3127,14 +3221,6 @@ const loadMoreRow = (data) => {
             </div>
           </OverlayPanel>
         </span>
-        <Button
-          v-if="options.search"
-          @click="goSearch()"
-          v-tooltip.top="'Thực hiện tìm kiếm nâng cao'"
-          class="ml-2 p-button-outlined p-button-secondary"
-          icon="pi pi-send"
-        >
-        </Button>
         <!-- <Button
           @click="goMic()"
           v-tooltip.top="'Tìm kiếm bằng giọng nói'"
@@ -3750,397 +3836,30 @@ const loadMoreRow = (data) => {
     <div class="tabview">
       <div class="tableview-nav-content">
         <ul class="tableview-nav">
-          <template v-if="options.view === 1">
-            <li
-              v-for="(tab, key) in tabs"
-              :key="key"
-              @click="activeTab(tab)"
-              class="tableview-header"
-              :class="{ highlight: options.tab === tab.status }"
-            >
-              <a>
-                <i :class="tab.icon"></i>
-                <span>{{ tab.title }} ({{ tab.total }})</span>
-              </a>
-            </li>
-          </template>
-          <template v-else-if="options.view === 2">
+          <li
+            v-for="(tab, key) in tabs"
+            :key="key"
+            @click="activeTab(tab)"
+            class="tableview-header"
+            :class="{ highlight: options.tab === tab.status }"
+          >
+            <a>
+              <i :class="tab.icon"></i>
+              <span>{{ tab.title }} ({{ tab.total }})</span>
+            </a>
+          </li>
+          <!-- <template v-else-if="options.view === 2">
             <li class="format-center py-0">
               <h3 class="m-0">
                 <i class="pi pi-list"></i> Danh sách nhân sự theo cơ cấu tổ chức
               </h3>
             </li>
-          </template>
+          </template> -->
         </ul>
       </div>
     </div>
-    <div v-if="options.view === 1" id="buffered-scroll" class="d-lang-table">
-      <!-- <DataTable
-        @rowSelect="
-          (event) => {
-            goProfile(event.data);
-          }
-        "
-        :value="datas"
-        :virtualScrollerOptions="{ itemSize: 78 }"
-        :scrollable="true"
-        v-model:selection="selectedNodes"
-        selectionMode="single"
-        dataKey="profile_id"
-        scrollHeight="calc(100vh - 170px)"
-        class="disable-header"
-      > -->
-      <DataTable
-        @rowSelect="
-          (event) => {
-            if (functions.xemchitiet) {
-              goProfile(event.data);
-            } else {
-              swal.fire({
-                title: 'Thông báo!',
-                text: 'Bạn không có quyền truy cập hồ sơ này!',
-                icon: 'error',
-                confirmButtonText: 'OK',
-              });
-              return;
-            }
-          }
-        "
-        :value="dataLimits"
-        :virtualScrollerOptions="{ itemSize: 78 }"
-        v-model:selection="selectedNodes"
-        selectionMode="single"
-        dataKey="profile_id"
-        class="disable-header"
-      >
-        <Column
-          field="Avatar"
-          header="Ảnh"
-          headerStyle="text-align:center;max-width:100px;height:50px"
-          bodyStyle="text-align:center;max-width:100px;"
-          class="align-items-center justify-content-center text-center"
-        >
-          <template #body="slotProps">
-            <div class="relative">
-              <Avatar
-                v-bind:label="
-                  slotProps.data.avatar
-                    ? ''
-                    : (slotProps.data.profile_user_name ?? '')
-                        .substring(0, 1)
-                        .toUpperCase()
-                "
-                v-bind:image="
-                  slotProps.data.avatar
-                    ? basedomainURL + slotProps.data.avatar
-                    : basedomainURL + '/Portals/Image/noimg.jpg'
-                "
-                :style="{
-                  background: bgColor[slotProps.index % 7],
-                  color: '#ffffff',
-                  width: '5rem',
-                  height: '5rem',
-                  fontSize: '1.5rem !important',
-                  borderRadius: '5px',
-                }"
-                size="xlarge"
-                class="border-radius"
-              />
-              <span
-                v-if="slotProps.data.isEdit"
-                class="is-sign"
-                v-tooltip="'Đã hiệu chỉnh hồ sơ'"
-              >
-                <font-awesome-icon
-                  icon="fa-solid fa-circle-check"
-                  style="font-size: 16px; display: block; color: #f4b400"
-                />
-              </span>
-            </div>
-          </template>
-        </Column>
-        <Column
-          field="profile_user_name"
-          header="Họ và tên"
-          headerStyle="height:50px;min-width:200px;"
-        >
-          <template #body="slotProps">
-            <div style="min-width: 200px">
-              <div class="mb-2">
-                <b>{{ slotProps.data.profile_user_name }}</b>
-              </div>
-              <div class="mb-1">
-                <span
-                  >{{ slotProps.data.superior_id }}
-                  <span
-                    v-if="
-                      slotProps.data.superior_id && slotProps.data.profile_id
-                    "
-                    >|</span
-                  >
-                  {{ slotProps.data.profile_code }}</span
-                >
-              </div>
-              <div class="mb-1" v-if="slotProps.data.recruitment_date">
-                {{ slotProps.data.recruitment_date }}
-              </div>
-            </div>
-          </template>
-        </Column>
-        <Column
-          field="profile_user_name"
-          header="Họ và tên"
-          headerStyle="text-align:center;max-width:300px;height:50px"
-          bodyStyle="text-align:center;max-width:300px;"
-          class="align-items-center justify-content-left text-left"
-        >
-          <template #body="slotProps">
-            <div style="min-width: 200px">
-              <div class="mb-1" v-if="slotProps.data.gender">
-                <span>{{
-                  slotProps.data.gender == 1
-                    ? "Nam"
-                    : slotProps.data.gender == 2
-                    ? "Nữ"
-                    : "Khác"
-                }}</span>
-              </div>
-              <div class="mb-1">
-                <span>{{ slotProps.data.birthday }}</span>
-              </div>
-              <div class="mb-1">
-                <span>{{ slotProps.data.birthplace_name }}</span>
-              </div>
-            </div>
-          </template>
-        </Column>
-        <Column
-          field="profile_user_name"
-          header="Họ và tên"
-          headerStyle="text-align:center;max-width:300px;height:50px"
-          bodyStyle="text-align:center;max-width:300px;"
-          class="align-items-center justify-content-left text-left"
-        >
-          <template #body="slotProps">
-            <div style="min-width: 200px">
-              <div class="mb-1">
-                <span
-                  >{{ slotProps.data.phone }}
-                  <span
-                    v-if="
-                      slotProps.data.phone != null &&
-                      slotProps.data.email != null
-                    "
-                    >|</span
-                  >
-                  {{ slotProps.data.email }}</span
-                >
-              </div>
-              <div class="mb-1">
-                <span>{{ slotProps.data.identity_papers_code }}</span>
-              </div>
-              <div class="mb-1">
-                <span>{{ slotProps.data.place_residence }}</span>
-              </div>
-            </div>
-          </template>
-        </Column>
-        <Column
-          field="profile_user_name"
-          header="Họ và tên"
-          headerStyle="text-align:center;max-width:300px;height:50px"
-          bodyStyle="text-align:center;max-width:300px;"
-          class="align-items-center justify-content-left text-left"
-        >
-          <template #body="slotProps">
-            <div style="min-width: 200px">
-              <div class="mb-1">
-                <b>{{ slotProps.data.position_name }}</b>
-              </div>
-              <div class="mb-1">
-                <span>{{ slotProps.data.title_name }}</span>
-              </div>
-              <div class="mb-1">
-                <span
-                  v-if="slotProps.data.department_name.includes('<br/>')"
-                  v-html="slotProps.data.department_name"
-                ></span>
-                <span v-else>{{ slotProps.data.department_name }}</span>
-              </div>
-            </div>
-          </template>
-        </Column>
-        <Column
-          field="countRecruitment"
-          header="Ngày thâm niên"
-          headerStyle="text-align:center;max-width:150px;height:50px"
-          bodyStyle="text-align:center;max-width:150px;"
-          class="align-items-center justify-content-left text-left"
-        >
-          <template #body="slotProps">
-            <div v-tooltip.top="'Thâm niên công tác'">
-              <span v-if="slotProps.data.diffyear > 0">
-                {{ slotProps.data.diffyear }} năm
-              </span>
-              <span v-if="slotProps.data.diffmonth > 0">
-                {{ slotProps.data.diffmonth }} tháng
-              </span>
-              <span v-if="slotProps.data.seniority != null">
-                {{ slotProps.data.seniority }}
-              </span>
-              <!-- <span
-                v-if="
-                  slotProps.data.diffyear >= 0 && slotProps.data.diffday > 0
-                "
-                >{{ slotProps.data.diffday }} ngày
-              </span> -->
-            </div>
-          </template>
-        </Column>
-        <Column
-          field="status"
-          header="Trạng thái"
-          headerStyle="text-align:center;max-width:30px;height:50px"
-          bodyStyle="text-align:center;max-width:30px;"
-          class="align-items-center justify-content-center text-center"
-        >
-          <template #body="slotProps">
-            <div
-              :style="{
-                borderRadius: '50%',
-                border: slotProps.data.bg_color,
-                backgroundColor: slotProps.data.bg_color,
-                color: slotProps.data.text_color,
-                width: '15px',
-                height: '15px',
-              }"
-              v-tooltip.top="slotProps.data.status_name"
-            ></div>
-          </template>
-        </Column>
-        <Column
-          header=""
-          headerStyle="text-align:center;max-width:150px"
-          bodyStyle="text-align:center;max-width:150px"
-          class="align-items-center justify-content-center text-center"
-        >
-          <template #body="slotProps">
-            <ul
-              class="flex p-0 justify-content-right"
-              style="list-style: none; justify-content: right"
-            >
-              <li v-if="slotProps.data.is_matchaccount">
-                <Button
-                  @click="
-                    () => {
-                      if (slotProps.data.is_function) {
-                        openMatchAccount(slotProps.data, 'liên kết tài khoản');
-                        $event.stopPropagation();
-                      } else {
-                        swal.fire({
-                          title: 'Thông báo!',
-                          text: 'Bạn không có quyền sử dụng tính năng này!',
-                          icon: 'error',
-                          confirmButtonText: 'OK',
-                        });
-                        return;
-                      }
-                    }
-                  "
-                  icon="pi pi-user"
-                  class="p-button-rounded p-button-text"
-                  v-tooltip.top="'Đã được cấp tài khoản truy cập'"
-                  style="font-size: 15px; color: #000"
-                />
-              </li>
-              <li>
-                <Button
-                  :icon="
-                    slotProps.data.is_star ? 'pi pi-star-fill' : 'pi pi-star'
-                  "
-                  :class="{ 'icon-star': slotProps.data.is_star }"
-                  class="p-button-rounded p-button-text"
-                  @click="
-                    () => {
-                      if (slotProps.data.is_function) {
-                        setStar(slotProps.data);
-                        $event.stopPropagation();
-                      } else {
-                        swal.fire({
-                          title: 'Thông báo!',
-                          text: 'Bạn không có quyền sử dụng tính năng này!',
-                          icon: 'error',
-                          confirmButtonText: 'OK',
-                        });
-                        return;
-                      }
-                    }
-                  "
-                  aria-haspopup="true"
-                  aria-controls="overlay_MorePlus"
-                  v-tooltip.top="
-                    slotProps.data.is_star ? 'Hồ sơ cần lưu ý' : ''
-                  "
-                  style="font-size: 15px; color: #000"
-                />
-              </li>
-              <li v-if="slotProps.data.is_function">
-                <Button
-                  icon="pi pi-plus-circle"
-                  class="p-button-rounded p-button-text"
-                  @click="
-                    toggleMoresPlus($event, slotProps.data);
-                    $event.stopPropagation();
-                  "
-                  aria-haspopup="true"
-                  aria-controls="overlay_MorePlus"
-                  v-tooltip.top="'Nhập bổ sung hồ sơ'"
-                />
-              </li>
-              <li v-if="slotProps.data.is_function">
-                <Button
-                  icon="pi pi-ellipsis-h"
-                  class="p-button-rounded p-button-text"
-                  @click="
-                    toggleMores($event, slotProps.data);
-                    $event.stopPropagation();
-                  "
-                  aria-haspopup="true"
-                  aria-controls="overlay_More"
-                  v-tooltip.top="'Tác vụ'"
-                />
-              </li>
-            </ul>
-          </template>
-        </Column>
-        <template #empty>
-          <div
-            class="align-items-center justify-content-center p-4 text-center m-auto"
-            :style="{
-              display: 'flex',
-              width: '100%',
-              height: 'calc(100vh - 235px)',
-              backgroundColor: '#fff',
-            }"
-          >
-            <div v-if="!options.loading && (!isFirst || options.total == 0)">
-              <img src="../../../assets/background/nodata.png" height="144" />
-              <h3 class="m-1">Không có dữ liệu</h3>
-            </div>
-          </div>
-        </template>
-      </DataTable>
-      <div
-        v-if="options.loading"
-        class="format-center"
-        :style="{ height: '50px' }"
-      >
-        <i class="pi pi-sync rotate"></i>
-        <span class="ml-3 loading-dots"> Đang tải dữ liệu </span>
-      </div>
-    </div>
-    <div v-else-if="options.view === 2" class="d-lang-table">
-      <table :style="{ width: '100%', borderSpacing: '0px' }">
+    <div>
+      <!-- <table :style="{ width: '100%', borderSpacing: '0px' }">
         <template
           v-for="(organization, organizationindex) in treeOrganization"
           :key="organizationindex"
@@ -4433,7 +4152,471 @@ const loadMoreRow = (data) => {
             </template>
           </tbody>
         </template>
-      </table>
+      </table> -->
+      <div class="row">
+        <div v-if="options.view === 2" class="col-3 md:col-3 p-0">
+          <div
+            class=""
+            :style="{
+              overflowY: 'auto',
+              height: 'calc(100vh - 170px)',
+              background: '#fff'
+            }"
+          >
+            <TreeTable
+              :value="organizationtrees"
+              v-model:selectionKeys="selectedKey"
+              :expandedKeys="expandedKeys"
+              :showGridlines="false"
+              :rowHover="true"
+              :scrollable="true"
+              filterMode="strict"
+              responsiveLayout="scroll"
+              scrollHeight="flex"
+              metaKeySelection="true"
+              selectionMode="single"
+              @nodeSelect="
+                (node) => {
+                  goOrganization(node);
+                }
+              "
+              class="disable-header"
+            >
+              <Column
+                field="newname"
+                header="Tên đơn vị/phòng ban"
+                headerStyle=""
+                bodyStyle="text-align:left; word-break:break-word;padding:0.5rem !important;"
+                :expander="true"
+              >
+                <template #body="md">
+                  <div class="row-active">
+                    <span :style="{ color: 'rgb(0, 90, 158)' }">{{
+                      md.node.data.organization_name 
+                    }} ({{md.node.data.total}})</span>
+                  </div>
+                </template>
+              </Column>
+              <template #empty>
+                <div
+                  class="m-auto align-items-center justify-content-center p-4 text-center"
+                  v-if="!isFirst"
+                >
+                  <img
+                    src="../../../assets/background/nodata.png"
+                    height="144"
+                  />
+                  <h3 class="m-1">Không có dữ liệu</h3>
+                </div>
+              </template>
+            </TreeTable>
+            <!-- <table :style="{ width: '100%', borderSpacing: '0px' }">
+              <template
+                v-for="(organization, organizationindex) in treeOrganization"
+                :key="organizationindex"
+              >
+                <tbody>
+                  <tr>
+                    <td
+                      colspan="7"
+                      :style="{
+                        color: '#rgb(0, 90, 158)',
+                        backgroundColor: 'rgb(248, 249, 250)',
+                      }"
+                    >
+                      <div class="p-3">
+                        <span
+                          >{{ organization.newname }} ({{
+                            organization.total
+                          }})</span
+                        >
+                      </div>
+                    </td>
+                  </tr>
+                </tbody>
+              </template>
+            </table> -->
+          </div>
+        </div>
+        <div
+          class="col-9 md:col-9 p-0"
+          :class="options.view === 1 ? 'col-12 md:col-12' : 'col-9 md:col-9'"
+        >
+          <div
+            id="buffered-scroll"
+            class="d-lang-table"
+            :style="{ background: '#fff' }"
+          >
+            <!-- <DataTable
+              @rowSelect="
+                (event) => {
+                  goProfile(event.data);
+                }
+              "
+              :value="datas"
+              :virtualScrollerOptions="{ itemSize: 78 }"
+              :scrollable="true"
+              v-model:selection="selectedNodes"
+              selectionMode="single"
+              dataKey="profile_id"
+              scrollHeight="calc(100vh - 170px)"
+              class="disable-header"
+            > -->
+            <DataTable
+              @rowSelect="
+                (event) => {
+                  if (functions.xemchitiet) {
+                    goProfile(event.data);
+                  } else {
+                    swal.fire({
+                      title: 'Thông báo!',
+                      text: 'Bạn không có quyền truy cập hồ sơ này!',
+                      icon: 'error',
+                      confirmButtonText: 'OK',
+                    });
+                    return;
+                  }
+                }
+              "
+              :value="dataLimits"
+              :virtualScrollerOptions="{ itemSize: 78 }"
+              v-model:selection="selectedNodes"
+              selectionMode="single"
+              dataKey="profile_id"
+              class="disable-header"
+            >
+              <Column
+                field="Avatar"
+                header="Ảnh"
+                headerStyle="text-align:center;max-width:100px;height:50px"
+                bodyStyle="text-align:center;max-width:100px;"
+                class="align-items-center justify-content-center text-center"
+              >
+                <template #body="slotProps">
+                  <div class="relative">
+                    <Avatar
+                      v-bind:label="
+                        slotProps.data.avatar
+                          ? ''
+                          : (slotProps.data.profile_user_name ?? '')
+                              .substring(0, 1)
+                              .toUpperCase()
+                      "
+                      v-bind:image="
+                        slotProps.data.avatar
+                          ? basedomainURL + slotProps.data.avatar
+                          : basedomainURL + '/Portals/Image/noimg.jpg'
+                      "
+                      :style="{
+                        background: bgColor[slotProps.index % 7],
+                        color: '#ffffff',
+                        width: '5rem',
+                        height: '5rem',
+                        fontSize: '1.5rem !important',
+                        borderRadius: '5px',
+                      }"
+                      size="xlarge"
+                      class="border-radius"
+                    />
+                    <span
+                      v-if="slotProps.data.isEdit"
+                      class="is-sign"
+                      v-tooltip="'Đã hiệu chỉnh hồ sơ'"
+                    >
+                      <font-awesome-icon
+                        icon="fa-solid fa-circle-check"
+                        style="font-size: 16px; display: block; color: #f4b400"
+                      />
+                    </span>
+                  </div>
+                </template>
+              </Column>
+              <Column
+                field="profile_user_name"
+                header="Họ và tên"
+                headerStyle="height:50px;min-width:200px;"
+              >
+                <template #body="slotProps">
+                  <div style="min-width: 120px">
+                    <div class="mb-2">
+                      <b>{{ slotProps.data.profile_user_name }}</b>
+                    </div>
+                    <div class="mb-1">
+                      <span
+                        >{{ slotProps.data.superior_id }}
+                        <span
+                          v-if="
+                            slotProps.data.superior_id &&
+                            slotProps.data.profile_id
+                          "
+                          >|</span
+                        >
+                        {{ slotProps.data.profile_code }}</span
+                      >
+                    </div>
+                    <div class="mb-1" v-if="slotProps.data.recruitment_date">
+                      {{ slotProps.data.recruitment_date }}
+                    </div>
+                  </div>
+                </template>
+              </Column>
+              <Column
+                field="profile_user_name"
+                header="Họ và tên"
+                headerStyle="text-align:center;max-width:300px;height:50px"
+                bodyStyle="text-align:center;max-width:300px;"
+                class="align-items-center justify-content-left text-left"
+              >
+                <template #body="slotProps">
+                  <div style="min-width: 120px">
+                    <div class="mb-1" v-if="slotProps.data.gender">
+                      <span>{{
+                        slotProps.data.gender == 1
+                          ? "Nam"
+                          : slotProps.data.gender == 2
+                          ? "Nữ"
+                          : "Khác"
+                      }}</span>
+                    </div>
+                    <div class="mb-1">
+                      <span>{{ slotProps.data.birthday }}</span>
+                    </div>
+                    <div class="mb-1">
+                      <span>{{ slotProps.data.birthplace_name }}</span>
+                    </div>
+                  </div>
+                </template>
+              </Column>
+              <Column
+                field="profile_user_name"
+                header="Họ và tên"
+                headerStyle="text-align:center;max-width:300px;height:50px"
+                bodyStyle="text-align:center;max-width:300px;"
+                class="align-items-center justify-content-left text-left"
+              >
+                <template #body="slotProps">
+                  <div style="min-width: 120px">
+                    <div class="mb-1">
+                      <span
+                        >{{ slotProps.data.phone }}
+                        <span
+                          v-if="
+                            slotProps.data.phone != null &&
+                            slotProps.data.email != null
+                          "
+                          >|</span
+                        >
+                        {{ slotProps.data.email }}</span
+                      >
+                    </div>
+                    <div class="mb-1">
+                      <span>{{ slotProps.data.identity_papers_code }}</span>
+                    </div>
+                    <div class="mb-1">
+                      <span>{{ slotProps.data.place_residence }}</span>
+                    </div>
+                  </div>
+                </template>
+              </Column>
+              <Column
+                field="profile_user_name"
+                header="Họ và tên"
+                headerStyle="text-align:center;max-width:300px;height:50px"
+                bodyStyle="text-align:center;max-width:300px;"
+                class="align-items-center justify-content-left text-left"
+              >
+                <template #body="slotProps">
+                  <div style="min-width: 120px">
+                    <div class="mb-1">
+                      <b>{{ slotProps.data.position_name }}</b>
+                    </div>
+                    <div class="mb-1">
+                      <span>{{ slotProps.data.title_name }}</span>
+                    </div>
+                    <div class="mb-1">
+                      <span
+                        v-if="slotProps.data.department_name"
+                        v-html="slotProps.data.department_name"
+                      ></span>
+                      <span v-else>{{ slotProps.data.department_name }}</span>
+                    </div>
+                  </div>
+                </template>
+              </Column>
+              <Column
+                field="countRecruitment"
+                header="Ngày thâm niên"
+                headerStyle="text-align:center;max-width:150px;height:50px"
+                bodyStyle="text-align:center;max-width:150px;"
+                class="align-items-center justify-content-left text-left"
+              >
+                <template #body="slotProps">
+                  <div v-tooltip.top="'Thâm niên công tác'">
+                    <span v-if="slotProps.data.diffyear > 0">
+                      {{ slotProps.data.diffyear }} năm
+                    </span>
+                    <span v-if="slotProps.data.diffmonth > 0">
+                      {{ slotProps.data.diffmonth }} tháng
+                    </span>
+                    <span v-if="slotProps.data.seniority != null">
+                      {{ slotProps.data.seniority }}
+                    </span>
+                    <!-- <span
+                  v-if="
+                    slotProps.data.diffyear >= 0 && slotProps.data.diffday > 0
+                  "
+                  >{{ slotProps.data.diffday }} ngày
+                </span> -->
+                  </div>
+                </template>
+              </Column>
+              <Column
+                header=""
+                headerStyle="text-align:center;max-width:150px"
+                bodyStyle="text-align:center;max-width:150px"
+                class="align-items-center justify-content-center text-center"
+              >
+                <template #body="slotProps">
+                  <ul
+                    class="flex p-0 justify-content-right"
+                    style="list-style: none; justify-content: right"
+                  >
+                    <li class="format-center">
+                      <div
+                        :style="{
+                          borderRadius: '50%',
+                          border: slotProps.data.bg_color,
+                          backgroundColor: slotProps.data.bg_color,
+                          color: slotProps.data.text_color,
+                          width: '15px',
+                          height: '15px',
+                          marginRight: '10px',
+                        }"
+                        v-tooltip.top="slotProps.data.status_name"
+                      ></div>
+                    </li>
+                    <li v-if="slotProps.data.is_matchaccount">
+                      <Button
+                        @click="
+                          () => {
+                            if (slotProps.data.is_function) {
+                              openMatchAccount(
+                                slotProps.data,
+                                'liên kết tài khoản'
+                              );
+                              $event.stopPropagation();
+                            } else {
+                              swal.fire({
+                                title: 'Thông báo!',
+                                text: 'Bạn không có quyền sử dụng tính năng này!',
+                                icon: 'error',
+                                confirmButtonText: 'OK',
+                              });
+                              return;
+                            }
+                          }
+                        "
+                        icon="pi pi-user"
+                        class="p-button-rounded p-button-text"
+                        v-tooltip.top="'Đã được cấp tài khoản truy cập'"
+                        style="font-size: 15px; color: #000"
+                      />
+                    </li>
+                    <li>
+                      <Button
+                        :icon="
+                          slotProps.data.is_star
+                            ? 'pi pi-star-fill'
+                            : 'pi pi-star'
+                        "
+                        :class="{ 'icon-star': slotProps.data.is_star }"
+                        class="p-button-rounded p-button-text"
+                        @click="
+                          () => {
+                            if (slotProps.data.is_function) {
+                              setStar(slotProps.data);
+                              $event.stopPropagation();
+                            } else {
+                              swal.fire({
+                                title: 'Thông báo!',
+                                text: 'Bạn không có quyền sử dụng tính năng này!',
+                                icon: 'error',
+                                confirmButtonText: 'OK',
+                              });
+                              return;
+                            }
+                          }
+                        "
+                        aria-haspopup="true"
+                        aria-controls="overlay_MorePlus"
+                        v-tooltip.top="
+                          slotProps.data.is_star ? 'Hồ sơ cần lưu ý' : ''
+                        "
+                        style="font-size: 15px; color: #000"
+                      />
+                    </li>
+                    <li v-if="slotProps.data.is_function">
+                      <Button
+                        icon="pi pi-plus-circle"
+                        class="p-button-rounded p-button-text"
+                        @click="
+                          toggleMoresPlus($event, slotProps.data);
+                          $event.stopPropagation();
+                        "
+                        aria-haspopup="true"
+                        aria-controls="overlay_MorePlus"
+                        v-tooltip.top="'Nhập bổ sung hồ sơ'"
+                      />
+                    </li>
+                    <li v-if="slotProps.data.is_function">
+                      <Button
+                        icon="pi pi-ellipsis-h"
+                        class="p-button-rounded p-button-text"
+                        @click="
+                          toggleMores($event, slotProps.data);
+                          $event.stopPropagation();
+                        "
+                        aria-haspopup="true"
+                        aria-controls="overlay_More"
+                        v-tooltip.top="'Tác vụ'"
+                      />
+                    </li>
+                  </ul>
+                </template>
+              </Column>
+              <template #empty>
+                <div
+                  class="align-items-center justify-content-center p-4 text-center m-auto"
+                  :style="{
+                    display: 'flex',
+                    width: '100%',
+                    height: 'calc(100vh - 235px)',
+                    backgroundColor: '#fff',
+                  }"
+                >
+                  <div
+                    v-if="!options.loading && (!isFirst || options.total == 0)"
+                  >
+                    <img
+                      src="../../../assets/background/nodata.png"
+                      height="144"
+                    />
+                    <h3 class="m-1">Không có dữ liệu</h3>
+                  </div>
+                </div>
+              </template>
+            </DataTable>
+            <div
+              v-if="options.loading"
+              class="format-center"
+              :style="{ height: '50px' }"
+            >
+              <i class="pi pi-sync rotate"></i>
+              <span class="ml-3 loading-dots"> Đang tải dữ liệu </span>
+            </div>
+          </div>
+        </div>
+      </div>
     </div>
   </div>
 
@@ -4885,5 +5068,9 @@ const loadMoreRow = (data) => {
   img {
     border-radius: 5px;
   }
+}
+::-deep(.bgcolor-tree) {
+  background-color: rgb(248, 249, 250) !important;
+  color: rgb(0, 90, 158) !important;
 }
 </style>

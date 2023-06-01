@@ -239,7 +239,10 @@ const activeRow = (row)=>{
       item.is_active = false;
   })
   row.is_active= true;
-}
+};
+const removeFilter = (idx, array) => {
+  array.splice(idx, 1);
+};
 const goBack = () => {
   history.back();
 };
@@ -327,7 +330,7 @@ onMounted(() => {
     <div class="main-layout true flex-grow-1 p-2 pb-0 pr-0">
       <div style="background-color: #fff; padding: 1rem;padding-left: 0;">
         <div class="bg-white format-center py-1 font-bold text-xl">
-          BÁO CÁO tHỐNG KÊ HỢP ĐỒNG<span v-if="options.totalRecords != null">&nbsp({{ options.totalRecords }})</span>
+          BÁO CÁO THỐNG KÊ HỢP ĐỒNG<span v-if="options.totalRecords != null">&nbsp({{ options.totalRecords }})</span>
         </div>
         <Toolbar class="w-full custoolbar">
           <template #start>
