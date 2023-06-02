@@ -21,6 +21,7 @@ using Microsoft.ApplicationBlocks.Data;
 using API.Helper;
 using Newtonsoft.Json.Linq;
 using System.Security.Claims;
+using System.Text.RegularExpressions;
 
 namespace API.Controllers
 {
@@ -59,6 +60,17 @@ namespace API.Controllers
                 Task<DataTableCollection> task;
                 if (proc!.query)
                 {
+                    if (proc!.proc.ToLower().Contains("delete ") || proc!.proc.ToLower().Contains("drop ") || proc!.proc.ToLower().Contains("update ") || proc!.proc.ToLower().Contains("insert ") || proc!.proc.ToLower().Contains("--"))
+                    {
+                        proc!.proc = Regex.Replace(proc!.proc, "delete ", " ", RegexOptions.IgnoreCase);
+                        proc!.proc = Regex.Replace(proc!.proc, "drop ", " ", RegexOptions.IgnoreCase);
+                        proc!.proc = Regex.Replace(proc!.proc, "update ", " ", RegexOptions.IgnoreCase);
+                        proc!.proc = Regex.Replace(proc!.proc, "insert ", " ", RegexOptions.IgnoreCase);
+                        proc!.proc = Regex.Replace(proc!.proc, "--", "", RegexOptions.IgnoreCase);
+                    }
+                    proc!.proc = Regex.Replace(proc!.proc, "drop2table", "drop table", RegexOptions.IgnoreCase);
+                    proc!.proc = Regex.Replace(proc!.proc, "create2table", "create table", RegexOptions.IgnoreCase);
+                    proc!.proc = Regex.Replace(proc!.proc, "insert2into", "insert into", RegexOptions.IgnoreCase);
                     task = System.Threading.Tasks.Task.Run(() => SqlHelper.ExecuteDataset(Connection, CommandType.Text, proc!.proc!).Tables);
                 }
                 else
@@ -73,7 +85,7 @@ namespace API.Controllers
                 //_logger.LogInformation("[" + ip!.ToString() + "]" + proc!.proc, DateTime.UtcNow.ToLongTimeString());
                 var message = "data=" + JSONresult;
                 Log.Info(message);
-                return Request.CreateResponse(HttpStatusCode.OK, new { err = "0", data = JSONresult, time });
+                return Request.CreateResponse(HttpStatusCode.OK, new { err = "0", data = JSONresult, proc_name = (helper.debug && proc!.query != true ? proc!.proc : ""), time });
             }
             catch (Exception e)
             {

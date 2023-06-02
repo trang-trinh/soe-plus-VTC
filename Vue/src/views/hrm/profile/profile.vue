@@ -328,7 +328,7 @@ const exportData = (method) => {
     .catch((error) => {
       if (error.status === 401) {
         swal.fire({
-          text: "Mã token đã hết hạn hoặc không hợp lệ, vui lòng đăng nhập lại!",
+          text: "Phiên đăng nhập đã hết hạn, vui lòng đăng nhập lại!",
           confirmButtonText: "OK",
         });
         store.commit("gologout");
@@ -638,7 +638,7 @@ const deleteItem = (item) => {
               if (error && error.status === 401) {
                 swal.fire({
                   title: "Thông báo!",
-                  text: "Mã token đã hết hạn hoặc không hợp lệ, vui lòng đăng nhập lại!",
+                  text: "Phiên đăng nhập đã hết hạn, vui lòng đăng nhập lại!",
                   icon: "error",
                   confirmButtonText: "OK",
                 });
@@ -798,7 +798,7 @@ const setStar = (item) => {
       if (error && error.status === 401) {
         swal.fire({
           title: "Thông báo!",
-          text: "Mã token đã hết hạn hoặc không hợp lệ, vui lòng đăng nhập lại!",
+          text: "Phiên đăng nhập đã hết hạn, vui lòng đăng nhập lại!",
           icon: "error",
           confirmButtonText: "OK",
         });
@@ -1095,7 +1095,7 @@ const initPlace = () => {
       if (error && error.status === 401) {
         swal.fire({
           title: "Thông báo",
-          text: "Mã token đã hết hạn hoặc không hợp lệ, vui lòng đăng nhập lại!",
+          text: "Phiên đăng nhập đã hết hạn, vui lòng đăng nhập lại!",
           icon: "error",
           confirmButtonText: "OK",
         });
@@ -1375,7 +1375,7 @@ const initCountFilter = () => {
       if (error && error.status === 401) {
         swal.fire({
           title: "Thông báo!",
-          text: "Mã token đã hết hạn hoặc không hợp lệ, vui lòng đăng nhập lại!",
+          text: "Phiên đăng nhập đã hết hạn, vui lòng đăng nhập lại!",
           icon: "error",
           confirmButtonText: "OK",
         });
@@ -1594,7 +1594,7 @@ const initDataFilter = () => {
       if (error && error.status === 401) {
         swal.fire({
           title: "Thông báo!",
-          text: "Mã token đã hết hạn hoặc không hợp lệ, vui lòng đăng nhập lại!",
+          text: "Phiên đăng nhập đã hết hạn, vui lòng đăng nhập lại!",
           icon: "error",
           confirmButtonText: "OK",
         });
@@ -1781,7 +1781,7 @@ const initData = (ref) => {
       if (error && error.status === 401) {
         swal.fire({
           title: "Thông báo!",
-          text: "Mã token đã hết hạn hoặc không hợp lệ, vui lòng đăng nhập lại!",
+          text: "Phiên đăng nhập đã hết hạn, vui lòng đăng nhập lại!",
           icon: "error",
           confirmButtonText: "OK",
         });
@@ -2448,24 +2448,24 @@ const initDataFilterAdv = (f, sql, rf) => {
               selectedCols.value = cols.value.filter((x) => x.show);
             }
           }
-          swal.close();
         } else {
           options.value.total = 0;
           dataAdvAll.value = [...dataLimits.value];
           if (sql && rf) {
             initCountFilterAdv(sql);
           }
-          swal.close();
         }
       }
-      swal.close();
-      if (options.value.loading) options.value.loading = false;
+      if (rf) {
+        swal.close();
+        if (options.value.loading) options.value.loading = false;
+      }
     })
     .catch((error) => {
       swal.close();
       if (error.status === 401) {
         swal.fire({
-          text: "Mã token đã hết hạn hoặc không hợp lệ, vui lòng đăng nhập lại!",
+          text: "Phiên đăng nhập đã hết hạn, vui lòng đăng nhập lại!",
           confirmButtonText: "OK",
         });
       }
@@ -2535,7 +2535,7 @@ const initCountFilterAdv = (sql) => {
         swal.close();
         if (error.status === 401) {
           swal.fire({
-            text: "Mã token đã hết hạn hoặc không hợp lệ, vui lòng đăng nhập lại!",
+            text: "Phiên đăng nhập đã hết hạn, vui lòng đăng nhập lại!",
             confirmButtonText: "OK",
           });
         }
@@ -2556,6 +2556,8 @@ const arrayStatus = [0, 1, 2, 3, 4, 5];
 // };
 const ipsearch = ref();
 const sqlSubmit = ref();
+const arrTypeRequied = ref(['1', '2', '3', '4', '5', '6']);
+const arrConditionRequied = ref([">", ">=", "<", "<=", "<>", "FromTo"]);
 const submitFilter = () => {
   ipsearch.value = "";
   let strSelect = " Select * ";
@@ -2564,6 +2566,7 @@ const submitFilter = () => {
   let strWhere = "";
   let strOrderby = ` order by [${cols.value[0].key}] `;
   let hasSmartSearch = false;
+  let notHasValueFilter = false;
   groupBlock.value.forEach((g) => {
     if (strWhere != "") {
       strWhere += ` ${AND.value ? " AND " : " OR "}`;
@@ -2581,6 +2584,10 @@ const submitFilter = () => {
       gx.childs.forEach((x, ix) => {
         if (strWhere != "" && ix > 0) {
           strWhere += ` ${gx.AND ? " AND " : " OR "} (`;
+        }        
+        if ((arrConditionRequied.value.includes(x.type) || (arrTypeRequied.value.includes(x.typdata) && x.type == "=")) 
+          && (x.value == null || x.value.trim() == "")) {
+          notHasValueFilter = true;
         }
         switch (x.type) {
           case "FromTo":
@@ -2634,7 +2641,7 @@ const submitFilter = () => {
                 x.typedate
                   ? x.typedate.replace("$date", "[" + x.key + "]")
                   : "[" + x.key + "]"
-              } ${x.type} ${vl ? `N'${vl}'` : ""}`;
+              } ${x.type} ${vl ? `N'${vl}'` : `N''`}`;
             });
             strWhere += ")";
             ipsearch.value += `${
@@ -2656,6 +2663,16 @@ const submitFilter = () => {
     });
     strWhere += ")";
   });
+  if (notHasValueFilter) {
+    options.value.search = "";
+    swal.fire({
+      title: "Thông báo!",
+      text: "Nhập giá trị của điều kiện tìm kiếm có dấu *",
+      icon: "error",
+      confirmButtonText: "OK",
+    });
+    return;
+  }
   if (!hasSmartSearch) {
     strWhere = renderAutoInput(options.value.search);
   } else {
@@ -2772,7 +2789,11 @@ const delBlock = (gr) => {
   }
 };
 const resetFilterAdvanced = (inFilter) => {
-  if (inFilter && groupBlock.value[0].datas != null && groupBlock.value[0].datas.length == 0) {
+  if (
+    inFilter &&
+    groupBlock.value[0].datas != null &&
+    groupBlock.value[0].datas.length == 0
+  ) {
     opfilterAdvanced.value.toggle(event);
   }
   options.value.search = "";
@@ -3171,7 +3192,15 @@ const rowClassDk = () => {
                                   optionValue="value"
                                   class="w-full"
                                   style="border: none; box-shadow: none"
-                                />
+                                >
+                                  <template #value="slotProps">
+                                      <div class="" v-if="slotProps.value">
+                                          <div>{{ drTypes.find((x) => x.value == slotProps.value).text }}
+                                            <span class="redsao" v-if="arrConditionRequied.includes(dt.data.type) || (arrTypeRequied.includes(dt.data.typdata) && dt.data.type == '=')">*</span>
+                                          </div>
+                                      </div>
+                                  </template>
+                                </Dropdown>
                               </template>
                             </Column>
                             <Column
@@ -3193,7 +3222,7 @@ const rowClassDk = () => {
                                       .placeholder
                                   "
                                   v-model="dt.data.value"
-                                  autoResize
+                                  autoResize                                 
                                   class="w-full"
                                   style="border: none; box-shadow: none"
                                 />
@@ -3217,7 +3246,7 @@ const rowClassDk = () => {
                                     )
                                   "
                                   icon="pi pi-trash"
-                                  style="display:none;"
+                                  style="display: none"
                                 />
                               </template>
                             </Column>
@@ -3236,14 +3265,14 @@ const rowClassDk = () => {
                             v-tooltip.top="'Thêm điều kiện'"
                             @click="addFilter(dt.data)"
                             icon="pi pi-plus"
-                            style="display:none;"
+                            style="display: none"
                           />
                           <Button
                             class="p-button-text p-button-rounded p-button-outlined p-button-danger"
                             v-tooltip.top="'Xoá tiêu chí'"
                             @click="delFilter(dt.index, gr.datas, 0)"
                             icon="pi pi-trash"
-                            style="display:none;"
+                            style="display: none"
                           />
                         </template>
                       </Column>

@@ -93,7 +93,7 @@ const swalLoadding = () => {
 const errorMessage = () => {
   swal.fire({
     title: "Error!",
-    text: "Mã token đã hết hạn hoặc không hợp lệ, vui lòng đăng nhập lại!",
+    text: "Phiên đăng nhập đã hết hạn, vui lòng đăng nhập lại!",
     icon: "error",
     confirmButtonText: "OK",
   });
@@ -418,7 +418,7 @@ const exportModule = (method) => {
     .catch((error) => {
       if (error.status === 401) {
         swal.fire({
-          text: "Mã token đã hết hạn hoặc không hợp lệ, vui lòng đăng nhập lại!",
+          text: "Phiên đăng nhập đã hết hạn, vui lòng đăng nhập lại!",
           confirmButtonText: "OK",
         });
       }

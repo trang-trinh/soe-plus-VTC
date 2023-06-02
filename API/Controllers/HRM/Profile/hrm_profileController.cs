@@ -3882,7 +3882,7 @@ namespace API.Controllers.HRM.Profile
                 DateTime edate = DateTime.Now;
                 string JSONresult = JsonConvert.SerializeObject(tables);
                 int time = (int)Math.Ceiling((edate - sdate).TotalMilliseconds);
-                return Request.CreateResponse(HttpStatusCode.OK, new { data = JSONresult, err = "0", proc_name = (helper.debug ? proc!.proc : ""), time });
+                return Request.CreateResponse(HttpStatusCode.OK, new { data = JSONresult, err = "0", proc_name = (helper.debug && proc!.query != true ? proc!.proc : ""), time });
             }
             catch (Exception e)
             {
