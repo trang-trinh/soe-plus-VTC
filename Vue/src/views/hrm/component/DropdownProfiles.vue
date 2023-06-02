@@ -33,11 +33,9 @@ const loadUserProfiles = () => {
       {
         str: encr(
           JSON.stringify({
-            proc: "hrm_profile_list_2",
+            proc: "hrm_profile_list_all_d",
             par: [{ par: "user_id", va: store.getters.user.user_id },
             { par: "search", va: null },
-            { par: "pageNo ", va:1},
-            { par: "pageSize ", va: 100000 },
             { par: "tab ", va: 1 },
           ],
           }),
@@ -89,7 +87,7 @@ const loadUserProfiles = () => {
 
       if (error && error.status === 401) {
         swal.fire({
-          text: "Mã token đã hết hạn hoặc không hợp lệ, vui lòng đăng nhập lại!",
+          text: "Phiên đăng nhập đã hết hạn, vui lòng đăng nhập lại!",
           confirmButtonText: "OK",
         });
         store.commit("gologout");

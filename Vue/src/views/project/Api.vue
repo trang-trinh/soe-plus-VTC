@@ -93,7 +93,7 @@ const loadProject = () => {
 
         if (error && error.status === 401) {
           swal.fire({
-            text: "Mã token đã hết hạn hoặc không hợp lệ, vui lòng đăng nhập lại!",
+            text: "Phiên đăng nhập đã hết hạn, vui lòng đăng nhập lại!",
             confirmButtonText: "OK",
           });
           store.commit("gologout");
@@ -129,7 +129,7 @@ const loadProject = () => {
 
         if (error && error.status === 401) {
           swal.fire({
-            text: "Mã token đã hết hạn hoặc không hợp lệ, vui lòng đăng nhập lại!",
+            text: "Phiên đăng nhập đã hết hạn, vui lòng đăng nhập lại!",
             confirmButtonText: "OK",
           });
           store.commit("gologout");
@@ -153,7 +153,7 @@ const loadProject = () => {
 
         if (error && error.status === 401) {
           swal.fire({
-            text: "Mã token đã hết hạn hoặc không hợp lệ, vui lòng đăng nhập lại!",
+            text: "Phiên đăng nhập đã hết hạn, vui lòng đăng nhập lại!",
             confirmButtonText: "OK",
           });
           store.commit("gologout");
@@ -198,7 +198,7 @@ const loadProject = () => {
 
         if (error && error.status === 401) {
           swal.fire({
-            text: "Mã token đã hết hạn hoặc không hợp lệ, vui lòng đăng nhập lại!",
+            text: "Phiên đăng nhập đã hết hạn, vui lòng đăng nhập lại!",
             confirmButtonText: "OK",
           });
           store.commit("gologout");
@@ -228,7 +228,7 @@ const loadProject = () => {
         console.log(error);
         if (error && error.status === 401) {
           swal.fire({
-            text: "Mã token đã hết hạn hoặc không hợp lệ, vui lòng đăng nhập lại!",
+            text: "Phiên đăng nhập đã hết hạn, vui lòng đăng nhập lại!",
             confirmButtonText: "OK",
           });
           store.commit("gologout");
@@ -261,7 +261,7 @@ const loadProject = () => {
         options.value.loading = false;
         if (error && error.status === 401) {
           swal.fire({
-            text: "Mã token đã hết hạn hoặc không hợp lệ, vui lòng đăng nhập lại!",
+            text: "Phiên đăng nhập đã hết hạn, vui lòng đăng nhập lại!",
             confirmButtonText: "OK",
           });
           store.commit("gologout");
@@ -362,7 +362,7 @@ const loadCategory = () => {
 
         if (error && error.status === 401) {
           swal.fire({
-            text: "Mã token đã hết hạn hoặc không hợp lệ, vui lòng đăng nhập lại!",
+            text: "Phiên đăng nhập đã hết hạn, vui lòng đăng nhập lại!",
             confirmButtonText: "OK",
           });
           store.commit("gologout");
@@ -394,7 +394,7 @@ const loadCategory = () => {
 
         if (error && error.status === 401) {
           swal.fire({
-            text: "Mã token đã hết hạn hoặc không hợp lệ, vui lòng đăng nhập lại!",
+            text: "Phiên đăng nhập đã hết hạn, vui lòng đăng nhập lại!",
             confirmButtonText: "OK",
           });
           store.commit("gologout");
@@ -424,7 +424,7 @@ const loadCategory = () => {
 
         if (error && error.status === 401) {
           swal.fire({
-            text: "Mã token đã hết hạn hoặc không hợp lệ, vui lòng đăng nhập lại!",
+            text: "Phiên đăng nhập đã hết hạn, vui lòng đăng nhập lại!",
             confirmButtonText: "OK",
           });
           store.commit("gologout");
@@ -458,7 +458,7 @@ const getcount = (data) => {
       options.value.loading = false;
       if (error && error.status === 401) {
         swal.fire({
-          text: "Mã token đã hết hạn hoặc không hợp lệ, vui lòng đăng nhập lại!",
+          text: "Phiên đăng nhập đã hết hạn, vui lòng đăng nhập lại!",
           confirmButtonText: "OK",
         });
         store.commit("gologout");
@@ -762,7 +762,7 @@ const onNodeSelect = (node) => {
         console.log(error);
         if (error && error.status === 401) {
           swal.fire({
-            text: "Mã token đã hết hạn hoặc không hợp lệ, vui lòng đăng nhập lại!",
+            text: "Phiên đăng nhập đã hết hạn, vui lòng đăng nhập lại!",
             confirmButtonText: "OK",
           });
           store.commit("gologout");
@@ -850,7 +850,7 @@ const onNodeSelect = (node) => {
 
             if (error && error.status === 401) {
               swal.fire({
-                text: "Mã token đã hết hạn hoặc không hợp lệ, vui lòng đăng nhập lại!",
+                text: "Phiên đăng nhập đã hết hạn, vui lòng đăng nhập lại!",
                 confirmButtonText: "OK",
               });
               store.commit("gologout");
@@ -1169,7 +1169,7 @@ const deleteCategory = (value) => {
             swal.close();
             if (error.status === 401) {
               swal.fire({
-                text: "Mã token đã hết hạn hoặc không hợp lệ, vui lòng đăng nhập lại!",
+                text: "Phiên đăng nhập đã hết hạn, vui lòng đăng nhập lại!",
                 confirmButtonText: "OK",
               });
             }
@@ -1336,7 +1336,7 @@ const reloadParam = (service_id) => {
 
       if (error && error.status === 401) {
         swal.fire({
-          text: "Mã token đã hết hạn hoặc không hợp lệ, vui lòng đăng nhập lại!",
+          text: "Phiên đăng nhập đã hết hạn, vui lòng đăng nhập lại!",
           confirmButtonText: "OK",
         });
         store.commit("gologout");
@@ -1391,7 +1391,7 @@ const reloadService = (check) => {
           if (error && error.status === 401) {
             swal.fire({
               title: "Error!",
-              text: "Mã token đã hết hạn hoặc không hợp lệ, vui lòng đăng nhập lại!",
+              text: "Phiên đăng nhập đã hết hạn, vui lòng đăng nhập lại!",
               icon: "error",
               confirmButtonText: "OK",
             });
@@ -1553,7 +1553,7 @@ const deleteService = (value) => {
             swal.close();
             if (error.status === 401) {
               swal.fire({
-                text: "Mã token đã hết hạn hoặc không hợp lệ, vui lòng đăng nhập lại!",
+                text: "Phiên đăng nhập đã hết hạn, vui lòng đăng nhập lại!",
                 confirmButtonText: "OK",
               });
             }
@@ -1823,7 +1823,7 @@ const deleteParameter = (value) => {
             swal.close();
             if (error.status === 401) {
               swal.fire({
-                text: "Mã token đã hết hạn hoặc không hợp lệ, vui lòng đăng nhập lại!",
+                text: "Phiên đăng nhập đã hết hạn, vui lòng đăng nhập lại!",
                 confirmButtonText: "OK",
               });
             }
@@ -1952,7 +1952,7 @@ const exportData = (method) => {
       .catch((error) => {
         if (error.status === 401) {
           swal.fire({
-            text: "Mã token đã hết hạn hoặc không hợp lệ, vui lòng đăng nhập lại!",
+            text: "Phiên đăng nhập đã hết hạn, vui lòng đăng nhập lại!",
             confirmButtonText: "OK",
           });
           store.commit("gologout");
@@ -2030,7 +2030,7 @@ const exportParamData = (method) => {
       .catch((error) => {
         if (error.status === 401) {
           swal.fire({
-            text: "Mã token đã hết hạn hoặc không hợp lệ, vui lòng đăng nhập lại!",
+            text: "Phiên đăng nhập đã hết hạn, vui lòng đăng nhập lại!",
             confirmButtonText: "OK",
           });
           store.commit("gologout");
@@ -2185,7 +2185,7 @@ const showBugs = (value) => {
       console.log(error);
       if (error && error.status === 401) {
         swal.fire({
-          text: "Mã token đã hết hạn hoặc không hợp lệ, vui lòng đăng nhập lại!",
+          text: "Phiên đăng nhập đã hết hạn, vui lòng đăng nhập lại!",
           confirmButtonText: "OK",
         });
         store.commit("gologout");
@@ -2259,7 +2259,7 @@ const reloadComment = (id) => {
       console.log(error);
       if (error && error.status === 401) {
         swal.fire({
-          text: "Mã token đã hết hạn hoặc không hợp lệ, vui lòng đăng nhập lại!",
+          text: "Phiên đăng nhập đã hết hạn, vui lòng đăng nhập lại!",
           confirmButtonText: "OK",
         });
         store.commit("gologout");
@@ -2375,7 +2375,7 @@ const reloadChildComment = (comment_id) => {
         console.log(error);
         if (error && error.status === 401) {
           swal.fire({
-            text: "Mã token đã hết hạn hoặc không hợp lệ, vui lòng đăng nhập lại!",
+            text: "Phiên đăng nhập đã hết hạn, vui lòng đăng nhập lại!",
             confirmButtonText: "OK",
           });
           store.commit("gologout");
@@ -2449,7 +2449,7 @@ const showCommentBug = (value) => {
       console.log(error);
       if (error && error.status === 401) {
         swal.fire({
-          text: "Mã token đã hết hạn hoặc không hợp lệ, vui lòng đăng nhập lại!",
+          text: "Phiên đăng nhập đã hết hạn, vui lòng đăng nhập lại!",
           confirmButtonText: "OK",
         });
         store.commit("gologout");
@@ -2601,7 +2601,7 @@ const deleteComment = (value, check) => {
             swal.close();
             if (error.status === 401) {
               swal.fire({
-                text: "Mã token đã hết hạn hoặc không hợp lệ, vui lòng đăng nhập lại!",
+                text: "Phiên đăng nhập đã hết hạn, vui lòng đăng nhập lại!",
                 confirmButtonText: "OK",
               });
             }
@@ -2775,7 +2775,7 @@ const showAddChildCmt = (value) => {
         console.log(error);
         if (error && error.status === 401) {
           swal.fire({
-            text: "Mã token đã hết hạn hoặc không hợp lệ, vui lòng đăng nhập lại!",
+            text: "Phiên đăng nhập đã hết hạn, vui lòng đăng nhập lại!",
             confirmButtonText: "OK",
           });
           store.commit("gologout");
@@ -2823,7 +2823,7 @@ const showFileCode = (value) => {
       console.log("ree", error);
       if (error && error.status === 401) {
         swal.fire({
-          text: "Mã token đã hết hạn hoặc không hợp lệ, vui lòng đăng nhập lại!",
+          text: "Phiên đăng nhập đã hết hạn, vui lòng đăng nhập lại!",
           confirmButtonText: "OK",
         });
         //  store.commit("gologout");
@@ -2903,7 +2903,7 @@ const deleteBug = (value) => {
             swal.close();
             if (error.status === 401) {
               swal.fire({
-                text: "Mã token đã hết hạn hoặc không hợp lệ, vui lòng đăng nhập lại!",
+                text: "Phiên đăng nhập đã hết hạn, vui lòng đăng nhập lại!",
                 confirmButtonText: "OK",
               });
             }

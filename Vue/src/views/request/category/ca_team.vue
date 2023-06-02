@@ -126,7 +126,7 @@ const loadData = (rf, activeTeam) => {
 
 				if (error && error.status === 401) {
 					swal.fire({
-						text: "Mã token đã hết hạn hoặc không hợp lệ, vui lòng đăng nhập lại!",
+						text: "Phiên đăng nhập đã hết hạn, vui lòng đăng nhập lại!",
 						confirmButtonText: "OK",
 					});
 					store.commit("gologout");
@@ -374,7 +374,7 @@ const delTem = (Tem) => {
 					swal.close();
 					if (error.status === 401) {
 						swal.fire({
-							text: "Mã token đã hết hạn hoặc không hợp lệ, vui lòng đăng nhập lại!",
+							text: "Phiên đăng nhập đã hết hạn, vui lòng đăng nhập lại!",
 							confirmButtonText: "OK",
 						});
 					}
@@ -454,7 +454,7 @@ const loadDataSQL = (activeTeam) => {
 
 			if (error && error.status === 401) {
 				swal.fire({
-					text: "Mã token đã hết hạn hoặc không hợp lệ, vui lòng đăng nhập lại!",
+					text: "Phiên đăng nhập đã hết hạn, vui lòng đăng nhập lại!",
 					confirmButtonText: "OK",
 				});
 				store.commit("gologout");
@@ -625,7 +625,7 @@ const deleteList = () => {
 					swal.close();
 					if (error.status === 401) {
 						swal.fire({
-							text: "Mã token đã hết hạn hoặc không hợp lệ, vui lòng đăng nhập lại!",
+							text: "Phiên đăng nhập đã hết hạn, vui lòng đăng nhập lại!",
 							confirmButtonText: "OK",
 						});
 					}
@@ -756,7 +756,7 @@ const listNhomTeam = () => {
 			//toast.error("Tải dữ liệu không thành công!");
 			if (error && error.status === 401) {
 				swal.fire({
-					text: "Mã token đã hết hạn hoặc không hợp lệ, vui lòng đăng nhập lại!",
+					text: "Phiên đăng nhập đã hết hạn, vui lòng đăng nhập lại!",
 					confirmButtonText: "OK",
 				});
 				store.commit("gologout");
@@ -805,7 +805,7 @@ const goUserTeam = (dataTeam, autoOpen) => {
 			//toast.error("Tải dữ liệu không thành công!");
 			if (error && error.status === 401) {
 				swal.fire({
-					text: "Mã token đã hết hạn hoặc không hợp lệ, vui lòng đăng nhập lại!",
+					text: "Phiên đăng nhập đã hết hạn, vui lòng đăng nhập lại!",
 					confirmButtonText: "OK",
 				});
 				store.commit("gologout");
@@ -859,7 +859,7 @@ const openAddMember = () => {
 			//toast.error("Tải dữ liệu không thành công!");
 			if (error && error.status === 401) {
 				swal.fire({
-					text: "Mã token đã hết hạn hoặc không hợp lệ, vui lòng đăng nhập lại!",
+					text: "Phiên đăng nhập đã hết hạn, vui lòng đăng nhập lại!",
 					confirmButtonText: "OK",
 				});
 				store.commit("gologout");

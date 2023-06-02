@@ -20,7 +20,7 @@ const config = {
 const toast = useToast();
 const cryoptojs = inject("cryptojs");
 const basedomainURL = baseURL;
-
+const checkIsEdit=ref(true);
 //Declare
 const isFilter = ref(false);
 const tabs = ref([
@@ -76,8 +76,7 @@ const liquidations = ref([
 const visibleSidebarDoc = ref(false);
 const report = ref({ datadic: null });
 const selectedNodes = ref({});
-const selectedKeys = ref([]);
-const expandedKeys = ref([]);
+ 
 const isFirst = ref(true);
 const datas = ref([]);
 const counts = ref([]);
@@ -101,10 +100,12 @@ const itemButMores = ref([
     },
   },
   {
-    label: "In quyết định",
+    label: "Cấu hình quyết định",
     icon: "pi pi-print",
     command: (event) => {
+      checkIsEdit.value=true;
       openDialogFrame(decision.value);
+ 
     },
   },
   {
@@ -118,6 +119,74 @@ const itemButMores = ref([
 const toggleMores = (event, item) => {
   decision.value = item;
   decision.value.isEdit = true;
+  if(item.status==1){
+    itemButMores.value=
+    [
+  {
+    label: "Hiệu chỉnh nội dung",
+    icon: "pi pi-pencil",
+    command: (event) => {
+      editItem(decision.value, "Chỉnh sửa quyết định");
+    },
+  },
+  {
+    label: "Nhân bản quyết định",
+    icon: "pi pi-copy",
+    command: (event) => {
+      copyItem(decision.value, "Nhân bản quyết định");
+    },
+  },
+  {
+    label: "In quyết định",
+    icon: "pi pi-print",
+    command: (event) => {
+      checkIsEdit.value=false;
+      openDialogFrame(decision.value);
+    },
+  },
+  {
+    label: "Xoá",
+    icon: "pi pi-trash",
+    command: (event) => {
+      deleteItem(decision.value);
+    },
+  },
+];
+  }
+  else{
+    itemButMores.value= [
+  {
+    label: "Hiệu chỉnh nội dung",
+    icon: "pi pi-pencil",
+    command: (event) => {
+      editItem(decision.value, "Chỉnh sửa quyết định");
+    },
+  },
+  {
+    label: "Nhân bản quyết định",
+    icon: "pi pi-copy",
+    command: (event) => {
+      copyItem(decision.value, "Nhân bản quyết định");
+    },
+  },
+  {
+    label: "Cấu hình quyết định",
+    icon: "pi pi-cog",
+    command: (event) => {
+      checkIsEdit.value=true;
+   
+      configQuyetdinh(decision.value);
+    },
+  },
+  {
+    label: "Xoá",
+    icon: "pi pi-trash",
+    command: (event) => {
+      deleteItem(decision.value);
+    },
+  },
+]
+  }
   menuButMores.value.toggle(event);
   selectedNodes.value = item;
   options.value["filterContract_id"] = selectedNodes.value["decision_id"];
@@ -157,7 +226,7 @@ const configQuyetdinh = async (row) => {
       headers: { Authorization: `Bearer ${store.getters.token}` },
     }
   );
- 
+  
   if (axResponse.status == 200) {
     if (axResponse.data.error) {
       toast.error("Không mở được bản ghi");
@@ -166,8 +235,10 @@ const configQuyetdinh = async (row) => {
       decision.value = dt[0][0];
       report.value = dt[1][0];
       report.value.datadic = [{ title: "Quyết định", data: decision.value }];
-      report.value.proc_name = `smartreport_decide_profile_list '${store.getters.user.user_id}', '${row.decision_id}'`;
-      report.value.proc_all = `smartreport_decide_profile_list_all '${store.getters.user.user_id}', '${row.decision_id}'`;
+      // report.value.proc_name = `smartreport_decide_profile_list `;
+      // report.value.proc_all = `smartreport_decide_profile_list_all`;
+      report.value.proc_name = `decision_profile_list '${store.getters.user.user_id}', '${row.decision_id}'`;
+      report.value.proc_all = `decision_profile_list_all '${store.getters.user.user_id}', '${row.decision_id}'`;
       let cg = {};
       if (report.value.report_config) {
         cg = JSON.parse(report.value.report_config);
@@ -367,7 +438,7 @@ const copyItem = (item, str) => {
       if (error && error.status === 401) {
         swal.fire({
           title: "Thông báo!",
-          text: "Mã token đã hết hạn hoặc không hợp lệ, vui lòng đăng nhập lại!",
+          text: "Phiên đăng nhập đã hết hạn, vui lòng đăng nhập lại!",
           icon: "error",
           confirmButtonText: "OK",
         });
@@ -390,7 +461,7 @@ const displayDialogFrame = ref(false);
 const openDialogFrame = (item) => {
   forceRerender(1);
   headerDialogFrame.value = "Thông tin quyết định";
-  configQuyetdinh(item);
+
   displayDialogFrame.value = true;
 };
 const closeDialogFrame = () => {
@@ -585,7 +656,7 @@ const editItem = (item, str) => {
       if (error && error.status === 401) {
         swal.fire({
           title: "Thông báo!",
-          text: "Mã token đã hết hạn hoặc không hợp lệ, vui lòng đăng nhập lại!",
+          text: "Phiên đăng nhập đã hết hạn, vui lòng đăng nhập lại!",
           icon: "error",
           confirmButtonText: "OK",
         });
@@ -645,7 +716,7 @@ const udpateStatusItem = (item) => {
       if (error && error.status === 401) {
         swal.fire({
           title: "Thông báo!",
-          text: "Mã token đã hết hạn hoặc không hợp lệ, vui lòng đăng nhập lại!",
+          text: "Phiên đăng nhập đã hết hạn, vui lòng đăng nhập lại!",
           icon: "error",
           confirmButtonText: "OK",
         });
@@ -717,7 +788,7 @@ const deleteItem = (item) => {
               if (error && error.status === 401) {
                 swal.fire({
                   title: "Thông báo!",
-                  text: "Mã token đã hết hạn hoặc không hợp lệ, vui lòng đăng nhập lại!",
+                  text: "Phiên đăng nhập đã hết hạn, vui lòng đăng nhập lại!",
                   icon: "error",
                   confirmButtonText: "OK",
                 });
@@ -783,7 +854,7 @@ const setStar = (item) => {
       if (error && error.status === 401) {
         swal.fire({
           title: "Thông báo!",
-          text: "Mã token đã hết hạn hoặc không hợp lệ, vui lòng đăng nhập lại!",
+          text: "Phiên đăng nhập đã hết hạn, vui lòng đăng nhập lại!",
           icon: "error",
           confirmButtonText: "OK",
         });
@@ -1045,7 +1116,7 @@ const initData = (ref) => {
       if (error && error.status === 401) {
         swal.fire({
           title: "Thông báo!",
-          text: "Mã token đã hết hạn hoặc không hợp lệ, vui lòng đăng nhập lại!",
+          text: "Phiên đăng nhập đã hết hạn, vui lòng đăng nhập lại!",
           icon: "error",
           confirmButtonText: "OK",
         });
@@ -1391,7 +1462,7 @@ onMounted(() => {
     </template>
     <div style="padding: 0 20px">
       <DocComponent
-        :isedit="true"
+        :isedit="checkIsEdit"
         :report="report"
         :callbackFun="callbackFun"
         :readonly="true"
@@ -1410,14 +1481,14 @@ onMounted(() => {
     :decision="decision"
     :initData="initData"
   />
-  <!-- <framepreview
+  <framepreview
     :key="componentKey['1']"
     :headerDialog="headerDialogFrame"
     :displayDialog="displayDialogFrame"
     :closeDialog="closeDialogFrame"
     :type="3"
     :model="decision"
-  /> -->
+  />
   <Dialog
     :header="headerDialogLiquidation"
     v-model:visible="displayDialogLiquidation"

@@ -351,7 +351,7 @@ const removeMember = (user, arr) => {
               if (error.status === 401) {
                 swal.fire({
                   title: "Error!",
-                  text: "Mã token đã hết hạn hoặc không hợp lệ, vui lòng đăng nhập lại!",
+                  text: "Phiên đăng nhập đã hết hạn, vui lòng đăng nhập lại!",
                   icon: "error",
                   confirmButtonText: "OK",
                 });
@@ -464,7 +464,7 @@ const editItem = (item) => {
       });
       if (error && error.status === 401) {
         swal.fire({
-          text: "Mã token đã hết hạn hoặc không hợp lệ, vui lòng đăng nhập lại!",
+          text: "Phiên đăng nhập đã hết hạn, vui lòng đăng nhập lại!",
           confirmButtonText: "OK",
         });
         store.commit("gologout");
@@ -533,7 +533,7 @@ const deleteItem = (item) => {
             });
             if (error.status === 401) {
               swal.fire({
-                text: "Mã token đã hết hạn hoặc không hợp lệ, vui lòng đăng nhập lại!",
+                text: "Phiên đăng nhập đã hết hạn, vui lòng đăng nhập lại!",
                 confirmButtonText: "OK",
               });
             }
@@ -600,7 +600,7 @@ const deleteFile = (item) => {
             });
             if (error.status === 401) {
               swal.fire({
-                text: "Mã token đã hết hạn hoặc không hợp lệ, vui lòng đăng nhập lại!",
+                text: "Phiên đăng nhập đã hết hạn, vui lòng đăng nhập lại!",
                 confirmButtonText: "OK",
               });
             }
@@ -684,7 +684,7 @@ const cancelItem = (item) => {
             if (error.status === 401) {
               swal.fire({
                 title: "Thông báo!",
-                text: "Mã token đã hết hạn hoặc không hợp lệ, vui lòng đăng nhập lại!",
+                text: "Phiên đăng nhập đã hết hạn, vui lòng đăng nhập lại!",
                 icon: "error",
                 confirmButtonText: "OK",
               });
@@ -942,7 +942,7 @@ const logItem = (item) => {
       });
       if (error && error.status === 401) {
         swal.fire({
-          text: "Mã token đã hết hạn hoặc không hợp lệ, vui lòng đăng nhập lại!",
+          text: "Phiên đăng nhập đã hết hạn, vui lòng đăng nhập lại!",
           confirmButtonText: "OK",
         });
         store.commit("gologout");
@@ -1093,7 +1093,7 @@ const removeFileMS = (files, file, index) => {
               if (error.status === 401) {
                 swal.fire({
                   title: "Error!",
-                  text: "Mã token đã hết hạn hoặc không hợp lệ, vui lòng đăng nhập lại!",
+                  text: "Phiên đăng nhập đã hết hạn, vui lòng đăng nhập lại!",
                   icon: "error",
                   confirmButtonText: "OK",
                 });
@@ -1314,7 +1314,7 @@ const deleteMS = (message) => {
             });
             if (error.status === 401) {
               swal.fire({
-                text: "Mã token đã hết hạn hoặc không hợp lệ, vui lòng đăng nhập lại!",
+                text: "Phiên đăng nhập đã hết hạn, vui lòng đăng nhập lại!",
                 confirmButtonText: "OK",
               });
             }
@@ -1647,7 +1647,7 @@ const initData = (rf) => {
       });
       if (error && error.status === 401) {
         swal.fire({
-          text: "Mã token đã hết hạn hoặc không hợp lệ, vui lòng đăng nhập lại!",
+          text: "Phiên đăng nhập đã hết hạn, vui lòng đăng nhập lại!",
           confirmButtonText: "OK",
         });
         store.commit("gologout");

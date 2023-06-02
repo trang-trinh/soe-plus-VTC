@@ -2966,11 +2966,18 @@ namespace API.Controllers.HRM.Profile
 
                                                                 break;
                                                             case "4":
+                                                                var listparent_id = db.sys_organization.FirstOrDefault(x => x.organization_id == assignment.organization_id)?.listparent_id ?? null;
                                                                 var department_name = value;
-                                                                var department_exists = await db.sys_organization.FirstOrDefaultAsync(x => x.organization_key == department_name && x.organization_type == 1 && (x.organization_id == assignment.organization_id || x.parent_id == assignment.organization_id));
+                                                                var department_exists = await db.sys_organization.FirstOrDefaultAsync(x => x.organization_key == department_name && x.organization_type == 1 && listparent_id != null && x.listparent_id.Contains(listparent_id));
                                                                 if (department_exists != null)
                                                                 {
                                                                     assignment.department_id = department_exists.organization_id;
+                                                                    assignment.department_names = value;
+                                                                    var ps = await db.hrm_profile.FirstOrDefaultAsync(x => x.profile_id == assignment.profile_id);
+                                                                    if (ps != null)
+                                                                    {
+                                                                        ps.id_department = assignment.department_id;
+                                                                    }
                                                                 }
                                                                 break;
                                                             case "5":
@@ -2979,6 +2986,7 @@ namespace API.Controllers.HRM.Profile
                                                                 if (position_exists != null)
                                                                 {
                                                                     assignment.position_id = position_exists.position_id;
+                                                                    assignment.position_names = value;
                                                                 }
                                                                 break;
                                                             case "6":
@@ -2987,6 +2995,7 @@ namespace API.Controllers.HRM.Profile
                                                                 if (title_exists != null)
                                                                 {
                                                                     assignment.title_id = title_exists.title_id;
+                                                                    assignment.title_names = value;
                                                                 }
                                                                 break;
                                                             case "7":
@@ -2995,6 +3004,7 @@ namespace API.Controllers.HRM.Profile
                                                                 if (personel_groups_exists != null)
                                                                 {
                                                                     assignment.personel_groups_id = personel_groups_exists.personel_groups_id;
+                                                                    assignment.personel_groups_names = value;
                                                                 }
                                                                 break;
                                                             case "8":
@@ -3217,6 +3227,7 @@ namespace API.Controllers.HRM.Profile
                                                                 if (relationship_exists != null)
                                                                 {
                                                                     relative.relationship_id = relationship_exists.relationship_id;
+                                                                    relative.relationship_names = value;
                                                                 }
                                                                 break;
                                                             case "5":
@@ -3419,6 +3430,7 @@ namespace API.Controllers.HRM.Profile
                                                                 if (academic_level_exists != null)
                                                                 {
                                                                     skill.academic_level_id = academic_level_exists.academic_level_id;
+                                                                    skill.academic_level_names = value;
                                                                 }
                                                                 break;
                                                             case "7":
@@ -3430,6 +3442,7 @@ namespace API.Controllers.HRM.Profile
                                                                 if (specialization_exists != null)
                                                                 {
                                                                     skill.specialized = specialization_exists.specialization_id;
+                                                                    skill.specialized_names = value;
                                                                 }
                                                                 break;
                                                             case "9":
@@ -3441,6 +3454,7 @@ namespace API.Controllers.HRM.Profile
                                                                 if (form_traning_exists != null)
                                                                 {
                                                                     skill.form_traning_id = form_traning_exists.form_traning_id;
+                                                                    skill.form_traning_names = value;
                                                                 }
                                                                 break;
                                                             case "11":
@@ -3455,6 +3469,7 @@ namespace API.Controllers.HRM.Profile
                                                                 if (certificat_exists != null)
                                                                 {
                                                                     skill.certificate_id = certificat_exists.certificate_id;
+                                                                    skill.certificate_names = value;
                                                                 }
                                                                 break;
                                                             case "14":
@@ -3825,7 +3840,7 @@ namespace API.Controllers.HRM.Profile
             }
         }
         [HttpPost]
-        public async Task<HttpResponseMessage> PostProc([System.Web.Mvc.Bind(Include = "")][FromBody] JObject data)
+        public async Task<HttpResponseMessage> PostProc([System.Web.Mvc.Bind(Include = "str")][FromBody] JObject data)
         {
             string strSQL = data["str"].ToObject<string>();
             strSQL = Codec.DecryptString(strSQL, helper.psKey);
@@ -3867,7 +3882,7 @@ namespace API.Controllers.HRM.Profile
                 DateTime edate = DateTime.Now;
                 string JSONresult = JsonConvert.SerializeObject(tables);
                 int time = (int)Math.Ceiling((edate - sdate).TotalMilliseconds);
-                return Request.CreateResponse(HttpStatusCode.OK, new { data = JSONresult, err = "0", proc_name = (helper.debug ? proc!.proc : ""), time });
+                return Request.CreateResponse(HttpStatusCode.OK, new { data = JSONresult, err = "0", proc_name = (helper.debug && proc!.query != true ? proc!.proc : ""), time });
             }
             catch (Exception e)
             {

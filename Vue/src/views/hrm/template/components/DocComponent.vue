@@ -1221,7 +1221,7 @@ export default {
     };
     const showDataSidebar = () => {
       isdataSidebar.value = true;
-      checkHide=false;
+      checkHide = false;
       if (datamaps.value.length == 0) {
         initMapData();
       }
@@ -1252,13 +1252,12 @@ export default {
       });
     };
     const saveDatamap = (f) => {
-       
       if (readonly.value) {
         //Save file quyết định, lương...
         let users = [];
         if (!oneRow.value) {
           let arr = [];
-          
+
           dtDataReports.value.forEach((dr) => {
             let objt = {};
             Object.keys(dr)
@@ -1277,7 +1276,7 @@ export default {
             }
             arr.push(objt);
           });
-          
+
           props.callbackFun(arr);
           isdataSidebar.value = false;
 
@@ -1465,7 +1464,6 @@ export default {
             cols.forEach((c, j) => {
               if (c) {
                 c.value = c.value.replaceAll("\n", "");
-             
               }
               if (trs[i].children[j + 1]) {
                 //console.log(c.value+" - "+trs[i].children[j + 1].innerText);
@@ -1486,14 +1484,21 @@ export default {
         }
 
         let arrF = [];
+       
         dtDataReports.value.forEach((r) => {
           let rr = rows.find(
             (x) =>
+              x["Họ tên"].trim().toUpperCase() ==
+                r["Họ tên"].split("<br/>")[0].trim().toUpperCase() ||
+              x["Họ và tên"].trim().toUpperCase() ==
+                r["Họ tên"].split("<br/>")[0].trim().toUpperCase() ||
               x["HỌ VÀ TÊN"].trim().toUpperCase() ==
                 r["Họ tên"].split("<br/>")[0].trim().toUpperCase() ||
               (r["profile_code"] &&
                 (x["Mã NS"] == r["profile_code"] ||
-                  x["Mã Nhân sự"] == r["profile_code"]))
+                  x["Mã Nhân sự"] == r["profile_code"] ||
+                  x["Mã NV"] == r["profile_code"])
+                  )
           );
 
           if (rr) {
@@ -1507,9 +1512,7 @@ export default {
         dtDataReports.value = arrF;
         await saveDatamap(false);
 
-        props.callbackFun(
-          { is_config: JSON.stringify(objDataTemp.value) }
-        );
+        props.callbackFun({ is_config: JSON.stringify(objDataTemp.value) });
         // props.reload();
         showLoadding.value = false;
         isdataSidebar.value = false;
@@ -1522,7 +1525,7 @@ export default {
     const importJsonData = (event) => {
       let file = event.files[0];
       if (file.name.includes("xls")) {
-        checkHide=true;
+        checkHide = true;
         myDocUploader(event);
         return false;
       }
@@ -1543,7 +1546,6 @@ export default {
     };
     let dtUser = {};
     const initDataTempAuto = async (tf) => {
-       
       if (!isUrlReport.value) {
         let dts = await goProc(
           false,
@@ -1664,6 +1666,7 @@ export default {
           objConfig = JSON.parse(props.report.report_config.trim());
 
           if (isUrlReport.value && Object.keys(props.pars).length > 0) {
+       
             await initURLReport();
           } else if (Object.keys(objConfig.proc).length > 0) {
             await initReportData(objConfig);
@@ -1694,7 +1697,7 @@ export default {
         }
       }
 
-      objDataTempSave.value=[...objDataTemp.value]
+      objDataTempSave.value = [...objDataTemp.value];
       if (isxls.value) initdbXLS();
       if (objDataTemp.value[0].cols.length == 0) {
         await initTempAI();
@@ -1861,6 +1864,7 @@ export default {
     let proc = {};
     const isDisplayDatabase = ref(false);
     const IsOne = ref(false);
+    const isShow = ref(true);
     const dbrow = ref({});
     const openCogDatabase = (row, f, o) => {
       if (f) {
@@ -1879,14 +1883,29 @@ export default {
       if (!row.value) row.value = row.name;
       dbrow.value = row;
       if (o != null) IsOne.value = o;
-
-      isDisplayDatabase.value = true;
+      setTimeout(() => {
+        isDisplayDatabase.value = true;
+      }, 750);
     };
+
+    
     const saveDatabase = () => {
       //isDisplayDatabase.value = false;
+
       configDBChild.value.saveDatabase();
     };
+
+
     const saveConfig = () => {
+        
+       if(Object(proc))
+       if(Object.keys(proc).length == 0){
+        // isShow.value=false;
+        // openCogDatabase(objDataTemp.value);
+      
+
+      }
+       
       props.callbackFun({
         report_config: JSON.stringify({
           data: isxls.value ? dtExcels.value : objDataTemp.value,
@@ -2415,7 +2434,7 @@ export default {
     const dtTempCols = ref([]);
     const callbackFunChild = (dt, pr) => {
       let arr = [];
-
+     
       dt.forEach((tr) => {
         tr.cols.forEach((td) => {
           let obj = {};
@@ -2426,6 +2445,7 @@ export default {
           arr.push(obj);
         });
       });
+
       dataDB.value = arr;
       dbrow.value.key = arr[0].id;
       if (/\[\d+\]/g.test(dbrow.value.value)) {
@@ -2453,6 +2473,7 @@ export default {
         proc = pr;
         procchild = { ...pr };
       }
+      
       if (isxls.value) {
         let ir = dtExcels.value.findIndex(
           (x) => x.rowmnumber == dbrow.value.rowmnumber
@@ -2469,6 +2490,7 @@ export default {
         if (document.getElementById("app-body"))
           document.getElementById("app-body").classList.remove("p-2");
       }
+      console.log("sps", props.report);
       if (props.report) {
         initTemplate();
       }
@@ -2516,7 +2538,7 @@ export default {
       if (!objConfig.proc.name) {
         objConfig.proc.name = props.report.proc_name;
       }
-
+   
       dtDataReports.value = await goProc(
         objConfig.proc.issql,
         objConfig.proc.sql,
@@ -2634,15 +2656,14 @@ export default {
     };
     let cacheobjDataTemp = [];
     async function renderTableWord(objpar) {
-       
       let pas = [];
-      
+ 
       if (cacheobjDataTemp.length == 0) {
         cacheobjDataTemp = JSON.parse(JSON.stringify(objDataTemp.value));
       } else {
         objDataTemp.value = JSON.parse(JSON.stringify(cacheobjDataTemp));
       }
-      
+
       if (objConfig.proc.parameters)
         objConfig.proc.parameters.forEach((pa) => {
           pas.push({
@@ -2652,16 +2673,15 @@ export default {
         });
 
       let dts = await goProc(false, objConfig.proc.name, pas, true);
-       
+
       //init với kiểu lưu
       let tbs = [];
       if (dts[0][0].is_data) {
-         
         dts[0][0].is_data = dts[0][0].is_data.replaceAll("\\n", "");
 
         try {
           tbs = JSON.parse(dts[0][0].is_data);
-           
+
           objDataTemp.value.forEach((ot, i) => {
             let tb = tbs[i];
             ot.cols.forEach((co) => {
@@ -2681,15 +2701,13 @@ export default {
               }
             });
           });
-           
         } catch (e) {}
       }
 
-        
       //
       datausers = dts;
       dochtml.innerHTML = tempHTMLGoc;
- 
+
       dochtml
         .querySelectorAll('[style*="background-color:#ffff00"]')
         .forEach((el) => {
@@ -2706,7 +2724,7 @@ export default {
               function (s, ke) {
                 let obj = objDataTemp.value[0].cols.find((x) => x.value == ke);
                 let k = obj ? obj.key : ke;
-                 
+
                 // if (k == "Số người phụ thuộc") {
                 //     console.log(dts[0][0][k]);
                 // }
@@ -2819,7 +2837,6 @@ export default {
     };
     let selectdata = {};
     const onRowSelectReport = async (event) => {
-       
       let tselect = document.querySelector("tr.selected");
       if (tselect) tselect.classList.remove("selected");
       if (event.originalEvent)
@@ -2933,8 +2950,6 @@ export default {
       }
     };
     //Cấu hình database cho excel
-
-    
 
     const expandedRows = ref([]);
     const dtExcels = ref([]);
@@ -3178,7 +3193,6 @@ export default {
       );
       if (dts.length > 0) {
         dtProfile = dts[0];
-        
       }
     };
     const oneRow = ref(true);
@@ -3249,11 +3263,10 @@ export default {
       return "Text";
     };
     const editForm = async (r, rcopy) => {
-     
       if (props.report.is_config) {
         objDataTemp.value = props.report.is_config;
       }
-      
+
       objDataTemp.value.forEach((ot) => {
         ot.cols.forEach((co) => {
           if (co.inputtype == "Number" || co.inputtype == "Currency") {
@@ -3262,7 +3275,7 @@ export default {
             }
           }
         });
-         
+
         if (ot.rows) {
           ot.rows.forEach((r) => {
             if (r.cols)
@@ -3278,7 +3291,7 @@ export default {
         }
       });
       oneRow.value = r ? true : false;
-       
+
       isfullSidebar.value = !oneRow.value;
       if (!r) {
         r = cForm.value;
@@ -3426,12 +3439,10 @@ export default {
         editDataAll(objvalue);
       }
     };
-    let checkHide=false;
-    const onHideSidebarM=()=>{
-      if(!checkHide)
-      objDataTemp.value=[...objDataTempSave.value];
-
-    }
+    let checkHide = false;
+    const onHideSidebarM = () => {
+      if (!checkHide) objDataTemp.value = [...objDataTempSave.value];
+    };
     const optionTypeDBs = ref([
       { name: "Lấy dữ liệu động từ hệ thống", value: 1 },
       { name: "Tải dữ liệu dưới máy", value: 2 },
@@ -3591,6 +3602,7 @@ export default {
       isdataSidebar,
       isfullSidebar,
       showDataSidebar,
+      isShow,
       datamaps,
       saveDatamap,
       downloadJsonData,
@@ -3635,7 +3647,7 @@ export default {
       oneRow,
       getCompUsers,
       rfUserComp,
-      selectedStamps
+      selectedStamps,
     };
   },
 };
@@ -4059,7 +4071,7 @@ export default {
                   @click="editForm()"
                   icon="pi pi-pencil"
                   severity="secondary"
-                  class="mr-1 p-button-outlined p-button-text p-button-rounded"
+                  class="mr-1 p-button-secondary p-button-outlined p-button-text p-button-rounded"
                 />
               </template>
               <template #body="slotProps">
@@ -4068,13 +4080,12 @@ export default {
                   @click="editForm(slotProps.data)"
                   icon="pi pi-pencil"
                   severity="secondary"
-                  class="mr-1 p-button-outlined p-button-rounded"
-              v-if="selectedStamps.profile_id== slotProps.data.profile_id"
+                  class="mr-1 p-button-outlined p-button-rounded p-button-secondary"
+                  v-if="selectedStamps.profile_id == slotProps.data.profile_id"
                 />
               </template>
             </Column>
           </DataTable>
-     
         </div>
         <div v-else style="height: calc(100vh - 130px); overflow-y: auto">
           <div class="p-0">
@@ -4101,9 +4112,10 @@ export default {
                 @click="refershConfig()"
                 icon="pi pi-refresh"
                 severity="secondary"
-                class="p-button-outlined"
+                class="p-button-outlined p-button-secondary"
               />
             </div>
+
             <DataTable
               v-model:expandedRows="expandedRows"
               :rowClass="rowClass"
@@ -4172,14 +4184,14 @@ export default {
                     @click="openCogDatabase(slotProps.data)"
                     icon="pi pi-cog"
                     severity="secondary"
-                    class="mr-1 p-button-outlined"
+                    class="mr-1 p-button-outlined p-button-secondary"
                     style="width: 36px; height: 36px"
                   />
                   <Button
                     @click="delRowXLS(slotProps.data)"
                     icon="pi pi-trash"
                     severity="danger"
-                    class="p-button-outlined"
+                    class="p-button-outlined p-button-danger"
                     style="width: 36px; height: 36px"
                   />
                 </template>
@@ -4188,8 +4200,12 @@ export default {
                 <div class="py-3 w-full" v-if="row.data.cols">
                   <Toolbar class="w-full custoolbar">
                     <template #start>
-                      <div><h3 class="p-0 m-0 mb-2" v-if="report.report_type == 1">Tổng lương</h3>
-                        <h3 class="p-0 m-0 mb-2" v-else>Cột</h3></div>
+                      <div>
+                        <h3 class="p-0 m-0 mb-2" v-if="report.report_type == 1">
+                          Tổng lương
+                        </h3>
+                        <h3 class="p-0 m-0 mb-2" v-else>Cột</h3>
+                      </div>
                     </template>
                     <template #end>
                       <div v-if="report.report_type == 1">
@@ -4298,14 +4314,14 @@ export default {
                           @click="openCogDatabase(slotProps.data, true, true)"
                           icon="pi pi-cog"
                           severity="secondary"
-                          class="p-button-outlined"
+                          class="p-button-outlined p-button-secondary"
                           style="width: 36px; height: 36px"
                         />
                         <Button
                           @click="delRowXLS(row, slotProps.data)"
                           icon="pi pi-trash"
                           severity="danger"
-                          class="p-button-outlined"
+                          class="p-button-outlined p-button-danger"
                           style="width: 36px; height: 36px; margin-left: 5px"
                         />
                       </template>
@@ -4392,13 +4408,13 @@ export default {
                     @click="openCogDatabase(slotProps.data, true, true)"
                     icon="pi pi-cog"
                     severity="secondary"
-                    class="p-button-outlined"
+                    class="p-button-outlined p-button-secondary"
                   />
                   <Button
                     @click="delRowXLS(slotProps.data)"
                     icon="pi pi-trash"
                     severity="danger"
-                    class="ml-1 p-button-outlined"
+                    class="ml-1 p-button-outlined p-button-danger"
                   />
                 </template>
               </Column>
@@ -4473,13 +4489,13 @@ export default {
                           @click="openCogDatabase(slotProps.data, true, true)"
                           icon="pi pi-cog"
                           severity="secondary"
-                          class="p-button-outlined"
+                          class="p-button-outlined p-button-secondary"
                         />
                         <Button
                           @click="delRowXLS(slotProps.data)"
                           icon="pi pi-trash"
                           severity="danger"
-                          class="ml-1 p-button-outlined"
+                          class="ml-1 p-button-outlined p-button-danger"
                         />
                       </template>
                     </Column>
@@ -4503,10 +4519,10 @@ export default {
       <Editor v-model="spanEditor" editorStyle="height: 320px" />
       <template #footer>
         <Button
-          label="Không"
+          label="Thoát"
           icon="pi pi-times"
+          class="p-button-outlined"
           @click="displayCK = false"
-          class="p-button-text"
         />
         <Button label="Lưu lại" icon="pi pi-save" @click="saveCK()" autofocus />
       </template>
@@ -4671,10 +4687,10 @@ export default {
       </Dropdown>
       <template #footer>
         <Button
-          label="Không"
+          label="Thoát"
           icon="pi pi-times"
+          class="p-button-outlined"
           @click="displayTable = false"
-          class="p-button-text"
         />
         <Button
           label="Lưu lại"
@@ -4766,10 +4782,10 @@ export default {
       <template #footer>
         <Divider />
         <Button
-          label="Không"
+          label="Thoát"
           icon="pi pi-times"
+          class="p-button-outlined"
           @click="displayEditData = false"
-          class="p-button-text"
         />
         <Button
           label="Lưu lại"
@@ -4788,6 +4804,9 @@ export default {
       :maximizable="true"
       :modal="true"
     >
+ 
+
+   
       <ConfigDatabaseComponent
         :group="dbrow"
         ref="configDBChild"
@@ -4795,40 +4814,38 @@ export default {
         :one="IsOne"
         :callbackFun="callbackFunChild"
         :report="report"
-      />
+      />  
       <template #footer>
         <div class="flex">
           <Button
             v-if="(dtTempCols || objDataTemp).length > 0"
-            icon="pi pi-angle-left"
-            class="mr-1"
+            icon="pi pi-angle-left "
+            class="ml-1 p-button-secondary p-button-text"
             @click="nextDBrow(false)"
-            severity="secondary"
-            text
           />
+
           <Dropdown
             v-if="(dtTempCols || objDataTemp).length > 0"
             v-model="dbrow"
             optionLabel="value"
-            :options="dtTempCols || objDataTemp"
+            :options="dtTempCols"
             :filter="true"
             placeholder="Chọn key"
           >
           </Dropdown>
+
           <Button
             v-if="(dtTempCols || objDataTemp).length > 0"
             icon="pi pi-angle-right"
-            class="ml-1"
+            class="ml-1 p-button-secondary p-button-text"
             @click="nextDBrow(true)"
-            severity="secondary"
-            text
           />
           <div class="flex-1"></div>
           <Button
-            label="Không"
+            label="Thoát"
             icon="pi pi-times"
+            class="p-button-outlined"
             @click="isDisplayDatabase = false"
-            class="p-button-text"
           />
           <Button
             :disabled="showLoadding"
@@ -4911,7 +4928,7 @@ export default {
         <Button
           v-if="opTypeDB.value == 2"
           severity="secondary"
-          class="mr-1 p-button-outlined"
+          class="mr-1 p-button-outlined p-button-secondary"
           type="button"
           label="Tải"
           icon="pi pi-download"
@@ -5060,12 +5077,12 @@ export default {
                   @click="openCogDatabase(slotProps.data, true, false)"
                   icon="pi pi-cog"
                   severity="secondary"
-                  class="p-button-outlined"
+                  class="p-button-outlined p-button-secondary"
                 />
                 <Button
                   class="ml-1 p-button-outlined"
                   @click="removeTable(slotProps.data)"
-                  icon="pi pi-trash"
+                  icon="pi pi-trash p-button-danger"
                   severity="danger"
                 />
               </template>
@@ -5112,7 +5129,7 @@ export default {
                   >
                   </UserComponent>
                   <Button
-                    class="ml-1 p-button-outlined"
+                    class="ml-1 p-button-outlined p-button-secondary"
                     @click="addRowWord(dt)"
                     icon="pi pi-plus-circle"
                     severity="secondary"
@@ -5209,7 +5226,7 @@ export default {
                     />
                   </span>
                   <Button
-                    class="ml-1 p-button-outlined"
+                    class="ml-1 p-button-outlined p-button-secondary"
                     :loading="showLoadding"
                     @click="rfReportData()"
                     icon="pi pi-refresh"

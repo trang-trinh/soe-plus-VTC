@@ -186,7 +186,7 @@ export default {
           },
         ],
       };
-
+ 
       try {
         const axResponse = await axios.post(
           baseURL + "/api/HRM_SQL/getData",
@@ -211,7 +211,7 @@ export default {
               props.report.report_config.trim() != ""
             ) {
               let objConfig = JSON.parse(props.report.report_config);
-              debugger;
+     
               if (objConfig && Object.entries(objConfig.proc).length > 0) {
                 dtPars.value = objConfig.proc.parameters;
                 txtSQL.value = objConfig.proc.sql;
@@ -234,6 +234,7 @@ export default {
     };
     const saveDatabase = () => {
       var tbchons = [];
+      
       let arrChons = dtTables.value.filter((x) => x.chon);
       if (arrChons.length == 0) arrChons = [mdTable.value];
       arrChons.forEach((tb) => {
@@ -248,7 +249,7 @@ export default {
         tbc.cols = [cc];
         tbchons.push(tbc);
       });
-
+      
       props.callbackFun(tbchons, {
         name: mdProc.value ? mdProc.value.proc_name : "",
         parameters: dtPars.value,
@@ -637,6 +638,7 @@ export default {
     };
 
     onMounted(() => {
+       
       if (
         props.report.proc_name &&
         props.report.proc_name.toLowerCase().includes("select")
@@ -700,6 +702,7 @@ export default {
         />
         <div class="flex-1"></div>
         <span>
+         
           <FileUpload
             chooseLabel="Import Excel"
             class="mr-1"

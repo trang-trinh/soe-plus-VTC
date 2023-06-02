@@ -157,7 +157,7 @@ const loadData = (rf) => {
         });
         if (error && error.status === 401) {
           swal.fire({
-            text: "Mã token đã hết hạn hoặc không hợp lệ, vui lòng đăng nhập lại!",
+            text: "Phiên đăng nhập đã hết hạn, vui lòng đăng nhập lại!",
             confirmButtonText: "OK",
           });
           store.commit("gologout");
@@ -199,7 +199,7 @@ const loadDonvi = () => {
     .catch((error) => {
       if (error && error.status === 401) {
         swal.fire({
-          text: "Mã token đã hết hạn hoặc không hợp lệ, vui lòng đăng nhập lại!",
+          text: "Phiên đăng nhập đã hết hạn, vui lòng đăng nhập lại!",
           confirmButtonText: "OK",
         });
       }
@@ -386,7 +386,7 @@ const delDispatch = (Dispatch) => {
             swal.close();
             if (error.status === 401) {
               swal.fire({
-                text: "Mã token đã hết hạn hoặc không hợp lệ, vui lòng đăng nhập lại!",
+                text: "Phiên đăng nhập đã hết hạn, vui lòng đăng nhập lại!",
                 confirmButtonText: "OK",
               });
             }
@@ -452,7 +452,7 @@ const exportData = (method) => {
     .catch((error) => {
       if (error.status === 401) {
         swal.fire({
-          text: "Mã token đã hết hạn hoặc không hợp lệ, vui lòng đăng nhập lại!",
+          text: "Phiên đăng nhập đã hết hạn, vui lòng đăng nhập lại!",
           confirmButtonText: "OK",
         });
         store.commit("gologout");
@@ -577,7 +577,7 @@ const loadDataSQL = () => {
       });
       if (error && error.status === 401) {
         swal.fire({
-          text: "Mã token đã hết hạn hoặc không hợp lệ, vui lòng đăng nhập lại!",
+          text: "Phiên đăng nhập đã hết hạn, vui lòng đăng nhập lại!",
           confirmButtonText: "OK",
         });
         store.commit("gologout");
@@ -711,7 +711,7 @@ const deleteList = () => {
             swal.close();
             if (error.status === 401) {
               swal.fire({
-                text: "Mã token đã hết hạn hoặc không hợp lệ, vui lòng đăng nhập lại!",
+                text: "Phiên đăng nhập đã hết hạn, vui lòng đăng nhập lại!",
                 confirmButtonText: "OK",
               });
             }

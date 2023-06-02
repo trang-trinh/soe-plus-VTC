@@ -133,7 +133,7 @@ const loadDonvi = () => {
       if (error && error.status === 401) {
         swal.fire({
           title: "Thông báo",
-          text: "Mã token đã hết hạn hoặc không hợp lệ, vui lòng đăng nhập lại!",
+          text: "Phiên đăng nhập đã hết hạn, vui lòng đăng nhập lại!",
           icon: "error",
           confirmButtonText: "OK",
         });
@@ -183,7 +183,7 @@ const LoadData = (rf) => {
         if (error && error.status === 401) {
           swal.fire({
             title: "Thông báo",
-            text: "Mã token đã hết hạn hoặc không hợp lệ, vui lòng đăng nhập lại!",
+            text: "Phiên đăng nhập đã hết hạn, vui lòng đăng nhập lại!",
             icon: "error",
             confirmButtonText: "OK",
           });
@@ -319,7 +319,7 @@ const loadDataSQL = () => {
       if (error && error.status === 401) {
         swal.fire({
           title: "Thông báo",
-          text: "Mã token đã hết hạn hoặc không hợp lệ, vui lòng đăng nhập lại!",
+          text: "Phiên đăng nhập đã hết hạn, vui lòng đăng nhập lại!",
           icon: "error",
           confirmButtonText: "OK",
         });
@@ -560,7 +560,7 @@ const DeleteItem = (vl) => {
             if (error.status === 401) {
               swal.fire({
                 title: "Thông báo",
-                text: "Mã token đã hết hạn hoặc không hợp lệ, vui lòng đăng nhập lại!",
+                text: "Phiên đăng nhập đã hết hạn, vui lòng đăng nhập lại!",
                 icon: "error",
                 confirmButtonText: "OK",
               });
@@ -623,7 +623,7 @@ const DeleteItems = () => {
             if (error.status === 401) {
               swal.fire({
                 title: "Thông báo",
-                text: "Mã token đã hết hạn hoặc không hợp lệ, vui lòng đăng nhập lại!",
+                text: "Phiên đăng nhập đã hết hạn, vui lòng đăng nhập lại!",
                 icon: "error",
                 confirmButtonText: "OK",
               });
@@ -704,7 +704,7 @@ const exportData = () => {
       if (error.status === 401) {
         swal.fire({
           title: "Thông báo",
-          text: "Mã token đã hết hạn hoặc không hợp lệ, vui lòng đăng nhập lại!",
+          text: "Phiên đăng nhập đã hết hạn, vui lòng đăng nhập lại!",
           icon: "error",
           confirmButtonText: "OK",
         });

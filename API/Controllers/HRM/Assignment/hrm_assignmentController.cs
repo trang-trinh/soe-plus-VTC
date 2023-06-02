@@ -121,6 +121,12 @@ namespace API.Controllers.HRM.Assignment
                             }
                         }
                     }
+                    
+                    if (model.is_active == true)
+                    {
+                        var profile = await db.hrm_profile.FindAsync(model.profile_id);
+                        profile.id_department = model.department_id;
+                    }
                     #endregion
                     await db.SaveChangesAsync();
                     return Request.CreateResponse(HttpStatusCode.OK, new { err = "0" });
