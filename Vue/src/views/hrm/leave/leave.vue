@@ -8,6 +8,8 @@ import { useRoute } from "vue-router";
 import dialogleaveprofile from "./component/dialogleaveprofile.vue";
 import dialogtransferinventory from "./component/dialogtransferinventory.vue";
 import dialogconfigleaveyear from "./component/dialogconfigleaveyear.vue";
+import dialogviewleaveprofile from "./component/dialogviewleaveprofile.vue";
+import dialogviewmonthleaveprofile from "./component/dialogviewmonthleaveprofile.vue";
 
 const route = useRoute();
 const store = inject("store");
@@ -53,6 +55,7 @@ const isFirst = ref(true);
 const selectedNodes = ref({});
 const datas = ref([]);
 const profile = ref({});
+const rolefunctions = ref([]);
 const functions = ref({});
 
 //Declare dictionary
@@ -165,6 +168,37 @@ const openDialogLeaveProfile = (item, str) => {
 const closeDialogLeaveProfile = () => {
   displayDialogLeaveProfile.value = false;
   forceRerender(0);
+};
+
+const headerDialogViewLeaveProfile = ref();
+const displayDialogViewLeaveProfile = ref(false);
+const openDialogViewLeaveProfile = (item, str) => {
+  if (item.is_view) {
+    profile.value = item;
+    headerDialogViewLeaveProfile.value = str;
+    displayDialogViewLeaveProfile.value = true;
+    forceRerender(3);
+  }
+};
+const closeDialogViewLeaveProfile = () => {
+  displayDialogViewLeaveProfile.value = false;
+  forceRerender(3);
+};
+
+const headerDialogViewMonthLeaveProfile = ref();
+const displayDialogViewMonthLeaveProfile = ref(false);
+const openDialogViewMonthLeaveProfile = (item, month, str) => {
+  if (item.is_view) {
+    profile.value = item;
+    options.value.month = month.month;
+    headerDialogViewMonthLeaveProfile.value = str;
+    displayDialogViewMonthLeaveProfile.value = true;
+    forceRerender(4);
+  }
+};
+const closeDialogViewMonthLeaveProfile = () => {
+  displayDialogViewMonthLeaveProfile.value = false;
+  forceRerender(4);
 };
 
 //function export
@@ -317,6 +351,52 @@ const closeDialogConfigLeaveYear = () => {
 };
 
 //init
+const initRoleFunction = () => {
+  axios
+    .post(
+      baseURL + "/api/hrm/callProc",
+      {
+        str: encr(
+          JSON.stringify({
+            proc: "hrm_profile_rolefunction_get",
+            par: [
+              { par: "user_id", va: store.getters.user.user_id },
+              { par: "is_link", va: options.value.path },
+            ],
+          }),
+          SecretKey,
+          cryoptojs
+        ).toString(),
+      },
+      config
+    )
+    .then((response) => {
+      if (response != null && response.data != null) {
+        var data = response.data.data;
+        if (data != null) {
+          let tbs = JSON.parse(data);
+          if (tbs[0] != null && tbs[0].length > 0) {
+            let permissions = Object.entries(tbs[0][0]);
+            for (const [key, value] of permissions) {
+              functions.value[key] = value;
+            }
+          }
+          if (tbs[1] != null && tbs[1].length > 0) {
+            if (
+              tbs[1][0].module_functions != null &&
+              tbs[1][0].module_functions != ""
+            ) {
+              let module_functions = tbs[1][0].module_functions.split(",");
+              for (var key in module_functions) {
+                functions.value[module_functions[key]] = true;
+              }
+            }
+          }
+          rolefunctions.value = tbs;
+        }
+      }
+    });
+};
 const initDictionary = () => {
   axios
     .post(
@@ -361,17 +441,6 @@ const initDictionary = () => {
             );
             department.value = temp2;
           }
-          if (tbs[2] != null && tbs[2].length > 0) {
-            if (
-              tbs[2][0].module_functions != null &&
-              tbs[2][0].module_functions != ""
-            ) {
-              let module_functions = tbs[2][0].module_functions.split(",");
-              for (var key in module_functions) {
-                functions.value[module_functions[key]] = true;
-              }
-            }
-          }
           dictionarys.value = tbs;
         }
       }
@@ -397,6 +466,7 @@ const initData = (ref) => {
       },
     });
   }
+  options.value.loading = true;
   var departments = "";
   if (options.value.departments && options.value.departments.length > 0) {
     departments = options.value.departments
@@ -496,8 +566,9 @@ const refresh = () => {
 onMounted(() => {
   options.value.path = route.path;
   options.value.name = route.name;
-  initDictionary();
   initData(true);
+  initDictionary();
+  initRoleFunction();
 });
 </script>
 <template>
@@ -526,6 +597,7 @@ onMounted(() => {
           class="mr-2"
         />
         <Button
+          v-if="functions.tienich"
           @click="toggleExport"
           label="Tiện ích"
           icon="pi pi-file-excel"
@@ -713,13 +785,17 @@ onMounted(() => {
           <tr>
             <th
               class="sticky text-center"
-              :style="{ left: '0', top: '0', width: '50px' }"
+              :style="{ left: '0', top: '0', width: '80px' }"
+            ></th>
+            <th
+              class="sticky text-center"
+              :style="{ left: '80px', top: '0', width: '50px' }"
             >
               STT
             </th>
             <th
               class="sticky text-center"
-              :style="{ left: '50px', top: '0', width: '200px' }"
+              :style="{ left: '130px', top: '0', width: '200px' }"
             >
               HỌ VÀ TÊN
             </th>
@@ -812,13 +888,51 @@ onMounted(() => {
           <tr
             v-for="(user, user_key) in group.users"
             :key="user_key"
-            @click="openDialogLeaveProfile(user)"
-            class="hover"
           >
+            <td
+              class="sticky p-0"
+              :style="{
+                left: '0',
+                width: '80px',
+                background: '#f8f9fa',
+                textAlign: 'center',
+              }"
+            >
+              <div class="format-center">
+                <ul class="m-0 p-0 flex" :style="{ listStyle: 'none' }">
+                  <li v-if="user.is_view">
+                    <Button
+                      icon="pi pi-eye"
+                      class="p-button-rounded p-button-text"
+                      @click="
+                        openDialogViewLeaveProfile(user);
+                        $event.stopPropagation();
+                      "
+                      aria-haspopup="true"
+                      aria-controls="overlay_More"
+                      v-tooltip.top="'Xem chi tiết'"
+                    />
+                  </li>
+                  <li v-if="user.is_function">
+                    <Button
+                      icon="pi pi-pencil"
+                      class="p-button-rounded p-button-text"
+                      @click="
+                        openDialogLeaveProfile(user);
+                        $event.stopPropagation();
+                      "
+                      aria-haspopup="true"
+                      aria-controls="overlay_More"
+                      v-tooltip.top="'Cập nhật nghỉ phép'"
+                    />
+                  </li>
+                </ul>
+              </div>
+            </td>
             <td
               class="sticky"
               :style="{
-                left: '0',
+                left: '80px',
                 width: '50px',
                 background: '#f8f9fa',
                 textAlign: 'center',
@@ -829,7 +943,7 @@ onMounted(() => {
             <td
               class="sticky text-left"
               :style="{
-                left: '50px',
+                left: '130px',
                 width: '200px',
                 backgroundColor: '#fff',
               }"
@@ -837,12 +951,13 @@ onMounted(() => {
               <b>{{ user.profile_user_name }}</b>
             </td>
             <td
-              class="text-center"
+              class="text-center hover"
               :style="{
                 width: '90px',
                 backgroundColor: '#fff',
               }"
               v-for="(item, month_key) in months"
+              @click="openDialogViewMonthLeaveProfile(user, item)"
             >
               <span> {{ user["month" + item.month] }}</span>
             </td>
@@ -1019,6 +1134,25 @@ onMounted(() => {
     :displayDialog="displayDialogConfigLeaveYear"
     :closeDialog="closeDialogConfigLeaveYear"
     :year="options.year"
+    :initData="initData"
+  />
+  <dialogviewleaveprofile
+    :key="componentKey['3']"
+    :headerDialog="headerDialogViewLeaveProfile"
+    :displayDialog="displayDialogViewLeaveProfile"
+    :closeDialog="closeDialogViewLeaveProfile"
+    :profile="profile"
+    :year="options.year"
+    :initData="initData"
+  />
+  <dialogviewmonthleaveprofile
+    :key="componentKey['4']"
+    :headerDialog="headerDialogViewMonthLeaveProfile"
+    :displayDialog="displayDialogViewMonthLeaveProfile"
+    :closeDialog="closeDialogViewMonthLeaveProfile"
+    :profile="profile"
+    :year="options.year"
+    :month="options.month"
     :initData="initData"
   />
   <Dialog
@@ -1203,14 +1337,12 @@ th.isHoliday {
   float: left;
   white-space: normal;
 }
-.hover {
-  cursor: pointer;
-}
 .hover2:hover {
   cursor: pointer;
   color: #2196f3;
 }
-.hover:hover td {
+.hover:hover {
+  cursor: pointer;
   background-color: aliceblue !important;
 }
 </style>

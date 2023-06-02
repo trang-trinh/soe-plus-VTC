@@ -270,7 +270,6 @@ const loadTaskMain = () => {
             (x.minutes > 0 ? x.minutes + " phút" : "") +
             "</div>";
         }
-        debugger;
       }
     })
     .catch((error) => {

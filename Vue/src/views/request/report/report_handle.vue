@@ -93,7 +93,7 @@ const loadMainData = () => {
                     JSON.stringify({
                         proc: "report_request_handle_list",
                         par: [
-                            { par: "user_id", va: store.getters.user.user_id },
+                            { par: "user_id", va: store.getters.user.user_id }, 
                             { par: "optionView", va: options.value.active_group },
                             { par: "search", va: options.value.search },
                         ],

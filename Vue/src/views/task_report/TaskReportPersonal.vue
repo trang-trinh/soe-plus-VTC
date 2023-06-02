@@ -1234,13 +1234,13 @@ const onPage = (event) => {
     >
       <Column
         field="STT"
-        class="align-items-center justify-content-center text-center"
+        class="align-items-center justify-content-center text-center fixcol left-0"
         header="STT"
         headerStyle="min-height:3.125rem;min-width: 5rem;"
         bodyStyle="min-width: 5rem;"
       ></Column>
       <Column
-        field="task_name"
+        field="task_name" class="fixcol left-5"
         header="Tên công việc"
         headerStyle="min-height:3.125rem;min-width: 25rem;"
         bodyStyle="min-width: 25rem;"
@@ -1509,6 +1509,30 @@ const onPage = (event) => {
   </div>
 </template>
 <style lang="scss" scope>
+#table-report-personal .fixcol {
+  color: #000;
+  font-weight: 600;
+  position: sticky;
+  /* background: #f5f5f5; */
+  background-color: #f8f9fa;
+  outline: 1px solid #e9e9e9;
+  border: none;
+  vertical-align: middle;
+}
+#table-report-personal th .fixcol{
+  z-index: 5;
+  border: 1px solid #e9e9e9 !important;
+}
+#table-report-personal td .fixcol{
+  z-index: 4;
+}
+#table-report-personal .left-0 {
+  left: 0px;
+}
+
+#table-report-personal .left-5 {
+  left: 5rem;
+}
 #toolbar_right li {
   list-style: none;
   display: flex;
