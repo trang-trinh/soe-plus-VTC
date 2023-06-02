@@ -7,6 +7,7 @@ import moment from "moment";
 import treeuser from "../../../components/user/treeuser.vue";
 import FileInfoVue from "../component_request/file_attach_request.vue";
 import dialogApprove from "../component_request/approved_request.vue";
+import requestLogs from "../component_request/request_log.vue";
 
 const toast = useToast();
 const axios = inject("axios");
@@ -2934,7 +2935,7 @@ onMounted(() => {
                             <span>Log</span>
                         </template>
                         <div class="" v-if="true">
-                            <div v-for="(item, logIndex) in dataLog"
+                            <!-- <div v-for="(item, logIndex) in dataLog"
                                 :class="{ 'is-close': item.is_close }"
                                 :key="logIndex"
                                 class="bg-blue-200 mb-3"
@@ -2949,7 +2950,8 @@ onMounted(() => {
 
                                     </div>
                                 </Panel>
-                            </div>
+                            </div> -->
+                            <requestLogs :id="props.id" ></requestLogs>
                         </div>
                         <div class="align-items-center justify-content-center p-4 text-center" v-else>
                             <img src="../../../assets/background/nodata.png" height="144" />

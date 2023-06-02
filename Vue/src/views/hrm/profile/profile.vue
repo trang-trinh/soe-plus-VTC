@@ -2556,6 +2556,8 @@ const arrayStatus = [0, 1, 2, 3, 4, 5];
 // };
 const ipsearch = ref();
 const sqlSubmit = ref();
+const arrTypeRequied = ref(['1', '2', '3', '4', '5', '6']);
+const arrConditionRequied = ref([">", ">=", "<", "<=", "<>", "FromTo"]);
 const submitFilter = () => {
   ipsearch.value = "";
   let strSelect = " Select * ";
@@ -2564,6 +2566,7 @@ const submitFilter = () => {
   let strWhere = "";
   let strOrderby = ` order by [${cols.value[0].key}] `;
   let hasSmartSearch = false;
+  let notHasValueFilter = false;
   groupBlock.value.forEach((g) => {
     if (strWhere != "") {
       strWhere += ` ${AND.value ? " AND " : " OR "}`;
@@ -2581,6 +2584,10 @@ const submitFilter = () => {
       gx.childs.forEach((x, ix) => {
         if (strWhere != "" && ix > 0) {
           strWhere += ` ${gx.AND ? " AND " : " OR "} (`;
+        }        
+        if ((arrConditionRequied.value.includes(x.type) || (arrTypeRequied.value.includes(x.typdata) && x.type == "=")) 
+          && (x.value == null || x.value.trim() == "")) {
+          notHasValueFilter = true;
         }
         switch (x.type) {
           case "FromTo":
@@ -2634,7 +2641,7 @@ const submitFilter = () => {
                 x.typedate
                   ? x.typedate.replace("$date", "[" + x.key + "]")
                   : "[" + x.key + "]"
-              } ${x.type} ${vl ? `N'${vl}'` : ""}`;
+              } ${x.type} ${vl ? `N'${vl}'` : `N''`}`;
             });
             strWhere += ")";
             ipsearch.value += `${
@@ -2656,6 +2663,16 @@ const submitFilter = () => {
     });
     strWhere += ")";
   });
+  if (notHasValueFilter) {
+    options.value.search = "";
+    swal.fire({
+      title: "Thông báo!",
+      text: "Nhập giá trị của điều kiện tìm kiếm có dấu *",
+      icon: "error",
+      confirmButtonText: "OK",
+    });
+    return;
+  }
   if (!hasSmartSearch) {
     strWhere = renderAutoInput(options.value.search);
   } else {
@@ -3175,7 +3192,15 @@ const rowClassDk = () => {
                                   optionValue="value"
                                   class="w-full"
                                   style="border: none; box-shadow: none"
-                                />
+                                >
+                                  <template #value="slotProps">
+                                      <div class="" v-if="slotProps.value">
+                                          <div>{{ drTypes.find((x) => x.value == slotProps.value).text }}
+                                            <span class="redsao" v-if="arrConditionRequied.includes(dt.data.type) || (arrTypeRequied.includes(dt.data.typdata) && dt.data.type == '=')">*</span>
+                                          </div>
+                                      </div>
+                                  </template>
+                                </Dropdown>
                               </template>
                             </Column>
                             <Column
@@ -3197,7 +3222,7 @@ const rowClassDk = () => {
                                       .placeholder
                                   "
                                   v-model="dt.data.value"
-                                  autoResize
+                                  autoResize                                 
                                   class="w-full"
                                   style="border: none; box-shadow: none"
                                 />
