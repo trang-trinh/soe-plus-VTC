@@ -87,7 +87,7 @@ const configBaocao = async (row) => {
       toast.error("Không mở được bản ghi");
     } else {
       smart_report.value = JSON.parse(axResponse.data.data)[0][0];
-debugger
+ 
       if (smart_report.value.proc_name)
         smart_report.value.proc_name1 =
           smart_report.value.proc_name.split(" ")[0];
@@ -664,7 +664,7 @@ const callbackFun = (obj) => {
   Object.keys(obj).forEach((k) => {
     smart_report.value[k] = obj[k];
   });
-
+ 
   let formData = new FormData();
   formData.append("smart_report", JSON.stringify(smart_report.value));
    
@@ -1470,12 +1470,7 @@ onMounted(() => {
             v-tooltip.left="'Xem báo cáo'"
           ></Button>
           <div
-            v-if="
-              store.state.user.is_super == true ||
-              store.state.user.user_id == Tem.data.created_by ||
-              (store.state.user.role_id == 'admin' &&
-                store.state.user.organization_id == Tem.data.organization_id)
-            "
+       
           >
             <Button
               @click="editTem(Tem.data)"
