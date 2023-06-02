@@ -21,6 +21,7 @@ const props = defineProps({
   closeDialog: Function,
   profile: Object,
   year: Number,
+  month: Number,
   initData: Function,
 });
 const display = ref(props.displayDialog);
@@ -57,12 +58,11 @@ const initData = (ref) => {
       {
         str: encr(
           JSON.stringify({
-            proc: "hrm_leave_profile_detail",
+            proc: "hrm_leave_profile_detail_month",
             par: [
               { par: "profile_id", va: props.profile.profile_id },
               { par: "year", va: props.year },
-              { par: "pageNo", va: options.value.pageNo },
-              { par: "pageSize", va: options.value.pageSize },
+              { par: "month", va: props.month },
             ],
           }),
           SecretKey,
@@ -124,8 +124,8 @@ const onPage = (event) => {
     :header="
       'Danh sách ngày nghỉ phép của ' +
       props.profile.profile_name +
-      ' trong năm ' +
-      props.year
+      ' trong tháng ' +
+      props.month
     "
     v-model:visible="display"
     :style="{ width: '50vw' }"

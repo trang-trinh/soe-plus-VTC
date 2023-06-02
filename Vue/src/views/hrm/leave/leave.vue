@@ -9,6 +9,7 @@ import dialogleaveprofile from "./component/dialogleaveprofile.vue";
 import dialogtransferinventory from "./component/dialogtransferinventory.vue";
 import dialogconfigleaveyear from "./component/dialogconfigleaveyear.vue";
 import dialogviewleaveprofile from "./component/dialogviewleaveprofile.vue";
+import dialogviewmonthleaveprofile from "./component/dialogviewmonthleaveprofile.vue";
 
 const route = useRoute();
 const store = inject("store");
@@ -182,6 +183,22 @@ const openDialogViewLeaveProfile = (item, str) => {
 const closeDialogViewLeaveProfile = () => {
   displayDialogViewLeaveProfile.value = false;
   forceRerender(3);
+};
+
+const headerDialogViewMonthLeaveProfile = ref();
+const displayDialogViewMonthLeaveProfile = ref(false);
+const openDialogViewMonthLeaveProfile = (item, month, str) => {
+  if (item.is_view) {
+    profile.value = item;
+    options.value.month = month.month;
+    headerDialogViewMonthLeaveProfile.value = str;
+    displayDialogViewMonthLeaveProfile.value = true;
+    forceRerender(4);
+  }
+};
+const closeDialogViewMonthLeaveProfile = () => {
+  displayDialogViewMonthLeaveProfile.value = false;
+  forceRerender(4);
 };
 
 //function export
@@ -871,7 +888,6 @@ onMounted(() => {
           <tr
             v-for="(user, user_key) in group.users"
             :key="user_key"
-            class="hover"
           >
             <td
               class="sticky p-0"
@@ -935,12 +951,13 @@ onMounted(() => {
               <b>{{ user.profile_user_name }}</b>
             </td>
             <td
-              class="text-center"
+              class="text-center hover"
               :style="{
                 width: '90px',
                 backgroundColor: '#fff',
               }"
               v-for="(item, month_key) in months"
+              @click="openDialogViewMonthLeaveProfile(user, item)"
             >
               <span> {{ user["month" + item.month] }}</span>
             </td>
@@ -1126,6 +1143,16 @@ onMounted(() => {
     :closeDialog="closeDialogViewLeaveProfile"
     :profile="profile"
     :year="options.year"
+    :initData="initData"
+  />
+  <dialogviewmonthleaveprofile
+    :key="componentKey['4']"
+    :headerDialog="headerDialogViewMonthLeaveProfile"
+    :displayDialog="displayDialogViewMonthLeaveProfile"
+    :closeDialog="closeDialogViewMonthLeaveProfile"
+    :profile="profile"
+    :year="options.year"
+    :month="options.month"
     :initData="initData"
   />
   <Dialog
@@ -1314,7 +1341,8 @@ th.isHoliday {
   cursor: pointer;
   color: #2196f3;
 }
-.hover:hover td {
+.hover:hover {
+  cursor: pointer;
   background-color: aliceblue !important;
 }
 </style>
