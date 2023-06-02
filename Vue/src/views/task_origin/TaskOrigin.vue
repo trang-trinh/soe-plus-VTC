@@ -126,15 +126,7 @@ const listDropdownStatus = ref([
   { value: 8, text: "Đã đánh giá", bg_color: "#51b7ae", text_color: "#FFFFFF" },
   { value: -1, text: "Bị xóa", bg_color: "red", text_color: "#FFFFFF" },
 ]);
-// const listDropdownweight = ref([
-//   { value: 0, text: "Rất dễ" },
-//   { value: 1, text: "Dễ" },
-//   { value: 2, text: "Bình thường" },
-//   { value: 3, text: "Hơi khó" },
-//   { value: 4, text: "Khó" },
-//   { value: 5, text: "Rất khó" },
-//   { value: 6, text: "Không khả thi" },
-// ]);
+
 const listDropdownweight = ref();
 
 const itemSortButs = ref([
@@ -4852,11 +4844,6 @@ const ChangeShowListCVGroup = (model) => {
   border-color: #eee;
 }
 
-/* task_filter */
-/* #task_filter{
-    width: 500px;
-    height: 500px;
-} */
 .p-overlaypanel .p-overlaypanel-content {
   padding: 5px;
 }
