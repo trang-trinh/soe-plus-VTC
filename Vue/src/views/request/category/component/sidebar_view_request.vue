@@ -118,17 +118,11 @@ const loadData = (rf) => {
                             item["STT"] = i + 1;
                             item.bgtiendo = parseInt(item.StaskTiendo / 10) * 10;
                             item.objStatus = listStatusRequests.value.find(x => x.id == item.status);
-                            // fake data
-                            // item.Tiendo = 20;
-                            //item.status_processing = 3;
-                            //item.evaluated_score = 4;
-                            //item.evaluated_date = new Date();
-                            // end fake data
                             if (item.listSignUser != null) {
                                 item.listSignUser = JSON.parse(item.listSignUser);
                                 if (item.listSignUser.length > 0) {
                                     item.listSignUser.forEach((su) => {
-                                        su.status = su.status == '1'; // Trạng thái nhận
+                                        //su.status = su.status == '1'; // Trạng thái nhận
                                         su.is_type = parseInt(su.is_type);
                                         su.is_order = parseInt(su.is_order);
                                     });
@@ -137,6 +131,9 @@ const loadData = (rf) => {
                             else {
                                 item.listSignUser = [];
                             }
+                            item.IsLast = (item.daky || 0) + 1 == (item.soky || 0);
+                            item.is_overdue = item.status == 2 ? (item.times_processing > item.times_processing_max ? true : false) : 
+                                                ((item.SoNgayHan || 0) < 0 ? true : false);
                         });
                         listViewRequest.value = data[0];
                         options.value.is_func = listViewRequest.value.filter(x => x.is_func && (x.status == 1 || x.status == 0 || x.status == -1 || x.status == 3)).length > 0;
@@ -159,7 +156,7 @@ const loadData = (rf) => {
             if (options.value.loading) options.value.loading = false;
             if (error && error.status === 401) {
                 swal.fire({
-                    text: "Mã token đã hết hạn hoặc không hợp lệ, vui lòng đăng nhập lại!",
+                    text: "Phiên đăng nhập đã hết hạn, vui lòng đăng nhập lại!",
                     confirmButtonText: "OK",
                 });
                 store.commit("gologout");
@@ -308,7 +305,7 @@ const MaxMin = (m) => {
                     class="align-items-center justify-content-center text-center">
                     <template #body="slotProps">
                         <div class="flex"
-                            :class="slotProps.data.status != 2 && slotProps.data.is_overdue && slotProps.data.Deadline && slotProps.data.SoNgayHan <= 24 ? 'overdue-request' : ''"
+                            :class="slotProps.data.status != 2 && slotProps.data.is_overdue && slotProps.data.deadline && slotProps.data.SoNgayHan <= 24 ? 'overdue-request' : ''"
                             style="flex-direction: column;height:100%;justify-content: center;"
                             @click="openViewRequest(slotProps.data)">
                             <span style="word-break: break-all;">
@@ -352,7 +349,7 @@ const MaxMin = (m) => {
                                 </span>
                                 <span class="flex ml-2 span-note-request" v-if="slotProps.data.is_overdue" v-tooltip.top="{
                                     value: 'Hạn xử lý: ' +
-                                        (slotProps.data.Deadline ? moment(new Date(slotProps.data.Deadline)).format('HH:mm DD/MM/yyyy') : ''), escape: true
+                                        (slotProps.data.deadline ? moment(new Date(slotProps.data.deadline)).format('HH:mm DD/MM/yyyy') : ''), escape: true
                                 }" style="color:red;">
                                     <i style="font-size:12px" class="pi pi-clock"></i>
                                     <span class="pl-1">
@@ -360,9 +357,9 @@ const MaxMin = (m) => {
                                     </span>
                                 </span>
                                 <span class="flex ml-2 span-note-request"
-                                    v-if="!slotProps.data.is_overdue && slotProps.data.Deadline" v-tooltip.top="{
+                                    v-if="!slotProps.data.is_overdue && slotProps.data.deadline" v-tooltip.top="{
                                         value: 'Hạn xử lý: ' +
-                                            (slotProps.data.Deadline ? moment(new Date(slotProps.data.Deadline)).format('HH:mm DD/MM/yyyy') : ''), escape: true
+                                            (slotProps.data.deadline ? moment(new Date(slotProps.data.deadline)).format('HH:mm DD/MM/yyyy') : ''), escape: true
                                     }" :style="slotProps.data.SoNgayHan <= 24 ? 'color:orange' : 'color:#333'">
                                     <i style="font-size:12px" class="pi pi-clock"></i>
                                     <span class="pl-1">

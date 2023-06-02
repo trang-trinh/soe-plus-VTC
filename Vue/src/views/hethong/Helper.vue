@@ -27,6 +27,20 @@ const rules = {
   },
 };
 const v$ = useVuelidate(rules, module);
+const options = ref({
+  IsNext: true,
+  sort: "created_date",
+  SearchText: "",
+  PageNo: 0,
+  PageSize: 20,
+  loading: true,
+  totalRecords: null,
+  loadingP: true,
+  pagenoP: 0,
+  pagesizeP: 20,
+  searchP: "",
+  sortP: "created_date",
+});
 //Khai báo biến
 const checkEditMenuName = ref();
 const menuNameNew = ref();
@@ -97,14 +111,14 @@ const editorConfig = ref({
 });
 const store = inject("store");
 const datalists = ref([]);
-const selectCapcha = ref();
+const selectCapcha = ref({});
 const selectedKey = ref();
 const expandedKeys = ref();
 const selectedNodes = ref([]);
 const help_data = ref({});
-const modules = ref();
+ 
 const isFirst = ref(true);
-let files = [];
+ 
 const toast = useToast();
 const swal = inject("$swal");
 const axios = inject("axios"); // inject axios
@@ -113,22 +127,7 @@ const config = {
   headers: { Authorization: `Bearer ${store.getters.token}` },
 };
 const menuButs = ref();
-const itemButs = ref([
-  {
-    label: "Xuất Excel",
-    icon: "pi pi-file-excel",
-    command: (event) => {
-      exportModule("ExportExcel");
-    },
-  },
-  {
-    label: "Xuất Mẫu",
-    icon: "pi pi-file-excel",
-    command: (event) => {
-      exportModule("ExportExcelMau");
-    },
-  },
-]);
+ 
 //Khai báo function
 const swalLoadding = () => {
   swal.fire({
@@ -140,7 +139,7 @@ const swalLoadding = () => {
 };
 const errorMessage = () => {
   swal.fire({
-    text: "Mã token đã hết hạn hoặc không hợp lệ, vui lòng đăng nhập lại!",
+    text: "Phiên đăng nhập đã hết hạn, vui lòng đăng nhập lại!",
     confirmButtonText: "OK",
   });
 };
@@ -157,6 +156,8 @@ const toggleExport = (event) => {
 };
 const onNodeSelect = (node) => {
   loadDataDetail(node.key);
+
+ 
   //refeshCol(node);
 };
 const onNodeUnselect = (node) => {
@@ -224,14 +225,12 @@ const renderTree = (data, id, name, title) => {
       retreechildren(om, m[id]);
       arrtreeChils.push(om);
     });
-  arrtreeChils.unshift({
-    key: -1,
-    data: -1,
-    label: "-----Chọn " + title + "----",
-  });
+
   return { arrChils: arrChils, arrtreeChils: arrtreeChils };
 };
+
 const loadTudien = (f) => {
+  options.value.loading = true;
   axios
     .post(
       baseURL + "/api/Modules/GetDataProc",
@@ -239,9 +238,7 @@ const loadTudien = (f) => {
         str: encr(
           JSON.stringify({
             proc: "help_title_list",
-            par: [
-              { par: "user_id", va: store.getters.user.user_id },
-            ],
+            par: [{ par: "user_id", va: store.getters.user.user_id }],
           }),
           SecretKey,
           cryoptojs
@@ -252,18 +249,16 @@ const loadTudien = (f) => {
     .then((response) => {
       let data = JSON.parse(response.data.data)[0];
       if (data.length > 0) {
-        if(f) loadDataDetail(data[0].help_title_id);
-        let obj = renderTree(
-          data,
-          "help_title_id",
-          "title_name",
-          "thư mục"
-        );
+        if (f) loadDataDetail(data[0].help_title_id);
+        let obj = renderTree(data, "help_title_id", "title_name", "thư mục");
         datalists.value = obj.arrChils;
         treemenus.value = obj.arrtreeChils;
       }
+      options.value.loading = false;
     })
-    .catch((error) => { });
+    .catch((error) => {
+      options.value.loading = false;
+    });
 };
 const loadDataDetail = (id) => {
   selectedKey.value = {};
@@ -277,9 +272,7 @@ const loadDataDetail = (id) => {
         str: encr(
           JSON.stringify({
             proc: "help_title_get_content",
-            par: [
-              { par: "help_title_id", va: id },
-            ],
+            par: [{ par: "help_title_id", va: id }],
           }),
           SecretKey,
           cryoptojs
@@ -296,8 +289,7 @@ const loadDataDetail = (id) => {
         setTimeout(() => {
           help_data.value.content = contentFake;
         }, "100");
-      }
-      else {
+      } else {
         help_data.value.content = "";
         isAdd.value = true;
       }
@@ -307,7 +299,7 @@ const loadDataDetail = (id) => {
 
       options.value.loading = false;
     });
-}
+};
 const saveContent = () => {
   let formData = new FormData();
   formData.append("model", JSON.stringify(help_data.value));
@@ -349,11 +341,11 @@ const saveContent = () => {
         confirmButtonText: "OK",
       });
     });
-}
+};
 const editMenuName = (data) => {
   menuNameNew.value = data.data.title_name;
   checkEditMenuName.value = data.key;
-}
+};
 const cancelEditMenuName = () => {
   menuNameNew.value = null;
   checkEditMenuName.value = 0;
@@ -363,7 +355,7 @@ const displayAddTreeMenu = ref(false);
 const headerMenu = ref();
 const menu = ref({});
 const isAddMenu = ref(false);
-const saveMenuName = (data)=>{
+const saveMenuName = (data) => {
   menu.value = data;
   menu.value.title_name = menuNameNew.value;
   let formData = new FormData();
@@ -375,10 +367,8 @@ const saveMenuName = (data)=>{
     },
   });
   axios({
-    method:"put",
-    url:
-      baseURL +
-      `/api/Help/Update_Menu`,
+    method: "put",
+    url: baseURL + `/api/Help/Update_Menu`,
     data: formData,
     headers: {
       Authorization: `Bearer ${store.getters.token}`,
@@ -408,21 +398,23 @@ const saveMenuName = (data)=>{
         confirmButtonText: "OK",
       });
     });
-}
+};
 const addTreeMenu = (id) => {
+  selectedKey.value={};
+  selectedKey.value[id]=true;
   isAddMenu.value = true;
   selectCapcha.value = {};
-  if(id != null) selectCapcha.value[id] = true;
-  headerMenu.value = "Thêm menu";
-
+  if (id != null) selectCapcha.value[id] = true;
+  headerMenu.value = "Thêm thư mục";
   menu.value = {
     title_name: null,
     is_order: 1,
     parent_id: null,
-  }
+    status:true
+  };
   getOrderChild(id);
   displayAddTreeMenu.value = true;
-}
+};
 const getOrderChild = (id) => {
   axios
     .post(
@@ -431,9 +423,7 @@ const getOrderChild = (id) => {
         str: encr(
           JSON.stringify({
             proc: "help_title_get_order",
-            par: [
-              { par: "help_title_id", va: id },
-            ],
+            par: [{ par: "help_title_id", va: id }],
           }),
           SecretKey,
           cryoptojs
@@ -450,16 +440,23 @@ const getOrderChild = (id) => {
     .catch((error) => {
       toast.error("Tải dữ liệu không thành công!");
     });
-}
+};
 const editMenu = (data) => {
   selectCapcha.value = {};
+  if(data.parent_id )
   selectCapcha.value[data.parent_id || -1] = true;
-  headerMenu.value = "Sửa menu";
+  else
+  selectCapcha.value={};
+  headerMenu.value = "Sửa thư mục";
   isAddMenu.value = false;
   menu.value = data;
   displayAddTreeMenu.value = true;
-}
-const saveMenu = () => {
+};
+const saveMenu = (check) => {
+  submitted.value = true;
+  if (menu.value.title_name == null) {
+    return;
+  }
   if (selectCapcha.value) {
     let keys = Object.keys(selectCapcha.value);
     menu.value.parent_id = keys[0];
@@ -488,7 +485,12 @@ const saveMenu = () => {
         swal.close();
         loadTudien();
         toast.success("Cập nhật menu thành công!");
-        displayAddTreeMenu.value = false;
+   
+        if (check) {
+          addTreeMenu(Number(Object.keys(selectCapcha.value)[0]));
+        } else {
+          displayAddTreeMenu.value = false;
+        }
       } else {
         swal.fire({
           title: "Thông báo!",
@@ -507,7 +509,7 @@ const saveMenu = () => {
         confirmButtonText: "OK",
       });
     });
-}
+};
 const delMenu = (data) => {
   swal
     .fire({
@@ -552,7 +554,7 @@ const delMenu = (data) => {
             swal.close();
             if (error.status === 401) {
               swal.fire({
-                text: "Mã token đã hết hạn hoặc không hợp lệ, vui lòng đăng nhập lại!",
+                text: "Phiên đăng nhập đã hết hạn, vui lòng đăng nhập lại!",
                 confirmButtonText: "OK",
               });
             }
@@ -568,126 +570,250 @@ onMounted(() => {
 </script>
 <template>
   <div>
-    <Splitter class="w-full">
-      <SplitterPanel :size="27" style="min-width: 150px">
-        <Toolbar class="w-full py-3">
-          <template #start>
-            <h2>Mục lục</h2>
-            <Button @click="addTreeMenu(null)" class="
-    													p-button-rounded
-    													p-button-secondary
-    													p-button-outlined
-    													ml-3
-    												" type="button" icon="pi pi-plus" style="width:2rem; height:2rem;"
-                    v-tooltip.top="'Thêm menu'"></Button>
-          </template>
-          <template #end>
-          </template>
-        </Toolbar>
-        <Tree style="max-height: calc(100vh - 90px);min-height: calc(100vh - 90px); overflow:auto;border:none" :value="datalists" @nodeSelect="onNodeSelect"
-          @nodeUnselect="onNodeUnselect" selectionMode="single" :metaKeySelection="false"
-          v-model:selectionKeys="selectedKey" class="w-full overflow-x-hidden p-0" scrollHeight="flex"
-          responsiveLayout="scroll" :scrollable="true" :expandedKeys="expandedKeys">
-          <template #default="slotProps">
-            <div class="flex" v-on:dblclick="editMenuName(slotProps.node)">
-              <div class="country-item flex w-full pt-2" style="padding: 3px 0 !important;align-items: center;">
-                <img src="../../assets/image/folder.png" width="22" height="30" style="object-fit: contain" />
-                <div v-if="checkEditMenuName != slotProps.node.key" style="width:inherit">
-                  <div class="px-2 text-lg font-bold" :class="slotProps.node.data.parent_id?'font-italic':''" style="line-height: 20px;">
-                   {{slotProps.node.data.label_order}} {{slotProps.node.data.title_name }} 
-                  </div>
-                </div>
-                <div v-else class="flex w-inherit">
-                  <InputText @keyup.enter="saveMenuName(slotProps.node.data)" v-model="menuNameNew" spellcheck="false"
-                    autofocus="true" class="m-2 w-inherit"></InputText>
-                  <Button class="
-    														p-button-rounded
-    														p-button-secondary
-    														p-button-outlined
-    														m-2
-    													" style="width:2rem; height:2rem;" type="button" icon="pi pi-times"
-                    @click="cancelEditMenuName()"></Button>
-                </div>
-                <div class="w-3 pt-1 flex" style="padding-top:0.1rem !important;"
-                  v-if="menuID == slotProps.node.key && checkEditMenuName != slotProps.node.key">
-                  <Button @click="addTreeMenu(slotProps.node.key)" class="
-    													p-button-rounded
-    													p-button-secondary
-    													p-button-outlined
-    													mx-1
-    												" type="button" icon="pi pi-plus-circle" style="width:1.7rem; height:1.7rem;"
-                    v-tooltip.top="'Thêm menu con'"></Button>
-                  <Button @click="editMenu(slotProps.node.data)" class="
-    													p-button-rounded
-    													p-button-secondary
-    													p-button-outlined
-    													mx-1
-    												" type="button" icon="pi pi-pencil" style="width:1.7rem; height:1.7rem;"
-                    v-tooltip.top="'Sửa menu'"></Button>
-                  <Button @click="delMenu(slotProps.node.data)" class="
-    													p-button-rounded
-    													p-button-secondary
-    													p-button-outlined
-    													mx-1
-    												" type="button" icon="pi pi-trash" style="width:1.7rem; height:1.7rem;" v-tooltip.top="'Xóa'"></Button>
-                </div>
+    <div class="p-3">
+      <h2 class="module-title m-0">
+        <i class="pi pi-file-pdf text-lg"></i> Biên tập hướng dẫn sử dụng
+      </h2>
+    </div>
+    <div>
+      <Splitter class="w-full">
+        <SplitterPanel :size="25" style="min-width: 150px">
+          <Toolbar class="w-full p-0">
+            <template #start>
+              <div class="px-3">
+                <h3>
+                  <i class="pi pi-folder" style="font-size: 1.25rem"></i>
+                  Danh sách thư mục
+                </h3>
               </div>
-            </div>
-          </template>
-        </Tree>
+            </template>
+            <template #end>
+              <div class="px-3">
+                <Button
+                  class="p-button-outlined p-button-rounded"
+                  icon="pi pi-plus"
+                  @click="addTreeMenu(null)"
+                  v-tooltip.top="'Thêm thư mục'"
+                >
+                </Button>
+              </div>
+            </template>
+          </Toolbar>
 
-      </SplitterPanel>
-      <SplitterPanel :size="73">
-        <div class="w-full h-full ck-helper ck-content">
-          <div class="m-2 text-right">
-            <Button label="Cập nhật" icon="pi pi-save" @click="saveContent()" />
+          <div class="d-lang-table-sl">
+            <TreeTable
+            :value="datalists"
+            @nodeSelect="onNodeSelect"
+            @nodeUnselect="onNodeUnselect"
+            v-model:selectionKeys="selectedKey"
+            :loading="options.loading"
+            :expandedKeys="expandedKeys"
+
+            :showGridlines="false"
+            selectionMode="single"
+            filterMode="strict"
+            class="p-treetable-sm d-tree-missheader"
+            :rows="20"
+            :rowHover="true"
+            responsiveLayout="scroll"
+            :scrollable="true"
+            scrollHeight="flex"
+            :metaKeySelection="false"
+          >
+            <Column field="title_name" header="Name" :expander="true">
+              <template #body="md">
+                <div class="align-items-center flex">
+                  <div>
+                    <img
+                      src="../../assets/image/folder.png"
+                      width="20"
+                      height="25"
+                      style="object-fit: contain"
+                    />
+                  </div>
+                  <div class="pl-2">{{ md.node.data.title_name }}</div>
+                </div>
+              </template>
+            </Column>
+
+            <Column
+              header="Chức năng"
+              headerClass="text-center"
+              class="align-items-center justify-content-center text-center"
+              headerStyle="text-align:center;max-width:120px"
+              bodyStyle="text-align:center;max-width:120px"
+            >
+              <template #header> </template>
+              <template #body="md">
+                <div class="d-hover">
+                  <Button
+                    type="button"
+                    icon="pi pi-plus"
+                    class="p-button-rounded p-button-secondary p-button-outlined"
+                    v-tooltip.top="'Thêm  thư mục con'"
+                    @click="addTreeMenu(md.node.key)"
+                    style="width: 2rem; height: 2rem; margin-right: 0.5rem"
+                  ></Button>
+                  <Button
+                    type="button"
+                    icon="pi pi-pencil"
+                    v-tooltip.top="'Chỉnh sửa'"
+                    class="p-button-rounded p-button-secondary p-button-outlined"
+                    style="width: 2rem; height: 2rem; margin-right: 0.5rem"
+                    @click="editMenu(md.node.data)"
+                  ></Button>
+                  <Button
+                    type="button"
+                    icon="pi pi-trash"
+                    v-tooltip.top="'Xóa'"
+                    style="width: 2rem; height: 2rem"
+                    class="p-button-rounded p-button-secondary p-button-outlined"
+                    @click="delMenu(md.node.data)"
+                  ></Button>
+                </div>
+              </template>
+            </Column>
+            <template #empty>
+              <div
+                class="m-auto align-items-center justify-content-center p-4 text-center"
+                v-if="!isFirst"
+              >
+                <img src="../../assets/background/nodata.png" height="144" />
+                <h3 class="m-1">Không có dữ liệu</h3>
+              </div>
+            </template>
+          </TreeTable>
           </div>
-          <ckeditor :editor="editor" :config="editorConfig" v-model="help_data.content"></ckeditor>
-        </div>
-      </SplitterPanel>
-    </Splitter>
-
+        </SplitterPanel>
+        <SplitterPanel :size="75">
+          <Toolbar class="w-full p-0">
+            <template #start>
+              <div class="px-3">
+                <h3>Nội dung biên tập</h3>
+              </div>
+            </template>
+            <template #end>
+              <div class="px-3">
+                <Button
+                  label="Cập nhật"
+                  icon="pi pi-save"
+                  @click="saveContent()"
+                />
+              </div>
+            </template>
+          </Toolbar>
+          <div class="w-full   ck-helper ck-content d-lang-table-sl">
+            <ckeditor
+              :editor="editor"
+              :config="editorConfig"
+              v-model="help_data.content"
+            ></ckeditor>
+          </div>
+        </SplitterPanel>
+      </Splitter>
+    </div>
   </div>
-  <Dialog :header="headerMenu" v-model:visible="displayAddTreeMenu" :style="{ width: '40vw' }">
+  <Dialog
+    :header="headerMenu"
+    v-model:visible="displayAddTreeMenu"
+    :style="{ width: '40vw' }"
+    :closable="true"
+    :modal="true"
+  >
     <form>
       <div class="grid formgrid m-2">
-        <div class="field col-12 md:col-12">
-          <label class="col-2 text-left p-0">Tên Menu </label>
-          <InputText v-model="menu.title_name" spellcheck="false" class="col-10 ip34 px-2" />
+        <div class="field col-12 md:col-12 p-0">
+          <label class="w-10rem text-left p-0"
+            >Tên thư mục <span class="redsao">(*)</span></label
+          >
+          <InputText
+            v-model="menu.title_name"
+            spellcheck="false"
+            style="width: calc(100% - 10rem)"
+            :class="{
+              'p-invalid': menu.title_name == null && submitted,
+            }"
+          />
         </div>
-        <div class="field col-12 md:col-12">
-          <label class="col-2 text-left p-0">Menu cấp cha</label>
-          <TreeSelect class="col-10" spellcheck="false" v-model="selectCapcha" :options="treemenus" />
-        </div>
-        <div class="field col-12 md:col-12">
-          <label class="col-2 text-left p-0">STT </label>
-          <InputNumber v-model="menu.is_order" class="col-2 ip36 p-0" />
+        <div class="col-12 md:col-12 p-0">
+          
+            <div class="col-12 p-0 flex  field align-items-center">
+              <div class="w-10rem text-left p-0">Thuộc cấp</div>
+              <TreeSelect
+                style="width: calc(100% - 10rem)"
+                spellcheck="false"
+                v-model="selectCapcha"
+                :options="treemenus"
+            
+              />
+            </div>
+            <div class="col-12 md:col-12 p-0 field align-items-center flex">
+              <div class="w-10rem text-left p-0  ">Icon</div>
+              <InputText
+                v-model="menu.icon"
+                spellcheck="false"
+                style="width: calc(100% - 10rem)"
+              />
+            </div>
+         
+
+          <div class="col-12 field md:col-12 flex p-0">
+            <div class="field col-6 md:col-6 p-0 align-items-center flex">
+              <div class="w-10rem text-left p-0">STT</div>
+              <InputNumber
+                v-model="menu.is_order"
+                style="width: calc(100% - 10rem)"
+                class="ip36 p-0"
+              />
+            </div>
+            <div class="field col-6 md:col-6 p-0 align-items-center flex">
+              <div class="w-10rem text-left p-0 pl-3">Trạng thái</div>
+              <InputSwitch v-model="menu.status" class="w-4rem lck-checked" />
+            </div>
+          </div>
         </div>
       </div>
     </form>
     <template #footer>
-      <Button label="Hủy" icon="pi pi-times" @click="displayAddTreeMenu = false" class="p-button-text" />
+      <Button
+        label="Hủy"
+        icon="pi pi-times"
+        @click="displayAddTreeMenu = false"
+        class="p-button-outlined"
+      />
 
-      <Button label="Lưu" icon="pi pi-check" @click="saveMenu()" />
+      <Button label="Lưu" class="" icon="pi pi-check" @click="saveMenu(false)" />
+      <Button
+        label="Lưu và Tiếp tục"
+        icon="pi pi-check"
+        v-if="isAddMenu"
+        @click="saveMenu(true)"
+      />
     </template>
   </Dialog>
 </template>
 <style scoped>
 .ck-editor__editable {
-  min-height: 800px !important;
-  max-height: 800px !important;
+  min-height: calc(100vh - 100px) !important;
+  max-height: calc(100vh - 100px) !important;
 }
-
-.col-12 .p-inputswitch {
-  top: 6px;
-}
-
-.ipnone {
+ .d-hover {
   display: none;
 }
 
+.d-tree-missheader tr:hover  .d-hover
+ {
+  display: block !important;
+}
+.d-tree-missheader tr td
+ {
+  padding: 0px !important;
+}
+.ipnone {
+  display: none;
+}
 .w-inherit {
-  width: inherit
+  width: inherit;
 }
 
 .inputanh {
@@ -710,24 +836,33 @@ onMounted(() => {
 }
 </style>
 <style lang="scss" scoped>
-::v-deep(.p-splitter) {
-  .p-toolbar {
-    background: none !important;
-    border: none !important;
-  }
-
-  .p-treetable-wrapper {
-    margin-top: 6px;
-  }
-
-  .p-treetable .p-treetable-thead>tr>th {
-    background: #fff !important;
-  }
+.d-lang-table-sl{
+  margin: 0px;
+  height: calc(100vh - 160px);
 }
+// ::v-deep(.p-splitter) {
+//   .p-toolbar {
+//     background: none !important;
+//     border: none !important;
+//   }
 
-::v-deep(.p-tree-wrapper) {
-  .p-treenode-label {
-    width: 100%;
+//   .p-treetable-wrapper {
+//     margin-top: 6px;
+//   }
+
+//   .p-treetable .p-treetable-thead > tr > th {
+//     background: #fff !important;
+//   }
+// }
+
+// ::v-deep(.p-tree-wrapper) {
+//   .p-treenode-label {
+//     width: 100%;
+//   }
+// }
+::v-deep(.ck-editor__main) {
+  .ck-editor__editable {
+    height: calc(100vh - 250px) !important;
   }
 }
 </style>

@@ -2,9 +2,11 @@
 import { onMounted, inject, ref } from "vue";
 import { useToast } from "vue-toastification";
 import { encr } from "../../../../util/function";
+import { useRoute } from "vue-router";
 import moment from "moment";
 import dialogassignment from "../../profile/component/dialogassignment.vue";
 
+const route = useRoute();
 const store = inject("store");
 const swal = inject("$swal");
 const axios = inject("axios");
@@ -19,8 +21,8 @@ const basedomainURL = baseURL;
 const props = defineProps({
   profile_id: String,
   view: Number,
+  functions: Object,
 });
-
 //Declare
 const options = ref({});
 const dictionarys = ref([]);
@@ -126,7 +128,7 @@ const deleteAssignment = (item) => {
               if (error && error.status === 401) {
                 swal.fire({
                   title: "Thông báo!",
-                  text: "Mã token đã hết hạn hoặc không hợp lệ, vui lòng đăng nhập lại!",
+                  text: "Phiên đăng nhập đã hết hạn, vui lòng đăng nhập lại!",
                   icon: "error",
                   confirmButtonText: "OK",
                 });
@@ -201,6 +203,10 @@ const initDictionary2 = () => {
     });
 };
 const initView2 = (rf) => {
+  var path = options.value.path;
+  if (options.value.name === "profileinfo") {
+    path = "/hrm/profile";
+  }
   if (rf) {
     swal.fire({
       width: 110,
@@ -215,8 +221,12 @@ const initView2 = (rf) => {
       {
         str: encr(
           JSON.stringify({
-            proc: "hrm_profile_assignment_gets",
-            par: [{ par: "profile_id", va: props.profile_id }],
+            proc: "hrm_profile_assignment_gets_2",
+            par: [
+              { par: "profile_id", va: props.profile_id },
+              { par: "user_id", va: store.getters.user.user_id },
+              { par: "is_link", va: path },
+            ],
           }),
           SecretKey,
           cryoptojs
@@ -244,19 +254,19 @@ const initView2 = (rf) => {
               item["text_color"] = typestatus.value[1]["text_color"];
             }
             if (item["start_date"] != null) {
-              item["start_date"] = moment(new Date(item["start_date"])).format(
-                "DD/MM/YYYY"
-              );
+              item["start_date_string"] = moment(
+                new Date(item["start_date"])
+              ).format("DD/MM/YYYY");
             }
             if (item["end_date"] != null) {
-              item["end_date"] = moment(new Date(item["end_date"])).format(
-                "DD/MM/YYYY"
-              );
+              item["end_date_string"] = moment(
+                new Date(item["end_date"])
+              ).format("DD/MM/YYYY");
             }
             if (item["sign_date"] != null) {
-              item["sign_date"] = moment(new Date(item["sign_date"])).format(
-                "DD/MM/YYYY"
-              );
+              item["sign_date_string"] = moment(
+                new Date(item["sign_date"])
+              ).format("DD/MM/YYYY");
             }
           });
           tasks.value = tbs[0];
@@ -271,7 +281,7 @@ const initView2 = (rf) => {
       if (error && error.status === 401) {
         swal.fire({
           title: "Thông báo!",
-          text: "Mã token đã hết hạn hoặc không hợp lệ, vui lòng đăng nhập lại!",
+          text: "Phiên đăng nhập đã hết hạn, vui lòng đăng nhập lại!",
           icon: "error",
           confirmButtonText: "OK",
         });
@@ -290,6 +300,8 @@ const initView2 = (rf) => {
 };
 onMounted(() => {
   if (props.view === 2) {
+    options.value.path = route.path;
+    options.value.name = route.name;
     initView2(true);
   }
 });
@@ -299,6 +311,7 @@ onMounted(() => {
     <template #start> </template>
     <template #end>
       <Button
+        v-if="props.functions.is_add"
         @click="openAddDialogAssignment('Thêm mới công việc')"
         label="Thêm mới"
         icon="pi pi-plus"
@@ -346,6 +359,7 @@ onMounted(() => {
                 </template>
                 <template #end>
                   <Button
+                    v-if="slotProps.item.is_function"
                     icon="pi pi-ellipsis-h"
                     class="p-button-rounded p-button-text"
                     @click="
@@ -361,7 +375,12 @@ onMounted(() => {
             </template>
             <template #subtitle>
               <div class="w-full text-left">
-                {{ slotProps.item.start_date }}
+                <div>
+                  Từ: <b>{{ slotProps.item.start_date_string }}</b>
+                  <span v-if="slotProps.item.end_date_string">
+                    Đến: <b>{{ slotProps.item.end_date_string }}</b>
+                  </span>
+                </div>
               </div>
             </template>
             <template #content>

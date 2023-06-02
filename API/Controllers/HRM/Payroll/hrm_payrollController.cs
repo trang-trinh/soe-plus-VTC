@@ -71,7 +71,42 @@ namespace API.Controllers.HRM.Category
                         fdpayroll = provider.FormData.GetValues("hrm_payroll").SingleOrDefault();
                         hrm_payroll payroll = JsonConvert.DeserializeObject<hrm_payroll>(fdpayroll);
                         bool super = claims.Where(p => p.Type == "super").FirstOrDefault()?.Value == "True";
+                        var das =   db.hrm_payroll.AsNoTracking().Where(a =>  a.payroll_month == payroll.payroll_month && a.payroll_year == payroll.payroll_year).ToList();
+                        if (das.Count > 0) {
 
+                            foreach (var item in das)
+                            {
+
+                                var check = item.list_profile_id.Split(',').Intersect(payroll.list_profile_id.Split(','));
+
+                                if (check.Any())
+                                {
+                                    var str = "";
+                                    var strv = "";
+                                    foreach (var sitem in check)
+                                    {
+                                        var user = db.hrm_profile.AsNoTracking().Where(a => a.profile_id==sitem).FirstOrDefault();
+                                        str +=strv+ user.profile_user_name;
+                                        strv = ",";
+                                    }
+                                    return Request.CreateResponse(HttpStatusCode.OK, new { err = "1", ms = "Nhân sự đã được khai báo ở bảng lương khác trong tháng: "+ str });
+                                }
+
+                            }
+                    
+                        }
+
+                        if (payroll.is_approved == true)
+                        {
+                            var payyroll_ap = db.hrm_payroll.Where(a =>a.is_approved==true && a.payroll_month == payroll.payroll_month 
+                            && a.payroll_year == payroll.payroll_year).ToList();
+                            foreach (var item in payyroll_ap)
+                            {
+                                item.is_approved = false;
+                                db.Entry(item).State = EntityState.Modified;
+                                db.SaveChanges();
+                            }
+                        }
                         payroll.organization_id = int.Parse(dvid);
                         payroll.created_by = uid;
                         payroll.created_date = DateTime.Now;
@@ -180,6 +215,45 @@ namespace API.Controllers.HRM.Category
                         }
                         fdpayroll = provider.FormData.GetValues("hrm_payroll").SingleOrDefault();
                         hrm_payroll payroll = JsonConvert.DeserializeObject<hrm_payroll>(fdpayroll);
+
+                        var dasp = db.hrm_payroll.AsNoTracking().Where(a => a.payroll_id !=payroll.payroll_id &&
+                        a.payroll_month == payroll.payroll_month && a.payroll_year == payroll.payroll_year).ToList();
+                        if (dasp.Count > 0)
+                        {
+
+                            foreach (var item in dasp)
+                            {
+
+                                var check = item.list_profile_id.Split(',').Intersect(payroll.list_profile_id.Split(','));
+
+                                if (check.Any())
+                                {
+                                    var str = "";
+                                    var strv = "";
+                                    foreach (var sitem in check)
+                                    {
+                                        var user = db.hrm_profile.AsNoTracking().Where(a => a.profile_id == sitem).FirstOrDefault();
+                                        str += strv + user.profile_user_name;
+                                        strv = ",";
+                                    }
+                                    return Request.CreateResponse(HttpStatusCode.OK, new { err = "1", ms = "Nhân sự đã được khai báo ở bảng lương khác trong tháng: " + str });
+                                }
+
+                            }
+
+                        }
+
+                        if (payroll.is_approved == true)
+                        {
+                            var payyroll_ap = db.hrm_payroll.Where(a => a.payroll_id != payroll.payroll_id && a.is_approved == true && a.payroll_month == payroll.payroll_month
+                            && a.payroll_year == payroll.payroll_year).ToList();
+                            foreach (var item in payyroll_ap)
+                            {
+                                item.is_approved = false;
+                                db.Entry(item).State = EntityState.Modified;
+                                db.SaveChanges();
+                            }
+                        }
                         payroll.modified_by = uid;
                         payroll.modified_date = DateTime.Now;
                         payroll.modified_ip = ip;

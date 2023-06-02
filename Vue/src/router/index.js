@@ -23,6 +23,9 @@ const ConfigAprrovedGroups = () =>
 const FollowTemplate = () => import("../views/tasks/config/FollowTemplate.vue");
 const ConfigProcess = () =>
   import("../views/hethong/process/ConfigProcess.vue");
+const Helper = () => import("../views/hethong/Helper.vue");
+const HelperView = () => import("../views/hethong/HelperView.vue");
+const DetailsHelper = () => import("../views/hethong/helperDetails.vue");
 
 //Scraper
 // const ScraperView = () =>
@@ -276,6 +279,7 @@ const HrmIframe = () => import("../views/hrm/profile/tool/iframedoc.vue");
 const Hrm_Info = () => import("../views/hrm/Hrm_Info.vue");
 const HrmProfile = () => import("../views/hrm/profile/profile.vue");
 const HrmMyProfile = () => import("../views/hrm/myprofile/myprofile.vue");
+const HrmApproveProfile = () => import("../views/hrm/myprofile/approve/approveprofile.vue");
 const HrmProfileInfo = () =>
   import("../views/hrm/profile/component/profileinfo.vue");
 const HrmContract = () => import("../views/hrm/contract/contract.vue");
@@ -313,8 +317,10 @@ const HRM_Report_Config = () =>
   import("../views/hrm/template/ProfileDetails.vue");
   const PayrollDetails = () =>
   import("../views/hrm/payroll/PayrollDetails.vue");
+  const HRMMyreview = () =>
+  import("../views/hrm/review/myReview.vue");
   
-
+  
   
 //end
 // TV
@@ -449,7 +455,8 @@ const HRM_ReportWorkingProcess= () =>
   import("../views/hrm/report/report_general/WorkingProces.vue");
 const HRM_ReportContractStatistical = () =>
   import("../views/hrm/report/report_contract/StatisticalContract.vue");
-
+const HRM_ReportDynamic= () =>
+  import("../views/hrm/report/report_general/ReportDynamic.vue");
 const HRM_ReportChartGender = () =>
   import("../views/hrm/report/chart/ChartGender.vue");
 
@@ -609,6 +616,21 @@ const router = createRouter({
       path: "/system/organization",
       name: "organization",
       component: Organization,
+    },
+    {
+      path: "/system/helper",
+      name: "helper",
+      component: Helper,
+    },
+    {
+      path: "/helperview/:id",
+      name: "helperDetails",
+      component: DetailsHelper,
+    },
+    {
+      path: "/helperview",
+      name: "helperview",
+      component: HelperView,
     },
     //Danh mục
     {
@@ -1656,6 +1678,11 @@ const router = createRouter({
       component: HrmMyProfile,
     },
     {
+      path: "/hrm/approveprofile",
+      name: "approveprofile",
+      component: HrmApproveProfile,
+    },
+    {
       path: "/hrm/profile/:id",
       name: "profileinfo",
       component: HrmProfileInfo,
@@ -2061,6 +2088,11 @@ const router = createRouter({
       component: HRM_ReportWorkingProcess,
     },
     {
+      path: "/hrm/hrm_report/hrm_report_dynamic",
+      name: "hrm_report_dynamic",
+      component: HRM_ReportDynamic,
+    },
+    {
       path: "/hrm/hrm_chart/chart_gender",
       name: "hrm_report_chart_gender",
       component: HRM_ReportChartGender,
@@ -2152,6 +2184,11 @@ const router = createRouter({
       path: "/hrm/payroll/hrm_payroll/details/:id",
       name: "/payroll/payrolldetails",
       component: PayrollDetails,
+    },
+    {
+      path: "/hrm/review/myreview",
+      name: "HRMMyreview",
+      component: HRMMyreview,
     },
     // Request
     {

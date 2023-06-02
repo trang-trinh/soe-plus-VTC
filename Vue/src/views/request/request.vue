@@ -174,7 +174,7 @@ const listRequest = (rf) => {
                             item.listSignUser = JSON.parse(item.listSignUser);
                             if (item.listSignUser.length > 0) {
                                 item.listSignUser.forEach((su) => {
-                                    su.status = su.status == '1'; // Trạng thái nhận
+                                    //su.status = su.status == '1'; // Trạng thái nhận
                                     su.is_type = parseInt(su.is_type);
                                     su.is_order = parseInt(su.is_order);
                                 });
@@ -184,6 +184,8 @@ const listRequest = (rf) => {
                             item.listSignUser = [];
                         }
                         item.IsLast = (item.daky || 0) + 1 == (item.soky || 0);
+                        item.is_overdue = item.status == 2 ? (item.times_processing > item.times_processing_max ? true : false) : 
+                                            ((item.SoNgayHan || 0) < 0 ? true : false);
                     });
                     datas.value = data[0];
                     options.value.is_func = datas.value.filter(x => x.is_func && (x.status == 1 || x.status == 0 || x.status == -1 || x.status == 3)).length > 0;
@@ -204,7 +206,7 @@ const listRequest = (rf) => {
         if (options.value.loading) options.value.loading = false;
         if (error && error.status === 401) {
             swal.fire({
-                text: "Mã token đã hết hạn hoặc không hợp lệ, vui lòng đăng nhập lại!",
+                text: "Phiên đăng nhập đã hết hạn, vui lòng đăng nhập lại!",
                 confirmButtonText: "OK",
             });
             store.commit("gologout");
@@ -480,7 +482,7 @@ const countRequest = () => {
     .catch((error) => {
         if (error && error.status === 401) {
             swal.fire({
-                text: "Mã token đã hết hạn hoặc không hợp lệ, vui lòng đăng nhập lại!",
+                text: "Phiên đăng nhập đã hết hạn, vui lòng đăng nhập lại!",
                 confirmButtonText: "OK",
             });
             store.commit("gologout");
@@ -579,7 +581,7 @@ const hideall = () => {
             //router.go(0);
         });
     } else {
-        listRequest(true);
+        //listRequest(true);
     }
 };
 const openViewRequest = (dataRequest) => {
@@ -638,7 +640,7 @@ const editRequest = (dataRequest) => {
     .catch((error) => {
         if (error && error.status === 401) {
             swal.fire({
-                text: "Mã token đã hết hạn hoặc không hợp lệ, vui lòng đăng nhập lại!",
+                text: "Phiên đăng nhập đã hết hạn, vui lòng đăng nhập lại!",
                 confirmButtonText: "OK",
             });
             store.commit("gologout");
@@ -712,7 +714,7 @@ const deleteRequest = (item) => {
                     swal.close();
                     if (error.status === 401) {
                         swal.fire({                            
-                            text: "Mã token đã hết hạn hoặc không hợp lệ, vui lòng đăng nhập lại!",                            
+                            text: "Phiên đăng nhập đã hết hạn, vui lòng đăng nhập lại!",                            
                             confirmButtonText: "OK",
                         });
                     }
@@ -1071,7 +1073,7 @@ onMounted(() => {
                 >
                     <template #body="slotProps">
                         <div class="flex" 
-                            :class="slotProps.data.status != 2 && slotProps.data.is_overdue && slotProps.data.Deadline && slotProps.data.SoNgayHan <= 24 ? 'overdue-request' : ''"
+                            :class="slotProps.data.status != 2 && slotProps.data.is_overdue && slotProps.data.deadline && slotProps.data.SoNgayHan <= 24 ? 'overdue-request' : ''"
                             style="flex-direction: column;height:100%;justify-content: center;" 
                             @click="openViewRequest(slotProps.data)"
                         >
@@ -1133,16 +1135,16 @@ onMounted(() => {
                                 </span>
                                 <span class="flex ml-2 span-note-request" v-if="slotProps.data.is_overdue" 
                                     v-tooltip.top="{ value: 'Hạn xử lý: ' + 
-                                        (slotProps.data.Deadline ? moment(new Date(slotProps.data.Deadline)).format('HH:mm DD/MM/yyyy') : ''), escape: true }" 
+                                        (slotProps.data.deadline ? moment(new Date(slotProps.data.deadline)).format('HH:mm DD/MM/yyyy') : ''), escape: true }" 
                                     style="color:red;">
                                     <i style="font-size:12px" class="pi pi-clock"></i> 
                                     <span class="pl-1">
                                         ({{ slotProps.data.SoNgayHan || 0 }}h)
                                     </span>
                                 </span>
-                                <span class="flex ml-2 span-note-request" v-if="!slotProps.data.is_overdue && slotProps.data.Deadline" 
+                                <span class="flex ml-2 span-note-request" v-if="!slotProps.data.is_overdue && slotProps.data.deadline" 
                                     v-tooltip.top="{ value: 'Hạn xử lý: ' + 
-                                        (slotProps.data.Deadline ? moment(new Date(slotProps.data.Deadline)).format('HH:mm DD/MM/yyyy') : ''), escape: true }" 
+                                        (slotProps.data.deadline ? moment(new Date(slotProps.data.deadline)).format('HH:mm DD/MM/yyyy') : ''), escape: true }" 
                                     :style="slotProps.data.SoNgayHan <= 24 ? 'color:orange' : 'color:#333'">
                                     <i style="font-size:12px" class="pi pi-clock"></i> 
                                     <span class="pl-1">
@@ -1251,30 +1253,46 @@ onMounted(() => {
                     class="align-items-center justify-content-center text-center"
                 >
                     <template #body="slotProps">
-                        <div class="relative">
-                            <AvatarGroup>                            
-                                <Avatar v-for="(us, idxUser) in slotProps.data.listSignUser" :key="idxUser"
-                                    v-bind:label="us.avatar ? '' : (us.last_name ?? '').substring(0, 1)"
-                                    v-bind:image="
-                                        us.avatar
-                                        ? basedomainURL + us.avatar
-                                        : basedomainURL + '/Portals/Image/noimg.jpg'
-                                    "
-                                    v-tooltip.top="{ value: (us.full_name + '<br/>' + us.position_name + '<br/>' + us.department_name), escape: true }"
-                                    style="background-color: #2196f3; color: #ffffff; width: 2rem; height: 2rem; font-size: 1rem !important;"
-                                    :style="{ background: bgColor[idxUser % 7], }"
-                                    class="text-avatar"
-                                    size="xlarge" 
-                                    shape="circle" 
-                                >
-                                    <template #body="">
-                                        <span v-if="us.status" class="is-sign">
+                        <div class="relative avt-list-request">
+                            <AvatarGroup>  
+                                <template v-for="(us, idxUser) in slotProps.data.listSignUser" :key="idxUser">
+                                    <div style="display: inline-block; position: relative;">
+                                        <Avatar
+                                            v-bind:label="us.avatar ? '' : (us.last_name ?? '').substring(0, 1)"
+                                            v-bind:image="
+                                                us.avatar
+                                                ? basedomainURL + us.avatar
+                                                : basedomainURL + '/Portals/Image/noimg.jpg'
+                                            "
+                                            v-tooltip.top="{ value: ((us.group_sign_name ? (us.group_sign_name + '<br/>') : '') 
+                                                    + us.full_name 
+                                                    + (us.position_name ? ('<br/>' + us.position_name) : '')
+                                                    + (us.department_name ? ('<br/>' + us.department_name) : '')), 
+                                                escape: true 
+                                            }"
+                                            style="background-color: #2196f3; color: #ffffff; width: 2rem; height: 2rem; font-size: 1rem !important; border:1px solid #ffffff;"
+                                            :style="{ background: bgColor[idxUser % 7], }"
+                                            class="text-avatar"
+                                            size="xlarge" 
+                                            shape="circle" 
+                                        >
+                                        </Avatar>
+                                        <span v-if="us.is_sign != 0" style="position: absolute; right: 0; bottom: 0;">
                                             <font-awesome-icon icon="fa-solid fa-circle-check" 
-                                                style="font-size: 16px; display: block; color: #f4b400"
+                                                style="font-size: 13px; display: block; color: #7abd1a"
+                                                v-if="us.is_sign == 2"
+                                            />
+                                            <font-awesome-icon icon="fa-solid fa-circle-info" 
+                                                style="font-size: 13px; display: block; color: #017bec"
+                                                v-else-if="us.is_sign == 1"
+                                            />
+                                            <font-awesome-icon icon="fa-solid fa-circle-stop" 
+                                                style="font-size: 13px; display: block; color: #e00f00"
+                                                v-else-if="us.is_sign == -1"
                                             />
                                         </span>
-                                    </template>
-                                </Avatar>
+                                    </div>
+                                </template>  
                             </AvatarGroup>
                         </div>
                     </template>
@@ -1346,8 +1364,8 @@ onMounted(() => {
         :style="{
             width: PositionSideBar == 'right' ? (widthWindow > 1800 ? '65vw' : '75vw') : '100%',
             'min-height': '100vh !important',
-        }"     
-		:autoZIndex="true"
+        }"
+        :modal="true"
         :showCloseIcon="false"
         @hide="hideall()"
         >
@@ -1435,6 +1453,15 @@ onMounted(() => {
     ::v-deep(.p-menuitem) {
         .red-text {
             color: red;
+        }
+    }
+    ::v-deep(.avt-list-request) {
+        .p-avatar-group .p-avatar {
+            // margin-left: -0.25rem;
+            margin-left: 0;
+        }
+        .p-avatar-group .p-avatar .p-avatar-text {
+            position: absolute;
         }
     }
 </style>

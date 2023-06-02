@@ -32,8 +32,13 @@ const loadUserProfiles = () => {
       {
         str: encr(
           JSON.stringify({
-            proc: "hrm_profile_list_all",
-            par: [{ par: "user_id", va: store.getters.user.user_id }],
+            proc: "hrm_profile_list_2",
+            par: [{ par: "user_id", va: store.getters.user.user_id },
+            { par: "search", va: null },
+            { par: "pageNo ", va:1},
+            { par: "pageSize ", va: 100000 },
+            { par: "tab ", va: 1 },
+          ],
           }),
           SecretKey,
           cryoptojs
@@ -45,22 +50,24 @@ const loadUserProfiles = () => {
       let data = JSON.parse(response.data.data)[0];
 
       data.forEach((element, i) => {
-        listDataUsers.value.push({
-          profile_user_name: element.profile_user_name,
-          code: {
-            profile_id: element.profile_id,
+        if (props.except_user_now == null || (props.except_user_now != null && element.profile_id != props.except_user_now)) {
+          listDataUsers.value.push({
             profile_user_name: element.profile_user_name,
+            code: {
+              profile_id: element.profile_id,
+              profile_user_name: element.profile_user_name,
+              avatar: element.avatar,
+            },
+            profile_id: element.profile_id,
             avatar: element.avatar,
-          },
-          profile_id: element.profile_id,
-          avatar: element.avatar,
-          department_name: element.department_name,
-          department_id: element.department_id,
-          work_position_name: element.work_position_name,
-          position_name: element.position_name,
-          profile_code: element.profile_code,
-          organization_id: element.organization_id,
-        });
+            department_name: element.department_name,
+            department_id: element.department_id,
+            work_position_name: element.work_position_name,
+            position_name: element.position_name,
+            profile_code: element.profile_code,
+            organization_id: element.organization_id,
+          });
+        }
       });
       var models = null;
       if (props.optionValue == "code") {
@@ -88,7 +95,7 @@ const loadUserProfiles = () => {
 
       if (error && error.status === 401) {
         swal.fire({
-          text: "Mã token đã hết hạn hoặc không hợp lệ, vui lòng đăng nhập lại!",
+          text: "Phiên đăng nhập đã hết hạn, vui lòng đăng nhập lại!",
           confirmButtonText: "OK",
         });
         store.commit("gologout");
@@ -108,6 +115,7 @@ const props = defineProps({
   style: String,
   callbackFun: Function,
   key_user: String,
+  except_user_now: String,
 });
 const model = ref();
 const submitModel = () => {

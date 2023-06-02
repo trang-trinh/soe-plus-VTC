@@ -203,7 +203,7 @@ const itemSortButs = ref([
     },
   },
   {
-    label: "Theo ngày nhận cũ đến mới",
+    label: "Theo ngày bắt đầu cũ đến mới",
     sort: "start_date",
     ob: "ASC",
     active: false,
@@ -212,7 +212,7 @@ const itemSortButs = ref([
     },
   },
   {
-    label: "Theo ngày nhận mới đến cũ",
+    label: "Theo ngày bắt đầu mới đến cũ",
     sort: "start_date",
     ob: "DESC",
     active: false,
@@ -348,7 +348,7 @@ const itemFilterButs = ref([
     hasChildren: true,
     groups: [
       {
-        label: "Theo ngày nhận",
+        label: "Theo ngày bắt đầu",
         icon: "pi pi-calendar",
         active: false,
         is_children: 1,
@@ -385,7 +385,7 @@ const itemFilterButs = ref([
     ],
   },
   // {
-  //   label: "Theo ngày nhận",
+  //   label: "Theo ngày bắt đầu",
   //   icon: "pi pi-calendar",
   //   active: false,
   //   istype: 5,
@@ -472,7 +472,7 @@ const ChangeSortTask = (sort, ob) => {
       i.active = false;
     }
   });
-  menuSortButs.value.toggle();
+
   loadData(true, opition.value.type_view);
 };
 const ChangeTimeFilter = (type, value) => {
@@ -569,7 +569,7 @@ const ChangeFilter = (type, act) => {
       opition.value.edate = moment().endOf("isoWeek").toDate();
       opition.value.loctitle = "Trong tuần";
       break;
-    case 5: //theo ngày nhận
+    case 5: //theo ngày bắt đầu
       opition.value.sdate = null;
       opition.value.edate = null;
 
@@ -580,7 +580,7 @@ const ChangeFilter = (type, act) => {
             .filter((y) => y.is_children == 1)
             .forEach((d) => {
               d.label =
-                "Theo ngày nhận" +
+                "Theo ngày bắt đầu" +
                 " (" +
                 moment(t.filter_date).format("DD/MM/YYYY HH:mm") +
                 ")";
@@ -597,7 +597,7 @@ const ChangeFilter = (type, act) => {
               d.label = "Ngày hoàn thành";
             });
         });
-      opition.value.loctitle = "Theo ngày nhận";
+      opition.value.loctitle = "Theo ngày bắt đầu";
       break;
     case 6: //theo ngày hoàn thành
       opition.value.sdate = null;
@@ -621,7 +621,7 @@ const ChangeFilter = (type, act) => {
           t.groups
             .filter((y) => y.is_children == 1)
             .forEach((d) => {
-              d.label = "Theo ngày nhận";
+              d.label = "Theo ngày bắt đầu";
             });
         });
       opition.value.loctitle = "Theo ngày hoàn thành";
@@ -631,7 +631,7 @@ const ChangeFilter = (type, act) => {
       opition.value.edate = new Date(
         date.getFullYear(),
         date.getMonth() + 1,
-        0,
+        0
       );
       opition.value.loctitle = "Trong tháng";
       break;
@@ -701,7 +701,7 @@ const Del_ChangeFilter = () => {
       hasChildren: true,
       groups: [
         {
-          label: "Theo ngày nhận",
+          label: "Theo ngày bắt đầu",
           icon: "pi pi-calendar",
           active: false,
           is_children: 1,
@@ -738,7 +738,7 @@ const Del_ChangeFilter = () => {
       ],
     },
     // {
-    //   label: "Theo ngày nhận",
+    //   label: "Theo ngày bắt đầu",
     //   icon: "pi pi-calendar",
     //   active: false,
     //   istype: 5,
@@ -884,7 +884,7 @@ const DelTask = (dataTask) => {
               if (error.status === 401) {
                 swal.fire({
                   title: "Thông báo!",
-                  text: "Mã token đã hết hạn hoặc không hợp lệ, vui lòng đăng nhập lại!",
+                  text: "Phiên đăng nhập đã hết hạn, vui lòng đăng nhập lại!",
                   icon: "error",
                   confirmButtonText: "OK",
                 });
@@ -933,7 +933,7 @@ const RenderData = (data) => {
       (x) =>
         x.parent_id == null ||
         (x.parent_id != null &&
-          data.filter((y) => y.task_id == x.parent_id).length == 0),
+          data.filter((y) => y.task_id == x.parent_id).length == 0)
     )
     .forEach((m, i) => {
       m.STT2 = opition.value.PageNo * opition.value.PageSize + i + 1;
@@ -944,6 +944,7 @@ const RenderData = (data) => {
           if (!mm.children) mm.children = [];
           dts.forEach((em, j) => {
             em.STT2 = mm.data.STT2 + "." + (j + 1);
+            em.padding_left = em.STT2.split(".").length - 1;
             let om1 = { key: em.task_id, data: em };
             om1.data.is_order = j + 1;
             rechildren(om1, em.task_id);
@@ -1003,16 +1004,20 @@ const loadData = (rf, type) => {
             ],
           }),
           SecretKey,
-          cryoptojs,
+          cryoptojs
         ).toString(),
       },
-      config,
+      config
     )
     .then((response) => {
       let data = JSON.parse(response.data.data);
       let data1 = JSON.parse(response.data.data)[0];
       if (data1.length > 0) {
         data1.forEach((element, i) => {
+          if (element.project_id == null) {
+            element.project_name = "";
+          }
+
           element.progress = element.progress == null ? 0 : element.progress;
           element.update_date = element.modified_date
             ? element.modified_date
@@ -1020,7 +1025,7 @@ const loadData = (rf, type) => {
           element.status_name =
             element.status != null
               ? listDropdownStatus.value.filter(
-                  (x) => x.value == element.status,
+                  (x) => x.value == element.status
                 )[0].text
               : "";
 
@@ -1029,7 +1034,7 @@ const loadData = (rf, type) => {
           element.status_bg_color =
             element.status != null
               ? listDropdownStatus.value.filter(
-                  (x) => x.value == element.status,
+                  (x) => x.value == element.status
                 )[0].bg_color
               : "";
           element.status_bg_color =
@@ -1037,7 +1042,7 @@ const loadData = (rf, type) => {
           element.status_text_color =
             element.status != null
               ? listDropdownStatus.value.filter(
-                  (x) => x.value == element.status,
+                  (x) => x.value == element.status
                 )[0].text_color
               : "";
           //thời gian xử lý
@@ -1136,11 +1141,13 @@ const loadData = (rf, type) => {
           var arrNew = [];
           if (opition.value.type_group_view == 1) {
             var listCV = groupBy(data1, "project_id");
+
             for (let k in listCV) {
               var CVGroup = [];
               listCV[k].forEach(function (r) {
                 CVGroup.push(r);
               });
+
               arrNew.push({
                 isShow: true,
                 status: k,
@@ -1148,7 +1155,7 @@ const loadData = (rf, type) => {
                   k == "null"
                     ? ""
                     : listDropdownProject.value.filter(
-                        (x) => x.project_id == k,
+                        (x) => x.project_id == k
                       )[0].project_name,
                 group_view_bg_color: "#0d89ec",
                 CVGroup: RenderData(CVGroup),
@@ -1168,7 +1175,7 @@ const loadData = (rf, type) => {
                   k == "null"
                     ? ""
                     : listDropdownTaskGroup.value.filter(
-                        (x) => x.group_id == k,
+                        (x) => x.group_id == k
                       )[0].group_name,
                 group_view_bg_color: "#2196f3 ",
                 CVGroup: RenderData(CVGroup),
@@ -1196,7 +1203,7 @@ const loadData = (rf, type) => {
                   k == "null"
                     ? ""
                     : listDropdownProject.value.filter(
-                        (x) => x.project_id == k,
+                        (x) => x.project_id == k
                       )[0].project_name,
                 group_view_bg_color: "#0d89ec",
                 CVGroup: CVGroup,
@@ -1216,10 +1223,10 @@ const loadData = (rf, type) => {
                     isShow: false,
                     status: k,
                     group_view_name: listDropdownStatus.value.filter(
-                      (x) => x.value == k,
+                      (x) => x.value == k
                     )[0].text,
                     group_view_bg_color: listDropdownStatus.value.filter(
-                      (x) => x.value == k,
+                      (x) => x.value == k
                     )[0].bg_color,
                     CVGroup2: CVGroup2,
                   });
@@ -1241,7 +1248,7 @@ const loadData = (rf, type) => {
                   k == "null"
                     ? ""
                     : listDropdownTaskGroup.value.filter(
-                        (x) => x.group_id == k,
+                        (x) => x.group_id == k
                       )[0].group_name,
                 group_view_bg_color: "#2196f3 ",
                 CVGroup: CVGroup,
@@ -1260,10 +1267,10 @@ const loadData = (rf, type) => {
                   t.ListCVGroup.push({
                     isShow: false,
                     group_view_name: listDropdownStatus.value.filter(
-                      (x) => x.value == k,
+                      (x) => x.value == k
                     )[0].text,
                     group_view_bg_color: listDropdownStatus.value.filter(
-                      (x) => x.value == k,
+                      (x) => x.value == k
                     )[0].bg_color,
                     CVGroup2: CVGroup2,
                   });
@@ -1282,10 +1289,10 @@ const loadData = (rf, type) => {
             arrNew.push({
               status: k,
               group_view_name: listDropdownStatus.value.filter(
-                (x) => x.value == k,
+                (x) => x.value == k
               )[0].text,
               group_view_bg_color: listDropdownStatus.value.filter(
-                (x) => x.value == k,
+                (x) => x.value == k
               )[0].bg_color,
               CVGroup: CVGroup,
             });
@@ -1297,10 +1304,10 @@ const loadData = (rf, type) => {
       if (type == 4 || type == 5) {
         listTask.value = data1;
         let date1 = new Date(
-          opition.value.sdate ? opition.value.sdate : new Date(),
+          opition.value.sdate ? opition.value.sdate : new Date()
         );
         let date2 = new Date(
-          opition.value.edate ? opition.value.edate : new Date(),
+          opition.value.edate ? opition.value.edate : new Date()
         );
         // var firstDay = new Date(date.getFullYear(), date.getMonth(), 1);
         // var lastDay = new Date(date.getFullYear(), date.getMonth() + 1, 0);
@@ -1320,6 +1327,7 @@ const loadData = (rf, type) => {
     })
     .catch((error) => {
       toast.error("Tải dữ liệu không thành công!" + error);
+      console.log(error);
       opition.value.loading = false;
       addLog({
         title: "Lỗi Console loadData",
@@ -1329,7 +1337,7 @@ const loadData = (rf, type) => {
       });
       if (error && error.status === 401) {
         swal.fire({
-          text: "Mã token đã hết hạn hoặc không hợp lệ, vui lòng đăng nhập lại!",
+          text: "Phiên đăng nhập đã hết hạn, vui lòng đăng nhập lại!",
           confirmButtonText: "OK",
         });
         store.commit("gologout");
@@ -1365,10 +1373,10 @@ const listUser = () => {
             ],
           }),
           SecretKey,
-          cryoptojs,
+          cryoptojs
         ).toString(),
       },
-      config,
+      config
     )
     .then((response) => {
       let data = JSON.parse(response.data.data)[0];
@@ -1390,7 +1398,7 @@ const listUser = () => {
 
       if (error && error.status === 401) {
         swal.fire({
-          text: "Mã token đã hết hạn hoặc không hợp lệ, vui lòng đăng nhập lại!",
+          text: "Phiên đăng nhập đã hết hạn, vui lòng đăng nhập lại!",
           confirmButtonText: "OK",
         });
         store.commit("gologout");
@@ -1451,10 +1459,10 @@ const listtreeOrganization = () => {
             par: [{ par: "user_id", va: store.getters.user.user_id }],
           }),
           SecretKey,
-          cryoptojs,
+          cryoptojs
         ).toString(),
       },
-      config,
+      config
     )
     .then((response) => {
       let data = JSON.parse(response.data.data)[0];
@@ -1462,7 +1470,7 @@ const listtreeOrganization = () => {
         data.filter((x) => x.organization_type != 0),
         "organization_id",
         "organization_name",
-        "phòng ban",
+        "phòng ban"
       );
       listOrganization.value = data;
       listDropdownorganization.value = obj.arrtreeChils;
@@ -1473,7 +1481,7 @@ const listtreeOrganization = () => {
 
       if (error && error.status === 401) {
         swal.fire({
-          text: "Mã token đã hết hạn hoặc không hợp lệ, vui lòng đăng nhập lại!",
+          text: "Phiên đăng nhập đã hết hạn, vui lòng đăng nhập lại!",
           confirmButtonText: "OK",
         });
         store.commit("gologout");
@@ -1496,10 +1504,10 @@ const listProjectMain = () => {
             ],
           }),
           SecretKey,
-          cryoptojs,
+          cryoptojs
         ).toString(),
       },
-      config,
+      config
     )
     .then((response) => {
       let data = JSON.parse(response.data.data);
@@ -1513,7 +1521,7 @@ const listProjectMain = () => {
 
       if (error && error.status === 401) {
         swal.fire({
-          text: "Mã token đã hết hạn hoặc không hợp lệ, vui lòng đăng nhập lại!",
+          text: "Phiên đăng nhập đã hết hạn, vui lòng đăng nhập lại!",
           confirmButtonText: "OK",
         });
         store.commit("gologout");
@@ -1605,10 +1613,10 @@ const getDates = (startDate, endDate) => {
       DW: d.getDay(),
       Day: parseInt(moment(currentDate).format("DD")),
       DayName: WeekDay.value.filter(
-        (x) => x.value == d.toLocaleString("en-us", { weekday: "long" }),
+        (x) => x.value == d.toLocaleString("en-us", { weekday: "long" })
       )[0].text,
       bg: WeekDay.value.filter(
-        (x) => x.value == d.toLocaleString("en-us", { weekday: "long" }),
+        (x) => x.value == d.toLocaleString("en-us", { weekday: "long" })
       )[0].bg,
       color:
         parseInt(moment(currentDate).format("DD")) ==
@@ -1659,7 +1667,7 @@ const getDates = (startDate, endDate) => {
       cv.Thanhviens.forEach(function (u) {
         if (
           listData.filter(
-            (x) => x.user_id == u.user_id && x.task_id == cv.task_id,
+            (x) => x.user_id == u.user_id && x.task_id == cv.task_id
           ).length == 0
         ) {
           listData.push({
@@ -1687,7 +1695,7 @@ const getDates = (startDate, endDate) => {
         r.count_cv = listCV[k].length;
         r.count_istype_0 = listCV[k].filter((x) => x.is_type == 0).length;
         r.count_istype_1 = listCV[k].filter(
-          (x) => x.is_type == 1 || x.is_type == 2,
+          (x) => x.is_type == 1 || x.is_type == 2
         ).length;
         r.count_istype_3 = listCV[k].filter((x) => x.is_type == 3).length;
         arrNew.push(r);
@@ -1724,6 +1732,7 @@ const WeekDay = ref([
 ]);
 const typefRouter = ref(route.params.type);
 onMounted(() => {
+  ChangeSortTask("start_date", "DESC");
   loadData(true, 2);
   if (typefRouter.value != null) {
     ChangeData(typefRouter.value);
@@ -1761,10 +1770,7 @@ const ChangeShowListCVGroup = (model) => {
 };
 </script>
 <template>
-  <div
-    v-if="store.getters.islogin"
-    class="main-layout true flex-grow-1 p-2"
-  >
+  <div v-if="store.getters.islogin" class="main-layout true flex-grow-1 p-2">
     <div class="flex justify-content-center align-items-center">
       <Toolbar class="w-full custoolbar">
         <template #start>
@@ -1799,14 +1805,8 @@ const ChangeShowListCVGroup = (model) => {
               aria-controls="overlay_Export1"
             >
               <a
-                ><i
-                  style="margin-right: 5px"
-                  class="pi pi-bars"
-                ></i
-                >Kiểu hiển thị<i
-                  style="margin-left: 5px"
-                  class="pi pi-angle-down"
-                ></i
+                ><i style="margin-right: 5px" class="pi pi-bars"></i>Kiểu hiển
+                thị<i style="margin-left: 5px" class="pi pi-angle-down"></i
               ></a>
             </li>
             <li
@@ -1816,14 +1816,8 @@ const ChangeShowListCVGroup = (model) => {
               aria-controls="overlay_menuGroupListTypeButs"
             >
               <a
-                ><i
-                  style="margin-right: 5px"
-                  class="pi pi-bars"
-                ></i
-                >Nhóm dữ liệu<i
-                  style="margin-left: 5px"
-                  class="pi pi-angle-down"
-                ></i
+                ><i style="margin-right: 5px" class="pi pi-bars"></i>Nhóm dữ
+                liệu<i style="margin-left: 5px" class="pi pi-angle-down"></i
               ></a>
             </li>
             <li
@@ -1838,15 +1832,9 @@ const ChangeShowListCVGroup = (model) => {
               aria-controls="overlay_Export"
             >
               <a
-                ><i
-                  style="margin-right: 5px"
-                  class="pi pi-filter"
-                ></i
+                ><i style="margin-right: 5px" class="pi pi-filter"></i
                 >{{ opition.loctitle
-                }}<i
-                  style="margin-left: 5px"
-                  class="pi pi-angle-down"
-                ></i
+                }}<i style="margin-left: 5px" class="pi pi-angle-down"></i
               ></a>
             </li>
             <li
@@ -1909,10 +1897,7 @@ const ChangeShowListCVGroup = (model) => {
                           @click="ChangeFilter(item.istype, false)"
                           :class="{ active: item.active }"
                         >
-                          <i
-                            style="padding-right: 5px"
-                            :class="item1.icon"
-                          ></i>
+                          <i style="padding-right: 5px" :class="item1.icon"></i>
                           {{ item1.label }}
                         </a>
                         <span style="margin-left: 10px">
@@ -1994,10 +1979,7 @@ const ChangeShowListCVGroup = (model) => {
                   class="p-menuitem"
                 >
                   <a :class="{ active: item.active }"
-                    ><i
-                      style="padding-right: 5px"
-                      :class="item.icon"
-                    ></i
+                    ><i style="padding-right: 5px" :class="item.icon"></i
                     >{{ item.label }}</a
                   >
                   <ul style="padding: 0px; display: flex">
@@ -2083,10 +2065,7 @@ const ChangeShowListCVGroup = (model) => {
                   @click="ChangeFilter(item.istype, false)"
                 >
                   <a :class="{ active: item.active }"
-                    ><i
-                      style="padding-right: 5px"
-                      :class="item.icon"
-                    ></i
+                    ><i style="padding-right: 5px" :class="item.icon"></i
                     >{{ item.label }}</a
                   >
                 </li>
@@ -2156,10 +2135,7 @@ const ChangeShowListCVGroup = (model) => {
       </Toolbar>
     </div>
     <div style="display: flex; justify-content: center; margin-bottom: 10px">
-      <ul
-        id="header_bottom"
-        style="padding: 0px; margin: 0px; display: flex"
-      >
+      <ul id="header_bottom" style="padding: 0px; margin: 0px; display: flex">
         <li
           @click="ChangeData(-1)"
           class="header-bottom"
@@ -2262,16 +2238,11 @@ const ChangeShowListCVGroup = (model) => {
       "
       :expandableRowGroups="opition.type_group_view ? true : false"
       v-model:expandedRowGroups="expandedRowGroups"
-      @rowgroupExpand="onRowGroupExpand($event)"
-      @rowgroupCollapse="onRowGroupCollapse($event)"
       selectionMode="single"
       @rowSelect="onRowSelect($event.data)"
       @rowUnselect="onRowUnselect($event.data)"
     >
-      <template
-        v-if="opition.type_group_view != null"
-        #groupheader="slotProps"
-      >
+      <template v-if="opition.type_group_view != null" #groupheader="slotProps">
         <span>{{
           opition.type_group_view == 1
             ? slotProps.data.project_name
@@ -2285,7 +2256,7 @@ const ChangeShowListCVGroup = (model) => {
         class="align-items-center justify-content-center text-center"
       >
       </Column>
-      <Column
+      <!-- <Column
         headerStyle="text-align:center;max-width:50px;min-height:3.125rem"
         bodyStyle="text-align:center;max-width:50px; "
         class="align-items-center justify-content-center text-center"
@@ -2322,28 +2293,25 @@ const ChangeShowListCVGroup = (model) => {
             shape="circle"
           />
         </template>
-      </Column>
+      </Column> -->
       <Column
         header="Tên công việc"
         headerStyle="min-height:3.125rem"
         bodyStyle=" "
       >
         <template #body="data">
-          <div style="display: flex; flex-direction: column; padding: 5px">
-            <div style="line-height: 20px; display: flex">
+          <div style="display: flex; flex-direction: column">
+            <div style="display: flex">
               <span
                 v-tooltip="'Ưu tiên'"
                 v-if="data.data.is_prioritize"
                 style="margin-right: 5px"
-                ><i
-                  style="color: orange"
-                  class="pi pi-star-fill"
-                ></i
+                ><i style="color: orange" class="pi pi-star-fill"></i
               ></span>
               <span
                 style="
                   font-weight: bold;
-                  font-size: 14px;
+                  font-size: 16px;
                   overflow: hidden;
                   text-overflow: ellipsis;
                   width: 100%;
@@ -2368,7 +2336,7 @@ const ChangeShowListCVGroup = (model) => {
                 >{{
                   data.data.start_date
                     ? moment(new Date(data.data.start_date)).format(
-                        "DD/MM/YYYY",
+                        "DD/MM/YYYY"
                       )
                     : null
                 }}
@@ -2439,12 +2407,7 @@ const ChangeShowListCVGroup = (model) => {
             </div>
             <div
               v-if="data.data.project_name"
-              style="
-                min-height: 25px;
-                display: flex;
-                align-items: center;
-                margin-top: 10px;
-              "
+              style="display: flex; align-items: center; margin-top: 5px"
             >
               <i class="pi pi-tag"></i>
               <span
@@ -2541,10 +2504,7 @@ const ChangeShowListCVGroup = (model) => {
       >
         <template #body="data">
           <span v-if="data.data.progress == 0">{{ data.data.progress }} %</span>
-          <div
-            v-if="data.data.progress != 0"
-            style="width: 100%"
-          >
+          <div v-if="data.data.progress != 0" style="width: 100%">
             <ProgressBar :value="data.data.progress" />
           </div>
         </template>
@@ -2655,10 +2615,7 @@ const ChangeShowListCVGroup = (model) => {
           "
           v-if="listTask != null"
         >
-          <img
-            src="../../assets/background/nodata.png"
-            height="144"
-          />
+          <img src="../../assets/background/nodata.png" height="144" />
           <h3 class="m-1">Không có dữ liệu</h3>
         </div>
       </template>
@@ -2679,10 +2636,7 @@ const ChangeShowListCVGroup = (model) => {
         (opition.type_group_view == 1 || opition.type_group_view == 2)
       "
     >
-      <div
-        v-for="(l, index) in listTask"
-        :key="index"
-      >
+      <div v-for="(l, index) in listTask" :key="index">
         <div
           class="task-tree-lable"
           @click="ChangeShowListCVGroup(l)"
@@ -2717,7 +2671,6 @@ const ChangeShowListCVGroup = (model) => {
           scrollHeight="flex"
           v-model:selectionKeys="selectedKeys"
           v-model:first="first"
-          :loading="opition.loading"
           :expandedKeys="expandedKeys"
           :rowHover="true"
           responsiveLayout="scroll"
@@ -2739,15 +2692,12 @@ const ChangeShowListCVGroup = (model) => {
               >
                 {{ menu.node.data.STT2 }}
               </div>
-              <div
-                v-else
-                style="font-weight: 500"
-              >
+              <div v-else style="font-weight: 500">
                 {{ menu.node.data.STT2 }}
               </div>
             </template>
           </Column>
-          <Column
+          <!-- <Column
             headerStyle="text-align:center;max-width:50px;min-height:3.125rem"
             bodyStyle="text-align:center;max-width:100px; "
             :expander="true"
@@ -2785,28 +2735,33 @@ const ChangeShowListCVGroup = (model) => {
                 shape="circle"
               />
             </template>
-          </Column>
+          </Column> -->
           <Column
             header="Tên công việc"
             headerStyle="min-height:3.125rem"
             bodyStyle=" "
+            expander
           >
             <template #body="data">
-              <div style="display: flex; flex-direction: column; padding: 5px">
-                <div style="line-height: 20px; display: flex">
+              <div
+                style="display: flex; flex-direction: column"
+                :style="[
+                  {
+                    'padding-left': data.node.data.padding_left * 20 + 'px',
+                  },
+                ]"
+              >
+                <div style="display: flex">
                   <span
                     v-tooltip="'Ưu tiên'"
                     v-if="data.node.data.is_prioritize"
                     style="margin-right: 5px"
-                    ><i
-                      style="color: orange"
-                      class="pi pi-star-fill"
-                    ></i
+                    ><i style="color: orange" class="pi pi-star-fill"></i
                   ></span>
                   <span
                     style="
                       font-weight: bold;
-                      font-size: 14px;
+                      font-size: 16px;
                       overflow: hidden;
                       text-overflow: ellipsis;
                       width: 100%;
@@ -2824,7 +2779,7 @@ const ChangeShowListCVGroup = (model) => {
                     >{{
                       data.node.data.start_date
                         ? moment(new Date(data.node.data.start_date)).format(
-                            "DD/MM/YYYY",
+                            "DD/MM/YYYY"
                           )
                         : null
                     }}
@@ -2832,7 +2787,7 @@ const ChangeShowListCVGroup = (model) => {
                     {{
                       data.node.data.end_date
                         ? moment(new Date(data.node.data.end_date)).format(
-                            "DD/MM/YYYY",
+                            "DD/MM/YYYY"
                           )
                         : null
                     }}</span
@@ -2897,12 +2852,7 @@ const ChangeShowListCVGroup = (model) => {
                 </div>
                 <div
                   v-if="data.node.data.project_name"
-                  style="
-                    min-height: 25px;
-                    display: flex;
-                    align-items: center;
-                    margin-top: 10px;
-                  "
+                  style="display: flex; align-items: center; margin-top: 5px"
                 >
                   <i class="pi pi-tag"></i>
                   <span
@@ -3002,10 +2952,7 @@ const ChangeShowListCVGroup = (model) => {
               <span v-if="data.node.data.progress == 0"
                 >{{ data.node.data.progress }} %</span
               >
-              <div
-                v-if="data.node.data.progress != 0"
-                style="width: 100%"
-              >
+              <div v-if="data.node.data.progress != 0" style="width: 100%">
                 <ProgressBar :value="data.node.data.progress" />
               </div>
             </template>
@@ -3053,7 +3000,7 @@ const ChangeShowListCVGroup = (model) => {
                   style="color: #ffab2b; font-size: 13px; font-weight: bold"
                   >{{
                     moment(new Date(data.node.data.end_date)).format(
-                      "DD/MM/YYYY HH:mm",
+                      "DD/MM/YYYY HH:mm"
                     )
                   }}</span
                 >
@@ -3121,10 +3068,7 @@ const ChangeShowListCVGroup = (model) => {
               "
               v-if="listTask != null || opition.totalRecords == 0"
             >
-              <img
-                src="../../assets/background/nodata.png"
-                height="144"
-              />
+              <img src="../../assets/background/nodata.png" height="144" />
               <h3 class="m-1">Không có dữ liệu</h3>
             </div>
           </template>
@@ -3144,8 +3088,7 @@ const ChangeShowListCVGroup = (model) => {
       scrollHeight="flex"
       v-model:selectionKeys="selectedKeys"
       v-model:first="first"
-      :loading="opition.loading"
-      :expandedKeys="expandedKeys"
+      v-model:expandedKeys="expandedKeys"
       :rowHover="true"
       responsiveLayout="scroll"
       :totalRecords="opition.totalRecords"
@@ -3155,9 +3098,7 @@ const ChangeShowListCVGroup = (model) => {
     >
       <Column
         field="STT"
-        headerStyle="text-align:center;max-width:75px;height:50px"
-        bodyStyle="text-align:center;max-width:50px;;max-height:600px"
-        class="align-items-center justify-content-center text-center"
+        class="align-items-center justify-content-center text-center max-w-5rem"
       >
         <template #body="menu">
           <div
@@ -3166,74 +3107,38 @@ const ChangeShowListCVGroup = (model) => {
           >
             {{ menu.node.data.STT2 }}
           </div>
-          <div
-            v-else
-            style="font-weight: 500"
-          >
+          <div v-else style="font-weight: 500">
             {{ menu.node.data.STT2 }}
           </div>
         </template>
       </Column>
-      <Column
-        headerStyle="text-align:center;max-width:50px;min-height:3.125rem"
-        bodyStyle="text-align:center;max-width:100px; "
-        :expander="true"
-        class="align-items-center justify-content-left text-center"
-      >
-        <template #body="value">
-          <Avatar
-            v-tooltip.bottom="{
-              value:
-                value.node.data.full_name +
-                '<br/>' +
-                (value.node.data.tenChucVu || '') +
-                '<br/>' +
-                (value.node.data.tenToChuc || ''),
-              escape: true,
-            }"
-            v-bind:label="
-              value.node.data.avatar
-                ? ''
-                : (value.node.data.last_name ?? '').substring(0, 1)
-            "
-            v-bind:image="basedomainURL + value.node.data.avatar"
-            style="
-              background-color: #2196f3;
-              color: #ffffff;
-              width: 2.5rem;
-              height: 2.5rem;
-              font-size: 15px !important;
-            "
-            :style="{
-              background: bgColor[0] + '!important',
-            }"
-            class="cursor-pointer"
-            size="xlarge"
-            shape="circle"
-          />
-        </template>
-      </Column>
+
       <Column
         header="Tên công việc"
         headerStyle="min-height:3.125rem"
         bodyStyle=" "
+        expander
       >
         <template #body="data">
-          <div style="display: flex; flex-direction: column; padding: 5px">
-            <div style="line-height: 20px; display: flex">
+          <div
+            style="display: flex; flex-direction: column"
+            :style="[
+              {
+                'padding-left': data.node.data.padding_left * 20 + 'px',
+              },
+            ]"
+          >
+            <div style="display: flex">
               <span
                 v-tooltip="'Ưu tiên'"
                 v-if="data.node.data.is_prioritize"
                 style="margin-right: 5px"
-                ><i
-                  style="color: orange"
-                  class="pi pi-star-fill"
-                ></i
+                ><i style="color: orange" class="pi pi-star-fill"></i
               ></span>
               <span
                 style="
                   font-weight: bold;
-                  font-size: 14px;
+                  font-size: 16px;
                   overflow: hidden;
                   text-overflow: ellipsis;
                   width: 100%;
@@ -3251,7 +3156,7 @@ const ChangeShowListCVGroup = (model) => {
                 >{{
                   data.node.data.start_date
                     ? moment(new Date(data.node.data.start_date)).format(
-                        "DD/MM/YYYY",
+                        "DD/MM/YYYY"
                       )
                     : null
                 }}
@@ -3259,7 +3164,7 @@ const ChangeShowListCVGroup = (model) => {
                 {{
                   data.node.data.end_date
                     ? moment(new Date(data.node.data.end_date)).format(
-                        "DD/MM/YYYY",
+                        "DD/MM/YYYY"
                       )
                     : null
                 }}</span
@@ -3324,12 +3229,7 @@ const ChangeShowListCVGroup = (model) => {
             </div>
             <div
               v-if="data.node.data.project_name"
-              style="
-                min-height: 25px;
-                display: flex;
-                align-items: center;
-                margin-top: 10px;
-              "
+              style="display: flex; align-items: center; margin-top: 5px"
             >
               <i class="pi pi-tag"></i>
               <span
@@ -3429,10 +3329,7 @@ const ChangeShowListCVGroup = (model) => {
           <span v-if="data.node.data.progress == 0"
             >{{ data.node.data.progress }} %</span
           >
-          <div
-            v-if="data.node.data.progress != 0"
-            style="width: 100%"
-          >
+          <div v-if="data.node.data.progress != 0" style="width: 100%">
             <ProgressBar :value="data.node.data.progress" />
           </div>
         </template>
@@ -3478,7 +3375,7 @@ const ChangeShowListCVGroup = (model) => {
           >
             <span style="color: #ffab2b; font-size: 13px; font-weight: bold">{{
               moment(new Date(data.node.data.end_date)).format(
-                "DD/MM/YYYY HH:mm",
+                "DD/MM/YYYY HH:mm"
               )
             }}</span>
           </div>
@@ -3545,10 +3442,7 @@ const ChangeShowListCVGroup = (model) => {
           "
           v-if="listTask != null || opition.totalRecords == 0"
         >
-          <img
-            src="../../assets/background/nodata.png"
-            height="144"
-          />
+          <img src="../../assets/background/nodata.png" height="144" />
           <h3 class="m-1">Không có dữ liệu</h3>
         </div>
       </template>
@@ -3592,18 +3486,9 @@ const ChangeShowListCVGroup = (model) => {
           id="task-grid"
           class="scroll-outer"
         >
-          <div
-            class="scroll-inner"
-            style="width: fit-content"
-          >
-            <div
-              id="type_group_view"
-              v-if="opition.type_group_view != null"
-            >
-              <div
-                v-for="(l, index) in item.ListCVGroup"
-                :key="index"
-              >
+          <div class="scroll-inner" style="width: fit-content">
+            <div id="type_group_view" v-if="opition.type_group_view != null">
+              <div v-for="(l, index) in item.ListCVGroup" :key="index">
                 <span
                   @click="ChangeShowListCVGroup(l)"
                   style="
@@ -3673,14 +3558,11 @@ const ChangeShowListCVGroup = (model) => {
                       <span
                         v-if="cv.start_date || cv.end_date"
                         style="color: #98a9bc"
-                        ><i
-                          style="margin-right: 5px"
-                          class="pi pi-calendar"
-                        ></i
+                        ><i style="margin-right: 5px" class="pi pi-calendar"></i
                         >{{
                           cv.start_date
                             ? moment(new Date(cv.start_date)).format(
-                                "DD/MM/YYYY",
+                                "DD/MM/YYYY"
                               )
                             : null
                         }}
@@ -3873,10 +3755,7 @@ const ChangeShowListCVGroup = (model) => {
                     </template>
                     <template #footer>
                       <!-- <span v-if="cv.progress == 0">{{ cv.progress }} %</span> -->
-                      <div
-                        v-if="cv.progress != 0"
-                        style="width: 100%"
-                      >
+                      <div v-if="cv.progress != 0" style="width: 100%">
                         <ProgressBar :value="cv.progress" />
                       </div>
                     </template>
@@ -3926,13 +3805,8 @@ const ChangeShowListCVGroup = (model) => {
                   "
                   >{{ cv.project_name }}</span
                 >
-                <span
-                  v-if="cv.start_date || cv.end_date"
-                  style="color: #98a9bc"
-                  ><i
-                    style="margin-right: 5px"
-                    class="pi pi-calendar"
-                  ></i
+                <span v-if="cv.start_date || cv.end_date" style="color: #98a9bc"
+                  ><i style="margin-right: 5px" class="pi pi-calendar"></i
                   >{{
                     cv.start_date
                       ? moment(new Date(cv.start_date)).format("DD/MM/YYYY")
@@ -4122,10 +3996,7 @@ const ChangeShowListCVGroup = (model) => {
               </template>
               <template #footer>
                 <!-- <span v-if="cv.progress == 0">{{ cv.progress }} %</span> -->
-                <div
-                  v-if="cv.progress != 0"
-                  style="width: 100%"
-                >
+                <div v-if="cv.progress != 0" style="width: 100%">
                   <ProgressBar :value="cv.progress" />
                 </div>
               </template>
@@ -4143,10 +4014,7 @@ const ChangeShowListCVGroup = (model) => {
         "
         v-if="listTask.length == 0"
       >
-        <img
-          src="../../assets/background/nodata.png"
-          height="144"
-        />
+        <img src="../../assets/background/nodata.png" height="144" />
         <h3 class="m-1">Không có dữ liệu</h3>
       </div>
     </div>
@@ -4270,10 +4138,7 @@ const ChangeShowListCVGroup = (model) => {
               </tr>
             </thead>
             <tbody>
-              <tr
-                v-for="l in listTask"
-                @click="onRowSelect(l)"
-              >
+              <tr v-for="l in listTask" @click="onRowSelect(l)">
                 <td
                   class="fixcol left-0 p-3"
                   style="border: 1px solid #e9e9e9; background-color: #f8f9fa"
@@ -4358,7 +4223,7 @@ const ChangeShowListCVGroup = (model) => {
                   {{
                     l.start_date
                       ? moment(new Date(l.start_date)).format(
-                          "DD/MM/YYYY HH:mm",
+                          "DD/MM/YYYY HH:mm"
                         )
                       : ""
                   }}
@@ -4405,10 +4270,7 @@ const ChangeShowListCVGroup = (model) => {
                 </td>
               </tr>
               <tr v-if="listTask.length == 0">
-                <td
-                  :colspan="GrandsDate.length + 4"
-                  style="text-align: center"
-                >
+                <td :colspan="GrandsDate.length + 4" style="text-align: center">
                   <div
                     class="align-items-center justify-content-center p-4 text-center m-auto"
                     style="
@@ -4598,10 +4460,7 @@ const ChangeShowListCVGroup = (model) => {
               </tr>
             </thead>
             <tbody>
-              <tr
-                v-for="(l, index) in listTask"
-                :key="index"
-              >
+              <tr v-for="(l, index) in listTask" :key="index">
                 <td
                   class="fixcol left-0 p-3"
                   style="
@@ -4764,10 +4623,7 @@ const ChangeShowListCVGroup = (model) => {
                 </td>
               </tr>
               <tr v-if="listTask.length == 0">
-                <td
-                  :colspan="GrandsDate.length + 4"
-                  style="text-align: center"
-                >
+                <td :colspan="GrandsDate.length + 4" style="text-align: center">
                   <div
                     class="align-items-center justify-content-center p-4 text-center m-auto"
                     style="
@@ -4810,6 +4666,8 @@ const ChangeShowListCVGroup = (model) => {
     :data="DialogData"
     :closeDialogTask="closeDialogTask"
     :afterSave="afterSave"
+    :project_id="props.id"
+    :STT="opition.totalAlls"
   >
   </DialogTask>
 </template>

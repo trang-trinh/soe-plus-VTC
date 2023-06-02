@@ -1,5 +1,6 @@
 ﻿using API.Helper;
 using API.Models;
+using Aspose.Cells;
 using Helper;
 using Microsoft.ApplicationBlocks.Data;
 using Newtonsoft.Json;
@@ -10,6 +11,7 @@ using System.Configuration;
 using System.Data.Entity;
 using System.Data.Entity.Validation;
 using System.Data.SqlClient;
+using System.Globalization;
 using System.IO;
 using System.Linq;
 using System.Net;
@@ -17,6 +19,7 @@ using System.Net.Http;
 using System.Security.Claims;
 using System.Text.RegularExpressions;
 using System.Threading.Tasks;
+using System.util;
 using System.Web;
 using System.Web.Http;
 
@@ -1040,7 +1043,13 @@ namespace API.Controllers.Request
                                 request.modified_date = DateTime.Now;
                                 request.modified_ip = ip;
                                 request.modified_token_id = tid;
-
+                                var datestart = DateTime.Now;
+                                request.start_send_date = datestart;
+                                if (request.times_processing_max != null && request.times_processing_max > 0)
+                                {
+                                    request.deadline_first = datestart.AddHours(request.times_processing_max ?? 0);
+                                    request.deadline = request.deadline_first;
+                                }
                                 #region Gen quy trinh
                                 if (type_send == 0) // gửi đến quy trình
                                 {
@@ -1702,6 +1711,14 @@ namespace API.Controllers.Request
             bool super = claims.Where(p => p.Type == "super").FirstOrDefault()?.Value == "True";
             string domainurl = HttpContext.Current.Request.Url.Scheme + "://" + HttpContext.Current.Request.Url.Host + ":" + HttpContext.Current.Request.Url.Port + "/";
 
+            userLog us = new userLog();
+            us.ip = ip;
+            us.name = name;
+            us.tid = tid;
+            us.dvid = dvid;
+            us.uid = uid;
+            us.super = super;
+            us.domainurl = domainurl;
             try
             {
                 using (DBEntities db = new DBEntities())
@@ -1827,11 +1844,111 @@ namespace API.Controllers.Request
                                             }
                                             else
                                             {
-                                                request.status = 2; //Ban hành
+                                                request.status = 2; // Hoan thanh
                                                 request.modified_by = uid;
                                                 request.modified_date = DateTime.Now;
                                                 request.modified_ip = ip;
                                                 request.modified_token_id = tid;
+                                                // ---
+                                                request.status_processing = request.is_evaluate == true ? 2 : 3;
+                                                user_current.is_sign = 2; // Hoan thanh
+                                                request.completed_date = DateTime.Now;
+                                                request.completed_by = uid;
+                                                DateTime complete_time_process = request.completed_date ?? DateTime.Now;
+                                                DateTime start_time_process = request.start_send_date ?? DateTime.Now;
+                                                TimeSpan span_process = complete_time_process.Subtract(start_time_process);
+                                                request.times_processing = Math.Round(span_process.TotalHours);
+                                                #region send request to hrm
+                                                //if (request.request_form_id != null)
+                                                //{
+                                                //    var formRequest = db.request_ca_form.AsNoTracking().FirstOrDefault(x => x.request_form_id == request.request_form_id);
+                                                //    if (formRequest != null && formRequest.request_group_id != null)
+                                                //    {
+                                                //        var groupFormRequest = db.request_ca_group.AsNoTracking().FirstOrDefault(x => x.request_group_id == formRequest.request_group_id);
+                                                //        if (groupFormRequest != null && groupFormRequest.is_type == 1)
+                                                //        {
+                                                //            var profileUser = db.hrm_matchaccount.Where(x => x.user_id == request.created_by).OrderByDescending(x => x.created_date).FirstOrDefault();
+                                                //            if (profileUser != null)
+                                                //            {
+                                                //                var countLeaveProfile = db.hrm_leave.Where(x => x.profile_id == profileUser.profile_id).Count();
+                                                //                var listDetailRequest = db.request_master_detail.Where(x => x.request_id == request.request_id && x.is_order_row != null).OrderBy(x => x.is_order_row).ThenBy(n => n.is_order).ToList();
+                                                //                if (listDetailRequest.Count() > 0)
+                                                //                {
+                                                //                    var maxOrderRow = listDetailRequest.Max(x => x.is_order_row);
+                                                //                    List<hrm_leave> list_hrm_leave = new List<hrm_leave>();
+                                                //                    var data_leave_profile = new hrm_leave_profile();
+                                                //                    for (int i = 0; i <= maxOrderRow; i++)
+                                                //                    {
+                                                //                        var listDataInRow = listDetailRequest.Where(x => x.is_order_row == i).OrderBy(x => x.is_type).ToList();
+                                                //                        var dayoffData = listDataInRow.Where(x => x.is_type == 6 && x.value_field != null).Count();
+                                                //                        if (listDataInRow.Count > 0 && dayoffData > 0)
+                                                //                        {
+                                                //                            hrm_leave le = new hrm_leave();
+                                                //                            le.profile_id = profileUser.profile_id;
+                                                //                            le.organization_id = request.organization_id;
+                                                //                            le.note = request.content;
+                                                //                            le.is_order = countLeaveProfile + 1;
+                                                //                            countLeaveProfile++;
+                                                //                            le.created_by = uid;
+                                                //                            le.created_date = DateTime.Now;
+                                                //                            le.created_ip = ip;
+                                                //                            le.created_token_id = tid;
+                                                //                            foreach (var item in listDataInRow)
+                                                //                            {
+                                                //                                if (item.is_type == 6)
+                                                //                                {
+                                                //                                    DateTime dayLeave = DateTime.ParseExact(item.value_field, "yyyy-MM-dd", CultureInfo.InvariantCulture);
+                                                //                                    le.leave_date = dayLeave;
+                                                //                                    le.leave_day = dayLeave.Day;
+                                                //                                    le.leave_month = dayLeave.Month;
+                                                //                                    le.leave_year = dayLeave.Year;
+                                                //                                    if (data_leave_profile.year == null)
+                                                //                                    {
+                                                //                                        data_leave_profile = db.hrm_leave_profile.Where(x => x.profile_id == profileUser.profile_id && x.year == le.leave_year).FirstOrDefault();
+                                                //                                        if (data_leave_profile == null)
+                                                //                                        {
+                                                //                                            return Request.CreateResponse(HttpStatusCode.OK, new { year = le.leave_year, err = "2" });
+                                                //                                        }
+                                                //                                    }
+
+                                                //                                }
+                                                //                                else if (item.is_type == 9)
+                                                //                                {
+                                                //                                    le.type_dayoff = Int32.Parse(item.value_field == null || item.value_field == "" ? "0" : item.value_field);
+
+                                                //                                    string nameOfProperty = "month" + le.leave_month.ToString();
+                                                //                                    var propGetData = data_leave_profile.GetType().GetProperty(nameOfProperty);
+                                                //                                    var valueProp = propGetData.GetValue(data_leave_profile);
+                                                //                                    var valueSet = Convert.ToDouble(valueProp) + (le.type_dayoff == 0 ? 1 : 0.5);
+                                                //                                    data_leave_profile.GetType().GetProperty(nameOfProperty).SetValue(data_leave_profile, valueSet);
+                                                //                                }
+                                                //                                else if (item.is_type == 10)
+                                                //                                {
+                                                //                                    le.is_type = Int32.Parse(item.value_field == null || item.value_field == "" ? "0" : item.value_field);
+                                                //                                }
+                                                //                            }
+                                                //                            list_hrm_leave.Add(le);
+                                                //                        }
+                                                //                    }
+                                                //                    if (list_hrm_leave.Count > 0)
+                                                //                    {
+                                                //                        db.hrm_leave.AddRange(list_hrm_leave);
+                                                //                    }
+                                                //                }
+                                                //            }
+                                                //        }
+                                                //    }
+                                                //}
+                                                #endregion
+                                                await System.Threading.Tasks.Task.Run(async () =>
+                                                {
+                                                    try
+                                                    {
+                                                        await getRequestToHrm(request, us);
+                                                    }
+                                                    catch { }
+                                                });
+                                                // ----
                                             }
                                         }
                                         else if (procedure.is_type == 1) // quy trình duyệt 1 nhiều
@@ -1871,6 +1988,24 @@ namespace API.Controllers.Request
                                                 request.modified_date = DateTime.Now;
                                                 request.modified_ip = ip;
                                                 request.modified_token_id = tid;
+                                                // ---
+                                                request.status_processing = request.is_evaluate == true ? 2 : 3;
+                                                user_current.is_sign = 2; // Hoan thanh
+                                                request.completed_date = DateTime.Now;
+                                                request.completed_by = uid;
+                                                DateTime complete_time_process = request.completed_date ?? DateTime.Now;
+                                                DateTime start_time_process = request.start_send_date ?? DateTime.Now;
+                                                TimeSpan span_process = complete_time_process.Subtract(start_time_process);
+                                                request.times_processing = Math.Round(span_process.TotalHours);
+                                                await System.Threading.Tasks.Task.Run(async () =>
+                                                {
+                                                    try
+                                                    {
+                                                        await getRequestToHrm(request, us);
+                                                    }
+                                                    catch { }
+                                                });
+                                                // ----
                                             }
                                         }
                                         else if (procedure.is_type == 2) // quy trình ngẫu nhiên
@@ -1902,7 +2037,7 @@ namespace API.Controllers.Request
                                                         user.modified_ip = ip;
                                                         user.modified_token_id = tid;
                                                     }
-                                                    request.status = 2; //Ban hành
+                                                    request.status = 2; // Hoàn thành
                                                     request.modified_by = uid;
                                                     request.modified_date = DateTime.Now;
                                                     request.modified_ip = ip;
@@ -1920,6 +2055,24 @@ namespace API.Controllers.Request
                                             request.modified_date = DateTime.Now;
                                             request.modified_ip = ip;
                                             request.modified_token_id = tid;
+                                            // ---
+                                            request.status_processing = request.is_evaluate == true ? 2 : 3;
+                                            user_current.is_sign = 2; // Hoan thanh
+                                            request.completed_date = DateTime.Now;
+                                            request.completed_by = uid;
+                                            DateTime complete_time_process = request.completed_date ?? DateTime.Now;
+                                            DateTime start_time_process = request.start_send_date ?? DateTime.Now;
+                                            TimeSpan span_process = complete_time_process.Subtract(start_time_process);
+                                            request.times_processing = Math.Round(span_process.TotalHours);
+                                            await System.Threading.Tasks.Task.Run(async () =>
+                                            {
+                                                try
+                                                {
+                                                    await getRequestToHrm(request, us);
+                                                }
+                                                catch { }
+                                            });
+                                            // ----
                                         }
                                     }
                                     else if (request.is_type_send == 2)
@@ -1929,6 +2082,24 @@ namespace API.Controllers.Request
                                         request.modified_date = DateTime.Now;
                                         request.modified_ip = ip;
                                         request.modified_token_id = tid;
+                                        // ---
+                                        request.status_processing = request.is_evaluate == true ? 2 : 3;
+                                        user_current.is_sign = 2; // Hoan thanh
+                                        request.completed_date = DateTime.Now;
+                                        request.completed_by = uid;
+                                        DateTime complete_time_process = request.completed_date ?? DateTime.Now;
+                                        DateTime start_time_process = request.start_send_date ?? DateTime.Now;
+                                        TimeSpan span_process = complete_time_process.Subtract(start_time_process);
+                                        request.times_processing = Math.Round(span_process.TotalHours);
+                                        await System.Threading.Tasks.Task.Run(async () =>
+                                        {
+                                            try
+                                            {
+                                                await getRequestToHrm(request, us);
+                                            }
+                                            catch { }
+                                        });
+                                        // ----
                                     }
                                     break;
                                 case -2: // Trả lại
@@ -1940,16 +2111,122 @@ namespace API.Controllers.Request
                                     request.modified_token_id = tid;
                                     break;
                                 case 2: // Hoan thanh
-                                    user_current.is_sign = 2; // Ban hành
-                                    request.status = 2; // Ban hành
+                                    user_current.is_sign = 2; // Hoan thanh
+                                    request.status_processing = request.is_evaluate == true ? 2 : 3; ;
+                                    request.status = 2; // Hoan thanh
+                                    request.completed_date = DateTime.Now;
+                                    request.completed_by = uid;
+                                    DateTime complete_time = request.completed_date ?? DateTime.Now;
+                                    DateTime start_time = request.start_send_date ?? DateTime.Now;
+                                    TimeSpan span = complete_time.Subtract(start_time);
+                                    request.times_processing = Math.Round(span.TotalHours);
+                                    request.modified_by = uid;
+                                    request.modified_date = DateTime.Now;
+                                    request.modified_ip = ip;
+                                    request.modified_token_id = tid;
+                                    #region send request to hrm
+                                    //if (request.request_form_id != null)
+                                    //{
+                                    //    var formRequest = db.request_ca_form.AsNoTracking().FirstOrDefault(x => x.request_form_id == request.request_form_id);
+                                    //    if (formRequest != null && formRequest.request_group_id != null)
+                                    //    {
+                                    //        var groupFormRequest = db.request_ca_group.AsNoTracking().FirstOrDefault(x => x.request_group_id == formRequest.request_group_id);
+                                    //        if (groupFormRequest != null && groupFormRequest.is_type == 1)
+                                    //        {
+                                    //            var profileUser = db.hrm_matchaccount.Where(x => x.user_id == request.created_by).OrderByDescending(x => x.created_date).FirstOrDefault();
+                                    //            if (profileUser != null)
+                                    //            {
+                                    //                var countLeaveProfile = db.hrm_leave.Where(x => x.profile_id == profileUser.profile_id).Count();
+                                    //                var listDetailRequest = db.request_master_detail.Where(x => x.request_id == request.request_id && x.is_order_row != null).OrderBy(x => x.is_order_row).ThenBy(n => n.is_order).ToList();
+                                    //                if (listDetailRequest.Count() > 0)
+                                    //                {
+                                    //                    var maxOrderRow = listDetailRequest.Max(x => x.is_order_row);
+                                    //                    List<hrm_leave> list_hrm_leave = new List<hrm_leave>();
+                                    //                    var data_leave_profile = new hrm_leave_profile();
+                                    //                    for (int i = 0; i <= maxOrderRow; i++)
+                                    //                    {
+                                    //                        var listDataInRow = listDetailRequest.Where(x => x.is_order_row == i).OrderBy(x => x.is_type).ToList();
+                                    //                        var dayoffData = listDataInRow.Where(x => x.is_type == 6 && x.value_field != null).Count();
+                                    //                        if (listDataInRow.Count > 0 && dayoffData > 0)
+                                    //                        {
+                                    //                            hrm_leave le = new hrm_leave();
+                                    //                            le.profile_id = profileUser.profile_id;
+                                    //                            le.organization_id = request.organization_id;
+                                    //                            le.note = request.content;
+                                    //                            le.is_order = countLeaveProfile + 1;
+                                    //                            countLeaveProfile++;
+                                    //                            le.created_by = uid;
+                                    //                            le.created_date = DateTime.Now;
+                                    //                            le.created_ip = ip;
+                                    //                            le.created_token_id = tid;
+                                    //                            foreach (var item in listDataInRow)
+                                    //                            {
+                                    //                                if (item.is_type == 6)
+                                    //                                {
+                                    //                                    DateTime dayLeave = DateTime.ParseExact(item.value_field, "yyyy-MM-dd", CultureInfo.InvariantCulture);
+                                    //                                    le.leave_date = dayLeave;
+                                    //                                    le.leave_day = dayLeave.Day;
+                                    //                                    le.leave_month = dayLeave.Month;
+                                    //                                    le.leave_year = dayLeave.Year;
+                                    //                                    if (data_leave_profile.year == null)
+                                    //                                    {
+                                    //                                        data_leave_profile = db.hrm_leave_profile.Where(x => x.profile_id == profileUser.profile_id && x.year == le.leave_year).FirstOrDefault();
+                                    //                                        if (data_leave_profile == null)
+                                    //                                        {
+                                    //                                            return Request.CreateResponse(HttpStatusCode.OK, new { year = le.leave_year, err = "2" });
+                                    //                                        }
+                                    //                                    }
+
+                                    //                                }
+                                    //                                else if (item.is_type == 9)
+                                    //                                {
+                                    //                                    le.type_dayoff = Int32.Parse(item.value_field == null || item.value_field == "" ? "0" : item.value_field);
+
+                                    //                                    string nameOfProperty = "month" + le.leave_month.ToString();
+                                    //                                    var propGetData = data_leave_profile.GetType().GetProperty(nameOfProperty);
+                                    //                                    var valueProp = propGetData.GetValue(data_leave_profile);
+                                    //                                    var valueSet = Convert.ToDouble(valueProp) + (le.type_dayoff == 0 ? 1 : 0.5);
+                                    //                                    data_leave_profile.GetType().GetProperty(nameOfProperty).SetValue(data_leave_profile, valueSet);
+                                    //                                }
+                                    //                                else if (item.is_type == 10)
+                                    //                                {
+                                    //                                    le.is_type = Int32.Parse(item.value_field == null || item.value_field == "" ? "0" : item.value_field);
+                                    //                                }
+                                    //                            }
+                                    //                            list_hrm_leave.Add(le);
+                                    //                        }
+                                    //                    }
+                                    //                    if (list_hrm_leave.Count > 0)
+                                    //                    {
+                                    //                        db.hrm_leave.AddRange(list_hrm_leave);
+                                    //                    }
+                                    //                }
+                                    //            }
+                                    //        }
+                                    //    }
+                                    //}
+                                    #endregion
+                                    await System.Threading.Tasks.Task.Run(async () =>
+                                    {
+                                        try
+                                        {
+                                            userLog us = new userLog();
+                                            await getRequestToHrm(request, us);
+                                        }
+                                        catch { }
+                                    });
+                                    break;
+                                case -1: // Hủy de xuat
+                                    user_current.is_sign = -2; // Hủy de xuat
+                                    request.status = -1; // Hủy de xuat
                                     request.modified_by = uid;
                                     request.modified_date = DateTime.Now;
                                     request.modified_ip = ip;
                                     request.modified_token_id = tid;
                                     break;
-                                case -1: // Hủy de xuat
-                                    user_current.is_sign = -2; // Hủy de xuat
-                                    request.status = -1; // Hủy de xuat
+                                case 3: // Thu hồi
+                                    user_current.is_sign = 3; // Thu hồi
+                                    request.status = 3; // Thu hồi 
                                     request.modified_by = uid;
                                     request.modified_date = DateTime.Now;
                                     request.modified_ip = ip;
@@ -2185,6 +2462,137 @@ namespace API.Controllers.Request
             {
                 string contents = helper.ExceptionMessage(e);
                 helper.saveLog(uid, name, JsonConvert.SerializeObject(new { data = "", contents }), domainurl + "request/Approved_Request", ip, tid, "Lỗi khi duyệt đề xuất", 0, "request");
+                if (!helper.debug)
+                {
+                    contents = "";
+                }
+                Log.Error(contents);
+                return Request.CreateResponse(HttpStatusCode.OK, new { ms = contents, err = "1" });
+            }
+        }
+
+        public class userLog
+        {
+            public string ip { get; set; }
+            public string name { get; set; }
+            public string tid { get; set; }
+            public string dvid { get; set; }
+            public string uid { get; set; }
+            public bool super { get; set; }
+            public string domainurl { get; set; }
+        }
+        public async Task<HttpResponseMessage> getRequestToHrm(request_master request, userLog us)
+        {
+            var identity = User.Identity as ClaimsIdentity;
+            if (identity == null)
+            {
+                return Request.CreateResponse(HttpStatusCode.OK, new { ms = "Bạn không có quyền truy cập chức năng này!", err = "1" });
+            }
+
+            try
+            {
+                using (DBEntities db = new DBEntities())
+                {
+                    if (request.request_form_id != null)
+                    {
+                        var formRequest = db.request_ca_form.AsNoTracking().FirstOrDefault(x => x.request_form_id == request.request_form_id);
+                        if (formRequest != null && formRequest.request_group_id != null)
+                        {
+                            var groupFormRequest = db.request_ca_group.AsNoTracking().FirstOrDefault(x => x.request_group_id == formRequest.request_group_id);
+                            if (groupFormRequest != null && groupFormRequest.is_type == 1)
+                            {
+                                var profileUser = db.hrm_matchaccount.Where(x => x.user_id == request.created_by).OrderByDescending(x => x.created_date).FirstOrDefault();
+                                if (profileUser != null)
+                                {
+                                    var countLeaveProfile = db.hrm_leave.Where(x => x.profile_id == profileUser.profile_id).Count();
+                                    var listDetailRequest = db.request_master_detail.Where(x => x.request_id == request.request_id && x.is_order_row != null).OrderBy(x => x.is_order_row).ThenBy(n => n.is_order).ToList();
+                                    if (listDetailRequest.Count() > 0)
+                                    {
+                                        var maxOrderRow = listDetailRequest.Max(x => x.is_order_row);
+                                        List<hrm_leave> list_hrm_leave = new List<hrm_leave>();
+                                        var data_leave_profile = new hrm_leave_profile();
+                                        for (int i = 0; i <= maxOrderRow; i++)
+                                        {
+                                            var listDataInRow = listDetailRequest.Where(x => x.is_order_row == i).OrderBy(x => x.is_type).ToList();
+                                            var dayoffData = listDataInRow.Where(x => x.is_type == 6 && x.value_field != null).Count();
+                                            if (listDataInRow.Count > 0 && dayoffData > 0)
+                                            {
+                                                hrm_leave le = new hrm_leave();
+                                                le.profile_id = profileUser.profile_id;
+                                                le.organization_id = request.organization_id;
+                                                le.note = request.content;
+                                                le.request_id = request.request_id;
+                                                le.is_order = countLeaveProfile + 1;
+                                                countLeaveProfile++;
+                                                le.created_by = us.uid;
+                                                le.created_date = DateTime.Now;
+                                                le.created_ip = us.ip;
+                                                le.created_token_id = us.tid;
+                                                foreach (var item in listDataInRow)
+                                                {
+                                                    if (item.is_type == 6)
+                                                    {
+                                                        DateTime dayLeave = DateTime.ParseExact(item.value_field, "yyyy-MM-dd", CultureInfo.InvariantCulture);
+                                                        le.leave_date = dayLeave;
+                                                        le.leave_day = dayLeave.Day;
+                                                        le.leave_month = dayLeave.Month;
+                                                        le.leave_year = dayLeave.Year;
+                                                        if (data_leave_profile.year == null)
+                                                        {
+                                                            data_leave_profile = db.hrm_leave_profile.Where(x => x.profile_id == profileUser.profile_id && x.year == le.leave_year).FirstOrDefault();
+                                                            if (data_leave_profile == null)
+                                                            {
+                                                                return Request.CreateResponse(HttpStatusCode.OK, new { year = le.leave_year, err = "2" });
+                                                            }
+                                                        }
+
+                                                    }
+                                                    else if (item.is_type == 9)
+                                                    {
+                                                        le.type_dayoff = Int32.Parse(item.value_field == null || item.value_field == "" ? "0" : item.value_field);
+
+                                                        string nameOfProperty = "month" + le.leave_month.ToString();
+                                                        var propGetData = data_leave_profile.GetType().GetProperty(nameOfProperty);
+                                                        var valueProp = propGetData.GetValue(data_leave_profile);
+                                                        var valueSet = Convert.ToDouble(valueProp) + (le.type_dayoff == 0 ? 1 : 0.5);
+                                                        data_leave_profile.GetType().GetProperty(nameOfProperty).SetValue(data_leave_profile, valueSet);
+                                                    }
+                                                    else if (item.is_type == 10)
+                                                    {
+                                                        le.is_type = Int32.Parse(item.value_field == null || item.value_field == "" ? "0" : item.value_field);
+                                                    }
+                                                }
+                                                list_hrm_leave.Add(le);
+                                            }
+                                        }
+                                        if (list_hrm_leave.Count > 0)
+                                        {
+                                            db.hrm_leave.AddRange(list_hrm_leave);
+                                        }
+                                    }
+                                }
+                            }
+                        }
+                    }
+                    await db.SaveChangesAsync();
+                    return Request.CreateResponse(HttpStatusCode.OK, new { err = "0" });
+                }
+            }
+            catch (DbEntityValidationException e)
+            {
+                string contents = helper.getCatchError(e, null);
+                helper.saveLog(us.uid, us.name, JsonConvert.SerializeObject(new { data = "", contents }), us.domainurl + "request/getRequestToHrm", us.ip, us.tid, "Lỗi khi chuyển request tới hrm", 0, "request");
+                if (!helper.debug)
+                {
+                    contents = "";
+                }
+                Log.Error(contents);
+                return Request.CreateResponse(HttpStatusCode.OK, new { ms = contents, err = "1" });
+            }
+            catch (Exception e)
+            {
+                string contents = helper.ExceptionMessage(e);
+                helper.saveLog(us.uid, us.name, JsonConvert.SerializeObject(new { data = "", contents }), us.domainurl + "request/getRequestToHrm", us.ip, us.tid, "Lỗi khi chuyển request tới hrm", 0, "request");
                 if (!helper.debug)
                 {
                     contents = "";

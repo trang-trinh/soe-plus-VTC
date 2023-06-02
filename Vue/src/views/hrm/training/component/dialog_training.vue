@@ -12,14 +12,12 @@ const swal = inject("$swal");
 const axios = inject("axios");
 const emitter = inject("emitter");
 
-const getProfileUsers=(user,obj)=>{
-   
+const getProfileUsers = (user, obj) => {
   training_emps.value[user] = [];
-           obj.forEach((element) => {
-            training_emps.value[user].push(element.profile_id);
-           });
-  
- }
+  obj.forEach((element) => {
+    training_emps.value[user].push(element.profile_id);
+  });
+};
 emitter.on("emitData", (obj) => {
   switch (obj.type) {
     case "submitDropdownUser":
@@ -65,6 +63,7 @@ const props = defineProps({
   closeDialog: Function,
   view: Boolean,
 });
+const display = ref(props.displayBasic);
 const bgColor = ref([
   "#F8E69A",
   "#AFDFCF",
@@ -99,8 +98,8 @@ const rules = {
 };
 const listFilesS = ref([]);
 const training_emps = ref({
-  user_verify_fake:[],
-  user_follows_fake:[]
+  user_verify_fake: [],
+  user_follows_fake: [],
 });
 const submitted = ref(false);
 const list_users_training = ref([]);
@@ -109,10 +108,9 @@ const loadData = () => {
   if (props.checkadd == true) {
     list_users_training.value = [];
     list_schedule.value = [];
-    
+
     training_emps.value = props.training_emps;
   } else {
-     
     axios
       .post(
         baseURL + "/api/hrm_ca_SQL/getData",
@@ -153,12 +151,11 @@ const loadData = () => {
             training_emps.value.registration_deadline = new Date(
               training_emps.value.registration_deadline
             );
-            
+
           training_emps.value.user_verify_fake =
             training_emps.value.user_verify.split(",");
           training_emps.value.user_follows_fake =
             training_emps.value.user_follows.split(",");
-              
         }
         training_emps.value.organization_training_fake = {};
         training_emps.value.organization_training_fake[
@@ -688,11 +685,13 @@ const loadUserProfiles = () => {
       {
         str: encr(
           JSON.stringify({
-            proc: "hrm_profile_list_all",
+            proc: "hrm_profile_list_2",
             par: [
-            
               { par: "user_id", va: store.getters.user.user_id },
-         
+              { par: "search", va: null },
+              { par: "pageNo ", va: 1 },
+              { par: "pageSize ", va: 100000 },
+              { par: "tab ", va: 1 },
             ],
           }),
           SecretKey,
@@ -747,7 +746,7 @@ const loadUserProfiles = () => {
 
       if (error && error.status === 401) {
         swal.fire({
-          text: "Mã token đã hết hạn hoặc không hợp lệ, vui lòng đăng nhập lại!",
+          text: "Phiên đăng nhập đã hết hạn, vui lòng đăng nhập lại!",
           confirmButtonText: "OK",
         });
         store.commit("gologout");
@@ -820,20 +819,17 @@ const delRow_Item = (item, type) => {
 };
 //Thêm bản ghi
 const listTrainingGroups = ref([]);
-const displayBasic = ref(false);
 onMounted(() => {
-  displayBasic.value = props.displayBasic;
-  loadUserProfiles();
-
-  initTudien();
-
-  return {};
+  if (props.displayBasic) {
+    loadUserProfiles();
+    initTudien();
+  }
 });
 </script>
 <template>
   <Dialog
     :header="props.headerDialog"
-    v-model:visible="displayBasic"
+    v-model:visible="display"
     :style="{ width: '65vw' }"
     :maximizable="true"
     :modal="true"
@@ -856,7 +852,6 @@ onMounted(() => {
                     'p-invalid': v$.training_emps_code.$invalid && submitted,
                   }"
                   :style="{ backgroundColor: '#FEF9E7', fontWeight: 'bold' }"
-                
                 />
               </div>
             </div>
@@ -1028,10 +1023,11 @@ onMounted(() => {
             <div style="width: calc(100% - 10rem)">
               <Calendar
                 class="w-full"
-                @blur="autoFillDate(training_emps,'start_date')"
-              id="start_date"
+                @blur="autoFillDate(training_emps, 'start_date')"
+                id="start_date"
                 v-model="training_emps.start_date"
-                autocomplete="on" :showOnFocus="false"
+                autocomplete="on"
+                :showOnFocus="false"
                 :showIcon="true"
                 placeholder="dd/mm/yyyy"
                 :class="{
@@ -1045,10 +1041,11 @@ onMounted(() => {
             <div style="width: calc(100% - 10rem)">
               <Calendar
                 class="w-full"
-                @blur="autoFillDate(training_emps,'end_date')"
-              id="end_date"
+                @blur="autoFillDate(training_emps, 'end_date')"
+                id="end_date"
                 v-model="training_emps.end_date"
-                autocomplete="on" :showOnFocus="false"
+                autocomplete="on"
+                :showOnFocus="false"
                 :minDate="
                   training_emps.start_date
                     ? new Date(training_emps.start_date)
@@ -1108,10 +1105,11 @@ onMounted(() => {
           <div class="col-6 p-0 flex text-left align-items-center">
             <div class="w-10rem pl-3">Hạn đăng ký</div>
             <div style="width: calc(100% - 10rem)">
-              <Calendar 
-                class="w-full" :showOnFocus="false"
-                @blur="autoFillDate(training_emps,'registration_deadline')"
-              id="registration_deadline"
+              <Calendar
+                class="w-full"
+                :showOnFocus="false"
+                @blur="autoFillDate(training_emps, 'registration_deadline')"
+                id="registration_deadline"
                 v-model="training_emps.registration_deadline"
                 :maxDate="
                   training_emps.start_date
@@ -1134,17 +1132,17 @@ onMounted(() => {
             </div>
             <div style="width: calc(100% - 10rem)">
               <DropdownProfiles
-              :model="training_emps.user_verify_fake"
-              :display="'chip'"
-              :placeholder="'-------- Chọn người phụ trách --------'"
-              :class="{
+                :model="training_emps.user_verify_fake"
+                :display="'chip'"
+                :placeholder="'-------- Chọn người phụ trách --------'"
+                :class="{
                   'p-invalid':
                     training_emps.user_verify_fake == null && submitted,
                 }"
-              :type="1"
-              :callbackFun="getProfileUsers"
+                :type="1"
+                :callbackFun="getProfileUsers"
                 :key_user="'user_verify_fake'"
-            />
+              />
               <!-- <MultiSelect
                 v-model="training_emps.user_verify_fake"
                 :options="listMultileUsers"
@@ -1221,13 +1219,13 @@ onMounted(() => {
             <div class="w-10rem pl-3">Người theo dõi</div>
             <div style="width: calc(100% - 10rem)">
               <DropdownProfiles
-              :model="training_emps.user_follows_fake"
-              :display="'chip'"
-              :placeholder="'-------- Chọn người theo dõi --------'"
-              :callbackFun="getProfileUsers"
+                :model="training_emps.user_follows_fake"
+                :display="'chip'"
+                :placeholder="'-------- Chọn người theo dõi --------'"
+                :callbackFun="getProfileUsers"
                 :key_user="'user_follows_fake'"
-              :type="2"
-            />
+                :type="2"
+              />
               <!-- <MultiSelect
                 v-model="training_emps.user_follows_fake"
                 :options="listMultileUsers"
@@ -1320,7 +1318,8 @@ onMounted(() => {
                 <InputNumber
                   v-model="training_emps.tuition"
                   class="w-full"
-                  inputId="locale-german" locale="de-DE"  
+                  inputId="locale-german"
+                  locale="de-DE"
                   placeholder="Nhập học phí"
                 />
               </div>
@@ -1333,7 +1332,8 @@ onMounted(() => {
                 <InputNumber
                   v-model="training_emps.expense"
                   class="w-full"
-                  inputId="locale-german" locale="de-DE"  
+                  inputId="locale-german"
+                  locale="de-DE"
                   placeholder="Nhập chi phí"
                 />
               </div>
@@ -1438,7 +1438,8 @@ onMounted(() => {
                 :rowHover="true"
                 :showGridlines="true"
                 scrollDirection="both"
-              >  <Column
+              >
+                <Column
                   header=""
                   headerStyle="text-align:center;width:50px"
                   bodyStyle="text-align:center;width:50px"
@@ -1689,7 +1690,7 @@ onMounted(() => {
                     />
                   </template>
                 </Column>
-              
+
                 <template #empty> </template>
               </DataTable>
             </div>
@@ -1738,7 +1739,8 @@ onMounted(() => {
                 :rowHover="true"
                 :showGridlines="true"
                 scrollDirection="both"
-              > <Column
+              >
+                <Column
                   header=""
                   headerStyle="text-align:center;width:50px"
                   bodyStyle="text-align:center;width:50px"
@@ -1974,7 +1976,8 @@ onMounted(() => {
                 >
                   <template #body="slotProps">
                     <Calendar
-                      class="w-full" :showOnFocus="false"
+                      class="w-full"
+                      :showOnFocus="false"
                       id="basic_purchase_date"
                       v-model="slotProps.data.date_study"
                       autocomplete="on"
@@ -2002,7 +2005,7 @@ onMounted(() => {
                 >
                   <template #body="slotProps">
                     <Calendar
-                      inputId="time12" 
+                      inputId="time12"
                       hourFormat="24"
                       class="w-full"
                       autocomplete="on"
@@ -2053,7 +2056,6 @@ onMounted(() => {
                     />
                   </template>
                 </Column>
-               
               </DataTable>
             </div>
           </div>

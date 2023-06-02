@@ -383,7 +383,7 @@ const delRow_Item = (item) => {
               swal.close();
               if (error.status === 401) {
                 swal.fire({
-                  text: "Mã token đã hết hạn hoặc không hợp lệ, vui lòng đăng nhập lại!",
+                  text: "Phiên đăng nhập đã hết hạn, vui lòng đăng nhập lại!",
                   confirmButtonText: "OK",
                 });
               }
@@ -512,7 +512,7 @@ onMounted(() => {
                   v-tooltip.top="'Nhân viên đóng'"
                   spellcheck="false"
                   class="w-4rem ml-2"
-                  inputClass="format-center d-design-disabled"
+                  inputClass="format-center d-design-disabled-1"
                   :max="100"
                   suffix=" %"
                   :useGrouping="false"
@@ -554,7 +554,7 @@ onMounted(() => {
                   spellcheck="false"
                   class="w-4rem ml-2"
                   :max="100"
-                  inputClass="format-center d-design-disabled"
+                  inputClass="format-center d-design-disabled-1"
                   placeholder="NLĐ"
                   suffix=" %"
                   :useGrouping="false"
@@ -598,7 +598,7 @@ onMounted(() => {
                   class="w-4rem ml-2"
                   suffix=" %"
                   v-tooltip.top="'Nhân viên đóng'"
-                  inputClass="format-center d-design-disabled"
+                  inputClass="format-center d-design-disabled-1"
                   @update:modelValue="onchangeInsurance(slotProps.data, 7)"
                   v-model="slotProps.data.health_ins_employee"
                 />
@@ -634,7 +634,7 @@ onMounted(() => {
                   spellcheck="false"
                   class="w-4rem ml-2"
                   suffix=" %"
-                  inputClass="format-center d-design-disabled"
+                  inputClass="format-center d-design-disabled-1"
                   v-tooltip.top="'Nhân viên đóng'"
                   @update:modelValue="onchangeInsurance(slotProps.data, 8)"
                   v-model="slotProps.data.unemployment_ins_employee"
@@ -674,7 +674,7 @@ onMounted(() => {
           />
           <InputText
             spellcheck="false"
-            class="w-4rem ml-2"
+            class="w-4rem ml-2 d-design-disabled-1"
             disabled
             placeholder="NLĐ"
           />

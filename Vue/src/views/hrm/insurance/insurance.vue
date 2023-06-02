@@ -42,6 +42,7 @@ const groups = ref([
   { view: 1, icon: "pi pi-list", title: "list" },
   { view: 2, icon: "pi pi-align-right", title: "tree" },
 ]);
+const first = ref(0);
 const insurance_pays = ref([]);
 const insurance_resolves = ref();
 const dictionarys = ref();
@@ -107,7 +108,7 @@ const loadTudien = () => {
 
       if (error && error.status === 401) {
         swal.fire({
-          text: "Mã token đã hết hạn hoặc không hợp lệ, vui lòng đăng nhập lại!",
+          text: "Phiên đăng nhập đã hết hạn, vui lòng đăng nhập lại!",
           confirmButtonText: "OK",
         });
         store.commit("gologout");
@@ -165,7 +166,7 @@ const initData = (rf) => {
 
         if (error && error.status === 401) {
           swal.fire({
-            text: "Mã token đã hết hạn hoặc không hợp lệ, vui lòng đăng nhập lại!",
+            text: "Phiên đăng nhập đã hết hạn, vui lòng đăng nhập lại!",
             confirmButtonText: "OK",
           });
           store.commit("gologout");
@@ -453,7 +454,7 @@ const editTem = (dataTem) => {
     .catch((error) => {
       if (error.status === 401) {
         swal.fire({
-          text: "Mã token đã hết hạn hoặc không hợp lệ, vui lòng đăng nhập lại!",
+          text: "Phiên đăng nhập đã hết hạn, vui lòng đăng nhập lại!",
           confirmButtonText: "OK",
         });
       }
@@ -505,7 +506,7 @@ const delTem = (Tem) => {
             swal.close();
             if (error.status === 401) {
               swal.fire({
-                text: "Mã token đã hết hạn hoặc không hợp lệ, vui lòng đăng nhập lại!",
+                text: "Phiên đăng nhập đã hết hạn, vui lòng đăng nhập lại!",
                 confirmButtonText: "OK",
               });
             }
@@ -579,7 +580,7 @@ const loadDataSQL = () => {
       if (error && error.status === 401) {
         swal.fire({
           title: "Thông báo",
-          text: "Mã token đã hết hạn hoặc không hợp lệ, vui lòng đăng nhập lại!",
+          text: "Phiên đăng nhập đã hết hạn, vui lòng đăng nhập lại!",
           icon: "error",
           confirmButtonText: "OK",
         });
@@ -721,7 +722,7 @@ const deleteList = () => {
               if (error.status === 401) {
                 swal.fire({
                   title: "Error!",
-                  text: "Mã token đã hết hạn hoặc không hợp lệ, vui lòng đăng nhập lại!",
+                  text: "Phiên đăng nhập đã hết hạn, vui lòng đăng nhập lại!",
                   icon: "error",
                   confirmButtonText: "OK",
                 });
@@ -911,7 +912,7 @@ const loadDataTree = ()=>{
 
           if (error && error.status === 401) {
             swal.fire({
-              text: "Mã token đã hết hạn hoặc không hợp lệ, vui lòng đăng nhập lại!",
+              text: "Phiên đăng nhập đã hết hạn, vui lòng đăng nhập lại!",
               confirmButtonText: "OK",
             });
             store.commit("gologout");
@@ -1106,22 +1107,7 @@ function dateRange(startDate, endDate) {
 onMounted(() => {
   initData(true);
   loadTudien();
-  return {
-    datalists,
-    options,
-    onPage,
-    initData,
-    loadCount,
-    openBasic,
-    closeDialog,
-    basedomainURL,
 
-    saveData,
-    isFirst,
-    searchStamp,
-    selectedStamps,
-    deleteList,
-  };
 });
 </script>
     <template>
@@ -1243,7 +1229,7 @@ onMounted(() => {
         </Toolbar>
     </div>
 
-    <DataTable
+    <!-- <DataTable
       v-if="options.view == 1"
       @page="onPage($event)"
       @sort="onSort($event)"
@@ -1261,6 +1247,8 @@ onMounted(() => {
       :loading="options.loading"
       :reorderableColumns="true"
       :value="datalists"
+      rowGroupMode="subheader"
+      groupRowsBy="department_origin_id"
       removableSort
       v-model:rows="options.PageSize"
       paginatorTemplate="FirstPageLink PrevPageLink PageLinks NextPageLink LastPageLink RowsPerPageDropdown"
@@ -1270,7 +1258,36 @@ onMounted(() => {
       responsiveLayout="scroll"
       v-model:selection="selectedStamps"
       :row-hover="true"
-    >
+    > -->
+    <DataTable
+        class="w-full p-datatable-sm e-sm"
+        :value="datalists"
+        dataKey="insurance_id"
+        :showGridlines="true"
+        :rowHover="true"
+        currentPageReportTemplate=""
+        responsiveLayout="scroll"
+        :scrollable="true"
+        scrollHeight="flex"
+        rowGroupMode="subheader"
+        groupRowsBy="department_origin_name"
+        :rows="options.PageSize"
+        :lazy="true"
+        :loading="options.loading"
+        :paginator="true"
+        :rowsPerPageOptions="[20, 30, 50, 100, 200]"
+        :totalRecords="options.totalRecords"
+        @nodeSelect="onNodeSelect"
+        @nodeUnselect="onNodeUnselect"
+        @page="onPage($event)"
+        @filter="onFilter($event)"
+        @sort="onSort($event)"
+        v-model:first="first"
+      >
+      <template #groupheader="slotProps">
+        <i class="pi pi-building mr-2"></i>
+        {{ slotProps.data.department_origin_name || "Không thuộc phòng ban" }}
+      </template>
       <!-- <Column
         class="align-items-center justify-content-center text-center"
         headerStyle="text-align:center;max-width:70px;height:50px"
@@ -1299,9 +1316,10 @@ onMounted(() => {
 
       >
       <template #body="slotProps">
-            <b @click="goProfile(slotProps.data)" class="hover cursor-pointer">{{
+            <span>{{
               slotProps.data.profile_user_name
-            }}</b>
+            }}
+            </span>
           </template>
       </Column>
       <Column

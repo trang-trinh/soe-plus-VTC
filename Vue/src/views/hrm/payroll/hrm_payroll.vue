@@ -132,9 +132,10 @@ const loadData = (rf) => {
           element.STT = options.value.PageNo * options.value.PageSize + i + 1;
 
           if (element.report_key) {
-            element.report_key_name = listTypeContractSave.value.find(
+            var arr = listTypeContractSave.value.find(
               (x) => x.report_key == element.report_key
-            ).report_name;
+            );
+            if (arr) element.report_key_name = arr.report_name;
           }
           if (element.listUsers) {
             element.listUsers = JSON.parse(element.listUsers);
@@ -183,10 +184,10 @@ const loadData = (rf) => {
       .catch((error) => {
         toast.error("Tải dữ liệu không thành công!");
         options.value.loading = false;
-
+        console.log("0e", error);
         if (error && error.status === 401) {
           swal.fire({
-            text: "Mã token đã hết hạn hoặc không hợp lệ, vui lòng đăng nhập lại!",
+            text: "Phiên đăng nhập đã hết hạn, vui lòng đăng nhập lại!",
             confirmButtonText: "OK",
           });
           store.commit("gologout");
@@ -311,7 +312,8 @@ const saveData = (isFormValid) => {
   if (
     payroll.value.profile_id_fake == null ||
     payroll.value.payroll_name == null ||
-    payroll.value.declare_paycheck_id == null
+    payroll.value.declare_paycheck_id == null||
+    payroll.value.sign_user == null 
   ) {
     return;
   }
@@ -320,10 +322,11 @@ const saveData = (isFormValid) => {
     payroll.value.list_profile_id = payroll.value.profile_id_fake.toString();
   }
   if (payroll.value.payroll_month_fake) {
-    payroll.value.payroll_month= payroll.value.payroll_month_fake.getMonth()+1;
+    payroll.value.payroll_month =
+      payroll.value.payroll_month_fake.getMonth() + 1;
   }
   if (payroll.value.payroll_year_fake) {
-    payroll.value.payroll_year= payroll.value.payroll_year_fake.getFullYear() ;
+    payroll.value.payroll_year = payroll.value.payroll_year_fake.getFullYear();
   }
   if (payroll.value.profile_id_fake) {
     payroll.value.list_profile_id = payroll.value.profile_id_fake.toString();
@@ -419,198 +422,357 @@ const viewTem = (data) => {
     url.replaceAll("%", "==") +
     "?v=" +
     new Date().getTime().toString();
-     
+
   if (router)
     router.push({
       path: url,
     });
 };
 const visibleSidebarDoc = ref(false);
-const report=ref({datadic:null});
+const report = ref({ datadic: null });
 const configPayroll = async (row) => {
-            let strSQL = {
-                "query": false,
-                "proc": "payroll_config",
-                "par": [
-                    {
-                        "par": "payroll_id",
-                        "va": row.payroll_id
-                    }, {
-                        "par": "report_key",
-                        "va": row.report_key
-                    }
-                ]
-            };
-            swal.fire({
-                width: 110,
-                didOpen: () => {
-                    swal.showLoading();
-                },
-            });
-            const axResponse = await axios
-            .post(
-        baseURL + "/api/HRM_SQL/getData",
-        {
-          str: encr(JSON.stringify(strSQL), SecretKey, cryoptojs).toString(),
-        },
-        {
-          headers: { Authorization: `Bearer ${store.getters.token}` },
-        }
-      );
+  let strSQL = {
+    query: false,
+    proc: "payroll_config",
+    par: [
+      {
+        par: "payroll_id",
+        va: row.payroll_id,
+      },
+      {
+        par: "report_key",
+        va: row.report_key,
+      },
+    ],
+  };
+  swal.fire({
+    width: 110,
+    didOpen: () => {
+      swal.showLoading();
+    },
+  });
+
+  const axResponse = await axios.post(
+    baseURL + "/api/HRM_SQL/getData",
+    {
+      str: encr(JSON.stringify(strSQL), SecretKey, cryoptojs).toString(),
+    },
+    {
+      headers: { Authorization: `Bearer ${store.getters.token}` },
+    }
+  );
+
+  if (axResponse.status == 200) {
+    if (axResponse.data.error) {
+      toast.error("Không mở được bản ghi");
+    } else {
+      let dt = JSON.parse(axResponse.data.data);
+
+      payroll.value = dt[2][0];
+      report.value = dt[1][0];
+
+      report.value.datadic = [{ title: "Bảng lương", data: dt[0][0] }];
+      report.value.proc_name = `payroll_profile_list '${store.getters.user.user_id}', '${row.payroll_id}'`;
+      report.value.proc_all = `payroll_profile_list_all '${store.getters.user.user_id}', '${row.payroll_id}'`;
+      let cg = {};
+      if (
+        report.value.report_config &&
+        report.value.report_config.trim() != ""
+      ) {
+        cg = JSON.parse(report.value.report_config);
+      }
+      cg.proc = {
+        name: "payroll_user_get",
+        parameters: [
+          {
+            Parameter_name: "@payroll_user_id",
+            Type: "varchar",
+            Length: 50,
+            Param_order: 1,
+          },
+        ],
+        sql: report.value.proc_name,
+        data: JSON.stringify(cg.data),
+        issql: true,
+      };
+      report.value.report_config = JSON.stringify(cg);
        
-            if (axResponse.status == 200) {
-                if (axResponse.data.error) {
-                    toast.error("Không mở được bản ghi");
-                } else {
-                    let dt = JSON.parse(axResponse.data.data);
-                    payroll.value = dt[2][0];
-                    report.value = dt[1][0];
-                    
-                    
-                    report.value.datadic = [
-                        { title: "Bảng lương", data: dt[0][0] }
-                    ];
-                    report.value.proc_name = `payroll_profile_list '${store.getters.user.user_id}', '${row.payroll_id}'`;
-                    report.value.proc_all = `payroll_profile_list_all '${store.getters.user.user_id}', '${row.payroll_id}'`;
-                    let cg = {};
-                    if (report.value.report_config && report.value.report_config.trim() != "") {
-                        cg = JSON.parse(report.value.report_config);
-                    }
-                    cg.proc = {
-                        "name": "payroll_user_get",
-                        "parameters": [
-                            {
-                                "Parameter_name": "@payroll_user_id",
-                                "Type": "varchar",
-                                "Length": 50,
-                                "Param_order": 1
-                            }
-                        ],
-                        "sql": report.value.proc_name,
-                        "data": JSON.stringify(cg.data),
-                        "issql": true
-                    }
-                    report.value.report_config = JSON.stringify(cg);
-                    if(payroll.value.payroll_config)
-                    report.value.is_config =JSON.parse(payroll.value.payroll_config);
-                     
-                    visibleSidebarDoc.value = true;
-                }
-            }
-            swal.close();
+      if (payroll.value.payroll_config)
+      {
+        report.value.is_config = JSON.parse(payroll.value.payroll_config);
+      }
+
+      visibleSidebarDoc.value = true;
+    }
+  }
+  swal.close();
+};
+const reloadDocComponent = async () => {
+  visibleSidebarDoc.value= false;
+  let strSQL = {
+    query: false,
+    proc: "payroll_config",
+    par: [
+      {
+        par: "payroll_id",
+        va: payroll.value.payroll_id,
+      },
+      {
+        par: "report_key",
+        va:  payroll.value.report_key,
+      },
+    ],
+  };
+  swal.fire({
+    width: 110,
+    didOpen: () => {
+      swal.showLoading();
+    },
+  });
+
+  const axResponse = await axios.post(
+    baseURL + "/api/HRM_SQL/getData",
+    {
+      str: encr(JSON.stringify(strSQL), SecretKey, cryoptojs).toString(),
+    },
+    {
+      headers: { Authorization: `Bearer ${store.getters.token}` },
+    }
+  );
+
+  if (axResponse.status == 200) {
+    if (axResponse.data.error) {
+      toast.error("Không mở được bản ghi");
+    } else {
+      let dt = JSON.parse(axResponse.data.data);
+
+      payroll.value = dt[2][0];
+      report.value = dt[1][0];
+
+      report.value.datadic = [{ title: "Bảng lương", data: dt[0][0] }];
+      report.value.proc_name = `payroll_profile_list '${store.getters.user.user_id}', '${ payroll.value.payroll_id}'`;
+      report.value.proc_all = `payroll_profile_list_all '${store.getters.user.user_id}', '${ payroll.value.payroll_id}'`;
+      let cg = {};
+      if (
+        report.value.report_config &&
+        report.value.report_config.trim() != ""
+      ) {
+        cg = JSON.parse(report.value.report_config);
+      }
+      cg.proc = {
+        name: "payroll_user_get",
+        parameters: [
+          {
+            Parameter_name: "@payroll_user_id",
+            Type: "varchar",
+            Length: 50,
+            Param_order: 1,
+          },
+        ],
+        sql: report.value.proc_name,
+        data: JSON.stringify(cg.data),
+        issql: true,
+      };
+      report.value.report_config = JSON.stringify(cg);
+      if (payroll.value.payroll_config)
+        report.value.is_config = JSON.parse(payroll.value.payroll_config);
+
+      visibleSidebarDoc.value = true;
+    }
+  }
+  swal.close();
+};
+let list_profile_id ="";
+ 
+let list_profile_f ="";
+const callbackFun = (obj) => {
+   
+  if (Array.isArray(obj) == false) {
+     
+    if (obj.is_config) {
+      payroll.value.payroll_config = obj.is_config;
+      saveDGLuong();
+      list_profile_id="";
+    
+      return false;
+    }
+    if (obj.is_data) {
+      saveDGLuongUser([obj]);
+      return false;
+    }
+  } else if (Array.isArray(obj) == true) {
+    saveDGLuongUser(obj);
+    }
+
+ 
+};
+const saveDGLuongUser =   (obj) => {
+   
+  obj.forEach((r) => {
+      var arrck = null;
+      if (r.is_data) arrck = r.is_data[0][report.value.sum_key];
+      if (!arrck) arrck = null;
+      else arrck = Number(arrck);
+      r.payroll_id = payroll.value.payroll_id;
+      r.salary=arrck;
+   
+      r.is_data = JSON.stringify(r.is_data);
+      list_profile_id+=list_profile_f+r.profile_id;
+      list_profile_f=",";
+    })
+      
+    let formData = new FormData();
+    formData.append("hrm_payroll_user", JSON.stringify(obj));
+
+    swal.fire({
+      width: 110,
+      didOpen: () => {
+        swal.showLoading();
+      },
+    });
+    axios
+      .post(
+        baseURL + "/api/hrm_payroll_user/add_li_hrm_payroll_user",
+        formData,
+        config
+      )
+      .then((response) => {
+        if (response.data.err != "1") {
+          swal.close();
+          console.log("okkke");
+        } else {
+          swal.fire({
+            title: "Error!",
+            text: response.data.ms,
+            icon: "error",
+            confirmButtonText: "OK",
+          });
         }
-        const callbackFun = (obj) => {
-            if (obj.is_config) {
-                payroll.value.payroll_config = obj.is_config;
-                  
-                saveDGLuong();
-                return false;
-            }
-             
-            saveDGLuongUser(obj);
-        }
-        const saveDGLuongUser = async (r) => {
-           
-            let strSQL = {
-                "query": false,
-                "proc": "hrm_payroll_user_add",
-                "par": [
-                    { "par": "payroll_user_id", "va": r.payroll_user_id },
-                    { "par": "payroll_id", "va": r.payroll_id },
-                    { "par": "profile_id", "va": r.profile_id },
-                    { "par": "is_data", "va": JSON.stringify(r.is_data) },
-                    { "par": "user_id", "va": store.getters.user.user_id },
-                    { "par": "ip", "va": store.getters.ip },
-                    { "par": "organization_id", "va": store.getters.user.organization_id },
-                ]
-            };
-            console.log(strSQL);
-            try {
-              const axResponse = await axios.post(
-        baseURL + "/api/HRM_SQL/getData",
-        {
-          str: encr(JSON.stringify(strSQL), SecretKey, cryoptojs).toString(),
-        },
-        {
-          headers: { Authorization: `Bearer ${store.getters.token}` },
-        }
-      );
+      })
+      .catch((error) => {
+        swal.close();
+        swal.fire({
+          title: "Error!",
+          text: "Có lỗi xảy ra, vui lòng kiểm tra lại!",
+          icon: "error",
+          confirmButtonText: "OK",
+        });
+      });
+  
+};
+const goProfile = (profile) => {
+  router.push({
+    name: "profileinfo",
+    params: { id: profile.profile_code },
+    query: { id: profile.profile_id },
+  });
+};
+const saveDGLuong = async () => {
+  let ok = true;
 
-              console.log(axResponse.value);
+  if (!payroll.value.report_key) {
+    toast.warning("Vui lòng chọn mẫu bảng lương.");
 
-            } catch (e) {
-                console.log(e);
-            }
-        };
-        const saveDGLuong = async () => {
-            let ok = true;
-            if (!payroll.value.report_key) {
-              toast.warning("Vui lòng chọn mẫu bảng lương.");
-          
-                ok = false;
-            }
-            if (!payroll.value.payroll_name) {
-              toast.warning("Vui lòng nhập tên bảng lương.");
-               
-                ok = false;
-            }
-            if (!payroll.value.sign_name) {
-              toast.warning("Vui lòng nhập tên người ký bảng lương.");
-             
-                ok = false;
-            }
-            if (ok) {
-              options.value.loading = true;
-                let strSQL = {
-                    "query": false,
-                    "proc": "hrm_payroll_add",
-                    "par": [
-                    { "par": "payroll_id", "va": payroll.value.payroll_id },
-                        { "par": "payroll_month", "va": payroll.value.payroll_month },
-                        { "par": "payroll_year", "va": payroll.value.payroll_year },
-                        { "par": "payroll_name", "va": payroll.value.payroll_name },
-                        { "par": "payroll_config", "va": payroll.value.payroll_config },
-                        { "par": "list_profile_id", "va": payroll.value.list_profile_id||null },
-                        { "par": "sign_date", "va": payroll.value.sign_date },
-                        { "par": "sign_user", "va": payroll.value.sign_user },
-                        { "par": "profile_sign_id", "va": payroll.value.profile_sign_id },
-                        { "par": "report_key", "va": payroll.value.report_key },
-                        { "par": "status ", "va": payroll.value.status },
-                        { "par": "user_id", "va": payroll.value.user_id || store.getters.user.user_id },
-                        { "par": "ip", "va": payroll.value.ip || store.getters.ip },
-                        { "par": "organization_id", "va": payroll.value.organization_id || store.getters.user.organization_id },
-                    ]
-                };
-                console.log(strSQL);
-                try {
-                    const axResponse = await axios
-                        .post(
-                            apiURL + "api/Proc/PostProc",
-                            encr(
-                                JSON.stringify(strSQL),
-                                SecretKey,
-                                cryoptojs
-                            ).toString(),
-                            {
-                                headers: { "Content-Type": "application/json" }
-                            }
-                        );
+    ok = false;
+  }
+  if (!payroll.value.payroll_name) {
+    toast.warning("Vui lòng nhập tên bảng lương.");
 
-                    if (axResponse.status == 200) {
-                        displayBasic.value = false;
-                        // listsalary();
-                    } else {
-                        toast.error("Có lỗi xảy ra, vui lòng thử lại!");
-                    }
-                    options.value.loading = false;
+    ok = false;
+  }
+  // if (!payroll.value.sign_user) {
+  //   toast.warning("Vui lòng nhập tên người ký bảng lương.");
 
-                } catch (e) {
-                    console.log(e);
-                    options.value.loading = false;
-                    toast.error("Có lỗi xảy ra, vui lòng thử lại!");
-                }
-            }
-        };
+  //   ok = false;
+  // }
+  if (ok) {
+      
+    options.value.loading = true;
+  let formData = new FormData();
+  payroll.value.list_profile_id=list_profile_id;
+formData.append("hrm_files", JSON.stringify([]));
+formData.append("hrm_payroll", JSON.stringify(payroll.value));
+swal.fire({
+  width: 110,
+  didOpen: () => {
+    swal.showLoading();
+  },
+});
+ 
+  axios
+    .put(baseURL + "/api/hrm_payroll/update_hrm_payroll", formData, config)
+    .then((response) => {
+      if (response.data.err != "1") {
+        swal.close();
+  
+        closeDialog();
+      } else {
+        swal.fire({
+          title: "Error!",
+          text: response.data.ms,
+          icon: "error",
+          confirmButtonText: "OK",
+        });
+      }
+    })
+    .catch((error) => {
+      swal.close();
+      swal.fire({
+        title: "Error!",
+        text: "Có lỗi xảy ra, vui lòng kiểm tra lại!",
+        icon: "error",
+        confirmButtonText: "OK",
+      });
+    });
+ 
+    // let strSQL = {
+    //   query: false,
+    //   proc: "hrm_payroll_addd",
+    //   par: [
+    //     { par: "payroll_id", va: payroll.value.payroll_id },
+    //     { par: "payroll_month", va: payroll.value.payroll_month },
+    //     { par: "payroll_year", va: payroll.value.payroll_year },
+    //     { par: "payroll_name", va: payroll.value.payroll_name },
+    //     { par: "payroll_config", va: payroll.value.payroll_config },
+    //     { par: "list_profile_id", va: list_profile_id || null },
+      
+    //     { par: "sign_date", va: payroll.value.sign_date },
+    //     { par: "sign_user", va: payroll.value.sign_user },
+    //     { par: "profile_sign_id", va: payroll.value.profile_sign_id },
+    //     { par: "declare_paycheck_id", va: payroll.value.declare_paycheck_id },
+    //     { par: "report_key", va: payroll.value.report_key },
+    //     { par: "status ", va: payroll.value.status },
+    //     { par: "user_id", va: store.getters.user.user_id },
+    //     { par: "ip", va: store.getters.ip },
+    //     { par: "organization_id", va: store.getters.user.organization_id },
+    //   ],
+    // };
+    // console.log(strSQL);
+    // try {
+    //   const axResponse = await axios.post(
+    //     baseURL + "/api/HRM_SQL/PostProc",
+    //     {
+    //       str: encr(JSON.stringify(strSQL), SecretKey, cryoptojs).toString(),
+    //     },
+    //     {
+    //       headers: { Authorization: `Bearer ${store.getters.token}` },
+    //     }
+    //   );
+
+    //   if (axResponse.status == 200) {
+    //     displayBasic.value = false;
+    //     // listsalary();
+    //   } else {
+    //     toast.error("Có lỗi xảy ra, vui lòng thử lại!");
+    //   }
+    //   options.value.loading = false;
+    // } catch (e) {
+    //   console.log(e);
+    //   options.value.loading = false;
+    //   toast.error("Có lỗi xảy ra, vui lòng thử lại!");
+    // }
+  }
+};
 //Sửa bản ghi
 const editTem = (dataTem) => {
   submitted.value = false;
@@ -624,9 +786,13 @@ const editTem = (dataTem) => {
   }
 
   if (payroll.value.payroll_month)
-    payroll.value.payroll_month_fake = new Date('01/'+payroll.value.payroll_month+'/2023' ) ;
+    payroll.value.payroll_month_fake = new Date(
+      payroll.value.payroll_month + "/01" + "/2023"
+    );
   if (payroll.value.payroll_year)
-    payroll.value.payroll_year_fake = new Date("01/01/"+payroll.value.payroll_year);
+    payroll.value.payroll_year_fake = new Date(
+      "01/01/" + payroll.value.payroll_year
+    );
   if (payroll.value.sign_date)
     payroll.value.sign_date = new Date(payroll.value.sign_date);
   headerDialog.value = "Sửa bảng lương";
@@ -679,7 +845,7 @@ const delTem = (Tem) => {
             swal.close();
             if (error.status === 401) {
               swal.fire({
-                text: "Mã token đã hết hạn hoặc không hợp lệ, vui lòng đăng nhập lại!",
+                text: "Phiên đăng nhập đã hết hạn, vui lòng đăng nhập lại!",
                 confirmButtonText: "OK",
               });
             }
@@ -799,7 +965,7 @@ const loadDataSQL = () => {
       if (error && error.status === 401) {
         swal.fire({
           title: "Thông báo",
-          text: "Mã token đã hết hạn hoặc không hợp lệ, vui lòng đăng nhập lại!",
+          text: "Phiên đăng nhập đã hết hạn, vui lòng đăng nhập lại!",
           icon: "error",
           confirmButtonText: "OK",
         });
@@ -878,7 +1044,7 @@ const onCheckBox = (value, check) => {
         if (response.data.err != "1") {
           swal.close();
           toast.success("Sửa trạng thái bảng lương thành công!");
-        
+
           closeDialog();
         } else {
           swal.fire({
@@ -956,7 +1122,7 @@ const deleteList = () => {
               if (error.status === 401) {
                 swal.fire({
                   title: "Error!",
-                  text: "Mã token đã hết hạn hoặc không hợp lệ, vui lòng đăng nhập lại!",
+                  text: "Phiên đăng nhập đã hết hạn, vui lòng đăng nhập lại!",
                   icon: "error",
                   confirmButtonText: "OK",
                 });
@@ -1071,7 +1237,7 @@ const initTuDien = () => {
 
       if (error && error.status === 401) {
         swal.fire({
-          text: "Mã token đã hết hạn hoặc không hợp lệ, vui lòng đăng nhập lại!",
+          text: "Phiên đăng nhập đã hết hạn, vui lòng đăng nhập lại!",
           confirmButtonText: "OK",
         });
         store.commit("gologout");
@@ -1365,11 +1531,12 @@ onMounted(() => {
 
           <template #end>
             <Button
-              v-if="checkDelList"
+              v-if="checkDelList && store.getters.user.is_super == true"
               @click="deleteList()"
               label="Xóa"
               icon="pi pi-trash"
               class="mr-2 p-button-danger"
+            
             />
             <Button
               @click="openBasic('Thêm bảng lương')"
@@ -1447,11 +1614,6 @@ onMounted(() => {
             placeholder="Từ khoá"
           />
         </template>
-        <!-- <template #body="ddd">
-        <div>
-          {{ ddd.data }}
-        </div>
-      </template> -->
       </Column>
       <Column
         header="Tháng"
@@ -1465,7 +1627,7 @@ onMounted(() => {
               moment(
                 new Date(
                   slotProps.data.payroll_year,
-                  slotProps.data.payroll_month,
+                  slotProps.data.payroll_month - 1,
                   1
                 )
               ).format("MM/YYYY")
@@ -1480,6 +1642,11 @@ onMounted(() => {
         bodyStyle="text-align:center;max-width:150px;overflow:hidden"
         class="align-items-center justify-content-center text-center overflow-hidden"
       >
+        <template #body="slotProps">
+          <div v-if="slotProps.data.sum_salary">
+            {{ slotProps.data.sum_salary.toLocaleString() }}
+          </div>
+        </template>
       </Column>
       <Column
         field="vacancy_name"
@@ -1532,8 +1699,8 @@ onMounted(() => {
                 style="
                   background-color: #2196f3;
                   color: #fff;
-                  width: 2rem;
-                  height: 2rem;
+                  width: 3rem;
+                  height: 3rem;
                   font-size: 1rem !important;
                 "
               />
@@ -1556,7 +1723,7 @@ onMounted(() => {
         class="align-items-center justify-content-center text-center overflow-hidden"
       >
         <template #body="slotProps">
-          <div>
+          <div v-if="slotProps.data.sign_date">
             {{ moment(slotProps.data.sign_date).format("DD/MM/YYYY") }}
           </div>
         </template>
@@ -1605,7 +1772,7 @@ onMounted(() => {
               icon="pi pi-eye"
               v-tooltip.top="'Xem'"
             ></Button> -->
-                <Button
+            <Button
               @click="configPayroll(Tem.data)"
               class="p-button-rounded p-button-secondary p-button-outlined mx-1"
               type="button"
@@ -1644,18 +1811,20 @@ onMounted(() => {
     v-model:visible="visibleSidebarDoc"
     position="full"
     class="d-sidebar-full"
+    @hide="loadData(true)"
   >
     <template #header>
       <h2 class="p-0 m-0">
         <i class="pi pi-cog mr-2"></i>{{ payroll.payroll_name }}
       </h2>
     </template>
-    <div style="padding: 0 20px">
+    <div style="padding: 0 20px" v-if="visibleSidebarDoc">
       <DocComponent
         :isedit="true"
         :report="report"
         :callbackFun="callbackFun"
         :readonly="true"
+        :reload="reloadDocComponent"
       ></DocComponent>
     </div>
   </Sidebar>
@@ -1782,20 +1951,40 @@ onMounted(() => {
             </div>
           </div>
           <div class="col-6 md:col-6 p-0 align-items-center pl-3">
-            <div class="col-12 text-left p-0 pb-2">Người ký</div>
+            <div class="col-12 text-left p-0 pb-2">Người ký <span class="redsao">(*)</span></div>
             <div class="col-12 p-0">
               <DropdownProfile
                 :model="payroll.sign_user"
-                :class="'w-full p-0'"
+                :class="(payroll.sign_user==null && submitted) ?  'p-invalid w-full p-0':'w-full p-0 '"
                 :editable="true"
                 optionLabel="profile_user_name"
                 optionValue="profile_user_name"
                 :callbackFun="getProfileUser"
                 :key_user="'sign_user'"
+              
               />
             </div>
           </div>
         </div>
+        <div class="col-12   md:col-12 flex align-items-center">
+          <div class="col-6 md:col-6 p-0 align-items-center">
+           
+          </div>
+          <div class="col-6 md:col-6 p-0 align-items-center pl-2">
+            <div
+          v-if="
+            (payroll.sign_user == null && submitted) 
+          "
+          style="display: flex"
+          class="field col-12 md:col-12 p-0"
+        >
+          <small class="col-9 p-error">
+            <span class="col-12 p-0"> Người ký không được để trống!  </span>
+          </small>
+        </div>
+          </div>
+        </div>
+      
         <div class="field flex align-items-center col-12 md:col-12">
           <div class="col-6 md:col-6 p-0 align-items-center flex">
             <div class="p-0 flex align-items-center">Duyệt</div>

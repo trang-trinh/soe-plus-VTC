@@ -204,7 +204,7 @@ const LoadActive = () => {
       listDate2.forEach((z) => {
         listActive.value.push(z);
       });
-      console.log(listActive.value);
+
     })
     .catch((error) => {
       toast.error("Tải dữ liệu không thành công!");
@@ -217,7 +217,7 @@ const LoadActive = () => {
       if (error && error.status === 401) {
         swal.fire({
           title: "Thông báo",
-          text: "Mã token đã hết hạn hoặc không hợp lệ, vui lòng đăng nhập lại!",
+          text: "Phiên đăng nhập đã hết hạn, vui lòng đăng nhập lại!",
           icon: "error",
           confirmButtonText: "OK",
         });
@@ -338,7 +338,7 @@ const LoadCountTask = () => {
       if (error && error.status === 401) {
         swal.fire({
           title: "Thông báo",
-          text: "Mã token đã hết hạn hoặc không hợp lệ, vui lòng đăng nhập lại!",
+          text: "Phiên đăng nhập đã hết hạn, vui lòng đăng nhập lại!",
           icon: "error",
           confirmButtonText: "OK",
         });

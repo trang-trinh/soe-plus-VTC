@@ -334,7 +334,7 @@ const delTem = (Tem) => {
             swal.close();
             if (error.status === 401) {
               swal.fire({
-                text: "Mã token đã hết hạn hoặc không hợp lệ, vui lòng đăng nhập lại!",
+                text: "Phiên đăng nhập đã hết hạn, vui lòng đăng nhập lại!",
                 confirmButtonText: "OK",
               });
             }
@@ -449,7 +449,7 @@ const loadDataSQL = () => {
       if (error && error.status === 401) {
         swal.fire({
           title: "Thông báo",
-          text: "Mã token đã hết hạn hoặc không hợp lệ, vui lòng đăng nhập lại!",
+          text: "Phiên đăng nhập đã hết hạn, vui lòng đăng nhập lại!",
           icon: "error",
           confirmButtonText: "OK",
         });
@@ -697,7 +697,7 @@ const exportData = (method) => {
         swal.close();
 
         toast.success("Kết xuất Data thành công!");
-        debugger
+         
         if (response.data.path != null) {
           let pathReplace = response.data.path
             .replace(/\\+/g, "/")
@@ -724,7 +724,7 @@ const exportData = (method) => {
     .catch((error) => {
       if (error.status === 401) {
         swal.fire({
-          text: "Mã token đã hết hạn hoặc không hợp lệ, vui lòng đăng nhập lại!",
+          text: "Phiên đăng nhập đã hết hạn, vui lòng đăng nhập lại!",
           confirmButtonText: "OK",
         });
         store.commit("gologout");
@@ -829,7 +829,7 @@ const deleteList = () => {
               if (error.status === 401) {
                 swal.fire({
                   title: "Error!",
-                  text: "Mã token đã hết hạn hoặc không hợp lệ, vui lòng đăng nhập lại!",
+                  text: "Phiên đăng nhập đã hết hạn, vui lòng đăng nhập lại!",
                   icon: "error",
                   confirmButtonText: "OK",
                 });
@@ -1077,7 +1077,7 @@ const loadUser = () => {
 
       if (error && error.status === 401) {
         swal.fire({
-          text: "Mã token đã hết hạn hoặc không hợp lệ, vui lòng đăng nhập lại!",
+          text: "Phiên đăng nhập đã hết hạn, vui lòng đăng nhập lại!",
           confirmButtonText: "OK",
         });
         store.commit("gologout");
@@ -1720,8 +1720,8 @@ onMounted(() => {
               header="Mã số"
               headerStyle="text-align:center;max-width:150px;height:50px "
               bodyStyle="text-align:center;max-width:150px"
-              headerClass="align-items-center    justify-content-center text-center "
-              class="overflow-hidden"
+              class="align-items-center  overflow-hidden  justify-content-center text-center "
+             
               :sortable="true"
             >
               <template #filter="{ filterModel }">

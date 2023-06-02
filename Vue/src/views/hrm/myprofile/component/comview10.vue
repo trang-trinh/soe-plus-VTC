@@ -3,7 +3,7 @@ import { onMounted, ref, inject, nextTick } from "vue";
 import { encr } from "../../../../util/function";
 import { useToast } from "vue-toastification";
 import moment from "moment";
-import dialogcontract from "../../contract/component/dialogcontract.vue";
+import dialogfile from "../../profile/component/dialogfile.vue";
 
 const router = inject("router");
 const store = inject("store");
@@ -30,7 +30,7 @@ const options = ref({
   pageNo: 1,
   pageSize: 25,
   total: 0,
-  file: {},
+  file: null,
   type_files: [],
   is_type_files: [],
 });
@@ -200,7 +200,7 @@ const initView10 = (rf) => {
       if (error && error.status === 401) {
         swal.fire({
           title: "Thông báo!",
-          text: "Mã token đã hết hạn hoặc không hợp lệ, vui lòng đăng nhập lại!",
+          text: "Phiên đăng nhập đã hết hạn, vui lòng đăng nhập lại!",
           icon: "error",
           confirmButtonText: "OK",
         });
@@ -517,7 +517,7 @@ const onPage = (event) => {
 <style scoped>
 @import url(../../contract/component/stylehrm.css);
 .d-lang-table {
-  height: calc(100vh - 275px);
+  height: calc(100vh - 286px);
   overflow-y: auto;
   background-color: #fff;
 }

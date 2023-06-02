@@ -183,7 +183,7 @@ const deleteFile = (item, idx) => {
                         });
                         if (error.status === 401) {
                             swal.fire({
-                                text: "Mã token đã hết hạn hoặc không hợp lệ, vui lòng đăng nhập lại!",
+                                text: "Phiên đăng nhập đã hết hạn, vui lòng đăng nhập lại!",
                                 confirmButtonText: "OK",
                             });
                             return;
@@ -323,7 +323,7 @@ const removeMember = (user, arr, type) => {
                     });
                     if (error.status === 401) {
                         swal.fire({
-                            text: "Mã token đã hết hạn hoặc không hợp lệ, vui lòng đăng nhập lại!",
+                            text: "Phiên đăng nhập đã hết hạn, vui lòng đăng nhập lại!",
                             confirmButtonText: "OK",
                         });
                         return;
@@ -440,7 +440,7 @@ const saveData = (frm) => {
         swal.close();
         if (error.status === 401) {
             swal.fire({
-                text: "Mã token đã hết hạn hoặc không hợp lệ, vui lòng đăng nhập lại!",
+                text: "Phiên đăng nhập đã hết hạn, vui lòng đăng nhập lại!",
                 confirmButtonText: "OK",
             });
             return;
@@ -514,7 +514,7 @@ const loadFormD = (form_id) => {
     .catch((error) => {
         if (error.status === 401) {
             swal.fire({
-                text: "Mã token đã hết hạn hoặc không hợp lệ, vui lòng đăng nhập lại!",
+                text: "Phiên đăng nhập đã hết hạn, vui lòng đăng nhập lại!",
                 confirmButtonText: "OK",
             });
             return;
@@ -582,7 +582,7 @@ const request_LoadSignUser = (Form_ID, Team_ID) => {
     .catch((error) => {
         if (error.status === 401) {
             swal.fire({
-                text: "Mã token đã hết hạn hoặc không hợp lệ, vui lòng đăng nhập lại!",
+                text: "Phiên đăng nhập đã hết hạn, vui lòng đăng nhập lại!",
                 confirmButtonText: "OK",
             });
             return;
@@ -595,6 +595,7 @@ const filterForm = () => {
     listSignUser.value = []; // SignUser
     formDS.value = [];
     if (fo != null) {
+        listLeaveDayByUser();
         if (fo.is_use_all) {
             filterTeamRequest.value = props.dictionarys[2];
         } else {
@@ -631,7 +632,78 @@ const IndexTable = (listFormDS, formd_id) => {
     }
     return 0;    
 };
-
+const dataHR_Leave = ref({
+    sum_leave_use: 0,
+    total_leave_available: 0,
+    remaining_leave: 0,
+    leave_normal: 0,
+    leave_sick: 0,
+    leave_maternity: 0,
+    leave_no_salary_insurance: 0,
+    leave_no_salary_no_insurance: 0,
+    leave_personal: 0,
+});
+const listLeaveDayByUser = () => {
+    axios({
+        method: "post",
+        url: basedomainURL + "api/request/getData",
+        data: {
+            str: encr(
+                JSON.stringify({
+                    proc: "request_leavedays_by_user",
+                    par: [ 
+                        { par: "user_id", va: store.getters.user.user_id },
+                        { par: "date_now", va: new Date() },
+                    ],
+                }),
+                SecretKey,
+                cryoptojs
+            ).toString(),
+        },
+        headers: {
+			Authorization: `Bearer ${store.getters.token}`,
+		},
+    })
+    .then((response) => {
+        if (response.data != null && response.data.err == "0") {
+            if (response.data.data != null) {
+                var dataResult = JSON.parse(response.data.data)[0];
+                if (dataResult.length > 0) {
+                    let data = dataResult[0];
+                    dataHR_Leave.value.sum_leave_use = data.sum_leave_use;
+                    dataHR_Leave.value.total_leave_available = data.leave + data.inventory + data.bonus + data.seniority;
+                    dataHR_Leave.value.remaining_leave = dataHR_Leave.value.total_leave_available - dataHR_Leave.value.sum_leave_use;
+                    dataHR_Leave.value.leave_normal = data.leave_normal;
+                    dataHR_Leave.value.leave_sick = data.leave_sick;
+                    dataHR_Leave.value.leave_maternity = data.leave_maternity;
+                    dataHR_Leave.value.leave_no_salary_insurance = data.leave_no_salary_insurance;
+                    dataHR_Leave.value.leave_no_salary_no_insurance = data.leave_no_salary_no_insurance;
+                    dataHR_Leave.value.leave_personal = data.leave_personal;
+                }
+                else {
+                    dataHR_Leave.value.sum_leave_use = 0;
+                    dataHR_Leave.value.total_leave_available = 0;
+                    dataHR_Leave.value.remaining_leave = dataHR_Leave.value.total_leave_available - dataHR_Leave.value.sum_leave_use;
+                    dataHR_Leave.value.leave_normal = 0;
+                    dataHR_Leave.value.leave_sick = 0;
+                    dataHR_Leave.value.leave_maternity = 0;
+                    dataHR_Leave.value.leave_no_salary_insurance = 0;
+                    dataHR_Leave.value.leave_no_salary_no_insurance = 0;
+                    dataHR_Leave.value.leave_personal = 0;
+                }
+            }
+        }
+    })
+    .catch((error) => {
+        if (error.status === 401) {
+            swal.fire({
+                text: "Phiên đăng nhập đã hết hạn, vui lòng đăng nhập lại!",
+                confirmButtonText: "OK",
+            });
+            return;
+        }
+    });
+};
 const renderWidth = (kieu) => {
     switch (kieu) {
         case "checkbox":
@@ -792,7 +864,7 @@ onMounted(() => {
                         </label>
                         <Textarea v-model="request_data.request_name" 
                             spellcheck="false" 
-                            class="p-2" 
+                            class="p-2 w-full" 
                             autoResize
                             rows="1" 
                             :class="{ 'p-invalid': v$.request_name.$invalid && submitted, }" 
@@ -844,7 +916,7 @@ onMounted(() => {
                     <div class="col-8 md:col-4 p-0">
                         <div class="form-group">
                             <label class="label-form">Số giờ xử lý</label>
-                            <InputNumber class="ip36"
+                            <InputNumber class="ip36 w-full"
                                 spellcheck="false"
                                 :min="0"
                                 v-model="request_data.times_processing_max"
@@ -861,7 +933,7 @@ onMounted(() => {
                         </label>
                         <Textarea v-model="request_data.content" 
                             spellcheck="false" 
-                            class="p-2" 
+                            class="p-2 w-full" 
                             autoResize
                             rows="2" 
                             :class="{ 'p-invalid': v$.content.$invalid && submitted, }" 
@@ -912,29 +984,29 @@ onMounted(() => {
                             <div class="col-6 md:col-6 flex p-0" style="flex-direction: column;">
                                 <div class="label-dayoff">
                                     <label class="mr-2">1. Nghỉ phép:</label>
-                                    <span>{{ '0' }}</span>
+                                    <span>{{ dataHR_Leave.leave_normal }}</span>
                                 </div>
                                 <div class="label-dayoff">
                                     <label class="mr-2">2. Nghỉ ốm:</label>
-                                    <span>{{ '0' }}</span>
+                                    <span>{{ dataHR_Leave.leave_sick }}</span>
                                 </div>
                                 <div class="label-dayoff">
                                     <label class="mr-2">3. Nghỉ thai sản:</label>
-                                    <span>{{ '0' }}</span>
+                                    <span>{{ dataHR_Leave.leave_maternity }}</span>
                                 </div>
                             </div>
                             <div class="col-6 md:col-6 flex p-0" style="flex-direction: column;">
                                 <div class="label-dayoff">
                                     <label class="mr-2">4. Nghỉ không lương hưởng báo hiểm:</label>
-                                    <span>{{ '0' }}</span>
+                                    <span>{{ dataHR_Leave.leave_no_salary_insurance }}</span>
                                 </div>
                                 <div class="label-dayoff">
                                     <label class="mr-2">5. Nghỉ không lương không đóng báo hiểm:</label>
-                                    <span>{{ '0' }}</span>
+                                    <span>{{ dataHR_Leave.leave_no_salary_no_insurance }}</span>
                                 </div>
                                 <div class="label-dayoff">
                                     <label class="mr-2">6. Việc riêng theo chế độ:</label>
-                                    <span>{{ '0' }}</span>
+                                    <span>{{ dataHR_Leave.leave_personal }}</span>
                                 </div>
                             </div>
                         </div>       
@@ -942,11 +1014,11 @@ onMounted(() => {
                             <div class="col-12 md:col-12 flex p-0" style="flex-direction: column;">                                
                                 <div class="label-dayoff">
                                     <label class="label-form mr-2">Số ngày phép được phân bổ:</label>
-                                    <span>{{ '0' }}</span>
+                                    <span>{{ dataHR_Leave.total_leave_available }}</span>
                                 </div>
                                 <div class="label-dayoff">
                                     <label class="label-form mr-2">Số ngày phép còn lại:</label>
-                                    <span>{{ '0' }}</span>
+                                    <span>{{ dataHR_Leave.remaining_leave }}</span>
                                 </div>
                             </div>
                         </div>
@@ -980,7 +1052,7 @@ onMounted(() => {
                                                 type="email" 
                                                 spellcheck="false" 
                                                 v-model="d.value_field"
-                                                class="form-control col-12 ip36 p-2"
+                                                class="form-control col-12 ip36 p-2 w-full"
                                                 :class="{ 'p-invalid': d.is_required && !d.value_field && submitted, }"
                                             />
                                         </div>
@@ -989,7 +1061,7 @@ onMounted(() => {
                                                 type="text" 
                                                 spellcheck="false" 
                                                 v-model="d.value_field"
-                                                class="form-control col-12 ip36 p-2"
+                                                class="form-control col-12 ip36 p-2 w-full"
                                                 :class="{ 'p-invalid': d.is_required && !d.value_field && submitted, }"
                                             />
                                         </div>
@@ -997,7 +1069,7 @@ onMounted(() => {
                                             <InputNumber
                                                 spellcheck="false" 
                                                 v-model="d.value_field" 
-                                                class="form-control col-12 ip36 p-2"
+                                                class="form-control col-12 ip36 p-2 w-full"
                                                 :class="{ 'p-invalid': d.is_required && !d.value_field && submitted, }"
                                             />
                                         </div>
@@ -1005,7 +1077,7 @@ onMounted(() => {
                                             <Textarea :max="d.is_length" 
                                                 spellcheck="false" 
                                                 v-model="d.value_field" 
-                                                class="form-control col-12 p-2"
+                                                class="form-control col-12 p-2 w-full"
                                                 :class="{ 'p-invalid': d.is_required && !d.value_field && submitted, }"
                                                 rows="2"
                                                 autoResize
@@ -1130,7 +1202,7 @@ onMounted(() => {
                                                                 type="email" 
                                                                 spellcheck="false" 
                                                                 v-model="td.value_field"
-                                                                class="form-control col-12 ip36 p-2"
+                                                                class="form-control col-12 ip36 p-2 w-full"
                                                                 :class="{ 'p-invalid': td.is_required && !td.value_field && submitted, }"
                                                                 style="border:none;"
                                                             />
@@ -1140,7 +1212,7 @@ onMounted(() => {
                                                                 type="text" 
                                                                 spellcheck="false" 
                                                                 v-model="td.value_field"
-                                                                class="form-control col-12 ip36 p-2"
+                                                                class="form-control col-12 ip36 p-2 w-full"
                                                                 :class="{ 'p-invalid': td.is_required && !td.value_field && submitted, }"
                                                                 style="border:none;"
                                                             />
@@ -1149,7 +1221,7 @@ onMounted(() => {
                                                             <InputNumber
                                                                 spellcheck="false" 
                                                                 v-model="td.value_field" 
-                                                                class="form-control col-12 ip36 p-2"
+                                                                class="form-control col-12 ip36 p-2 w-full"
                                                                 :class="{ 'p-invalid': td.is_required && !td.value_field && submitted, }"
                                                                 style="border:none;"
                                                             />
@@ -1158,7 +1230,7 @@ onMounted(() => {
                                                             <Textarea :max="td.is_length" 
                                                                 spellcheck="false" 
                                                                 v-model="td.value_field" 
-                                                                class="form-control col-12 p-2"
+                                                                class="form-control col-12 p-2 w-full"
                                                                 :class="{ 'p-invalid': td.is_required && !td.value_field && submitted, }"
                                                                 style="border:none;"
                                                                 rows="1"

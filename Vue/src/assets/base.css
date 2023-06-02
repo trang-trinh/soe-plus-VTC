@@ -29,10 +29,10 @@ body {
 /* .p-button.p-button-secondary.p-button-outlined, .p-buttonset.p-button-secondary > .p-button.p-button-outlined, .p-splitbutton.p-button-secondary > .p-button.p-button-outlined{
   color: #000000 !important;
 } */
-.ck-editor__editable {
+/* .ck-editor__editable {
   min-height: 100px !important;
   max-height: 400px !important;
-}
+} */
 
 .ql-editor.ql-blank::before {
   /* top: 12px !important; */
@@ -445,6 +445,9 @@ li.p-chips-token {
 
 .p-inputtext {
   max-width: 100%;
+}
+.input-search.p-inputtext{
+  width: 20vw;
 }
 .duy-inpput .p-inputtext {
   text-align: center !important;
@@ -1301,9 +1304,16 @@ li.p-chips-token {
   font-size: 12px;
 }
 .d-design-disabled.p-inputtext {
-  background-color: #eee;
+  background-color: white;
+  opacity: 1 !important;
   cursor: default;
 }
+.d-design-disabled-1.p-inputtext {
+  background-color: rgb(238, 238, 238);
+  opacity: 1 !important;
+  cursor: default;
+}
+
 .d-style-hover-1 {
   display: none;
 }
@@ -1355,7 +1365,10 @@ li.p-chips-token {
 .p-rowgroup-header td{
   width: 100%;
 }
- 
+/* .p-sidebar-mask ,   .p-rowgroup-header   {
+  display: none !important;
+}
+  */
 /* Style quan */
 .menu-request .red-text .p-menuitem-link .p-menuitem-icon,
 .menu-request .red-text .p-menuitem-link .p-menuitem-text {
@@ -1385,12 +1398,27 @@ li.p-chips-token {
   overflow: unset !important;
   text-overflow: unset !important;
 }
+.d-dataview-design .p-grid{
+  background-color: var(--surface-100) !important;
+}
+.d-lang-table-sl-1 img {
+  max-width: 100% !important;
+    
+    
+  }
+.d-tree-missheader.p-datatable .p-datatable-tbody > tr > td, .p-treetable .p-treetable-tbody > tr > td
+{
+  padding: 0.25rem !important;
+}
 .d-tree-missheader .p-treetable-thead {
   display: none !important;
+
 }
+ 
 
 .d-tree-missheader td {
   border: unset !important;
+  padding: 0px !important;
 }
 .d-dropdown-design .p-dropdown-label.p-inputtext {
   padding: 0 !important;
@@ -1473,3 +1501,6 @@ li.p-chips-token {
 .profile-edit .p-sidebar-content {
   padding-bottom: 0 !important;
 }
+/*delete this css */
+/* .p-treetable-scrollable .p-treetable-thead 
+{z-index: unset !important} */

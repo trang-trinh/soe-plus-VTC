@@ -1,0 +1,1630 @@
+<script setup>
+import { ref, inject, onMounted, watch } from "vue";
+import { useToast } from "vue-toastification";
+import { required } from "@vuelidate/validators";
+import { useVuelidate } from "@vuelidate/core";
+import { FilterMatchMode, FilterOperator } from "primevue/api";
+import DropdownProfile from "../component/DropdownProfile.vue";
+import { encr, checkURL } from "../../../util/function.js";
+//Khai báo
+const getProfileUser = (user, obj) => {
+    if (obj) {
+        reviewuser.value[user] = obj.profile_id;
+        if (obj.profile_user_name) {
+            reviewuser.value["profile_user_name"] = obj.profile_user_name;
+            reviewuser.value.fullname_self_review = obj.profile_user_name;
+        }
+    } else {
+        reviewuser.value[user] = null;
+    }
+};
+const cryoptojs = inject("cryptojs");
+const axios = inject("axios");
+const store = inject("store");
+const swal = inject("$swal");
+const isDynamicSQL = ref(false);
+const config = {
+    headers: { Authorization: `Bearer ${store.getters.token}` },
+};
+const filters = ref({
+    global: { value: null, matchMode: FilterMatchMode.CONTAINS },
+    reviewuser_name: {
+        operator: FilterOperator.AND,
+        constraints: [{ value: null, matchMode: FilterMatchMode.STARTS_WITH }],
+    },
+});
+const rules = {
+    reviewuser_name: {
+        required,
+        $errors: [
+            {
+                $property: "reviewuser_name",
+                $validator: "required",
+                $message: "Tên mẫu đánh giá không được để trống!",
+            },
+        ],
+    },
+};
+const listQuarters = ref([
+    { name: "Quý một", code: 1 },
+    { name: "Quý hai", code: 2 },
+    { name: "Quý ba", code: 3 },
+    { name: "Quý bốn", code: 4 },
+]);
+//Lấy số bản ghi
+const loadCount = () => {
+    axios
+        .post(
+            baseURL + "/api/HRM_SQL/getData",
+            {
+                str: encr(
+                    JSON.stringify({
+                        proc: "hrm_review_user_count",
+                        par: [{ par: "user_id", va: store.getters.user.user_id }],
+                    }),
+                    SecretKey,
+                    cryoptojs
+                ).toString(),
+            },
+            config
+        )
+        .then((response) => {
+            let data = JSON.parse(response.data.data)[0];
+            if (data.length > 0) {
+                options.value.totalRecords = data[0].totalRecords;
+                sttStamp.value = data[0].totalRecords + 1;
+            }
+        })
+        .catch((error) => { });
+};
+//Lấy dữ liệu reviewuser
+const loadData = (rf) => {
+    if (rf) {
+        if (isDynamicSQL.value) {
+            loadDataSQL();
+            return false;
+        }
+        if (rf) {
+            if (options.value.PageNo == 0) {
+                loadCount();
+            }
+        }
+        axios
+            .post(
+                baseURL + "/api/HRM_SQL/getData",
+                {
+                    str: encr(
+                        JSON.stringify({
+                            proc: "hrm_review_user_list",
+                            par: [
+                                { par: "pageno", va: options.value.PageNo },
+                                { par: "pagesize", va: options.value.PageSize },
+                                { par: "user_id", va: store.getters.user.user_id },
+                            ],
+                        }),
+                        SecretKey,
+                        cryoptojs
+                    ).toString(),
+                },
+                config
+            )
+            .then((response) => {
+                let data = JSON.parse(response.data.data)[0];
+                if (isFirst.value) isFirst.value = false;
+                data.forEach((element, i) => {
+                    element.STT = options.value.PageNo * options.value.PageSize + i + 1;
+                });
+                datalists.value = data;
+
+                options.value.loading = false;
+            })
+            .catch((error) => {
+                toast.error("Tải dữ liệu không thành công!");
+                options.value.loading = false;
+
+                if (error && error.status === 401) {
+                    swal.fire({
+                        text: "Phiên đăng nhập đã hết hạn, vui lòng đăng nhập lại!",
+                        confirmButtonText: "OK",
+                    });
+                    store.commit("gologout");
+                }
+            });
+    }
+};
+//Phân trang dữ liệu
+const onPage = (event) => {
+    if (event.rows != options.value.PageSize) {
+        options.value.PageSize = event.rows;
+    }
+    if (event.page == 0) {
+        //Trang đầu
+        options.value.id = null;
+        options.value.IsNext = true;
+    } else if (event.page > options.value.PageNo + 1) {
+        //Trang cuối
+        options.value.id = -1;
+        options.value.IsNext = false;
+    } else if (event.page > options.value.PageNo) {
+        //Trang sau
+
+        options.value.id =
+            datalists.value[datalists.value.length - 1].reviewuser_id;
+        options.value.IsNext = true;
+    } else if (event.page < options.value.PageNo) {
+        //Trang trước
+        options.value.id = datalists.value[0].reviewuser_id;
+        options.value.IsNext = false;
+    }
+    options.value.PageNo = event.page;
+    loadData(true);
+};
+
+const reviewuser = ref({
+    reviewuser_name: "",
+    emote_file: "",
+    status: true,
+    is_order: 1,
+    times_evaluation: 1,
+    created_date: new Date(),
+});
+
+const selectedStamps = ref();
+const submitted = ref(false);
+const v$ = useVuelidate(rules, reviewuser);
+const isSaveTem = ref(false);
+const datalists = ref();
+const toast = useToast();
+const basedomainURL = baseURL;
+const checkDelList = ref(false);
+
+const options = ref({
+    IsNext: true,
+    sort: "created_date",
+    SearchText: "",
+    PageNo: 0,
+    PageSize: 20,
+    loading: true,
+    totalRecords: null,
+});
+
+//Hiển thị dialog
+const headerDialog = ref();
+const displayBasic = ref(false);
+const liEvcalCriterias = ref([]);
+const liEvcalCriteriasChild = ref([]);
+const createdForMyself = ref(true);
+const openBasic = (str, type) => {
+    axios
+        .post(
+            baseURL + "/api/HRM_SQL/getData",
+            {
+                str: encr(
+                    JSON.stringify({
+                        proc: "hrm_review_user_get_form",
+                        par: [{ par: "user_id", va: store.getters.user.user_id }],
+                    }),
+                    SecretKey,
+                    cryoptojs
+                ).toString(),
+            },
+            config
+        )
+        .then((response) => {
+            let data = JSON.parse(response.data.data);
+
+            if (data.length > 0) {
+                submitted.value = false;
+                var dt1 = data[0][0];
+                var dt2 = data[1];
+                var dt3 = data[2];
+                reviewuser.value = {
+                    review_form_name: dt1.review_form_name,
+                    is_period_month: true,
+                    status: true,
+                    is_order: sttStamp.value,
+                    year_fake: new Date(),
+                    month_fake: new Date(
+                        new Date().getMonth() + "/" + "01/" + new Date().getFullYear()
+                    ),
+                    organization_id: store.getters.user.organization_id,
+                    is_system: store.getters.user.is_super ? true : false,
+                    created_date: new Date(),
+                };
+                if (type == 0) {
+                    reviewuser.value.fullname_self_review = store.getters.user.full_name;
+                    createdForMyself.value = true;
+                }
+                else {
+                    createdForMyself.value = false;
+                }
+                if (dt2) {
+                    dt2.forEach((element) => {
+                        element.review_imp_name = element.eval_criteria_name;
+                    });
+
+                    liEvcalCriterias.value = dt2;
+                }
+                if (dt3) {
+                    dt3.forEach((element) => {
+                        element.child_name = element.eval_criteria_child_name;
+                    });
+                    liEvcalCriteriasChild.value = dt3;
+                }
+                if (data[3] != null && data[3].length > 0) {
+                    reviewuser.value.times_evaluation = (data[3][0].countReviewCreated || 0) + 1;
+                    if (createdForMyself.value) {
+                        reviewuser.value.profile_id = data[3][0].profile_id;
+                        reviewuser.value.profile_user_name = data[3][0].profile_name;
+                    }
+                    else {
+                        reviewuser.value.profile_id = null;
+                        reviewuser.value.profile_user_name = null;
+                        reviewuser.value.profile_id_user_created = data[3][0].profile_id;
+                    }
+                }
+                checkIsmain.value = false;
+                isSaveTem.value = false;
+                headerDialog.value = str;
+                displayBasic.value = true;
+            } else {
+                swal.close();
+                swal.fire({
+                    title: "Error!",
+                    text: "Nhân sự chưa được khai báo mẫu đánh giá!",
+                    icon: "error",
+                    confirmButtonText: "OK",
+                });
+            }
+        })
+        .catch((error) => {
+            console.log(error);
+            swal.close();
+            swal.fire({
+                title: "Error!",
+                text: "Có lỗi xảy ra, vui lòng kiểm tra lại!",
+                icon: "error",
+                confirmButtonText: "OK",
+            });
+        });
+};
+const closeDialog = () => {
+    reviewuser.value = {
+        reviewuser_name: "",
+        emote_file: "",
+        status: true,
+        is_order: 1,
+    };
+
+    displayBasic.value = false;
+    loadData(true);
+};
+
+//Thêm bản ghi
+
+const sttStamp = ref(1);
+const saveData = (isFormValid) => {
+    submitted.value = true;
+    if (!isFormValid) {
+        return;
+    }
+
+    if (reviewuser.value.profile_id == null) {
+        return;
+    }
+
+    if (reviewuser.value.reviewuser_name.length > 250) {
+        swal.fire({
+            title: "Error!",
+            text: "Tên mẫu đánh giá không được vượt quá 250 ký tự!",
+            icon: "error",
+            confirmButtonText: "OK",
+        });
+        return;
+    }
+    let formData = new FormData();
+
+    if (reviewuser.value.countryside_fake)
+        reviewuser.value.countryside = reviewuser.value.countryside_fake;
+    formData.append("hrm_review_user", JSON.stringify(reviewuser.value));
+    swal.fire({
+        width: 110,
+        didOpen: () => {
+            swal.showLoading();
+        },
+    });
+    if (!isSaveTem.value) {
+        axios
+            .post(
+                baseURL + "/api/hrm_review_user/add_hrm_review_user",
+                formData,
+                config
+            )
+            .then((response) => {
+                if (response.data.err != "1") {
+                    swal.close();
+                    toast.success("Thêm mẫu đánh giá thành công!");
+
+                    closeDialog();
+                } else {
+                    swal.fire({
+                        title: "Error!",
+                        text: response.data.ms,
+                        icon: "error",
+                        confirmButtonText: "OK",
+                    });
+                }
+            })
+            .catch((error) => {
+                swal.close();
+                swal.fire({
+                    title: "Error!",
+                    text: "Có lỗi xảy ra, vui lòng kiểm tra lại!",
+                    icon: "error",
+                    confirmButtonText: "OK",
+                });
+            });
+    } else {
+        axios
+            .put(
+                baseURL + "/api/hrm_review_user/update_hrm_review_user",
+                formData,
+                config
+            )
+            .then((response) => {
+                if (response.data.err != "1") {
+                    swal.close();
+                    toast.success("Sửa mẫu đánh giá thành công!");
+
+                    closeDialog();
+                } else {
+                    swal.fire({
+                        title: "Error!",
+                        text: response.data.ms,
+                        icon: "error",
+                        confirmButtonText: "OK",
+                    });
+                }
+            })
+            .catch((error) => {
+                swal.close();
+                swal.fire({
+                    title: "Error!",
+                    text: "Có lỗi xảy ra, vui lòng kiểm tra lại!",
+                    icon: "error",
+                    confirmButtonText: "OK",
+                });
+            });
+    }
+};
+const checkIsmain = ref(true);
+//Sửa bản ghi
+const editTem = (dataTem) => {
+    submitted.value = false;
+    reviewuser.value = dataTem;
+    if (reviewuser.value.countryside)
+        reviewuser.value.countryside_fake = reviewuser.value.countryside;
+    if (reviewuser.value.is_default) {
+        checkIsmain.value = false;
+    } else {
+        checkIsmain.value = true;
+    }
+    headerDialog.value = "Sửa mẫu đánh giá";
+    isSaveTem.value = true;
+    displayBasic.value = true;
+};
+//Xóa bản ghi
+const delTem = (Tem) => {
+    swal
+        .fire({
+            title: "Thông báo",
+            text: "Bạn có muốn xoá bản ghi này không!",
+            icon: "warning",
+            showCancelButton: true,
+            confirmButtonColor: "#3085d6",
+            cancelButtonColor: "#d33",
+            confirmButtonText: "Có",
+            cancelButtonText: "Không",
+        })
+        .then((result) => {
+            if (result.isConfirmed) {
+                swal.fire({
+                    width: 110,
+                    didOpen: () => {
+                        swal.showLoading();
+                    },
+                });
+
+                axios
+                    .delete(baseURL + "/api/hrm_review_user/delete_hrm_review_user", {
+                        headers: { Authorization: `Bearer ${store.getters.token}` },
+                        data: Tem != null ? [Tem.reviewuser_id] : 1,
+                    })
+                    .then((response) => {
+                        swal.close();
+                        if (response.data.err != "1") {
+                            swal.close();
+                            toast.success("Xoá mẫu đánh giá thành công!");
+                            loadData(true);
+                        } else {
+                            swal.fire({
+                                title: "Error!",
+                                text: response.data.ms,
+                                icon: "error",
+                                confirmButtonText: "OK",
+                            });
+                        }
+                    })
+                    .catch((error) => {
+                        swal.close();
+                        if (error.status === 401) {
+                            swal.fire({
+                                text: "Phiên đăng nhập đã hết hạn, vui lòng đăng nhập lại!",
+                                confirmButtonText: "OK",
+                            });
+                        }
+                    });
+            }
+        });
+};
+//Xuất excel
+
+//Sort
+const onSort = (event) => {
+    options.value.PageNo = 0;
+
+    if (event.sortField == null) {
+        isDynamicSQL.value = false;
+        loadData(true);
+    } else {
+        options.value.sort =
+            event.sortField + (event.sortOrder == 1 ? " ASC" : " DESC");
+        if (event.sortField == "STT") {
+            options.value.sort =
+                "is_order" + (event.sortOrder == 1 ? " ASC" : " DESC");
+        }
+        isDynamicSQL.value = true;
+        loadDataSQL();
+    }
+};
+const checkFilter = ref(false);
+const filterSQL = ref([]);
+const isFirst = ref(true);
+const loadDataSQL = () => {
+    datalists.value = [];
+
+    let data = {
+        id: "reviewuser_id",
+        sqlS: filterTrangthai.value != null ? filterTrangthai.value : null,
+        sqlO: options.value.sort,
+        Search: options.value.SearchText,
+        PageNo: options.value.PageNo,
+        PageSize: options.value.PageSize,
+        next: true,
+        sqlF: null,
+        fieldSQLS: filterSQL.value,
+    };
+    options.value.loading = true;
+    axios
+        .post(baseURL + "/api/hrm_ca_SQL/Filter_hrm_review_user", data, config)
+        .then((response) => {
+            let dt = JSON.parse(response.data.data);
+            let data = dt[0];
+            if (data.length > 0) {
+                data.forEach((element, i) => {
+                    element.STT = options.value.PageNo * options.value.PageSize + i + 1;
+                });
+
+                datalists.value = data;
+            } else {
+                datalists.value = [];
+            }
+            if (isFirst.value) isFirst.value = false;
+            options.value.loading = false;
+            //Show Count nếu có
+            if (dt.length == 2) {
+                options.value.totalRecords = dt[1][0].totalRecords;
+            }
+        })
+        .catch((error) => {
+            options.value.loading = false;
+            toast.error("Tải dữ liệu không thành công!");
+
+            if (error && error.status === 401) {
+                swal.fire({
+                    title: "Thông báo",
+                    text: "Phiên đăng nhập đã hết hạn, vui lòng đăng nhập lại!",
+                    icon: "error",
+                    confirmButtonText: "OK",
+                });
+                store.commit("gologout");
+            }
+        });
+};
+//Tìm kiếm
+const searchStamp = (event) => {
+    if (event.code == "Enter") {
+        if (options.value.SearchText == "") {
+            isDynamicSQL.value = false;
+            options.value.loading = true;
+            loadData(true);
+        } else {
+            isDynamicSQL.value = true;
+            options.value.loading = true;
+            loadData(true);
+        }
+    }
+};
+const refreshStamp = () => {
+    options.value.SearchText = null;
+    filterTrangthai.value = null;
+    options.value.loading = true;
+    selectedStamps.value = [];
+    isDynamicSQL.value = false;
+    filterSQL.value = [];
+    loadData(true);
+};
+const onFilter = (event) => {
+    filterSQL.value = [];
+
+    for (const [key, value] of Object.entries(event.filters)) {
+        if (key != "global") {
+            let obj = {
+                key: key,
+                filteroperator: value.operator,
+                filterconstraints: value.constraints,
+            };
+
+            if (value.value && value.value.length > 0) {
+                obj.filteroperator = value.matchMode;
+                obj.filterconstraints = [];
+                value.value.forEach(function (vl) {
+                    obj.filterconstraints.push({ value: vl[obj.key] });
+                });
+            } else if (value.matchMode) {
+                obj.filteroperator = "and";
+                obj.filterconstraints = [value];
+            }
+            if (
+                obj.filterconstraints &&
+                obj.filterconstraints.filter((x) => x.value != null).length > 0
+            )
+                filterSQL.value.push(obj);
+        }
+    }
+    options.value.PageNo = 0;
+    options.value.id = null;
+    isDynamicSQL.value = true;
+    loadDataSQL();
+};
+//Checkbox
+const onCheckBox = (value, check, checkIsmain) => {
+    if (check) {
+        let data = {
+            IntID: value.reviewuser_id,
+            TextID: value.reviewuser_id + "",
+            IntTrangthai: 1,
+            BitTrangthai: value.status,
+        };
+        axios
+            .put(
+                baseURL + "/api/hrm_review_user/update_s_hrm_review_user",
+                data,
+                config
+            )
+            .then((response) => {
+                if (response.data.err != "1") {
+                    swal.close();
+                    toast.success("Sửa trạng thái mẫu đánh giá thành công!");
+                    loadData(true);
+                    closeDialog();
+                } else {
+                    swal.fire({
+                        title: "Error!",
+                        text: response.data.ms,
+                        icon: "error",
+                        confirmButtonText: "OK",
+                    });
+                }
+            })
+            .catch((error) => {
+                swal.close();
+                swal.fire({
+                    title: "Error!",
+                    text: "Có lỗi xảy ra, vui lòng kiểm tra lại!",
+                    icon: "error",
+                    confirmButtonText: "OK",
+                });
+            });
+    } else {
+        let data1 = {
+            IntID: value.reviewuser_id,
+            TextID: value.reviewuser_id + "",
+            BitMain: value.is_default,
+        };
+        axios
+            .put(baseURL + "/api/hrm_review_user/Update_DefaultStamp", data1, config)
+            .then((response) => {
+                if (response.data.err != "1") {
+                    swal.close();
+                    toast.success("Sửa trạng thái mẫu đánh giá thành công!");
+                    loadData(true);
+                    closeDialog();
+                } else {
+                    swal.fire({
+                        title: "Error!",
+                        text: response.data.ms,
+                        icon: "error",
+                        confirmButtonText: "OK",
+                    });
+                }
+            })
+            .catch((error) => {
+                swal.close();
+                swal.fire({
+                    title: "Error!",
+                    text: "Có lỗi xảy ra, vui lòng kiểm tra lại!",
+                    icon: "error",
+                    confirmButtonText: "OK",
+                });
+            });
+    }
+};
+//Xóa nhiều
+const deleteList = () => {
+    let listId = new Array(selectedStamps.value.length);
+    let checkD = false;
+    selectedStamps.value.forEach((item) => {
+        if (item.is_default) {
+            toast.error("Không được xóa mẫu đánh giá mặc định!");
+            checkD = true;
+            return;
+        }
+    });
+    if (!checkD) {
+        swal
+            .fire({
+                title: "Thông báo",
+                text: "Bạn có muốn xoá mẫu đánh giá này không!",
+                icon: "warning",
+                showCancelButton: true,
+                confirmButtonColor: "#3085d6",
+                cancelButtonColor: "#d33",
+                confirmButtonText: "Có",
+                cancelButtonText: "Không",
+            })
+            .then((result) => {
+                if (result.isConfirmed) {
+                    swal.fire({
+                        width: 110,
+                        didOpen: () => {
+                            swal.showLoading();
+                        },
+                    });
+
+                    selectedStamps.value.forEach((item) => {
+                        listId.push(item.reviewuser_id);
+                    });
+                    axios
+                        .delete(baseURL + "/api/hrm_review_user/delete_hrm_review_user", {
+                            headers: { Authorization: `Bearer ${store.getters.token}` },
+                            data: listId != null ? listId : 1,
+                        })
+                        .then((response) => {
+                            swal.close();
+                            if (response.data.err != "1") {
+                                swal.close();
+                                toast.success("Xoá mẫu đánh giá thành công!");
+                                checkDelList.value = false;
+
+                                loadData(true);
+                            } else {
+                                swal.fire({
+                                    title: "Error!",
+                                    text: response.data.ms,
+                                    icon: "error",
+                                    confirmButtonText: "OK",
+                                });
+                            }
+                        })
+                        .catch((error) => {
+                            swal.close();
+                            if (error.status === 401) {
+                                swal.fire({
+                                    title: "Error!",
+                                    text: "Phiên đăng nhập đã hết hạn, vui lòng đăng nhập lại!",
+                                    icon: "error",
+                                    confirmButtonText: "OK",
+                                });
+                            }
+                        });
+                }
+            });
+    }
+};
+
+//Filter
+const trangThai = ref([
+    { name: "Hiển thị", code: 1 },
+    { name: "Không hiển thị", code: 0 },
+]);
+
+const filterTrangthai = ref();
+
+const reFilterEmail = () => {
+    filterTrangthai.value = null;
+    isDynamicSQL.value = false;
+    checkFilter.value = false;
+    filterSQL.value = [];
+    options.value.SearchText = null;
+    op.value.hide();
+    loadData(true);
+};
+const filterFileds = () => {
+    filterSQL.value = [];
+    checkFilter.value = true;
+    let filterS = {
+        filterconstraints: [{ value: filterTrangthai.value, matchMode: "equals" }],
+        filteroperator: "and",
+        key: "status",
+    };
+    filterSQL.value.push(filterS);
+    loadDataSQL();
+};
+watch(selectedStamps, () => {
+    if (selectedStamps.value.length > 0) {
+        checkDelList.value = true;
+    } else {
+        checkDelList.value = false;
+    }
+});
+const op = ref();
+const toggle = (event) => {
+    op.value.toggle(event);
+};
+
+const onChangePriod1 = () => {
+    if (reviewuser.value.is_period_month) {
+        reviewuser.value.is_period_year = false;
+        reviewuser.value.is_period_quarter = false;
+    } else {
+        reviewuser.value.is_period_month = true;
+    }
+};
+const onChangePriod2 = () => {
+    if (reviewuser.value.is_period_quarter) {
+        reviewuser.value.is_period_year = false;
+        reviewuser.value.is_period_month = false;
+    } else {
+        reviewuser.value.is_period_month = true;
+    }
+};
+const onChangePriod3 = () => {
+    if (reviewuser.value.is_period_year) {
+        reviewuser.value.is_period_month = false;
+        reviewuser.value.is_period_quarter = false;
+    } else {
+        reviewuser.value.is_period_month = true;
+    }
+};
+// -----
+const resultTotal = (item, type) => { // 0=sum weight, 1=sum weightChild, 2=sumMaxScore, 3=sumSelfScore
+    let listChild = liEvcalCriteriasChild.value.filter((x) => x.roman_order == item.roman_order);
+    let sumValue = 0;
+    if (listChild.length > 0) {
+        listChild.forEach((el) => {
+            sumValue += (type == 0 ? (el.weight || 0) : type == 1 ? (el.weight_child || 0) : type == 2 ? (el.max_score || 0) : (el.self_score || 0));
+        });
+    }
+    return sumValue;
+};
+const addTaskToMyreview = (item) => {
+    let listTaskInGroup = liEvcalCriteriasChild.value.filter((x) => x.roman_order == item.roman_order);
+    let sttTaskMax = 0;
+    if (listTaskInGroup.length > 1) {
+        sttTaskMax = listTaskInGroup.reduce((a, b) => {
+            return a.is_order > b.is_order ? a.is_order : b.is_order;
+        });
+    }
+    else if (listTaskInGroup.length == 1) {
+        listTaskInGroup[0].is_order = 1;
+        sttTaskMax = listTaskInGroup[0].is_order;
+    }
+    let taskAdd = {
+        STT: sttTaskMax + 1,
+        child_name: "", des: "", weight: null, 
+        roman_order: item.roman_order, is_order: sttTaskMax + 1, 
+        desired_results: "", work_progress: "", complete_results: "",
+    };
+    liEvcalCriteriasChild.value.push(taskAdd);
+};
+const dialogListTaskReview = ref(false);
+const headerListTaskReview = ref("");
+const getTaskToMyreview = (item) => {
+    dialogListTaskReview.value = true;
+    headerListTaskReview.value = "Chọn công việc thực hiện";
+};
+const del_task_review = (dataDel, item) => {
+    let idxDel = liEvcalCriteriasChild.value.findIndex(x => x.roman_order == item.roman_order && x.is_order == dataDel.is_order);
+    if (idxDel >= 0) {
+        liEvcalCriteriasChild.value.splice(idxDel, 1);
+    }
+};
+const setMaxForTask = (item) => {
+    if (item.percen) {
+        let listTaskInGroup = liEvcalCriteriasChild.value.filter((x) => x.roman_order == item.roman_order);
+        if (listTaskInGroup.length > 0) {
+            let sumAvaiable = item.percen;
+            listTaskInGroup.forEach((el) => {
+                sumAvaiable -= (el.weight || 0);
+            });
+            return sumAvaiable;
+        }
+        else {
+            return item.percen;
+        }
+    }
+    return 0;
+};
+const getScoreSelf = () => {
+    reviewuser.value.percent_score = 0;
+    liEvcalCriteriasChild.value.forEach((el) => {
+        reviewuser.value.percent_score += (el.self_score || 0);
+    });
+    return reviewuser.value.percent_score;
+};
+const addItemToTask = (dataAdd, item) => {
+    let listTaskInGroup = liEvcalCriteriasChild.value.filter((x) => x.roman_order == item.roman_order);
+    let sttTaskMax = 0;
+    if (listTaskInGroup.length > 1) {
+        sttTaskMax = listTaskInGroup.reduce((a, b) => {
+            return a.is_order > b.is_order ? a.is_order : b.is_order;
+        });
+    }
+    else if (listTaskInGroup.length == 1) {
+        listTaskInGroup[0].is_order = 1;
+        sttTaskMax = listTaskInGroup[0].is_order;
+    }
+    let idxTaskMax = 0;
+    if (dataAdd.STT == null) {
+    listTaskInGroup.every((el) => {
+        if (el.child_name != dataAdd.child_name) {
+            idxTaskMax++;
+        }
+        else {
+            return false;
+        }
+    });
+}
+    dataAdd.STT = dataAdd.STT != null ? dataAdd.STT : (idxTaskMax + 1);
+    let taskAdd = {
+        STT: dataAdd.STT,
+        child_name: dataAdd.child_name, des: dataAdd.des, weight: dataAdd.weight, 
+        roman_order: item.roman_order, is_order: sttTaskMax + 1, 
+        desired_results: "", work_progress: "", complete_results: "",
+    };
+    liEvcalCriteriasChild.value.push(taskAdd);
+};
+
+onMounted(() => {
+    loadData(true);
+    return {
+        datalists,
+        options,
+        onPage,
+        loadData,
+        loadCount,
+        openBasic,
+        closeDialog,
+        basedomainURL,
+        saveData,
+        isFirst,
+        searchStamp,
+        onCheckBox,
+        selectedStamps,
+        deleteList,
+    };
+});
+</script>
+<template>
+    <div class="main-layout true flex-grow-1 p-2 pb-0 pr-0">
+        <DataTable @page="onPage($event)" @sort="onSort($event)" @filter="onFilter($event)" v-model:filters="filters"
+            :filters="filters" filterDisplay="menu" filterMode="lenient" :scrollable="true" scrollHeight="flex"
+            :showGridlines="true" columnResizeMode="fit" :lazy="true" :reorderableColumns="true"
+            :totalRecords="options.totalRecords" :loading="options.loading" :value="datalists" removableSort
+            v-model:rows="options.PageSize"
+            paginatorTemplate="FirstPageLink PrevPageLink PageLinks NextPageLink LastPageLink RowsPerPageDropdown"
+            :rowsPerPageOptions="[20, 30, 50, 100, 200]" :paginator="true" dataKey="reviewuser_id" responsiveLayout="scroll"
+            v-model:selection="selectedStamps" :row-hover="true"
+            class="tbl-myreview-hrm"
+        >
+            <template #header>
+                <h3 class="module-title mt-0 ml-1 mb-2">
+                    <i class="pi pi-user-edit"></i> Danh sách mẫu biểu của tôi ({{
+                        options.totalRecords
+                    }})
+                </h3>
+                <Toolbar class="w-full custoolbar">
+                    <template #start>
+                        <span class="p-input-icon-left">
+                            <i class="pi pi-search" />
+                            <InputText v-model="options.SearchText" @keyup="searchStamp" type="text" spellcheck="false"
+                                placeholder="Tìm kiếm" />
+                            <Button type="button" class="ml-2" icon="pi pi-filter" @click="toggle" aria:haspopup="true"
+                                aria-controls="overlay_panel" v-tooltip="'Bộ lọc'" :class="filterTrangthai != null && checkFilter
+                                        ? ''
+                                        : 'p-button-secondary p-button-outlined'
+                                    " />
+                            <OverlayPanel ref="op" appendTo="body" class="p-0 m-0" :showCloseIcon="false" id="overlay_panel"
+                                style="width: 300px">
+                                <div class="grid formgrid m-0">
+                                    <div class="flex field col-12 p-0">
+                                        <div class="col-4 text-left pt-2 p-0" style="text-align: left">
+                                            Trạng thái
+                                        </div>
+                                        <div class="col-8">
+                                            <Dropdown class="col-12 p-0 m-0" v-model="filterTrangthai" :options="trangThai"
+                                                optionLabel="name" optionValue="code" placeholder="Trạng thái" />
+                                        </div>
+                                    </div>
+                                    <div class="flex col-12 p-0">
+                                        <Toolbar class="border-none surface-0 outline-none pb-0 w-full">
+                                            <template #start>
+                                                <Button @click="reFilterEmail" class="p-button-outlined"
+                                                    label="Xóa"></Button>
+                                            </template>
+                                            <template #end>
+                                                <Button @click="filterFileds" label="Lọc"></Button>
+                                            </template>
+                                        </Toolbar>
+                                    </div>
+                                </div>
+                            </OverlayPanel>
+                        </span>
+                    </template>
+
+                    <template #end>
+                        <Button v-if="checkDelList" @click="deleteList()" label="Xóa" icon="pi pi-trash"
+                            class="mr-2 p-button-danger" />
+                        <Button @click="openBasic('Đánh giá nhân sự định kỳ', 0)" label="Thêm mới" icon="pi pi-plus" class="mr-2" />
+                        <Button @click="openBasic('Đánh giá nhân sự định kỳ', 1)" label="Lập cho nhân sự" icon="pi pi-plus"
+                            class="mr-2" />
+                        <Button @click="refreshStamp" class="mr-2 p-button-outlined p-button-secondary" icon="pi pi-refresh"
+                            v-tooltip="'Tải lại'" />
+
+                        <!-- <Button
+              label="Tiện ích"
+              icon="pi pi-file-excel"
+              class="mr-2 p-button-outlined p-button-secondary"
+              @click="toggleExport"
+              aria-haspopup="true"
+              aria-controls="overlay_Export"
+            />
+            <Menu
+              id="overlay_Export"
+              ref="menuButs"
+              :model="itemButs"
+              :popup="true"
+            /> -->
+                    </template>
+                </Toolbar>
+            </template>
+
+            <Column class="align-items-center justify-content-center text-center"
+                headerStyle="text-align:center;max-width:70px;height:50px" bodyStyle="text-align:center;max-width:70px"
+                selectionMode="multiple" v-if="store.getters.user.is_super == true">
+            </Column>
+
+            <Column field="STT" header="STT" class="align-items-center justify-content-center text-center"
+                headerStyle="text-align:center;max-width:70px;height:50px" bodyStyle="text-align:center;max-width:70px"
+                :sortable="true"></Column>
+
+            <Column field="reviewuser_name" header="Tên mẫu đánh giá" :sortable="true"
+                headerStyle="text-align:left;height:50px" bodyStyle="text-align:left">
+                <template #filter="{ filterModel }">
+                    <InputText type="text" v-model="filterModel.value" class="p-column-filter" placeholder="Từ khoá" />
+                </template>
+            </Column>
+
+            <Column field="status" header="Trạng thái" headerStyle="text-align:center;max-width:150px;height:50px"
+                bodyStyle="text-align:center;max-width:150px" class="align-items-center justify-content-center text-center">
+                <template #body="data">
+                    <Checkbox :disabled="!(
+                            store.state.user.is_super == true ||
+                            store.state.user.user_id == data.data.created_by ||
+                            (store.state.user.role_id == 'admin' &&
+                                store.state.user.organization_id == data.data.organization_id)
+                        )
+                        " :binary="true" v-model="data.data.status" @click="onCheckBox(data.data, true, true)" />
+                </template>
+            </Column>
+            <Column field="organization_id" header="Hệ thống" headerStyle="text-align:center;max-width:125px;height:50px"
+                bodyStyle="text-align:center;max-width:125px;;max-height:60px"
+                class="align-items-center justify-content-center text-center">
+                <template #body="data">
+                    <div v-if="data.data.is_system == true">
+                        <i class="pi pi-check text-blue-400" style="font-size: 1.5rem"></i>
+                    </div>
+                    <div v-else></div>
+                </template>
+            </Column>
+            <Column header="Chức năng" class="align-items-center justify-content-center text-center"
+                headerStyle="text-align:center;max-width:150px;height:50px" bodyStyle="text-align:center;max-width:150px">
+                <template #body="Tem">
+                    <div v-if="store.state.user.is_super == true ||
+                        store.state.user.user_id == Tem.data.created_by ||
+                        (store.state.user.role_id == 'admin' &&
+                            store.state.user.organization_id == Tem.data.organization_id)
+                        ">
+                        <Button @click="editTem(Tem.data)"
+                            class="p-button-rounded p-button-secondary p-button-outlined mx-1" type="button"
+                            icon="pi pi-pencil" v-tooltip.top="'Sửa'"></Button>
+                        <Button class="p-button-rounded p-button-secondary p-button-outlined mx-1" type="button"
+                            icon="pi pi-trash" @click="delTem(Tem.data)" v-tooltip.top="'Xóa'"></Button>
+                    </div>
+                </template>
+            </Column>
+            <template #empty>
+                <div class="align-items-center justify-content-center p-4 text-center m-auto" v-if="!isFirst">
+                    <img src="../../../assets/background/nodata.png" height="144" />
+                    <h3 class="m-1">Không có dữ liệu</h3>
+                </div>
+            </template>
+        </DataTable>
+    </div>
+
+    <Dialog :header="headerDialog" v-model:visible="displayBasic" :style="{ width: '80vw' }" :closable="true" :modal="true"
+        position="top"
+        class="dialog-add-myreview"
+    >
+        <form>
+            <div class="grid formgrid m-2">
+                <div class="field col-12 md:col-12 flex align-items-center" v-if="!createdForMyself">
+                    <div class="w-11rem text-left p-0 title-form-myreview">
+                        Người được lập hộ <span class="redsao pl-1"> (*)</span>
+                    </div>
+                    <div class="p-0" style="width: calc(100% - 11rem)">
+                        <DropdownProfile :model="reviewuser.profile_id" 
+                            :placeholder="'Chọn người được lập hộ'" 
+                            :class="reviewuser.profile_id == null && submitted
+                                ? 'p-invalid w-full p-0'
+                                : ' w-full p-0'
+                            " 
+                            :editable="false" :optionLabel="'profile_user_name'" :optionValue="'code'" :callbackFun="getProfileUser"
+                            :key_user="'profile_id'" 
+                            :except_user_now="reviewuser.profile_id_user_created"
+                        />
+                    </div>
+                </div>
+                <div class="field col-12 md:col-12">
+                    <label class="w-11rem text-left p-0 title-form-myreview">Mẫu biểu đánh giá</label>
+                    <InputText v-model="reviewuser.review_form_name" spellcheck="false" class="ip36 px-2 d-design-disabled"
+                        style="width: calc(100% - 11rem)" disabled />
+                </div>
+                <div style="display: flex" class="field col-12 md:col-12" v-if="reviewuser.profile_id == null && submitted">
+                    <div class="w-11rem text-left"></div>
+                    <small class="p-error" style="width: calc(100% - 11rem)">
+                        <span class="col-12 p-0">Nhân sự đánh giá không được để trống!</span>
+                    </small>
+                </div>
+                <div class="field col-12 md:col-12 align-items-center flex">
+                    <div class="w-11rem p-0 align-items-center flex title-form-myreview">Kỳ đánh giá</div>
+                    <div style="width: calc(100% - 11rem)" class="align-items-center flex">
+                        <div class="w-full p-0 align-items-center flex">
+                            <div>Đánh giá theo tháng</div>
+                            <div class="pl-3">
+                                <InputSwitch v-model="reviewuser.is_period_month" class="lck-checked w-4rem"
+                                    @change="onChangePriod1" />
+                            </div>
+                        </div>
+
+                        <div class="w-full p-0 align-items-center flex">
+                            <div>Đánh giá theo quý</div>
+                            <div class="pl-3">
+                                <InputSwitch v-model="reviewuser.is_period_quarter" class="lck-checked w-4rem"
+                                    @change="onChangePriod2" />
+                            </div>
+                        </div>
+                        <div class="w-full p-0 align-items-center flex">
+                            <div>Đánh giá theo năm</div>
+                            <div class="pl-3">
+                                <InputSwitch v-model="reviewuser.is_period_year" class="lck-checked w-4rem"
+                                    @change="onChangePriod3" />
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                <div class="field col-12 md:col-12 align-items-center flex">
+                    <div class="col-6 p-0 flex pr-3" v-if="reviewuser.is_period_month">
+                        <div class="w-11rem p-0 align-items-center flex title-form-myreview">
+                            Tháng đánh giá
+                        </div>
+                        <div style="width: calc(100% - 11rem)" class="align-items-center flex">
+                            <Calendar v-model="reviewuser.month_fake" view="month" dateFormat="mm" class="w-full"
+                                panelClass="d-calendar-design-m" :showIcon="true">
+                            </Calendar>
+                        </div>
+                    </div>
+                    <div class="col-6 p-0 flex pr-3" v-if="reviewuser.is_period_quarter">
+                        <div class="w-11rem p-0 align-items-center flex title-form-myreview">Quý đánh giá</div>
+                        <div style="width: calc(100% - 11rem)" class="align-items-center flex">
+                            <Dropdown class="col-12 p-0 m-0" v-model="reviewuser.is_quarter_fake" :options="listQuarters"
+                                optionLabel="name" optionValue="code" placeholder="Chọn quý đánhg giá" />
+                        </div>
+                    </div>
+
+                    <div class="w-full p-0 flex">
+                        <div class="w-11rem p-0 align-items-center flex title-form-myreview" style="justify-content: center;">
+                            Năm đánh giá <span class="redsao pl-1"> (*)</span>
+                        </div>
+                        <div style="width: calc(100% - 11rem)" class="align-items-center flex">
+                            <Calendar v-model="reviewuser.year_fake" view="year" dateFormat="yy" class="w-full"
+                                :showIcon="true">
+                            </Calendar>
+                        </div>
+                    </div>
+                </div>
+                <div class="col-12 field md:col-12 flex">
+                    <div class="col-4 md:col-4 p-0 align-items-center flex">
+                        <div class="w-11rem text-left p-0 title-form-myreview">Lần đánh giá</div>
+                        <InputNumber v-model="reviewuser.times_evaluation" style="width: calc(100% - 11rem)"
+                            class="pr-3 ip36 p-0" />
+                    </div>
+                    <div class="col-4 md:col-4 p-0 align-items-center flex">
+                        <div class="w-11rem align-items-center flex p-0 title-form-myreview" style="justify-content: center;">STT</div>
+                        <InputNumber v-model="reviewuser.is_order" style="width: calc(100% - 11rem)"
+                            class="pr-3 ip36 p-0" />
+                    </div>
+                    <div class="col-4 md:col-4 p-0 align-items-center flex">
+                        <div class="w-11rem align-items-center flex p-0 title-form-myreview" style="justify-content: center;">Trạng thái</div>
+                        <InputSwitch v-model="reviewuser.status" class="w-4rem lck-checked"
+                            style="width: calc(100% - 11rem)" />
+                    </div>
+                </div>
+                <div class="col-12 md:col-12" v-for="(item, index) in liEvcalCriterias" :key="index">
+                    <Accordion class="w-full mb-2 accordion-form-myreview" :activeIndex="0" >
+                        <AccordionTab>
+                            <template #header>
+                                <Toolbar
+                                    class="w-full custoolbar p-0 font-bold py-0"
+                                    :style="{ minHeight: '40px' }"
+                                >
+                                    <template #start>
+                                        <h3 class="text-blue-500 font-bold m-0" style="font-size: 1.1rem;">
+                                            PHẦN {{ item.roman_order }}: {{ item.review_imp_name }} ({{item.percen}}%)
+                                        </h3>
+                                    </template>
+                                    <template #end>
+                                        <div v-if="item.type == 2">
+                                            <Button class="mr-2"
+                                                v-tooltip.top="'Chọn công việc'"
+                                                @click="getTaskToMyreview(item);$event.stopPropagation();"
+                                                style="padding: 0.5rem;"
+                                            >
+                                                <font-awesome-icon icon="fa-solid fa-list-check" 
+                                                    style="font-size:1.25rem; display: block; color: #ffffff"
+                                                />
+                                            </Button>
+                                            <Button class=""
+                                                icon="pi pi-plus-circle"
+                                                v-tooltip.top="'Thêm công việc'"
+                                                @click="addTaskToMyreview(item);$event.stopPropagation();"
+                                            ></Button>
+                                        </div>
+                                    </template>
+                                </Toolbar>
+                            </template>
+                            <div class="col-12 p-0">
+                                <DataTable :value="liEvcalCriteriasChild.filter((x) => x.roman_order == item.roman_order)" 
+                                    filterDisplay="menu" filterMode="lenient" scrollHeight="flex" :showGridlines="true"
+                                    columnResizeMode="fit" :lazy="true" :reorderableColumns="true" tableStyle="width:100%"
+                                    responsiveLayout="scroll"
+                                    class="tbl-part-myreview"
+                                    rowGroupMode="rowspan"
+                                    :groupRowsBy="['STT','child_name','des','weight']"
+                                >
+                                    <ColumnGroup type="header">
+                                        <Row>
+                                            <Column header="" 
+                                                :rowspan="3"
+                                                class="align-items-center justify-content-center text-center"
+                                                headerStyle="max-width:25px; height:50px;padding:0.5rem;"
+                                                bodyStyle="text-align:center;max-width:25px;"
+                                                v-if="item.type == 2" 
+                                            />
+                                            <Column header="Nhóm nội dung đánh giá" 
+                                                :rowspan="3"
+                                                headerStyle="max-width:100px; height:50px"
+                                                bodyStyle="text-align:left;max-width:100px;" 
+                                            />
+                                            <Column header="Định nghĩa nội dung đánh giá" 
+                                                :rowspan="3" 
+                                                headerStyle="max-width:100px; height:50px"
+                                                bodyStyle="text-align:left;max-width:100px;" 
+                                            />
+                                            <Column header="Tỷ trọng đánh giá" 
+                                                :rowspan="3"
+                                                class="align-items-center justify-content-center text-center"
+                                                headerStyle="max-width:50px; height:50px;padding:0.5rem;"
+                                                bodyStyle="text-align:center;max-width:50px;" 
+                                            />
+                                            <Column header="Công việc được giao" 
+                                                class="align-items-center justify-content-center text-center"
+                                                :rowspan="item.type != 2 ? 3 : 2"
+                                                :colspan="item.type != 2 ? 1 : 2" 
+                                                headerStyle="max-width:200px; height:50px"
+                                                bodyStyle="max-width:200px;" 
+                                            />
+                                            <Column header="Tỷ trọng đầu việc" 
+                                                :rowspan="3"
+                                                class="align-items-center justify-content-center text-center"
+                                                headerStyle="max-width:50px; height:50px;padding:0.5rem;"
+                                                bodyStyle="text-align:center;max-width:50px;" 
+                                            />
+                                            <Column header="Kết quả công việc  " 
+                                                :rowspan="3" 
+                                                headerStyle="max-width:100px; height:50px"
+                                                bodyStyle="text-align:center;max-width:100px;" 
+                                            />
+                                            <Column header="Điểm tối đa" 
+                                                :rowspan="3"
+                                                class="align-items-center justify-content-center text-center"
+                                                headerStyle="max-width:50px; height:50px;padding:0.5rem;"
+                                                bodyStyle="text-align:center;max-width:50px;" 
+                                            />
+                                            <Column header="Tự đánh giá" 
+                                                :rowspan="3"
+                                                class="align-items-center justify-content-center text-center"
+                                                headerStyle="max-width:50px; height:50px;padding:0.5rem;"
+                                                bodyStyle="text-align:center;max-width:50px;" 
+                                            />
+                                            <Column header="" 
+                                                :rowspan="3"
+                                                class="align-items-center justify-content-center text-center"
+                                                headerStyle="max-width:25px; height:50px;padding:0.5rem;"
+                                                bodyStyle="text-align:center;max-width:25px;"
+                                                v-if="item.type == 2" 
+                                            />
+                                        </Row>
+                                        <Row> </Row>
+                                        <Row>
+                                            <Column header="Đầu việc" field="lastYearSale" v-if="item.type == 2"
+                                                headerStyle="max-width:100px; height:50px"
+                                                bodyStyle="text-align:center;max-width:100px;" 
+                                            />
+                                            <Column header="Khối lượng, chất lượng, tiến độ công việc" 
+                                                field="thisYearSale"
+                                                headerStyle="max-width:100px; height:50px"
+                                                bodyStyle="text-align:center;max-width:100px;" v-if="item.type == 2" 
+                                            />
+                                        </Row>
+                                    </ColumnGroup>
+                                    
+                                    <Column field="STT" class="align-items-center justify-content-center text-center"
+                                        headerStyle="max-width:25px;height:50px;padding:0.5rem;"
+                                        bodyStyle="max-width:25px;padding: 0.5rem 0 !important;"
+                                        v-if="item.type == 2"
+                                    >
+                                        <template #body="slotProps">
+                                            <div class="flex" style="justify-content: center;">
+                                                <Button class="p-button-text p-button-info p-button-rounded ml-1"
+                                                    v-tooltip.top="'Thêm mới đầu việc'"
+                                                    icon="pi pi-plus-circle"
+                                                    @click="addItemToTask(slotProps.data, item)"
+                                                />
+                                            </div>
+                                        </template>
+                                    </Column>
+                                    <Column field="child_name" 
+                                        headerStyle="text-align:center;max-width:100px;height:50px"
+                                        bodyStyle="text-align:justify;max-width:100px;"
+                                        :bodyStyle="item.type == 2 ? 'padding:0 !important;vertical-align: middle;' : ''"
+                                    >
+                                        <template #body="slotProps">
+                                            <div v-if="item.type != 2">{{ slotProps.data.child_name }}</div>
+                                            <div v-else>
+                                                <Textarea class="w-full"
+                                                    rows="3"
+                                                    autoResize
+                                                    spellcheck="false"
+                                                    placeholder="Nhập nội dung đánh giá"
+                                                    v-model="slotProps.data.child_name"
+                                                    style="border-radius: 0;border:none;background-color: aliceblue;"
+                                                ></Textarea>
+                                            </div>
+                                        </template>
+                                    </Column>
+                                    <Column field="des" 
+                                        headerStyle="text-align:center;max-width:100px;height:50px"
+                                        bodyStyle="text-align:justify;max-width:100px;" 
+                                        :bodyStyle="item.type == 2 ? 'padding:0 !important;vertical-align: middle;' : ''"
+                                    >
+                                        <template #body="slotProps">
+                                            <div v-if="item.type != 2">{{ slotProps.data.des }}</div>
+                                            <div v-else>
+                                                <Textarea class="w-full"
+                                                    rows="3"
+                                                    autoResize
+                                                    spellcheck="false"
+                                                    placeholder="Nhập định nghĩa nội dung đánh giá"
+                                                    v-model="slotProps.data.des"
+                                                    style="border-radius: 0;border:none;background-color: aliceblue;"
+                                                ></Textarea>
+                                            </div>
+                                        </template>
+                                    </Column>
+                                    <Column field="weight" 
+                                        class="align-items-center justify-content-center text-center"
+                                        headerStyle="text-align:center;max-width:50px;height:50px"
+                                        bodyStyle="text-align:center;max-width:50px;" 
+                                    >
+                                        <template #body="slotProps">
+                                            <div v-if="item.type != 2">{{ slotProps.data.weight || 0 }} %</div>
+                                            <div v-else>
+                                                <InputNumber class="w-full input-myreview"
+                                                    v-model="slotProps.data.weight"
+                                                    :min="0"
+                                                    :max="setMaxForTask(item)"
+                                                    spellcheck="false"
+                                                ></InputNumber>
+                                                %
+                                            </div>
+                                        </template>
+                                    </Column>
+                                    <Column field="desired_results" 
+                                        class="align-items-center justify-content-center"
+                                        headerStyle="text-align:center;max-width:100px;height:50px"
+                                        bodyStyle="text-align:justify;max-width:100px" 
+                                    >
+                                        <template #body="slotProps">
+                                            <div v-if="item.type != 2">{{ slotProps.data.desired_results }}</div>
+                                            <div v-else>
+                                                <Textarea class="w-full"
+                                                    rows="3"
+                                                    autoResize
+                                                    spellcheck="false"
+                                                    placeholder="Nhập đầu việc"
+                                                    v-model="slotProps.data.desired_results"
+                                                    style="border-radius: 0;border:none;background-color: aliceblue;"
+                                                ></Textarea>
+                                            </div>
+                                        </template>
+                                    </Column>
+                                    <Column field="work_progress" 
+                                        class="align-items-center justify-content-center"
+                                        headerStyle="text-align:center;max-width:100px;height:50px"
+                                        bodyStyle="text-align:justify;max-width:100px;padding:0 !important;vertical-align: middle;" 
+                                        v-if="item.type == 2"
+                                    >
+                                        <template #body="slotProps">
+                                            <Textarea class="w-full"
+                                                rows="3"
+                                                autoResize
+                                                spellcheck="false"
+                                                placeholder="Nhập tiến độ công việc"
+                                                v-model="slotProps.data.work_progress"
+                                                style="border-radius: 0;border:none;background-color: aliceblue;"
+                                            ></Textarea>
+                                        </template>
+                                    </Column>
+                                    <Column field="weight_child" 
+                                        class="align-items-center justify-content-center text-center"
+                                        headerStyle="text-align:center;max-width:50px;height:50px"
+                                        bodyStyle="text-align:justify;max-width:50px" 
+                                    >
+                                        <template #body="slotProps">
+                                            <div v-if="item.type != 2">{{ slotProps.data.weight_child || 0 }} %</div>
+                                            <div v-else>
+                                                <InputNumber class="w-full input-myreview"
+                                                    v-model="slotProps.data.weight_child"
+                                                    :min="0"
+                                                    :max="item.percen || 0"
+                                                    spellcheck="false"
+                                                ></InputNumber>
+                                                %
+                                            </div>
+                                        </template>
+                                    </Column>
+                                    <Column field="complete_results"
+                                        headerStyle="text-align:center;max-width:100px;height:50px"
+                                        bodyStyle="text-align:justify;max-width:100px;padding:0 !important;vertical-align: middle;"
+                                    >
+                                        <template #body="slotProps">
+                                            <Textarea class="w-full"
+                                                rows="3"
+                                                autoResize
+                                                spellcheck="false"
+                                                placeholder="Nhập kết quả công việc"
+                                                v-model="slotProps.data.complete_results"
+                                                style="border-radius: 0;border:none;background-color: aliceblue;"
+                                            ></Textarea>
+                                        </template>
+                                    </Column>
+                                    <Column field="max_score" class="align-items-center justify-content-center text-center"
+                                        headerStyle="max-width:50px;height:50px"
+                                        bodyStyle="max-width:50px"
+                                    >
+                                        <template #body="slotProps">
+                                            <InputNumber class="w-full input-myreview"
+                                                v-model="slotProps.data.max_score"
+                                                :min="0"
+                                                :max="slotProps.data.weight_child || 0"
+                                                spellcheck="false"
+                                            ></InputNumber>
+                                        </template>
+                                    </Column>
+                                    <Column field="self_score" class="align-items-center justify-content-center text-center"
+                                        headerStyle="max-width:50px;height:50px;padding:0.5rem;"
+                                        bodyStyle="max-width:50px"
+                                    >
+                                        <template #body="slotProps">
+                                            <InputNumber class="w-full input-myreview"
+                                                v-model="slotProps.data.self_score"
+                                                :min="0"
+                                                :max="slotProps.data.max_score || 0"
+                                                spellcheck="false"
+                                            ></InputNumber>
+                                        </template>
+                                    </Column>
+                                    <Column field="" class="align-items-center justify-content-center text-center"
+                                        headerStyle="max-width:25px;height:50px;padding:0.5rem;"
+                                        bodyStyle="max-width:25px;padding: 0.5rem 0 !important;"
+                                        v-if="item.type == 2"
+                                    >
+                                        <template #body="slotProps">
+                                            <div class="flex" style="justify-content: center;">
+                                                <Button class="p-button-text p-button-danger p-button-rounded ml-1"
+                                                    v-tooltip.top="'Xóa'"
+                                                    icon="pi pi-trash"
+                                                    @click="del_task_review(slotProps.data, item)"
+                                                />
+                                            </div>
+                                        </template>
+                                    </Column>
+                                    <ColumnGroup type="footer">
+                                        <Row>
+                                            <Column footer="Tổng:" :colspan="item.type != 2 ? 2 : 3" footerStyle="text-align:right" />
+                                            <Column :footer="resultTotal(item, 0) + '%'" footerStyle="text-align:center;max-width:50px;" />
+                                            <Column :colspan="item.type != 2 ? 1 : 2"/>
+                                            <Column :footer="resultTotal(item, 1) + '%'" footerStyle="text-align:center;max-width:50px;" />
+                                            <Column />
+                                            <Column :footer="resultTotal(item, 2)" footerStyle="text-align:center;max-width:50px;" />
+                                            <Column :footer="resultTotal(item, 3)" footerStyle="text-align:center;max-width:50px;" />
+                                            <Column v-if="item.type == 2" />
+                                        </Row>
+                                    </ColumnGroup>
+                                </DataTable>
+                            </div>
+                        </AccordionTab>
+                    </Accordion>                    
+                </div>
+                <!-- ... -->
+                <div class="col-12 field md:col-12 flex" style="flex-direction: column;">
+                    <div class="col-12 md:col-12 p-0 flex font-bold">
+                        <h3 class="text-blue-500">
+                            TỔNG HỢP, XẾP LOẠI:
+                        </h3>
+                    </div>
+                    <div class="col-12 md:col-12 p-0 flex">
+                        <table class="table table-white table-condensed table-bordered table-hover tbpad">
+                            <thead>
+                                <tr>
+                                    <th style="text-align: left; width:25rem;">CBNV TỰ ĐÁNH GIÁ</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                <tr>
+                                    <td>
+                                        <div class="flex" style="align-items:center;height:40px;">
+                                            Họ và tên: <b class="pl-2">{{ reviewuser.fullname_self_review || '' }}</b>
+                                        </div>
+                                        <div class="flex" style="align-items: center;">
+                                            <label class="label-form mr-2">Ngày: </label>
+                                            <Calendar
+                                                :showIcon="true"
+                                                class="ip36 flex-1"
+                                                autocomplete="on"
+                                                inputId="time24"
+                                                v-model="reviewuser.created_date"
+                                                placeholder="DD/MM/yyyy"
+                                            />
+                                        </div>
+                                        <div class="py-3">                                            
+                                            Tổng điểm (%): <b>{{ getScoreSelf()}}<span v-if="reviewuser.percent_score != null">%</span></b>
+                                        </div>
+                                    </td>
+                                </tr>
+                                <tr>
+                                    <td>
+                                        <div class="flex" style="flex-direction: column;">
+                                            <label class="mb-2" style="text-decoration: underline">
+                                                <i>Ý kiến CBNV tự đánh giá: </i>
+                                                <span class="redsao pl-1"> (*)</span>
+                                            </label>
+                                            <Textarea ng-readonly="Danhgia.DanhgiaSend_ID" 
+                                                v-model="reviewuser.opinion"
+                                                class="form-control" 
+                                                rows="3"
+                                                autoResize
+                                                spellcheck="false"
+                                            >
+                                            </Textarea>                                            
+                                            <!-- <div ng-if="Danhgia.Noidungdi">
+                                                Nội dung trình: <b>{{Danhgia.Noidungdi}}</b>
+                                            </div> -->
+                                        </div>
+                                    </td>
+                                </tr>
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
+        </form>
+        <template #footer>
+            <Button label="Hủy" icon="pi pi-times" @click="closeDialog" class="p-button-outlined" />
+            <Button label="Lưu" icon="pi pi-check" @click="saveData(!v$.$invalid)" autofocus />
+        </template>
+    </Dialog>
+</template>
+    
+<style scoped>
+.inputanh {
+    border: 1px solid #ccc;
+    width: 8rem;
+    height: 8rem;
+    cursor: pointer;
+    padding: 0.063rem;
+    display: block;
+    margin-left: auto;
+    margin-right: auto;
+}
+
+.ipnone {
+    display: none;
+}
+
+.inputanh img {
+    object-fit: cover;
+    width: 100%;
+    height: 100%;
+}
+.title-form-myreview {
+    font-weight: 500;
+}
+</style>
+<style lang="scss" scoped>
+::v-deep(.tbl-myreview-hrm) {
+    .p-datatable-thead {
+        z-index: 0;
+    }
+    .p-datatable-emptymessage td {
+        height: calc(100vh - 19.5rem);
+    }
+}
+::v-deep(.accordion-form-myreview) {
+    .p-accordion-header-link {
+        padding: 0.25rem 1rem;
+    }
+    .p-accordion-content {
+        padding: 0.5rem;
+    }
+}
+::v-deep(.input-myreview) { 
+    input {
+        border-radius: 0;
+    }
+}
+::v-deep(.p-inputnumber.input-myreview) { 
+    input {
+        text-align: center;
+    }
+}
+::v-deep(.tbl-part-myreview) {
+    .p-column-header-content {
+        justify-content: center;
+        text-align: center;
+    }
+}
+</style>
+    

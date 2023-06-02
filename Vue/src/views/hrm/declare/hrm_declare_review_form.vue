@@ -5,6 +5,7 @@ import { required } from "@vuelidate/validators";
 import { useVuelidate } from "@vuelidate/core";
 import { encr, checkURL } from "../../../util/function.js";
 import tree_users_hrm from "../component/tree_users_hrm.vue";
+import { FilterMatchMode, FilterOperator } from "primevue/api";
 //Khai báo
 import moment from "moment";
 const cryoptojs = inject("cryptojs");
@@ -12,7 +13,15 @@ const axios = inject("axios");
 const store = inject("store");
 const swal = inject("$swal");
 const isDynamicSQL = ref(false);
-
+const bgColor = ref([
+  "#F8E69A",
+  "#AFDFCF",
+  "#F4B2A3",
+  "#9A97EC",
+  "#CAE2B0",
+  "#8BCFFB",
+  "#CCADD7",
+]);
 const config = {
   headers: { Authorization: `Bearer ${store.getters.token}` },
 };
@@ -56,36 +65,25 @@ const options = ref({
   loading: true,
   totalRecords: null,
   loadingP: true,
-  pagenoP: 0,
-  pagesizeP: 20,
+  PageNoP: 0,
+  PageSizeP: 20,
   searchP: "",
   sortP: "created_date",
+  totalRecordsP: null,
 });
 
 //Hiển thị dialog
 const headerDialog = ref();
 const displayBasic = ref(false);
-const sttStamp = ref(1);
+
 const sttPaycheck = ref(1);
 const isFirst = ref(true);
-const menuButMores = ref();
-const itemButMores = ref([
-  {
-    label: "Hiệu chỉnh nội dung",
-    icon: "pi pi-pencil",
-    command: (event) => {},
-  },
-  {
-    label: "Xoá",
-    icon: "pi pi-trash",
-    command: (event) => {},
-  },
-]);
-const checkIsmain = ref(true);
+
 const treemodules = ref();
 
 const checkShow = ref(false);
 const listEvalCriterias = ref([]);
+
 const listEvalChilds = ref([]);
 const listTypeEvals = ref([
   {
@@ -121,20 +119,25 @@ const loadData = (rf) => {
       .then((response) => {
         let data = JSON.parse(response.data.data)[0];
         if (isFirst.value) isFirst.value = false;
-        data.forEach((element, i) => {
-          element.STT = options.value.PageNo * options.value.PageSize + i + 1;
-        });
-        datalists.value = data;
+        if (data.length > 0) {
+          data.forEach((element, i) => {
+            element.STT = options.value.PageNo * options.value.PageSize + i + 1;
+          });
 
+          datalists.value = data;
+
+          review_form.value = data[0];
+          loadDataDetails(true);
+        }
         options.value.loading = false;
       })
       .catch((error) => {
         toast.error("Tải dữ liệu không thành công!");
         options.value.loading = false;
-
+        console.log(error);
         if (error && error.status === 401) {
           swal.fire({
-            text: "Mã token đã hết hạn hoặc không hợp lệ, vui lòng đăng nhập lại!",
+            text: "Phiên đăng nhập đã hết hạn, vui lòng đăng nhập lại!",
             confirmButtonText: "OK",
           });
           store.commit("gologout");
@@ -248,7 +251,7 @@ const saveData = (isFormValid) => {
       .then((response) => {
         if (response.data.err != "1") {
           swal.close();
-          toast.success("Thêm mẫu biểuthành công!");
+          toast.success("Thêm mẫu biểu thành công!");
 
           closeDialog();
         } else {
@@ -345,10 +348,68 @@ const editTem = (dataTem, header, view) => {
 
       if (error && error.status === 401) {
         swal.fire({
-          text: "Mã token đã hết hạn hoặc không hợp lệ, vui lòng đăng nhập lại!",
+          text: "Phiên đăng nhập đã hết hạn, vui lòng đăng nhập lại!",
           confirmButtonText: "OK",
         });
         store.commit("gologout");
+      }
+    });
+};
+
+const delUser = (Tem) => {
+  swal
+    .fire({
+      title: "Thông báo",
+      text: "Xác nhận xoá nhân sự khỏi mẫu biểu ?",
+      icon: "warning",
+      showCancelButton: true,
+      confirmButtonColor: "#3085d6",
+      cancelButtonColor: "#d33",
+      confirmButtonText: "Có",
+      cancelButtonText: "Không",
+    })
+    .then((result) => {
+      if (result.isConfirmed) {
+        swal.fire({
+          width: 110,
+          didOpen: () => {
+            swal.showLoading();
+          },
+        });
+
+        axios
+          .delete(
+            baseURL + "/api/hrm_review_form_users/delete_hrm_review_form_users",
+            {
+              headers: { Authorization: `Bearer ${store.getters.token}` },
+              data: Tem != null ? [Tem.profile_id] : 1,
+            }
+          )
+          .then((response) => {
+            swal.close();
+            if (response.data.err != "1") {
+              swal.close();
+              toast.success("Xoá mẫu biểu thành công!");
+
+              loadDataDetails(true);
+            } else {
+              swal.fire({
+                title: "Error!",
+                text: response.data.ms,
+                icon: "error",
+                confirmButtonText: "OK",
+              });
+            }
+          })
+          .catch((error) => {
+            swal.close();
+            if (error.status === 401) {
+              swal.fire({
+                text: "Phiên đăng nhập đã hết hạn, vui lòng đăng nhập lại!",
+                confirmButtonText: "OK",
+              });
+            }
+          });
       }
     });
 };
@@ -387,7 +448,7 @@ const delTem = (Tem) => {
             swal.close();
             if (response.data.err != "1") {
               swal.close();
-              toast.success("Xoá mẫu biểuthành công!");
+              toast.success("Xoá mẫu biểu thành công!");
               loadData(true);
             } else {
               swal.fire({
@@ -402,7 +463,7 @@ const delTem = (Tem) => {
             swal.close();
             if (error.status === 401) {
               swal.fire({
-                text: "Mã token đã hết hạn hoặc không hợp lệ, vui lòng đăng nhập lại!",
+                text: "Phiên đăng nhập đã hết hạn, vui lòng đăng nhập lại!",
                 confirmButtonText: "OK",
               });
             }
@@ -468,60 +529,18 @@ const renderTree = (data, id, name, title) => {
     });
   return { arrChils: arrChils, arrtreeChils: arrtreeChils };
 };
-const loadCountDetails = () => {
-  axios
-    .post(
-      baseURL + "/api/device_card/getData",
-      {
-        str: encr(
-          JSON.stringify({
-            proc: "hrm_paycheck_count",
-            par: [
-              { par: "search", va: options.value.SearchText },
-              { par: "review_form_id", va: review_form.value.review_form_id },
-              { par: "user_id", va: store.state.user.user_id },
-              { par: "status", va: null },
-            ],
-          }),
-          SecretKey,
-          cryoptojs
-        ).toString(),
-      },
-      config
-    )
-    .then((response) => {
-      let data = JSON.parse(response.data.data)[0];
-      let data1 = JSON.parse(response.data.data)[1];
-
-      if (data.length > 0) {
-        options.value.totalRecordsP = data[0].totalRecords;
-      }
-      if (data1.length > 0) {
-        options.value.totalRecordsPage = data1[0].totalRecordsPage;
-        sttPaycheck.value = options.value.totalRecordsPage + 1;
-      }
-    })
-    .catch(() => {});
-};
+const listProfilesSave = ref([]);
 const loadDataDetails = (rf) => {
   if (rf) {
-    if (rf) {
-      loadCountDetails();
-    }
     axios
       .post(
-        baseURL + "/api/device_card/getData",
+        baseURL + "/api/HRM_SQL/getData",
         {
           str: encr(
             JSON.stringify({
-              proc: "hrm_paycheck_list",
+              proc: "hrm_review_form_users_list",
               par: [
-                { par: "search", va: options.value.SearchText },
                 { par: "review_form_id", va: review_form.value.review_form_id },
-                { par: "pageno", va: options.value.pagenoP },
-                { par: "pagesize", va: options.value.pagesizeP },
-                { par: "user_id", va: store.getters.user.user_id },
-                { par: "status", va: null },
               ],
             }),
             SecretKey,
@@ -532,19 +551,20 @@ const loadDataDetails = (rf) => {
       )
       .then((response) => {
         let data = JSON.parse(response.data.data)[0];
+        let data1 = JSON.parse(response.data.data)[1];
+        let data2 = JSON.parse(response.data.data)[2];
         data.forEach((element, i) => {
           element.STT = options.value.PageNo * options.value.PageSize + i + 1;
         });
-        if (isFirst.value) isFirst.value = false;
-        let obj = renderTree(data, "paycheck_id", "paycheck_name", "cấp cha");
-        treemodules.value = obj.arrtreeChils;
 
-        datalistsDetails.value = obj.arrChils;
+        listProfiles.value = data;
+        options.value.totalRecordsP = data1[0].totalRecordsP;
+        listProfilesSave.value = data2;
         options.value.loadingP = false;
       })
       .catch((error) => {
         toast.error("Tải dữ liệu không thành công!");
-
+        console.log(error);
         options.value.loading = false;
       });
   }
@@ -572,7 +592,7 @@ const addRow_Item = (item) => {
       eval_criteria_child_name: null,
       complete_results: null,
       complete_time: null,
-      weight: null,
+      weight_child: null,
       parent_id: null,
       status: true,
       roman_order: item.roman_order,
@@ -698,8 +718,6 @@ const onMinusItem = (item) => {
   );
 };
 
-
-
 // CHọn nhân sự
 
 const displayDialogUser = ref(false);
@@ -708,24 +726,250 @@ const selectedUser = ref();
 
 const showTreeUser = () => {
   checkMultile.value = false;
-  selectedUser.value =listProfiles.value;
+  selectedUser.value = listProfilesSave.value;
   displayDialogUser.value = true;
-};
-
-const closeDialogUser = () => {
-  displayDialogUser.value = false;
 };
 
 const checkMultile = ref(false);
 const listProfiles = ref([]);
 const choiceUser = () => {
   listProfiles.value = [];
-  if (checkMultile.value == false)
-  listProfiles.value=  selectedUser.value  
+  if (checkMultile.value == false) listProfiles.value = selectedUser.value;
+  let formData = new FormData();
 
-  closeDialogUser();
+  formData.append("report", JSON.stringify(review_form.value));
+  formData.append("hrm_review_form_users", JSON.stringify(listProfiles.value));
+  swal.fire({
+    width: 110,
+    didOpen: () => {
+      swal.showLoading();
+    },
+  });
+
+  axios
+    .post(
+      baseURL + "/api/hrm_review_form_users/add_hrm_review_form_users",
+      formData,
+      config
+    )
+    .then((response) => {
+      if (response.data.err != "1") {
+        swal.close();
+        toast.success("Thêm thông tin chiến dịch thành công!");
+        loadDataDetails(true);
+      } else {
+        swal.fire({
+          title: "Error!",
+          text: response.data.ms,
+          icon: "error",
+          confirmButtonText: "OK",
+        });
+      }
+      displayDialogUser.value = false;
+    })
+    .catch((error) => {
+      swal.close();
+      swal.fire({
+        title: "Error!",
+        text: "Có lỗi xảy ra, vui lòng kiểm tra lại!",
+        icon: "error",
+        confirmButtonText: "OK",
+      });
+    });
 };
 
+const filters = ref({
+  global: { value: null, matchMode: FilterMatchMode.CONTAINS },
+  profile_user_name: {
+    operator: FilterOperator.AND,
+    constraints: [{ value: null, matchMode: FilterMatchMode.STARTS_WITH }],
+  },
+});
+
+//Phân trang dữ liệu
+const onPageP = (event) => {
+  if (event.rows != options.value.PageSizeP) {
+    options.value.PageSizeP = event.rows;
+  }
+  if (event.page == 0) {
+    //Trang đầu
+    options.value.id = null;
+    options.value.IsNext = true;
+  } else if (event.page > options.value.PageNoP + 1) {
+    //Trang cuối
+    options.value.id = -1;
+    options.value.IsNext = false;
+  } else if (event.page > options.value.PageNoP) {
+    //Trang sau
+
+    options.value.id =
+      listProfiles.value[listProfiles.value.length - 1].profile_id;
+    options.value.IsNext = true;
+  } else if (event.page < options.value.PageNoP) {
+    //Trang trước
+    options.value.id = listProfiles.value[0].profile_id;
+    options.value.IsNext = false;
+  }
+  options.value.PageNoP = event.page;
+  loadDataSQL();
+};
+
+//Sort
+const onSortP = (event) => {
+  options.value.PageNoP = 0;
+
+  if (event.sortField == null) {
+    loadDataSQL();
+  } else {
+    options.value.sort =
+      event.sortField + (event.sortOrder == 1 ? " ASC" : " DESC");
+    if (event.sortField == "STT") {
+      options.value.sort =
+        "is_order" + (event.sortOrder == 1 ? " ASC" : " DESC");
+    }
+    isDynamicSQL.value = true;
+    loadDataSQL();
+  }
+};
+
+const onFilterP = (event) => {
+  filterSQL.value = [];
+
+  for (const [key, value] of Object.entries(event.filters)) {
+    if (key != "global") {
+      let obj = {
+        key: key,
+        filteroperator: value.operator,
+        filterconstraints: value.constraints,
+      };
+
+      if (value.value && value.value.length > 0) {
+        obj.filteroperator = value.matchMode;
+        obj.filterconstraints = [];
+        value.value.forEach(function (vl) {
+          obj.filterconstraints.push({ value: vl[obj.key] });
+        });
+      } else if (value.matchMode) {
+        obj.filteroperator = "and";
+        obj.filterconstraints = [value];
+      }
+      if (
+        obj.filterconstraints &&
+        obj.filterconstraints.filter((x) => x.value != null).length > 0
+      )
+        filterSQL.value.push(obj);
+    }
+  }
+  options.value.PageNoP = 0;
+  options.value.id = null;
+
+  loadDataSQL();
+};
+
+const checkFilter = ref(false);
+const filterSQL = ref([]);
+
+const checkLoadCount = ref(true);
+const loadDataSQL = () => {
+  datalists.value = [];
+  filterSQL.value.push({
+    filterconstraints: [
+      { value: review_form.value.review_form_id, matchMode: "equals" },
+    ],
+    filteroperator: "and",
+    key: "review_form_id",
+  });
+
+  let data = {
+    id: "profile_id",
+    sqlS: null,
+    sqlO: options.value.sort,
+    Search: options.value.SearchText,
+    PageNo: options.value.PageNo,
+    PageSize: options.value.PageSize,
+    next: true,
+    sqlF: null,
+    fieldSQLS: filterSQL.value,
+  };
+  options.value.loading = true;
+  axios
+    .post(baseURL + "/api/HRM_SQL/Filter_hrm_review_form_users", data, config)
+    .then((response) => {
+      let dt = JSON.parse(response.data.data);
+      let data = dt[0];
+      if (data.length > 0) {
+        listProfiles.value = data;
+      } else {
+        listProfiles.value = [];
+      }
+
+      options.value.loading = false;
+      //Show Count nếu có
+      if (dt.length >= 1 && checkLoadCount.value == true) {
+        options.value.totalRecordsP = dt[1][0].totalRecords;
+      }
+    })
+    .catch((error) => {
+      options.value.loading = false;
+      toast.error("Tải dữ liệu không thành công!");
+
+      if (error && error.status === 401) {
+        swal.fire({
+          title: "Thông báo",
+          text: "Phiên đăng nhập đã hết hạn, vui lòng đăng nhập lại!",
+          icon: "error",
+          confirmButtonText: "OK",
+        });
+        store.commit("gologout");
+      }
+    });
+};
+const onChangeMaxPercen = (item) => {
+  var max = 0;
+  listEvalCriterias.value.forEach((element) => {
+    max += element.percen;
+  });
+  if (max > 100) {
+    let sum = 0;
+    listEvalCriterias.value
+      .filter((x) => x != item)
+      .forEach((out) => {
+        sum += out.percen;
+      });
+
+   
+      listEvalCriterias.value.find((x) => x == item).maxpercen =   100 - sum;
+    listEvalCriterias.value.find((x) => x == item).percen = 100 - sum;
+  }
+  // var str = listEvalCriterias.value.find((x) => x == item);
+  // if (str != null) {
+  //   listEvalCriterias.value.find((x) => x == item).maxpercen = item.percen;
+  // }
+};
+const onChangeMaxVal = (item, data) => {
+  var str = listEvalCriterias.value.find((x) => x == item);
+  if (str != null) {
+    if (str.maxpercen == null) {
+      str.maxpercen = str.percen;
+    }
+    var curPercent = 0;
+    listEvalChilds.value
+      .filter((x) => x.roman_order == item.roman_order)
+      .forEach((element) => {
+        curPercent += element.weight_child;
+      });
+    if (curPercent > str.maxpercen) {
+      let sum = 0;
+      listEvalChilds.value
+        .filter((x) => x.roman_order == item.roman_order && x != data)
+        .forEach((out) => {
+          sum += out.weight_child;
+        });
+      listEvalChilds.value.find((x) => x == data).weight_child =
+        str.maxpercen - sum;
+    }
+  }
+};
 onMounted(() => {
   loadData(true);
   return {
@@ -779,7 +1023,7 @@ onMounted(() => {
                 </template>
               </Toolbar>
             </div>
-          
+
             <div style="border-top: 2px solid #dee2e6">
               <div class="w-full d-lang-table mx-2">
                 <DataView
@@ -788,7 +1032,7 @@ onMounted(() => {
                   :paginator="true"
                   currentPageReportTemplate=""
                   :rows="options.PageSize"
-                  :totalRecords="totalRecords"
+                  :totalRecords="options.totalRecords"
                   :rowHover="true"
                   :showGridlines="true"
                   :pageLinks="5"
@@ -837,7 +1081,7 @@ onMounted(() => {
                                 icon="pi pi-eye"
                                 v-tooltip.top="'Xem'"
                               ></Button>
-                          
+
                               <div
                                 v-if="
                                   store.state.user.is_super == true ||
@@ -881,7 +1125,8 @@ onMounted(() => {
           </div>
         </SplitterPanel>
         <SplitterPanel :size="65">
-          <div>
+          <div v-if="review_form.review_form_id != null">
+            <div>
               <Toolbar>
                 <template #start>
                   <span class="p-input-icon-left">
@@ -898,7 +1143,6 @@ onMounted(() => {
                 <template #end>
                   <Button
                     v-tooltip.top="'Thêm nhân sự'"
-                 
                     @click="showTreeUser()"
                     label="Thêm nhân sự"
                     icon="pi pi-plus"
@@ -907,173 +1151,148 @@ onMounted(() => {
                 </template>
               </Toolbar>
             </div>
-            <div>
-          
+            <div class="d-lang-table-d" v-if="listProfiles.length > 0">
               <DataTable
-            @page="onPage($event)"
-            @sort="onSort($event)"
-            @filter="onFilter($event)"
-            v-model:filters="filters" selectionMode="single"
-            filterDisplay="menu"
-            filterMode="lenient"
-            :filters="filters"
-            :scrollable="true"
-            scrollHeight="flex"
-            :showGridlines="true"
-            columnResizeMode="fit"
-            :lazy="true"
-            :totalRecords="options.totalRecords"
-            :loading="options.loading"
-            :reorderableColumns="true"
-            :value="listProfiles"
-            removableSort
-            v-model:rows="options.PageSize"
-            paginatorTemplate="FirstPageLink PrevPageLink PageLinks NextPageLink LastPageLink RowsPerPageDropdown"
-            :rowsPerPageOptions="[20, 30, 50, 100, 200]"
-            :paginator="true"
-            dataKey="candidate_id"
-            responsiveLayout="scroll"
-      
-            :row-hover="true"
-          >
- 
-            <Column
-              field="STT"
-              header="STT"
-              class="align-items-center justify-content-center text-center overflow-hidden"
-              headerStyle="text-align:center;max-width:55px;height:50px"
-              bodyStyle="text-align:center;max-width:55px"
-            ></Column>
-            <Column
-              field="candidate_code"
-              header="Ảnh"
-              headerStyle="text-align:center;max-width:70px;height:50px"
-              bodyStyle="text-align:center;max-width:70px"
-              class="align-items-center justify-content-center text-center  overflow-hidden"
-            >
-              <template #body="slotProps">
-                <div>
-                  <Avatar   style="color:#fff"
-                    v-bind:label="
-                      slotProps.data.candidate_avatar
-                        ? ''
-                        : slotProps.data.candidate_name.substring(
-                            slotProps.data.candidate_name.lastIndexOf(' ') + 1,
-                            slotProps.data.candidate_name.lastIndexOf(' ') + 2
-                          )
-                    "
-                    :image="basedomainURL + slotProps.data.candidate_avatar"
-                    class="w-3rem"
-                    size="large"
-                    :style="
-                      slotProps.data.avatar
-                        ? 'background-color: #2196f3'
-                        : 'background:' +
-                          bgColor[slotProps.data.candidate_name.length % 7]
-                    "
-                    shape="circle"
-                    @error="
-                      $event.target.src =
-                        basedomainURL + '/Portals/Image/nouser1.png'
-                    "
-                  />
-                </div>
-              </template>
-            </Column>
-            
-            <Column
-              field="candidate_name"
-              header="Họ và tên"
-              :sortable="true"
-              headerStyle=" height:50px"
-              bodyStyle="text-align:left" class=" overflow-hidden"
-              headerClass="align-items-center justify-content-center text-center"
-            >
-              <template #filter="{ filterModel }">
-                <InputText
-                  type="text"
-                  v-model="filterModel.value"
-                  class="p-column-filter"
-                  placeholder="Từ khoá"
-                />
-              </template>
-            </Column>
-
-            <Column
-              field="end_date"
-              header="Số điện thoại"
-              headerStyle="text-align:center;max-width:200px;height:50px"
-              bodyStyle="text-align:center;max-width:200px"
-              class="align-items-center justify-content-center text-center  overflow-hidden"
-            >
-              <template #body="data">
-                <div v-if="data.data.candidate_phone">
-                  {{ data.data.candidate_phone }}
-                </div>
-              </template>
-            </Column>
-
-            <Column
-              field="count_emps"
-              header="Email"
-              headerStyle="text-align:center;max-width:200px;height:50px"
-              bodyStyle="text-align:center;max-width:200px"
-              class="align-items-center justify-content-center text-center  overflow-hidden"
-            >
-              <template #body="data">
-                <div v-if="data.data.candidate_email">
-                  {{ data.data.candidate_email }}
-                </div>
-              </template>
-            </Column>
-            <Column
-              field="form_training"
-              header="Ngày sinh"
-              headerStyle="text-align:center;max-width:100px;height:50px"
-              bodyStyle="text-align:center;max-width:100px"
-              class="align-items-center justify-content-center text-center  overflow-hidden"
-            >
-              <template #body="data">
-                <div v-if="data.data.candidate_birthday">
-                  {{
-                    moment(new Date(data.data.candidate_birthday)).format(
-                      "DD/MM/YYYY"
-                    )
-                  }}
-                </div>
-              </template>
-            </Column>
- 
-            
-            <Column
-              header=""
-              headerStyle="text-align:center;max-width:70px"
-              bodyStyle="text-align:center;max-width:70px"
-              class="align-items-center justify-content-center text-center"
-            >
-              <template #body="slotProps">
-                <Button
-                  icon="pi pi-ellipsis-h"
-                  class="p-button-rounded p-button-text ml-2"
-                  @click="toggleMores($event, slotProps.data)"
-                  aria-haspopup="true"
-                  aria-controls="overlay_More"
-                  v-tooltip.top="'Tác vụ'"
-                />
-              </template>
-            </Column>
-          
-            <template #empty>
-              <div
-                class="align-items-center justify-content-center p-4 text-center m-auto"
-                v-if="!isFirst"
+                @page="onPageP($event)"
+                @sort="onSortP($event)"
+                @filter="onFilterP($event)"
+                v-model:filters="filters"
+                selectionMode="single"
+                filterDisplay="menu"
+                filterMode="lenient"
+                :scrollable="true"
+                scrollHeight="flex"
+                :showGridlines="true"
+                columnResizeMode="fit"
+                :lazy="true"
+                :loading="options.loading"
+                :totalRecords="options.totalRecordsP"
+                :reorderableColumns="true"
+                :value="listProfiles"
+                removableSort
+                v-model:rows="options.PageSizeP"
+                paginatorTemplate="FirstPageLink PrevPageLink PageLinks NextPageLink LastPageLink RowsPerPageDropdown"
+                :rowsPerPageOptions="[20, 30, 50, 100, 200]"
+                :paginator="true"
+                dataKey="profile_id"
+                responsiveLayout="scroll"
+                :row-hover="true"
               >
-                <img src="../../../assets/background/nodata.png" height="144" />
-                <h3 class="m-1">Không có dữ liệu</h3>
-              </div>
-            </template>
-          </DataTable>
+                <Column
+                  field="STT"
+                  header="STT"
+                  class="align-items-center justify-content-center text-center overflow-hidden"
+                  headerStyle="text-align:center;max-width:55px;height:50px"
+                  bodyStyle="text-align:center;max-width:55px"
+                ></Column>
+                <Column
+                  field="candidate_code"
+                  header="Ảnh"
+                  headerStyle="text-align:center;max-width:70px;height:50px"
+                  bodyStyle="text-align:center;max-width:70px"
+                  class="align-items-center justify-content-center text-center overflow-hidden"
+                >
+                  <template #body="slotProps">
+                    <div>
+                      <Avatar
+                        style="color: #fff"
+                        v-bind:label="
+                          slotProps.data.avatar
+                            ? ''
+                            : slotProps.data.profile_user_name.substring(
+                                slotProps.data.profile_user_name.lastIndexOf(
+                                  ' '
+                                ) + 1,
+                                slotProps.data.profile_user_name.lastIndexOf(
+                                  ' '
+                                ) + 2
+                              )
+                        "
+                        :image="basedomainURL + slotProps.data.avatar"
+                        class="w-3rem"
+                        size="large"
+                        :style="
+                          slotProps.data.avatar
+                            ? 'background-color: #2196f3'
+                            : 'background:' +
+                              bgColor[
+                                slotProps.data.profile_user_name.length % 7
+                              ]
+                        "
+                        shape="circle"
+                        @error="
+                          $event.target.src =
+                            basedomainURL + '/Portals/Image/nouser1.png'
+                        "
+                      />
+                    </div>
+                  </template>
+                </Column>
+
+                <Column
+                  field="profile_user_name"
+                  header="Họ và tên"
+                  headerStyle=" height:50px"
+                  bodyStyle="text-align:left"
+                  class="overflow-hidden"
+                >
+                </Column>
+
+                <Column
+                  field="position_name"
+                  header="Chức vụ"
+                  headerStyle="text-align:center;max-width:200px;height:50px"
+                  bodyStyle="text-align:center;max-width:200px"
+                  class="align-items-center justify-content-center text-center overflow-hidden"
+                >
+                </Column>
+
+                <Column
+                  field="department_name"
+                  header="Phòng ban"
+                  headerStyle="text-align:center;max-width:200px;height:50px"
+                  bodyStyle="text-align:center;max-width:200px"
+                  class="align-items-center justify-content-center text-center overflow-hidden"
+                >
+                </Column>
+
+                <Column
+                  header=""
+                  headerStyle="text-align:center;max-width:70px"
+                  bodyStyle="text-align:center;max-width:70px"
+                  class="align-items-center justify-content-center text-center"
+                >
+                  <template #body="slotProps">
+                    <Button
+                      @click="delUser(slotProps.data)"
+                      icon="pi pi-trash"
+                      class="p-button-rounded p-button-danger p-button-outlined ml-2"
+                    />
+                  </template>
+                </Column>
+
+                <template #empty>
+                  <div
+                    class="align-items-center justify-content-center p-4 text-center m-auto"
+                    v-if="!isFirst"
+                  >
+                    <img
+                      src="../../../assets/background/nodata.png"
+                      height="144"
+                    />
+                    <h3 class="m-1">Không có dữ liệu</h3>
+                  </div>
+                </template>
+              </DataTable>
             </div>
+          </div>
+          <div
+            class="align-items-center justify-content-center p-4 text-center m-auto"
+            v-else
+          >
+            <img src="../../../assets/background/nodata.png" height="144" />
+            <h3 class="m-1">Vui lòng chọn mẫu biểu!</h3>
+          </div>
         </SplitterPanel>
       </Splitter>
     </div>
@@ -1100,7 +1319,7 @@ onMounted(() => {
                 'p-invalid': v$.review_form_name.$invalid && submitted,
               }"
               :disabled="isView"
-              :style="isView?'opacity:1':''"
+              :style="isView ? 'opacity:1' : ''"
             />
           </div>
           <div
@@ -1139,7 +1358,7 @@ onMounted(() => {
           <div class="col-12 field md:col-12 p-0 pr-2 flex">
             <Toolbar class="custoolbar w-full">
               <template #start>
-                <div class="font-bold text-lg">Danh sách chỉ tiêu</div>
+                <div class="font-bold text-lg">Danh sách nội dung đánh giá</div>
               </template>
             </Toolbar>
           </div>
@@ -1174,13 +1393,14 @@ onMounted(() => {
               <template #content>
                 <div class="col-12 md:col-12 p-0 flex field">
                   <div class="col-12 p-0 flex align-items-center">
-                    <div class="w-10rem p-0">Tên chỉ tiêu</div>
+                    <div class="w-10rem p-0">Tên nội dung</div>
                     <div class="p-0" style="width: calc(100% - 10rem)">
                       <InputText
                         v-model="item.eval_criteria_name"
                         spellcheck="false"
                         class="px-2 w-full"
-                        :disabled="isView"   :style="isView?'opacity:1':''"
+                        :disabled="isView"
+                        :style="isView ? 'opacity:1' : ''"
                       />
                     </div>
                   </div>
@@ -1188,7 +1408,7 @@ onMounted(() => {
                 <div class="col-12 md:col-12 p-0 flex field">
                   <div class="col-3 p-0 flex align-items-center">
                     <div class="w-10rem p-0 flex align-items-center">
-                      Phần trăm đánh giá
+                      Tỷ trọng nhóm
                     </div>
                     <div
                       style="width: calc(100% - 10rem)"
@@ -1200,7 +1420,9 @@ onMounted(() => {
                         inputId="percent"
                         :max="100"
                         suffix=" %"
-                        :disabled="isView"   :style="isView?'opacity:1':''"
+                        :disabled="isView"
+                        :style="isView ? 'opacity:1' : ''"
+                        @update:modelValue="onChangeMaxPercen(item)"
                       />
                     </div>
                   </div>
@@ -1213,7 +1435,8 @@ onMounted(() => {
                       class="p-0 flex align-items-center"
                     >
                       <Dropdown
-                        :disabled="isView"   :style="isView?'opacity:1':''"
+                        :disabled="isView"
+                        :style="isView ? 'opacity:1' : ''"
                         class="w-full"
                         v-model="item.type"
                         :options="listTypeEvals"
@@ -1229,7 +1452,8 @@ onMounted(() => {
                       </div>
                       <div class="col-6 p-0 flex align-items-center">
                         <InputSwitch
-                          :disabled="isView"   :style="isView?'opacity:1':''"
+                          :disabled="isView"
+                          :style="isView ? 'opacity:1' : ''"
                           v-model="item.is_plan"
                           class="w-4rem lck-checked"
                         />
@@ -1240,8 +1464,9 @@ onMounted(() => {
                         Kết quả
                       </div>
                       <div class="col-6 p-0 flex align-items-center">
-                        <InputSwitch 
-                          :disabled="isView"   :style="isView?'opacity:1':''"
+                        <InputSwitch
+                          :disabled="isView"
+                          :style="isView ? 'opacity:1' : ''"
                           v-model="item.is_results"
                           class="w-4rem lck-checked"
                         />
@@ -1362,7 +1587,28 @@ onMounted(() => {
                               v-model="slotProps.data.eval_criteria_child_name"
                               class="w-full"
                               spellcheck="false"
-                              :disabled="isView"   :style="isView?'opacity:1':''"
+                              :disabled="isView"
+                              :style="isView ? 'opacity:1' : ''"
+                            />
+                          </template>
+                        </Column>
+                        <Column
+                          field="form"
+                          header="Định nghĩa nội dung"
+                          headerStyle="text-align:center;max-width:250px;height:50px"
+                          bodyStyle="text-align:center;max-width:250px;"
+                          class="align-items-center justify-content-center text-center"
+                        >
+                          <template #body="slotProps">
+                            <Textarea
+                              :autoResize="true"
+                              rows="1"
+                              cols="30"
+                              v-model="slotProps.data.des"
+                              class="w-full"
+                              spellcheck="false"
+                              :disabled="isView"
+                              :style="isView ? 'opacity:1' : ''"
                             />
                           </template>
                         </Column>
@@ -1378,16 +1624,17 @@ onMounted(() => {
                               :autoResize="true"
                               rows="1"
                               cols="30"
-                              v-model="slotProps.data.complete_results"
+                              v-model="slotProps.data.desired_results"
                               class="w-full"
                               spellcheck="false"
-                              :disabled="isView"   :style="isView?'opacity:1':''"
+                              :disabled="isView"
+                              :style="isView ? 'opacity:1' : ''"
                             />
                           </template>
                         </Column>
                         <Column
-                          field="weight"
-                          header="Trọng số"
+                          field="weight_child"
+                          header="Tỷ trọng"
                           headerStyle="text-align:center;max-width:120px;height:50px"
                           bodyStyle="text-align:center;max-width:120px;"
                           class="align-items-center justify-content-center text-center"
@@ -1396,8 +1643,13 @@ onMounted(() => {
                             <InputNumber
                               spellcheck="false"
                               class="w-full d-design-it duy-inpput"
-                              v-model="slotProps.data.weight"
-                              :disabled="isView"   :style="isView?'opacity:1':''"
+                              v-model="slotProps.data.weight_child"
+                              :min="0"
+                              :disabled="isView"
+                              :style="isView ? 'opacity:1' : ''"
+                              @update:modelValue="
+                                onChangeMaxVal(item, slotProps.data)
+                              "
                             />
                           </template>
                         </Column>
@@ -1574,22 +1826,14 @@ onMounted(() => {
       </template>
     </Dialog>
   </div>
-  
+
   <tree_users_hrm
     v-if="displayDialogUser === true"
     :headerDialog="'Chọn nhân sự'"
     :displayDialog="displayDialogUser"
-    :closeDialog="closeDialogUser"
     :one="checkMultile"
     :selected="selectedUser"
     :choiceUser="choiceUser"
-  />
-
-  <Menu
-    id="overlay_More"
-    ref="menuButMores"
-    :model="itemButMores"
-    :popup="true"
   />
 </template>
     
@@ -1614,7 +1858,10 @@ onMounted(() => {
   width: 100%;
   height: 100%;
 }
-
+.d-lang-table-d {
+  margin: 0px;
+  height: calc(100vh - 160px);
+}
 .d-lang-table {
   margin: 0px;
   height: calc(100vh - 160px);

@@ -169,7 +169,7 @@ const openViewDialogContract = (str) => {
       if (error && error.status === 401) {
         swal.fire({
           title: "Thông báo!",
-          text: "Mã token đã hết hạn hoặc không hợp lệ, vui lòng đăng nhập lại!",
+          text: "Phiên đăng nhập đã hết hạn, vui lòng đăng nhập lại!",
           icon: "error",
           confirmButtonText: "OK",
         });
@@ -289,7 +289,7 @@ const initView3 = (ref) => {
       if (error && error.status === 401) {
         swal.fire({
           title: "Thông báo!",
-          text: "Mã token đã hết hạn hoặc không hợp lệ, vui lòng đăng nhập lại!",
+          text: "Phiên đăng nhập đã hết hạn, vui lòng đăng nhập lại!",
           icon: "error",
           confirmButtonText: "OK",
         });
@@ -343,9 +343,9 @@ const onPage = (event) => {
       >
         <Column
           field="contract_code"
-          header="Mã HĐ"
-          headerStyle="text-align:center;max-width:100px;height:50px"
-          bodyStyle="text-align:center;max-width:100px;"
+          header="Số HĐ"
+          headerStyle="text-align:center;max-width:150px;height:50px"
+          bodyStyle="text-align:center;max-width:150px;"
           class="align-items-center justify-content-center text-center"
         />
         <Column
@@ -494,7 +494,7 @@ const onPage = (event) => {
 <style scoped>
 @import url(../../contract/component/stylehrm.css);
 .d-lang-table {
-  height: calc(100vh - 220px);
+  height: calc(100vh - 230px);
   overflow-y: auto;
   background-color: #fff;
 }

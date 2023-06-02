@@ -4,6 +4,7 @@ import { encr } from "../../../util/function";
 import { useToast } from "vue-toastification";
 import dialogdecíion from "./component/dialogdecision.vue";
 import framepreview from "../component/framepreview.vue";
+import DocComponent from "../template/components/DocComponent.vue";
 import moment from "moment";
 
 const router = inject("router");
@@ -72,6 +73,8 @@ const liquidations = ref([
   { value: 3, title: "Chấm dứt HĐLĐ" },
   { value: 4, title: "Khác..." },
 ]);
+const visibleSidebarDoc = ref(false);
+const report = ref({ datadic: null });
 const selectedNodes = ref({});
 const selectedKeys = ref([]);
 const expandedKeys = ref([]);
@@ -124,8 +127,79 @@ const toggleMores = (event, item) => {
 //   options.value["filterContract_id"] = selectedNodes.value["decision_id"];
 // });
 
-//filter
-
+const configQuyetdinh = async (row) => {
+  let strSQL = {
+    query: false,
+    proc: "hrm_decision_config",
+    par: [
+      {
+        par: "decision_id",
+        va: row.decision_id,
+      },
+      {
+        par: "report_key",
+        va: row.report_key,
+      },
+    ],
+  };
+  swal.fire({
+    width: 110,
+    didOpen: () => {
+      swal.showLoading();
+    },
+  });
+  const axResponse = await axios.post(
+    baseURL + "/api/HRM_SQL/PostProc",
+    {
+      str: encr(JSON.stringify(strSQL), SecretKey, cryoptojs).toString(),
+    },
+    {
+      headers: { Authorization: `Bearer ${store.getters.token}` },
+    }
+  );
+ 
+  if (axResponse.status == 200) {
+    if (axResponse.data.error) {
+      toast.error("Không mở được bản ghi");
+    } else {
+      let dt = JSON.parse(axResponse.data.data);
+      decision.value = dt[0][0];
+      report.value = dt[1][0];
+      report.value.datadic = [{ title: "Quyết định", data: decision.value }];
+      // report.value.proc_name = `smartreport_decide_profile_list `;
+      // report.value.proc_all = `smartreport_decide_profile_list_all`;
+      report.value.proc_name = `decision_profile_list '${store.getters.user.user_id}', '${row.decision_id}'`;
+      report.value.proc_all = `decision_profile_list_all '${store.getters.user.user_id}', '${row.decision_id}'`;
+      let cg = {};
+      if (report.value.report_config) {
+        cg = JSON.parse(report.value.report_config);
+      }
+      cg.proc = {
+        name: "hrm_decision_user_get",
+        parameters: [
+          {
+            Parameter_name: "@decision_id",
+            Type: "varchar",
+            Length: 50,
+            Param_order: 1,
+          },
+          {
+            Parameter_name: "@decision_user_id",
+            Type: "varchar",
+            Length: 50,
+            Param_order: 2,
+          },
+        ],
+        sql: report.value.proc_name,
+        data: JSON.stringify(cg.data),
+        issql: true,
+      };
+      report.value.report_config = JSON.stringify(cg);
+      visibleSidebarDoc.value = true;
+    }
+  }
+  swal.close();
+};
 //export
 const menuButs = ref();
 const itemButs = ref([
@@ -295,7 +369,7 @@ const copyItem = (item, str) => {
       if (error && error.status === 401) {
         swal.fire({
           title: "Thông báo!",
-          text: "Mã token đã hết hạn hoặc không hợp lệ, vui lòng đăng nhập lại!",
+          text: "Phiên đăng nhập đã hết hạn, vui lòng đăng nhập lại!",
           icon: "error",
           confirmButtonText: "OK",
         });
@@ -313,42 +387,52 @@ const copyItem = (item, str) => {
     });
 };
 
-const printViewDecision = (row) => {
-  if (row && row.report_key) {
-    let o = {
-      id: row.report_key,
-      par: { decision_id: row.decision_id, isedit: true },
-    };
-    let url = encodeURIComponent(
-      encr(JSON.stringify(o), SecretKey, cryoptojs).toString()
-    );
-    url =
-      "https://doconline.soe.vn/decided/" +
-      url.replaceAll("%", "==") +
-      "?v=" +
-      new Date().getTime().toString();
-    window.open(url);
-  } else {
-    swal.fire({
-      title: "Thông báo!",
-      text: "Chưa thiết lập mẫu in cho quyết định!",
-      icon: "error",
-      confirmButtonText: "OK",
-    });
-    return;
-  }
-};
-
 const headerDialogFrame = ref();
 const displayDialogFrame = ref(false);
 const openDialogFrame = (item) => {
   forceRerender(1);
   headerDialogFrame.value = "Thông tin quyết định";
+  configQuyetdinh(item);
   displayDialogFrame.value = true;
 };
 const closeDialogFrame = () => {
   forceRerender(1);
   displayDialogFrame.value = false;
+};
+const callbackFun = (obj) => {
+  console.log(obj);
+  saveDGQuyetdinhUser(obj);
+};
+const saveDGQuyetdinhUser = async (r) => {
+  let strSQL = {
+    query: false,
+    proc: "decision_user_add",
+    par: [
+ 
+      { par: "decision_id", va: decision.value.decision_id },
+      { par: "profile_id", va: r.profile_id },
+      { par: "is_data", va: JSON.stringify(r.is_data) },
+      { par: "user_id", va: store.getters.user.user_id },
+      { par: "ip", va: store.getters.ip },
+      { par: "organization_id", va: store.getters.user.organization_id },
+    ],
+  };
+  console.log(strSQL);
+  try {
+    const axResponse = await axios.post(
+      baseURL + "/api/HRM_SQL/getData",
+      {
+        str: encr(JSON.stringify(strSQL), SecretKey, cryoptojs).toString(),
+      },
+      {
+        headers: { Authorization: `Bearer ${store.getters.token}` },
+      }
+    );
+    if (axResponse.status == 200) {
+    }  
+  } catch (e) {
+    console.log(e);
+  }
 };
 
 //add model
@@ -503,7 +587,7 @@ const editItem = (item, str) => {
       if (error && error.status === 401) {
         swal.fire({
           title: "Thông báo!",
-          text: "Mã token đã hết hạn hoặc không hợp lệ, vui lòng đăng nhập lại!",
+          text: "Phiên đăng nhập đã hết hạn, vui lòng đăng nhập lại!",
           icon: "error",
           confirmButtonText: "OK",
         });
@@ -563,7 +647,7 @@ const udpateStatusItem = (item) => {
       if (error && error.status === 401) {
         swal.fire({
           title: "Thông báo!",
-          text: "Mã token đã hết hạn hoặc không hợp lệ, vui lòng đăng nhập lại!",
+          text: "Phiên đăng nhập đã hết hạn, vui lòng đăng nhập lại!",
           icon: "error",
           confirmButtonText: "OK",
         });
@@ -635,7 +719,7 @@ const deleteItem = (item) => {
               if (error && error.status === 401) {
                 swal.fire({
                   title: "Thông báo!",
-                  text: "Mã token đã hết hạn hoặc không hợp lệ, vui lòng đăng nhập lại!",
+                  text: "Phiên đăng nhập đã hết hạn, vui lòng đăng nhập lại!",
                   icon: "error",
                   confirmButtonText: "OK",
                 });
@@ -701,7 +785,7 @@ const setStar = (item) => {
       if (error && error.status === 401) {
         swal.fire({
           title: "Thông báo!",
-          text: "Mã token đã hết hạn hoặc không hợp lệ, vui lòng đăng nhập lại!",
+          text: "Phiên đăng nhập đã hết hạn, vui lòng đăng nhập lại!",
           icon: "error",
           confirmButtonText: "OK",
         });
@@ -963,7 +1047,7 @@ const initData = (ref) => {
       if (error && error.status === 401) {
         swal.fire({
           title: "Thông báo!",
-          text: "Mã token đã hết hạn hoặc không hợp lệ, vui lòng đăng nhập lại!",
+          text: "Phiên đăng nhập đã hết hạn, vui lòng đăng nhập lại!",
           icon: "error",
           confirmButtonText: "OK",
         });
@@ -1296,6 +1380,26 @@ onMounted(() => {
       </DataTable>
     </div>
   </div>
+  <Sidebar
+    v-model:visible="visibleSidebarDoc"
+    position="full"
+    class="d-sidebar-full"
+    @hide="initData(true)"
+  >
+    <template #header>
+      <h2 class="p-0 m-0">
+        <i class="pi pi-cog mr-2"></i>{{ decision.decision_name }}
+      </h2>
+    </template>
+    <div style="padding: 0 20px">
+      <DocComponent
+        :isedit="true"
+        :report="report"
+        :callbackFun="callbackFun"
+        :readonly="true"
+      ></DocComponent>
+    </div>
+  </Sidebar>
   <dialogdecíion
     :key="componentKey['0']"
     :headerDialog="headerDialog"
@@ -1308,14 +1412,14 @@ onMounted(() => {
     :decision="decision"
     :initData="initData"
   />
-  <framepreview
+  <!-- <framepreview
     :key="componentKey['1']"
     :headerDialog="headerDialogFrame"
     :displayDialog="displayDialogFrame"
     :closeDialog="closeDialogFrame"
     :type="3"
     :model="decision"
-  />
+  /> -->
   <Dialog
     :header="headerDialogLiquidation"
     v-model:visible="displayDialogLiquidation"

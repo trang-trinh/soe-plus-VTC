@@ -343,7 +343,7 @@ const loadDataSQL = () => {
       });
       if (error && error.status === 401) {
         swal.fire({
-          text: "Mã token đã hết hạn hoặc không hợp lệ, vui lòng đăng nhập lại!",
+          text: "Phiên đăng nhập đã hết hạn, vui lòng đăng nhập lại!",
           confirmButtonText: "OK",
         });
         store.commit("gologout");
@@ -377,7 +377,7 @@ const loadCount = () => {
     })
     .catch((error) => {
       swal.fire({
-        text: "Mã token đã hết hạn hoặc không hợp lệ, vui lòng đăng nhập lại!",
+        text: "Phiên đăng nhập đã hết hạn, vui lòng đăng nhập lại!",
         confirmButtonText: "OK",
       });
     });
@@ -439,7 +439,7 @@ const loadRole = (rf) => {
     .catch((error) => {
       if (error && error.status === 401) {
         swal.fire({
-          text: "Mã token đã hết hạn hoặc không hợp lệ, vui lòng đăng nhập lại!",
+          text: "Phiên đăng nhập đã hết hạn, vui lòng đăng nhập lại!",
           confirmButtonText: "OK",
         });
       }
@@ -447,7 +447,30 @@ const loadRole = (rf) => {
 };
 const displayConfigRole = ref(false);
 const modules = ref([]);
-const renderTree = (data, id, name, title) => {
+const renderTree = (data) => {
+  let arrChils = [];
+  data
+    .filter((x) => x.parent_id == null)
+    .forEach((m, i) => {
+      m.IsOrder = i + 1;
+      let om = { key: m.module_id, data: m };
+      const rechildren = (mm, module_id) => {
+        let dts = data.filter((x) => x.parent_id == module_id);
+        if (dts.length > 0) {
+          if (!mm.children) mm.children = [];
+          dts.forEach((em) => {
+            let om1 = { key: em.module_id, data: em };
+            rechildren(om1, em.module_id);
+            mm.children.push(om1);
+          });
+        }
+      };
+      rechildren(om, m.module_id);
+      arrChils.push(om);
+    });
+  modules.value = arrChils;
+};
+const renderTreeDV = (data, id, name, title) => {
   let arrChils = [];
   let arrtreeChils = [];
   data
@@ -547,19 +570,18 @@ const configRole = (md, type) => {
             r.module_functions = arrs;
           });
         //renderTree(data);
-        let obj = renderTree(data, "module_id", "module_name", "module");
-        modules.value = obj.arrChils;
-        swal.close();
-        displayConfigRole.value = true;
+        renderTree(data);
       } else {
         modules.value = [];
       }
+      swal.close();
+      displayConfigRole.value = true;
     })
     .catch((error) => {
       opition.value.moduleloading = false;
       if (error && error.status === 401) {
         swal.fire({
-          text: "Mã token đã hết hạn hoặc không hợp lệ, vui lòng đăng nhập lại!",
+          text: "Phiên đăng nhập đã hết hạn, vui lòng đăng nhập lại!",
           confirmButtonText: "OK",
         });
       }
@@ -695,7 +717,7 @@ const addConfigRole = () => {
       swal.close();
       if (error.status === 401) {
         swal.fire({
-          text: "Mã token đã hết hạn hoặc không hợp lệ, vui lòng đăng nhập lại!",
+          text: "Phiên đăng nhập đã hết hạn, vui lòng đăng nhập lại!",
           confirmButtonText: "OK",
         });
       }
@@ -754,7 +776,7 @@ const editRole = (md) => {
     .catch((error) => {
       if (error.status === 401) {
         swal.fire({
-          text: "Mã token đã hết hạn hoặc không hợp lệ, vui lòng đăng nhập lại!",
+          text: "Phiên đăng nhập đã hết hạn, vui lòng đăng nhập lại!",
           confirmButtonText: "OK",
         });
       }
@@ -890,7 +912,7 @@ const deleteList = () => {
             swal.close();
             if (error.status === 401) {
               swal.fire({
-                text: "Mã token đã hết hạn hoặc không hợp lệ, vui lòng đăng nhập lại!",
+                text: "Phiên đăng nhập đã hết hạn, vui lòng đăng nhập lại!",
                 confirmButtonText: "OK",
               });
             }
@@ -946,7 +968,7 @@ const delRole = (md) => {
             swal.close();
             if (error.status === 401) {
               swal.fire({
-                text: "Mã token đã hết hạn hoặc không hợp lệ, vui lòng đăng nhập lại!",
+                text: "Phiên đăng nhập đã hết hạn, vui lòng đăng nhập lại!",
                 confirmButtonText: "OK",
               });
             }
@@ -992,7 +1014,7 @@ const upstatusRole = (md) => {
       swal.close();
       if (error.status === 401) {
         swal.fire({
-          text: "Mã token đã hết hạn hoặc không hợp lệ, vui lòng đăng nhập lại!",
+          text: "Phiên đăng nhập đã hết hạn, vui lòng đăng nhập lại!",
           confirmButtonText: "OK",
         });
       }
@@ -1049,7 +1071,7 @@ const exportRole = (method) => {
     .catch((error) => {
       if (error.status === 401) {
         swal.fire({
-          text: "Mã token đã hết hạn hoặc không hợp lệ, vui lòng đăng nhập lại!",
+          text: "Phiên đăng nhập đã hết hạn, vui lòng đăng nhập lại!",
           confirmButtonText: "OK",
         });
       }
@@ -1225,7 +1247,7 @@ const initTudien = () => {
     .then((response) => {
       let data = JSON.parse(response.data.data);
       if (data.length > 0) {
-        let obj = renderTree(
+        let obj = renderTreeDV(
           data[0],
           "organization_id",
           "organization_name",

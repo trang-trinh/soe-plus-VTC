@@ -335,7 +335,7 @@ const loadChildTaskOrigin = (listid) => {
 
       if (error && error.status === 401) {
         swal.fire({
-          text: "Mã token đã hết hạn hoặc không hợp lệ, vui lòng đăng nhập lại!",
+          text: "Phiên đăng nhập đã hết hạn, vui lòng đăng nhập lại!",
           confirmButtonText: "OK",
         });
         store.commit("gologout");
@@ -535,7 +535,7 @@ const loadData = () => {
       options.value.loading = false;
       if (error && error.status === 401) {
         swal.fire({
-          text: "Mã token đã hết hạn hoặc không hợp lệ, vui lòng đăng nhập lại!",
+          text: "Phiên đăng nhập đã hết hạn, vui lòng đăng nhập lại!",
           confirmButtonText: "OK",
         });
         store.commit("gologout");
@@ -579,7 +579,7 @@ const closeDialogDetail = () => {
 };
 const onRowReorder = (event) => {
   let formData = new FormData();
-  console.log(event.value);
+
   formData.append("task_follow", JSON.stringify(event.value));
   swal.fire({
     width: 110,
@@ -666,7 +666,7 @@ const DeleteItem = (vl) => {
             if (error.status === 401) {
               swal.fire({
                 title: "Thông báo",
-                text: "Mã token đã hết hạn hoặc không hợp lệ, vui lòng đăng nhập lại!",
+                text: "Phiên đăng nhập đã hết hạn, vui lòng đăng nhập lại!",
                 icon: "error",
                 confirmButtonText: "OK",
               });
@@ -723,7 +723,7 @@ const DeleteStep = (vl) => {
             if (error.status === 401) {
               swal.fire({
                 title: "Thông báo",
-                text: "Mã token đã hết hạn hoặc không hợp lệ, vui lòng đăng nhập lại!",
+                text: "Phiên đăng nhập đã hết hạn, vui lòng đăng nhập lại!",
                 icon: "error",
                 confirmButtonText: "OK",
               });
@@ -807,7 +807,7 @@ const DeleteTask = (x) => {
       if (error.status === 401) {
         swal.fire({
           title: "Thông báo!",
-          text: "Mã token đã hết hạn hoặc không hợp lệ, vui lòng đăng nhập lại!",
+          text: "Phiên đăng nhập đã hết hạn, vui lòng đăng nhập lại!",
           icon: "error",
           confirmButtonText: "OK",
         });

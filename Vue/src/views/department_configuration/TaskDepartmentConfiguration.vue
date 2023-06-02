@@ -57,53 +57,104 @@ const opition = ref({
 const renderTree = (data, id, name, title) => {
   let arrChils = [];
   let arrtreeChils = [];
-  data
-    .filter((x) => x.parent_id == null)
-    .forEach((m, i) => {
-      m.IsOrder = i + 1;
-      m.label_order = m.IsOrder.toString();
-      if (opition.value.PageNo > 0) {
-        m.STT = (opition.value.PageNo - 1) * opition.value.PageSize + i + 1;
-      } else {
-        m.STT = i + 1;
-      }
-      let om = { key: m[id], data: m };
-      const rechildren = (mm, pid) => {
-        let dts = data.filter((x) => x.parent_id == pid);
-        if (dts.length > 0) {
-          if (!mm.children) mm.children = [];
-          dts.forEach((em, index) => {
-            em.label_order = mm.data.label_order + "." + em.is_order;
-            em.STT = mm.data.STT + "." + (index + 1);
-            let om1 = { key: em[id], data: em };
-            rechildren(om1, em[id]);
-            mm.children.push(om1);
-          });
+  if (data.filter((x) => x.parent_id == null).length > 0) {
+    data
+      .filter((x) => x.parent_id == null)
+      .forEach((m, i) => {
+        m.IsOrder = i + 1;
+        m.label_order = m.IsOrder.toString();
+        if (opition.value.PageNo > 0) {
+          m.STT = (opition.value.PageNo - 1) * opition.value.PageSize + i + 1;
+        } else {
+          m.STT = i + 1;
         }
-      };
-      rechildren(om, m[id]);
-      arrChils.push(om);
-      //
-      om = { key: m[id], data: m[id], label: m[name] };
-      const retreechildren = (mm, pid) => {
-        let dts = data.filter((x) => x.parent_id == pid);
-        if (dts.length > 0) {
-          if (!mm.children) mm.children = [];
-          dts.forEach((em) => {
-            let om1 = { key: em[id], data: em[id], label: em[name] };
-            retreechildren(om1, em[id]);
-            mm.children.push(om1);
-          });
-        }
-      };
-      retreechildren(om, m[id]);
-      arrtreeChils.push(om);
+        let om = { key: m[id], data: m };
+        const rechildren = (mm, pid) => {
+          let dts = data.filter((x) => x.parent_id == pid);
+          if (dts.length > 0) {
+            if (!mm.children) mm.children = [];
+            dts.forEach((em, index) => {
+              em.label_order = mm.data.label_order + "." + em.is_order;
+              em.STT = mm.data.STT + "." + (index + 1);
+              let om1 = { key: em[id], data: em };
+              rechildren(om1, em[id]);
+              mm.children.push(om1);
+            });
+          }
+        };
+        rechildren(om, m[id]);
+        arrChils.push(om);
+        //
+        om = { key: m[id], data: m[id], label: m[name] };
+        const retreechildren = (mm, pid) => {
+          let dts = data.filter((x) => x.parent_id == pid);
+          if (dts.length > 0) {
+            if (!mm.children) mm.children = [];
+            dts.forEach((em) => {
+              let om1 = { key: em[id], data: em[id], label: em[name] };
+              retreechildren(om1, em[id]);
+              mm.children.push(om1);
+            });
+          }
+        };
+        retreechildren(om, m[id]);
+        arrtreeChils.push(om);
+      });
+    arrtreeChils.unshift({
+      key: -1,
+      data: -1,
+      label: "-----Chọn " + title + "----",
     });
-  arrtreeChils.unshift({
-    key: -1,
-    data: -1,
-    label: "-----Chọn " + title + "----",
-  });
+  } else {
+    data
+      .filter((x) => x.organization_type == 0)
+      .forEach((m, i) => {
+        m.IsOrder = i + 1;
+        m.label_order = m.IsOrder.toString();
+        if (opition.value.PageNo > 0) {
+          m.STT = (opition.value.PageNo - 1) * opition.value.PageSize + i + 1;
+        } else {
+          m.STT = i + 1;
+        }
+        let om = { key: m[id], data: m };
+        const rechildren = (mm, pid) => {
+          let dts = data.filter((x) => x.parent_id == pid);
+          if (dts.length > 0) {
+            if (!mm.children) mm.children = [];
+            dts.forEach((em, index) => {
+              em.label_order = mm.data.label_order + "." + em.is_order;
+              em.STT = mm.data.STT + "." + (index + 1);
+              let om1 = { key: em[id], data: em };
+              rechildren(om1, em[id]);
+              mm.children.push(om1);
+            });
+          }
+        };
+        rechildren(om, m[id]);
+        arrChils.push(om);
+        //
+        om = { key: m[id], data: m[id], label: m[name] };
+        const retreechildren = (mm, pid) => {
+          let dts = data.filter((x) => x.parent_id == pid);
+          if (dts.length > 0) {
+            if (!mm.children) mm.children = [];
+            dts.forEach((em) => {
+              let om1 = { key: em[id], data: em[id], label: em[name] };
+              retreechildren(om1, em[id]);
+              mm.children.push(om1);
+            });
+          }
+        };
+        retreechildren(om, m[id]);
+        arrtreeChils.push(om);
+      });
+    arrtreeChils.unshift({
+      key: -1,
+      data: -1,
+      label: "-----Chọn " + title + "----",
+    });
+  }
+
   return { arrChils: arrChils, arrtreeChils: arrtreeChils };
 };
 
@@ -123,20 +174,14 @@ const loadData = (rf) => {
       {
         str: encr(
           JSON.stringify({
-            proc: "sys_organization_list",
-            par: [
-              { par: "pageno", va: opition.value.PageNo },
-              { par: "pagesize", va: opition.value.PageSize },
-              { par: "search", va: opition.value.search },
-              { par: "organization_type", va: opition.value.organization_type },
-              { par: "user_id", va: store.getters.user.user_id },
-            ],
+            proc: "task_department_configuration_list",
+            par: [{ par: "user_id", va: store.getters.user.user_id }],
           }),
           SecretKey,
-          cryoptojs,
+          cryoptojs
         ).toString(),
       },
-      config,
+      config
     )
     .then((response) => {
       let data = JSON.parse(response.data.data);
@@ -148,7 +193,7 @@ const loadData = (rf) => {
           data[0],
           "organization_id",
           "organization_name",
-          "đơn vị",
+          "đơn vị"
         );
 
         listDepartments.value = obj.arrChils;
@@ -167,6 +212,7 @@ const loadData = (rf) => {
     })
     .catch((error) => {
       toast.error("Tải dữ liệu không thành công!");
+      console.log(error);
       opition.value.loading = false;
       addLog({
         title: "Lỗi Console loadData",
@@ -176,7 +222,7 @@ const loadData = (rf) => {
       });
       if (error && error.status === 401) {
         swal.fire({
-          text: "Mã token đã hết hạn hoặc không hợp lệ, vui lòng đăng nhập lại!",
+          text: "Phiên đăng nhập đã hết hạn, vui lòng đăng nhập lại!",
           confirmButtonText: "OK",
         });
         store.commit("gologout");
@@ -231,7 +277,7 @@ const DelDepartmentUser = (data) => {
             if (error.status === 401) {
               swal.fire({
                 title: "Thông báo!",
-                text: "Mã token đã hết hạn hoặc không hợp lệ, vui lòng đăng nhập lại!",
+                text: "Phiên đăng nhập đã hết hạn, vui lòng đăng nhập lại!",
                 icon: "error",
                 confirmButtonText: "OK",
               });
@@ -279,10 +325,7 @@ onMounted(() => {
 });
 </script>
 <template>
-  <div
-    v-if="store.getters.islogin"
-    class="main-layout true flex-grow-1 p-2"
-  >
+  <div v-if="store.getters.islogin" class="main-layout true flex-grow-1 p-2">
     <TreeTable
       :value="listDepartments"
       :expandedKeys="expandedKeys"
@@ -443,10 +486,7 @@ onMounted(() => {
           "
           v-if="!isFirst"
         >
-          <img
-            src="../../assets/background/nodata.png"
-            height="144"
-          />
+          <img src="../../assets/background/nodata.png" height="144" />
           <h3 class="m-1">Không có dữ liệu</h3>
         </div>
       </template>

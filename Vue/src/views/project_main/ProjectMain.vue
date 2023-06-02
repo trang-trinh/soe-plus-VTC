@@ -6,9 +6,8 @@ import { required } from "@vuelidate/validators";
 import moment from "moment";
 import { concat } from "lodash";
 import { encr } from "../../util/function.js";
-import treeuser from "../../components/user/treeuser.vue";
+import treeuser from "../../components/task_origin/treeuser.vue/tree_user_task.vue";
 import DetailProject from "../../components/project_main/DetailedProject.vue";
-import DataTable from "primevue/datatable";
 const cryoptojs = inject("cryptojs");
 const basedomainURL = fileURL;
 
@@ -54,7 +53,6 @@ const treelistProjectMains = ref();
 const sttProjectMain = ref();
 const selectedProjectMainDel = ref([]);
 const selectedProjectMain = ref();
-const selectedKey = ref();
 const selectedNodes = ref([]);
 const listProjectGroups = ref();
 const first = ref(0);
@@ -92,16 +90,16 @@ const submitted = ref(false);
 const listDropdownParent = ref();
 const selectcapcha = ref({});
 const rules = {
-  project_code: {
-    required,
-    $errors: [
-      {
-        $property: "project_code",
-        $validator: "required",
-        $message: "Mã dự án không được để trống!",
-      },
-    ],
-  },
+  // project_code: {
+  //   required,
+  //   $errors: [
+  //     {
+  //       $property: "project_code",
+  //       $validator: "required",
+  //       $message: "Mã dự án không được để trống!",
+  //     },
+  //   ],
+  // },
   project_name: {
     required,
     $errors: [
@@ -157,7 +155,7 @@ const onPage = (event) => {
 };
 
 const listThanhVien = ref([]);
-
+const user = store.getters.user;
 const listUser = () => {
   axios
     .post(
@@ -165,38 +163,56 @@ const listUser = () => {
       {
         str: encr(
           JSON.stringify({
-            proc: "sys_users_list_task_origin",
+            proc: "sys_user_list_tree_task",
             par: [
-              { par: "search", va: opition.value.SearchTextUser },
-              { par: "user_id", va: store.getters.user.user_id },
-              { par: "role_id", va: null },
-              {
-                par: "organization_id",
-                va: store.getters.user.organization_id,
-              },
-              { par: "department_id", va: null },
-              { par: "position_id", va: null },
-
-              { par: "isadmin", va: null },
-              { par: "status", va: null },
-              { par: "start_date", va: null },
-              { par: "end_date", va: null },
+              { par: "user_id", va: user.user_id },
+              { par: "types", va: 1 },
             ],
           }),
           SecretKey,
-          cryoptojs,
+          cryoptojs
         ).toString(),
       },
-      config,
+      config
     )
     .then((response) => {
-      let data = JSON.parse(response.data.data)[0];
-      listDropdownUser.value = data.map((x) => ({
-        name: x.full_name,
-        code: x.user_id,
-        avatar: x.avatar,
-        ten: x.last_name,
-      }));
+      var data = response.data.data;
+      if (data != null) {
+        let tbs = JSON.parse(data);
+
+        if (tbs[0] != null && tbs[0].length > 0) {
+          tbs[0].forEach((element, i) => {
+            if (element["created_date"] != null) {
+              var ldate = element["created_date"].split(" ");
+              element["created_date"] = ldate[0];
+            }
+          });
+          if (tbs[0].length > 0) {
+            tbs[0].forEach((element, i) => {
+              element["STT"] = i + 1;
+            });
+          }
+          listDropdownUser.value = tbs[0].map((x) => ({
+            user_id: x.user_id,
+            full_name: x.full_name,
+            full_name_en: x.full_name_en,
+            is_order: x.is_order,
+            user_key: x.user_key,
+            last_name: x.last_name,
+            avatar: x.avatar,
+            organization_id: x.organization_id,
+            position_id: x.position_id,
+            position_name: x.position_name,
+            department_id: x.department_id,
+            organization_name: x.organization_name,
+            STT: x.STT,
+            orgID: x.orgID,
+            org_name: x.org_name,
+          }));
+        }
+        swal.close();
+      }
+
       if (listDropdownUser.value.length > 10) {
         listThanhVien.value = listDropdownUser.value.slice(0, 10);
       } else {
@@ -210,7 +226,7 @@ const listUser = () => {
 
       if (error && error.status === 401) {
         swal.fire({
-          text: "Mã token đã hết hạn hoặc không hợp lệ, vui lòng đăng nhập lại!",
+          text: "Phiên đăng nhập đã hết hạn, vui lòng đăng nhập lại!",
           confirmButtonText: "OK",
         });
         store.commit("gologout");
@@ -256,10 +272,10 @@ const loadData = (rf, type_view) => {
             ],
           }),
           SecretKey,
-          cryoptojs,
+          cryoptojs
         ).toString(),
       },
-      config,
+      config
     )
     .then((response) => {
       let data = JSON.parse(response.data.data);
@@ -268,13 +284,13 @@ const loadData = (rf, type_view) => {
         // listData.value = data[0];
         listData.value.forEach((element, i) => {
           element.status_name = listDropdownStatus.value.filter(
-            (x) => x.value == element.status,
+            (x) => x.value == element.status
           )[0].text;
           element.status_bg_color = listDropdownStatus.value.filter(
-            (x) => x.value == element.status,
+            (x) => x.value == element.status
           )[0].bg_color;
           element.status_text_color = listDropdownStatus.value.filter(
-            (x) => x.value == element.status,
+            (x) => x.value == element.status
           )[0].text_color;
           element.Thanhviens = element.Thanhviens
             ? JSON.parse(element.Thanhviens)
@@ -301,7 +317,7 @@ const loadData = (rf, type_view) => {
             listData.value,
             "project_id",
             "project_name",
-            "dự án",
+            "dự án"
           );
           listProjectMains.value = obj.arrChils;
           treelistProjectMains.value = obj.arrtreeChils;
@@ -316,10 +332,10 @@ const loadData = (rf, type_view) => {
             arrNew.push({
               status: k,
               group_view_name: listDropdownStatus.value.filter(
-                (x) => x.value == k,
+                (x) => x.value == k
               )[0].text,
               group_view_bg_color: listDropdownStatus.value.filter(
-                (x) => x.value == k,
+                (x) => x.value == k
               )[0].bg_color,
               CVGroup: CVGroup,
               countProject: CVGroup.length,
@@ -330,10 +346,10 @@ const loadData = (rf, type_view) => {
         } else if (type_view == 4 || type_view == 5) {
           listProjectMains.value = listData.value;
           let date1 = new Date(
-            opition.value.sdate ? opition.value.sdate : new Date(),
+            opition.value.sdate ? opition.value.sdate : new Date()
           );
           let date2 = new Date(
-            opition.value.edate ? opition.value.edate : new Date(),
+            opition.value.edate ? opition.value.edate : new Date()
           );
           // var firstDay = new Date(date.getFullYear(), date.getMonth(), 1);
           // var lastDay = new Date(date.getFullYear(), date.getMonth() + 1, 0);
@@ -361,7 +377,7 @@ const loadData = (rf, type_view) => {
       });
       if (error && error.status === 401) {
         swal.fire({
-          text: "Mã token đã hết hạn hoặc không hợp lệ, vui lòng đăng nhập lại!",
+          text: "Phiên đăng nhập đã hết hạn, vui lòng đăng nhập lại!",
           confirmButtonText: "OK",
         });
         store.commit("gologout");
@@ -399,10 +415,10 @@ const getDates = (startDate, endDate) => {
       DW: d.getDay(),
       Day: parseInt(moment(currentDate).format("DD")),
       DayName: WeekDay.value.filter(
-        (x) => x.value == d.toLocaleString("default", { weekday: "long" }),
+        (x) => x.value == d.toLocaleString("en-us", { weekday: "long" })
       )[0].text,
       bg: WeekDay.value.filter(
-        (x) => x.value == d.toLocaleString("default", { weekday: "long" }),
+        (x) => x.value == d.toLocaleString("en-us", { weekday: "long" })
       )[0].bg,
       color:
         parseInt(moment(currentDate).format("DD/MM/YYYY")) ==
@@ -455,7 +471,7 @@ const getDates = (startDate, endDate) => {
       cv.Thanhviens.forEach(function (u) {
         if (
           listData.filter(
-            (x) => x.user_id == u.user_id && x.project_id == cv.project_id,
+            (x) => x.user_id == u.user_id && x.project_id == cv.project_id
           ).length == 0
         ) {
           listData.push({
@@ -483,7 +499,7 @@ const getDates = (startDate, endDate) => {
         r.count_cv = listCV[k].length;
         r.count_istype_0 = listCV[k].filter((x) => x.is_type == 0).length;
         r.count_istype_1 = listCV[k].filter(
-          (x) => x.is_type == 1 || x.is_type == 2,
+          (x) => x.is_type == 1 || x.is_type == 2
         ).length;
         r.count_istype_3 = listCV[k].filter((x) => x.is_type == 3).length;
         arrNew.push(r);
@@ -556,6 +572,7 @@ const addTreeProjectMain = (p) => {
     is_order: listProjectMains.value.length + 1,
     managers: [],
     participants: [],
+    logo: "",
   };
 
   ProjectMain.value.organization_id = store.state.user.organization_id;
@@ -598,10 +615,10 @@ const editProjectMain = (dataProjectMain) => {
             par: [{ par: "project_id", va: dataProjectMain.project_id }],
           }),
           SecretKey,
-          cryoptojs,
+          cryoptojs
         ).toString(),
       },
-      config,
+      config
     )
     .then((response) => {
       let data = JSON.parse(response.data.data);
@@ -628,10 +645,13 @@ const editProjectMain = (dataProjectMain) => {
       ProjectMain.value.participants = [];
       if (data[2].length > 0) {
         data[2].forEach((t) => {
+          let x = listDropdownUser.value.filter(
+            (x) => x.user_id == t.user_id
+          )[0];
           if (t.is_type == 0) {
-            ProjectMain.value.managers.push(t.user_id);
+            ProjectMain.value.managers.push(x);
           } else if (t.is_type == 1) {
-            ProjectMain.value.participants.push(t.user_id);
+            ProjectMain.value.participants.push(x);
           }
         });
       }
@@ -651,7 +671,7 @@ const editProjectMain = (dataProjectMain) => {
       });
       if (error && error.status === 401) {
         swal.fire({
-          text: "Mã token đã hết hạn hoặc không hợp lệ, vui lòng đăng nhập lại!",
+          text: "Phiên đăng nhập đã hết hạn, vui lòng đăng nhập lại!",
           confirmButtonText: "OK",
         });
         store.commit("gologout");
@@ -698,6 +718,7 @@ const DelProjectMain = (dataProjectMain) => {
                 toast.success("Xoá dự án thành công!");
                 //   checkDelList.value = false;
                 loadData(true, opition.value.type_view);
+                listtreeProjectMain();
               } else {
                 swal.fire({
                   title: "Thông báo!",
@@ -712,7 +733,7 @@ const DelProjectMain = (dataProjectMain) => {
               if (error.status === 401) {
                 swal.fire({
                   title: "Thông báo!",
-                  text: "Mã token đã hết hạn hoặc không hợp lệ, vui lòng đăng nhập lại!",
+                  text: "Phiên đăng nhập đã hết hạn, vui lòng đăng nhập lại!",
                   icon: "error",
                   confirmButtonText: "OK",
                 });
@@ -736,10 +757,13 @@ const saveProjectMain = (isFormValid) => {
   if (!isFormValid) {
     return;
   }
-  if (Object.keys(selectcapcha.value)[0] == "-1" || !selectcapcha.value) {
+  if (!selectcapcha.value) {
     selectcapcha.value = [];
   } else {
     ProjectMain.value.parent_id = Object.keys(selectcapcha.value)[0];
+    if (ProjectMain.value.parent_id == -1) {
+      ProjectMain.value.parent_id = null;
+    }
   }
   if (ProjectMain.value.keywords != null) {
     ProjectMain.value.keywords = ProjectMain.value.keywords.toString();
@@ -769,11 +793,11 @@ const saveProjectMain = (isFormValid) => {
       let member = {
         project_id: null,
         task_id: null,
-        user_id: t,
+        user_id: t.user_id,
         is_type: 0, // 0: người quản lý, 1: người tham gia
         status: true,
       };
-      member.user_id = t;
+      member.user_id = t.user_id;
       ProjectMainMember.value.push(member);
     });
   }
@@ -782,11 +806,11 @@ const saveProjectMain = (isFormValid) => {
       let member1 = {
         project_id: null,
         task_id: null,
-        user_id: t,
+        user_id: t.user_id,
         is_type: 1, // 0: người quản lý, 1: người tham gia
         status: true,
       };
-      member1.user_id = t;
+      member1.user_id = t.user_id;
       ProjectMainMember.value.push(member1);
     });
   }
@@ -801,7 +825,7 @@ const saveProjectMain = (isFormValid) => {
           "/api/ProjectMain/" +
           (isAdd.value == true ? "Add_ProjectMain" : "Update_ProjectMain"),
         formData,
-        config,
+        config
       )
       .then((response) => {
         if (response.data.err != "1") {
@@ -845,79 +869,15 @@ const saveProjectMain = (isFormValid) => {
 };
 const emitter = inject("emitter");
 
-const RenderData = (response) => {
-  opition.value.allRecord = null;
-  let list1 = [];
-  let list2 = [];
-  let list3 = [];
-  let d1 = JSON.parse(response.data.data)[0];
-  d1.forEach((element, i) => {
-    let c = {
-      key: element.project_id,
-      data: {
-        place_id: element.project_id,
-        parent_id: element.parent_id,
-        project_name: element.project_name,
-        status: element.status,
-        is_order: element.is_order,
-        STT: null,
-        created_by: element.created_by,
-      },
-      children: null,
-    };
-    if (opition.value.PageNo > 0) {
-      c.data.STT = opition.value.PageNo * opition.value.PageSize + i + 1;
-    } else {
-      c.data.STT = i + 1;
-    }
-    if (d1[i].children) {
-      list2 = JSON.parse(d1[i].children);
-      if (list2 != null) {
-        list2.forEach((element, i) => {
-          //đổi dạng stt=> true/false
-          if (element.data.status == 1) {
-            element.data.status = true;
-          } else {
-            element.data.status = false;
-          }
-          //đổi is_order
-          element.data.STT = c.data.STT + "." + (i + 1);
-          let temp = list2[i].data.STT;
-          if (list2[i].children != null) {
-            list3 = list2[i].children;
-            list3.forEach((element, i) => {
-              element.data.STT = temp + "." + (i + 1);
-              if (element.data.status == 1) {
-                element.data.status = true;
-              } else {
-                element.data.status = false;
-              }
-            });
-            list2[i].children = list3;
-          }
-        });
-      }
-      c.children = list2;
-    }
-    list1.push(c);
-  });
-  listProjectMains.value = list1;
-  if (JSON.parse(response.data.data)[1]) {
-    let data2 = JSON.parse(response.data.data)[1];
-    opition.value.allRecord = data2[0].allRecord;
-  } else {
-    opition.value.allRecord = datalists.value.length;
-  }
-};
-const ChangeCheckProjectMain = (model) => {
-  let data = listData.value.filter((x) => x.project_id == model.project_id);
-  if (model.is_check) {
-    selectedProjectMainDel.value.push(model.project_id);
-  }
-};
 const renderTreeDV = (data, id, name, title) => {
   let arrChils = [];
   let arrtreeChils = [];
+
+  data
+    .filter((x) => x.parent_id == "-1")
+    .forEach((m, i) => {
+      m.parent_id = null;
+    });
   data
     .filter((x) => x.parent_id == null)
     .forEach((m, i) => {
@@ -929,14 +889,17 @@ const renderTreeDV = (data, id, name, title) => {
       } else {
         m.STT = i + 1;
       }
+      m.countChild = 0;
       let om = { key: m[id], data: m };
       const rechildren = (mm, pid) => {
         let dts = data.filter((x) => x.parent_id == pid);
+        mm.count_child = dts.length;
         if (dts.length > 0) {
           if (!mm.children) mm.children = [];
           dts.forEach((em, index) => {
             m.arr_del.push(em.project_id);
             em.STT = mm.data.STT + "." + (index + 1);
+            em.padding_left = em.STT.split(".").length - 1;
             // em.label_order = mm.data.label_order + "." + em.is_order;
             em.is_check = false;
             let om1 = { key: em[id], data: em };
@@ -981,6 +944,7 @@ const handleFileUpload = (event, ia) => {
   };
 };
 const chonanh = (id) => {
+  document.getElementById(id).value = "";
   document.getElementById(id).click();
 };
 const listtreeProjectMain = () => {
@@ -994,10 +958,10 @@ const listtreeProjectMain = () => {
             par: [{ par: "user_id", va: store.getters.user.user_id }],
           }),
           SecretKey,
-          cryoptojs,
+          cryoptojs
         ).toString(),
       },
-      config,
+      config
     )
     .then((response) => {
       let data = JSON.parse(response.data.data)[0];
@@ -1015,7 +979,7 @@ const listtreeProjectMain = () => {
 
       if (error && error.status === 401) {
         swal.fire({
-          text: "Mã token đã hết hạn hoặc không hợp lệ, vui lòng đăng nhập lại!",
+          text: "Phiên đăng nhập đã hết hạn, vui lòng đăng nhập lại!",
           confirmButtonText: "OK",
         });
         store.commit("gologout");
@@ -1025,7 +989,7 @@ const listtreeProjectMain = () => {
 // const delLogo = () => {
 
 // };
-const delLogo = (datafile) => {
+const delLogo = () => {
   files["LogoDonvi"] = [];
   isDisplayAvt.value = false;
   var output = document.getElementById("LogoDonvi");
@@ -1078,7 +1042,7 @@ const delLogo = (datafile) => {
   //             if (error.status === 401) {
   //               swal.fire({
   //                 title: "Thông báo!",
-  //                 text: "Mã token đã hết hạn hoặc không hợp lệ, vui lòng đăng nhập lại!",
+  //                 text: "Phiên đăng nhập đã hết hạn, vui lòng đăng nhập lại!",
   //                 icon: "error",
   //                 confirmButtonText: "OK",
   //               });
@@ -1154,7 +1118,7 @@ const removeVietnameseTones = (str) => {
   // Bỏ dấu câu, kí tự đặc biệt
   str = str.replace(
     /!|@|%|\^|\*|\(|\)|\+|\=|\<|\>|\?|\/|,|\.|\:|\;|\'|\"|\&|\#|\[|\]|~|\$|_|`|-|{|}|\||\\/g,
-    " ",
+    " "
   );
   ProjectMain.value.project_code = str;
 };
@@ -1181,10 +1145,10 @@ const loadCountProjectGroup = () => {
             par: [{ par: "user_id", va: store.getters.user.user_id }],
           }),
           SecretKey,
-          cryoptojs,
+          cryoptojs
         ).toString(),
       },
-      config,
+      config
     )
     .then((response) => {
       let data = JSON.parse(response.data.data)[0];
@@ -1226,13 +1190,13 @@ const OpenDialogTreeUser = (one, type) => {
   if (type == 1) {
     ProjectMain.value.managers.forEach((t) => {
       let select = { user_id: t };
-      selectedUser.value.push(select);
+      selectedUser.value.push(t);
     });
     headerDialogUser.value = "Chọn người quản lý";
   } else if (type == 2) {
     ProjectMain.value.participants.forEach((t) => {
       let select = { user_id: t };
-      selectedUser.value.push(select);
+      selectedUser.value.push(t);
     });
     headerDialogUser.value = "Chọn người tham gia";
   }
@@ -1244,13 +1208,16 @@ const OpenDialogTreeUser = (one, type) => {
 const closeDialog = () => {
   displayDialogUser.value = false;
 };
-const choiceTreeUser = () => {
+const choiceTreeUser = (e) => {
+  debugger;
+  selectedUser.value = [];
+  selectedUser.value = JSON.parse(JSON.stringify(e));
   switch (is_type.value) {
     case 1:
       if (selectedUser.value.length > 0) {
         ProjectMain.value.managers = [];
         selectedUser.value.forEach((t) => {
-          ProjectMain.value.managers.push(t.user_id);
+          ProjectMain.value.managers.push(t);
         });
       }
       break;
@@ -1258,7 +1225,7 @@ const choiceTreeUser = () => {
       if (selectedUser.value.length > 0) {
         ProjectMain.value.participants = [];
         selectedUser.value.forEach((t) => {
-          ProjectMain.value.participants.push(t.user_id);
+          ProjectMain.value.participants.push(t);
         });
       }
       break;
@@ -1292,7 +1259,6 @@ const MaxMin = (m) => {
 
 emitter.on("psb", (obj) => {
   PositionSideBar.value = obj;
-  console.log(obj);
 });
 
 const showDetailProject = ref(false);
@@ -1307,7 +1273,7 @@ const onRowSelect = (id) => {
   showDetailProject.value = true;
   selectedProjectMainID.value = id.project_id;
 };
-const onRowUnselect = (id) => {};
+const onRowUnselect = () => {};
 const menuListTypeButs = ref();
 const toggleListType = (event) => {
   menuListTypeButs.value.toggle(event);
@@ -1318,7 +1284,7 @@ const itemSortButs = ref([
     sort: "is_order",
     ob: "ASC",
     active: false,
-    command: (event) => {
+    command: () => {
       ChangeSortProject("is_order", "ASC");
     },
   },
@@ -1327,7 +1293,7 @@ const itemSortButs = ref([
     sort: "is_order",
     ob: "DESC",
     active: false,
-    command: (event) => {
+    command: () => {
       ChangeSortProject("is_order", "DESC");
     },
   },
@@ -1336,7 +1302,7 @@ const itemSortButs = ref([
     sort: "created_date",
     ob: "DESC",
     active: true,
-    command: (event) => {
+    command: () => {
       ChangeSortProject("created_date", "DESC");
     },
   },
@@ -1345,7 +1311,7 @@ const itemSortButs = ref([
     sort: "created_date",
     ob: "ASC",
     active: false,
-    command: (event) => {
+    command: () => {
       ChangeSortProject("created_date", "ASC");
     },
   },
@@ -1354,7 +1320,7 @@ const itemSortButs = ref([
     sort: "project_name",
     ob: "ASC",
     active: false,
-    command: (event) => {
+    command: () => {
       ChangeSortProject("project_name", "ASC");
     },
   },
@@ -1363,7 +1329,7 @@ const itemSortButs = ref([
     sort: "project_name",
     ob: "DESC",
     active: false,
-    command: (event) => {
+    command: () => {
       ChangeSortProject("project_name", "DESC");
     },
   },
@@ -1470,7 +1436,7 @@ const ChangeFilter = (type, act) => {
               d.label =
                 "Theo ngày nhận" +
                 " (" +
-                moment(t.filter_date).format("DD/MM/YYYY HH:mm") +
+                moment(t.filter_date).format("DD/MM/YYYY ") +
                 ")";
               opition.value.filter_date = t.filter_date;
             });
@@ -1498,7 +1464,7 @@ const ChangeFilter = (type, act) => {
             .forEach((d) => {
               d.label =
                 "Ngày hoàn thành (" +
-                moment(t.filter_date).format("DD/MM/YYYY HH:mm") +
+                moment(t.filter_date).format("DD/MM/YYYY ") +
                 ")";
             });
           opition.value.filter_date = t.filter_date;
@@ -1519,7 +1485,7 @@ const ChangeFilter = (type, act) => {
       opition.value.edate = new Date(
         date.getFullYear(),
         date.getMonth() + 1,
-        0,
+        0
       );
       opition.value.loctitle = "Trong tháng";
       break;
@@ -1650,7 +1616,7 @@ const itemListTypeButs = ref([
     active: false,
     icon: "pi pi-list",
     type: 1,
-    command: (event) => {
+    command: () => {
       ChangeView(1);
     },
   },
@@ -1659,7 +1625,7 @@ const itemListTypeButs = ref([
     active: true,
     icon: "pi pi-list",
     type: 2,
-    command: (event) => {
+    command: () => {
       ChangeView(2);
     },
   },
@@ -1668,7 +1634,7 @@ const itemListTypeButs = ref([
     active: false,
     icon: "pi pi-table",
     type: 3,
-    command: (event) => {
+    command: () => {
       ChangeView(3);
     },
   },
@@ -1677,7 +1643,7 @@ const itemListTypeButs = ref([
     active: false,
     icon: "pi pi-calendar-plus",
     type: 4,
-    command: (event) => {
+    command: () => {
       ChangeView(4);
     },
   },
@@ -1686,7 +1652,7 @@ const itemListTypeButs = ref([
     active: false,
     icon: "pi pi-user-plus",
     type: 5,
-    command: (event) => {
+    command: () => {
       ChangeView(5);
     },
   },
@@ -1720,10 +1686,7 @@ onMounted(() => {
 </script>
 <template>
   <!-- @nodeSelect="onNodeSelect" @nodeUnselect="onNodeUnselect" selectionMode="checkbox" -->
-  <div
-    v-if="store.getters.islogin"
-    class="main-layout true flex-grow-1 p-2"
-  >
+  <div v-if="store.getters.islogin" class="main-layout true flex-grow-1 p-2">
     <div class="flex justify-content-center align-items-center">
       <Toolbar class="w-full custoolbar">
         <template #start>
@@ -1757,14 +1720,8 @@ onMounted(() => {
               aria-controls="overlay_Export1"
             >
               <a
-                ><i
-                  style="margin-right: 5px"
-                  class="pi pi-bars"
-                ></i
-                >Kiểu hiển thị<i
-                  style="margin-left: 5px"
-                  class="pi pi-angle-down"
-                ></i
+                ><i style="margin-right: 5px" class="pi pi-bars"></i>Kiểu hiển
+                thị<i style="margin-left: 5px" class="pi pi-angle-down"></i
               ></a>
             </li>
             <li
@@ -1804,13 +1761,7 @@ onMounted(() => {
           />
           <!-- <Button label="Export" icon="pi pi-file-excel" class="mr-2 p-button-outlined p-button-secondary"
                                         @click="toggleExport" aria-haspopup="true" aria-controls="overlay_Export" /> -->
-          <Menu
-            vị
-            id="overlay_Export"
-            ref="menuButs"
-            :model="itemButs"
-            :popup="true"
-          />
+
           <Menu
             id="task_list_type"
             :model="itemListTypeButs"
@@ -1884,10 +1835,7 @@ onMounted(() => {
                           @click="ChangeFilter(item.istype, false)"
                           :class="{ active: item.active }"
                         >
-                          <i
-                            style="padding-right: 5px"
-                            :class="item1.icon"
-                          ></i>
+                          <i style="padding-right: 5px" :class="item1.icon"></i>
                           {{ item1.label }}
                         </a>
                         <span style="margin-left: 10px">
@@ -1968,10 +1916,7 @@ onMounted(() => {
                   class="p-menuitem"
                 >
                   <a :class="{ active: item.active }"
-                    ><i
-                      style="padding-right: 5px"
-                      :class="item.icon"
-                    ></i
+                    ><i style="padding-right: 5px" :class="item.icon"></i
                     >{{ item.label }}</a
                   >
                   <ul style="padding: 0px; display: flex">
@@ -2055,10 +2000,7 @@ onMounted(() => {
                   @click="ChangeFilter(item.istype, false)"
                 >
                   <a :class="{ active: item.active }"
-                    ><i
-                      style="padding-right: 5px"
-                      :class="item.icon"
-                    ></i
+                    ><i style="padding-right: 5px" :class="item.icon"></i
                     >{{ item.label }}</a
                   >
                 </li>
@@ -2068,7 +2010,7 @@ onMounted(() => {
               <Button
                 @click="ChangeFilter(opition.filter_type, true)"
                 label="Thực hiện"
-              />``
+              />
               <Button
                 @click="Del_ChangeFilter"
                 id="btn_huy"
@@ -2100,7 +2042,6 @@ onMounted(() => {
       :totalRecords="opition.totalRecords"
       paginatorTemplate="FirstPageLink PrevPageLink PageLinks NextPageLink LastPageLink RowsPerPageDropdown"
       :rowsPerPageOptions="[20, 30, 50, 100, 200]"
-      :filters="filters"
       filterMode="strict"
       class="p-treetable-sm"
       :rowHover="true"
@@ -2109,14 +2050,13 @@ onMounted(() => {
       :scrollable="true"
       @nodeSelect="onNodeSelect"
       selectionMode="single"
-      @nodeUnselect="onNodeUnselect"
       scrollHeight="flex"
     >
       <Column
         field="STT"
         header="STT"
         class="align-items-center justify-content-center text-center font-bold"
-        headerStyle="text-align:center;max-width:4rem;height:40px;"
+        headerStyle="text-align:center;max-width:4rem;"
         bodyStyle="text-align:center;max-width:4rem"
       >
       </Column>
@@ -2124,7 +2064,7 @@ onMounted(() => {
         field="Logo"
         header="Logo"
         class="align-items-center justify-content-center text-center"
-        headerStyle="text-align:center;max-width:80px;height:40px;"
+        headerStyle="text-align:center;max-width:80px;"
         bodyStyle="text-align:center;max-width:80px"
       >
         <template #body="md">
@@ -2141,10 +2081,18 @@ onMounted(() => {
         header="Tên dự án"
         :expander="true"
         :sortable="true"
-        headerStyle="max-width:auto;height:40px;"
+        headerStyle="max-width:auto;"
+        headerClass="align-items-center justify-content-center"
       >
         <template #body="md">
-          <div style="display: flex; flex-direction: column">
+          <div
+            style="display: flex; flex-direction: column"
+            :style="[
+              {
+                'padding-left': md.node.data.padding_left * 20 + 'px',
+              },
+            ]"
+          >
             <span style="font-weight: bold">{{
               md.node.data.project_name
             }}</span>
@@ -2154,14 +2102,20 @@ onMounted(() => {
                 md.node.data.count_taskHT + "/" + md.node.data.count_task
               }}</span
             >
+            <span
+              style="color: rgb(152, 169, 188); margin-top: 5px"
+              v-if="md.node.data.count_child > 0"
+            >
+              Dự án con: {{ md.node.data.count_child }}</span
+            >
           </div>
         </template>
       </Column>
       <!-- <Column field="project_code" header="Mã dự án" class="align-items-center justify-content-center text-center"
-        headerStyle="max-width:100px;text-align:center;height:40px;" bodyStyle="max-width:100px;text-align:center;">
+        headerStyle="max-width:100px;text-align:center;" bodyStyle="max-width:100px;text-align:center;">
       </Column> -->
       <!-- <Column field="group_name" header="Nhóm dự án" class="align-items-center justify-content-center text-center"
-        headerStyle="max-width:300px;text-align:center;height:40px;" bodyStyle="max-width:300px;text-align:center;">
+        headerStyle="max-width:300px;text-align:center;" bodyStyle="max-width:300px;text-align:center;">
       </Column> -->
       <Column
         class="align-items-center justify-content-center text-center"
@@ -2179,9 +2133,7 @@ onMounted(() => {
             "
           >
             <span style="color: #ffab2b; font-size: 13px; font-weight: bold">{{
-              moment(new Date(data.node.data.start_date)).format(
-                "DD/MM/YYYY HH:mm",
-              )
+              moment(new Date(data.node.data.start_date)).format("DD/MM/YYYY ")
             }}</span>
           </div>
         </template>
@@ -2202,9 +2154,7 @@ onMounted(() => {
             "
           >
             <span style="color: #ffab2b; font-size: 13px; font-weight: bold">{{
-              moment(new Date(data.node.data.end_date)).format(
-                "DD/MM/YYYY HH:mm",
-              )
+              moment(new Date(data.node.data.end_date)).format("DD/MM/YYYY ")
             }}</span>
           </div>
         </template>
@@ -2213,7 +2163,7 @@ onMounted(() => {
         field="status"
         header="Trạng thái"
         class="align-items-center justify-content-center text-center"
-        headerStyle="text-align:center;max-width:120px;height:40px;"
+        headerStyle="text-align:center;max-width:120px;"
         bodyStyle="text-align:center;max-width:120px"
       >
         <template #body="md">
@@ -2230,7 +2180,7 @@ onMounted(() => {
         header="Chức năng"
         headerClass="text-center"
         class="align-items-center justify-content-center text-center"
-        headerStyle="text-align:center;max-width:150px;height:40px;"
+        headerStyle="text-align:center;max-width:150px;"
         bodyStyle="text-align:center;max-width:150px"
       >
         <template #header> </template>
@@ -2279,12 +2229,8 @@ onMounted(() => {
             display: flex;
             flex-direction: column;
           "
-          v-if="!isFirst"
         >
-          <img
-            src="../../assets/background/nodata.png"
-            height="144"
-          />
+          <img src="../../assets/background/nodata.png" height="144" />
           <h3 class="m-1">Không có dữ liệu</h3>
         </div>
       </template>
@@ -2379,9 +2325,7 @@ onMounted(() => {
           >
             <span style="color: #ffab2b; font-size: 13px; font-weight: bold"
               >{{
-                moment(new Date(data.data.start_date)).format(
-                  "DD/MM/YYYY HH:mm",
-                )
+                moment(new Date(data.data.start_date)).format("DD/MM/YYYY ")
               }}
             </span>
           </div>
@@ -2403,9 +2347,7 @@ onMounted(() => {
             "
           >
             <span style="color: #ffab2b; font-size: 13px; font-weight: bold"
-              >{{
-                moment(new Date(data.data.end_date)).format("DD/MM/YYYY HH:mm")
-              }}
+              >{{ moment(new Date(data.data.end_date)).format("DD/MM/YYYY ") }}
             </span>
           </div>
         </template>
@@ -2481,10 +2423,7 @@ onMounted(() => {
           "
           v-if="!isFirst"
         >
-          <img
-            src="../../assets/background/nodata.png"
-            height="144"
-          />
+          <img src="../../assets/background/nodata.png" height="144" />
           <h3 class="m-1">Không có dữ liệu</h3>
         </div>
       </template>
@@ -2527,10 +2466,7 @@ onMounted(() => {
           id="task-grid"
           class="scroll-outer"
         >
-          <div
-            class="scroll-inner"
-            style="width: fit-content"
-          >
+          <div class="scroll-inner" style="width: fit-content">
             <Card
               v-for="cv in item.CVGroup"
               style="width: 320px; margin-bottom: 2em"
@@ -2570,13 +2506,8 @@ onMounted(() => {
                   "
                   >{{ cv.group_name }}</span
                 >
-                <span
-                  v-if="cv.start_date || cv.end_date"
-                  style="color: #98a9bc"
-                  ><i
-                    style="margin-right: 5px"
-                    class="pi pi-calendar"
-                  ></i
+                <span v-if="cv.start_date || cv.end_date" style="color: #98a9bc"
+                  ><i style="margin-right: 5px" class="pi pi-calendar"></i
                   >{{
                     cv.start_date
                       ? moment(new Date(cv.start_date)).format("DD/MM/YYYY")
@@ -2591,6 +2522,7 @@ onMounted(() => {
                 <span>
                   Công việc ({{ cv.count_taskHT + "/" + cv.count_task }})
                 </span>
+
                 <span>
                   <span
                     v-if="cv.isQL"
@@ -2784,10 +2716,7 @@ onMounted(() => {
         "
         v-if="listProjectMains.length == 0"
       >
-        <img
-          src="../../assets/background/nodata.png"
-          height="144"
-        />
+        <img src="../../assets/background/nodata.png" height="144" />
         <h3 class="m-1">Không có dữ liệu</h3>
       </div>
     </div>
@@ -2903,19 +2832,14 @@ onMounted(() => {
               </tr>
             </thead>
             <tbody>
-              <tr
-                v-for="l in listProjectMains"
-                @click="onRowSelect(l)"
-              >
+              <tr v-for="l in listProjectMains" @click="onRowSelect(l)">
                 <td
                   class="fixcol left-0 p-3"
                   style="border: 1px solid #e9e9e9; background-color: #f8f9fa"
                 >
-                  <label
-                    @click="onRowSelect(l)"
-                    style="font-weight: bold"
-                    >{{ l.project_name }}</label
-                  >
+                  <label @click="onRowSelect(l)" style="font-weight: bold">{{
+                    l.project_name
+                  }}</label>
                   <div
                     style="
                       font-size: 12px;
@@ -3050,10 +2974,7 @@ onMounted(() => {
                 </td>
               </tr>
               <tr v-if="listProjectMains.length == 0">
-                <td
-                  :colspan="GrandsDate.length + 4"
-                  style="text-align: center"
-                >
+                <td :colspan="GrandsDate.length + 4" style="text-align: center">
                   <div
                     class="align-items-center justify-content-center p-4 text-center m-auto"
                     style="
@@ -3390,10 +3311,7 @@ onMounted(() => {
                 </td>
               </tr>
               <tr v-if="listProjectMains.length == 0">
-                <td
-                  :colspan="GrandsDate.length + 4"
-                  style="text-align: center"
-                >
+                <td :colspan="GrandsDate.length + 4" style="text-align: center">
                   <div
                     class="align-items-center justify-content-center p-4 text-center m-auto"
                     style="
@@ -3422,12 +3340,7 @@ onMounted(() => {
       v-model:visible="showDetailProject"
       :position="PositionSideBar"
       :style="{
-        width:
-          PositionSideBar == 'right'
-            ? width1 > 1800
-              ? ' 60vw'
-              : '80vw'
-            : '100vw',
+        width: PositionSideBar == 'right' ? '80vw' : '100vw',
         height: '100vh !important',
       }"
       :showCloseIcon="false"
@@ -3483,20 +3396,18 @@ onMounted(() => {
         <div class="grid formgrid m-2">
           <div class="field col-12 md:col-12">
             <label class="col-3 text-left p-0"
-              >Mã dự án<span class="redsao"> (*) </span></label
-            >
+              >Mã dự án
+              <!-- <span class="redsao"> (*) </span> -->
+            </label>
             <InputText
               v-model="ProjectMain.project_code"
               @change="removeVietnameseTones(ProjectMain.project_code)"
               spellcheck="false"
               class="col-9 ip36 px-2"
-              :class="{ 'p-invalid': v$.project_code.$invalid && submitted }"
             />
+            <!-- :class="{ 'p-invalid': v$.project_code.$invalid && submitted }" -->
           </div>
-          <div
-            style="display: flex"
-            class="field col-12 md:col-12"
-          >
+          <!-- <div style="display: flex" class="field col-12 md:col-12">
             <div class="col-3 text-left"></div>
             <small
               v-if="
@@ -3511,7 +3422,7 @@ onMounted(() => {
                   .replace("is required", "không được để trống")
               }}</span>
             </small>
-          </div>
+          </div> -->
           <div class="field col-12 md:col-12">
             <label class="col-3 text-left p-0"
               >Tên dự án<span class="redsao"> (*) </span></label
@@ -3522,10 +3433,7 @@ onMounted(() => {
               class="col-9 ip36 px-2"
             />
           </div>
-          <div
-            style="display: flex"
-            class="field col-12 md:col-12"
-          >
+          <div style="display: flex" class="field col-12 md:col-12">
             <div class="col-3 text-left"></div>
             <small
               v-if="
@@ -3559,10 +3467,7 @@ onMounted(() => {
                   class="country-item flex"
                   style="align-items: center; margin-left: 10px"
                 >
-                  <div
-                    class="pt-1"
-                    style="padding-left: 10px"
-                  >
+                  <div class="pt-1" style="padding-left: 10px">
                     {{ slotProps.option.name }}
                   </div>
                 </div>
@@ -3571,6 +3476,7 @@ onMounted(() => {
           </div>
           <div class="field col-12 md:col-12">
             <label class="col-3 text-left p-0">Cấp cha</label>
+
             <TreeSelect
               class="col-9"
               v-model="selectcapcha"
@@ -3589,7 +3495,7 @@ onMounted(() => {
                 <img
                   @click="chonanh('AnhDonvi')"
                   id="LogoDonvi"
-                  style="height: 80px; width: 100px"
+                  style="max-width: 150px"
                   v-bind:src="
                     ProjectMain.logo
                       ? basedomainURL + ProjectMain.logo
@@ -3601,7 +3507,7 @@ onMounted(() => {
                   style="width: 1.5rem; height: 1.5rem"
                   icon="pi pi-times"
                   @click="delLogo(ProjectMain)"
-                  class="p-button-rounded absolute top-0 right-0 cursor-pointer"
+                  class="p-button-rounded absolute delete-image cursor-pointer"
                 />
               </div>
               <input
@@ -3614,10 +3520,7 @@ onMounted(() => {
               />
             </div>
           </div>
-          <div
-            class="field col-12 md:col-12"
-            style="display: flex"
-          >
+          <div class="field col-12 md:col-12" style="display: flex">
             <label class="col-3 text-left p-0">Mô tả</label>
             <Textarea
               style="margin-top: 5px; padding: 5px"
@@ -3665,10 +3568,7 @@ onMounted(() => {
               </div>
             </div>
           </div>
-          <div
-            class="field col-12 md:col-12"
-            style="display: flex"
-          >
+          <div class="field col-12 md:col-12" style="display: flex">
             <label
               style="display: flex; align-items: center"
               class="col-3 text-left p-0"
@@ -3714,17 +3614,14 @@ onMounted(() => {
           <div class="field col-12 md:col-12">
             <label class="col-3 text-left p-0"
               >Người quản lý
-              <span
-                @click="OpenDialogTreeUser(false, 1)"
-                class="choose-user"
+              <span @click="OpenDialogTreeUser(false, 1)" class="choose-user"
                 ><i class="pi pi-user-plus"></i></span
             ></label>
             <MultiSelect
               :filter="true"
               v-model="ProjectMain.managers"
               :options="listDropdownUser"
-              optionValue="code"
-              optionLabel="name"
+              optionLabel="full_name"
               class="col-9 ip36 p-0"
               placeholder="Người quản lý"
               display="chip"
@@ -3738,7 +3635,7 @@ onMounted(() => {
                     v-bind:label="
                       slotProps.option.avatar
                         ? ''
-                        : (slotProps.option.name ?? '').substring(0, 1)
+                        : (slotProps.option.last_name ?? '').substring(0, 1)
                     "
                     v-bind:image="basedomainURL + slotProps.option.avatar"
                     style="
@@ -3756,11 +3653,18 @@ onMounted(() => {
                     size="xlarge"
                     shape="circle"
                   />
-                  <div
-                    class="pt-1"
-                    style="padding-left: 10px"
-                  >
-                    {{ slotProps.option.name }}
+                  <div class="flex justify-content-left ml-3">
+                    <div>
+                      <div style="text-align: left">
+                        {{ slotProps.option.full_name }}
+                      </div>
+                      <div class="description" style="text-align: left">
+                        {{ slotProps.option.position_name }}
+                      </div>
+                      <div class="description" style="text-align: left">
+                        {{ slotProps.option.organization_name }}
+                      </div>
+                    </div>
                   </div>
                 </div>
               </template>
@@ -3769,19 +3673,16 @@ onMounted(() => {
           <div class="field col-12 md:col-12">
             <label class="col-3 text-left p-0"
               >Người tham gia
-              <span
-                @click="OpenDialogTreeUser(false, 2)"
-                class="choose-user"
+              <span @click="OpenDialogTreeUser(false, 2)" class="choose-user"
                 ><i class="pi pi-user-plus"></i></span
             ></label>
             <MultiSelect
               :filter="true"
               v-model="ProjectMain.participants"
               :options="listDropdownUser"
-              optionValue="code"
-              optionLabel="name"
+              optionLabel="full_name"
               class="col-9 ip36 p-0"
-              placeholder="Người tham gia"
+              placeholder="Người quản lý"
               display="chip"
             >
               <template #option="slotProps">
@@ -3793,7 +3694,7 @@ onMounted(() => {
                     v-bind:label="
                       slotProps.option.avatar
                         ? ''
-                        : (slotProps.option.name ?? '').substring(0, 1)
+                        : (slotProps.option.last_name ?? '').substring(0, 1)
                     "
                     v-bind:image="basedomainURL + slotProps.option.avatar"
                     style="
@@ -3811,11 +3712,18 @@ onMounted(() => {
                     size="xlarge"
                     shape="circle"
                   />
-                  <div
-                    class="pt-1"
-                    style="padding-left: 10px"
-                  >
-                    {{ slotProps.option.name }}
+                  <div class="flex justify-content-left ml-3">
+                    <div>
+                      <div style="text-align: left">
+                        {{ slotProps.option.full_name }}
+                      </div>
+                      <div class="description" style="text-align: left">
+                        {{ slotProps.option.position_name }}
+                      </div>
+                      <div class="description" style="text-align: left">
+                        {{ slotProps.option.organization_name }}
+                      </div>
+                    </div>
                   </div>
                 </div>
               </template>
@@ -3856,10 +3764,7 @@ onMounted(() => {
                         responsiveLayout="scroll"
                       >
                         <template #list="slotProps">
-                          <Toolbar
-                            class="w-full"
-                            style="display: flex"
-                          >
+                          <Toolbar class="w-full" style="display: flex">
                             <template #start>
                               <div
                                 class="flex align-items-center task-file-list"
@@ -3919,6 +3824,7 @@ onMounted(() => {
       </template>
     </Dialog>
   </div>
+
   <treeuser
     v-if="displayDialogUser === true"
     :headerDialog="headerDialogUser"
@@ -4074,5 +3980,16 @@ onMounted(() => {
 
 #task_filter .children .active {
   color: #2196f3 !important;
+}
+.delete-image {
+  right: -10px;
+  top: -10px;
+}
+.inputanh.relative {
+  max-width: fit-content;
+}
+.inputanh.relative img {
+  max-width: 150px;
+  max-height: 150px;
 }
 </style>

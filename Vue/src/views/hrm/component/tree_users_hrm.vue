@@ -346,8 +346,14 @@ const initUser = (rf) => {
       baseURL + "/api/Proc/CallProc",
       {
         proc: "hrm_profile_list_all",
-        par: [{ par: "user_id", va: store.getters.user.user_id }],
+            par: [{ par: "user_id", va: store.getters.user.user_id },
+            { par: "search", va: null },
+            { par: "pageNo ", va:1},
+            { par: "pageSize ", va: 100000 },
+            { par: "tab ", va: 1 },
+          ],
       },
+
       config
     )
     .then((response) => {
@@ -465,7 +471,7 @@ const initUserSQL = () => {
 
       if (error && error.status === 401) {
         swal.fire({
-          text: "Mã token đã hết hạn hoặc không hợp lệ, vui lòng đăng nhập lại!",
+          text: "Phiên đăng nhập đã hết hạn, vui lòng đăng nhập lại!",
           confirmButtonText: "OK",
         });
         store.commit("gologout");
@@ -567,11 +573,11 @@ onMounted(() => {
             paginatorTemplate="FirstPageLink PrevPageLink PageLinks NextPageLink LastPageLink RowsPerPageDropdown"
             responsiveLayout="scroll"
             rowGroupMode="subheader"
-            groupRowsBy="position_id"
+            groupRowsBy="department_name"
             class="d-lang-table"
           >
             <template #groupheader="slotProps">
-              <i class="pi pi-list mr-2"></i>{{ slotProps.data.position_name }}
+              <i class="pi pi-list mr-2"></i>{{ slotProps.data.department_name }}
             </template>
             <Column
               :selectionMode="props.one ? 'single' : 'multiple'"
@@ -593,7 +599,7 @@ onMounted(() => {
                       v-bind:label="
                         slotProps.data.avatar
                           ? ''
-                          : slotProps.data.last_name.substring(0, 1)
+                          : slotProps.data.profile_user_name.substring(0, 1)
                       "
                       v-bind:image="basedomainURL + slotProps.data.avatar"
                       style="
@@ -616,7 +622,7 @@ onMounted(() => {
                         {{ slotProps.data.profile_user_name }}
                       </div>
                       <div class="description" style="text-align: left">
-                        {{ slotProps.data.role_name }}
+                        {{ slotProps.data.department_name }}
                       </div>
                     </div>
                   </div>

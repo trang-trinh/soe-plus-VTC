@@ -137,7 +137,7 @@ const saveModel = () => {
       if (error && error.status === 401) {
         swal.fire({
           title: "Thông báo!",
-          text: "Mã token đã hết hạn hoặc không hợp lệ, vui lòng đăng nhập lại!",
+          text: "Phiên đăng nhập đã hết hạn, vui lòng đăng nhập lại!",
           icon: "error",
           confirmButtonText: "OK",
         });
@@ -270,7 +270,6 @@ const initData = (rf) => {
         }
         insurance.value.profile_id = props.profile.profile_id;
         //get child
-        debugger
         if (tbs[1] != null && tbs[1].length > 0) {
           insurance_pays.value = tbs[1];
           insurance_pays.value.forEach((item) => {
@@ -309,7 +308,7 @@ const initData = (rf) => {
       if (error && error.status === 401) {
         swal.fire({
           title: "Thông báo!",
-          text: "Mã token đã hết hạn hoặc không hợp lệ, vui lòng đăng nhập lại!",
+          text: "Phiên đăng nhập đã hết hạn, vui lòng đăng nhập lại!",
           icon: "error",
           confirmButtonText: "OK",
         });

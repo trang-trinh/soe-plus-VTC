@@ -3,6 +3,7 @@ import { onMounted, inject, ref } from "vue";
 import { useToast } from "vue-toastification";
 import { encr } from "../../../../util/function";
 import moment from "moment";
+import dialogfile from "../../profile/component/dialogfile.vue";
 
 const store = inject("store");
 const swal = inject("$swal");
@@ -20,7 +21,9 @@ const props = defineProps({
 });
 
 //Declare
-const options = ref({});
+const options = ref({
+  file: null,
+});
 const rewards = ref([]);
 const disciplines = ref([]);
 
@@ -33,9 +36,30 @@ const typestatus = ref([
 ]);
 
 //Function
-const goFile = (file) => {
-  window.open(basedomainURL + file.file_path, "_blank");
+const componentKey = ref({});
+const forceRerender = (type) => {
+  if (!componentKey.value[type]) {
+    componentKey.value[type] = 0;
+  }
+  componentKey.value[type] += 1;
 };
+const goFile = (file) => {
+  options.value.file = file;
+  openViewDialogFile(file.file_name);
+};
+
+const headerDialogFile = ref();
+const displayDialogFile = ref(false);
+const openViewDialogFile = (str) => {
+  headerDialogFile.value = str;
+  displayDialogFile.value = true;
+  forceRerender(0);
+};
+const closeDialogFile = () => {
+  displayDialogFile.value = false;
+  forceRerender(0);
+};
+
 
 //init
 const initView9 = (rf) => {
@@ -93,7 +117,7 @@ const initView9 = (rf) => {
       if (error && error.status === 401) {
         swal.fire({
           title: "Thông báo!",
-          text: "Mã token đã hết hạn hoặc không hợp lệ, vui lòng đăng nhập lại!",
+          text: "Phiên đăng nhập đã hết hạn, vui lòng đăng nhập lại!",
           icon: "error",
           confirmButtonText: "OK",
         });
@@ -118,7 +142,7 @@ onMounted(() => {
   <div
     class="d-lang-table"
     :style="{
-      height: 'calc(100vh - 220px) !important',
+      height: 'calc(100vh - 230px) !important',
       overflowY: 'auto',
     }"
   >
@@ -154,7 +178,7 @@ onMounted(() => {
                 </span>
               </template>
               <template #content="slotProps">
-                <Card class="mb-5">
+                <Card class="mb-5" :style="{ backgroundColor: '#D6EAF8', boxShadow: 'none' }">
                   <template #subtitle>
                     <div class="w-full text-left">
                       {{ slotProps.item.effective_date }}
@@ -208,7 +232,7 @@ onMounted(() => {
                 </span>
               </template>
               <template #content="slotProps">
-                <Card class="mb-5">
+                <Card class="mb-5" :style="{ backgroundColor: '#FDEBD0', boxShadow: 'none' }">
                   <template #subtitle>
                     <div class="w-full text-left">
                       {{ slotProps.item.effective_date }}
@@ -255,6 +279,15 @@ onMounted(() => {
       </div>
     </div>
   </div>
+
+  <!--Dailog-->
+  <dialogfile
+    :key="componentKey['0']"
+    :headerDialog="headerDialogFile"
+    :displayDialog="displayDialogFile"
+    :file="options.file"
+    :closeDialog="closeDialogFile"
+  />
 </template>
 <style scoped>
 .row {
@@ -289,11 +322,16 @@ onMounted(() => {
 </style>
 <style lang="scss" scoped>
 ::v-deep(.p-timeline) {
+  background-color: transparent !important;
+  padding: 0 !important;
   .p-timeline-event .p-timeline-event-opposite {
     display: none !important;
   }
   .p-timeline-event:nth-child(even) {
     flex-direction: row;
+  }
+  .p-timeline-event .p-timeline-event-content .p-card-content{
+    padding: 1rem !important;
   }
 }
 </style>

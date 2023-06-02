@@ -15,25 +15,12 @@ const basedomainURL = baseURL;
 
 //Get arguments
 const props = defineProps({
-  key: Number,
   headerDialog: String,
   displayDialog: Boolean,
   closeDialog: Function,
   isAdd: Boolean,
-  model: Object,
-  files: Array,
-  chooseImage: Function,
-  deleteImage: Function,
-  handleFileAvtUpload: Function,
-  selectFile: Function,
-  removeFile: Function,
-  addRow: Function,
-  deleteRow: Function,
-  datachilds: Array,
+  profile: Object,
   dictionarys: Array,
-  genders: Array,
-  places: Array,
-  marital_status: Array,
   initData: Function,
 });
 
@@ -54,14 +41,32 @@ const listPlaceDetails2 = ref([]);
 const listPlaceDetails3 = ref([]);
 const listPlaceDetails4 = ref([]);
 
+//Declare
+const options = ref({
+  loading: true,
+});
+const genders = ref([
+  { value: 1, text: "Nam" },
+  { value: 2, text: "Nữ" },
+  { value: 3, text: "Khác" },
+]);
+const marital_status = ref([
+  { value: 0, text: "Độc thân" },
+  { value: 1, text: "Kết hôn" },
+  { value: 2, text: "Ly hôn" },
+]);
+const model = ref({});
+const datachilds = ref([]);
+const files = ref([]);
+
 //function
 const submitted = ref(false);
 const saveModel = (is_continue) => {
   submitted.value = true;
   if (
-    !props.model.profile_code ||
-    !props.model.profile_user_name ||
-    !props.model.birthday
+    !model.value.profile_code ||
+    !model.value.profile_user_name ||
+    !model.value.birthday
   ) {
     swal.fire({
       title: "Thông báo!",
@@ -77,7 +82,7 @@ const saveModel = (is_continue) => {
       swal.showLoading();
     },
   });
-  var obj = { ...props.model };
+  var obj = { ...model.value };
   if (obj["select_birthplace"] != null) {
     // obj["birthplace_id"] =
     //   Object.keys(obj["select_birthplace"])[0] == -1
@@ -142,12 +147,12 @@ const saveModel = (is_continue) => {
   let formData = new FormData();
   formData.append("isAdd", props.isAdd);
   formData.append("model", JSON.stringify(obj));
-  formData.append("relative", JSON.stringify(props.datachilds[1] || []));
-  formData.append("skill", JSON.stringify(props.datachilds[2] || []));
-  formData.append("clan_history", JSON.stringify(props.datachilds[3] || []));
-  formData.append("experience", JSON.stringify(props.datachilds[4] || []));
-  for (var i = 0; i < props.files.length; i++) {
-    let file = props.files[i];
+  formData.append("relative", JSON.stringify(datachilds.value[1] || []));
+  formData.append("skill", JSON.stringify(datachilds.value[2] || []));
+  formData.append("clan_history", JSON.stringify(datachilds.value[3] || []));
+  formData.append("experience", JSON.stringify(datachilds.value[4] || []));
+  for (var i = 0; i < files.value.length; i++) {
+    let file = files.value[i];
     if (file["key"] === "avatar") {
       formData.append("avatar", file);
     } else {
@@ -171,8 +176,8 @@ const saveModel = (is_continue) => {
         props.isAdd ? "Thêm mới thành công!" : "Cập nhật thành công!"
       );
       if (is_continue) {
-        props.model.profile = null;
-        props.model.contract_code = "";
+        model.value.profile = null;
+        model.value.contract_code = "";
       } else {
         props.closeDialog();
       }
@@ -183,7 +188,7 @@ const saveModel = (is_continue) => {
       if (error && error.status === 401) {
         swal.fire({
           title: "Thông báo!",
-          text: "Mã token đã hết hạn hoặc không hợp lệ, vui lòng đăng nhập lại!",
+          text: "Phiên đăng nhập đã hết hạn, vui lòng đăng nhập lại!",
           icon: "error",
           confirmButtonText: "OK",
         });
@@ -201,15 +206,59 @@ const saveModel = (is_continue) => {
     });
   if (submitted.value) submitted.value = true;
 };
+const clickChange = ref(false);
+const chooseImage = (id) => {
+  clickChange.value = true;
+  document.getElementById(id).click();
+};
+const handleFileAvtUpload = (event, id) => {
+  if (event.target.files[0] != null) {
+    files.value.push(event.target.files[0]);
+  }
+  if (files.value && files.value.length > 0) {
+    files.value.forEach((f) => {
+      f.key = id;
+    });
+  }
+  model.value["isDisplayAvt"] = true;
+  var output = document.getElementById(id);
+  output.src = URL.createObjectURL(event.target.files[0]);
+  output.onload = function () {
+    URL.revokeObjectURL(output.src);
+  };
+};
+const deleteImage = (id) => {
+  if (id === "avatar") {
+    if (files.value && files.value.length > 0) {
+      files.value = files.value.filter((x) => x["key"] !== id);
+    }
+    model.value["isDisplayAvt"] = false;
+    clickChange.value = false;
+    var output = document.getElementById(id);
+    output.src = basedomainURL + "/Portals/Image/noimg.jpg";
+    model.value["avatar"] = null;
+  }
+};
+const removeFile = (event) => {
+  files.value = files.value.filter((x) => x["key"] === "avatar");
+};
+const selectFile = (event) => {
+  event.files.forEach((element) => {
+    files.value.push(element);
+  });
+};
+const deleteRow = (type, idx) => {
+  datachilds.value[type].splice(idx, 1);
+};
 
 //
 const displayDialog1 = ref(false);
 const displayDialog2 = ref(false);
 const displayDialog3 = ref(false);
 const displayDialog4 = ref(false);
-const model = ref({});
+const modeldetail = ref({});
 const openAddRow = (type) => {
-  model.value = {};
+  modeldetail.value = {};
   if (type === 1) {
     displayDialog1.value = true;
   } else if (type === 2) {
@@ -221,16 +270,16 @@ const openAddRow = (type) => {
   }
 };
 const saveRow = (type, isContinue) => {
-  if (props.datachilds[type] == null) {
-    props.datachilds[type] = [];
+  if (datachilds.value[type] == null) {
+    datachilds[type] = [];
   }
-  props.datachilds[type].unshift(model.value);
-  if (model.value.is_man_degree && model.value.academic_level_id) {
+  datachilds.value[type].unshift(modeldetail.value);
+  if (modeldetail.value.is_man_degree && modeldetail.value.academic_level_id) {
     var idx = props.dictionarys[6].findIndex(
-      (x) => x.academic_level_id === model.value.academic_level_id
+      (x) => x.academic_level_id === modeldetail.value.academic_level_id
     );
     if (idx !== -1) {
-      props.model.cultural_level_max =
+      model.value.cultural_level_max =
         props.dictionarys[6][idx].academic_level_name;
     }
   }
@@ -268,8 +317,8 @@ const genCode = () => {
         if (data != null) {
           let tbs = JSON.parse(data);
           if (tbs[0] != null && tbs[0].length > 0) {
-            props.model.profile_code = tbs[0][0].profile_code;
-            props.model.superior_id = tbs[0][0].superior_id;
+            model.value.profile_code = tbs[0][0].profile_code;
+            model.value.superior_id = tbs[0][0].superior_id;
           }
         }
       }
@@ -328,15 +377,204 @@ const initPlaceFilter = (event, type) => {
       }
     });
 };
+const initData = (rf) => {
+  if (rf) {
+    swal.fire({
+      width: 110,
+      didOpen: () => {
+        swal.showLoading();
+      },
+    });
+  }
+
+  datachilds.value = [];
+  files.value = [];
+  submitted.value = false;
+  options.value.loading = true;
+  axios
+    .post(
+      baseURL + "/api/hrm/callProc",
+      {
+        str: encr(
+          JSON.stringify({
+            proc: "hrm_profile_get_2",
+            par: [{ par: "profile_id", va: props.profile.profile_id }],
+          }),
+          SecretKey,
+          cryoptojs
+        ).toString(),
+      },
+      config
+    )
+    .then((response) => {
+      var data = response.data.data;
+      if (data != null) {
+        var tbs = JSON.parse(data);
+        if (tbs[0] != null && tbs[0].length > 0) {
+          model.value = tbs[0][0];
+          model.value["select_birthplace"] = model.value["birthplace_name"];
+          model.value["select_birthplace_origin"] =
+            model.value["birthplace_origin_name"];
+          model.value["select_place_register_permanent"] =
+            model.value["place_register_permanent_name"];
+          model.value["select_place_residence"] =
+            model.value["place_residence_name"];
+          if (model.value["recruitment_date"] != null) {
+            model.value["recruitment_date"] = new Date(
+              model.value["recruitment_date"]
+            );
+          }
+          if (model.value["birthday"] != null) {
+            model.value["birthday"] = new Date(model.value["birthday"]);
+          }
+          if (model.value["identity_date_issue"] != null) {
+            model.value["identity_date_issue"] = new Date(
+              model.value["identity_date_issue"]
+            );
+          }
+          if (model.value["identity_end_date_issue"] != null) {
+            model.value["identity_end_date_issue"] = new Date(
+              model.value["identity_end_date_issue"]
+            );
+          }
+          if (model.value["partisan_date"] != null) {
+            model.value["partisan_date"] = new Date(
+              model.value["partisan_date"]
+            );
+          }
+          if (model.value["partisan_joindate"] != null) {
+            model.value["partisan_joindate"] = new Date(
+              model.value["partisan_joindate"]
+            );
+          }
+          if (model.value["organization_joindate"] != null) {
+            model.value["organization_joindate"] = new Date(
+              model.value["organization_joindate"]
+            );
+          }
+          if (model.value.bevy_date != null) {
+            model.value.bevy_date = new Date(model.value.bevy_date);
+          }
+          if (model.value.military_start_date != null) {
+            model.value.military_start_date = new Date(
+              model.value.military_start_date
+            );
+          }
+          if (model.value.military_end_date != null) {
+            model.value.military_end_date = new Date(
+              model.value.military_end_date
+            );
+          }
+          if (model.value["sign_date"] != null) {
+            model.value["sign_date"] = new Date(model.value["sign_date"]);
+          }
+          if (model.value["partisan_main_date"] != null) {
+            model.value["partisan_main_date"] = new Date(
+              model.value["partisan_main_date"]
+            );
+          }
+        }
+        if (tbs[1] != null && tbs[1].length > 0) {
+          tbs[1].forEach((x) => {
+            if (x["identification_date_issue"] != null) {
+              x["identification_date_issue"] = new Date(
+                x["identification_date_issue"]
+              );
+            }
+            if (x["start_date"] != null) {
+              x["start_date"] = new Date(x["start_date"]);
+            }
+            if (x["end_date"] != null) {
+              x["end_date"] = new Date(x["end_date"]);
+            }
+            if (x["birthday"] != null) {
+              x["birthday"] = new Date(x["birthday"]);
+            }
+          });
+          datachilds.value[1] = tbs[1];
+        } else {
+          datachilds.value[1] = [];
+        }
+        if (tbs[2] != null && tbs[2].length > 0) {
+          tbs[2].forEach((x) => {
+            if (x["certificate_start_date"] != null) {
+              x["certificate_start_date"] = new Date(
+                x["certificate_start_date"]
+              );
+            }
+            if (x["certificate_end_date"] != null) {
+              x["certificate_end_date"] = new Date(x["certificate_end_date"]);
+            }
+          });
+          datachilds.value[2] = tbs[2];
+        } else {
+          datachilds.value[2] = [];
+        }
+        if (tbs[3] != null && tbs[3].length > 0) {
+          tbs[3].forEach((x) => {
+            if (x["start_date"] != null) {
+              x["start_date"] = new Date(x["start_date"]);
+            }
+            if (x["end_date"] != null) {
+              x["end_date"] = new Date(x["end_date"]);
+            }
+          });
+          datachilds.value[3] = tbs[3];
+        } else {
+          datachilds.value[3] = [];
+        }
+        if (tbs[4] != null && tbs[4].length > 0) {
+          datachilds.value[4] = tbs[4];
+        } else {
+          datachilds.value[4] = [];
+        }
+        if (tbs[5] != null && tbs[5].length > 0) {
+          model.value["files"] = tbs[5];
+        } else {
+          model.value["files"] = [];
+        }
+
+        initPlaceFilter({ value: model.value.birthplace_name }, 1);
+        initPlaceFilter({ value: model.value.birthplace_origin_name }, 2);
+        initPlaceFilter(
+          { value: model.value.place_register_permanent_name },
+          3
+        );
+        initPlaceFilter({ value: model.value.place_residence_name }, 4);
+      }
+      swal.close();
+      if (options.value.loading) options.value.loading = false;
+    })
+    .catch((error) => {
+      swal.close();
+      if (options.value.loading) options.value.loading = false;
+      if (error && error.status === 401) {
+        swal.fire({
+          title: "Thông báo!",
+          text: "Phiên đăng nhập đã hết hạn, vui lòng đăng nhập lại!",
+          icon: "error",
+          confirmButtonText: "OK",
+        });
+        store.commit("gologout");
+        return;
+      } else {
+        swal.fire({
+          title: "Thông báo!",
+          text: "Có lỗi xảy ra, vui lòng kiểm tra lại!",
+          icon: "error",
+          confirmButtonText: "OK",
+        });
+        return;
+      }
+    });
+};
 onMounted(() => {
-  if (props.displayDialog && props.model != null) {
-    if (props.isAdd) {
+  if (props.displayDialog) {
+    if (!props.isAdd) {
+      initData(true);
+    } else {
       genCode();
     }
-    initPlaceFilter({ value: props.model.birthplace_name }, 1);
-    initPlaceFilter({ value: props.model.birthplace_origin_name }, 2);
-    initPlaceFilter({ value: props.model.place_register_permanent_name }, 3);
-    initPlaceFilter({ value: props.model.place_residence_name }, 4);
   }
 });
 </script>
@@ -386,30 +624,26 @@ onMounted(() => {
                           >
                             <img
                               v-tooltip.top="'Chọn ảnh hồ sơ'"
-                              @click="props.chooseImage('imgAvatar')"
+                              @click="chooseImage('imgAvatar')"
                               id="avatar"
                               v-bind:src="
-                                props.model.avatar
-                                  ? basedomainURL + props.model.avatar
+                                model.avatar
+                                  ? basedomainURL + model.avatar
                                   : basedomainURL + '/Portals/Image/noimg.jpg'
                               "
                             />
                             <Button
-                              v-if="
-                                props.model.avatar || props.model.isDisplayAvt
-                              "
+                              v-if="model.avatar || model.isDisplayAvt"
                               style="width: 2rem; height: 2rem"
                               icon="pi pi-times"
-                              @click="props.deleteImage('avatar')"
+                              @click="deleteImage('avatar')"
                               class="p-button-rounded absolute top-0 right-0 cursor-pointer"
                             />
                             <input
                               id="imgAvatar"
                               type="file"
                               accept="image/*"
-                              @change="
-                                props.handleFileAvtUpload($event, 'avatar')
-                              "
+                              @change="handleFileAvtUpload($event, 'avatar')"
                               style="display: none"
                             />
                           </div>
@@ -426,19 +660,16 @@ onMounted(() => {
                               <InputText
                                 spellcheck="false"
                                 class="ip36"
-                                v-model="props.model.profile_code"
+                                v-model="model.profile_code"
                                 :style="{
                                   backgroundColor: '#FEF9E7',
                                   fontWeight: 'bold',
                                 }"
                                 :class="{
-                                  'p-invalid':
-                                    !props.model.profile_code && submitted,
+                                  'p-invalid': !model.profile_code && submitted,
                                 }"
                               />
-                              <div
-                                v-if="!props.model.profile_code && submitted"
-                              >
+                              <div v-if="!model.profile_code && submitted">
                                 <small class="p-error">
                                   <span class="col-12 p-0"
                                     >Mã nhân sự không được để trống</span
@@ -453,7 +684,7 @@ onMounted(() => {
                               <Calendar
                                 class="ip36"
                                 id="icon"
-                                v-model="props.model.recruitment_date"
+                                v-model="model.recruitment_date"
                                 :showIcon="true"
                                 placeholder="dd/mm/yyyy"
                               />
@@ -468,18 +699,13 @@ onMounted(() => {
                               <InputText
                                 spellcheck="false"
                                 class="ip36"
-                                v-model="props.model.profile_user_name"
+                                v-model="model.profile_user_name"
                                 :style="{ fontWeight: 'bold' }"
                                 :class="{
-                                  'p-invalid':
-                                    !props.model.profile_code && submitted,
+                                  'p-invalid': !model.profile_code && submitted,
                                 }"
                               />
-                              <div
-                                v-if="
-                                  !props.model.profile_user_name && submitted
-                                "
-                              >
+                              <div v-if="!model.profile_user_name && submitted">
                                 <small class="p-error">
                                   <span>Họ và tên không được để trống</span>
                                 </small>
@@ -492,7 +718,7 @@ onMounted(() => {
                               <InputText
                                 spellcheck="false"
                                 class="ip36"
-                                v-model="props.model.superior_id"
+                                v-model="model.superior_id"
                               />
                             </div>
                           </div>
@@ -505,15 +731,14 @@ onMounted(() => {
                               <Calendar
                                 class="ip36"
                                 id="icon"
-                                v-model="props.model.birthday"
+                                v-model="model.birthday"
                                 :showIcon="true"
                                 placeholder="dd/mm/yyyy"
                                 :class="{
-                                  'p-invalid':
-                                    !props.model.profile_code && submitted,
+                                  'p-invalid': !model.profile_code && submitted,
                                 }"
                               />
-                              <div v-if="!props.model.birthday && submitted">
+                              <div v-if="!model.birthday && submitted">
                                 <small class="p-error">
                                   <span>Ngày sinh không được để trống</span>
                                 </small>
@@ -526,7 +751,7 @@ onMounted(() => {
                               <InputText
                                 spellcheck="false"
                                 class="ip36"
-                                v-model="props.model.check_in_id"
+                                v-model="model.check_in_id"
                               />
                             </div>
                           </div>
@@ -536,7 +761,7 @@ onMounted(() => {
                               <InputText
                                 spellcheck="false"
                                 class="ip36"
-                                v-model="props.model.profile_nick_name"
+                                v-model="model.profile_nick_name"
                               />
                             </div>
                           </div>
@@ -544,8 +769,8 @@ onMounted(() => {
                             <div class="form-group">
                               <label>Giới tính</label>
                               <Dropdown
-                                :options="props.genders"
-                                v-model="props.model.gender"
+                                :options="genders"
+                                v-model="model.gender"
                                 optionLabel="text"
                                 optionValue="value"
                                 placeholder="Chọn giới tính"
@@ -571,7 +796,7 @@ onMounted(() => {
                         :filter="true"
                         :editable="true"
                         :showClear="true"
-                        v-model="props.model.select_birthplace"
+                        v-model="model.select_birthplace"
                         optionLabel="name"
                         optionValue="place_details_id"
                         class="ip36"
@@ -583,17 +808,6 @@ onMounted(() => {
                           textOverflow: 'ellipsis',
                         }"
                       />
-                      <!-- <TreeSelect
-                    :options="props.places"
-                    :showClear="true"
-                    :max-height="200"
-                    v-model="props.model.select_birthplace"
-                    placeholder="Chọn nơi sinh"
-                    optionLabel="name"
-                    optionValue="place_id"
-                    class="ip36"
-                  >
-                  </TreeSelect> -->
                     </div>
                   </div>
                   <div class="col-6 md:col-6">
@@ -605,7 +819,7 @@ onMounted(() => {
                         :filter="true"
                         :editable="true"
                         :showClear="true"
-                        v-model="props.model.select_birthplace_origin"
+                        v-model="model.select_birthplace_origin"
                         optionLabel="name"
                         optionValue="place_details_id"
                         class="ip36"
@@ -617,17 +831,6 @@ onMounted(() => {
                           textOverflow: 'ellipsis',
                         }"
                       />
-                      <!-- <TreeSelect
-                    :options="props.places"
-                    :showClear="true"
-                    :max-height="200"
-                    v-model="props.model.select_birthplace_origin"
-                    placeholder="Chọn quê quán"
-                    optionLabel="name"
-                    optionValue="place_id"
-                    class="ip36"
-                  >
-                  </TreeSelect> -->
                     </div>
                   </div>
                   <div class="col-12 md:col-12">
@@ -642,7 +845,7 @@ onMounted(() => {
                           <InputText
                             spellcheck="false"
                             class="ip36"
-                            v-model="props.model.place_register_permanent_first"
+                            v-model="model.place_register_permanent_first"
                             maxLength="500"
                             placeholder="Số nhà/đường phố"
                           />
@@ -656,9 +859,7 @@ onMounted(() => {
                             :filter="true"
                             :editable="true"
                             :showClear="true"
-                            v-model="
-                              props.model.select_place_register_permanent
-                            "
+                            v-model="model.select_place_register_permanent"
                             optionLabel="name"
                             optionValue="place_details_id"
                             class="ip36"
@@ -686,7 +887,7 @@ onMounted(() => {
                             optionValue="nationality_id"
                             placeholder="Chọn quốc tịch"
                             class="ip36"
-                            v-model="props.model.nationality_id"
+                            v-model="model.nationality_id"
                             :filter="true"
                             :style="{
                               whiteSpace: 'nowrap',
@@ -706,7 +907,7 @@ onMounted(() => {
                             optionValue="ethnic_id"
                             placeholder="Chọn dân tộc"
                             class="ip36"
-                            v-model="props.model.ethnic_id"
+                            v-model="model.ethnic_id"
                             :filter="true"
                             :style="{
                               whiteSpace: 'nowrap',
@@ -726,7 +927,7 @@ onMounted(() => {
                             optionValue="religion_id"
                             placeholder="Chọn tôn giáo"
                             class="ip36"
-                            v-model="props.model.religion_id"
+                            v-model="model.religion_id"
                             :filter="true"
                             :style="{
                               whiteSpace: 'nowrap',
@@ -746,7 +947,7 @@ onMounted(() => {
                             optionValue="identity_papers_id"
                             placeholder="Chọn loại"
                             class="ip36"
-                            v-model="props.model.identity_papers_id"
+                            v-model="model.identity_papers_id"
                             :style="{
                               whiteSpace: 'nowrap',
                               overflow: 'hidden',
@@ -761,7 +962,7 @@ onMounted(() => {
                           <InputText
                             spellcheck="false"
                             class="ip36"
-                            v-model="props.model.identity_papers_code"
+                            v-model="model.identity_papers_code"
                             maxLength="50"
                           />
                         </div>
@@ -772,7 +973,7 @@ onMounted(() => {
                           <Calendar
                             class="ip36"
                             id="icon"
-                            v-model="props.model.identity_date_issue"
+                            v-model="model.identity_date_issue"
                             :showIcon="true"
                             placeholder="dd/mm/yyyy"
                           />
@@ -784,7 +985,7 @@ onMounted(() => {
                           <Calendar
                             class="ip36"
                             id="icon"
-                            v-model="props.model.identity_end_date_issue"
+                            v-model="model.identity_end_date_issue"
                             :showIcon="true"
                             placeholder="dd/mm/yyyy"
                           />
@@ -797,7 +998,7 @@ onMounted(() => {
                             :options="props.dictionarys[17]"
                             :showClear="true"
                             :filter="true"
-                            v-model="props.model.identity_place_id"
+                            v-model="model.identity_place_id"
                             placeholder="Chọn nơi cấp"
                             optionLabel="identity_place_name"
                             optionValue="identity_place_id"
@@ -816,7 +1017,7 @@ onMounted(() => {
                           <InputText
                             spellcheck="false"
                             class="ip36"
-                            v-model="props.model.tax_code"
+                            v-model="model.tax_code"
                             maxLength="50"
                           />
                         </div>
@@ -826,12 +1027,12 @@ onMounted(() => {
                           <label>Tình trạng hôn nhân</label>
                           <Dropdown
                             :showClear="true"
-                            :options="props.marital_status"
+                            :options="marital_status"
                             optionLabel="text"
                             optionValue="value"
                             placeholder="Chọn trạng thái"
                             class="ip36"
-                            v-model="props.model.marital_status"
+                            v-model="model.marital_status"
                             :style="{
                               whiteSpace: 'nowrap',
                               overflow: 'hidden',
@@ -850,7 +1051,7 @@ onMounted(() => {
                             optionValue="bank_id"
                             placeholder="Chọn ngân hàng"
                             class="ip36"
-                            v-model="props.model.bank_id"
+                            v-model="model.bank_id"
                             :filter="true"
                             :style="{
                               whiteSpace: 'nowrap',
@@ -866,7 +1067,7 @@ onMounted(() => {
                           <InputText
                             spellcheck="false"
                             class="ip36"
-                            v-model="props.model.bank_number"
+                            v-model="model.bank_number"
                             maxLength="50"
                           />
                         </div>
@@ -877,7 +1078,7 @@ onMounted(() => {
                           <InputText
                             spellcheck="false"
                             class="ip36"
-                            v-model="props.model.bank_account"
+                            v-model="model.bank_account"
                             maxLength="250"
                           />
                         </div>
@@ -901,7 +1102,7 @@ onMounted(() => {
                     <div class="form-group">
                       <label>Di động</label>
                       <InputMask
-                        v-model="props.model.phone"
+                        v-model="model.phone"
                         mask="9999999999"
                         placeholder="__________"
                         class="ip36"
@@ -912,7 +1113,7 @@ onMounted(() => {
                     <div class="form-group">
                       <label>Số điện thoại cố định</label>
                       <InputMask
-                        v-model="props.model.fax"
+                        v-model="model.fax"
                         mask="9999999999"
                         placeholder="__________"
                         class="ip36"
@@ -925,7 +1126,7 @@ onMounted(() => {
                       <InputText
                         spellcheck="false"
                         class="ip36"
-                        v-model="props.model.email"
+                        v-model="model.email"
                         maxLength="50"
                       />
                     </div>
@@ -940,7 +1141,7 @@ onMounted(() => {
                       <InputText
                         spellcheck="false"
                         class="ip36"
-                        v-model="props.model.place_permanent"
+                        v-model="model.place_permanent"
                         maxLength="500"
                         placeholder="Số nhà/đường phố"
                       />
@@ -954,7 +1155,7 @@ onMounted(() => {
                         :filter="true"
                         :editable="true"
                         :showClear="true"
-                        v-model="props.model.select_place_residence"
+                        v-model="model.select_place_residence"
                         optionLabel="name"
                         optionValue="place_details_id"
                         class="ip36"
@@ -979,7 +1180,7 @@ onMounted(() => {
                       <InputText
                         spellcheck="false"
                         class="ip36"
-                        v-model="props.model.involved_name"
+                        v-model="model.involved_name"
                         maxLength="50"
                       />
                     </div>
@@ -990,7 +1191,7 @@ onMounted(() => {
                       <InputText
                         spellcheck="false"
                         class="ip36"
-                        v-model="props.model.involved_phone"
+                        v-model="model.involved_phone"
                         maxLength="50"
                       />
                     </div>
@@ -1004,7 +1205,7 @@ onMounted(() => {
                         optionLabel="relationship_name"
                         optionValue="relationship_id"
                         placeholder="Chọn quan hệ"
-                        v-model="props.model.relationship_id"
+                        v-model="model.relationship_id"
                         class="ip36"
                         :style="{
                           whiteSpace: 'nowrap',
@@ -1020,7 +1221,7 @@ onMounted(() => {
                       <InputText
                         spellcheck="false"
                         class="ip36"
-                        v-model="props.model.involved_place"
+                        v-model="model.involved_place"
                         maxLength="500"
                       />
                     </div>
@@ -1042,7 +1243,7 @@ onMounted(() => {
                       <Calendar
                         class="ip36"
                         id="icon"
-                        v-model="props.model.recruitment_date_first"
+                        v-model="model.recruitment_date_first"
                         :showIcon="true"
                         placeholder="dd/mm/yyyy"
                       />
@@ -1054,7 +1255,7 @@ onMounted(() => {
                       <InputText
                         spellcheck="false"
                         class="ip36"
-                        v-model="props.model.recruitment_form"
+                        v-model="model.recruitment_form"
                         maxLength="500"
                       />
                     </div>
@@ -1067,7 +1268,7 @@ onMounted(() => {
                       <InputText
                         spellcheck="false"
                         class="ip36"
-                        v-model="props.model.job_before_recruitment"
+                        v-model="model.job_before_recruitment"
                         maxLength="500"
                       />
                     </div>
@@ -1078,7 +1279,7 @@ onMounted(() => {
                       <InputText
                         spellcheck="false"
                         class="ip36"
-                        v-model="props.model.recruitment_position"
+                        v-model="model.recruitment_position"
                         maxLength="500"
                       />
                     </div>
@@ -1094,19 +1295,16 @@ onMounted(() => {
                         class="field-checkbox flex justify-content-center"
                         style="height: 100%"
                       >
-                        <InputSwitch v-model="props.model.is_re_recruitment" />
+                        <InputSwitch v-model="model.is_re_recruitment" />
                         <label for="binary">Tuyển dụng lại</label>
                       </div>
                     </div>
                   </div>
-                  <div
-                    v-if="props.model.is_re_recruitment"
-                    class="col-6 md:col-6"
-                  >
+                  <div v-if="model.is_re_recruitment" class="col-6 md:col-6">
                     <div class="form-group">
                       <label>Lần tuyển dụng</label>
                       <InputNumber
-                        v-model="props.model.recruitment_number"
+                        v-model="model.recruitment_number"
                         inputId="minmax"
                         :min="0"
                         showButtons
@@ -1114,10 +1312,7 @@ onMounted(() => {
                       />
                     </div>
                   </div>
-                  <div
-                    v-if="props.model.is_re_recruitment"
-                    class="col-12 md:col-12"
-                  >
+                  <div v-if="model.is_re_recruitment" class="col-12 md:col-12">
                     <div class="row">
                       <div class="col-6 md:col-6">
                         <div class="form-group">
@@ -1125,7 +1320,7 @@ onMounted(() => {
                           <Calendar
                             class="ip36"
                             id="icon"
-                            v-model="props.model.re_recruitment_date"
+                            v-model="model.re_recruitment_date"
                             :showIcon="true"
                             placeholder="dd/mm/yyyy"
                           />
@@ -1137,7 +1332,7 @@ onMounted(() => {
                           <InputText
                             spellcheck="false"
                             class="ip36"
-                            v-model="props.model.re_recruitment_form"
+                            v-model="model.re_recruitment_form"
                             maxLength="500"
                           />
                         </div>
@@ -1151,7 +1346,7 @@ onMounted(() => {
                           <InputText
                             spellcheck="false"
                             class="ip36"
-                            v-model="props.model.job_before_re_recruitment"
+                            v-model="model.job_before_re_recruitment"
                             maxLength="500"
                           />
                         </div>
@@ -1162,7 +1357,7 @@ onMounted(() => {
                           <InputText
                             spellcheck="false"
                             class="ip36"
-                            v-model="props.model.re_recruitment_position"
+                            v-model="model.re_recruitment_position"
                             maxLength="500"
                           />
                         </div>
@@ -1217,7 +1412,7 @@ onMounted(() => {
                         optionValue="cultural_level_id"
                         placeholder="Chọn trình độ"
                         class="ip36"
-                        v-model="props.model.cultural_level_id"
+                        v-model="model.cultural_level_id"
                         :style="{
                           whiteSpace: 'nowrap',
                           overflow: 'hidden',
@@ -1232,7 +1427,7 @@ onMounted(() => {
                       <InputText
                         spellcheck="false"
                         class="ip36"
-                        v-model="props.model.cultural_level_max"
+                        v-model="model.cultural_level_max"
                         maxLength="500"
                         disabled
                       />
@@ -1248,7 +1443,7 @@ onMounted(() => {
                         optionValue="management_state_id"
                         placeholder="Chọn cấp"
                         class="ip36"
-                        v-model="props.model.management_state_id"
+                        v-model="model.management_state_id"
                         :style="{
                           whiteSpace: 'nowrap',
                           overflow: 'hidden',
@@ -1267,7 +1462,7 @@ onMounted(() => {
                         optionValue="political_theory_id"
                         placeholder="Chọn cấp"
                         class="ip36"
-                        v-model="props.model.political_theory_id"
+                        v-model="model.political_theory_id"
                         :style="{
                           whiteSpace: 'nowrap',
                           overflow: 'hidden',
@@ -1286,7 +1481,7 @@ onMounted(() => {
                         optionValue="language_level_id"
                         placeholder="Chọn cấp"
                         class="ip36"
-                        v-model="props.model.language_level_id"
+                        v-model="model.language_level_id"
                         :style="{
                           whiteSpace: 'nowrap',
                           overflow: 'hidden',
@@ -1305,7 +1500,7 @@ onMounted(() => {
                         optionValue="informatic_level_id"
                         placeholder="Chọn cấp"
                         class="ip36"
-                        v-model="props.model.informatic_level_id"
+                        v-model="model.informatic_level_id"
                         :style="{
                           whiteSpace: 'nowrap',
                           overflow: 'hidden',
@@ -1322,7 +1517,7 @@ onMounted(() => {
                   <div class="col-12 md:col-12 p-0">
                     <!-- <div
                       class="row"
-                      v-for="(item, index) in props.datachilds[2]"
+                      v-for="(item, index) in datachilds[2]"
                     >
                       <Toolbar
                         class="w-full custoolbar p-0 font-bold"
@@ -1335,7 +1530,7 @@ onMounted(() => {
                         <template #start></template>
                         <template #end>
                           <a
-                            @click="props.deleteRow(2, index)"
+                            @click="deleteRow(2, index)"
                             class="hover"
                             v-tooltip.top="'Xóa'"
                           >
@@ -1606,7 +1801,7 @@ onMounted(() => {
                       </div>
                     </div> -->
                     <DataTable
-                      :value="props.datachilds[2]"
+                      :value="datachilds[2]"
                       :scrollable="true"
                       :lazy="true"
                       :rowHover="true"
@@ -1622,7 +1817,7 @@ onMounted(() => {
                       >
                         <template #body="slotProps">
                           <a
-                            @click="props.deleteRow(2, slotProps.index)"
+                            @click="deleteRow(2, slotProps.index)"
                             class="hover"
                             v-tooltip.top="'Xóa'"
                           >
@@ -2005,7 +2200,7 @@ onMounted(() => {
                   <template #end>
                     <!-- <a
                       @click="
-                        props.addRow(3);
+                        addRow(3);
                         $event.stopPropagation();
                       "
                       class="hover"
@@ -2023,7 +2218,7 @@ onMounted(() => {
               <!-- <div class="col-12 md:col-12 p-0">
                 <div style="">
                   <DataTable
-                    :value="props.datachilds[3]"
+                    :value="datachilds[3]"
                     :scrollable="true"
                     :lazy="true"
                     :rowHover="true"
@@ -2039,7 +2234,7 @@ onMounted(() => {
                     >
                       <template #body="slotProps">
                         <a
-                          @click="props.deleteRow(3, slotProps.index)"
+                          @click="deleteRow(3, slotProps.index)"
                           class="hover"
                           v-tooltip.top="'Xóa'"
                         >
@@ -2186,7 +2381,7 @@ onMounted(() => {
                       <InputText
                         spellcheck="false"
                         class="ip36"
-                        v-model="props.model.bevy_code"
+                        v-model="model.bevy_code"
                         maxLength="50"
                       />
                     </div>
@@ -2196,7 +2391,7 @@ onMounted(() => {
                       <label>Ngày vào Đoàn</label>
                       <Calendar
                         :showIcon="true"
-                        v-model="props.model.bevy_date"
+                        v-model="model.bevy_date"
                         class="ip36"
                         id="icon"
                         placeholder="dd/mm/yyyy"
@@ -2209,7 +2404,7 @@ onMounted(() => {
                       <InputText
                         spellcheck="false"
                         class="ip36"
-                        v-model="props.model.bevy_address"
+                        v-model="model.bevy_address"
                         maxLength="500"
                       />
                     </div>
@@ -2220,7 +2415,7 @@ onMounted(() => {
                       <InputText
                         spellcheck="false"
                         class="ip36"
-                        v-model="props.model.bevy_position"
+                        v-model="model.bevy_position"
                         maxLength="500"
                       />
                     </div>
@@ -2236,7 +2431,7 @@ onMounted(() => {
                         class="field-checkbox flex justify-content-center"
                         style="height: 100%"
                       >
-                        <InputSwitch v-model="props.model.is_partisan" />
+                        <InputSwitch v-model="model.is_partisan" />
                         <label for="binary">Là Đảng viên</label>
                       </div>
                     </div>
@@ -2251,7 +2446,7 @@ onMounted(() => {
                         optionValue="newname"
                         placeholder="Chọn ngạch công chức (viên chức)"
                         class="ip36"
-                        v-model="props.model.civil_servant_rank_name"
+                        v-model="model.civil_servant_rank_name"
                         :style="{
                           whiteSpace: 'nowrap',
                           overflow: 'hidden',
@@ -2267,7 +2462,7 @@ onMounted(() => {
                       <InputText
                         spellcheck="false"
                         class="ip36"
-                        v-model="props.model.card_partisan"
+                        v-model="model.card_partisan"
                         maxLength="50"
                       />
                     </div>
@@ -2277,7 +2472,7 @@ onMounted(() => {
                       <label>Ngày vào Đảng</label>
                       <Calendar
                         :showIcon="true"
-                        v-model="props.model.partisan_date"
+                        v-model="model.partisan_date"
                         class="ip36"
                         id="icon"
                         placeholder="dd/mm/yyyy"
@@ -2289,7 +2484,7 @@ onMounted(() => {
                       <label>Ngày vào Đảng chính thức</label>
                       <Calendar
                         :showIcon="true"
-                        v-model="props.model.partisan_main_date"
+                        v-model="model.partisan_main_date"
                         class="ip36"
                         id="icon"
                         placeholder="dd/mm/yyyy"
@@ -2302,7 +2497,7 @@ onMounted(() => {
                       <InputText
                         spellcheck="false"
                         class="ip36"
-                        v-model="props.model.partisan_address"
+                        v-model="model.partisan_address"
                         maxLength="500"
                       />
                     </div>
@@ -2311,7 +2506,7 @@ onMounted(() => {
                     <div class="form-group">
                       <label>Tính phí Đảng tại đơn vị</label>
                       <InputNumber
-                        v-model="props.model.partisan_fee"
+                        v-model="model.partisan_fee"
                         mode="decimal"
                         :minFractionDigits="0"
                         :maxFractionDigits="2"
@@ -2325,7 +2520,7 @@ onMounted(() => {
                       <InputText
                         spellcheck="false"
                         class="ip36"
-                        v-model="props.model.partisan_branch"
+                        v-model="model.partisan_branch"
                         maxLength="500"
                       />
                     </div>
@@ -2336,7 +2531,7 @@ onMounted(() => {
                       <InputText
                         spellcheck="false"
                         class="ip36"
-                        v-model="props.model.partisan_official"
+                        v-model="model.partisan_official"
                         maxLength="500"
                       />
                     </div>
@@ -2346,7 +2541,7 @@ onMounted(() => {
                       <label>Ngày tham gia cách mạng</label>
                       <Calendar
                         :showIcon="true"
-                        v-model="props.model.partisan_joindate"
+                        v-model="model.partisan_joindate"
                         class="ip36"
                         id="icon"
                         placeholder="dd/mm/yyyy"
@@ -2358,7 +2553,7 @@ onMounted(() => {
                       <label>Ngày tham gia tổ chức</label>
                       <Calendar
                         :showIcon="true"
-                        v-model="props.model.organization_joindate"
+                        v-model="model.organization_joindate"
                         class="ip36"
                         id="icon"
                         placeholder="dd/mm/yyyy"
@@ -2371,7 +2566,7 @@ onMounted(() => {
                       <InputText
                         spellcheck="false"
                         class="ip36"
-                        v-model="props.model.organization_task"
+                        v-model="model.organization_task"
                         maxLength="500"
                       />
                     </div>
@@ -2382,7 +2577,7 @@ onMounted(() => {
                       <InputText
                         spellcheck="false"
                         class="ip36"
-                        v-model="props.model.appellation"
+                        v-model="model.appellation"
                         maxLength="500"
                       />
                     </div>
@@ -2393,7 +2588,7 @@ onMounted(() => {
                       <InputText
                         spellcheck="false"
                         class="ip36"
-                        v-model="props.model.armorial"
+                        v-model="model.armorial"
                         maxLength="500"
                       />
                     </div>
@@ -2414,7 +2609,7 @@ onMounted(() => {
                       <label>Ngày nhập ngũ</label>
                       <Calendar
                         :showIcon="true"
-                        v-model="props.model.military_start_date"
+                        v-model="model.military_start_date"
                         class="ip36"
                         id="icon"
                         placeholder="dd/mm/yyyy"
@@ -2426,7 +2621,7 @@ onMounted(() => {
                       <label>Ngày xuất ngũ</label>
                       <Calendar
                         :showIcon="true"
-                        v-model="props.model.military_end_date"
+                        v-model="model.military_end_date"
                         class="ip36"
                         id="icon"
                         placeholder="dd/mm/yyyy"
@@ -2439,7 +2634,7 @@ onMounted(() => {
                       <InputText
                         spellcheck="false"
                         class="ip36"
-                        v-model="props.model.military_rank"
+                        v-model="model.military_rank"
                         maxLength="50"
                       />
                     </div>
@@ -2461,7 +2656,7 @@ onMounted(() => {
                         optionValue="title"
                         placeholder="Chọn danh hiệu phong tặng cao nhất"
                         class="ip36"
-                        v-model="props.model.military_title"
+                        v-model="model.military_title"
                         maxLength="250"
                         :style="{
                           whiteSpace: 'nowrap',
@@ -2477,7 +2672,7 @@ onMounted(() => {
                       <InputText
                         spellcheck="false"
                         class="ip36"
-                        v-model="props.model.military_forte"
+                        v-model="model.military_forte"
                         maxLength="250"
                       />
                     </div>
@@ -2488,7 +2683,7 @@ onMounted(() => {
                       <InputText
                         spellcheck="false"
                         class="ip36"
-                        v-model="props.model.military_health"
+                        v-model="model.military_health"
                         maxLength="250"
                       />
                     </div>
@@ -2500,7 +2695,7 @@ onMounted(() => {
                       <InputText
                         spellcheck="false"
                         class="ip36"
-                        v-model="props.model.military_veterans_rank"
+                        v-model="model.military_veterans_rank"
                         maxLength="50"
                       />
                     </div>
@@ -2521,7 +2716,7 @@ onMounted(() => {
                         optionValue="title"
                         placeholder="Là con gia đình chính sách"
                         class="ip36"
-                        v-model="props.model.military_policy_family"
+                        v-model="model.military_policy_family"
                         maxLength="250"
                         :style="{
                           whiteSpace: 'nowrap',
@@ -2575,7 +2770,7 @@ onMounted(() => {
                     <div class="form-group">
                       <label>Năm</label>
                       <InputNumber
-                        v-model="props.model.seniority_year"
+                        v-model="model.seniority_year"
                         inputId="minmax"
                         :min="0"
                         :max="100"
@@ -2588,7 +2783,7 @@ onMounted(() => {
                     <div class="form-group">
                       <label>Tháng</label>
                       <InputNumber
-                        v-model="props.model.seniority_month"
+                        v-model="model.seniority_month"
                         inputId="minmax"
                         :min="0"
                         :max="11"
@@ -2600,7 +2795,7 @@ onMounted(() => {
                 </div>
                 <div>
                   <DataTable
-                    :value="props.datachilds[4]"
+                    :value="datachilds[4]"
                     :scrollable="true"
                     :lazy="true"
                     :rowHover="true"
@@ -2616,7 +2811,7 @@ onMounted(() => {
                     >
                       <template #body="slotProps">
                         <a
-                          @click="props.deleteRow(4, slotProps.index)"
+                          @click="deleteRow(4, slotProps.index)"
                           class="hover"
                           v-tooltip.top="'Xóa'"
                         >
@@ -2635,13 +2830,18 @@ onMounted(() => {
                       class="align-items-center justify-content-center text-center"
                     >
                       <template #body="slotProps">
-                        <Calendar
+                        <!-- <Calendar
                           v-model="slotProps.data.start_date"
                           :showIcon="false"
                           view="month"
                           dateFormat="mm/yy"
                           class="ip36"
                           placeholder="mm/yyyy"
+                        /> -->
+                        <InputText
+                          v-model="slotProps.data.start_date"
+                          class="ip36"
+                          maxLength="250"
                         />
                       </template>
                     </Column>
@@ -2653,13 +2853,18 @@ onMounted(() => {
                       class="align-items-center justify-content-center text-center"
                     >
                       <template #body="slotProps">
-                        <Calendar
+                        <!-- <Calendar
                           v-model="slotProps.data.end_date"
                           :showIcon="false"
                           view="month"
                           dateFormat="mm/yy"
                           class="ip36"
                           placeholder="mm/yyyy"
+                        /> -->
+                        <InputText
+                          v-model="slotProps.data.end_date"
+                          class="ip36"
+                          maxLength="250"
                         />
                       </template>
                     </Column>
@@ -2839,7 +3044,7 @@ onMounted(() => {
               <div class="col-12 md:col-12 p-0">
                 <div style="">
                   <DataTable
-                    :value="props.datachilds[1]"
+                    :value="datachilds[1]"
                     :scrollable="true"
                     :lazy="true"
                     :rowHover="true"
@@ -2855,7 +3060,7 @@ onMounted(() => {
                     >
                       <template #body="slotProps">
                         <a
-                          @click="props.deleteRow(1, slotProps.index)"
+                          @click="deleteRow(1, slotProps.index)"
                           class="hover"
                           v-tooltip.top="'Xóa'"
                         >
@@ -2879,7 +3084,7 @@ onMounted(() => {
                             :showClear="true"
                             :options="[
                               { value: 1, title: 'Về bản thân' },
-                              { value: 2, title: 'Về bên vợ' },
+                              { value: 2, title: 'Về bên vợ/chồng' },
                             ]"
                             optionLabel="title"
                             optionValue="value"
@@ -2987,6 +3192,142 @@ onMounted(() => {
                           type="text"
                           class="ip36"
                           maxLength="50"
+                        />
+                      </template>
+                    </Column>
+                    <Column
+                      field="countryside"
+                      header="Quê quán"
+                      headerStyle="text-align:center;width:150px;height:50px"
+                      bodyStyle="text-align:center;width:150px;"
+                      class="align-items-center justify-content-center text-center"
+                    >
+                      <template #body="slotProps">
+                        <InputText
+                          v-model="slotProps.data.countryside"
+                          spellcheck="false"
+                          type="text"
+                          class="ip36"
+                          maxLength="500"
+                        />
+                      </template>
+                    </Column>
+                    <Column
+                      field="occupation"
+                      header="Nghề nghiệp"
+                      headerStyle="text-align:center;width:150px;height:50px"
+                      bodyStyle="text-align:center;width:150px;"
+                      class="align-items-center justify-content-center text-center"
+                    >
+                      <template #body="slotProps">
+                        <InputText
+                          v-model="slotProps.data.occupation"
+                          spellcheck="false"
+                          type="text"
+                          class="ip36"
+                          maxLength="500"
+                        />
+                      </template>
+                    </Column>
+                    <Column
+                      field="education"
+                      header="Học tập"
+                      headerStyle="text-align:center;width:150px;height:50px"
+                      bodyStyle="text-align:center;width:150px;"
+                      class="align-items-center justify-content-center text-center"
+                    >
+                      <template #body="slotProps">
+                        <InputText
+                          v-model="slotProps.data.education"
+                          spellcheck="false"
+                          type="text"
+                          class="ip36"
+                          maxLength="500"
+                        />
+                      </template>
+                    </Column>
+                    <Column
+                      field="company"
+                      header="Đơn vị công tác"
+                      headerStyle="text-align:center;width:150px;height:50px"
+                      bodyStyle="text-align:center;width:150px;"
+                      class="align-items-center justify-content-center text-center"
+                    >
+                      <template #body="slotProps">
+                        <InputText
+                          v-model="slotProps.data.company"
+                          spellcheck="false"
+                          type="text"
+                          class="ip36"
+                          maxLength="500"
+                        />
+                      </template>
+                    </Column>
+                    <Column
+                      field="title"
+                      header="Chức danh"
+                      headerStyle="text-align:center;width:150px;height:50px"
+                      bodyStyle="text-align:center;width:150px;"
+                      class="align-items-center justify-content-center text-center"
+                    >
+                      <template #body="slotProps">
+                        <InputText
+                          v-model="slotProps.data.title"
+                          spellcheck="false"
+                          type="text"
+                          class="ip36"
+                          maxLength="500"
+                        />
+                      </template>
+                    </Column>
+                    <Column
+                      field="position"
+                      header="Chức vụ"
+                      headerStyle="text-align:center;width:150px;height:50px"
+                      bodyStyle="text-align:center;width:150px;"
+                      class="align-items-center justify-content-center text-center"
+                    >
+                      <template #body="slotProps">
+                        <InputText
+                          v-model="slotProps.data.position"
+                          spellcheck="false"
+                          type="text"
+                          class="ip36"
+                          maxLength="500"
+                        />
+                      </template>
+                    </Column>
+                    <Column
+                      field="address"
+                      header="Nơi ở hiện nay"
+                      headerStyle="text-align:center;width:150px;height:50px"
+                      bodyStyle="text-align:center;width:150px;"
+                      class="align-items-center justify-content-center text-center"
+                    >
+                      <template #body="slotProps">
+                        <InputText
+                          v-model="slotProps.data.address"
+                          spellcheck="false"
+                          type="text"
+                          class="ip36"
+                          maxLength="500"
+                        />
+                      </template>
+                    </Column>
+                    <Column
+                      field="organization"
+                      header="Thành viên tổ chức CTXH"
+                      headerStyle="text-align:center;width:150px;height:50px"
+                      bodyStyle="text-align:center;width:150px;"
+                      class="align-items-center justify-content-center text-center"
+                    >
+                      <template #body="slotProps">
+                        <InputText
+                          v-model="slotProps.data.organization"
+                          spellcheck="false"
+                          type="text"
+                          class="ip36"
+                          maxLength="500"
                         />
                       </template>
                     </Column>
@@ -3203,7 +3544,7 @@ onMounted(() => {
                       <InputText
                         spellcheck="false"
                         class="ip36"
-                        v-model="props.model.family_member"
+                        v-model="model.family_member"
                         maxLength="500"
                       />
                     </div>
@@ -3215,7 +3556,7 @@ onMounted(() => {
                       <InputText
                         spellcheck="false"
                         class="ip36"
-                        v-model="props.model.task_longest"
+                        v-model="model.task_longest"
                         maxLength="500"
                       />
                     </div>
@@ -3226,7 +3567,7 @@ onMounted(() => {
                       <InputText
                         spellcheck="false"
                         class="ip36"
-                        v-model="props.model.mission_forte"
+                        v-model="model.mission_forte"
                         maxLength="500"
                       />
                     </div>
@@ -3237,7 +3578,7 @@ onMounted(() => {
                       <Textarea
                         :autoResize="true"
                         rows="4"
-                        v-model="props.model.military_reward"
+                        v-model="model.military_reward"
                       />
                     </div>
                   </div>
@@ -3247,7 +3588,7 @@ onMounted(() => {
                       <Textarea
                         :autoResize="true"
                         rows="4"
-                        v-model="props.model.military_discipline"
+                        v-model="model.military_discipline"
                       />
                     </div>
                   </div>
@@ -3261,7 +3602,7 @@ onMounted(() => {
                         :autoResize="true"
                         rows="4"
                         placeholder="Nhập thông tin"
-                        v-model="props.model.biography_first"
+                        v-model="model.biography_first"
                       />
                     </div>
                   </div>
@@ -3275,7 +3616,7 @@ onMounted(() => {
                         :autoResize="true"
                         rows="4"
                         placeholder="Nhập thông tin"
-                        v-model="props.model.biography_second"
+                        v-model="model.biography_second"
                       />
                     </div>
                   </div>
@@ -3286,7 +3627,7 @@ onMounted(() => {
                         :autoResize="true"
                         rows="4"
                         placeholder="Nhập thông tin"
-                        v-model="props.model.biography_third"
+                        v-model="model.biography_third"
                       />
                     </div>
                   </div>
@@ -3300,7 +3641,7 @@ onMounted(() => {
                         :autoResize="true"
                         rows="4"
                         placeholder="Nhập thông tin"
-                        v-model="props.model.note"
+                        v-model="model.note"
                       />
                     </div>
                   </div>
@@ -3320,7 +3661,7 @@ onMounted(() => {
                       <label>Lương gia đình</label>
                       <InputNumber
                         showButtons
-                        v-model="props.model.salary_family"
+                        v-model="model.salary_family"
                         mode="decimal"
                         locale="vi-VN"
                         :minFractionDigits="0"
@@ -3334,7 +3675,7 @@ onMounted(() => {
                       <label>Nguồn khác</label>
                       <InputNumber
                         showButtons
-                        v-model="props.model.salary_orther"
+                        v-model="model.salary_orther"
                         mode="decimal"
                         locale="vi-VN"
                         :minFractionDigits="0"
@@ -3349,7 +3690,7 @@ onMounted(() => {
                       <InputText
                         spellcheck="false"
                         class="ip36"
-                        v-model="props.model.type_rent"
+                        v-model="model.type_rent"
                         maxLength="500"
                       />
                     </div>
@@ -3359,7 +3700,7 @@ onMounted(() => {
                       <label>Diện tích nhà sử dụng</label>
                       <InputNumber
                         showButtons
-                        v-model="props.model.area_level"
+                        v-model="model.area_level"
                         mode="decimal"
                         locale="vi-VN"
                         :minFractionDigits="0"
@@ -3374,7 +3715,7 @@ onMounted(() => {
                       <InputText
                         spellcheck="false"
                         class="ip36"
-                        v-model="props.model.type_house"
+                        v-model="model.type_house"
                         maxLength="500"
                       />
                     </div>
@@ -3384,7 +3725,7 @@ onMounted(() => {
                       <label>Diện tích nhà mua</label>
                       <InputNumber
                         showButtons
-                        v-model="props.model.area_buy"
+                        v-model="model.area_buy"
                         mode="decimal"
                         locale="vi-VN"
                         :minFractionDigits="0"
@@ -3398,7 +3739,7 @@ onMounted(() => {
                       <label>Diện tích đất được cấp</label>
                       <InputNumber
                         showButtons
-                        v-model="props.model.area_granted"
+                        v-model="model.area_granted"
                         mode="decimal"
                         locale="vi-VN"
                         :minFractionDigits="0"
@@ -3412,7 +3753,7 @@ onMounted(() => {
                       <label>Diện tích đất tự mua</label>
                       <InputNumber
                         showButtons
-                        v-model="props.model.area_buy_yourself"
+                        v-model="model.area_buy_yourself"
                         mode="decimal"
                         locale="vi-VN"
                         :minFractionDigits="0"
@@ -3426,7 +3767,7 @@ onMounted(() => {
                       <label>Tổng diện tích</label>
                       <InputNumber
                         showButtons
-                        v-model="props.model.area_manufacture"
+                        v-model="model.area_manufacture"
                         mode="decimal"
                         locale="vi-VN"
                         :minFractionDigits="0"
@@ -3441,7 +3782,7 @@ onMounted(() => {
                       <InputText
                         spellcheck="false"
                         class="ip36"
-                        v-model="props.model.sign_address"
+                        v-model="model.sign_address"
                         maxLength="500"
                       />
                     </div>
@@ -3452,7 +3793,7 @@ onMounted(() => {
                       <Calendar
                         class="ip36"
                         id="icon"
-                        v-model="props.model.sign_date"
+                        v-model="model.sign_date"
                         :showIcon="true"
                         placeholder="dd/mm/yyyy"
                       />
@@ -3474,8 +3815,8 @@ onMounted(() => {
                     :multiple="true"
                     :show-upload-button="false"
                     :show-cancel-button="true"
-                    @remove="props.removeFile"
-                    @select="props.selectFile"
+                    @remove="removeFile"
+                    @select="selectFile"
                     name="demo[]"
                     url="./upload.php"
                     accept=""
@@ -3486,14 +3827,10 @@ onMounted(() => {
                       <p>Kéo thả tệp đính kèm vào đây.</p>
                     </template>
                   </FileUpload>
-                  <div
-                    v-if="
-                      props.model.files != null && props.model.files.length > 0
-                    "
-                  >
+                  <div v-if="model.files != null && model.files.length > 0">
                     <DataView
                       :lazy="true"
-                      :value="props.model.files"
+                      :value="model.files"
                       :rowHover="true"
                       :scrollable="true"
                       class="w-full h-full ptable p-datatable-sm flex flex-column"
@@ -3589,12 +3926,12 @@ onMounted(() => {
               :showClear="true"
               :options="[
                 { value: 1, title: 'Về bản thân' },
-                { value: 2, title: 'Về bên vợ' },
+                { value: 2, title: 'Về bên vợ/chồng' },
               ]"
               optionLabel="title"
               optionValue="value"
               placeholder="Chọn quan hệ"
-              v-model="model.is_type"
+              v-model="modeldetail.is_type"
               class="ip36"
               :style="{
                 whiteSpace: 'nowrap',
@@ -3608,7 +3945,7 @@ onMounted(() => {
           <div class="form-group">
             <label>Họ tên</label>
             <InputText
-              v-model="model.relative_name"
+              v-model="modeldetail.relative_name"
               spellcheck="false"
               type="text"
               class="ip36"
@@ -3625,7 +3962,7 @@ onMounted(() => {
               optionLabel="relationship_name"
               optionValue="relationship_id"
               placeholder="Chọn quan hệ"
-              v-model="model.relationship_id"
+              v-model="modeldetail.relationship_id"
               class="ip36"
               :style="{
                 whiteSpace: 'nowrap',
@@ -3639,7 +3976,7 @@ onMounted(() => {
           <div class="form-group">
             <label>Năm sinh</label>
             <Calendar
-              v-model="model.birthday"
+              v-model="modeldetail.birthday"
               :showIcon="false"
               inputMask="9999"
               view="year"
@@ -3653,7 +3990,7 @@ onMounted(() => {
           <div class="form-group">
             <label>Điện thoại</label>
             <InputMask
-              v-model="model.phone"
+              v-model="modeldetail.phone"
               mask="9999999999"
               placeholder="__________"
               class="ip36"
@@ -3664,7 +4001,7 @@ onMounted(() => {
           <div class="form-group">
             <label>Mã số thuế</label>
             <InputText
-              v-model="model.tax_code"
+              v-model="modeldetail.tax_code"
               spellcheck="false"
               type="text"
               class="ip36"
@@ -3672,11 +4009,107 @@ onMounted(() => {
             />
           </div>
         </div>
+        <div class="col-4 md:col-4">
+          <div class="form-group">
+            <label>Quê quán</label>
+            <InputText
+              v-model="modeldetail.countryside"
+              spellcheck="false"
+              type="text"
+              class="ip36"
+              maxLength="500"
+            />
+          </div>
+        </div>
+        <div class="col-4 md:col-4">
+          <div class="form-group">
+            <label>Nghề nghiệp</label>
+            <InputText
+              v-model="modeldetail.occupation"
+              spellcheck="false"
+              type="text"
+              class="ip36"
+              maxLength="500"
+            />
+          </div>
+        </div>
+        <div class="col-4 md:col-4">
+          <div class="form-group">
+            <label>Học tập</label>
+            <InputText
+              v-model="modeldetail.education"
+              spellcheck="false"
+              type="text"
+              class="ip36"
+              maxLength="500"
+            />
+          </div>
+        </div>
+        <div class="col-4 md:col-4">
+          <div class="form-group">
+            <label>Đơn vị công tác</label>
+            <InputText
+              v-model="modeldetail.company"
+              spellcheck="false"
+              type="text"
+              class="ip36"
+              maxLength="500"
+            />
+          </div>
+        </div>
+        <div class="col-4 md:col-4">
+          <div class="form-group">
+            <label>Chức danh</label>
+            <InputText
+              v-model="modeldetail.title"
+              spellcheck="false"
+              type="text"
+              class="ip36"
+              maxLength="500"
+            />
+          </div>
+        </div>
+        <div class="col-4 md:col-4">
+          <div class="form-group">
+            <label>Chức vụ</label>
+            <InputText
+              v-model="modeldetail.position"
+              spellcheck="false"
+              type="text"
+              class="ip36"
+              maxLength="500"
+            />
+          </div>
+        </div>
+        <div class="col-6 md:col-6">
+          <div class="form-group">
+            <label>Nơi ở hiện nay</label>
+            <InputText
+              v-model="modeldetail.address"
+              spellcheck="false"
+              type="text"
+              class="ip36"
+              maxLength="500"
+            />
+          </div>
+        </div>
+        <div class="col-6 md:col-6">
+          <div class="form-group">
+            <label>Thành viên tổ chức CTXH</label>
+            <InputText
+              v-model="modeldetail.organization"
+              spellcheck="false"
+              type="text"
+              class="ip36"
+              maxLength="500"
+            />
+          </div>
+        </div>
         <div class="col-3 md:col-3">
           <div class="form-group">
             <label>CCCD/Hộ chiếu</label>
             <InputText
-              v-model="model.identification_citizen"
+              v-model="modeldetail.identification_citizen"
               spellcheck="false"
               type="text"
               class="ip36"
@@ -3688,7 +4121,7 @@ onMounted(() => {
           <div class="form-group">
             <label>Ngày cấp</label>
             <Calendar
-              v-model="model.identification_date_issue"
+              v-model="modeldetail.identification_date_issue"
               :showIcon="true"
               class="ip36"
               placeholder="dd/mm/yyyy"
@@ -3699,7 +4132,7 @@ onMounted(() => {
           <div class="form-group">
             <label>Nơi cấp</label>
             <InputText
-              v-model="model.identification_place_issue"
+              v-model="modeldetail.identification_place_issue"
               spellcheck="false"
               type="text"
               class="ip36"
@@ -3718,7 +4151,7 @@ onMounted(() => {
               :filter="false"
               :showClear="true"
               :editable="false"
-              v-model="model.is_dependent"
+              v-model="modeldetail.is_dependent"
               optionLabel="title"
               optionValue="value"
               placeholder="Chọn trạng thái"
@@ -3743,7 +4176,7 @@ onMounted(() => {
           <div class="form-group">
             <label>Từ ngày</label>
             <Calendar
-              v-model="model.start_date"
+              v-model="modeldetail.start_date"
               :showIcon="true"
               class="ip36"
               placeholder="dd/mm/yyyy"
@@ -3754,7 +4187,7 @@ onMounted(() => {
           <div class="form-group">
             <label>Đến ngày</label>
             <Calendar
-              v-model="model.end_date"
+              v-model="modeldetail.end_date"
               :showIcon="true"
               class="ip36"
               placeholder="dd/mm/yyyy"
@@ -3765,7 +4198,7 @@ onMounted(() => {
           <div class="form-group">
             <label>Thông tin cơ bản</label>
             <InputText
-              v-model="model.info"
+              v-model="modeldetail.info"
               spellcheck="false"
               type="text"
               class="ip36"
@@ -3776,7 +4209,7 @@ onMounted(() => {
           <div class="form-group">
             <label>Ghi chú</label>
             <InputText
-              v-model="model.note"
+              v-model="modeldetail.note"
               spellcheck="false"
               type="text"
               class="ip36"
@@ -3789,7 +4222,7 @@ onMounted(() => {
               class="field-checkbox flex justify-content-center"
               style="height: 100%"
             >
-              <InputSwitch v-model="model.is_company" />
+              <InputSwitch v-model="modeldetail.is_company" />
               <label for="binary">Cùng cơ quan</label>
             </div>
           </div>
@@ -3800,7 +4233,7 @@ onMounted(() => {
               class="field-checkbox flex justify-content-center"
               style="height: 100%"
             >
-              <InputSwitch v-model="model.is_die" />
+              <InputSwitch v-model="modeldetail.is_die" />
               <label for="binary">Đã mất</label>
             </div>
           </div>
@@ -3842,7 +4275,7 @@ onMounted(() => {
           <div class="form-group">
             <label>Từ tháng, năm</label>
             <!-- <Calendar
-              v-model="model.start_date"
+              v-model="modeldetail.start_date"
               :showIcon="false"
               view="month"
               dateFormat="mm/yy"
@@ -3850,7 +4283,7 @@ onMounted(() => {
               placeholder="mm/yyyy"
             /> -->
             <InputText
-              v-model="model.start_date"
+              v-model="modeldetail.start_date"
               class="ip36"
               maxLength="250"
             />
@@ -3867,7 +4300,11 @@ onMounted(() => {
               class="ip36"
               placeholder="mm/yyyy"
             /> -->
-            <InputText v-model="model.end_date" class="ip36" maxLength="250" />
+            <InputText
+              v-model="modeldetail.end_date"
+              class="ip36"
+              maxLength="250"
+            />
           </div>
         </div>
         <div class="col-6 md:col-6">
@@ -3880,7 +4317,7 @@ onMounted(() => {
               optionValue="academic_level_id"
               placeholder="Chọn trình độ"
               class="ip36"
-              v-model="model.academic_level_id"
+              v-model="modeldetail.academic_level_id"
               :style="{
                 whiteSpace: 'nowrap',
                 overflow: 'hidden',
@@ -3899,7 +4336,7 @@ onMounted(() => {
               optionLabel="specialization_name"
               optionValue="specialization_id"
               placeholder="Chọn chuyên ngành"
-              v-model="model.specialized"
+              v-model="modeldetail.specialized"
               class="ip36"
               :style="{
                 whiteSpace: 'nowrap',
@@ -3921,7 +4358,7 @@ onMounted(() => {
               optionValue="learning_place_name"
               placeholder="Chọn nơi đào tạo"
               class="ip36"
-              v-model="model.university_name"
+              v-model="modeldetail.university_name"
               maxLength="250"
               :style="{
                 whiteSpace: 'nowrap',
@@ -3940,7 +4377,7 @@ onMounted(() => {
               optionLabel="form_traning_name"
               optionValue="form_traning_id"
               placeholder="Chọn hệ đào tạo"
-              v-model="model.form_traning_id"
+              v-model="modeldetail.form_traning_id"
               class="ip36"
               :style="{
                 whiteSpace: 'nowrap',
@@ -3954,7 +4391,7 @@ onMounted(() => {
           <div class="form-group">
             <label>Năm tốt nghiệp</label>
             <!-- <Calendar
-              v-model="model.graduation_year"
+              v-model="modeldetail.graduation_year"
               :showIcon="false"
               view="year"
               dateFormat="yy"
@@ -3962,7 +4399,7 @@ onMounted(() => {
               placeholder="yyyy"
             /> -->
             <InputText
-              v-model="model.graduation_year"
+              v-model="modeldetail.graduation_year"
               class="ip36"
               maxLength="250"
             />
@@ -3986,7 +4423,7 @@ onMounted(() => {
               optionValue="title"
               placeholder="Chọn xếp loại"
               class="ip36"
-              v-model="model.rating"
+              v-model="modeldetail.rating"
               maxLength="250"
               :style="{
                 whiteSpace: 'nowrap',
@@ -4002,12 +4439,12 @@ onMounted(() => {
             <!-- <Calendar
               class="ip36"
               id="icon"
-              v-model="model.degree_date"
+              v-model="modeldetail.degree_date"
               :showIcon="true"
               placeholder="dd/mm/yyyy"
             /> -->
             <InputText
-              v-model="model.degree_date"
+              v-model="modeldetail.degree_date"
               class="ip36"
               maxLength="250"
             />
@@ -4019,7 +4456,7 @@ onMounted(() => {
               class="field-checkbox flex justify-content-center"
               style="height: 100%"
             >
-              <InputSwitch v-model="model.is_man_degree" />
+              <InputSwitch v-model="modeldetail.is_man_degree" />
               <label for="binary">Bằng cấp chính</label>
             </div>
           </div>
@@ -4038,7 +4475,7 @@ onMounted(() => {
               optionLabel="certificate_name"
               optionValue="certificate_id"
               placeholder="Chọn văn bằng"
-              v-model="model.certificate_id"
+              v-model="modeldetail.certificate_id"
               class="ip36"
               :style="{
                 whiteSpace: 'nowrap',
@@ -4052,7 +4489,7 @@ onMounted(() => {
           <div class="form-group">
             <label>Số hiệu</label>
             <InputText
-              v-model="model.certificate_key_code"
+              v-model="modeldetail.certificate_key_code"
               spellcheck="false"
               type="text"
               class="ip36"
@@ -4064,7 +4501,7 @@ onMounted(() => {
           <div class="form-group">
             <label>Phiên bản</label>
             <InputText
-              v-model="model.certificate_version"
+              v-model="modeldetail.certificate_version"
               spellcheck="false"
               type="text"
               class="ip36"
@@ -4076,7 +4513,7 @@ onMounted(() => {
           <div class="form-group">
             <label>Lần phát hành</label>
             <InputText
-              v-model="model.certificate_release_time"
+              v-model="modeldetail.certificate_release_time"
               spellcheck="false"
               type="text"
               class="ip36"
@@ -4088,7 +4525,7 @@ onMounted(() => {
           <div class="form-group">
             <label>Ngày hiệu lực</label>
             <Calendar
-              v-model="model.certificate_start_date"
+              v-model="modeldetail.certificate_start_date"
               :showIcon="false"
               class="ip36"
               placeholder="dd/mm/yyyy"
@@ -4099,7 +4536,7 @@ onMounted(() => {
           <div class="form-group">
             <label>Ngày hết hiệu lực</label>
             <Calendar
-              v-model="model.certificate_end_date"
+              v-model="modeldetail.certificate_end_date"
               :showIcon="false"
               class="ip36"
               placeholder="dd/mm/yyyy"
@@ -4134,34 +4571,39 @@ onMounted(() => {
   >
     <form @submit.prevent="" name="submitform">
       <div class="grid formgrid m-2">
-        <div class="col-12 md:col-12">
-          <div class="form-group">
-            <label>Văn bằng:</label>
-          </div>
-        </div>
         <div class="col-3 md:col-3">
           <div class="form-group">
             <label>Từ tháng, năm</label>
-            <Calendar
-              v-model="model.start_date"
+            <!-- <Calendar
+              v-model="modeldetail.start_date"
               :showIcon="false"
               view="month"
               dateFormat="mm/yy"
               class="ip36"
               placeholder="mm/yyyy"
+            /> -->
+            <InputText
+              v-model="modeldetail.start_date"
+              class="ip36"
+              maxLength="250"
             />
           </div>
         </div>
         <div class="col-3 md:col-3">
           <div class="form-group">
             <label>Đến tháng, năm</label>
-            <Calendar
-              v-model="model.end_date"
+            <!-- <Calendar
+              v-model="modeldetail.end_date"
               :showIcon="false"
               view="month"
               dateFormat="mm/yy"
               class="ip36"
               placeholder="mm/yyyy"
+            /> -->
+            <InputText
+              v-model="modeldetail.end_date"
+              class="ip36"
+              maxLength="250"
             />
           </div>
         </div>
@@ -4169,7 +4611,7 @@ onMounted(() => {
           <div class="form-group">
             <label>Công ty, đơn vị</label>
             <InputText
-              v-model="model.company"
+              v-model="modeldetail.company"
               spellcheck="false"
               type="text"
               class="ip36"
@@ -4181,7 +4623,7 @@ onMounted(() => {
           <div class="form-group">
             <label>Địa chỉ</label>
             <InputText
-              v-model="model.address"
+              v-model="modeldetail.address"
               spellcheck="false"
               type="text"
               class="ip36"
@@ -4193,7 +4635,7 @@ onMounted(() => {
           <div class="form-group">
             <label>Vị trí</label>
             <InputText
-              v-model="model.role"
+              v-model="modeldetail.role"
               spellcheck="false"
               type="text"
               class="ip36"
@@ -4205,7 +4647,7 @@ onMounted(() => {
           <div class="form-group">
             <label>Mức lương</label>
             <InputText
-              v-model="model.wage"
+              v-model="modeldetail.wage"
               spellcheck="false"
               type="text"
               class="ip36"
@@ -4217,7 +4659,7 @@ onMounted(() => {
           <div class="form-group">
             <label>Người tham chiếu</label>
             <InputText
-              v-model="model.reference_name"
+              v-model="modeldetail.reference_name"
               spellcheck="false"
               type="text"
               class="ip36"
@@ -4229,7 +4671,7 @@ onMounted(() => {
           <div class="form-group">
             <label>Điện thoại</label>
             <InputMask
-              v-model="model.reference_phone"
+              v-model="modeldetail.reference_phone"
               mask="9999999999"
               placeholder="__________"
               class="ip36"
@@ -4240,7 +4682,7 @@ onMounted(() => {
           <div class="form-group">
             <label>Mô tả công việc</label>
             <InputText
-              v-model="model.description"
+              v-model="modeldetail.description"
               spellcheck="false"
               type="text"
               class="ip36"
@@ -4252,7 +4694,7 @@ onMounted(() => {
           <div class="form-group">
             <label>Lý do nghỉ việc</label>
             <InputText
-              v-model="model.reason"
+              v-model="modeldetail.reason"
               spellcheck="false"
               type="text"
               class="ip36"

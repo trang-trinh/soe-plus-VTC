@@ -61,11 +61,12 @@ namespace API.Controllers.Task_Origin1
                     }
                     await db.SaveChangesAsync();
                     var listuser = db.task_member.Where(x => x.task_id == task_Extend.task_id).Select(x => x.user_id).Distinct().ToList();
+                    var permission = db.task_member.Where(x => x.user_id == uid).Select(x => x.is_type).Distinct().ToList();
                     string task_name = db.task_origin.Where(x => x.task_id == task_Extend.task_id).Select(x => x.task_name).FirstOrDefault().ToString();
                     listuser.Remove(uid);
                     foreach (var l in listuser)
                     {
-                        helper.saveNotify(uid, l, null, "Công việc", "Đã xin gia hạn công việc: " + (task_name.Length > 100 ? task_name.Substring(0, 97) + "..." : task_name),
+                        helper.saveNotify(uid, l, null, "Công việc", (permission.Contains(0) ? "Đã thay đổi thời gian hoàn thành công việc: " : "Đã xin gia hạn công việc: ") + (task_name.Length > 100 ? task_name.Substring(0, 97) + "..." : task_name),
                             null, 2, -1, false, module_key, task_Extend.task_id, null, null, tid, ip);
                     }
                     #region add cms_logs
@@ -217,46 +218,46 @@ namespace API.Controllers.Task_Origin1
                 using (DBEntities db = new DBEntities())
                 {
                     List<task_extend> del = new List<task_extend>();
-           
-                        var das = await db.task_extend.Where(a => id.Contains(a.extend_id)).ToListAsync();
-                        List<string> paths = new List<string>();
-                        if (das != null)
+
+                    var das = await db.task_extend.Where(a => id.Contains(a.extend_id)).ToListAsync();
+                    List<string> paths = new List<string>();
+                    if (das != null)
+                    {
+                        foreach (var da in das)
                         {
-                            foreach (var da in das)
+
+
+                            del.Add(da);
+                            #region add cms_logs
+                            if (helper.wlog)
                             {
-
-
-                                del.Add(da);
-                                #region add cms_logs
-                                if (helper.wlog)
-                                {
-                                    task_logs log = new task_logs();
-                                    log.log_id = helper.GenKey();
-                                    log.task_id = da.task_id;
-                                    log.project_id = null;
-                                    log.description = "xóa gia hạn công việc";
-                                    log.created_date = DateTime.Now;
-                                    log.created_by = uid;
-                                    log.created_token_id = tid;
-                                    log.created_ip = ip;
-                                    db.task_logs.Add(log);
-                                    db.SaveChanges();
-                                }
-                                #endregion
+                                task_logs log = new task_logs();
+                                log.log_id = helper.GenKey();
+                                log.task_id = da.task_id;
+                                log.project_id = null;
+                                log.description = "xóa gia hạn công việc";
+                                log.created_date = DateTime.Now;
+                                log.created_by = uid;
+                                log.created_token_id = tid;
+                                log.created_ip = ip;
+                                db.task_logs.Add(log);
+                                db.SaveChanges();
                             }
-                            string ssid = das[0].task_id;
-
-                            var listuser = db.task_member.Where(x => x.task_id == ssid).Select(x => x.user_id).Distinct().ToList();
-                            string task_name = db.task_origin.Where(x => x.task_id == ssid).Select(x => x.task_name).FirstOrDefault().ToString();
-                            listuser.Remove(uid);
-
-                            foreach (var l in listuser)
-                            {
-                                helper.saveNotify(uid, l, null, "Công việc", "Xóa gia hạn công việc: " + (task_name.Length > 100 ? task_name.Substring(0, 97) + "..." : task_name),
-                                    null, 2, -1, false, module_key, ssid, null, null, tid, ip);
-                            }
+                            #endregion
                         }
-                
+                        string ssid = das[0].task_id;
+
+                        var listuser = db.task_member.Where(x => x.task_id == ssid).Select(x => x.user_id).Distinct().ToList();
+                        string task_name = db.task_origin.Where(x => x.task_id == ssid).Select(x => x.task_name).FirstOrDefault().ToString();
+                        listuser.Remove(uid);
+
+                        foreach (var l in listuser)
+                        {
+                            helper.saveNotify(uid, l, null, "Công việc", "Xóa gia hạn công việc: " + (task_name.Length > 100 ? task_name.Substring(0, 97) + "..." : task_name),
+                                null, 2, -1, false, module_key, ssid, null, null, tid, ip);
+                        }
+                    }
+
                     if (del.Count == 0)
                     {
                         return Request.CreateResponse(HttpStatusCode.OK, new { err = "1", ms = "Bạn không có quyền xóa dữ liệu." });

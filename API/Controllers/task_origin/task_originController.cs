@@ -82,6 +82,10 @@ namespace API.Controllers
                         fdXML = provider.FormData.GetValues("isXML").SingleOrDefault();
                         task_origin task_origin = JsonConvert.DeserializeObject<task_origin>(fdtask);
                         List<task_member> members = JsonConvert.DeserializeObject<List<task_member>>(fdtaskmember);
+                        if (task_origin.start_date == null)
+                        {
+                            task_origin.start_date = DateTime.Now;
+                        }
 
                         task_origin.task_id = helper.GenKey();
                         task_origin.task_name_en = helper.convertToUnSign3(task_origin.task_name).ToLower();
@@ -93,7 +97,7 @@ namespace API.Controllers
                         task_origin.created_token_id = tid;
                         task_origin.u_department_id = helper.Department(claims);
                         task_origin.organization_child_id = helper.OrgainzationChild(claims) != null ? helper.OrgainzationChild(claims) : helper.Orgainzation(claims);
-                        task_origin.organization_id= helper.Orgainzation(claims);
+                        task_origin.organization_id = helper.Orgainzation(claims);
                         db.task_origin.Add(task_origin);
 
                         var file = provider.FileData;
@@ -208,86 +212,86 @@ namespace API.Controllers
                             db.task_logs.Add(log);
                             db.SaveChanges();
                         }
-                    #endregion
-                    if (task_origin.is_template != true)
-                    {
-                        #region add sendhub
-                        if (helper.wlog)
+                        #endregion
+                        if (task_origin.is_template != true)
                         {
-                            if (members.Count > 0)
+                            #region add sendhub
+                            if (helper.wlog)
                             {
-                                List<sys_sendhub> listsendhubs = new List<sys_sendhub>();
-                                var contentNoti = "Thêm công việc: " + (task_origin.task_name.Length > 100 ? task_origin.task_name.Substring(0, 97) + "..." : task_origin.task_name);
-                                foreach (var item in members)
+                                if (members.Count > 0)
                                 {
-                                    if (listsendhubs.Where(x => x.receiver == item.user_id).ToList().Count == 0 && item.user_id != uid)
+                                    List<sys_sendhub> listsendhubs = new List<sys_sendhub>();
+                                    var contentNoti = "Thêm công việc: " + (task_origin.task_name.Length > 100 ? task_origin.task_name.Substring(0, 97) + "..." : task_origin.task_name);
+                                    foreach (var item in members)
                                     {
-                                        var ns_sh = db.sys_users.Find(item.user_id);
-                                        var created_by = db.sys_users.Find(uid);
-
-                                        var sh = new sys_sendhub();
-                                        sh.senhub_id = helper.GenKey();
-                                        sh.user_send = uid;
-                                        sh.module_key = "M4";
-                                        sh.receiver = ns_sh.user_id;
-                                        sh.icon = ns_sh.avatar;
-                                        sh.title = "Công việc";
-                                        sh.contents = contentNoti;
-                                        sh.type = 2;
-                                        sh.is_type = -1;
-                                        sh.date_send = DateTime.Now;
-                                        sh.id_key = task_origin.task_id.ToString();
-                                        //sh.group_id = task_origin.group_id;
-                                        sh.token_id = tid;
-                                        sh.created_date = DateTime.Now;
-                                        sh.created_by = uid;
-                                        sh.created_token_id = tid;
-                                        sh.created_ip = ip;
-
-                                        if (bool.Parse(fdXML) == true)
+                                        if (listsendhubs.Where(x => x.receiver == item.user_id).ToList().Count == 0 && item.user_id != uid)
                                         {
-                                            string xml_result = @"<?xml version=""1.0"" encoding=""UTF-8"" ?>";
-                                            xml_result += "<document>";
-                                            xml_result += "<element>";
-                                            xml_result += "<taskid>" + (task_origin.task_id ?? "") + "</taskid>";
-                                            xml_result += "<taskname>" + (task_origin.task_name ?? "") + "</taskname>";
-                                            xml_result += "<created_by>" + (created_by.full_name ?? "") + "</created_by>";
-                                            xml_result += "<receiver>" + (ns_sh.full_name ?? "") + "</receiver>";
-                                            xml_result += "<created_date>" + (sh.created_date) + "</created_date>";
-                                            xml_result += "<contents>" + (sh.contents) + "</contents>";
-                                            xml_result += "</element>";
-                                            xml_result += "</document>";
+                                            var ns_sh = db.sys_users.Find(item.user_id);
+                                            var created_by = db.sys_users.Find(uid);
 
-                                            var user_now = db.sys_users.AsNoTracking().FirstOrDefaultAsync(x => x.user_id == uid);
-                                            System.Net.WebClient webc = new System.Net.WebClient();
-                                            string path = rootXML + helper.path_xml + "/TaskOrigin/";
-                                            bool exists = Directory.Exists(path);
-                                            if (!exists)
-                                                Directory.CreateDirectory(path);
+                                            var sh = new sys_sendhub();
+                                            sh.senhub_id = helper.GenKey();
+                                            sh.user_send = uid;
+                                            sh.module_key = "M4";
+                                            sh.receiver = ns_sh.user_id;
+                                            sh.icon = ns_sh.avatar;
+                                            sh.title = "Công việc";
+                                            sh.contents = contentNoti;
+                                            sh.type = 2;
+                                            sh.is_type = -1;
+                                            sh.date_send = DateTime.Now;
+                                            sh.id_key = task_origin.task_id.ToString();
+                                            //sh.group_id = task_origin.group_id;
+                                            sh.token_id = tid;
+                                            sh.created_date = DateTime.Now;
+                                            sh.created_by = uid;
+                                            sh.created_token_id = tid;
+                                            sh.created_ip = ip;
 
-                                            string name_file = task_origin.task_id + ".xml";
-                                            string root_path = path + "/" + name_file;
-                                            string duong_dan = helper.path_xml + "/TaskOrigin/" + name_file;
-                                            string url = ConfigurationManager.AppSettings["ValidAudience"] + duong_dan;
-
-                                            File.WriteAllText(root_path, xml_result);
-                                            var res_encr = helper.encryptXML(root_path, "document", helper.psKey);
-                                            if (res_encr != "OK")
+                                            if (bool.Parse(fdXML) == true)
                                             {
-                                                return Request.CreateResponse(HttpStatusCode.OK, new { ms = "Không thể mã hoã file XML!", err = "1" });
-                                            };
+                                                string xml_result = @"<?xml version=""1.0"" encoding=""UTF-8"" ?>";
+                                                xml_result += "<document>";
+                                                xml_result += "<element>";
+                                                xml_result += "<taskid>" + (task_origin.task_id ?? "") + "</taskid>";
+                                                xml_result += "<taskname>" + (task_origin.task_name ?? "") + "</taskname>";
+                                                xml_result += "<created_by>" + (created_by.full_name ?? "") + "</created_by>";
+                                                xml_result += "<receiver>" + (ns_sh.full_name ?? "") + "</receiver>";
+                                                xml_result += "<created_date>" + (sh.created_date) + "</created_date>";
+                                                xml_result += "<contents>" + (sh.contents) + "</contents>";
+                                                xml_result += "</element>";
+                                                xml_result += "</document>";
+
+                                                var user_now = db.sys_users.AsNoTracking().FirstOrDefaultAsync(x => x.user_id == uid);
+                                                System.Net.WebClient webc = new System.Net.WebClient();
+                                                string path = rootXML + helper.path_xml + "/TaskOrigin/";
+                                                bool exists = Directory.Exists(path);
+                                                if (!exists)
+                                                    Directory.CreateDirectory(path);
+
+                                                string name_file = task_origin.task_id + ".xml";
+                                                string root_path = path + "/" + name_file;
+                                                string duong_dan = helper.path_xml + "/TaskOrigin/" + name_file;
+                                                string url = ConfigurationManager.AppSettings["ValidAudience"] + duong_dan;
+
+                                                File.WriteAllText(root_path, xml_result);
+                                                var res_encr = helper.encryptXML(root_path, "document", helper.psKey);
+                                                if (res_encr != "OK")
+                                                {
+                                                    return Request.CreateResponse(HttpStatusCode.OK, new { ms = "Không thể mã hoã file XML!", err = "1" });
+                                                };
+                                            }
+
+                                            listsendhubs.Add(sh);
                                         }
-
-                                        listsendhubs.Add(sh);
                                     }
-                                }
-                                if (listsendhubs.Count > 0)
-                                {
-                                    db.sys_sendhub.AddRange(listsendhubs);
+                                    if (listsendhubs.Count > 0)
+                                    {
+                                        db.sys_sendhub.AddRange(listsendhubs);
 
-                                    #region sendSocket
-                                    var users = listsendhubs.Where(x => x.receiver != uid).Select(x => x.receiver).Distinct().ToList();
-                                    var message = new Dictionary<string, dynamic>
+                                        #region sendSocket
+                                        var users = listsendhubs.Where(x => x.receiver != uid).Select(x => x.receiver).Distinct().ToList();
+                                        var message = new Dictionary<string, dynamic>
                                     {
                                         { "event", "sendNotify" },
                                         { "user_id", uid },
@@ -296,23 +300,23 @@ namespace API.Controllers
                                         { "date", DateTime.Now },
                                         { "uids", users },
                                     };
-                                    if (helper.socketClient != null && helper.socketClient.Connected == true)
-                                    {
-                                        try
+                                        if (helper.socketClient != null && helper.socketClient.Connected == true)
                                         {
-                                            helper.socketClient.EmitAsync("sendData", message);
+                                            try
+                                            {
+                                                helper.socketClient.EmitAsync("sendData", message);
+                                            }
+                                            catch { };
                                         }
-                                        catch { };
+                                        #endregion
                                     }
-                                    #endregion
                                 }
                             }
+                            #endregion
                         }
-                        #endregion
-                    }
-                    var id = task_origin.task_id;
+                        var id = task_origin.task_id;
                         db.SaveChanges();
-                    return Request.CreateResponse(HttpStatusCode.OK, new { err = "0", data= id }); ;
+                        return Request.CreateResponse(HttpStatusCode.OK, new { err = "0", data = id }); ;
                     });
                     return await task;
                 }
@@ -346,7 +350,7 @@ namespace API.Controllers
         public async Task<HttpResponseMessage> Update_TaskOrigin()
         {
             var identity = User.Identity as ClaimsIdentity;
-            string fdtask = ""; 
+            string fdtask = "";
             string fdtaskmember = "";
             string fdXML = "";
             IEnumerable<Claim> claims = identity.Claims;
@@ -747,127 +751,127 @@ namespace API.Controllers
             //}
             //try
             //{
-                string root = HttpContext.Current.Server.MapPath("~/");
-                string ip = getipaddress();
-                string name = claims.Where(p => p.Type == "fname").FirstOrDefault()?.Value;
-                string tid = claims.Where(p => p.Type == "tid").FirstOrDefault()?.Value;
-                string uid = claims.Where(p => p.Type == "uid").FirstOrDefault()?.Value;
-                bool ad = claims.Where(p => p.Type == "ad").FirstOrDefault()?.Value == "True";
-                string domainurl = HttpContext.Current.Request.Url.Scheme + "://" + HttpContext.Current.Request.Url.Host + ":" + HttpContext.Current.Request.Url.Port + "/";
-                try
+            string root = HttpContext.Current.Server.MapPath("~/");
+            string ip = getipaddress();
+            string name = claims.Where(p => p.Type == "fname").FirstOrDefault()?.Value;
+            string tid = claims.Where(p => p.Type == "tid").FirstOrDefault()?.Value;
+            string uid = claims.Where(p => p.Type == "uid").FirstOrDefault()?.Value;
+            bool ad = claims.Where(p => p.Type == "ad").FirstOrDefault()?.Value == "True";
+            string domainurl = HttpContext.Current.Request.Url.Scheme + "://" + HttpContext.Current.Request.Url.Host + ":" + HttpContext.Current.Request.Url.Port + "/";
+            try
+            {
+                using (DBEntities db = new DBEntities())
                 {
-                    using (DBEntities db = new DBEntities())
+                    var das = await db.task_origin.Where(a => ids.Contains(a.task_id)).ToListAsync();
+                    int count = 0;
+                    foreach (var da in das)
                     {
-                        var das = await db.task_origin.Where(a => ids.Contains(a.task_id)).ToListAsync();
-                        int count = 0;
+                        var rp = db.task_person_report.Where(x => x.list_task_id.Contains(da.task_id)).ToList();
+                        if (rp.Count > 0)
+                        {
+                            count++;
+                        }
+                    }
+                    if (count > 0)
+                    {
+                        return Request.CreateResponse(HttpStatusCode.OK, new { err = "1", ms = "Công việc đang được báo cáo ở Đánh giá công việc!<br/>Không thể xóa!" });
+                    }
+                    if (das != null)
+                    {
+                        List<task_origin> del = new List<task_origin>();
+                        List<task_member> del_member = new List<task_member>();
+                        List<task_file> del_file = new List<task_file>();
+                        List<task_reportprogress> del_reportprogress = new List<task_reportprogress>();
+                        List<task_checklists> del_checklists = new List<task_checklists>();
+                        List<task_comments> del_comments = new List<task_comments>();
+                        List<task_review> del_review = new List<task_review>();
+                        List<string> paths = new List<string>();
                         foreach (var da in das)
                         {
-                            var rp = db.task_person_report.Where(x => x.list_task_id.Contains(da.task_id)).ToList();
-                            if (rp.Count > 0)
+                            del.Add(da);
+
+                            #region del member
+                            var members = await db.task_member.Where(a => a.task_id == da.task_id).ToListAsync();
+                            if (members.Count > 0)
                             {
-                                count++;
+                                foreach (var m in members)
+                                {
+                                    del_member.Add(m);
+                                }
                             }
-                        }
-                        if (count > 0)
-                        {
-                            return Request.CreateResponse(HttpStatusCode.OK, new { err = "1", ms = "Công việc đang được báo cáo ở Đánh giá công việc!<br/>Không thể xóa!" });
-                        }
-                        if (das != null)
-                        {
-                            List<task_origin> del = new List<task_origin>();
-                            List<task_member> del_member = new List<task_member>();
-                            List<task_file> del_file = new List<task_file>();
-                            List<task_reportprogress> del_reportprogress = new List<task_reportprogress>();
-                            List<task_checklists> del_checklists = new List<task_checklists>();
-                            List<task_comments> del_comments = new List<task_comments>();
-                            List<task_review> del_review = new List<task_review>();
-                            List<string> paths = new List<string>();
-                            foreach (var da in das)
+                            #endregion
+
+                            #region del file
+                            var files = await db.task_file.Where(a => a.task_id == da.task_id).ToListAsync();
+                            if (files.Count > 0)
                             {
-                                del.Add(da);
-
-                                #region del member
-                                var members = await db.task_member.Where(a => a.task_id == da.task_id).ToListAsync();
-                                if (members.Count > 0)
+                                foreach (var f in files)
                                 {
-                                    foreach (var m in members)
-                                    {
-                                        del_member.Add(m);
-                                    }
+                                    del_file.Add(f);
+                                    paths.Add(root + f.file_path);
                                 }
-                                #endregion
+                            }
+                            #endregion
 
-                                #region del file
-                                var files = await db.task_file.Where(a => a.task_id == da.task_id).ToListAsync();
-                                if (files.Count > 0)
+                            #region del reportprogress
+                            var reportprogress = await db.task_reportprogress.Where(a => a.task_id == da.task_id).ToListAsync();
+                            if (reportprogress.Count > 0)
+                            {
+                                foreach (var f in reportprogress)
                                 {
-                                    foreach (var f in files)
-                                    {
-                                        del_file.Add(f);
-                                        paths.Add(root + f.file_path);
-                                    }
+                                    del_reportprogress.Add(f);
                                 }
-                                #endregion
+                            }
+                            #endregion
 
-                                #region del reportprogress
-                                var reportprogress = await db.task_reportprogress.Where(a => a.task_id == da.task_id).ToListAsync();
-                                if (reportprogress.Count > 0)
+                            #region del checklists
+                            var checklists = await db.task_checklists.Where(a => a.task_id == da.task_id).ToListAsync();
+                            if (checklists.Count > 0)
+                            {
+                                foreach (var f in checklists)
                                 {
-                                    foreach (var f in reportprogress)
-                                    {
-                                        del_reportprogress.Add(f);
-                                    }
+                                    del_checklists.Add(f);
                                 }
-                                #endregion
+                            }
+                            #endregion
 
-                                #region del checklists
-                                var checklists = await db.task_checklists.Where(a => a.task_id == da.task_id).ToListAsync();
-                                if (checklists.Count > 0)
+                            #region del comments
+                            var comments = await db.task_comments.Where(a => a.task_id == da.task_id).ToListAsync();
+                            if (comments.Count > 0)
+                            {
+                                foreach (var f in comments)
                                 {
-                                    foreach (var f in checklists)
-                                    {
-                                        del_checklists.Add(f);
-                                    }
+                                    del_comments.Add(f);
                                 }
-                                #endregion
+                            }
+                            #endregion
 
-                                #region del comments
-                                var comments = await db.task_comments.Where(a => a.task_id == da.task_id).ToListAsync();
-                                if (comments.Count > 0)
+                            #region del review
+                            var review = await db.task_review.Where(a => a.task_id == da.task_id).ToListAsync();
+                            if (review.Count > 0)
+                            {
+                                foreach (var f in review)
                                 {
-                                    foreach (var f in comments)
-                                    {
-                                        del_comments.Add(f);
-                                    }
+                                    del_review.Add(f);
                                 }
-                                #endregion
+                            }
+                            #endregion
 
-                                #region del review
-                                var review = await db.task_review.Where(a => a.task_id == da.task_id).ToListAsync();
-                                if (review.Count > 0)
-                                {
-                                    foreach (var f in review)
-                                    {
-                                        del_review.Add(f);
-                                    }
-                                }
-                                #endregion
-
-                                #region add cms_logs
-                                if (helper.wlog)
-                                {
-                                    task_logs log = new task_logs();
-                                    log.log_id = helper.GenKey();
-                                    log.task_id = da.task_id;
-                                    log.project_id = null;
-                                    log.description = "Xóa công việc: " + da.task_name;
-                                    log.created_date = DateTime.Now;
-                                    log.created_by = uid;
-                                    log.is_type = 1;
-                                    log.created_token_id = tid;
-                                    log.created_ip = ip;
-                                    db.task_logs.Add(log);
-                                    db.SaveChanges();
+                            #region add cms_logs
+                            if (helper.wlog)
+                            {
+                                task_logs log = new task_logs();
+                                log.log_id = helper.GenKey();
+                                log.task_id = da.task_id;
+                                log.project_id = null;
+                                log.description = "Xóa công việc: " + da.task_name;
+                                log.created_date = DateTime.Now;
+                                log.created_by = uid;
+                                log.is_type = 1;
+                                log.created_token_id = tid;
+                                log.created_ip = ip;
+                                db.task_logs.Add(log);
+                                db.SaveChanges();
                             }
                             #endregion
 
@@ -913,76 +917,76 @@ namespace API.Controllers
                             #endregion
                         }
                         if (del.Count == 0)
-                            {
-                                return Request.CreateResponse(HttpStatusCode.OK, new { err = "1", ms = "Bạn không có quyền xóa dữ liệu." });
-                            }
-                            db.task_origin.RemoveRange(del);
-                            db.task_member.RemoveRange(del_member);
-                            db.task_file.RemoveRange(del_file);
-                            db.task_reportprogress.RemoveRange(del_reportprogress);
-                            db.task_checklists.RemoveRange(del_checklists);
-                            db.task_comments.RemoveRange(del_comments);
-                            db.task_review.RemoveRange(del_review);
-                            foreach (string strPath in paths)
-                            {
-                                //bool exists = File.Exists(strPath);
-                                //if (exists)
-                                //{
-                                //    System.IO.File.Delete(strPath);
-                                //}
-                                // Format logo
+                        {
+                            return Request.CreateResponse(HttpStatusCode.OK, new { err = "1", ms = "Bạn không có quyền xóa dữ liệu." });
+                        }
+                        db.task_origin.RemoveRange(del);
+                        db.task_member.RemoveRange(del_member);
+                        db.task_file.RemoveRange(del_file);
+                        db.task_reportprogress.RemoveRange(del_reportprogress);
+                        db.task_checklists.RemoveRange(del_checklists);
+                        db.task_comments.RemoveRange(del_comments);
+                        db.task_review.RemoveRange(del_review);
+                        foreach (string strPath in paths)
+                        {
+                            //bool exists = File.Exists(strPath);
+                            //if (exists)
+                            //{
+                            //    System.IO.File.Delete(strPath);
+                            //}
+                            // Format logo
 
-                                var listPathEdit_logo = Regex.Replace(strPath.Replace("\\", "/"), @"\.*/+", "/").Split('/');
-                                var pathEdit_logo = "";
-                                var sttPathEdit_logo = 1;
-                                foreach (var itemEdit in listPathEdit_logo)
+                            var listPathEdit_logo = Regex.Replace(strPath.Replace("\\", "/"), @"\.*/+", "/").Split('/');
+                            var pathEdit_logo = "";
+                            var sttPathEdit_logo = 1;
+                            foreach (var itemEdit in listPathEdit_logo)
+                            {
+                                if (itemEdit.Trim() != "")
                                 {
-                                    if (itemEdit.Trim() != "")
+                                    if (sttPathEdit_logo == 1)
                                     {
-                                        if (sttPathEdit_logo == 1)
-                                        {
-                                            pathEdit_logo += itemEdit;
-                                        }
-                                        else
-                                        {
-                                            pathEdit_logo += "/" + Path.GetFileName(itemEdit);
-                                        }
+                                        pathEdit_logo += itemEdit;
                                     }
-                                    sttPathEdit_logo++;
+                                    else
+                                    {
+                                        pathEdit_logo += "/" + Path.GetFileName(itemEdit);
+                                    }
                                 }
-                                bool exists = File.Exists(pathEdit_logo);
-                                if (exists)
-                                {
-                                    System.IO.File.Delete(pathEdit_logo);
-                                }
+                                sttPathEdit_logo++;
+                            }
+                            bool exists = File.Exists(pathEdit_logo);
+                            if (exists)
+                            {
+                                System.IO.File.Delete(pathEdit_logo);
                             }
                         }
-                        await db.SaveChangesAsync();
-                        return Request.CreateResponse(HttpStatusCode.OK, new { err = "0" });
                     }
+                    await db.SaveChangesAsync();
+                    return Request.CreateResponse(HttpStatusCode.OK, new { err = "0" });
                 }
-                catch (DbEntityValidationException e)
+            }
+            catch (DbEntityValidationException e)
+            {
+                string contents = helper.getCatchError(e, null);
+                helper.saveLog(uid, name, JsonConvert.SerializeObject(new { data = ids, contents }), domainurl + "Task_Ca_ProjectGroup/Delete_task_ca_projectgroup", ip, tid, "Lỗi khi xoá nhóm project", 0, "task_ca_projectgroup");
+                if (!helper.debug)
                 {
-                    string contents = helper.getCatchError(e, null);
-                    helper.saveLog(uid, name, JsonConvert.SerializeObject(new { data = ids, contents }), domainurl + "Task_Ca_ProjectGroup/Delete_task_ca_projectgroup", ip, tid, "Lỗi khi xoá nhóm project", 0, "task_ca_projectgroup");
-                    if (!helper.debug)
-                    {
-                        contents = "";
-                    }
-                    Log.Error(contents);
-                    return Request.CreateResponse(HttpStatusCode.OK, new { ms = contents, err = "1" });
+                    contents = "";
                 }
-                catch (Exception e)
+                Log.Error(contents);
+                return Request.CreateResponse(HttpStatusCode.OK, new { ms = contents, err = "1" });
+            }
+            catch (Exception e)
+            {
+                string contents = helper.ExceptionMessage(e);
+                helper.saveLog(uid, name, JsonConvert.SerializeObject(new { data = ids, contents }), domainurl + "Task_Ca_ProjectGroup/Delete_task_ca_projectgroup", ip, tid, "Lỗi khi xoá nhóm project", 0, "task_ca_projectgroup");
+                if (!helper.debug)
                 {
-                    string contents = helper.ExceptionMessage(e);
-                    helper.saveLog(uid, name, JsonConvert.SerializeObject(new { data = ids, contents }), domainurl + "Task_Ca_ProjectGroup/Delete_task_ca_projectgroup", ip, tid, "Lỗi khi xoá nhóm project", 0, "task_ca_projectgroup");
-                    if (!helper.debug)
-                    {
-                        contents = "";
-                    }
-                    Log.Error(contents);
-                    return Request.CreateResponse(HttpStatusCode.OK, new { ms = contents, err = "1" });
+                    contents = "";
                 }
+                Log.Error(contents);
+                return Request.CreateResponse(HttpStatusCode.OK, new { ms = contents, err = "1" });
+            }
 
             //}
             //catch (Exception)
@@ -1009,55 +1013,55 @@ namespace API.Controllers
             //}
             //try
             //{
-                string root = HttpContext.Current.Server.MapPath("~/");
-                string ip = getipaddress();
-                string name = claims.Where(p => p.Type == "fname").FirstOrDefault()?.Value;
-                string tid = claims.Where(p => p.Type == "tid").FirstOrDefault()?.Value;
-                string uid = claims.Where(p => p.Type == "uid").FirstOrDefault()?.Value;
-                bool ad = claims.Where(p => p.Type == "ad").FirstOrDefault()?.Value == "True";
-                string domainurl = HttpContext.Current.Request.Url.Scheme + "://" + HttpContext.Current.Request.Url.Host + ":" + HttpContext.Current.Request.Url.Port + "/";
-                try
+            string root = HttpContext.Current.Server.MapPath("~/");
+            string ip = getipaddress();
+            string name = claims.Where(p => p.Type == "fname").FirstOrDefault()?.Value;
+            string tid = claims.Where(p => p.Type == "tid").FirstOrDefault()?.Value;
+            string uid = claims.Where(p => p.Type == "uid").FirstOrDefault()?.Value;
+            bool ad = claims.Where(p => p.Type == "ad").FirstOrDefault()?.Value == "True";
+            string domainurl = HttpContext.Current.Request.Url.Scheme + "://" + HttpContext.Current.Request.Url.Host + ":" + HttpContext.Current.Request.Url.Port + "/";
+            try
+            {
+                using (DBEntities db = new DBEntities())
                 {
-                    using (DBEntities db = new DBEntities())
+                    if (list.Count > 0)
                     {
-                        if (list.Count > 0)
+                        foreach (var l in list)
                         {
-                            foreach (var l in list)
+                            var task = await db.task_origin.FindAsync(l.task_id);
+                            if (task.parent_id == null)
                             {
-                                var task = await db.task_origin.FindAsync(l.task_id);
-                                if (task.parent_id == null)
-                                {
-                                    task.parent_id = l.parent_id;
-                                }
-                                db.Entry(task).State = EntityState.Modified;
+                                task.parent_id = l.parent_id;
                             }
+                            db.Entry(task).State = EntityState.Modified;
                         }
-                        await db.SaveChangesAsync();
-                        return Request.CreateResponse(HttpStatusCode.OK, new { err = "0" });
                     }
+                    await db.SaveChangesAsync();
+                    return Request.CreateResponse(HttpStatusCode.OK, new { err = "0" });
                 }
-                catch (DbEntityValidationException e)
+            }
+            catch (DbEntityValidationException e)
+            {
+                string contents = helper.getCatchError(e, null);
+                helper.saveLog(uid, name, JsonConvert.SerializeObject(new { data = list, contents }), domainurl + "task_origin/Add_LinkTask", ip, tid, "Lỗi khi thêm liên kết công việc", 0, "task_origin");
+                if (!helper.debug)
                 {
-                    string contents = helper.getCatchError(e, null);
-                    helper.saveLog(uid, name, JsonConvert.SerializeObject(new { data = list, contents }), domainurl + "task_origin/Add_LinkTask", ip, tid, "Lỗi khi thêm liên kết công việc", 0, "task_origin");
-                    if (!helper.debug)
-                    {
-                        contents = "";
-                    }
-                    Log.Error(contents);
-                    return Request.CreateResponse(HttpStatusCode.OK, new { ms = contents, err = "1" });
+                    contents = "";
                 }
-                catch (Exception e)
+                Log.Error(contents);
+                return Request.CreateResponse(HttpStatusCode.OK, new { ms = contents, err = "1" });
+            }
+            catch (Exception e)
+            {
+                string contents = helper.ExceptionMessage(e);
+                helper.saveLog(uid, name, JsonConvert.SerializeObject(new { data = list, contents }), domainurl + "task_origin/Add_LinkTask", ip, tid, "Lỗi khi thêm liên kết công việc", 0, "task_origin");
+                if (!helper.debug)
                 {
-                    string contents = helper.ExceptionMessage(e);
-                    helper.saveLog(uid, name, JsonConvert.SerializeObject(new { data = list, contents }), domainurl + "task_origin/Add_LinkTask", ip, tid, "Lỗi khi thêm liên kết công việc", 0, "task_origin");
-                    if (!helper.debug)
-                    {
-                        contents = "";
-                    }
-                    Log.Error(contents);
-                    return Request.CreateResponse(HttpStatusCode.OK, new { ms = contents, err = "1" });
+                    contents = "";
                 }
+                Log.Error(contents);
+                return Request.CreateResponse(HttpStatusCode.OK, new { ms = contents, err = "1" });
+            }
 
             //}
             //catch (Exception)
@@ -1067,7 +1071,7 @@ namespace API.Controllers
         }
 
         [HttpPost]
-        public async Task<HttpResponseMessage> Add_LinkTask_Doc([System.Web.Mvc.Bind(Include ="")] List<task_linkdoc> list)
+        public async Task<HttpResponseMessage> Add_LinkTask_Doc([System.Web.Mvc.Bind(Include = "")] List<task_linkdoc> list)
         {
             var identity = User.Identity as ClaimsIdentity;
             IEnumerable<Claim> claims = identity.Claims;
@@ -1084,68 +1088,68 @@ namespace API.Controllers
             //}
             //try
             //{
-                string root = HttpContext.Current.Server.MapPath("~/");
-                string ip = getipaddress();
-                string name = claims.Where(p => p.Type == "fname").FirstOrDefault()?.Value;
-                string tid = claims.Where(p => p.Type == "tid").FirstOrDefault()?.Value;
-                string uid = claims.Where(p => p.Type == "uid").FirstOrDefault()?.Value;
-                bool ad = claims.Where(p => p.Type == "ad").FirstOrDefault()?.Value == "True";
-                string domainurl = HttpContext.Current.Request.Url.Scheme + "://" + HttpContext.Current.Request.Url.Host + ":" + HttpContext.Current.Request.Url.Port + "/";
-                try
+            string root = HttpContext.Current.Server.MapPath("~/");
+            string ip = getipaddress();
+            string name = claims.Where(p => p.Type == "fname").FirstOrDefault()?.Value;
+            string tid = claims.Where(p => p.Type == "tid").FirstOrDefault()?.Value;
+            string uid = claims.Where(p => p.Type == "uid").FirstOrDefault()?.Value;
+            bool ad = claims.Where(p => p.Type == "ad").FirstOrDefault()?.Value == "True";
+            string domainurl = HttpContext.Current.Request.Url.Scheme + "://" + HttpContext.Current.Request.Url.Host + ":" + HttpContext.Current.Request.Url.Port + "/";
+            try
+            {
+                using (DBEntities db = new DBEntities())
                 {
-                    using (DBEntities db = new DBEntities())
+                    List<task_linkdoc> listTaskLinks = new List<task_linkdoc>();
+                    if (list.Count > 0)
                     {
-                        List<task_linkdoc> listTaskLinks = new List<task_linkdoc>();
-                        if (list.Count > 0)
+                        foreach (var l in list)
                         {
-                            foreach (var l in list)
+                            task_linkdoc linktask = new task_linkdoc
                             {
-                                task_linkdoc linktask = new task_linkdoc
-                                {
-                                    task_id = l.task_id,
-                                    is_main = l.is_main,
-                                    organization_id = l.organization_id,
-                                    doc_master_id = l.doc_master_id,
-                                    created_date = DateTime.Now,
-                                    created_by = uid,
-                                    modified_by = uid,
-                                    modified_date = DateTime.Now,
-                                    created_ip = ip,
-                                    created_token_id = tid,
-                                };
-                                listTaskLinks.Add(linktask);
-                            }
+                                task_id = l.task_id,
+                                is_main = l.is_main,
+                                organization_id = l.organization_id,
+                                doc_master_id = l.doc_master_id,
+                                created_date = DateTime.Now,
+                                created_by = uid,
+                                modified_by = uid,
+                                modified_date = DateTime.Now,
+                                created_ip = ip,
+                                created_token_id = tid,
+                            };
+                            listTaskLinks.Add(linktask);
                         }
-                        if (listTaskLinks.Count > 0)
-                        {
-                            db.task_linkdoc.AddRange(listTaskLinks);
-                        }
-                        await db.SaveChangesAsync();
-                        return Request.CreateResponse(HttpStatusCode.OK, new { err = "0" });
                     }
-                }
-                catch (DbEntityValidationException e)
-                {
-                    string contents = helper.getCatchError(e, null);
-                    helper.saveLog(uid, name, JsonConvert.SerializeObject(new { data = list, contents }), domainurl + "task_origin/Add_LinkTask_Doc", ip, tid, "Lỗi khi thêm liên kết công việc", 0, "task_origin");
-                    if (!helper.debug)
+                    if (listTaskLinks.Count > 0)
                     {
-                        contents = "";
+                        db.task_linkdoc.AddRange(listTaskLinks);
                     }
-                    Log.Error(contents);
-                    return Request.CreateResponse(HttpStatusCode.OK, new { ms = contents, err = "1" });
+                    await db.SaveChangesAsync();
+                    return Request.CreateResponse(HttpStatusCode.OK, new { err = "0" });
                 }
-                catch (Exception e)
+            }
+            catch (DbEntityValidationException e)
+            {
+                string contents = helper.getCatchError(e, null);
+                helper.saveLog(uid, name, JsonConvert.SerializeObject(new { data = list, contents }), domainurl + "task_origin/Add_LinkTask_Doc", ip, tid, "Lỗi khi thêm liên kết công việc", 0, "task_origin");
+                if (!helper.debug)
                 {
-                    string contents = helper.ExceptionMessage(e);
-                    helper.saveLog(uid, name, JsonConvert.SerializeObject(new { data = list, contents }), domainurl + "task_origin/Add_LinkTask_Doc", ip, tid, "Lỗi khi thêm liên kết công việc", 0, "task_origin");
-                    if (!helper.debug)
-                    {
-                        contents = "";
-                    }
-                    Log.Error(contents);
-                    return Request.CreateResponse(HttpStatusCode.OK, new { ms = contents, err = "1" });
+                    contents = "";
                 }
+                Log.Error(contents);
+                return Request.CreateResponse(HttpStatusCode.OK, new { ms = contents, err = "1" });
+            }
+            catch (Exception e)
+            {
+                string contents = helper.ExceptionMessage(e);
+                helper.saveLog(uid, name, JsonConvert.SerializeObject(new { data = list, contents }), domainurl + "task_origin/Add_LinkTask_Doc", ip, tid, "Lỗi khi thêm liên kết công việc", 0, "task_origin");
+                if (!helper.debug)
+                {
+                    contents = "";
+                }
+                Log.Error(contents);
+                return Request.CreateResponse(HttpStatusCode.OK, new { ms = contents, err = "1" });
+            }
 
             //}
             //catch (Exception)
@@ -1165,61 +1169,61 @@ namespace API.Controllers
             }
             //try
             //{
-                if (string.IsNullOrWhiteSpace(PortalConfigs))
+            if (string.IsNullOrWhiteSpace(PortalConfigs))
+            {
+                PortalConfigs = HttpContext.Current.Server.MapPath("~/");
+            }
+            string root = HttpContext.Current.Server.MapPath("~/");
+            string ip = getipaddress();
+            string name = claims.Where(p => p.Type == "fname").FirstOrDefault()?.Value;
+            string tid = claims.Where(p => p.Type == "tid").FirstOrDefault()?.Value;
+            string uid = claims.Where(p => p.Type == "uid").FirstOrDefault()?.Value;
+            bool ad = claims.Where(p => p.Type == "ad").FirstOrDefault()?.Value == "True";
+            string domainurl = HttpContext.Current.Request.Url.Scheme + "://" + HttpContext.Current.Request.Url.Host + ":" + HttpContext.Current.Request.Url.Port + "/";
+            try
+            {
+                using (DBEntities db = new DBEntities())
                 {
-                    PortalConfigs = HttpContext.Current.Server.MapPath("~/");
-                }
-                string root = HttpContext.Current.Server.MapPath("~/");
-                string ip = getipaddress();
-                string name = claims.Where(p => p.Type == "fname").FirstOrDefault()?.Value;
-                string tid = claims.Where(p => p.Type == "tid").FirstOrDefault()?.Value;
-                string uid = claims.Where(p => p.Type == "uid").FirstOrDefault()?.Value;
-                bool ad = claims.Where(p => p.Type == "ad").FirstOrDefault()?.Value == "True";
-                string domainurl = HttpContext.Current.Request.Url.Scheme + "://" + HttpContext.Current.Request.Url.Host + ":" + HttpContext.Current.Request.Url.Port + "/";
-                try
-                {
-                    using (DBEntities db = new DBEntities())
+                    var das = await db.task_linkdoc.Where(a => ids.Contains(a.linkdoc_id)).ToListAsync();
+                    if (das.Count > 0)
                     {
-                        var das = await db.task_linkdoc.Where(a => ids.Contains(a.linkdoc_id)).ToListAsync();
-                        if (das.Count > 0)
+                        List<task_linkdoc> del = new List<task_linkdoc>();
+                        foreach (var da in das)
                         {
-                            List<task_linkdoc> del = new List<task_linkdoc>();
-                            foreach (var da in das)
-                            {
-                                del.Add(da);
-                            }
-                            if (del.Count == 0)
-                            {
-                                return Request.CreateResponse(HttpStatusCode.OK, new { err = "1", ms = "Bạn không có quyền xóa file này." });
-                            }
-                            db.task_linkdoc.RemoveRange(del);
+                            del.Add(da);
                         }
-                        await db.SaveChangesAsync();
-                        return Request.CreateResponse(HttpStatusCode.OK, new { err = "0" });
+                        if (del.Count == 0)
+                        {
+                            return Request.CreateResponse(HttpStatusCode.OK, new { err = "1", ms = "Bạn không có quyền xóa file này." });
+                        }
+                        db.task_linkdoc.RemoveRange(del);
                     }
+                    await db.SaveChangesAsync();
+                    return Request.CreateResponse(HttpStatusCode.OK, new { err = "0" });
                 }
-                catch (DbEntityValidationException e)
+            }
+            catch (DbEntityValidationException e)
+            {
+                string contents = helper.getCatchError(e, null);
+                helper.saveLog(uid, name, JsonConvert.SerializeObject(new { data = ids, contents }), domainurl + "task_origin/Delete_task_linkdoc", ip, tid, "Lỗi khi xoá liên kết công việc", 0, "Delete_task_linkdoc");
+                if (!helper.debug)
                 {
-                    string contents = helper.getCatchError(e, null);
-                    helper.saveLog(uid, name, JsonConvert.SerializeObject(new { data = ids, contents }), domainurl + "task_origin/Delete_task_linkdoc", ip, tid, "Lỗi khi xoá liên kết công việc", 0, "Delete_task_linkdoc");
-                    if (!helper.debug)
-                    {
-                        contents = "";
-                    }
-                    Log.Error(contents);
-                    return Request.CreateResponse(HttpStatusCode.OK, new { ms = contents, err = "1" });
+                    contents = "";
                 }
-                catch (Exception e)
+                Log.Error(contents);
+                return Request.CreateResponse(HttpStatusCode.OK, new { ms = contents, err = "1" });
+            }
+            catch (Exception e)
+            {
+                string contents = helper.ExceptionMessage(e);
+                helper.saveLog(uid, name, JsonConvert.SerializeObject(new { data = ids, contents }), domainurl + "task_origin/Delete_task_linkdoc", ip, tid, "Lỗi khi xoá liên kết công việc", 0, "Delete_task_linkdoc");
+                if (!helper.debug)
                 {
-                    string contents = helper.ExceptionMessage(e);
-                    helper.saveLog(uid, name, JsonConvert.SerializeObject(new { data = ids, contents }), domainurl + "task_origin/Delete_task_linkdoc", ip, tid, "Lỗi khi xoá liên kết công việc", 0, "Delete_task_linkdoc");
-                    if (!helper.debug)
-                    {
-                        contents = "";
-                    }
-                    Log.Error(contents);
-                    return Request.CreateResponse(HttpStatusCode.OK, new { ms = contents, err = "1" });
+                    contents = "";
                 }
+                Log.Error(contents);
+                return Request.CreateResponse(HttpStatusCode.OK, new { ms = contents, err = "1" });
+            }
             //}
             //catch (Exception)
             //{
@@ -1239,56 +1243,56 @@ namespace API.Controllers
             }
             //try
             //{
-                if (string.IsNullOrWhiteSpace(PortalConfigs))
+            if (string.IsNullOrWhiteSpace(PortalConfigs))
+            {
+                PortalConfigs = HttpContext.Current.Server.MapPath("~/");
+            }
+            string root = HttpContext.Current.Server.MapPath("~/");
+            string ip = getipaddress();
+            string name = claims.Where(p => p.Type == "fname").FirstOrDefault()?.Value;
+            string tid = claims.Where(p => p.Type == "tid").FirstOrDefault()?.Value;
+            string uid = claims.Where(p => p.Type == "uid").FirstOrDefault()?.Value;
+            bool ad = claims.Where(p => p.Type == "ad").FirstOrDefault()?.Value == "True";
+            string domainurl = HttpContext.Current.Request.Url.Scheme + "://" + HttpContext.Current.Request.Url.Host + ":" + HttpContext.Current.Request.Url.Port + "/";
+            try
+            {
+                using (DBEntities db = new DBEntities())
                 {
-                    PortalConfigs = HttpContext.Current.Server.MapPath("~/");
-                }
-                string root = HttpContext.Current.Server.MapPath("~/");
-                string ip = getipaddress();
-                string name = claims.Where(p => p.Type == "fname").FirstOrDefault()?.Value;
-                string tid = claims.Where(p => p.Type == "tid").FirstOrDefault()?.Value;
-                string uid = claims.Where(p => p.Type == "uid").FirstOrDefault()?.Value;
-                bool ad = claims.Where(p => p.Type == "ad").FirstOrDefault()?.Value == "True";
-                string domainurl = HttpContext.Current.Request.Url.Scheme + "://" + HttpContext.Current.Request.Url.Host + ":" + HttpContext.Current.Request.Url.Port + "/";
-                try
-                {
-                    using (DBEntities db = new DBEntities())
+                    var das = await db.task_origin.Where(a => ids.Contains(a.task_id)).ToListAsync();
+                    if (das.Count > 0)
                     {
-                        var das = await db.task_origin.Where(a => ids.Contains(a.task_id)).ToListAsync();
-                        if (das.Count > 0)
+                        foreach (var da in das)
                         {
-                            foreach (var da in das)
-                            {
-                                da.parent_id = null;
-                                db.Entry(da).State = EntityState.Modified;
-                            }
+                            da.parent_id = null;
+                            db.Entry(da).State = EntityState.Modified;
                         }
-                        await db.SaveChangesAsync();
-                        return Request.CreateResponse(HttpStatusCode.OK, new { err = "0" });
                     }
+                    await db.SaveChangesAsync();
+                    return Request.CreateResponse(HttpStatusCode.OK, new { err = "0" });
                 }
-                catch (DbEntityValidationException e)
+            }
+            catch (DbEntityValidationException e)
+            {
+                string contents = helper.getCatchError(e, null);
+                helper.saveLog(uid, name, JsonConvert.SerializeObject(new { data = ids, contents }), domainurl + "task_origin/Delete_task_linkdoc", ip, tid, "Lỗi khi xoá liên kết công việc", 0, "Delete_task_linkdoc");
+                if (!helper.debug)
                 {
-                    string contents = helper.getCatchError(e, null);
-                    helper.saveLog(uid, name, JsonConvert.SerializeObject(new { data = ids, contents }), domainurl + "task_origin/Delete_task_linkdoc", ip, tid, "Lỗi khi xoá liên kết công việc", 0, "Delete_task_linkdoc");
-                    if (!helper.debug)
-                    {
-                        contents = "";
-                    }
-                    Log.Error(contents);
-                    return Request.CreateResponse(HttpStatusCode.OK, new { ms = contents, err = "1" });
+                    contents = "";
                 }
-                catch (Exception e)
+                Log.Error(contents);
+                return Request.CreateResponse(HttpStatusCode.OK, new { ms = contents, err = "1" });
+            }
+            catch (Exception e)
+            {
+                string contents = helper.ExceptionMessage(e);
+                helper.saveLog(uid, name, JsonConvert.SerializeObject(new { data = ids, contents }), domainurl + "task_origin/Delete_task_linkdoc", ip, tid, "Lỗi khi xoá liên kết công việc", 0, "Delete_task_linkdoc");
+                if (!helper.debug)
                 {
-                    string contents = helper.ExceptionMessage(e);
-                    helper.saveLog(uid, name, JsonConvert.SerializeObject(new { data = ids, contents }), domainurl + "task_origin/Delete_task_linkdoc", ip, tid, "Lỗi khi xoá liên kết công việc", 0, "Delete_task_linkdoc");
-                    if (!helper.debug)
-                    {
-                        contents = "";
-                    }
-                    Log.Error(contents);
-                    return Request.CreateResponse(HttpStatusCode.OK, new { ms = contents, err = "1" });
+                    contents = "";
                 }
+                Log.Error(contents);
+                return Request.CreateResponse(HttpStatusCode.OK, new { ms = contents, err = "1" });
+            }
             //}
             //catch (Exception)
             //{
@@ -1310,70 +1314,70 @@ namespace API.Controllers
             }
             //try
             //{
-                if (string.IsNullOrWhiteSpace(PortalConfigs))
+            if (string.IsNullOrWhiteSpace(PortalConfigs))
+            {
+                PortalConfigs = HttpContext.Current.Server.MapPath("~/");
+            }
+            string root = HttpContext.Current.Server.MapPath("~/");
+            string ip = getipaddress();
+            string name = claims.Where(p => p.Type == "fname").FirstOrDefault()?.Value;
+            string tid = claims.Where(p => p.Type == "tid").FirstOrDefault()?.Value;
+            string uid = claims.Where(p => p.Type == "uid").FirstOrDefault()?.Value;
+            bool ad = claims.Where(p => p.Type == "ad").FirstOrDefault()?.Value == "True";
+            string domainurl = HttpContext.Current.Request.Url.Scheme + "://" + HttpContext.Current.Request.Url.Host + ":" + HttpContext.Current.Request.Url.Port + "/";
+            try
+            {
+                using (DBEntities db = new DBEntities())
                 {
-                    PortalConfigs = HttpContext.Current.Server.MapPath("~/");
-                }
-                string root = HttpContext.Current.Server.MapPath("~/");
-                string ip = getipaddress();
-                string name = claims.Where(p => p.Type == "fname").FirstOrDefault()?.Value;
-                string tid = claims.Where(p => p.Type == "tid").FirstOrDefault()?.Value;
-                string uid = claims.Where(p => p.Type == "uid").FirstOrDefault()?.Value;
-                bool ad = claims.Where(p => p.Type == "ad").FirstOrDefault()?.Value == "True";
-                string domainurl = HttpContext.Current.Request.Url.Scheme + "://" + HttpContext.Current.Request.Url.Host + ":" + HttpContext.Current.Request.Url.Port + "/";
-                try
-                {
-                    using (DBEntities db = new DBEntities())
+                    var das = await db.task_file.Where(a => ids.Contains(a.file_id)).ToListAsync();
+                    List<string> paths = new List<string>();
+                    if (das.Count > 0)
                     {
-                        var das = await db.task_file.Where(a => ids.Contains(a.file_id)).ToListAsync();
-                        List<string> paths = new List<string>();
-                        if (das.Count > 0)
+                        List<task_file> del = new List<task_file>();
+                        foreach (var da in das)
                         {
-                            List<task_file> del = new List<task_file>();
-                            foreach (var da in das)
-                            {
-                                del.Add(da);
-                                var task = db.task_origin.Find(da.task_id);
-                                var delPath = Path.Combine(HttpContext.Current.Server.MapPath("~/" + "/Portals/"), Path.GetFileName(task.organization_id.ToString()), "TaskOrigin", Path.GetFileName(da.task_id.ToString()), Path.GetFileName(da.file_path));
-                                paths.Add(delPath);
-                            }
-                            if (del.Count == 0)
-                            {
-                                return Request.CreateResponse(HttpStatusCode.OK, new { err = "1", ms = "Bạn không có quyền xóa file này." });
-                            }
-                            db.task_file.RemoveRange(del);
+                            del.Add(da);
+                            var task = db.task_origin.Find(da.task_id);
+                            var delPath = Path.Combine(HttpContext.Current.Server.MapPath("~/" + "/Portals/"), Path.GetFileName(task.organization_id.ToString()), "TaskOrigin", Path.GetFileName(da.task_id.ToString()), Path.GetFileName(da.file_path));
+                            paths.Add(delPath);
                         }
-                        await db.SaveChangesAsync();
-                        foreach (string strPath in paths)
+                        if (del.Count == 0)
                         {
-                            if (File.Exists(strPath))
-                                File.Delete(strPath);
+                            return Request.CreateResponse(HttpStatusCode.OK, new { err = "1", ms = "Bạn không có quyền xóa file này." });
                         }
-                        return Request.CreateResponse(HttpStatusCode.OK, new { err = "0" });
+                        db.task_file.RemoveRange(del);
                     }
-                }
-                catch (DbEntityValidationException e)
-                {
-                    string contents = helper.getCatchError(e, null);
-                    helper.saveLog(uid, name, JsonConvert.SerializeObject(new { data = ids, contents }), domainurl + "task_origin/Delete_file", ip, tid, "Lỗi khi xoá file", 0, "Delete_file");
-                    if (!helper.debug)
+                    await db.SaveChangesAsync();
+                    foreach (string strPath in paths)
                     {
-                        contents = "";
+                        if (File.Exists(strPath))
+                            File.Delete(strPath);
                     }
-                    Log.Error(contents);
-                    return Request.CreateResponse(HttpStatusCode.OK, new { ms = contents, err = "1" });
+                    return Request.CreateResponse(HttpStatusCode.OK, new { err = "0" });
                 }
-                catch (Exception e)
+            }
+            catch (DbEntityValidationException e)
+            {
+                string contents = helper.getCatchError(e, null);
+                helper.saveLog(uid, name, JsonConvert.SerializeObject(new { data = ids, contents }), domainurl + "task_origin/Delete_file", ip, tid, "Lỗi khi xoá file", 0, "Delete_file");
+                if (!helper.debug)
                 {
-                    string contents = helper.ExceptionMessage(e);
-                    helper.saveLog(uid, name, JsonConvert.SerializeObject(new { data = ids, contents }), domainurl + "task_origin/Delete_file", ip, tid, "Lỗi khi xoá file", 0, "Delete_file");
-                    if (!helper.debug)
-                    {
-                        contents = "";
-                    }
-                    Log.Error(contents);
-                    return Request.CreateResponse(HttpStatusCode.OK, new { ms = contents, err = "1" });
+                    contents = "";
                 }
+                Log.Error(contents);
+                return Request.CreateResponse(HttpStatusCode.OK, new { ms = contents, err = "1" });
+            }
+            catch (Exception e)
+            {
+                string contents = helper.ExceptionMessage(e);
+                helper.saveLog(uid, name, JsonConvert.SerializeObject(new { data = ids, contents }), domainurl + "task_origin/Delete_file", ip, tid, "Lỗi khi xoá file", 0, "Delete_file");
+                if (!helper.debug)
+                {
+                    contents = "";
+                }
+                Log.Error(contents);
+                return Request.CreateResponse(HttpStatusCode.OK, new { ms = contents, err = "1" });
+            }
             //}
             //catch (Exception)
             //{
@@ -1569,7 +1573,7 @@ namespace API.Controllers
                         }
                         fddepartment = provider.FormData.GetValues("department").SingleOrDefault();
                         task_department_configuration task_department_configuration = JsonConvert.DeserializeObject<task_department_configuration>(fddepartment);
-                        var task_config = db.task_department_configuration.Where(x=> x.department_id == task_department_configuration.department_id).ToList();
+                        var task_config = db.task_department_configuration.Where(x => x.department_id == task_department_configuration.department_id).ToList();
                         if (task_config.Count == 0)
                         {
                             db.task_department_configuration.Add(task_department_configuration);
@@ -1582,7 +1586,7 @@ namespace API.Controllers
                                 db.Entry(item).State = EntityState.Modified;
                             }
                         }
-                        
+
                         db.SaveChanges();
                         return Request.CreateResponse(HttpStatusCode.OK, new { err = "0" });
                     });
@@ -1625,57 +1629,57 @@ namespace API.Controllers
             }
             //try
             //{
-                string root = HttpContext.Current.Server.MapPath("~/");
-                string ip = getipaddress();
-                string name = claims.Where(p => p.Type == "fname").FirstOrDefault()?.Value;
-                string tid = claims.Where(p => p.Type == "tid").FirstOrDefault()?.Value;
-                string uid = claims.Where(p => p.Type == "uid").FirstOrDefault()?.Value;
-                bool ad = claims.Where(p => p.Type == "ad").FirstOrDefault()?.Value == "True";
-                string domainurl = HttpContext.Current.Request.Url.Scheme + "://" + HttpContext.Current.Request.Url.Host + ":" + HttpContext.Current.Request.Url.Port + "/";
-                try
+            string root = HttpContext.Current.Server.MapPath("~/");
+            string ip = getipaddress();
+            string name = claims.Where(p => p.Type == "fname").FirstOrDefault()?.Value;
+            string tid = claims.Where(p => p.Type == "tid").FirstOrDefault()?.Value;
+            string uid = claims.Where(p => p.Type == "uid").FirstOrDefault()?.Value;
+            bool ad = claims.Where(p => p.Type == "ad").FirstOrDefault()?.Value == "True";
+            string domainurl = HttpContext.Current.Request.Url.Scheme + "://" + HttpContext.Current.Request.Url.Host + ":" + HttpContext.Current.Request.Url.Port + "/";
+            try
+            {
+                using (DBEntities db = new DBEntities())
                 {
-                    using (DBEntities db = new DBEntities())
+                    var das = await db.task_department_configuration.Where(a => ids.Contains(a.id)).ToListAsync();
+                    if (das != null)
                     {
-                        var das = await db.task_department_configuration.Where(a => ids.Contains(a.id)).ToListAsync();
-                        if (das != null)
+                        List<task_department_configuration> del = new List<task_department_configuration>();
+                        foreach (var da in das)
                         {
-                            List<task_department_configuration> del = new List<task_department_configuration>();
-                            foreach (var da in das)
-                            {
-                                del.Add(da);
-                            }
-                            if (del.Count == 0)
-                            {
-                                return Request.CreateResponse(HttpStatusCode.OK, new { err = "1", ms = "Bạn không có quyền xóa dữ liệu." });
-                            }
-                            db.task_department_configuration.RemoveRange(del);
+                            del.Add(da);
                         }
-                        await db.SaveChangesAsync();
-                        return Request.CreateResponse(HttpStatusCode.OK, new { err = "0" });
+                        if (del.Count == 0)
+                        {
+                            return Request.CreateResponse(HttpStatusCode.OK, new { err = "1", ms = "Bạn không có quyền xóa dữ liệu." });
+                        }
+                        db.task_department_configuration.RemoveRange(del);
                     }
+                    await db.SaveChangesAsync();
+                    return Request.CreateResponse(HttpStatusCode.OK, new { err = "0" });
                 }
-                catch (DbEntityValidationException e)
+            }
+            catch (DbEntityValidationException e)
+            {
+                string contents = helper.getCatchError(e, null);
+                helper.saveLog(uid, name, JsonConvert.SerializeObject(new { data = ids, contents }), domainurl + "task_origin/Delete_DepartmentConfiguration", ip, tid, "Lỗi khi xoá cấu hình phòng ban", 0, "task_origin");
+                if (!helper.debug)
                 {
-                    string contents = helper.getCatchError(e, null);
-                    helper.saveLog(uid, name, JsonConvert.SerializeObject(new { data = ids, contents }), domainurl + "task_origin/Delete_DepartmentConfiguration", ip, tid, "Lỗi khi xoá cấu hình phòng ban", 0, "task_origin");
-                    if (!helper.debug)
-                    {
-                        contents = "";
-                    }
-                    Log.Error(contents);
-                    return Request.CreateResponse(HttpStatusCode.OK, new { ms = contents, err = "1" });
+                    contents = "";
                 }
-                catch (Exception e)
+                Log.Error(contents);
+                return Request.CreateResponse(HttpStatusCode.OK, new { ms = contents, err = "1" });
+            }
+            catch (Exception e)
+            {
+                string contents = helper.ExceptionMessage(e);
+                helper.saveLog(uid, name, JsonConvert.SerializeObject(new { data = ids, contents }), domainurl + "task_origin/Delete_DepartmentConfiguration", ip, tid, "Lỗi khi xoá cấu hình phòng ban", 0, "task_origin");
+                if (!helper.debug)
                 {
-                    string contents = helper.ExceptionMessage(e);
-                    helper.saveLog(uid, name, JsonConvert.SerializeObject(new { data = ids, contents }), domainurl + "task_origin/Delete_DepartmentConfiguration", ip, tid, "Lỗi khi xoá cấu hình phòng ban", 0, "task_origin");
-                    if (!helper.debug)
-                    {
-                        contents = "";
-                    }
-                    Log.Error(contents);
-                    return Request.CreateResponse(HttpStatusCode.OK, new { ms = contents, err = "1" });
+                    contents = "";
                 }
+                Log.Error(contents);
+                return Request.CreateResponse(HttpStatusCode.OK, new { ms = contents, err = "1" });
+            }
 
             //}
             //catch (Exception)

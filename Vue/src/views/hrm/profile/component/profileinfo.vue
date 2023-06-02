@@ -8,14 +8,13 @@ import dialoginfo from "../../profile/component/dialoginfo.vue";
 import dialogtraining from "../../training/component/dialog_training.vue";
 import dialogfile from "../../profile/component/dialogfile.vue";
 import printprofile from "../component/printprofile.vue";
-// import diloginsurance from "../../insurance/component/diloginsurance.vue";
 
 import comptask from "../../profile/component/comptask.vue";
 import comptimekeep from "../component/comptimekeep.vue";
 import diloginsurance from "../../profile/component/diloginsurance.vue";
-import comreward from "../../profile/component/comreward.vue";
 import leaveyear from "../../myprofile/component/comview6.vue";
 import decision from "../../myprofile/component/comview8.vue";
+import reward from "../../myprofile/component/comview9.vue";
 import DocComponent from "../../template/components/DocComponent.vue";
 import moment from "moment";
 
@@ -60,7 +59,7 @@ const options = ref({
   sort: "created_date desc",
   orderBy: "desc",
   view: 1,
-  profile_id: (route.params.id != null ? route.query.id : null),
+  profile_id: route.params.id != null ? route.query.id : null,
   key_id: null,
   contract_id: null,
   training_emps: {},
@@ -80,7 +79,9 @@ const bgColor = ref([
   "#CCADD7",
 ]);
 const selectedNodes = ref([]);
-watch(selectedNodes, () => {});
+const rolefunctions = ref([]);
+const functions = ref({});
+
 const selectRow = (event) => {
   if (event && event.data) {
     goProfile(event.data);
@@ -139,7 +140,6 @@ const filter = (event) => {
 //data view 1
 const isAdd = ref(false);
 const profile = ref({});
-const places = ref([]);
 const marital_status = ref([
   { value: 0, text: "Độc thân" },
   { value: 1, text: "Kết hôn" },
@@ -165,10 +165,10 @@ const tasks = ref([]);
 //data view 3
 const contracts = ref([]);
 const typestatus = ref([
-  { value: 0, title: "Chưa hiệu lực", bg_color: "#bbbbbb", text_color: "#fff" },
-  { value: 1, title: "Đang hiệu lực", bg_color: "#2196f3", text_color: "#fff" },
-  { value: 2, title: "Hết hiệu lực", bg_color: "red", text_color: "#fff" },
-  { value: 3, title: "Đã thanh lý", bg_color: "#ff8b4e", text_color: "#fff" },
+  { value: 0, title: "Chưa hiệu lực", bg_color: "#0078d4", text_color: "#fff" },
+  { value: 1, title: "Đang hiệu lực", bg_color: "#5FC57B", text_color: "#fff" },
+  { value: 2, title: "Hết hiệu lực", bg_color: "#DF5249", text_color: "#fff" },
+  { value: 3, title: "Đã thanh lý", bg_color: "#F39C12", text_color: "#fff" },
 ]);
 const isView = ref(false);
 const contract = ref({});
@@ -280,7 +280,7 @@ const openViewDialogContract = (str) => {
       if (error && error.status === 401) {
         swal.fire({
           title: "Thông báo!",
-          text: "Mã token đã hết hạn hoặc không hợp lệ, vui lòng đăng nhập lại!",
+          text: "Phiên đăng nhập đã hết hạn, vui lòng đăng nhập lại!",
           icon: "error",
           confirmButtonText: "OK",
         });
@@ -312,25 +312,9 @@ const selectedPayroll = ref();
 const checkPayroll = ref();
 const listpayrolls = ref([]);
 const onClickPayroll = (data) => {
-  initBaocao(data.data.report_key);
-  pars.value = { profile_id: data.data.profile_id };
-  headerPayroll.value =
-    "Phiếu lương tháng " +
-    data.data.payroll_month +
-    " năm " +
-    data.data.payroll_year;
-  checkPayroll.value = false;
+  initBaocao(data.data.report_key, true, data);
 };
 const callbackFun = () => {
-  if (ref) {
-    swal.fire({
-      width: 110,
-      didOpen: () => {
-        swal.showLoading();
-      },
-    });
-  }
-
   axios
     .post(
       baseURL + "/api/hrm/callProc",
@@ -377,7 +361,7 @@ const callbackFun = () => {
       if (error && error.status === 401) {
         swal.fire({
           title: "Thông báo!",
-          text: "Mã token đã hết hạn hoặc không hợp lệ, vui lòng đăng nhập lại!",
+          text: "Phiên đăng nhập đã hết hạn, vui lòng đăng nhập lại!",
           icon: "error",
           confirmButtonText: "OK",
         });
@@ -488,9 +472,9 @@ const formatBytes = (bytes, decimals = 2) => {
 const headerDialogFile = ref();
 const displayDialogFile = ref(false);
 const openViewDialogFile = (str) => {
-  forceRerender(3);
   headerDialogFile.value = str;
   displayDialogFile.value = true;
+  forceRerender(3);
 };
 const closeDialogFile = () => {
   displayDialogFile.value = false;
@@ -531,7 +515,6 @@ const vaccines = ref([]);
 
 //data view 13
 const goPrint = (key) => {
-   
   let o = {
     id: key,
     par: { profile_id: profile.value.profile_id },
@@ -553,7 +536,8 @@ const goPrint = (key) => {
 };
 //filter
 const goFile = (file) => {
-  window.open(basedomainURL + file.file_path, "_blank");
+  options.value.file = file;
+  openViewDialogFile(file.file_name);
 };
 const goBack = () => {
   router.push({ name: "profile" });
@@ -640,7 +624,7 @@ const closeDialog = () => {
 
 //       if (error && error.status === 401) {
 //         swal.fire({
-//           text: "Mã token đã hết hạn hoặc không hợp lệ, vui lòng đăng nhập lại!",
+//           text: "Phiên đăng nhập đã hết hạn, vui lòng đăng nhập lại!",
 //           confirmButtonText: "OK",
 //         });
 //         store.commit("gologout");
@@ -712,7 +696,7 @@ const closeDialog = () => {
 //       if (error && error.status === 401) {
 //         swal.fire({
 //           title: "Thông báo!",
-//           text: "Mã token đã hết hạn hoặc không hợp lệ, vui lòng đăng nhập lại!",
+//           text: "Phiên đăng nhập đã hết hạn, vui lòng đăng nhập lại!",
 //           icon: "error",
 //           confirmButtonText: "OK",
 //         });
@@ -786,23 +770,23 @@ const closeDialogInsurance = () => {
 //Function mores
 const menuButs = ref();
 const itemButs = ref([
-  {
-    label: "Thông tin chung/liên hệ",
-    icon: "pi pi-id-card",
-    command: (event) => {
-      openEditDialog(1, "Cập nhật thay đổi thông tin");
-    },
-  },
-  {
-    label: "Gia đình, người phụ thuộc",
-    icon: "pi pi-users",
-    command: (event) => {
-      openEditDialog(
-        2,
-        "Cập nhật thay đổi thông tin gia đình, người phụ thuộc"
-      );
-    },
-  },
+  // {
+  //   label: "Thông tin chung/liên hệ",
+  //   icon: "pi pi-id-card",
+  //   command: (event) => {
+  //     openEditDialog(1, "Cập nhật thay đổi thông tin");
+  //   },
+  // },
+  // {
+  //   label: "Gia đình, người phụ thuộc",
+  //   icon: "pi pi-users",
+  //   command: (event) => {
+  //     openEditDialog(
+  //       2,
+  //       "Cập nhật thay đổi thông tin gia đình, người phụ thuộc"
+  //     );
+  //   },
+  // },
   {
     label: "Thông tin bảo hiểm",
     icon: "pi pi-shield",
@@ -872,80 +856,6 @@ const togglePrints = (event) => {
 };
 
 //init Dictionary view 1
-const initPlace = () => {
-  axios
-    .post(
-      baseURL + "/api/hrm/callProc",
-      {
-        str: encr(
-          JSON.stringify({
-            proc: "ca_places_list",
-            par: [
-              { par: "pageno", va: 0 },
-              { par: "pagesize", va: 100 },
-            ],
-          }),
-          SecretKey,
-          cryoptojs
-        ).toString(),
-      },
-      config
-    )
-    .then((response) => {
-      renderPlace(response);
-    })
-    .catch((error) => {
-      console.log(error);
-      toast.error("Tải dữ liệu không thành công!");
-
-      if (error && error.status === 401) {
-        swal.fire({
-          title: "Thông báo",
-          text: "Mã token đã hết hạn hoặc không hợp lệ, vui lòng đăng nhập lại!",
-          icon: "error",
-          confirmButtonText: "OK",
-        });
-        store.commit("gologout");
-      }
-    });
-};
-const renderPlace = (response) => {
-  let list1 = [];
-  let list2 = [];
-  let list3 = [];
-  let d1 = JSON.parse(response.data.data)[0];
-  d1.forEach((element, i) => {
-    let c = {
-      key: element.place_id,
-      data: element.place_id,
-      label: element.name,
-      children: null,
-    };
-    if (d1[i].children) {
-      list2 = JSON.parse(d1[i].children);
-      if (list2 != null) {
-        list2.forEach((element, i) => {
-          element.label = element.data.name;
-          element.data = parseInt(element.data.place_id);
-          element.key = element.data;
-          //đổi is_order
-          if (list2[i].children != null && list2[i].children.length > 0) {
-            // list3 = list2[i].children;
-            // list2[i].children = list3;
-            list2[i].children.forEach((element, i) => {
-              element.label = element.data.name;
-              element.data = parseInt(element.data.place_id);
-              element.key = element.data;
-            });
-          }
-        });
-      }
-      c.children = list2;
-    }
-    list1.push(c);
-  });
-  places.value = list1;
-};
 const initDictionary1 = () => {
   dictionarys.value = [];
   axios
@@ -971,9 +881,6 @@ const initDictionary1 = () => {
           dictionarys.value = tbs;
         }
       }
-    })
-    .then(() => {
-      initPlace();
     })
     .then(() => {
       initView1(true);
@@ -1136,12 +1043,14 @@ const initDictionary12 = () => {
 const initView1 = (rf) => {
   datachilds.value = [];
   options.value.loading = true;
-  swal.fire({
-    width: 110,
-    didOpen: () => {
-      swal.showLoading();
-    },
-  });
+  if (rf) {
+    swal.fire({
+      width: 110,
+      didOpen: () => {
+        swal.showLoading();
+      },
+    });
+  }
   axios
     .post(
       baseURL + "/api/hrm/callProc",
@@ -1184,27 +1093,6 @@ const initView1 = (rf) => {
               : profile.value["gender"] == 2
               ? "Nữ"
               : "";
-          var idx = places.value.findIndex(
-            (x) => x["place_id"] === profile.value["birthplace_id"]
-          );
-          if (idx !== -1) {
-            profile.value["select_birthplace"] =
-              places.value[idx]["place_name"];
-          }
-          var idx = places.value.findIndex(
-            (x) => x["place_id"] === profile.value["birthplace_origin_id"]
-          );
-          if (idx !== -1) {
-            profile.value["select_birthplace_origin"] =
-              places.value[idx]["place_name"];
-          }
-          var idx = places.value.findIndex(
-            (x) => x["place_id"] === profile.value["place_register_permanent"]
-          );
-          if (idx !== -1) {
-            profile.value["select_place_register_permanent"] =
-              places.value[idx]["place_name"];
-          }
           if (profile.value["recruitment_date"] != null) {
             profile.value["recruitment_date"] = moment(
               new Date(profile.value["recruitment_date"])
@@ -1236,14 +1124,16 @@ const initView1 = (rf) => {
             ).format("DD/MM/YYYY");
           }
           if (profile.value["bevy_date"] != null) {
-            profile.value["bevy_date"] = moment(new Date(profile.value["bevy_date"])).format("DD/MM/YYYY");
+            profile.value["bevy_date"] = moment(
+              new Date(profile.value["bevy_date"])
+            ).format("DD/MM/YYYY");
           }
           var idx = dictionarys.value[11].findIndex(
-            (x) =>
-              x["relationship_id"] === profile.value["relationship_id"]
+            (x) => x["relationship_id"] === profile.value["relationship_id"]
           );
           if (profile.value["relationship_id"] != null && idx != -1) {
-            profile.value["relationship_name"] = dictionarys.value[11][idx]["relationship_name"];
+            profile.value["relationship_name"] =
+              dictionarys.value[11][idx]["relationship_name"];
           }
           //
           var idx = dictionarys.value[0].findIndex(
@@ -1367,15 +1257,25 @@ const initView1 = (rf) => {
                 new Date(x["identification_date_issue"])
               ).format("DD/MM/YYYY");
             }
+            // if (x["start_date"] != null) {
+            //   x["start_date"] = moment(new Date(x["start_date"])).format("DD/MM/YYYY");
+            // }
+            // if (x["end_date"] != null) {
+            //   x["end_date"] = moment(new Date(x["end_date"])).format("DD/MM/YYYY");
+            // }
             if (x["start_date"] != null) {
-              x["start_date"] = moment(new Date(x["start_date"])).format(
-                "DD/MM/YYYY"
-              );
+              if (moment(x["start_date"], moment.ISO_8601, true).isValid()) {
+                x["start_date"] = moment(new Date(x["start_date"])).format(
+                  "DD/MM/YYYY"
+                );
+              }
             }
             if (x["end_date"] != null) {
-              x["end_date"] = moment(new Date(x["end_date"])).format(
-                "DD/MM/YYYY"
-              );
+              if (moment(x["end_date"], moment.ISO_8601, true).isValid()) {
+                x["end_date"] = moment(new Date(x["end_date"])).format(
+                  "DD/MM/YYYY"
+                );
+              }
             }
             //
             var idx = dictionarys.value[11].findIndex(
@@ -1397,8 +1297,7 @@ const initView1 = (rf) => {
             }
             if (x.is_type == 1) {
               x.type_relative_name = "Bản thân";
-            }
-            else {
+            } else {
               x.type_relative_name = "Bên vợ/chồng";
             }
           });
@@ -1410,22 +1309,32 @@ const initView1 = (rf) => {
           tbs[2].forEach((x) => {
             if (x["start_date"] != null) {
               if (moment(x["start_date"], moment.ISO_8601, true).isValid()) {
-                x["start_date"] = moment(new Date(x["start_date"])).format("MM/YYYY");
+                x["start_date"] = moment(new Date(x["start_date"])).format(
+                  "MM/YYYY"
+                );
               }
             }
             if (x["end_date"] != null) {
               if (moment(x["end_date"], moment.ISO_8601, true).isValid()) {
-                x["end_date"] = moment(new Date(x["end_date"])).format("MM/YYYY");
+                x["end_date"] = moment(new Date(x["end_date"])).format(
+                  "MM/YYYY"
+                );
               }
             }
             if (x["graduation_year"] != null) {
-              if (moment(x["graduation_year"], moment.ISO_8601, true).isValid()) {
-                x["graduation_year"] = moment(new Date(x["graduation_year"])).format("MM/YYYY");
+              if (
+                moment(x["graduation_year"], moment.ISO_8601, true).isValid()
+              ) {
+                x["graduation_year"] = moment(
+                  new Date(x["graduation_year"])
+                ).format("MM/YYYY");
               }
             }
             if (x["degree_date"] != null) {
               if (moment(x["degree_date"], moment.ISO_8601, true).isValid()) {
-                x["degree_date"] = moment(new Date(x["degree_date"])).format("MM/YYYY");
+                x["degree_date"] = moment(new Date(x["degree_date"])).format(
+                  "MM/YYYY"
+                );
               }
             }
             if (x["certificate_start_date"] != null) {
@@ -1437,10 +1346,13 @@ const initView1 = (rf) => {
               x["certificate_end_date"] = moment(
                 new Date(x["certificate_end_date"])
               ).format("DD/MM/YYYY");
-            }            
-            var idx = dictionarys.value[6].findIndex((t) => t["academic_level_id"] === x["academic_level_id"]);
+            }
+            var idx = dictionarys.value[6].findIndex(
+              (t) => t["academic_level_id"] === x["academic_level_id"]
+            );
             if (x["academic_level_id"] != null && idx != -1) {
-              x["academic_level_name"] = dictionarys.value[6][idx]["academic_level_name"];
+              x["academic_level_name"] =
+                dictionarys.value[6][idx]["academic_level_name"];
             }
             //
             var idx = dictionarys.value[18].findIndex(
@@ -1473,15 +1385,25 @@ const initView1 = (rf) => {
         }
         if (tbs[3] != null && tbs[3].length > 0) {
           tbs[3].forEach((x) => {
+            // if (x["start_date"] != null) {
+            //   x["start_date"] = moment(new Date(x["start_date"])).format("DD/MM/YYYY");
+            // }
+            // if (x["end_date"] != null) {
+            //   x["end_date"] = moment(new Date(x["end_date"])).format("DD/MM/YYYY");
+            // }
             if (x["start_date"] != null) {
-              x["start_date"] = moment(new Date(x["start_date"])).format(
-                "DD/MM/YYYY"
-              );
+              if (moment(x["start_date"], moment.ISO_8601, true).isValid()) {
+                x["start_date"] = moment(new Date(x["start_date"])).format(
+                  "DD/MM/YYYY"
+                );
+              }
             }
             if (x["end_date"] != null) {
-              x["end_date"] = moment(new Date(x["end_date"])).format(
-                "DD/MM/YYYY"
-              );
+              if (moment(x["end_date"], moment.ISO_8601, true).isValid()) {
+                x["end_date"] = moment(new Date(x["end_date"])).format(
+                  "DD/MM/YYYY"
+                );
+              }
             }
             //
             var idx = forms.value.findIndex((a) => a["value"] === x["form"]);
@@ -1496,12 +1418,18 @@ const initView1 = (rf) => {
         if (tbs[4] != null && tbs[4].length > 0) {
           tbs[4].forEach((x) => {
             if (x["start_date"] != null) {
-              x["start_date"] = moment(new Date(x["start_date"])).format(
-                "MM/YYYY"
-              );
+              if (moment(x["start_date"], moment.ISO_8601, true).isValid()) {
+                x["start_date"] = moment(new Date(x["start_date"])).format(
+                  "MM/YYYY"
+                );
+              }
             }
             if (x["end_date"] != null) {
-              x["end_date"] = moment(new Date(x["end_date"])).format("MM/YYYY");
+              if (moment(x["end_date"], moment.ISO_8601, true).isValid()) {
+                x["end_date"] = moment(new Date(x["end_date"])).format(
+                  "MM/YYYY"
+                );
+              }
             }
           });
           datachilds.value[4] = tbs[4];
@@ -1523,7 +1451,7 @@ const initView1 = (rf) => {
       if (error && error.status === 401) {
         swal.fire({
           title: "Thông báo!",
-          text: "Mã token đã hết hạn hoặc không hợp lệ, vui lòng đăng nhập lại!",
+          text: "Phiên đăng nhập đã hết hạn, vui lòng đăng nhập lại!",
           icon: "error",
           confirmButtonText: "OK",
         });
@@ -1643,7 +1571,7 @@ const initView2 = (rf) => {
       if (error && error.status === 401) {
         swal.fire({
           title: "Thông báo!",
-          text: "Mã token đã hết hạn hoặc không hợp lệ, vui lòng đăng nhập lại!",
+          text: "Phiên đăng nhập đã hết hạn, vui lòng đăng nhập lại!",
           icon: "error",
           confirmButtonText: "OK",
         });
@@ -1661,7 +1589,7 @@ const initView2 = (rf) => {
     });
 };
 const initView3 = (rf) => {
-  if (ref) {
+  if (rf) {
     swal.fire({
       width: 110,
       didOpen: () => {
@@ -1756,7 +1684,7 @@ const initView3 = (rf) => {
       if (error && error.status === 401) {
         swal.fire({
           title: "Thông báo!",
-          text: "Mã token đã hết hạn hoặc không hợp lệ, vui lòng đăng nhập lại!",
+          text: "Phiên đăng nhập đã hết hạn, vui lòng đăng nhập lại!",
           icon: "error",
           confirmButtonText: "OK",
         });
@@ -1774,7 +1702,7 @@ const initView3 = (rf) => {
     });
 };
 const initView4 = (rf) => {
-  if (ref) {
+  if (rf) {
     swal.fire({
       width: 110,
       didOpen: () => {
@@ -1864,7 +1792,7 @@ const initView4 = (rf) => {
       if (error && error.status === 401) {
         swal.fire({
           title: "Thông báo!",
-          text: "Mã token đã hết hạn hoặc không hợp lệ, vui lòng đăng nhập lại!",
+          text: "Phiên đăng nhập đã hết hạn, vui lòng đăng nhập lại!",
           icon: "error",
           confirmButtonText: "OK",
         });
@@ -1882,7 +1810,7 @@ const initView4 = (rf) => {
     });
 };
 
-const initBaocao = async (id) => {
+const initBaocao = async (id, check, data) => {
   let strSQL = {
     query: false,
     proc: "report_get_key",
@@ -1893,14 +1821,6 @@ const initBaocao = async (id) => {
       },
     ],
   };
-  console.log(strSQL);
-
-  swal.fire({
-    width: 110,
-    didOpen: () => {
-      swal.showLoading();
-    },
-  });
   const axResponse = await axios.post(
     baseURL + "/api/HRM_SQL/getData",
     {
@@ -1916,13 +1836,23 @@ const initBaocao = async (id) => {
       toast.error("Không mở được báo cáo");
     } else {
       report.value = JSON.parse(axResponse.data.data)[0][0];
+
+      if (check) {
+        pars.value = { profile_id: data.data.profile_id };
+        headerPayroll.value =
+          "Phiếu lương tháng " +
+          data.data.payroll_month +
+          " năm " +
+          data.data.payroll_year;
+        checkPayroll.value = false;
+      }
     }
   }
   swal.close();
 };
 
 const initView5 = (rf) => {
-  if (ref) {
+  if (rf) {
     swal.fire({
       width: 110,
       didOpen: () => {
@@ -1954,13 +1884,20 @@ const initView5 = (rf) => {
       if (response != null && response.data != null) {
         let data = JSON.parse(response.data.data);
         if (data != null) {
+          data[0].forEach((element, i) => {
+            element.STT =
+              options.value.pageNoPayroll * options.value.pageSizePayroll +
+              i +
+              1;
+          });
           if (data[0].length == 1) {
             var dtcheck = data[0][0];
+ 
             if (
               dtcheck.payroll_month == month.value.getMonth() + 1 &&
               dtcheck.payroll_year == year.value.getFullYear()
             ) {
-              initBaocao(dtcheck.report_key);
+              initBaocao(dtcheck.report_key, false, null);
               pars.value = { profile_id: options.value["profile_id"] };
               headerPayroll.value =
                 "Phiếu lương tháng " +
@@ -1972,6 +1909,7 @@ const initView5 = (rf) => {
               return;
             }
           }
+
           listpayrolls.value = data[0];
           checkPayroll.value = true;
           swal.close();
@@ -1986,7 +1924,7 @@ const initView5 = (rf) => {
       if (error && error.status === 401) {
         swal.fire({
           title: "Thông báo!",
-          text: "Mã token đã hết hạn hoặc không hợp lệ, vui lòng đăng nhập lại!",
+          text: "Phiên đăng nhập đã hết hạn, vui lòng đăng nhập lại!",
           icon: "error",
           confirmButtonText: "OK",
         });
@@ -2105,7 +2043,7 @@ const initView6 = (rf) => {
       if (error && error.status === 401) {
         swal.fire({
           title: "Thông báo!",
-          text: "Mã token đã hết hạn hoặc không hợp lệ, vui lòng đăng nhập lại!",
+          text: "Phiên đăng nhập đã hết hạn, vui lòng đăng nhập lại!",
           icon: "error",
           confirmButtonText: "OK",
         });
@@ -2189,7 +2127,7 @@ const initView8 = (rf) => {
       if (error && error.status === 401) {
         swal.fire({
           title: "Thông báo!",
-          text: "Mã token đã hết hạn hoặc không hợp lệ, vui lòng đăng nhập lại!",
+          text: "Phiên đăng nhập đã hết hạn, vui lòng đăng nhập lại!",
           icon: "error",
           confirmButtonText: "OK",
         });
@@ -2287,7 +2225,7 @@ const initView10 = (rf) => {
       if (error && error.status === 401) {
         swal.fire({
           title: "Thông báo!",
-          text: "Mã token đã hết hạn hoặc không hợp lệ, vui lòng đăng nhập lại!",
+          text: "Phiên đăng nhập đã hết hạn, vui lòng đăng nhập lại!",
           icon: "error",
           confirmButtonText: "OK",
         });
@@ -2305,7 +2243,7 @@ const initView10 = (rf) => {
     });
 };
 const initView11 = (rf) => {
-  if (ref) {
+  if (rf) {
     swal.fire({
       width: 110,
       didOpen: () => {
@@ -2358,7 +2296,7 @@ const initView11 = (rf) => {
       if (error && error.status === 401) {
         swal.fire({
           title: "Thông báo!",
-          text: "Mã token đã hết hạn hoặc không hợp lệ, vui lòng đăng nhập lại!",
+          text: "Phiên đăng nhập đã hết hạn, vui lòng đăng nhập lại!",
           icon: "error",
           confirmButtonText: "OK",
         });
@@ -2444,7 +2382,7 @@ const initView12 = (rf) => {
       if (error && error.status === 401) {
         swal.fire({
           title: "Thông báo!",
-          text: "Mã token đã hết hạn hoặc không hợp lệ, vui lòng đăng nhập lại!",
+          text: "Phiên đăng nhập đã hết hạn, vui lòng đăng nhập lại!",
           icon: "error",
           confirmButtonText: "OK",
         });
@@ -2463,6 +2401,10 @@ const initView12 = (rf) => {
 };
 const replates = ref([]);
 const initRelate = (rf) => {
+  var path = options.value.path;
+  if (options.value.name === "profileinfo") {
+    path = "/hrm/profile";
+  }
   if (rf) {
     swal.fire({
       width: 110,
@@ -2477,8 +2419,12 @@ const initRelate = (rf) => {
       {
         str: encr(
           JSON.stringify({
-            proc: "hrm_profile_relate_get",
-            par: [{ par: "profile_id", va: options.value["profile_id"] }],
+            proc: "hrm_profile_relate_get_2",
+            par: [
+              { par: "user_id", va: store.getters.user.user_id },
+              { par: "profile_id", va: options.value.profile_id },
+              { par: "is_link", va: path },
+            ],
           }),
           SecretKey,
           cryoptojs
@@ -2499,7 +2445,7 @@ const initRelate = (rf) => {
       if (error && error.status === 401) {
         swal.fire({
           title: "Thông báo!",
-          text: "Mã token đã hết hạn hoặc không hợp lệ, vui lòng đăng nhập lại!",
+          text: "Phiên đăng nhập đã hết hạn, vui lòng đăng nhập lại!",
           icon: "error",
           confirmButtonText: "OK",
         });
@@ -2542,6 +2488,53 @@ const initData = () => {
     initDictionary12();
   }
 };
+const initRoleFunction = () => {
+  var path = options.value.path;
+  if (options.value.name === "profileinfo") {
+    path = "/hrm/profile";
+  }
+  axios
+    .post(
+      baseURL + "/api/hrm/callProc",
+      {
+        str: encr(
+          JSON.stringify({
+            proc: "hrm_profile_rolefunction_get",
+            par: [
+              { par: "user_id", va: store.getters.user.user_id },
+              { par: "is_link", va: path },
+            ],
+          }),
+          SecretKey,
+          cryoptojs
+        ).toString(),
+      },
+      config
+    )
+    .then((response) => {
+      if (response != null && response.data != null) {
+        var data = response.data.data;
+        if (data != null) {
+          let tbs = JSON.parse(data);
+          if (tbs[0] != null && tbs[0].length > 0) {
+            let permissions = Object.entries(tbs[0][0]);
+            for (const [key, value] of permissions) {
+              functions.value[key] = value;
+            }
+          }
+          if (tbs[1] != null && tbs[1].length > 0) {
+            if (tbs[1][0].module_functions != null && tbs[1][0].module_functions != "") {
+              let module_functions = tbs[1][0].module_functions.split(",");
+              for (var key in module_functions) {
+                functions.value[module_functions[key]] = true;
+              }
+            }
+          }
+          rolefunctions.value = tbs;
+        }
+      }
+    });
+};
 const initDictionary = () => {
   reports.value = [];
   itemButPrints.value = [];
@@ -2563,14 +2556,14 @@ const initDictionary = () => {
     .then((response) => {
       if (response != null && response.data != null) {
         var data = response.data.data;
-        
+
         if (data != null) {
           let tbs = JSON.parse(data);
           if (tbs[0] && tbs[0].length > 0) {
             reports.value = tbs[0];
             tbs[0].forEach((item) => {
               let obj = {
-                report_key:item.report_key,
+                report_key: item.report_key,
                 view: 13,
                 label: item.report_title,
                 icon: "fa-regular fa-file",
@@ -2587,12 +2580,15 @@ const initDictionary = () => {
 };
 onMounted(() => {
   if (route.params.id != null) {
-    options.value["key_id"] = route.params.id;
-    options.value["profile_id"] = route.query.id;
+    options.value.key_id = route.params.id;
+    options.value.profile_id = route.query.id;
+    options.value.path = route.path;
+    options.value.name = route.name;
+    initRoleFunction();
     initData();
     initRelate();
     //initDictionaryInsurance();
-    initDictionary();    
+    initDictionary();
   } else {
     router.back();
     return;
@@ -2646,6 +2642,7 @@ const formatViewNumber = (value, partDecimal) => {
           </li>
         </ul>
         <Button
+          v-if="functions.is_edit"
           @click="toggleEdit"
           label="Cập nhật thay đổi thông tin"
           class="p-button-warning mr-2"
@@ -3008,8 +3005,7 @@ const formatViewNumber = (value, partDecimal) => {
                           <label class="label-profileinfo"
                             >Nơi sinh:
                             <span class="description-2">{{
-                              //profile.select_birthplace
-                              (profile.birthplace_name || '')
+                              profile.birthplace_name || ""
                             }}</span></label
                           >
                         </div>
@@ -3019,8 +3015,7 @@ const formatViewNumber = (value, partDecimal) => {
                           <label class="label-profileinfo"
                             >Quê quán:
                             <span class="description-2">{{
-                              //profile.select_birthplace_origin
-                              (profile.birthplace_origin_name || '')
+                              profile.birthplace_origin_name || ""
                             }}</span></label
                           >
                         </div>
@@ -3031,8 +3026,11 @@ const formatViewNumber = (value, partDecimal) => {
                             >Nơi đăng ký HKTT:
                             <span class="description-2">{{
                               //profile.select_place_register_permanent
-                              (profile.place_register_permanent_first || '') +
-                              (profile.place_register_permanent_name ? (', ' + profile.place_register_permanent_name || '') : '')                              
+                              (profile.place_register_permanent_first || "") +
+                              (profile.place_register_permanent_name
+                                ? ", " +
+                                    profile.place_register_permanent_name || ""
+                                : "")
                             }}</span></label
                           >
                         </div>
@@ -3345,14 +3343,19 @@ const formatViewNumber = (value, partDecimal) => {
                                   v-model="profile.is_re_recruitment"
                                   :disabled="true"
                                 />
-                                <label class="label-profileinfo ml-2" for="binary"
+                                <label
+                                  class="label-profileinfo ml-2"
+                                  for="binary"
                                   >Tuyển dụng lại</label
                                 >
                               </div>
                             </div>
                           </div>
-                          
-                          <div class="col-6 md:col-6" v-if="profile.is_re_recruitment">
+
+                          <div
+                            class="col-6 md:col-6"
+                            v-if="profile.is_re_recruitment"
+                          >
                             <div class="form-group m-0">
                               <label class="label-profileinfo"
                                 >Lần tuyển dụng:
@@ -3362,7 +3365,10 @@ const formatViewNumber = (value, partDecimal) => {
                               >
                             </div>
                           </div>
-                          <div class="col-6 md:col-6" v-if="profile.is_re_recruitment">
+                          <div
+                            class="col-6 md:col-6"
+                            v-if="profile.is_re_recruitment"
+                          >
                             <div class="form-group m-0">
                               <label class="label-profileinfo"
                                 >Ngày tuyển dụng lại:
@@ -3372,7 +3378,10 @@ const formatViewNumber = (value, partDecimal) => {
                               >
                             </div>
                           </div>
-                          <div class="col-6 md:col-6" v-if="profile.is_re_recruitment">
+                          <div
+                            class="col-6 md:col-6"
+                            v-if="profile.is_re_recruitment"
+                          >
                             <div class="form-group m-0">
                               <label class="label-profileinfo"
                                 >Hình thức tuyển dụng:
@@ -3382,7 +3391,10 @@ const formatViewNumber = (value, partDecimal) => {
                               >
                             </div>
                           </div>
-                          <div class="col-6 md:col-6" v-if="profile.is_re_recruitment">
+                          <div
+                            class="col-6 md:col-6"
+                            v-if="profile.is_re_recruitment"
+                          >
                             <div class="form-group m-0">
                               <label class="label-profileinfo"
                                 >Nghề nghiệp bản thân trước khi được tuyển dụng:
@@ -3392,7 +3404,10 @@ const formatViewNumber = (value, partDecimal) => {
                               >
                             </div>
                           </div>
-                          <div class="col-6 md:col-6" v-if="profile.is_re_recruitment">
+                          <div
+                            class="col-6 md:col-6"
+                            v-if="profile.is_re_recruitment"
+                          >
                             <div class="form-group m-0">
                               <label class="label-profileinfo"
                                 >Vị trí tuyển dụng:
@@ -3402,7 +3417,6 @@ const formatViewNumber = (value, partDecimal) => {
                               >
                             </div>
                           </div>
-
                         </div>
                       </div>
                     </AccordionTab>
@@ -3485,7 +3499,7 @@ const formatViewNumber = (value, partDecimal) => {
                             </div>
                           </div>
                         </div>
-                      </div>                      
+                      </div>
                       <div class="col-12 md:col-12">
                         <div class="form-group m-0 mb-1">
                           <label class="label-profileinfo m-0">
@@ -3609,7 +3623,7 @@ const formatViewNumber = (value, partDecimal) => {
                             >
                               <template #body="slotProps">
                                 <span>{{
-                                  slotProps.data.graduation_year || ''
+                                  slotProps.data.graduation_year || ""
                                 }}</span>
                               </template>
                             </Column>
@@ -3621,11 +3635,9 @@ const formatViewNumber = (value, partDecimal) => {
                               class="align-items-center justify-content-center text-center"
                             >
                               <template #body="slotProps">
-                                <span>{{
-                                  slotProps.data.rating || ''
-                                }}</span>
+                                <span>{{ slotProps.data.rating || "" }}</span>
                               </template>
-                            </Column>                            
+                            </Column>
                             <Column
                               field="degree_date"
                               header="Ngày cấp bằng"
@@ -3635,7 +3647,7 @@ const formatViewNumber = (value, partDecimal) => {
                             >
                               <template #body="slotProps">
                                 <span>{{
-                                  slotProps.data.graduation_year || ''
+                                  slotProps.data.graduation_year || ""
                                 }}</span>
                               </template>
                             </Column>
@@ -3735,7 +3747,9 @@ const formatViewNumber = (value, partDecimal) => {
                         <Toolbar class="w-full custoolbar p-0 font-bold">
                           <template #start>
                             <!-- <i class="pi pi-replay mr-2"></i> -->
-                            <span>5. Thông tin đảng, tham gia TCCT-XH</span></template
+                            <span
+                              >5. Thông tin đảng, tham gia TCCT-XH</span
+                            ></template
                           >
                         </Toolbar>
                       </template>
@@ -3788,7 +3802,6 @@ const formatViewNumber = (value, partDecimal) => {
                               >
                             </div>
                           </div>
-                          
                         </div>
                       </div>
                       <div class="col-12 md:col-12">
@@ -4095,7 +4108,9 @@ const formatViewNumber = (value, partDecimal) => {
                       <template #header>
                         <Toolbar class="w-full custoolbar p-0 font-bold">
                           <template #start>
-                            <span>7. Quá trình công tác trước khi vào đơn vị</span></template
+                            <span
+                              >7. Quá trình công tác trước khi vào đơn vị</span
+                            ></template
                           >
                         </Toolbar>
                       </template>
@@ -4202,7 +4217,7 @@ const formatViewNumber = (value, partDecimal) => {
                         </div>
                       </div>
                     </AccordionTab>
-                  </Accordion>                  
+                  </Accordion>
                   <!-- 8. Thông tin gia đình, người phụ thuộc -->
                   <Accordion class="w-full padding-0 mb-2" :activeIndex="0">
                     <AccordionTab>
@@ -4232,7 +4247,7 @@ const formatViewNumber = (value, partDecimal) => {
                           :row-hover="true"
                           rowGroupMode="subheader"
                           groupRowsBy="is_type"
-                          expandableRowGroups 
+                          expandableRowGroups
                           scrollDirection="both"
                           v-model:expandedRowGroups="expandedRowGroups"
                           @rowgroup-expand="onRowGroupExpand($event)"
@@ -4807,7 +4822,11 @@ const formatViewNumber = (value, partDecimal) => {
               </div>
             </div>
             <div v-if="options.view === 2" class="f-full">
-              <comptask :profile_id="options.profile_id" :view="options.view" />
+              <comptask
+                :profile_id="options.profile_id"
+                :view="options.view"
+                :functions="functions"
+              />
             </div>
             <div v-show="options.view === 3" class="f-full">
               <div class="d-lang-table-1 p-2">
@@ -4835,9 +4854,9 @@ const formatViewNumber = (value, partDecimal) => {
                 >
                   <Column
                     field="contract_code"
-                    header="Mã HĐ"
-                    headerStyle="text-align:center;max-width:80px;height:50px"
-                    bodyStyle="text-align:center;max-width:80px;"
+                    header="Số HĐ"
+                    headerStyle="text-align:center;max-width:150px;height:50px"
+                    bodyStyle="text-align:center;max-width:150px;"
                     class="align-items-center justify-content-center text-center"
                   />
                   <Column
@@ -4893,7 +4912,7 @@ const formatViewNumber = (value, partDecimal) => {
                       <span v-html="slotProps.data.end_date"></span>
                     </template>
                   </Column>
-                  <Column
+                  <!-- <Column
                     field="created_date"
                     header="Ngày/Người lập"
                     headerStyle="text-align:center;max-width:130px;height:50px"
@@ -4931,7 +4950,7 @@ const formatViewNumber = (value, partDecimal) => {
                         />
                       </div>
                     </template>
-                  </Column>
+                  </Column> -->
                   <Column
                     field="status"
                     header="Trạng thái"
@@ -4984,7 +5003,7 @@ const formatViewNumber = (value, partDecimal) => {
             <div v-show="options.view === 5" class="f-full">
               <div v-if="checkPayroll != null">
                 <div
-                  class="bg-white h-full"
+                  class="bg-white dt-lang-table-1"
                   v-if="checkPayroll == false && report"
                 >
                   <DocComponent
@@ -5379,7 +5398,7 @@ const formatViewNumber = (value, partDecimal) => {
                 </div>
               </div>
             </div>
-            <div v-show="options.view === 7" class="f-full h-leaveyear">
+            <div v-if="options.view === 7" class="f-full h-leaveyear">
               <leaveyear :profile_id="options.profile_id" />
             </div>
             <div v-show="options.view === 8" class="f-full">
@@ -5578,7 +5597,7 @@ const formatViewNumber = (value, partDecimal) => {
                 </DataTable>
               </div>
             </div>
-            <div v-show="options.view === 9" class="f-full h-decision">
+            <div v-if="options.view === 9" class="f-full h-decision">
               <decision :profile_id="options.profile_id" />
             </div>
             <div v-show="options.view === 10" class="f-full">
@@ -6160,10 +6179,7 @@ const formatViewNumber = (value, partDecimal) => {
               </div>
             </div>
             <div v-if="options.view === 16" class="f-full">
-              <comreward
-                :profile_id="options.profile_id"
-                :view="options.view"
-              />
+              <reward :profile_id="profile.profile_id" />
             </div>
           </div>
         </div>
@@ -6494,6 +6510,11 @@ const formatViewNumber = (value, partDecimal) => {
 </template>
 <style scoped>
 @import url(../../profile/component/stylehrm.css);
+.dt-lang-table-1 {
+  height: calc(100vh - 170px) !important;
+  background-color: #fff;
+  overflow: hidden;
+}
 .dt-lang-table {
   height: calc(100vh - 170px) !important;
   background-color: #fff;

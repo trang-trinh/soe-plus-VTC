@@ -165,11 +165,11 @@ const ChangeTypeChart = (type) => {
   };
   if (opition.value.type_chart == 1) {
     var list = listChartDate.value.filter(
-      (x) => x.is_type == 1 || x.is_type == 2 || x.is_type == 3,
+      (x) => x.is_type == 1 || x.is_type == 2 || x.is_type == 3
     );
   } else if (opition.value.type_chart == 2) {
     var list = listChartDate.value.filter(
-      (x) => x.is_type == 1 || x.is_type == 2,
+      (x) => x.is_type == 1 || x.is_type == 2
     );
   } else if (opition.value.type_chart == 3) {
     var list = listChartDate.value.filter((x) => x.is_type == 0);
@@ -222,10 +222,10 @@ const loadData = (rf) => {
             ],
           }),
           SecretKey,
-          cryoptojs,
+          cryoptojs
         ).toString(),
       },
-      config,
+      config
     )
     .then((response) => {
       let data = JSON.parse(response.data.data);
@@ -233,7 +233,7 @@ const loadData = (rf) => {
       countAllFile.value = data[7][0].total_file;
       ProjectMainDetail.value = data[0][0];
       ProjectMainDetail.value.status_name = listStatusProjectMain.value.filter(
-        (x) => x.value == data[0][0].status,
+        (x) => x.value == data[0][0].status
       )[0].text;
       if (data[5].length > 0) {
         Thanhviens.value = new Set(data[5]);
@@ -258,7 +258,7 @@ const loadData = (rf) => {
       PhongBanThamGia.value = data[2];
       PhongBanThamGia.value.forEach((pb) => {
         pb.tenToChuc = data[1].filter(
-          (x) => x.department_id == pb.department_id,
+          (x) => x.department_id == pb.department_id
         )[0].tenToChuc
           ? data[1].filter((x) => x.department_id == pb.department_id)[0]
               .tenToChuc
@@ -295,7 +295,7 @@ const loadData = (rf) => {
             status_name: listDropdownStatus.value.filter((x) => x.value == k)[0]
               .text,
             status_bg_color: listDropdownStatus.value.filter(
-              (x) => x.value == k,
+              (x) => x.value == k
             )[0].bg_color,
             CVGroup: CVGroup,
           });
@@ -311,7 +311,7 @@ const loadData = (rf) => {
       listChartDate.value = data[4];
       if (opition.value.type_chart == 1) {
         var list = data[4].filter(
-          (x) => x.is_type == 1 || x.is_type == 2 || x.is_type == 3,
+          (x) => x.is_type == 1 || x.is_type == 2 || x.is_type == 3
         );
         opition.value.title_type_chart = "Công việc tham gia";
       } else if (opition.value.type_chart == 2) {
@@ -360,7 +360,7 @@ const loadData = (rf) => {
       });
       if (error && error.status === 401) {
         swal.fire({
-          text: "Mã token đã hết hạn hoặc không hợp lệ, vui lòng đăng nhập lại!",
+          text: "Phiên đăng nhập đã hết hạn, vui lòng đăng nhập lại!",
           confirmButtonText: "OK",
         });
         store.commit("gologout");
@@ -384,10 +384,10 @@ const loadProjectMainChild = () => {
             ],
           }),
           SecretKey,
-          cryoptojs,
+          cryoptojs
         ).toString(),
       },
-      config,
+      config
     )
     .then((response) => {
       let data = JSON.parse(response.data.data);
@@ -395,13 +395,13 @@ const loadProjectMainChild = () => {
       if (listProjectMainChild.value.length > 0) {
         listProjectMainChild.value.forEach((element, i) => {
           element.status_name = listDropdownStatusProject.value.filter(
-            (x) => x.value == element.status,
+            (x) => x.value == element.status
           )[0].text;
           element.status_bg_color = listDropdownStatusProject.value.filter(
-            (x) => x.value == element.status,
+            (x) => x.value == element.status
           )[0].bg_color;
           element.status_text_color = listDropdownStatusProject.value.filter(
-            (x) => x.value == element.status,
+            (x) => x.value == element.status
           )[0].text_color;
           element.STT = opition.value.PageNo * opition.value.PageSize + i + 1;
         });
@@ -420,7 +420,7 @@ const loadProjectMainChild = () => {
       });
       if (error && error.status === 401) {
         swal.fire({
-          text: "Mã token đã hết hạn hoặc không hợp lệ, vui lòng đăng nhập lại!",
+          text: "Phiên đăng nhập đã hết hạn, vui lòng đăng nhập lại!",
           confirmButtonText: "OK",
         });
         store.commit("gologout");
@@ -472,10 +472,10 @@ const loadTaskLogProjetc = () => {
             ],
           }),
           SecretKey,
-          cryoptojs,
+          cryoptojs
         ).toString(),
       },
-      config,
+      config
     )
     .then((response) => {
       let data = JSON.parse(response.data.data)[0];
@@ -505,7 +505,7 @@ const loadTaskLogProjetc = () => {
       });
       if (error && error.status === 401) {
         swal.fire({
-          text: "Mã token đã hết hạn hoặc không hợp lệ, vui lòng đăng nhập lại!",
+          text: "Phiên đăng nhập đã hết hạn, vui lòng đăng nhập lại!",
           confirmButtonText: "OK",
         });
         store.commit("gologout");
@@ -548,10 +548,10 @@ const loadFileTaiLieu = () => {
             ],
           }),
           SecretKey,
-          cryoptojs,
+          cryoptojs
         ).toString(),
       },
-      config,
+      config
     )
     .then((response) => {
       let data = JSON.parse(response.data.data)[0];
@@ -568,7 +568,7 @@ const loadFileTaiLieu = () => {
       });
       if (error && error.status === 401) {
         swal.fire({
-          text: "Mã token đã hết hạn hoặc không hợp lệ, vui lòng đăng nhập lại!",
+          text: "Phiên đăng nhập đã hết hạn, vui lòng đăng nhập lại!",
           confirmButtonText: "OK",
         });
         store.commit("gologout");
@@ -592,14 +592,8 @@ onMounted(() => {
     class="overflow-hidden h-full w-full col-md-12 p-0 m-0 flex"
     style="height: 100%"
   >
-    <div
-      class="col-12 p-0 m-0"
-      style="height: 100%"
-    >
-      <div
-        class="row w-full px-0 mx-0"
-        style="height: 100%"
-      >
+    <div class="col-12 p-0 m-0" style="height: 100%">
+      <div class="row w-full px-0 mx-0" style="height: 100%">
         <div
           class="col-12 p-0 m-0 tab-view-custom"
           style="height: 100%"
@@ -607,10 +601,7 @@ onMounted(() => {
         >
           <div style="position: absolute; top: 2px; right: 20px; z-index: 2">
             <AvatarGroup>
-              <div
-                v-for="(value, index) in ThanhvienShows"
-                :key="index"
-              >
+              <div v-for="(value, index) in ThanhvienShows" :key="index">
                 <div>
                   <Avatar
                     v-tooltip.bottom="{
@@ -831,10 +822,7 @@ onMounted(() => {
                   </div>
                 </div>
                 <div class="col-6 p-0 m-0 tab-project-content-right">
-                  <div
-                    class="row"
-                    style="padding: 15px; font-size: 13px"
-                  >
+                  <div class="row" style="padding: 15px; font-size: 13px">
                     <div class="col-12">
                       Tên dự án:
                       <span style="font-weight: 600">{{
@@ -847,7 +835,7 @@ onMounted(() => {
                         >{{ ProjectMainDetail.full_name }} - </span
                       ><span>{{
                         moment(new Date(ProjectMainDetail.created_date)).format(
-                          "HH:mm DD/MM",
+                          "HH:mm DD/MM"
                         )
                       }}</span>
                     </div>
@@ -967,7 +955,7 @@ onMounted(() => {
                           <span>Ngày bắt đầu</span>
                           <span v-if="ProjectMainDetail.start_date">{{
                             moment(
-                              new Date(ProjectMainDetail.start_date),
+                              new Date(ProjectMainDetail.start_date)
                             ).format("DD/MM/YYYY")
                           }}</span>
                         </div>
@@ -983,7 +971,7 @@ onMounted(() => {
                           <span>Ngày kết thúc</span>
                           <span v-if="ProjectMainDetail.end_date">{{
                             moment(new Date(ProjectMainDetail.end_date)).format(
-                              "DD/MM/YYYY",
+                              "DD/MM/YYYY"
                             )
                           }}</span>
                         </div>
@@ -1021,9 +1009,7 @@ onMounted(() => {
                             v-for="pb in PhongBanThamGia"
                             style="font-weight: 600"
                             >- {{ pb.organization_name }}
-                            <span
-                              v-if="pb.tenToChuc"
-                              style="font-weight: 500"
+                            <span v-if="pb.tenToChuc" style="font-weight: 500"
                               >({{ pb.tenToChuc }})</span
                             ></span
                           >
@@ -1044,8 +1030,9 @@ onMounted(() => {
                   :paginator="true"
                   :rows="opition.PageSize"
                   paginatorTemplate="FirstPageLink PrevPageLink PageLinks NextPageLink LastPageLink RowsPerPageDropdown"
-                  :rowsPerPageOptions="[1, 20, 30, 50, 100, 200]"
+                  :rowsPerPageOptions="[20, 30, 50, 100, 200]"
                   :scrollable="true"
+                  responsiveLayout="scroll"
                   scrollHeight="flex"
                   :totalRecords="opition.totalRecordProjectMainChilds"
                   :row-hover="true"
@@ -1152,12 +1139,7 @@ onMounted(() => {
               </div>
             </TabPanel>
             <TabPanel :header="'Công việc (' + countTasks + ')'">
-              <TaskOrigin
-                :isShow="showDetail"
-                :id="props.id"
-                :turn="0"
-              >
-              </TaskOrigin>
+              <TaskOrigin :id="props.id" :turn="0"> </TaskOrigin>
             </TabPanel>
             <TabPanel header="Tài liệu">
               <div class="h-full w-full col-md-12 p-0 m-0">
@@ -1246,7 +1228,7 @@ onMounted(() => {
                           <div style="font-size: 11px; color: #aaa">
                             <span style="font-weight: 500">{{
                               moment(new Date(value.created_date)).format(
-                                "HH:mm DD/MM/YYYY",
+                                "HH:mm DD/MM/YYYY"
                               )
                             }}</span>
                           </div>
@@ -1418,7 +1400,7 @@ onMounted(() => {
                           <div style="font-size: 11px; color: #aaa">
                             <span style="font-weight: 500">{{
                               moment(new Date(value.created_date)).format(
-                                "HH:mm DD/MM/YYYY",
+                                "HH:mm DD/MM/YYYY"
                               )
                             }}</span>
                           </div>
@@ -1510,7 +1492,7 @@ onMounted(() => {
 }
 
 #projectmain-child {
-  height: 99% !important;
+  height: calc(100vh - 3rem) !important;
   padding: 10px;
 }
 #projectmain-thaoluan {

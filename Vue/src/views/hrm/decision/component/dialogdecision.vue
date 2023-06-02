@@ -141,7 +141,7 @@ const saveModel = (is_continue) => {
       if (error && error.status === 401) {
         swal.fire({
           title: "Thông báo!",
-          text: "Mã token đã hết hạn hoặc không hợp lệ, vui lòng đăng nhập lại!",
+          text: "Phiên đăng nhập đã hết hạn, vui lòng đăng nhập lại!",
           icon: "error",
           confirmButtonText: "OK",
         });
@@ -246,7 +246,7 @@ const deleteFile = (item, idx) => {
               if (error.status === 401) {
                 swal.fire({
                   title: "Thông báo!",
-                  text: "Mã token đã hết hạn hoặc không hợp lệ, vui lòng đăng nhập lại!",
+                  text: "Phiên đăng nhập đã hết hạn, vui lòng đăng nhập lại!",
                   icon: "error",
                   confirmButtonText: "OK",
                 });
@@ -360,7 +360,7 @@ const initData = (ref) => {
       if (error && error.status === 401) {
         swal.fire({
           title: "Thông báo!",
-          text: "Mã token đã hết hạn hoặc không hợp lệ, vui lòng đăng nhập lại!",
+          text: "Phiên đăng nhập đã hết hạn, vui lòng đăng nhập lại!",
           icon: "error",
           confirmButtonText: "OK",
         });
@@ -382,8 +382,7 @@ onMounted(() => {
     initDictionary();
     if (!props.isAdd || props.isCopy) {
       initData(true);
-    } else {
-    }
+    }  
   }
 });
 </script>
@@ -394,7 +393,8 @@ onMounted(() => {
     :style="{ width: '70vw' }"
     :maximizable="true"
     :closable="true"
-    style="z-index: 9000"
+   
+    :modal="true"
   >
     <form @submit.prevent="" name="submitform">
       <div class="grid formgrid m-2">

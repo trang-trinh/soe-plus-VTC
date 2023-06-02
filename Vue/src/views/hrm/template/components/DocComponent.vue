@@ -43,7 +43,8 @@ export default {
     isedit: Boolean,
     readonly: Boolean,
     callbackFun: Function,
-    header:String
+    header: String,
+    reload: Function,
   },
   components: {
     Editor,
@@ -68,7 +69,7 @@ export default {
     //refChild
     const isedit = props.isedit || false;
     const onedata = props.onedata;
-    const header = props.header|| null;
+    const header = props.header || null;
     const isUrlReport = ref(props.pars ? true : false);
     const readonly = ref(props.readonly ? true : false);
     const isReportListView = ref(
@@ -76,8 +77,9 @@ export default {
     );
     const isViewReport = ref(readonly.value || isUrlReport.value);
     const configDBChild = ref(null);
-    const report = props.report;
+    const report = props.report || null;
     const cryoptojs = inject("cryptojs");
+    const selectedStamps = ref({});
     const toast = useToast();
     const swal = inject("$swal");
     const ipsearch = ref("");
@@ -99,6 +101,7 @@ export default {
     const spans = ref([]);
     const axios = inject("axios");
     const objDataTemp = ref([]);
+    const objDataTempSave = ref([]);
     let delElements = [];
     const rfUserComp = ref(null);
     const store = inject("store");
@@ -779,6 +782,7 @@ export default {
           x.className = "tablecell";
           x.innerHTML = i + 1;
         });
+
         let tr = dochtml.querySelector("tbody").insertRow(0);
         tr.className = "tablecell";
         //Dòng trên
@@ -1217,6 +1221,7 @@ export default {
     };
     const showDataSidebar = () => {
       isdataSidebar.value = true;
+      checkHide=false;
       if (datamaps.value.length == 0) {
         initMapData();
       }
@@ -1247,28 +1252,35 @@ export default {
       });
     };
     const saveDatamap = (f) => {
+       
       if (readonly.value) {
         //Save file quyết định, lương...
         let users = [];
         if (!oneRow.value) {
-          let objt = {};
+          let arr = [];
+          
           dtDataReports.value.forEach((dr) => {
+            let objt = {};
             Object.keys(dr)
               .filter((x) => x.includes("_"))
               .forEach((el) => {
                 objt[el] = dr[el];
               });
+
             if (dr.datatemp) {
               dr.ok = true;
+
               objt.is_data = [dr.datatemp];
             } else {
               dr.ok = false;
               objt.is_data = null;
             }
-
-            props.callbackFun(objt);
+            arr.push(objt);
           });
+          
+          props.callbackFun(arr);
           isdataSidebar.value = false;
+
           return false;
         }
         let idx = objDataTemp.value[0].cols.findIndex(
@@ -1419,21 +1431,27 @@ export default {
       formData.append("doc", event.files[0]);
       let xls = event.files[0].name.includes(".xls");
       let apimethod = xls ? "PostFileXLS" : "PostFile";
-      apimethod = "PostFile";
+      // apimethod = "PostFile";
       try {
-        const response = await fetch(baseURL 
-        //+ "api/Files/" 
-        + "api/SRC/" 
-        + apimethod, {
-          method: "POST",
-          body: formData,
-        });
+        const response = await fetch(
+          baseURL +
+            //+ "api/Files/"
+            "api/SRC/" +
+            apimethod,
+          {
+            method: "POST",
+            body: formData,
+          }
+        );
         var data = await response.json();
-        let html = data.html;
+
+        let html = data.htmls;
         dochtml.innerHTML = html;
         isxls.value = true;
         addExcelStyle();
+
         await initDataTempAuto(true);
+
         let rowmnumber = dtExcels.value[0].rowmnumber || 1;
         dochtml.querySelectorAll('[style*="display:none"]').forEach((tr) => {
           tr.remove();
@@ -1445,6 +1463,10 @@ export default {
           if (trs[i].children.length >= cols.length) {
             let obj = {};
             cols.forEach((c, j) => {
+              if (c) {
+                c.value = c.value.replaceAll("\n", "");
+             
+              }
               if (trs[i].children[j + 1]) {
                 //console.log(c.value+" - "+trs[i].children[j + 1].innerText);
                 if (trs[i].children[j + 1].innerText.trim().includes("%")) {
@@ -1458,9 +1480,12 @@ export default {
                 obj[c.value] = null;
               }
             });
+
             rows.push(obj);
           }
         }
+
+        let arrF = [];
         dtDataReports.value.forEach((r) => {
           let rr = rows.find(
             (x) =>
@@ -1470,14 +1495,22 @@ export default {
                 (x["Mã NS"] == r["profile_code"] ||
                   x["Mã Nhân sự"] == r["profile_code"]))
           );
+
           if (rr) {
             r.datatemp = rr;
+            arrF.push(r);
           } else {
             delete r.datatemp;
           }
         });
+
+        dtDataReports.value = arrF;
         await saveDatamap(false);
-        props.callbackFun({ is_config: JSON.stringify(objDataTemp.value) });
+
+        props.callbackFun(
+          { is_config: JSON.stringify(objDataTemp.value) }
+        );
+        // props.reload();
         showLoadding.value = false;
         isdataSidebar.value = false;
         initTemplate(true);
@@ -1488,7 +1521,8 @@ export default {
     };
     const importJsonData = (event) => {
       let file = event.files[0];
-      if (file.name.includes("xlsx")) {
+      if (file.name.includes("xls")) {
+        checkHide=true;
         myDocUploader(event);
         return false;
       }
@@ -1509,6 +1543,7 @@ export default {
     };
     let dtUser = {};
     const initDataTempAuto = async (tf) => {
+       
       if (!isUrlReport.value) {
         let dts = await goProc(
           false,
@@ -1519,7 +1554,6 @@ export default {
         );
         dtUser = dts[0];
       }
-
       let stt = 0;
       let obj = { stt: 0, key: 0, value: "data-" + stt, cols: [] };
       let tagps = [];
@@ -1659,6 +1693,8 @@ export default {
           console.log(e);
         }
       }
+
+      objDataTempSave.value=[...objDataTemp.value]
       if (isxls.value) initdbXLS();
       if (objDataTemp.value[0].cols.length == 0) {
         await initTempAI();
@@ -1711,9 +1747,15 @@ export default {
         );
         iframeDoc.querySelector("body").appendChild(divleftiframe);
 
-        filename = change_unsigned(props.report.report_name.replace(/\t/g, "_").replace(/[/\\?%*:|"<>]/g, '-'), "_");
+        filename = change_unsigned(
+          props.report.report_name
+            .replace(/\t/g, "_")
+            .replace(/[/\\?%*:|"<>]/g, "-"),
+          "_"
+        );
       }
       showLoadding.value = true;
+
       if (props.report.report_template)
         isxls.value = props.report.report_template.startsWith("<!doctype");
       tempHTML = "";
@@ -1845,11 +1887,11 @@ export default {
       configDBChild.value.saveDatabase();
     };
     const saveConfig = () => {
-      
       props.callbackFun({
         report_config: JSON.stringify({
           data: isxls.value ? dtExcels.value : objDataTemp.value,
           proc: proc,
+          sum_key: report.sum_key,
         }),
       });
       toast.success("Đã lưu cấu hình thành công!");
@@ -1906,12 +1948,21 @@ export default {
           //     filename +
           //     (isxls.value ? ".xlsx" : ".docx")
           // );
-          if (axResponse.data.err == "0") {            
+          if (axResponse.data.err == "0") {
             if (isxls.value) {
-              downloadFileExport("GetDownloadXLS", dataHtml.filename, axResponse.data.fileName + ".html", ".xlsx");
-            }
-            else {
-              downloadFileExport("GetDownload", dataHtml.filename, axResponse.data.fileName + ".html", ".docx");
+              downloadFileExport(
+                "GetDownloadXLS",
+                dataHtml.filename,
+                axResponse.data.fileName + ".html",
+                ".xlsx"
+              );
+            } else {
+              downloadFileExport(
+                "GetDownload",
+                dataHtml.filename,
+                axResponse.data.fileName + ".html",
+                ".docx"
+              );
             }
           }
           let sps = [];
@@ -1932,7 +1983,12 @@ export default {
         console.log(e);
       }
     };
-    const downloadFileExport = (name_func, file_name_download, file_name, file_type) => {
+    const downloadFileExport = (
+      name_func,
+      file_name_download,
+      file_name,
+      file_type
+    ) => {
       let nameF = (file_name || "file_download") + file_type;
       let nameDownload = (file_name_download || "file_download") + file_type;
       const a = document.createElement("a");
@@ -2236,12 +2292,21 @@ export default {
           //     filename +
           //     (isxls.value ? ".xlsx" : ".docx")
           // );
-          if (axResponse.data.err == "0") {            
+          if (axResponse.data.err == "0") {
             if (isxls.value) {
-              downloadFileExport("GetDownloadXLS", dataHtml.filename, axResponse.data.fileName + ".html", ".xlsx");
-            }
-            else {
-              downloadFileExport("GetDownload", dataHtml.filename, axResponse.data.fileName + ".html", ".docx");
+              downloadFileExport(
+                "GetDownloadXLS",
+                dataHtml.filename,
+                axResponse.data.fileName,
+                ".xlsx"
+              );
+            } else {
+              downloadFileExport(
+                "GetDownload",
+                dataHtml.filename,
+                axResponse.data.fileName + ".html",
+                ".docx"
+              );
             }
           }
           let sps = [];
@@ -2350,7 +2415,7 @@ export default {
     const dtTempCols = ref([]);
     const callbackFunChild = (dt, pr) => {
       let arr = [];
-      
+
       dt.forEach((tr) => {
         tr.cols.forEach((td) => {
           let obj = {};
@@ -2404,7 +2469,6 @@ export default {
         if (document.getElementById("app-body"))
           document.getElementById("app-body").classList.remove("p-2");
       }
-
       if (props.report) {
         initTemplate();
       }
@@ -2458,6 +2522,7 @@ export default {
         objConfig.proc.sql,
         []
       );
+
       if (dtDataReports.value.length > 0) {
         let obj = dtDataReports.value[0];
         dtColumns.value = Object.keys(obj).filter((x) => !x.includes("_"));
@@ -2473,6 +2538,7 @@ export default {
       dochtml.innerHTML = tempHTMLGoc;
       await initReportData();
     };
+
     const goProc = async (query, name, par, f, o) => {
       let strSQL = {
         query: query,
@@ -2568,12 +2634,15 @@ export default {
     };
     let cacheobjDataTemp = [];
     async function renderTableWord(objpar) {
+       
       let pas = [];
+      
       if (cacheobjDataTemp.length == 0) {
         cacheobjDataTemp = JSON.parse(JSON.stringify(objDataTemp.value));
       } else {
         objDataTemp.value = JSON.parse(JSON.stringify(cacheobjDataTemp));
       }
+      
       if (objConfig.proc.parameters)
         objConfig.proc.parameters.forEach((pa) => {
           pas.push({
@@ -2583,11 +2652,16 @@ export default {
         });
 
       let dts = await goProc(false, objConfig.proc.name, pas, true);
+       
       //init với kiểu lưu
       let tbs = [];
       if (dts[0][0].is_data) {
+         
+        dts[0][0].is_data = dts[0][0].is_data.replaceAll("\\n", "");
+
         try {
           tbs = JSON.parse(dts[0][0].is_data);
+           
           objDataTemp.value.forEach((ot, i) => {
             let tb = tbs[i];
             ot.cols.forEach((co) => {
@@ -2607,11 +2681,15 @@ export default {
               }
             });
           });
+           
         } catch (e) {}
       }
+
+        
       //
       datausers = dts;
       dochtml.innerHTML = tempHTMLGoc;
+ 
       dochtml
         .querySelectorAll('[style*="background-color:#ffff00"]')
         .forEach((el) => {
@@ -2628,6 +2706,7 @@ export default {
               function (s, ke) {
                 let obj = objDataTemp.value[0].cols.find((x) => x.value == ke);
                 let k = obj ? obj.key : ke;
+                 
                 // if (k == "Số người phụ thuộc") {
                 //     console.log(dts[0][0][k]);
                 // }
@@ -2734,11 +2813,13 @@ export default {
     }
     const initURLReport = async () => {
       objConfig = JSON.parse(props.report.report_config);
+
       //Xử lý for Word
       renderTableWord(props.pars);
     };
     let selectdata = {};
     const onRowSelectReport = async (event) => {
+       
       let tselect = document.querySelector("tr.selected");
       if (tselect) tselect.classList.remove("selected");
       if (event.originalEvent)
@@ -2852,6 +2933,9 @@ export default {
       }
     };
     //Cấu hình database cho excel
+
+    
+
     const expandedRows = ref([]);
     const dtExcels = ref([]);
     const dtExcelCols = ref([]);
@@ -2914,6 +2998,7 @@ export default {
               if (th.getAttribute("tname")) {
                 tn = th.getAttribute("tname") + " (" + tn + ")";
               }
+
               addRowXls(td, tn, false, true);
             }
           }
@@ -3055,12 +3140,9 @@ export default {
       return dt.cols ? "has-child" : "no-child";
     };
     const goBack = () => {
-       
-      if(header!=null){
-       props.callbackFun();
-      }
-      else
-      history.back();
+      if (header != null) {
+        props.callbackFun();
+      } else history.back();
     };
     //Cấu hình nguồn nhập dữ liệu
     const dtTables = ref([]);
@@ -3096,6 +3178,7 @@ export default {
       );
       if (dts.length > 0) {
         dtProfile = dts[0];
+        
       }
     };
     const oneRow = ref(true);
@@ -3166,9 +3249,11 @@ export default {
       return "Text";
     };
     const editForm = async (r, rcopy) => {
+     
       if (props.report.is_config) {
         objDataTemp.value = props.report.is_config;
       }
+      
       objDataTemp.value.forEach((ot) => {
         ot.cols.forEach((co) => {
           if (co.inputtype == "Number" || co.inputtype == "Currency") {
@@ -3177,6 +3262,7 @@ export default {
             }
           }
         });
+         
         if (ot.rows) {
           ot.rows.forEach((r) => {
             if (r.cols)
@@ -3192,6 +3278,7 @@ export default {
         }
       });
       oneRow.value = r ? true : false;
+       
       isfullSidebar.value = !oneRow.value;
       if (!r) {
         r = cForm.value;
@@ -3339,6 +3426,12 @@ export default {
         editDataAll(objvalue);
       }
     };
+    let checkHide=false;
+    const onHideSidebarM=()=>{
+      if(!checkHide)
+      objDataTemp.value=[...objDataTempSave.value];
+
+    }
     const optionTypeDBs = ref([
       { name: "Lấy dữ liệu động từ hệ thống", value: 1 },
       { name: "Tải dữ liệu dưới máy", value: 2 },
@@ -3412,6 +3505,7 @@ export default {
       itemtypeInputs,
       //toggleMenuInput,
       //menuInput,
+      onHideSidebarM,
       addRowWord,
       editForm,
       objForm,
@@ -3531,7 +3625,7 @@ export default {
       nextDBrow,
       saveConfig,
       refershConfig,
-    
+
       //
       onCellEditComplete,
       dataDB,
@@ -3541,1546 +3635,301 @@ export default {
       oneRow,
       getCompUsers,
       rfUserComp,
+      selectedStamps
     };
   },
 };
 </script>
 <template>
-  <div :class="'flex mb-' + (isUrlReport ? 0 : 1)">
-    <div class="tool flex-1 flex" v-if="isHasHTML && !isUrlReport && !readonly">
-      <Button
-        v-tooltip="'Chữ thường'"
-        @click="execStyle('N')"
-        label="Normal"
-        class="p-button-secondary p-button-outlined ml-1"
-      />
-      <Button
-        v-tooltip="'Chữ đậm'"
-        @click="execStyle('B')"
-        label="B"
-        class="p-button-secondary p-button-outlined ml-1"
-      />
-      <Button
-        v-tooltip="'Chữ nghiêng'"
-        @click="execStyle('I')"
-        label="I"
-        class="p-button-secondary p-button-outlined ml-1"
-      />
-      <Button
-        v-tooltip="'Chữ gạch chân'"
-        @click="execStyle('U')"
-        label="U"
-        class="p-button-secondary p-button-outlined ml-1"
-      />
-      <Button
-        v-tooltip="'Viết hoa'"
-        @click="execStyle('AA')"
-        label="AA"
-        class="p-button-secondary p-button-outlined ml-1"
-      />
-      <Button
-        v-tooltip="'Viết hoa chữ đầu'"
-        @click="execStyle('Aa')"
-        label="Aa"
-        class="p-button-secondary p-button-outlined ml-1"
-      />
-      <Button
-        v-tooltip="'Viết thường'"
-        @click="execStyle('aa')"
-        label="aa"
-        class="p-button-secondary p-button-outlined ml-1"
-      />
-      <Button
-        v-tooltip="'Chọn màu chữ'"
-        class="p-button-secondary p-button-outlined ml-1"
+  <div class="d-design-doc">
+    <div :class="'   flex mb-' + (isUrlReport ? 0 : 1)">
+      <div
+        class="tool flex-1 flex"
+        v-if="isHasHTML && !isUrlReport && !readonly"
       >
-        <colorpickers
-          style="width: 24px"
-          v-model:gradientColor="gradientColor"
-          pickerType="chrome"
-          @pureColorChange="execStyle"
-          v-model:pureColor="pureColor"
+        <Button
+          v-tooltip="'Chữ thường'"
+          @click="execStyle('N')"
+          label="Normal"
+          class="p-button-secondary p-button-outlined ml-1"
         />
-      </Button>
-      <Button
-        v-if="!isViewReport"
-        @click="clearSelect"
-        icon="pi pi-refresh"
-        class="p-button-outlined p-button-secondary ml-1"
-      />
-      <div class="flex-1"></div>
-      <!-- <Dropdown v-if="!isViewReport" :filterFields="['id', 'name']" @change="goKey($event.value.name)" class="ml-1"
+        <Button
+          v-tooltip="'Chữ đậm'"
+          @click="execStyle('B')"
+          label="B"
+          class="p-button-secondary p-button-outlined ml-1"
+        />
+        <Button
+          v-tooltip="'Chữ nghiêng'"
+          @click="execStyle('I')"
+          label="I"
+          class="p-button-secondary p-button-outlined ml-1"
+        />
+        <Button
+          v-tooltip="'Chữ gạch chân'"
+          @click="execStyle('U')"
+          label="U"
+          class="p-button-secondary p-button-outlined ml-1"
+        />
+        <Button
+          v-tooltip="'Viết hoa'"
+          @click="execStyle('AA')"
+          label="AA"
+          class="p-button-secondary p-button-outlined ml-1"
+        />
+        <Button
+          v-tooltip="'Viết hoa chữ đầu'"
+          @click="execStyle('Aa')"
+          label="Aa"
+          class="p-button-secondary p-button-outlined ml-1"
+        />
+        <Button
+          v-tooltip="'Viết thường'"
+          @click="execStyle('aa')"
+          label="aa"
+          class="p-button-secondary p-button-outlined ml-1"
+        />
+        <Button
+          v-tooltip="'Chọn màu chữ'"
+          class="p-button-secondary p-button-outlined ml-1"
+        >
+          <colorpickers
+            style="width: 24px"
+            v-model:gradientColor="gradientColor"
+            pickerType="chrome"
+            @pureColorChange="execStyle"
+            v-model:pureColor="pureColor"
+          />
+        </Button>
+        <Button
+          v-if="!isViewReport"
+          @click="clearSelect"
+          icon="pi pi-refresh"
+          class="p-button-outlined p-button-secondary ml-1"
+        />
+        <div class="flex-1"></div>
+        <!-- <Dropdown v-if="!isViewReport" :filterFields="['id', 'name']" @change="goKey($event.value.name)" class="ml-1"
                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                     optionLabel="name" :options="mapdatakeys" :filter="true" placeholder="Data" :showClear="true">
                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                     <template #option="slotProps">
                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                         <div>{{ slotProps.option.name }}</div>
                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                     </template>
                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                 </Dropdown> -->
-      <!-- <Button v-if="!isViewReport" @click="setSelect(true)" label="Dòng bắt đầu"
+        <!-- <Button v-if="!isViewReport" @click="setSelect(true)" label="Dòng bắt đầu"
                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                     :class="(isstart ? '' : 'p-button-secondary p-button-outlined') + ' ml-1'" />
                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                     :class="(isend ? '' : 'p-button-secondary p-button-outlined') + ' ml-1'" /> -->
-      <ToggleButton
-        v-if="!isViewReport && isedit"
-        v-model="isdoc"
-        onLabel=""
-        offLabel=""
-        onIcon="pi pi-arrows-v"
-        offIcon="pi pi-arrows-h"
-        class="ml-1"
-      />
-      <!-- <ToggleButton v-if="!isViewReport" v-model="isDesingData" onLabel="Data" offLabel="Design" onIcon="pi pi-pencil"
+        <ToggleButton
+          v-if="!isViewReport && isedit"
+          v-model="isdoc"
+          onLabel=""
+          offLabel=""
+          onIcon="pi pi-arrows-v"
+          offIcon="pi pi-arrows-h"
+          class="ml-1"
+        />
+        <!-- <ToggleButton v-if="!isViewReport" v-model="isDesingData" onLabel="Data" offLabel="Design" onIcon="pi pi-pencil"
                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                     offIcon="pi pi-eye" class="ml-1" /> -->
-      <Button
-        v-if="!isViewReport"
-        v-tooltip="'Dữ liệu'"
-        @click="showDataSidebar"
-        icon="pi pi-cog"
-        class="p-button-secondary p-button-outlined ml-1"
-      />
-      <Button
-        @click="toogledivZoom(false)"
-        icon="pi pi-search-minus"
-        class="p-button-secondary p-button-outlined ml-1"
-      />
-      <Button
-        @click="divZoom = 1"
-        :label="parseInt(divZoom * 100) + '%'"
-        class="p-button-secondary p-button-outlined ml-1"
-      />
-      <Button
-        @click="toogledivZoom(true)"
-        icon="pi pi-search-plus"
-        class="p-button-secondary p-button-outlined ml-1"
-      />
-      <Button
-        v-tooltip="'Full'"
-        @click="isfull = !isfull"
-        :icon="'pi pi-window-' + (isfull ? 'minimize' : 'maximize')"
-        class="p-button-secondary p-button-outlined ml-1"
-      />
-      <Button
-        v-if="isxls"
-        v-tooltip="'Hiển thị line Excel'"
-        @click="toolCellLine"
-        icon="pi pi-check-square"
-        class="p-button-secondary p-button-outlined ml-1"
-      />
-      <ToggleButton
-        v-model="isViewReport"
-        onIcon="pi pi-pencil"
-        offLabel=""
-        onLabel=""
-        offIcon="pi pi-eye"
-        class="ml-1 mr-2"
-      />
-    </div>
-    <div class="tool flex w-full p-2" v-if="isUrlReport || readonly">
-      <Button
-        v-if="!readonly"
-        v-tooltip="'Quay lại trang trước'"
-        @click="goBack()"
-        icon="pi pi-angle-left"
-        class="p-button-secondary p-button-outlined mr-1"
-      />
-      <div class="flex-1">
-        <h3 v-if="!readonly" class="p-2 m-0">
-          <i class="mr-1 pi pi-print"></i>  <span v-if="header">
-        {{    header }} ({{     report.report_name}})
-          </span>
-          <span v-else>
-            {{     report.report_name}}
-          </span>
-        
-        </h3>
+        <Button
+          v-if="!isViewReport"
+          v-tooltip="'Dữ liệu'"
+          @click="showDataSidebar"
+          icon="pi pi-cog"
+          class="p-button-secondary p-button-outlined ml-1"
+        />
+        <Button
+          @click="toogledivZoom(false)"
+          icon="pi pi-search-minus"
+          class="p-button-secondary p-button-outlined ml-1"
+        />
+        <Button
+          @click="divZoom = 1"
+          :label="parseInt(divZoom * 100) + '%'"
+          class="p-button-secondary p-button-outlined ml-1"
+        />
+        <Button
+          @click="toogledivZoom(true)"
+          icon="pi pi-search-plus"
+          class="p-button-secondary p-button-outlined ml-1"
+        />
+        <Button
+          v-tooltip="'Full'"
+          @click="isfull = !isfull"
+          :icon="'pi pi-window-' + (isfull ? 'minimize' : 'maximize')"
+          class="p-button-secondary p-button-outlined ml-1"
+        />
+        <Button
+          v-if="isxls"
+          v-tooltip="'Hiển thị line Excel'"
+          @click="toolCellLine"
+          icon="pi pi-check-square"
+          class="p-button-secondary p-button-outlined ml-1"
+        />
+        <ToggleButton
+          v-model="isViewReport"
+          onIcon="pi pi-pencil"
+          offLabel=""
+          onLabel=""
+          offIcon="pi pi-eye"
+          class="ml-1 mr-2"
+        />
       </div>
-      <ToggleButton
-        v-if="isedit"
-        v-model="isdoc"
-        onLabel=""
-        offLabel=""
-        onIcon="pi pi-arrows-v"
-        offIcon="pi pi-arrows-h"
-        class="ml-1"
-      />
-      <Button
-        @click="toogledivZoom(false)"
-        icon="pi pi-search-minus"
-        class="p-button-secondary p-button-outlined ml-1"
-      />
-      <Button
-        @click="divZoom = 1"
-        :label="parseInt(divZoom * 100) + '%'"
-        class="p-button-secondary p-button-outlined ml-1"
-      />
-      <Button
-        @click="toogledivZoom(true)"
-        icon="pi pi-search-plus"
-        class="p-button-secondary p-button-outlined ml-1"
-      />
-      <Button
-        v-if="isxls"
-        v-tooltip="'Full'"
-        @click="isfull = !isfull"
-        :icon="'pi pi-window-' + (isfull ? 'minimize' : 'maximize')"
-        class="p-button-secondary p-button-outlined ml-1"
-      />
-      <Button
-        v-if="isxls"
-        v-tooltip="'Hiển thị line Excel'"
-        @click="toolCellLine"
-        icon="pi pi-check-square"
-        class="p-button-secondary p-button-outlined ml-1"
-      />
+      <div class="tool flex w-full p-2" v-if="isUrlReport || readonly">
+        <Button
+          v-if="!readonly"
+          v-tooltip="'Quay lại trang trước'"
+          @click="goBack()"
+          icon="pi pi-angle-left"
+          class="p-button-secondary p-button-outlined mr-1"
+        />
+        <div class="flex-1">
+          <h3 v-if="!readonly" class="p-2 m-0">
+            <i class="mr-1 pi pi-print"></i>
+            <span v-if="header"> {{ header }} ({{ report.report_name }}) </span>
+            <span v-else>
+              {{ report.report_name }}
+            </span>
+          </h3>
+        </div>
+        <ToggleButton
+          v-if="isedit"
+          v-model="isdoc"
+          onLabel=""
+          offLabel=""
+          onIcon="pi pi-arrows-v"
+          offIcon="pi pi-arrows-h"
+          class="ml-1"
+        />
+        <Button
+          @click="toogledivZoom(false)"
+          icon="pi pi-search-minus"
+          class="p-button-secondary p-button-outlined ml-1"
+        />
+        <Button
+          @click="divZoom = 1"
+          :label="parseInt(divZoom * 100) + '%'"
+          class="p-button-secondary p-button-outlined ml-1"
+        />
+        <Button
+          @click="toogledivZoom(true)"
+          icon="pi pi-search-plus"
+          class="p-button-secondary p-button-outlined ml-1"
+        />
+        <Button
+          v-if="isxls"
+          v-tooltip="'Full'"
+          @click="isfull = !isfull"
+          :icon="'pi pi-window-' + (isfull ? 'minimize' : 'maximize')"
+          class="p-button-secondary p-button-outlined ml-1"
+        />
+        <Button
+          v-if="isxls"
+          v-tooltip="'Hiển thị line Excel'"
+          @click="toolCellLine"
+          icon="pi pi-check-square"
+          class="p-button-secondary p-button-outlined ml-1"
+        />
+        <SplitButton
+          class="ml-1"
+          @click="viewReport()"
+          icon="pi pi-download"
+          label=""
+          :model="itemButExports"
+        />
+      </div>
       <SplitButton
-        class="ml-1"
+        v-if="!isUrlReport && !readonly"
         @click="viewReport()"
-        icon="pi pi-download"
-        label=""
+        icon="pi pi-eye"
+        label="Xem"
         :model="itemButExports"
       />
-    </div>
-    <SplitButton
-      v-if="!isUrlReport && !readonly"
-      @click="viewReport()"
-      icon="pi pi-eye"
-      label="Xem"
-      :model="itemButExports"
-    />
-    <ProgressSpinner
-      v-if="showLoadding"
-      style="width: 50px; height: 50px"
-      strokeWidth="8"
-      fill="var(--surface-ground)"
-      animationDuration=".5s"
-    />
-    <!-- <Tag v-if="elementSpan.element && !isUrlReport && !readonly" class="ml-1" severity="warning"
+      <ProgressSpinner
+        v-if="showLoadding"
+        style="width: 50px; height: 50px"
+        strokeWidth="8"
+        fill="var(--surface-ground)"
+        animationDuration=".5s"
+      />
+      <!-- <Tag v-if="elementSpan.element && !isUrlReport && !readonly" class="ml-1" severity="warning"
                                                                                                                                                                                                                                                                                                                                                                                                     :value="'Version ' + hversion">
                                                                                                                                                                                                                                                                                                                                                                                                 </Tag> -->
-  </div>
-  <Divider class="m-0 p-0" />
-  <div class="flex" style="background-color: #eee">
-    <iframe
-      id="docIframe"
-      src="about:blank"
-      frameborder="0"
-      :style="
-        'background:#ccc;width: 100%;height:calc(100vh - ' +
-        (isUrlReport ? 60 : 130) +
-        'px)'
-      "
-    ></iframe>
-    <div
-      id="divleft-frame"
-      :class="isxls ? 'div-excel' : ''"
-      style="
-        overflow-y: auto;
-        max-height: calc(100% - 40px);
-        padding: 20px;
-        background-color: #ccc;
-      "
-    >
-      <div
-        class="doc-page card shadow-1"
+    </div>
+    <Divider class="m-0 p-0" />
+    <div class="flex" style="background-color: #eee">
+      <iframe
+        id="docIframe"
+        src="about:blank"
+        frameborder="0"
         :style="
-          'zoom:' +
-          divZoom +
-          ';padding:' +
-          (isxls ? '0' : '') +
-          ';width:' +
-          (isxls ? 'fit-content;min-width:21cm' : isdoc ? '21cm' : '29.7cm')
+          'background:#ccc;width: 100%;height:calc(100vh - ' +
+          (isUrlReport ? 60 : 130) +
+          'px)'
+        "
+      ></iframe>
+      <div
+        id="divleft-frame"
+        :class="isxls ? 'div-excel' : ''"
+        style="
+          overflow-y: auto;
+
+          padding: 20px;
+          background-color: #ccc;
+        "
+        :style="
+          header == null
+            ? ' max-height: calc(100% - 40px);'
+            : ' max-height: calc(100% - 200px);'
         "
       >
         <div
-          :contenteditable="!isUrlReport && !readonly"
-          spellcheck="false"
-          id="dochtml"
-          @contextmenu="onRightClick"
-        ></div>
-      </div>
-    </div>
-    <!--|| !readonly || dtDataReports.length > 0-->
-    <div
-      class="flex-1 bg-white"
-      v-if="
-        (!isUrlReport || isReportListView) && isHasHTML && !isfull && isedit
-      "
-      :style="'min-width:' + (readonly || isReportListView ? 500 : 640) + 'px;'"
-    >
-      <div v-if="isViewReport">
-        <DataTable
-          v-model:filters="rpfilters"
-          @rowSelect="onRowSelectReport"
-          selectionMode="single"
-          :metaKeySelection="false"
-          scrollable
-          :scrollHeight="'calc(100vh - ' + (isUrlReport ? 149 : 200) + 'px)'"
-          class="p-datatable-sm"
-          v-model:expandedRowGroups="expandedRowGroups"
-          expandableRowGroups
-          rowGroupMode="subheader"
-          groupRowsBy="group"
-          showGridlines
-          :value="dtDataReports"
+          class="doc-page card shadow-1"
+          :style="
+            'zoom:' +
+            divZoom +
+            ';padding:' +
+            (isxls ? '0' : '') +
+            ';width:' +
+            (isxls ? 'fit-content;min-width:21cm' : isdoc ? '21cm' : '29.7cm')
+          "
         >
-          <template #groupheader="slotProps">
-            <b>{{ slotProps.data.group || "Dữ liệu" }}</b>
-          </template>
-          <template #header v-if="!onedata">
-            <div class="flex justify-content-end">
-              <span class="p-input-icon-left">
-                <i class="pi pi-search" />
-                <InputText
-                  v-model="rpfilters['global'].value"
-                  placeholder="Tìm kiếm"
-                />
-              </span>
-              <Button
-                class="ml-1 p-button-outlined"
-                :loading="showLoadding"
-                @click="rfReportData()"
-                icon="pi pi-refresh"
-                severity="secondary"
-              />
-            </div>
-          </template>
-          <Column
-            :bodyStyle="
-              'max-width:' +
-              (col.includes('Ảnh') || col == 'ok'
-                ? '50pt;text-align:center'
-                : col.includes('Mã nhân sự') ||
-                  col.includes('Số hợp đồng') ||
-                  col.includes('Ngày tạo') ||
-                  col.includes('Ngày ký')
-                ? '80pt;text-align:center'
-                : 'auto') +
-              ';height:60px'
-            "
-            :headerStyle="
-              'max-width:' +
-              (col.includes('Ảnh') || col == 'ok'
-                ? '50pt;text-align:center'
-                : col.includes('Mã nhân sự') ||
-                  col.includes('Số hợp đồng') ||
-                  col.includes('Ngày tạo') ||
-                  col.includes('Ngày ký')
-                ? '80pt;text-align:center'
-                : 'auto') +
-              ';height:60px'
-            "
-            :bodyClass="
-              col.includes('Ảnh') ||
-              col.includes('Số hợp đồng') ||
-              col.includes('Mã nhân sự') ||
-              col.includes('Ngày tạo') ||
-              col.includes('Ngày ký') ||
-              col == 'ok'
-                ? 'format-center'
-                : ''
-            "
-            :headerClass="
-              col.includes('Ảnh') ||
-              col.includes('Số hợp đồng') ||
-              col.includes('Mã nhân sự') ||
-              col.includes('Ngày tạo') ||
-              col.includes('Ngày ký') ||
-              col == 'ok'
-                ? 'align-items-center justify-content-center text-center'
-                : ''
-            "
-            v-for="col of dtColumns"
-            :key="col"
-            :field="col"
-            :header="col != 'ok' && !col.includes('_') ? col : ''"
-            
-          >
-            <template #body="dt">
-              <div v-if="col.includes('Ảnh')">
-                <Avatar
-                  v-if="(dt.data[col] || '').includes('.')"
-                  :image="dt.data[col]"
-                  size="large"
-                  shape="circle"
-                />
-                <Avatar
-                  v-else
-                  :label="dt.data[col]"
-                  size="large"
-                  :style="{
-                    background: bgColor[dt.index % 7],
-                    color: '#ffffff',
-                    fontSize: '1.5rem !important',
-                    borderRadius: '5px',
-                  }"
-                />
-              </div>
-              <div v-if="!col.includes('_') && !col.includes('Ảnh')">
-                <div
-                  v-if="col == 'ok'"
-                  style="text-align: center; font-size: 200%"
-                >
-                  <i v-if="dt.data[col]" class="pi pi-check text-green-500"></i>
-                </div>
-                <div v-else v-html="dt.data[col]"></div>
-              </div>
-            </template>
-          </Column>
-          <Column
-            class="text-center"
-            v-if="readonly && isedit"
-            bodyClass="
-           format-center
-            "
-            headerClass="
-                 align-items-center justify-content-center text-center
-            "
-            bodyStyle=" max-width:120px "
-            headerStyle="  max-width:120px "
-          >
-            <template #header>
-              <Button
-                v-if="cForm && !onedata"
-                size="small"
-                @click="copyRow()"
-                :icon="'pi pi-' + (isCopy ? 'check' : 'copy')"
-                v-tooltip.left="isCopy ? 'Dán' : 'Copy'"
-                text
-                class="p-button-outlined p-button-text"
-              />
-              <Button
-                v-if="!onedata"
-                size="small"
-                @click="editForm()"
-                icon="pi pi-pencil"
-                severity="secondary"
-                class="mr-1 p-button-outlined p-button-text p-button-rounded"
-              />
-            </template>
-            <template #body="slotProps">
-              <Button
-                size="small"
-                @click="editForm(slotProps.data)"
-                icon="pi pi-pencil"
-                severity="secondary"
-                class="mr-1 p-button-outlined p-button-rounded"
-              />
-            </template>
-          </Column>
-        </DataTable>
-      </div>
-      <div v-else style="height: calc(100vh - 130px); overflow-y: auto">
-        <div class="p-0">
-          <!--<div class="flex" v-if="elementSpan.element">
-                                                                                                                                                                                                                                                                                                                                                                                                                                                                               </div> -->
-          <div class="flex m-2">
-            <div class="flex-1 mr-2">
-              <span class="p-input-icon-left w-full">
-                <i class="pi pi-search" />
-                <InputText
-                  class="w-full"
-                  v-model="rpfilters['global'].value"
-                  placeholder="Tìm kiếm"
-                />
-              </span>
-            </div>
-            <Button
-              @click="saveConfig()"
-              icon="pi pi-save"
-              class="mr-1 p-button-outlined"
-            />
-            <!-- <Button @click="addCogDatabase()" outlined class="mr-1" icon="pi pi-cog" severity="secondary" /> -->
-            <Button
-              @click="refershConfig()"
-              icon="pi pi-refresh"
-              severity="secondary"
-              class="p-button-outlined"
-            />
-          </div>
-          <DataTable
-            v-model:expandedRows="expandedRows"
-            :rowClass="rowClass"
-            v-if="!isxls && objDataTemp.length > 0"
-            scrollHeight="calc(100vh - 200px)"
-            class="p-datatable-sm"
-            v-model:filters="rpfilters"
-            :value="objDataTemp"
-            filterDisplay="menu"
-            filterMode="lenient"
-            :scrollable="true"
-            columnResizeMode="fit"
-            :lazy="true"
-            responsiveLayout="scroll"
-            :row-hover="true"
-            :showGridlines="true"
-          >
-            <Column
-              expander
-              headerStyle="text-align:center;max-width:50px;height:50px"
-              bodyStyle="text-align:center;max-width:50px"
-            />
-            <Column
-              headerStyle="text-align:center;max-width:50px;height:50px"
-              bodyStyle="text-align:center;max-width:50px"
-              header="STT"
-              class="align-items-center justify-content-center text-center"
-            >
-              <template #body="slotProps">
-                {{ slotProps.index + 1 }}
-              </template>
-            </Column>
-            <Column
-              field="value"
-              header="Template"
-              headerClass="align-items-center justify-content-center text-center"
-              headerStyle="text-align:center ;height:50px"
-              bodyStyle="text-align:left "
-            ></Column>
-            <Column
-              field="key"
-              header="Data"
-              headerClass="align-items-center justify-content-center text-center"
-              headerStyle="text-align:center ;height:50px"
-              bodyStyle="text-align:left "
-            >
-              <template #body="slotProps">
-                <b
-                  :style="
-                    'background-color:' +
-                    (slotProps.data.isconfig && !slotProps.data.cols
-                      ? '#ffff00'
-                      : '')
-                  "
-                  >{{ slotProps.data.key }}</b
-                >
-              </template>
-            </Column>
-            <Column
-              headerStyle="text-align:center;max-width:150px;height:50px"
-              bodyStyle="text-align:center;max-width:150px"
-              class="align-items-center justify-content-center text-center"
-            >
-              <template #body="slotProps">
-                <Button
-                  @click="openCogDatabase(slotProps.data)"
-                  icon="pi pi-cog"
-                  severity="secondary"
-                  class="mr-1 p-button-outlined"
-                  style="width: 36px; height: 36px"
-                />
-                <Button
-                  @click="delRowXLS(slotProps.data)"
-                  icon="pi pi-trash"
-                  severity="danger"
-                  class="p-button-outlined"
-                  style="width: 36px; height: 36px"
-                />
-              </template>
-            </Column>
-            <template #expansion="row">
-              <div class="pt-3 pb-3 w-full" v-if="row.data.cols">
-                <h3 class="p-0 m-0 mb-2">Cột</h3>
-                <DataTable
-                  class="p-datatable-sm d-sidebar-full w-full"
-                  :value="row.data.cols"
-                  filterDisplay="menu"
-                  filterMode="lenient"
-                  :scrollable="true"
-                  scrollHeight="flex"
-                  columnResizeMode="fit"
-                  :lazy="true"
-                  responsiveLayout="scroll"
-                  :row-hover="true"
-                >
-                  <Column
-                    field="value"
-                    header="Template"
-                    headerStyle="text-align:center;height:50px"
-                    bodyStyle="text-align:left; "
-                    headerClass="align-items-center justify-content-center text-center"
-                  >
-       
-                  </Column>
-                  <Column
-                    field="key"
-                    header="Data"
-                    headerStyle="text-align:center;height:50px"
-                    bodyStyle="text-align:left "
-                    headerClass="align-items-center justify-content-center text-center"
-                  ></Column>
-                  <Column
-                    headerStyle="text-align:center;height:50px;max-width:50px"
-                    bodyStyle="text-align:left;max-width:50px "
-                    class="align-items-center justify-content-center text-center"
-                  >
-                    <template #body="slotProps">
-                      <Checkbox
-                        v-tooltip="'Đã cấu hình'"
-                        v-model="slotProps.data.isconfig"
-                        :binary="true"
-                        :disabled="true"
-                      />
-                    </template>
-                  </Column>
-                  <Column
-                    headerStyle="text-align:center;height:50px;max-width:50px"
-                    bodyStyle="text-align:left;max-width:50px "
-                    class="align-items-center justify-content-center text-center"
-                  >
-                    <template #body="slotProps">
-                      <Checkbox
-                        v-tooltip="'Lấy tự động'"
-                        v-model="slotProps.data.auto"
-                        :binary="true"
-                      />
-                    </template>
-                  </Column>
-                  <Column
-                    field="inputtype"
-                    header="Nhập"
-                    headerStyle="text-align:center;height:50px"
-                    headerClass="align-items-center justify-content-center text-center"
-                    bodyStyle="text-align:left; "
-                  >
-                    <template #body="slotProps">
-                      <Dropdown
-                        @change="changeInputType(slotProps.data)"
-                        v-if="!slotProps.data.auto"
-                        v-model="slotProps.data.inputtype"
-                        optionLabel="lable"
-                        optionValue="value"
-                        dropdownIcon=""
-                        :options="isTypeInputs"
-                        class="w-full no-icon"
-                      >
-                        <template #option="slotProps">
-                          <div>
-                            <i :class="slotProps.option.icon"></i>
-                            {{ slotProps.option.lable }}
-                          </div>
-                        </template>
-                      </Dropdown>
-                    </template>
-                  </Column>
-                  <Column
-                    style="width: 100px; text-align: center"
-                    class="align-items-center justify-content-center text-center"
-                    headerStyle="text-align:center;height:50px"
-                    bodyStyle="text-align:left; "
-                  >
-                    <template #body="slotProps">
-                      <Button
-                        @click="openCogDatabase(slotProps.data, true, true)"
-                        icon="pi pi-cog"
-                        severity="secondary"
-                        class="p-button-outlined"
-                        style="width: 36px; height: 36px"
-                      />
-                      <Button
-                        @click="delRowXLS(row, slotProps.data)"
-                        icon="pi pi-trash"
-                        severity="danger"
-                        class="p-button-outlined"
-                        style="width: 36px; height: 36px; margin-left: 5px"
-                      />
-                    </template>
-                  </Column>
-                </DataTable>
-              </div>
-            </template>
-          </DataTable>
-          <DataTable
-            :rowClass="rowClass"
-            v-model:expandedRows="expandedRows"
-            v-if="isxls && dtExcels.length > 0"
-            scrollable
-            scrollHeight="calc(100vh - 200px)"
-            class="p-datatable-sm"
-            showGridlines
-            :value="dtExcels"
-          >
-            <Column expander />
-            <Column
-              columnKey=""
-              class="text-center"
-              field="colname"
-              header="Dòng/Cột"
-              headerStyle="text-align:center;height:50px;max-width:100px"
-              bodyStyle="text-align:left; max-width:100px "
-            >
-            </Column>
-            <Column
-              field="key"
-              header="Trường"
-              headerStyle="text-align:center;height:50px"
-              bodyStyle="text-align:left "
-              headerClass="align-items-center justify-content-center text-center"
-            ></Column>
-            <Column
-              headerStyle="text-align:center;height:50px"
-              bodyStyle="text-align:left "
-              headerClass="align-items-center justify-content-center text-center"
-            >
-              <template #body="slotProps">
-                <Checkbox
-                  v-tooltip="'Lấy tự động'"
-                  v-model="slotProps.data.auto"
-                  :binary="true"
-                />
-              </template>
-            </Column>
-            <Column
-              field="inputtype"
-              header="Nhập"
-              headerStyle="text-align:center;height:50px"
-              bodyStyle="text-align:left "
-              headerClass="align-items-center justify-content-center text-center"
-            >
-              <template #body="slotProps">
-                <Dropdown
-                  @change="changeInputType(slotProps.data)"
-                  v-if="!slotProps.data.auto"
-                  v-model="slotProps.data.inputtype"
-                  optionLabel="lable"
-                  optionValue="value"
-                  dropdownIcon=""
-                  :options="isTypeInputs"
-                  class="w-full no-icon"
-                >
-                  <template #option="slotProps">
-                    <div>
-                      <i :class="slotProps.option.icon"></i>
-                      {{ slotProps.option.lable }}
-                    </div>
-                  </template>
-                </Dropdown>
-              </template>
-            </Column>
-            <Column
-              class="text-center"
-              headerStyle="text-align:center;height:50px;max-width:140px"
-              bodyStyle="text-align:left;max-width:140px "
-              headerClass="align-items-center justify-content-center text-center"
-            >
-              <template #body="slotProps">
-                <Button
-                  @click="openCogDatabase(slotProps.data, true, true)"
-                  icon="pi pi-cog"
-                  severity="secondary"
-                  class="p-button-outlined"
-                />
-                <Button
-                  @click="delRowXLS(slotProps.data)"
-                  icon="pi pi-trash"
-                  severity="danger"
-                  class="ml-1 p-button-outlined"
-                />
-              </template>
-            </Column>
-            <template #expansion="slotProps">
-              <div class="p-3" v-if="slotProps.data.cols.length > 0">
-                <h3 class="p-0 m-0 mb-2">Chi tiết cột</h3>
-                <DataTable
-                  scrollable
-                  scrollHeight="300px"
-                  class="p-datatable-sm"
-                  showGridlines
-                  :value="slotProps.data.cols"
-                >
-                  <Column
-                    field="colname"
-                    header="Cột"
-                    headerStyle="text-align:center;height:50px;max-width:50px"
-                    bodyStyle="text-align:left;max-width:50px "
-                    headerClass="align-items-center justify-content-center text-center"
-                  >
-                  </Column>
-                  <Column
-                    field="key"
-                    header="Trường dữ liệu"
-                    headerStyle="text-align:center;height:50px "
-                    bodyStyle="text-align:left "
-                    headerClass="align-items-center justify-content-center text-center"
-                  ></Column>
-                  <Column>
-                    <template #body="slotProps">
-                      <Checkbox
-                        v-tooltip="'Lấy tự động'"
-                        v-model="slotProps.data.auto"
-                        :binary="true"
-                      />
-                    </template>
-                  </Column>
-                  <Column
-                    field="inputtype"
-                    header="Nhập"
-                    headerStyle="text-align:center;height:50px "
-                    bodyStyle="text-align:left  "
-                    headerClass="align-items-center justify-content-center text-center"
-                  >
-                    <template #body="slotProps">
-                      <Dropdown
-                        @change="changeInputType(slotProps.data)"
-                        v-if="!slotProps.data.auto"
-                        v-model="slotProps.data.inputtype"
-                        optionLabel="lable"
-                        optionValue="value"
-                        dropdownIcon=""
-                        :options="isTypeInputs"
-                        class="w-full no-icon"
-                      >
-                        <template #option="slotProps">
-                          <div>
-                            <i :class="slotProps.option.icon"></i>
-                            {{ slotProps.option.lable }}
-                          </div>
-                        </template>
-                      </Dropdown>
-                    </template>
-                  </Column>
-                  <Column
-                    headerStyle="text-align:center;height:50px;max-width:140px"
-                    bodyStyle="text-align:left;max-width:140px "
-                    headerClass="align-items-center justify-content-center text-center"
-                  >
-                    <template #body="slotProps">
-                      <Button
-                        @click="openCogDatabase(slotProps.data, true, true)"
-                        icon="pi pi-cog"
-                        severity="secondary"
-                        class="p-button-outlined"
-                      />
-                      <Button
-                        @click="delRowXLS(slotProps.data)"
-                        icon="pi pi-trash"
-                        severity="danger"
-                        class="ml-1 p-button-outlined"
-                      />
-                    </template>
-                  </Column>
-                </DataTable>
-              </div>
-            </template>
-          </DataTable>
+          <div
+            :contenteditable="!isUrlReport && !readonly"
+            spellcheck="false"
+            id="dochtml"
+            @contextmenu="onRightClick"
+          ></div>
         </div>
       </div>
-    </div>
-  </div>
-  <Dialog
-    v-if="!readonly"
-    :header="isComment ? 'Bình luận' : 'Chỉnh sửa nâng cao'"
-    v-model:visible="displayCK"
-    :breakpoints="{ '960px': '75vw', '640px': '90vw' }"
-    :style="{ width: '50vw' }"
-    :maximizable="true"
-    :modal="true"
-  >
-    <Editor v-model="spanEditor" editorStyle="height: 320px" />
-    <template #footer>
-      <Button
-        label="Không"
-        icon="pi pi-times"
-        @click="displayCK = false"
-        class="p-button-text"
-      />
-      <Button label="Lưu lại" icon="pi pi-save" @click="saveCK()" autofocus />
-    </template>
-  </Dialog>
-  <Dialog
-    v-if="!readonly"
-    header="Thông tin chỉnh sửa"
-    v-model:visible="displayElement"
-    :breakpoints="{ '960px': '75vw', '640px': '90vw' }"
-    :style="{ width: '50vw' }"
-    :maximizable="true"
-    :modal="true"
-  >
-    <div class="flex">
-      <Dropdown
-        v-model="drcurrentText"
-        class="w-full flex-1"
-        optionLabel="version"
-        :options="elementSpan.historys"
-        :filter="true"
-        placeholder="So sánh với gốc"
-      >
-        <template #value="slotProps">
-          <div v-if="slotProps.value.element">
-            <Tag
-              class="mr-2"
-              :value="'Version ' + slotProps.value.version"
-            ></Tag>
-            <Tag
-              class="mr-2"
-              severity="success"
-              :value="slotProps.value.user.fname"
-            ></Tag>
-          </div>
-          <span v-else>
-            {{ slotProps.placeholder }}
-          </span>
-        </template>
-        <template #option="slotProps">
-          <div @click="setCurrentText(slotProps.option)">
-            <p>
-              <Tag
-                class="mr-2"
-                :value="'Version ' + slotProps.option.version"
-              ></Tag>
-              <Tag
-                class="mr-2"
-                severity="success"
-                :value="slotProps.option.user.fname"
-              ></Tag>
-            </p>
-            <p class="mt-2">
-              {{ parseHTMLText(slotProps.option.element, 100) }}
-            </p>
-          </div>
-        </template>
-      </Dropdown>
-      <Button
-        v-if="drcurrentText.element"
-        class="ml-2"
-        icon="pi pi-refresh"
-        @click="setCurrentText()"
-        label="So sánh gốc"
-      />
-    </div>
-    <TabView>
-      <TabPanel header="Xem chỉnh sửa 1">
-        <div class="p-2" style="background-color: #ccc">
-          <Card>
-            <template #content>
-              <CodeDiff
-                :old-string="removeTags(currentText)"
-                :new-string="removeTags(htmlElement)"
-                maxHeight="calc(100vh - 250px)"
-                outputFormat="side-by-side"
-              />
-            </template>
-          </Card>
-        </div>
-      </TabPanel>
-      <TabPanel header="Xem chỉnh sửa 2">
-        <div class="p-2" style="background-color: #ccc">
-          <Card>
-            <template #content>
-              <Diff
-                mode="split"
-                theme="light"
-                language="plaintext"
-                :prev="removeTags(currentText)"
-                :current="removeTags(htmlElement)"
-                :virtual-scroll="{ height: 300 }"
-              />
-            </template>
-          </Card>
-        </div>
-      </TabPanel>
-      <TabPanel header="Xem thay đổi sytle">
-        <div class="p-2" style="background-color: #ccc">
-          <Card>
-            <template #content>
-              <div class="flex">
-                <div class="flex-1" v-html="currentText"></div>
-                <Divider layout="vertical" />
-                <div class="flex-1" v-html="htmlElement"></div>
-              </div>
-            </template>
-          </Card>
-        </div>
-      </TabPanel>
-    </TabView>
-    <template #footer>
-      <Button
-        label="Không"
-        icon="pi pi-times"
-        @click="displayElement = false"
-        class="p-button-text"
-      />
-      <Button
-        label="Lưu lại"
-        icon="pi pi-save"
-        @click="displayElement = false"
-        autofocus
-      />
-    </template>
-  </Dialog>
-  <Dialog
-    v-if="!readonly"
-    header="Thiết lập bảng"
-    v-model:visible="displayTable"
-    :style="{ width: '360px' }"
-    :modal="true"
-  >
-    <p class="mb-2 mt-2"><b>Tiêu đề bảng</b></p>
-    <Dropdown
-      v-model="mdDataHeader"
-      :editable="true"
-      class="w-full"
-      optionValue="id"
-      optionLabel="name"
-      :options="compuDatakeys"
-      :filter="true"
-      placeholder="Trường dữ liệu bảng"
-    >
-      <template #option="slotProps">
-        <div>{{ slotProps.option.name }}</div>
-      </template>
-    </Dropdown>
-    <p class="mb-2 mt-2"><b>Dữ liệu bảng</b></p>
-    <Dropdown
-      v-model="mdData"
-      :editable="true"
-      class="w-full"
-      optionValue="id"
-      optionLabel="name"
-      :options="compuDatakeys"
-      :filter="true"
-      placeholder="Trường dữ liệu bảng"
-    >
-      <template #option="slotProps">
-        <div>{{ slotProps.option.name }}</div>
-      </template>
-    </Dropdown>
-    <template #footer>
-      <Button
-        label="Không"
-        icon="pi pi-times"
-        @click="displayTable = false"
-        class="p-button-text"
-      />
-      <Button
-        label="Lưu lại"
-        icon="pi pi-save"
-        @click="saveConfigTable()"
-        autofocus
-      />
-    </template>
-  </Dialog>
-  <Dialog
-    v-if="!readonly"
-    header="Chỉnh sửa nội dung"
-    v-model:visible="displayEditData"
-    :style="{ width: '640px' }"
-    :modal="true"
-  >
-    <p v-if="textEditExcel != ''"><b>Excel</b></p>
-    <p v-if="textEditExcel != ''">
-      <span class="p-input-icon-left w-full">
-        <i
-          class="pi pi-fx"
-          style="color: green; font-weight: bold; top: 18px; font-size: 150%"
-          >fx</i
-        >
-        <Textarea
-          @blur="changeInputExcel(true)"
-          style="color: red; font-size: 120%"
-          class="w-full"
-          v-model="textEditExcel"
-          id="textEdit"
-          autoResize
-          rows="1"
-        />
-      </span>
-    </p>
-    <Textarea
-      style="font-size: 120%"
-      @blur="changeInputExcel(false)"
-      class="w-full"
-      v-model="textEdit"
-      id="textEdit"
-      autoResize
-      rows="1"
-    />
-    <div
-      class="flex"
-      style="
-        margin-top: 10px;
-        padding: 5px;
-        align-items: center;
-        background-color: #eee;
-        color: #fff;
-      "
-    >
-      <span
-        class="p-input-icon-right p-inputtext-sm flex-1"
-        style="font-size: 120%"
-      >
-        <i class="pi pi-search" />
-        <InputText
-          class="w-full"
-          v-model="txtIPXLS"
-          placeholder="Tìm kiếm giá trị cột"
-        />
-      </span>
-    </div>
-    <div style="max-height: 320px; overflow-y: auto">
-      <div class="grid m-2">
-        <div
-          style="border: 0.5px solid #ccc"
-          class="col-6"
-          v-for="k in compXLS"
-        >
-          <b
-            ><span
-              style="padding: 5px; font-weight: bold; color: blue; padding: 5px"
-              >{{ objExcel[k] }}</span
-            ></b
-          >
-          <b>{{ k }}</b>
-        </div>
-      </div>
-    </div>
-    <template #footer>
-      <Divider />
-      <Button
-        label="Không"
-        icon="pi pi-times"
-        @click="displayEditData = false"
-        class="p-button-text"
-      />
-      <Button
-        label="Lưu lại"
-        icon="pi pi-save"
-        @click="saveEditData()"
-        autofocus
-      />
-    </template>
-  </Dialog>
-  <Dialog
-    v-if="!readonly"
-    :header="'Thông tin cấu hình nguồn dữ liệu ' + dbrow.value"
-    v-model:visible="isDisplayDatabase"
-    :breakpoints="{ '960px': '75vw', '640px': '90vw' }"
-    :style="{ width: '1024px' }"
-    :maximizable="true"
-    :modal="true"
-  >
-    <ConfigDatabaseComponent
-      :group="dbrow"
-      ref="configDBChild"
-      :xls="isxls"
-      :one="IsOne"
-      :callbackFun="callbackFunChild"
-      :report="report"
-    />
-    <template #footer>
-      <div class="flex">
-        <Button
-          v-if="(dtTempCols || objDataTemp).length > 0"
-          icon="pi pi-angle-left"
-          class="mr-1"
-          @click="nextDBrow(false)"
-          severity="secondary"
-          text
-        />
-        <Dropdown
-          v-if="(dtTempCols || objDataTemp).length > 0"
-          v-model="dbrow"
-          optionLabel="value"
-          :options="dtTempCols || objDataTemp"
-          :filter="true"
-          placeholder="Chọn key"
-        >
-        </Dropdown>
-        <Button
-          v-if="(dtTempCols || objDataTemp).length > 0"
-          icon="pi pi-angle-right"
-          class="ml-1"
-          @click="nextDBrow(true)"
-          severity="secondary"
-          text
-        />
-        <div class="flex-1"></div>
-        <Button
-          label="Không"
-          icon="pi pi-times"
-          @click="isDisplayDatabase = false"
-          class="p-button-text"
-        />
-        <Button
-          :disabled="showLoadding"
-          :loading="showLoadding"
-          label="Lưu lại"
-          icon="pi pi-save"
-          @click="saveDatabase()"
-        />
-      </div>
-    </template>
-  </Dialog>
-  <ContextMenu
-    :class="isDesingData"
-    v-if="isDesingData && !readonly"
-    ref="menu"
-    :model="datakeys"
-  >
-    <template #item="{ item }">
-      <Button @click="goKey(item)" :label="item" class="mb-1 w-full" />
-    </template>
-  </ContextMenu>
-  <ContextMenu
-    v-if="!isDesingData && !isUrlReport && !readonly"
-    ref="menu"
-    :model="actionMenus"
-  ></ContextMenu>
-  <Sidebar
-    v-model:visible="isdataSidebar"
-    position="right"
-    :class="'w-full d-sidebar-full' + (isfullSidebar ? '  ' : ' md:w-8 lg:w-8')"
-  >
-    <template #header>
-      <div class="flex w-full">
-        <Button
-          @click="isfullSidebar = !isfullSidebar"
-          :icon="'pi pi-window-' + (!isfullSidebar ? 'maximize' : 'minimize')"
-          class="p-button-outlined p-button-secondary p-button-text"
-        />
-        <div class="text-center flex-1">
-          <SelectButton
-            v-if="!readonly"
-            v-model="opTypeDB"
-            :options="optionTypeDBs"
-            optionLabel="name"
-          />
-          <h2 class="p-0 m-0" v-else>
-            Cập nhật thông tin
-            <span v-if="oneRow" v-html="cForm['Họ tên']"></span>
-            <span v-else>{{ report.report_name }}</span>
-          </h2>
-        </div>
-      </div>
-    </template>
-    <div class="flex w-full p-2 text-end">
-      <div class="flex-1"></div>
-      <Button
-        @click="refersMapData"
-        icon="pi pi-refresh"
-        class="p-button-outlined p-button-secondary mr-1"
-      />
-      <Button
-        v-if="opTypeDB.value == 1"
-        @click="addTable()"
-        icon="pi pi-plus"
-        class="p-button-outlined p-button-secondary mr-1"
-      />
-      <FileUpload
-        chooseLabel="Import Excel"
-        class="mr-1"
-        mode="basic"
-        :auto="true"
-        :customUpload="true"
-        @uploader="importJsonData"
-        name="doc[]"
-        accept=".xls,.xlsx"
-      />
-      <Button
-        v-if="opTypeDB.value == 2"
-        severity="secondary"
-        class="mr-1 p-button-outlined"
-        type="button"
-        label="Tải"
-        icon="pi pi-download"
-        @click="downloadJsonData"
-      />
-      <Button
-        type="button"
-        label="Lưu"
-        icon="pi pi-save"
-        @click="saveDatamap(false)"
-      />
-    </div>
-    <div class="p-1">
-      <Accordion v-if="opTypeDB.value == 2" :multiple="false" :activeIndex="0">
-        <AccordionTab v-for="(r, index) in datamaps">
-          <template #header>
-            <span>Dữ liệu</span>
-          </template>
-          <ul class="ul-form">
-            <li
-              :class="'m-1 grids' + (Array.isArray(r[r1]) ? ' w-full' : '')"
-              v-for="r1 in Object.keys(r)"
-              :style="
-                'width:' +
-                (r[r1] && r[r1].toString().includes('<img') ? '100%' : 'auto')
-              "
-            >
-              <Panel
-                toggleable
-                v-if="Array.isArray(r[r1])"
-                v-for="r in datamaps"
-              >
-                <template #header>
-                  <b>{{ r1 }}({{ r[r1].length }})</b>
-                </template>
-                <template #icons>
-                  <button
-                    @click="addRow(r, r1)"
-                    class="p-panel-header-icon p-link mr-2"
-                  >
-                    <span class="pi pi-plus-circle"></span>
-                  </button>
-                </template>
-                <table style="width: max-content !important">
-                  <thead>
-                    <tr>
-                      <th v-for="th in arrayKeys(r, r1)">
-                        <b>{{ th }}</b>
-                      </th>
-                      <th></th>
-                    </tr>
-                  </thead>
-                  <tbody>
-                    <tr v-for="(td, idx) in r[r1]">
-                      <td v-for="th in arrayKeys(r, r1)">
-                        <InputNumber
-                          spellcheck="false"
-                          :useGrouping="isFormat(th, td[th])"
-                          v-if="isTypeInput(td[th], th) == 1"
-                          v-model="td[th]"
-                          class="w-full"
-                        />
-                        <InputMask
-                          spellcheck="false"
-                          mask="99/99/9999"
-                          v-if="isTypeInput(td[th], th) == 2"
-                          v-model="td[th]"
-                          class="w-full"
-                        />
-                        <Textarea
-                          v-if="isTypeInput(td[th], th) == 0"
-                          spellcheck="false"
-                          autoResize
-                          v-model="td[th]"
-                          rows="1"
-                          class="w-full"
-                        ></Textarea>
-                      </td>
-                      <td class="text-center">
-                        <button
-                          @click="delRow(r, r1, idx)"
-                          class="p-panel-header-icon p-link"
-                        >
-                          <span class="pi pi-trash"></span>
-                        </button>
-                      </td>
-                    </tr>
-                  </tbody>
-                </table>
-              </Panel>
-              <div v-else>
-                <div class="cols-2">
-                  <b>{{ r1 }}</b>
-                </div>
-                <div class="cols-10">
-                  <InputNumber
-                    spellcheck="false"
-                    :useGrouping="isFormat(r1, r[r1])"
-                    v-if="isTypeInput(r[r1], r1) == 1"
-                    v-model="r[r1]"
-                    class="w-full"
-                  />
-                  <InputMask
-                    spellcheck="false"
-                    mask="99/99/9999"
-                    v-if="isTypeInput(r[r1], r1) == 2"
-                    v-model="r[r1]"
-                    class="w-full"
-                  />
-                  <Textarea
-                    v-if="isTypeInput(r[r1], r1) == 0"
-                    spellcheck="false"
-                    autoResize
-                    v-model="r[r1]"
-                    rows="1"
-                    class="w-full"
-                  ></Textarea>
-                </div>
-              </div>
-            </li>
-          </ul>
-        </AccordionTab>
-      </Accordion>
-      <div v-if="opTypeDB.value == 1">
-        <DataTable class="p-datatable-sm" showGridlines :value="dtTables">
-          <Column
-            class="text-center"
-            :bodyStyle="
-              'max-width: 60px  '
-            "
-           
-            :headerStyle="
-              'max-width: 60px ;height:60px'
-            "
-            field="index"
-            header="STT"
-          >
-          </Column>
-          <Column field="name" header="Tiêu đề"></Column>
-          <Column
-          :bodyStyle="
-              'max-width: 140px  '
-            "
-           
-            :headerStyle="
-              'max-width: 140px ;height:60px'
-            "
-            class="text-center"
-          >
-            <template #body="slotProps">
-              <Button
-                @click="openCogDatabase(slotProps.data, true, false)"
-                icon="pi pi-cog"
-                severity="secondary"
-                class="p-button-outlined"
-              />
-              <Button
-                class="ml-1 p-button-outlined"
-                @click="removeTable(slotProps.data)"
-                icon="pi pi-trash"
-                severity="danger"
-              />
-            </template>
-          </Column>
-        </DataTable>
-      </div>
+      <!--|| !readonly || dtDataReports.length > 0-->
       <div
-        v-else
-        class="p-2"
-        style="height: calc(100vh - 170px); overflow-y: auto"
+        class="flex-1 bg-white"
+        v-if="
+          (!isUrlReport || isReportListView) && isHasHTML && !isfull && isedit
+        "
+        :style="
+          'min-width:' + (readonly || isReportListView ? 500 : 640) + 'px;'
+        "
       >
-        <Panel
-          v-if="oneRow"
-          toggleable
-          :collapsed="false"
-          v-for="dt in objDataTemp"
-        >
-          <template #header>
-            <h3 class="p-0 m-0">
-              <i class="pi pi-user"></i> Thông tin lấy dữ liệu
-            </h3>
-          </template>
-          <DataTable
-            class="p-datatable-sm"
-            showGridlines
-            :value="dt.rows"
-            v-if="dt.table"
-          >
-            <template #groupheader="slotProps">
-              <b>{{ slotProps.data.group || "Dữ liệu" }}</b>
-            </template>
-            <template #header>
-              <div class="flex justify-content-end">
-                <UserComponent
-                  ref="rfUserComp"
-                  :removes="dt.users"
-                  :hrm="true"
-                  :full="true"
-                  :keyuser="dt.key.toString()"
-                  :callbackFun="getCompUsers"
-                  :one="false"
-                  :basic="true"
-                >
-                </UserComponent>
-                <Button
-                  class="ml-1 p-button-outlined"
-                  @click="addRowWord(dt)"
-                  icon="pi pi-plus-circle"
-                  severity="secondary"
-                />
-              </div>
-            </template>
-            <Column
-              field="stt"
-              header="STT"
-              :bodyStyle="
-              'max-width: 60px  '
-            "
-           
-            :headerStyle="
-              'max-width: 60px ;height:60px'
-            "
-            headerClass="align-items-center justify-content-center text-center"
-            >
-              <template #body="slotProps">
-                <InputNumber
-                  spellcheck="false"
-                  v-model="slotProps.data.stt"
-                  class="w-full"
-                />
-              </template>
-            </Column>
-            <Column
-              v-for="c in dt.cols"
-              style="  white-space: nowrap"
-              :bodyStyle="
-              'max-width: 150px  '
-            "
-           
-            :headerStyle="
-              'max-width: 150px ;height:60px'
-            "
-           
-            >
-              <template #header>
-                {{ c.value.replace(/\[(.+)\]/g, "$1") }}
-              </template>
-              <template #body="slotProps">
-                <Textarea
-                  style="height: auto; padding: 5px"
-                  spellcheck="false"
-                  autoResize
-                  v-model="slotProps.data[c.value]"
-                  class="w-full"
-                ></Textarea>
-              </template>
-            </Column>
-            <Column header="">
-              <template #body="slotProps">
-                <button
-                  @click="delRow(dt, 'rows', slotProps.index)"
-                  class="p-panel-header-icon p-link"
-                >
-                  <span class="pi pi-trash"></span>
-                </button>
-              </template>
-            </Column>
-          </DataTable>
-          <div class="grid" v-else>
-            <div
-              :class="'col-4' + (r.auto ? ' disabled' : '')"
-              v-for="r in dt.cols"
-            >
-              <div class="mb-2">
-                <label
-                  ><b>{{ r.value.replace(/\[(.+)\]/g, "$1") }}</b></label
-                >
-              </div>
-              <InputComponent :okey="'key'" :col="r" :ipmodel="r" />
-            </div>
-          </div>
-        </Panel>
-        <div v-else>
+        <div v-if="isViewReport">
           <DataTable
             v-model:filters="rpfilters"
+            @rowSelect="onRowSelectReport"
+            selectionMode="single"
+            :metaKeySelection="false"
             scrollable
-            :scrollHeight="'calc(100vh - 250px)'"
-            class="p-datatable-sm fix-head"
+            :scrollHeight="'calc(100vh - ' + (isUrlReport ? 149 : 200) + 'px)'"
+            class="p-datatable-sm"
             v-model:expandedRowGroups="expandedRowGroups"
             expandableRowGroups
             rowGroupMode="subheader"
             groupRowsBy="group"
-     
- 
-                :lazy="true"
-                :rowHover="true"
-                :showGridlines="true"
-                scrollDirection="both"
+            showGridlines
+            v-model:selection="selectedStamps"
             :value="dtDataReports"
           >
             <template #groupheader="slotProps">
               <b>{{ slotProps.data.group || "Dữ liệu" }}</b>
             </template>
-            <template #header>
+            <template #header v-if="!onedata">
               <div class="flex justify-content-end">
                 <span class="p-input-icon-left">
                   <i class="pi pi-search" />
@@ -5099,62 +3948,56 @@ export default {
               </div>
             </template>
             <Column
-            frozen 
-            :headerClass="
-              
-              (col.includes('Ảnh') || col == 'ok'
-                ? 'format-center '
-                : col.includes('Mã nhân sự') ||
-                  col.includes('Số hợp đồng') ||
-                  col.includes('Ngày tạo') ||
-                  col.includes('Ngày ký')
-                ? 'format-center'
-                : '') 
-            
-            "
-             :bodyClass="
-              
-              (col.includes('Ảnh') || col == 'ok'
-                ? 'format-center '
-                : col.includes('Mã nhân sự') ||
-                  col.includes('Số hợp đồng') ||
-                  col.includes('Ngày tạo') ||
-                  col.includes('Ngày ký')
-                ? 'format-center'
-                : '') 
-            
-            "
-            :headerStyle="
-              
-              (col.includes('Ảnh') || col == 'ok'
-                ? 'text-align:center;width:70px;height:50px'
-                : col.includes('Mã nhân sự') ||
-                  col.includes('Số hợp đồng') ||
-                  col.includes('Ngày tạo') ||
-                  col.includes('Ngày ký')
-                ? 'text-align:center;width:200px;height:50px'
-                : ' width:250px;height:50px') 
-            
-            "
               :bodyStyle="
-              
-              (col.includes('Ảnh') || col == 'ok'
-                ? 'text-align:center;width:70px;height:50px'
-                : col.includes('Mã nhân sự') ||
-                  col.includes('Số hợp đồng') ||
-                  col.includes('Ngày tạo') ||
-                  col.includes('Ngày ký')
-                ? 'text-align:center;width:200px;height:50px'
-                : ' width:250px;height:50px') 
-            
-            "
+                'max-width:' +
+                (col.includes('Ảnh') || col == 'ok'
+                  ? '50pt;text-align:center'
+                  : col.includes('Mã nhân sự') ||
+                    col.includes('Số hợp đồng') ||
+                    col.includes('Ngày tạo') ||
+                    col.includes('Ngày ký')
+                  ? '80pt;text-align:center'
+                  : 'auto') +
+                ';height:60px'
+              "
+              :headerStyle="
+                'max-width:' +
+                (col.includes('Ảnh') || col == 'ok'
+                  ? '50pt;text-align:center'
+                  : col.includes('Mã nhân sự') ||
+                    col.includes('Số hợp đồng') ||
+                    col.includes('Ngày tạo') ||
+                    col.includes('Ngày ký')
+                  ? '80pt;text-align:center'
+                  : 'auto') +
+                ';height:60px'
+              "
+              :bodyClass="
+                col.includes('Ảnh') ||
+                col.includes('Số hợp đồng') ||
+                col.includes('Mã nhân sự') ||
+                col.includes('Ngày tạo') ||
+                col.includes('Ngày ký') ||
+                col == 'ok'
+                  ? 'format-center'
+                  : ''
+              "
+              :headerClass="
+                col.includes('Ảnh') ||
+                col.includes('Số hợp đồng') ||
+                col.includes('Mã nhân sự') ||
+                col.includes('Ngày tạo') ||
+                col.includes('Ngày ký') ||
+                col == 'ok'
+                  ? 'align-items-center justify-content-center text-center'
+                  : ''
+              "
               v-for="col of dtColumns"
               :key="col"
               :field="col"
               :header="col != 'ok' && !col.includes('_') ? col : ''"
             >
               <template #body="dt">
-               
                 <div v-if="col.includes('Ảnh')">
                   <Avatar
                     v-if="(dt.data[col] || '').includes('.')"
@@ -5185,42 +4028,1301 @@ export default {
                     ></i>
                   </div>
                   <div v-else v-html="dt.data[col]"></div>
- 
                 </div>
               </template>
             </Column>
             <Column
-              v-for="c in objDataTemp[0].cols"
-              style="white-space: nowrap"
-              :headerStyle="
-              
-              ' width:150px;height:50px'  
-            
+              class="text-center"
+              v-if="readonly && isedit"
+              bodyClass="
+           format-center
             "
-              :bodyStyle="
-              
-            ' width:150px;height:50px' 
-            
+              headerClass="
+                 align-items-center justify-content-center text-center
             "
+              bodyStyle=" max-width:80px "
+              headerStyle="  max-width:80px "
             >
               <template #header>
-                {{ c.value.toString().replace(/\[(.+)\]/g, "$1") }}
+                <Button
+                  v-if="cForm && !onedata"
+                  size="small"
+                  @click="copyRow()"
+                  :icon="'pi pi-' + (isCopy ? 'check' : 'copy')"
+                  v-tooltip.left="isCopy ? 'Dán' : 'Copy'"
+                  text
+                  class="p-button-outlined p-button-text"
+                />
+                <Button
+                  v-if="!onedata"
+                  size="small"
+                  @click="editForm()"
+                  icon="pi pi-pencil"
+                  severity="secondary"
+                  class="mr-1 p-button-outlined p-button-text p-button-rounded"
+                />
               </template>
               <template #body="slotProps">
-                <InputComponent
-                  :div="true"
-                  :okey="c.value"
-                  v-if="slotProps.data.datatemp"
-                  :col="c"
-                  :ipmodel="slotProps.data.datatemp"
+                <Button
+                  size="small"
+                  @click="editForm(slotProps.data)"
+                  icon="pi pi-pencil"
+                  severity="secondary"
+                  class="mr-1 p-button-outlined p-button-rounded"
+              v-if="selectedStamps.profile_id== slotProps.data.profile_id"
+                />
+              </template>
+            </Column>
+          </DataTable>
+     
+        </div>
+        <div v-else style="height: calc(100vh - 130px); overflow-y: auto">
+          <div class="p-0">
+            <!--<div class="flex" v-if="elementSpan.element">
+                                                                                                                                                                                                                                                                                                                                                                                                                                                                               </div> -->
+            <div class="flex m-2">
+              <div class="flex-1 mr-2">
+                <span class="p-input-icon-left w-full">
+                  <i class="pi pi-search" />
+                  <InputText
+                    class="w-full"
+                    v-model="rpfilters['global'].value"
+                    placeholder="Tìm kiếm"
+                  />
+                </span>
+              </div>
+              <Button
+                @click="saveConfig()"
+                icon="pi pi-save"
+                class="mr-1 p-button-outlined"
+              />
+              <!-- <Button @click="addCogDatabase()" outlined class="mr-1" icon="pi pi-cog" severity="secondary" /> -->
+              <Button
+                @click="refershConfig()"
+                icon="pi pi-refresh"
+                severity="secondary"
+                class="p-button-outlined"
+              />
+            </div>
+            <DataTable
+              v-model:expandedRows="expandedRows"
+              :rowClass="rowClass"
+              v-if="!isxls && objDataTemp.length > 0"
+              scrollHeight="calc(100vh - 200px)"
+              class="p-datatable-sm"
+              v-model:filters="rpfilters"
+              :value="objDataTemp"
+              filterDisplay="menu"
+              filterMode="lenient"
+              :scrollable="true"
+              columnResizeMode="fit"
+              :lazy="true"
+              responsiveLayout="scroll"
+              :row-hover="true"
+              :showGridlines="true"
+            >
+              <Column
+                expander
+                headerStyle="text-align:center;max-width:50px;height:50px"
+                bodyStyle="text-align:center;max-width:50px"
+              />
+              <Column
+                headerStyle="text-align:center;max-width:50px;height:50px"
+                bodyStyle="text-align:center;max-width:50px"
+                header="STT"
+                class="align-items-center justify-content-center text-center"
+              >
+                <template #body="slotProps">
+                  {{ slotProps.index + 1 }}
+                </template>
+              </Column>
+              <Column
+                field="value"
+                header="Template"
+                headerClass="align-items-center justify-content-center text-center"
+                headerStyle="text-align:center ;height:50px"
+                bodyStyle="text-align:left "
+              ></Column>
+              <Column
+                field="key"
+                header="Data"
+                headerClass="align-items-center justify-content-center text-center"
+                headerStyle="text-align:center ;height:50px"
+                bodyStyle="text-align:left "
+              >
+                <template #body="slotProps">
+                  <b
+                    :style="
+                      'background-color:' +
+                      (slotProps.data.isconfig && !slotProps.data.cols
+                        ? '#ffff00'
+                        : '')
+                    "
+                    >{{ slotProps.data.key }}</b
+                  >
+                </template>
+              </Column>
+              <Column
+                headerStyle="text-align:center;max-width:150px;height:50px"
+                bodyStyle="text-align:center;max-width:150px"
+                class="align-items-center justify-content-center text-center"
+              >
+                <template #body="slotProps">
+                  <Button
+                    @click="openCogDatabase(slotProps.data)"
+                    icon="pi pi-cog"
+                    severity="secondary"
+                    class="mr-1 p-button-outlined"
+                    style="width: 36px; height: 36px"
+                  />
+                  <Button
+                    @click="delRowXLS(slotProps.data)"
+                    icon="pi pi-trash"
+                    severity="danger"
+                    class="p-button-outlined"
+                    style="width: 36px; height: 36px"
+                  />
+                </template>
+              </Column>
+              <template #expansion="row">
+                <div class="py-3 w-full" v-if="row.data.cols">
+                  <Toolbar class="w-full custoolbar">
+                    <template #start>
+                      <div><h3 class="p-0 m-0 mb-2" v-if="report.report_type == 1">Tổng lương</h3>
+                        <h3 class="p-0 m-0 mb-2" v-else>Cột</h3></div>
+                    </template>
+                    <template #end>
+                      <div v-if="report.report_type == 1">
+                        <Dropdown
+                          v-model="report.sum_key"
+                          :options="row.data.cols"
+                          optionLabel="key"
+                          optionValue="key"
+                          placeholder="Chọn tổng lương"
+                          class="w-full"
+                          style="min-width: 200px"
+                        />
+                      </div>
+                    </template>
+                  </Toolbar>
+
+                  <DataTable
+                    class="p-datatable-sm d-sidebar-full w-full"
+                    :value="row.data.cols"
+                    filterDisplay="menu"
+                    filterMode="lenient"
+                    :scrollable="true"
+                    scrollHeight="flex"
+                    columnResizeMode="fit"
+                    :lazy="true"
+                    responsiveLayout="scroll"
+                    :row-hover="true"
+                  >
+                    <Column
+                      field="value"
+                      header="Template"
+                      headerStyle="text-align:center;height:50px"
+                      bodyStyle="text-align:left; "
+                      headerClass="align-items-center justify-content-center text-center"
+                    >
+                    </Column>
+                    <Column
+                      field="key"
+                      header="Data"
+                      headerStyle="text-align:center;height:50px"
+                      bodyStyle="text-align:left "
+                      headerClass="align-items-center justify-content-center text-center"
+                    ></Column>
+                    <Column
+                      headerStyle="text-align:center;height:50px;max-width:50px"
+                      bodyStyle="text-align:left;max-width:50px "
+                      class="align-items-center justify-content-center text-center"
+                    >
+                      <template #body="slotProps">
+                        <Checkbox
+                          v-tooltip="'Đã cấu hình'"
+                          v-model="slotProps.data.isconfig"
+                          :binary="true"
+                          :disabled="true"
+                        />
+                      </template>
+                    </Column>
+                    <Column
+                      headerStyle="text-align:center;height:50px;max-width:50px"
+                      bodyStyle="text-align:left;max-width:50px "
+                      class="align-items-center justify-content-center text-center"
+                    >
+                      <template #body="slotProps">
+                        <Checkbox
+                          v-tooltip="'Lấy tự động'"
+                          v-model="slotProps.data.auto"
+                          :binary="true"
+                        />
+                      </template>
+                    </Column>
+                    <Column
+                      field="inputtype"
+                      header="Nhập"
+                      headerStyle="text-align:center;height:50px"
+                      headerClass="align-items-center justify-content-center text-center"
+                      bodyStyle="text-align:left; "
+                    >
+                      <template #body="slotProps">
+                        <Dropdown
+                          @change="changeInputType(slotProps.data)"
+                          v-if="!slotProps.data.auto"
+                          v-model="slotProps.data.inputtype"
+                          optionLabel="lable"
+                          optionValue="value"
+                          dropdownIcon=""
+                          :options="isTypeInputs"
+                          class="w-full no-icon"
+                        >
+                          <template #option="slotProps">
+                            <div>
+                              <i :class="slotProps.option.icon"></i>
+                              {{ slotProps.option.lable }}
+                            </div>
+                          </template>
+                        </Dropdown>
+                      </template>
+                    </Column>
+                    <Column
+                      style="width: 100px; text-align: center"
+                      class="align-items-center justify-content-center text-center"
+                      headerStyle="text-align:center;height:50px"
+                      bodyStyle="text-align:left; "
+                    >
+                      <template #body="slotProps">
+                        <Button
+                          @click="openCogDatabase(slotProps.data, true, true)"
+                          icon="pi pi-cog"
+                          severity="secondary"
+                          class="p-button-outlined"
+                          style="width: 36px; height: 36px"
+                        />
+                        <Button
+                          @click="delRowXLS(row, slotProps.data)"
+                          icon="pi pi-trash"
+                          severity="danger"
+                          class="p-button-outlined"
+                          style="width: 36px; height: 36px; margin-left: 5px"
+                        />
+                      </template>
+                    </Column>
+                  </DataTable>
+                </div>
+              </template>
+            </DataTable>
+            <DataTable
+              :rowClass="rowClass"
+              v-model:expandedRows="expandedRows"
+              v-if="isxls && dtExcels.length > 0"
+              scrollable
+              scrollHeight="calc(100vh - 200px)"
+              class="p-datatable-sm"
+              showGridlines
+              :value="dtExcels"
+            >
+              <Column expander />
+              <Column
+                columnKey=""
+                class="text-center"
+                field="colname"
+                header="Dòng/Cột"
+                headerStyle="text-align:center;height:50px;max-width:100px"
+                bodyStyle="text-align:left; max-width:100px "
+              >
+              </Column>
+              <Column
+                field="key"
+                header="Trường"
+                headerStyle="text-align:center;height:50px"
+                bodyStyle="text-align:left "
+                headerClass="align-items-center justify-content-center text-center"
+              ></Column>
+              <Column
+                headerStyle="text-align:center;height:50px"
+                bodyStyle="text-align:left "
+                headerClass="align-items-center justify-content-center text-center"
+              >
+                <template #body="slotProps">
+                  <Checkbox
+                    v-tooltip="'Lấy tự động'"
+                    v-model="slotProps.data.auto"
+                    :binary="true"
+                  />
+                </template>
+              </Column>
+              <Column
+                field="inputtype"
+                header="Nhập"
+                headerStyle="text-align:center;height:50px"
+                bodyStyle="text-align:left "
+                headerClass="align-items-center justify-content-center text-center"
+              >
+                <template #body="slotProps">
+                  <Dropdown
+                    @change="changeInputType(slotProps.data)"
+                    v-if="!slotProps.data.auto"
+                    v-model="slotProps.data.inputtype"
+                    optionLabel="lable"
+                    optionValue="value"
+                    dropdownIcon=""
+                    :options="isTypeInputs"
+                    class="w-full no-icon"
+                  >
+                    <template #option="slotProps">
+                      <div>
+                        <i :class="slotProps.option.icon"></i>
+                        {{ slotProps.option.lable }}
+                      </div>
+                    </template>
+                  </Dropdown>
+                </template>
+              </Column>
+              <Column
+                class="text-center"
+                headerStyle="text-align:center;height:50px;max-width:140px"
+                bodyStyle="text-align:left;max-width:140px "
+                headerClass="align-items-center justify-content-center text-center"
+              >
+                <template #body="slotProps">
+                  <Button
+                    @click="openCogDatabase(slotProps.data, true, true)"
+                    icon="pi pi-cog"
+                    severity="secondary"
+                    class="p-button-outlined"
+                  />
+                  <Button
+                    @click="delRowXLS(slotProps.data)"
+                    icon="pi pi-trash"
+                    severity="danger"
+                    class="ml-1 p-button-outlined"
+                  />
+                </template>
+              </Column>
+              <template #expansion="slotProps">
+                <div class="p-3" v-if="slotProps.data.cols.length > 0">
+                  <h3 class="p-0 m-0 mb-2">Chi tiết cột</h3>
+                  <DataTable
+                    scrollable
+                    scrollHeight="300px"
+                    class="p-datatable-sm"
+                    showGridlines
+                    :value="slotProps.data.cols"
+                  >
+                    <Column
+                      field="colname"
+                      header="Cột"
+                      headerStyle="text-align:center;height:50px;max-width:50px"
+                      bodyStyle="text-align:left;max-width:50px "
+                      headerClass="align-items-center justify-content-center text-center"
+                    >
+                    </Column>
+                    <Column
+                      field="key"
+                      header="Trường dữ liệu"
+                      headerStyle="text-align:center;height:50px "
+                      bodyStyle="text-align:left "
+                      headerClass="align-items-center justify-content-center text-center"
+                    ></Column>
+                    <Column>
+                      <template #body="slotProps">
+                        <Checkbox
+                          v-tooltip="'Lấy tự động'"
+                          v-model="slotProps.data.auto"
+                          :binary="true"
+                        />
+                      </template>
+                    </Column>
+                    <Column
+                      field="inputtype"
+                      header="Nhập"
+                      headerStyle="text-align:center;height:50px "
+                      bodyStyle="text-align:left  "
+                      headerClass="align-items-center justify-content-center text-center"
+                    >
+                      <template #body="slotProps">
+                        <Dropdown
+                          @change="changeInputType(slotProps.data)"
+                          v-if="!slotProps.data.auto"
+                          v-model="slotProps.data.inputtype"
+                          optionLabel="lable"
+                          optionValue="value"
+                          dropdownIcon=""
+                          :options="isTypeInputs"
+                          class="w-full no-icon"
+                        >
+                          <template #option="slotProps">
+                            <div>
+                              <i :class="slotProps.option.icon"></i>
+                              {{ slotProps.option.lable }}
+                            </div>
+                          </template>
+                        </Dropdown>
+                      </template>
+                    </Column>
+                    <Column
+                      headerStyle="text-align:center;height:50px;max-width:140px"
+                      bodyStyle="text-align:left;max-width:140px "
+                      headerClass="align-items-center justify-content-center text-center"
+                    >
+                      <template #body="slotProps">
+                        <Button
+                          @click="openCogDatabase(slotProps.data, true, true)"
+                          icon="pi pi-cog"
+                          severity="secondary"
+                          class="p-button-outlined"
+                        />
+                        <Button
+                          @click="delRowXLS(slotProps.data)"
+                          icon="pi pi-trash"
+                          severity="danger"
+                          class="ml-1 p-button-outlined"
+                        />
+                      </template>
+                    </Column>
+                  </DataTable>
+                </div>
+              </template>
+            </DataTable>
+          </div>
+        </div>
+      </div>
+    </div>
+    <Dialog
+      v-if="!readonly"
+      :header="isComment ? 'Bình luận' : 'Chỉnh sửa nâng cao'"
+      v-model:visible="displayCK"
+      :breakpoints="{ '960px': '75vw', '640px': '90vw' }"
+      :style="{ width: '50vw' }"
+      :maximizable="true"
+      :modal="true"
+    >
+      <Editor v-model="spanEditor" editorStyle="height: 320px" />
+      <template #footer>
+        <Button
+          label="Không"
+          icon="pi pi-times"
+          @click="displayCK = false"
+          class="p-button-text"
+        />
+        <Button label="Lưu lại" icon="pi pi-save" @click="saveCK()" autofocus />
+      </template>
+    </Dialog>
+    <Dialog
+      v-if="!readonly"
+      header="Thông tin chỉnh sửa"
+      v-model:visible="displayElement"
+      :breakpoints="{ '960px': '75vw', '640px': '90vw' }"
+      :style="{ width: '50vw' }"
+      :maximizable="true"
+      :modal="true"
+    >
+      <div class="flex">
+        <Dropdown
+          v-model="drcurrentText"
+          class="w-full flex-1"
+          optionLabel="version"
+          :options="elementSpan.historys"
+          :filter="true"
+          placeholder="So sánh với gốc"
+        >
+          <template #value="slotProps">
+            <div v-if="slotProps.value.element">
+              <Tag
+                class="mr-2"
+                :value="'Version ' + slotProps.value.version"
+              ></Tag>
+              <Tag
+                class="mr-2"
+                severity="success"
+                :value="slotProps.value.user.fname"
+              ></Tag>
+            </div>
+            <span v-else>
+              {{ slotProps.placeholder }}
+            </span>
+          </template>
+          <template #option="slotProps">
+            <div @click="setCurrentText(slotProps.option)">
+              <p>
+                <Tag
+                  class="mr-2"
+                  :value="'Version ' + slotProps.option.version"
+                ></Tag>
+                <Tag
+                  class="mr-2"
+                  severity="success"
+                  :value="slotProps.option.user.fname"
+                ></Tag>
+              </p>
+              <p class="mt-2">
+                {{ parseHTMLText(slotProps.option.element, 100) }}
+              </p>
+            </div>
+          </template>
+        </Dropdown>
+        <Button
+          v-if="drcurrentText.element"
+          class="ml-2"
+          icon="pi pi-refresh"
+          @click="setCurrentText()"
+          label="So sánh gốc"
+        />
+      </div>
+      <TabView>
+        <TabPanel header="Xem chỉnh sửa 1">
+          <div class="p-2" style="background-color: #ccc">
+            <Card>
+              <template #content>
+                <CodeDiff
+                  :old-string="removeTags(currentText)"
+                  :new-string="removeTags(htmlElement)"
+                  maxHeight="calc(100vh - 250px)"
+                  outputFormat="side-by-side"
+                />
+              </template>
+            </Card>
+          </div>
+        </TabPanel>
+        <TabPanel header="Xem chỉnh sửa 2">
+          <div class="p-2" style="background-color: #ccc">
+            <Card>
+              <template #content>
+                <Diff
+                  mode="split"
+                  theme="light"
+                  language="plaintext"
+                  :prev="removeTags(currentText)"
+                  :current="removeTags(htmlElement)"
+                  :virtual-scroll="{ height: 300 }"
+                />
+              </template>
+            </Card>
+          </div>
+        </TabPanel>
+        <TabPanel header="Xem thay đổi sytle">
+          <div class="p-2" style="background-color: #ccc">
+            <Card>
+              <template #content>
+                <div class="flex">
+                  <div class="flex-1" v-html="currentText"></div>
+                  <Divider layout="vertical" />
+                  <div class="flex-1" v-html="htmlElement"></div>
+                </div>
+              </template>
+            </Card>
+          </div>
+        </TabPanel>
+      </TabView>
+      <template #footer>
+        <Button
+          label="Không"
+          icon="pi pi-times"
+          @click="displayElement = false"
+          class="p-button-text"
+        />
+        <Button
+          label="Lưu lại"
+          icon="pi pi-save"
+          @click="displayElement = false"
+          autofocus
+        />
+      </template>
+    </Dialog>
+    <Dialog
+      v-if="!readonly"
+      header="Thiết lập bảng"
+      v-model:visible="displayTable"
+      :style="{ width: '360px' }"
+      :modal="true"
+    >
+      <p class="mb-2 mt-2"><b>Tiêu đề bảng</b></p>
+      <Dropdown
+        v-model="mdDataHeader"
+        :editable="true"
+        class="w-full"
+        optionValue="id"
+        optionLabel="name"
+        :options="compuDatakeys"
+        :filter="true"
+        placeholder="Trường dữ liệu bảng"
+      >
+        <template #option="slotProps">
+          <div>{{ slotProps.option.name }}</div>
+        </template>
+      </Dropdown>
+      <p class="mb-2 mt-2"><b>Dữ liệu bảng</b></p>
+      <Dropdown
+        v-model="mdData"
+        :editable="true"
+        class="w-full"
+        optionValue="id"
+        optionLabel="name"
+        :options="compuDatakeys"
+        :filter="true"
+        placeholder="Trường dữ liệu bảng"
+      >
+        <template #option="slotProps">
+          <div>{{ slotProps.option.name }}</div>
+        </template>
+      </Dropdown>
+      <template #footer>
+        <Button
+          label="Không"
+          icon="pi pi-times"
+          @click="displayTable = false"
+          class="p-button-text"
+        />
+        <Button
+          label="Lưu lại"
+          icon="pi pi-save"
+          @click="saveConfigTable()"
+          autofocus
+        />
+      </template>
+    </Dialog>
+    <Dialog
+      v-if="!readonly"
+      header="Chỉnh sửa nội dung"
+      v-model:visible="displayEditData"
+      :style="{ width: '640px' }"
+      :modal="true"
+    >
+      <p v-if="textEditExcel != ''"><b>Excel</b></p>
+      <p v-if="textEditExcel != ''">
+        <span class="p-input-icon-left w-full">
+          <i
+            class="pi pi-fx"
+            style="color: green; font-weight: bold; top: 18px; font-size: 150%"
+            >fx</i
+          >
+          <Textarea
+            @blur="changeInputExcel(true)"
+            style="color: red; font-size: 120%"
+            class="w-full"
+            v-model="textEditExcel"
+            id="textEdit"
+            autoResize
+            rows="1"
+          />
+        </span>
+      </p>
+      <Textarea
+        style="font-size: 120%"
+        @blur="changeInputExcel(false)"
+        class="w-full"
+        v-model="textEdit"
+        id="textEdit"
+        autoResize
+        rows="1"
+      />
+      <div
+        class="flex"
+        style="
+          margin-top: 10px;
+          padding: 5px;
+          align-items: center;
+          background-color: #eee;
+          color: #fff;
+        "
+      >
+        <span
+          class="p-input-icon-right p-inputtext-sm flex-1"
+          style="font-size: 120%"
+        >
+          <i class="pi pi-search" />
+          <InputText
+            class="w-full"
+            v-model="txtIPXLS"
+            placeholder="Tìm kiếm giá trị cột"
+          />
+        </span>
+      </div>
+      <div style="max-height: 320px; overflow-y: auto">
+        <div class="grid m-2">
+          <div
+            style="border: 0.5px solid #ccc"
+            class="col-6"
+            v-for="k in compXLS"
+          >
+            <b
+              ><span
+                style="
+                  padding: 5px;
+                  font-weight: bold;
+                  color: blue;
+                  padding: 5px;
+                "
+                >{{ objExcel[k] }}</span
+              ></b
+            >
+            <b>{{ k }}</b>
+          </div>
+        </div>
+      </div>
+      <template #footer>
+        <Divider />
+        <Button
+          label="Không"
+          icon="pi pi-times"
+          @click="displayEditData = false"
+          class="p-button-text"
+        />
+        <Button
+          label="Lưu lại"
+          icon="pi pi-save"
+          @click="saveEditData()"
+          autofocus
+        />
+      </template>
+    </Dialog>
+    <Dialog
+      v-if="!readonly"
+      :header="'Thông tin cấu hình nguồn dữ liệu ' + dbrow.value"
+      v-model:visible="isDisplayDatabase"
+      :breakpoints="{ '960px': '75vw', '640px': '90vw' }"
+      :style="{ width: '1024px' }"
+      :maximizable="true"
+      :modal="true"
+    >
+      <ConfigDatabaseComponent
+        :group="dbrow"
+        ref="configDBChild"
+        :xls="isxls"
+        :one="IsOne"
+        :callbackFun="callbackFunChild"
+        :report="report"
+      />
+      <template #footer>
+        <div class="flex">
+          <Button
+            v-if="(dtTempCols || objDataTemp).length > 0"
+            icon="pi pi-angle-left"
+            class="mr-1"
+            @click="nextDBrow(false)"
+            severity="secondary"
+            text
+          />
+          <Dropdown
+            v-if="(dtTempCols || objDataTemp).length > 0"
+            v-model="dbrow"
+            optionLabel="value"
+            :options="dtTempCols || objDataTemp"
+            :filter="true"
+            placeholder="Chọn key"
+          >
+          </Dropdown>
+          <Button
+            v-if="(dtTempCols || objDataTemp).length > 0"
+            icon="pi pi-angle-right"
+            class="ml-1"
+            @click="nextDBrow(true)"
+            severity="secondary"
+            text
+          />
+          <div class="flex-1"></div>
+          <Button
+            label="Không"
+            icon="pi pi-times"
+            @click="isDisplayDatabase = false"
+            class="p-button-text"
+          />
+          <Button
+            :disabled="showLoadding"
+            :loading="showLoadding"
+            label="Lưu lại"
+            icon="pi pi-save"
+            @click="saveDatabase()"
+          />
+        </div>
+      </template>
+    </Dialog>
+    <ContextMenu
+      :class="isDesingData"
+      v-if="isDesingData && !readonly"
+      ref="menu"
+      :model="datakeys"
+    >
+      <template #item="{ item }">
+        <Button @click="goKey(item)" :label="item" class="mb-1 w-full" />
+      </template>
+    </ContextMenu>
+    <ContextMenu
+      v-if="!isDesingData && !isUrlReport && !readonly"
+      ref="menu"
+      :model="actionMenus"
+    ></ContextMenu>
+    <Sidebar
+      v-model:visible="isdataSidebar"
+      position="right"
+      :class="
+        'w-full d-sidebar-full' + (isfullSidebar ? '  ' : ' md:w-8 lg:w-8')
+      "
+      @hide="onHideSidebarM"
+    >
+      <template #header>
+        <div class="flex w-full">
+          <Button
+            @click="isfullSidebar = !isfullSidebar"
+            :icon="'pi pi-window-' + (!isfullSidebar ? 'maximize' : 'minimize')"
+            class="p-button-outlined p-button-secondary p-button-text"
+          />
+          <div class="text-center flex-1">
+            <SelectButton
+              v-if="!readonly"
+              v-model="opTypeDB"
+              :options="optionTypeDBs"
+              optionLabel="name"
+            />
+            <h2 class="p-0 m-0" v-else>
+              Cập nhật thông tin
+              <span v-if="oneRow" v-html="cForm['Họ tên']"></span>
+              <span v-else>{{ report.report_name }}</span>
+            </h2>
+          </div>
+        </div>
+      </template>
+      <div class="flex w-full p-2 text-end">
+        <div class="flex-1"></div>
+        <Button
+          @click="refersMapData"
+          icon="pi pi-refresh"
+          class="p-button-outlined p-button-secondary mr-1"
+        />
+        <Button
+          v-if="opTypeDB.value == 1"
+          @click="addTable()"
+          icon="pi pi-plus"
+          class="p-button-outlined p-button-secondary mr-1"
+        />
+        <FileUpload
+          chooseLabel="Import Excel"
+          class="mr-1"
+          mode="basic"
+          :auto="true"
+          :customUpload="true"
+          @uploader="importJsonData"
+          name="doc[]"
+          accept=".xls,.xlsx"
+        />
+        <Button
+          v-if="opTypeDB.value == 2"
+          severity="secondary"
+          class="mr-1 p-button-outlined"
+          type="button"
+          label="Tải"
+          icon="pi pi-download"
+          @click="downloadJsonData"
+        />
+        <Button
+          type="button"
+          label="Lưu"
+          icon="pi pi-save"
+          @click="saveDatamap(false)"
+        />
+      </div>
+      <div class="p-1">
+        <Accordion
+          v-if="opTypeDB.value == 2"
+          :multiple="false"
+          :activeIndex="0"
+        >
+          <AccordionTab v-for="(r, index) in datamaps">
+            <template #header>
+              <span>Dữ liệu</span>
+            </template>
+            <ul class="ul-form">
+              <li
+                :class="'m-1 grids' + (Array.isArray(r[r1]) ? ' w-full' : '')"
+                v-for="r1 in Object.keys(r)"
+                :style="
+                  'width:' +
+                  (r[r1] && r[r1].toString().includes('<img') ? '100%' : 'auto')
+                "
+              >
+                <Panel
+                  toggleable
+                  v-if="Array.isArray(r[r1])"
+                  v-for="r in datamaps"
+                >
+                  <template #header>
+                    <b>{{ r1 }}({{ r[r1].length }})</b>
+                  </template>
+                  <template #icons>
+                    <button
+                      @click="addRow(r, r1)"
+                      class="p-panel-header-icon p-link mr-2"
+                    >
+                      <span class="pi pi-plus-circle"></span>
+                    </button>
+                  </template>
+                  <table style="width: max-content !important">
+                    <thead>
+                      <tr>
+                        <th v-for="th in arrayKeys(r, r1)">
+                          <b>{{ th }}</b>
+                        </th>
+                        <th></th>
+                      </tr>
+                    </thead>
+                    <tbody>
+                      <tr v-for="(td, idx) in r[r1]">
+                        <td v-for="th in arrayKeys(r, r1)">
+                          <InputNumber
+                            spellcheck="false"
+                            :useGrouping="isFormat(th, td[th])"
+                            v-if="isTypeInput(td[th], th) == 1"
+                            v-model="td[th]"
+                            class="w-full"
+                          />
+                          <InputMask
+                            spellcheck="false"
+                            mask="99/99/9999"
+                            v-if="isTypeInput(td[th], th) == 2"
+                            v-model="td[th]"
+                            class="w-full"
+                          />
+                          <Textarea
+                            v-if="isTypeInput(td[th], th) == 0"
+                            spellcheck="false"
+                            autoResize
+                            v-model="td[th]"
+                            rows="1"
+                            class="w-full"
+                          ></Textarea>
+                        </td>
+                        <td class="text-center">
+                          <button
+                            @click="delRow(r, r1, idx)"
+                            class="p-panel-header-icon p-link"
+                          >
+                            <span class="pi pi-trash"></span>
+                          </button>
+                        </td>
+                      </tr>
+                    </tbody>
+                  </table>
+                </Panel>
+                <div v-else>
+                  <div class="cols-2">
+                    <b>{{ r1 }}</b>
+                  </div>
+                  <div class="cols-10">
+                    <InputNumber
+                      spellcheck="false"
+                      :useGrouping="isFormat(r1, r[r1])"
+                      v-if="isTypeInput(r[r1], r1) == 1"
+                      v-model="r[r1]"
+                      class="w-full"
+                    />
+                    <InputMask
+                      spellcheck="false"
+                      mask="99/99/9999"
+                      v-if="isTypeInput(r[r1], r1) == 2"
+                      v-model="r[r1]"
+                      class="w-full"
+                    />
+                    <Textarea
+                      v-if="isTypeInput(r[r1], r1) == 0"
+                      spellcheck="false"
+                      autoResize
+                      v-model="r[r1]"
+                      rows="1"
+                      class="w-full"
+                    ></Textarea>
+                  </div>
+                </div>
+              </li>
+            </ul>
+          </AccordionTab>
+        </Accordion>
+        <div v-if="opTypeDB.value == 1">
+          <DataTable class="p-datatable-sm" showGridlines :value="dtTables">
+            <Column
+              class="text-center"
+              :bodyStyle="'max-width: 60px  '"
+              :headerStyle="'max-width: 60px ;height:60px'"
+              field="index"
+              header="STT"
+            >
+            </Column>
+            <Column field="name" header="Tiêu đề"></Column>
+            <Column
+              :bodyStyle="'max-width: 140px  '"
+              :headerStyle="'max-width: 140px ;height:60px'"
+              class="text-center"
+            >
+              <template #body="slotProps">
+                <Button
+                  @click="openCogDatabase(slotProps.data, true, false)"
+                  icon="pi pi-cog"
+                  severity="secondary"
+                  class="p-button-outlined"
+                />
+                <Button
+                  class="ml-1 p-button-outlined"
+                  @click="removeTable(slotProps.data)"
+                  icon="pi pi-trash"
+                  severity="danger"
                 />
               </template>
             </Column>
           </DataTable>
         </div>
+        <div
+          v-else
+          class="p-2"
+          style="height: calc(100vh - 170px); overflow-y: auto"
+        >
+          <Panel
+            v-if="oneRow"
+            toggleable
+            :collapsed="false"
+            v-for="dt in objDataTemp"
+          >
+            <template #header>
+              <h3 class="p-0 m-0">
+                <i class="pi pi-user"></i> Thông tin lấy dữ liệu
+              </h3>
+            </template>
+
+            <DataTable
+              class="p-datatable-sm"
+              showGridlines
+              :value="dt.rows"
+              v-if="dt.table"
+            >
+              <template #groupheader="slotProps">
+                <b>{{ slotProps.data.group || "Dữ liệu" }}</b>
+              </template>
+              <template #header>
+                <div class="flex justify-content-end">
+                  <UserComponent
+                    ref="rfUserComp"
+                    :removes="dt.users"
+                    :hrm="true"
+                    :full="true"
+                    :keyuser="dt.key.toString()"
+                    :callbackFun="getCompUsers"
+                    :one="false"
+                    :basic="true"
+                  >
+                  </UserComponent>
+                  <Button
+                    class="ml-1 p-button-outlined"
+                    @click="addRowWord(dt)"
+                    icon="pi pi-plus-circle"
+                    severity="secondary"
+                  />
+                </div>
+              </template>
+              <Column
+                field="stt"
+                header="STT"
+                :bodyStyle="'max-width: 60px  '"
+                :headerStyle="'max-width: 60px ;height:60px'"
+                headerClass="align-items-center justify-content-center text-center"
+              >
+                <template #body="slotProps">
+                  <InputNumber
+                    spellcheck="false"
+                    v-model="slotProps.data.stt"
+                    class="w-full"
+                  />
+                </template>
+              </Column>
+              <Column
+                v-for="c in dt.cols"
+                style="white-space: nowrap"
+                :bodyStyle="'max-width: 150px  '"
+                :headerStyle="'max-width: 150px ;height:60px'"
+              >
+                <template #header>
+                  {{ c.value.replace(/\[(.+)\]/g, "$1") }}
+                </template>
+                <template #body="slotProps">
+                  <Textarea
+                    style="height: auto; padding: 5px"
+                    spellcheck="false"
+                    autoResize
+                    v-model="slotProps.data[c.value]"
+                    class="w-full"
+                  ></Textarea>
+                </template>
+              </Column>
+              <Column header="">
+                <template #body="slotProps">
+                  <button
+                    @click="delRow(dt, 'rows', slotProps.index)"
+                    class="p-panel-header-icon p-link"
+                  >
+                    <span class="pi pi-trash"></span>
+                  </button>
+                </template>
+              </Column>
+            </DataTable>
+            <div class="grid" v-else>
+              <div
+                :class="'col-4' + (r.auto ? ' disabled' : '')"
+                v-for="r in dt.cols"
+              >
+                <div class="mb-2">
+                  <label
+                    ><b>{{ r.value.replace(/\[(.+)\]/g, "$1") }}</b></label
+                  >
+                </div>
+                <div class="h-full" style="max-height: 40px">
+                  <InputComponent :okey="'key'" :col="r" :ipmodel="r" />
+                </div>
+              </div>
+            </div>
+          </Panel>
+          <div v-else>
+            <DataTable
+              v-model:filters="rpfilters"
+              scrollable
+              :scrollHeight="'calc(100vh - 250px)'"
+              class="p-datatable-sm fix-head"
+              v-model:expandedRowGroups="expandedRowGroups"
+              expandableRowGroups
+              rowGroupMode="subheader"
+              groupRowsBy="group"
+              :lazy="true"
+              :rowHover="true"
+              :showGridlines="true"
+              scrollDirection="both"
+              :value="dtDataReports"
+            >
+              <template #groupheader="slotProps">
+                <b>{{ slotProps.data.group || "Dữ liệu" }}</b>
+              </template>
+              <template #header>
+                <div class="flex justify-content-end">
+                  <span class="p-input-icon-left">
+                    <i class="pi pi-search" />
+                    <InputText
+                      v-model="rpfilters['global'].value"
+                      placeholder="Tìm kiếm"
+                    />
+                  </span>
+                  <Button
+                    class="ml-1 p-button-outlined"
+                    :loading="showLoadding"
+                    @click="rfReportData()"
+                    icon="pi pi-refresh"
+                    severity="secondary"
+                  />
+                </div>
+              </template>
+              <Column
+                frozen
+                :headerClass="
+                  col.includes('Ảnh') || col == 'ok'
+                    ? 'format-center '
+                    : col.includes('Mã nhân sự') ||
+                      col.includes('Số hợp đồng') ||
+                      col.includes('Ngày tạo') ||
+                      col.includes('Ngày ký')
+                    ? 'format-center'
+                    : ''
+                "
+                :bodyClass="
+                  col.includes('Ảnh') || col == 'ok'
+                    ? 'format-center '
+                    : col.includes('Mã nhân sự') ||
+                      col.includes('Số hợp đồng') ||
+                      col.includes('Ngày tạo') ||
+                      col.includes('Ngày ký')
+                    ? 'format-center'
+                    : ''
+                "
+                :headerStyle="
+                  col.includes('Ảnh') || col == 'ok'
+                    ? 'text-align:center;width:70px;height:50px'
+                    : col.includes('Mã nhân sự') ||
+                      col.includes('Số hợp đồng') ||
+                      col.includes('Ngày tạo') ||
+                      col.includes('Ngày ký')
+                    ? 'text-align:center;width:200px;height:50px'
+                    : ' width:250px;height:50px'
+                "
+                :bodyStyle="
+                  col.includes('Ảnh') || col == 'ok'
+                    ? 'text-align:center;width:70px;height:50px'
+                    : col.includes('Mã nhân sự') ||
+                      col.includes('Số hợp đồng') ||
+                      col.includes('Ngày tạo') ||
+                      col.includes('Ngày ký')
+                    ? 'text-align:center;width:200px;height:50px'
+                    : ' width:250px;height:50px'
+                "
+                v-for="col of dtColumns"
+                :key="col"
+                :field="col"
+                :header="col != 'ok' && !col.includes('_') ? col : ''"
+              >
+                <template #body="dt">
+                  <div v-if="col.includes('Ảnh')">
+                    <Avatar
+                      v-if="(dt.data[col] || '').includes('.')"
+                      :image="dt.data[col]"
+                      size="large"
+                      shape="circle"
+                    />
+                    <Avatar
+                      v-else
+                      :label="dt.data[col]"
+                      size="large"
+                      :style="{
+                        background: bgColor[dt.index % 7],
+                        color: '#ffffff',
+                        fontSize: '1.5rem !important',
+                        borderRadius: '5px',
+                      }"
+                    />
+                  </div>
+                  <div v-if="!col.includes('_') && !col.includes('Ảnh')">
+                    <div
+                      v-if="col == 'ok'"
+                      style="text-align: center; font-size: 200%"
+                    >
+                      <i
+                        v-if="dt.data[col]"
+                        class="pi pi-check text-green-500"
+                      ></i>
+                    </div>
+                    <div v-else v-html="dt.data[col]"></div>
+                  </div>
+                </template>
+              </Column>
+              <Column
+                v-for="c in objDataTemp[0].cols"
+                style="white-space: nowrap"
+                :headerStyle="' width:150px;height:50px'"
+                :bodyStyle="' width:150px;height:50px'"
+              >
+                <template #header>
+                  {{ c.value.toString().replace(/\[(.+)\]/g, "$1") }}
+                </template>
+                <template #body="slotProps">
+                  <InputComponent
+                    :div="true"
+                    :okey="c.value"
+                    v-if="slotProps.data.datatemp"
+                    :col="c"
+                    :ipmodel="slotProps.data.datatemp"
+                  />
+                </template>
+              </Column>
+            </DataTable>
+          </div>
+        </div>
       </div>
-    </div>
-  </Sidebar>
+    </Sidebar>
+  </div>
   <!-- <Menu style="max-height: 450px;overflow-y: auto;" ref="menuInput" :model="itemtypeInputs" popup id="overlay_tmenu" /> -->
 </template>
 <style lang="scss" scoped>
@@ -5363,43 +5465,43 @@ export default {
   margin: auto;
 }
 </style>
-<style>
-.no-icon {
+<style  >
+.d-design-doc .no-icon {
   text-align: center;
   justify-content: center;
 }
 
-.no-icon .p-dropdown-trigger {
+.d-design-doc .no-icon .p-dropdown-trigger {
   display: none;
 }
 
-.none {
+.d-design-doc .none {
   display: none !important;
 }
 
-.p-dialog-content tr:hover td {
+.d-design-doc .p-dialog-content tr:hover td {
   background-color: yellow;
 }
 
-.div-excel {
+.d-design-doc .div-excel {
   padding: 0 !important;
 }
 
-.div-excel tr:hover td {
+.d-design-doc .div-excel tr:hover td {
   background-color: yellow !important;
   color: #000 !important;
 }
 
-.div-excel tr:hover td:hover {
+.d-design-doc .div-excel tr:hover td:hover {
   background-color: aliceblue !important;
   color: #000 !important;
 }
 
-.div-excel.line td {
+.d-design-doc .div-excel.line td {
   border: 1px solid #999;
 }
 
-.tablecell {
+.d-design-doc .tablecell {
   text-align: center;
   font-weight: bold;
   background-color: #eee;
@@ -5407,14 +5509,14 @@ export default {
   border-bottom: 1px solid #999;
 }
 
-td.thcell {
+.d-design-doc td.thcell {
   font-weight: bold;
   padding: 5px;
   font-size: 13pt;
   border-right: 1px solid #999;
 }
 
-td.tablecell,
+.d-design-doc td.tablecell,
 .thcell {
   background-color: #eee;
   position: sticky;
@@ -5423,34 +5525,34 @@ td.tablecell,
   left: 0;
 }
 
-#app-sidebar,
+.d-design-doc #app-sidebar,
 #mobile-header {
   display: none !important;
 }
 
-.true .p-contextmenu-root-list {
+.d-design-doc .true .p-contextmenu-root-list {
   max-height: 400px;
   overflow-y: auto;
   padding: 10px !important;
 }
 
-#gtx-trans {
+.d-design-doc #gtx-trans {
   display: none !important;
 }
 
-[contenteditable] {
+.d-design-doc [contenteditable] {
   outline: 0px solid transparent;
 }
 
-.os-delete-os {
+.d-design-doc .os-delete-os {
   display: none;
 }
 
-tr.selected {
+.d-design-doc tr.selected {
   background-color: yellow !important;
 }
 
-td.thcell,
+.d-design-doc td.thcell,
 td.tablecell {
   border-right: 1px solid #999;
   position: sticky;
@@ -5459,19 +5561,19 @@ td.tablecell {
   background-color: #eee;
 }
 
-.p-dialog .table-data {
+.d-design-doc .p-dialog .table-data {
   max-width: calc(100% - 290px);
 }
 
-textarea[disabled] {
+.d-design-doc textarea[disabled] {
   background-color: #e9ecef;
 }
 
-.disabled {
+.d-design-doc .disabled {
   display: none;
 }
 
-.disabled input,
+.d-design-doc .disabled input,
 .disabled textarea,
 .disabled .p-dropdown {
   background-color: #eee;
