@@ -3825,7 +3825,7 @@ namespace API.Controllers.HRM.Profile
             }
         }
         [HttpPost]
-        public async Task<HttpResponseMessage> PostProc([System.Web.Mvc.Bind(Include = "")][FromBody] JObject data)
+        public async Task<HttpResponseMessage> PostProc([System.Web.Mvc.Bind(Include = "str")][FromBody] JObject data)
         {
             string strSQL = data["str"].ToObject<string>();
             strSQL = Codec.DecryptString(strSQL, helper.psKey);
