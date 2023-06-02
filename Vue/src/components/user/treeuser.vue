@@ -88,7 +88,7 @@ const changeOrganizationChecked = () => {
           break;
         case 1:
           var filters = rootusers.value.filter(
-            (a) =>
+            (a) =>                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                        
               a["department_id"] === organization["organization_id"] &&
               selectedNodeUser.value.findIndex(
                 (b) => b["user_id"] === a["user_id"]
@@ -463,6 +463,7 @@ const initUserSQL = () => {
       }
     })
     .catch((error) => {
+      debugger
       options.value.loading = false;
       toast.error("Tải dữ liệu không thành công!");
       addLog({
