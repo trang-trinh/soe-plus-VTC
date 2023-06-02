@@ -260,6 +260,8 @@ const TaskReportPersonal = () =>
   import("../views/task_report/TaskReportPersonal.vue");
 const TaskReportDepartment = () =>
   import("../views/task_report/TaskReportDepartment.vue");
+  const TaskReportEvaluate = () =>
+  import("../views/task_report/TaskReportEvaluate.vue");
 const TaskReviewReport = () =>
   import("../views/tasks/task_report_person/reviewReport.vue");
 const TaskPersonCreateReport = () =>
@@ -1436,6 +1438,11 @@ const router = createRouter({
       path: "/tasks/report/task_department",
       name: "taskreportdepartment",
       component: TaskReportDepartment,
+    },
+    {
+      path: "/tasks/report/task_evaluate",
+      name: "taskreportevaluate",
+      component: TaskReportEvaluate,
     },
     {
       path: "/tasks/config/group",
