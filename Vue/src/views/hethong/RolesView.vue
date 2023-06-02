@@ -343,7 +343,7 @@ const loadDataSQL = () => {
       });
       if (error && error.status === 401) {
         swal.fire({
-          text: "Mã token đã hết hạn hoặc không hợp lệ, vui lòng đăng nhập lại!",
+          text: "Phiên đăng nhập đã hết hạn, vui lòng đăng nhập lại!",
           confirmButtonText: "OK",
         });
         store.commit("gologout");
@@ -377,7 +377,7 @@ const loadCount = () => {
     })
     .catch((error) => {
       swal.fire({
-        text: "Mã token đã hết hạn hoặc không hợp lệ, vui lòng đăng nhập lại!",
+        text: "Phiên đăng nhập đã hết hạn, vui lòng đăng nhập lại!",
         confirmButtonText: "OK",
       });
     });
@@ -439,7 +439,7 @@ const loadRole = (rf) => {
     .catch((error) => {
       if (error && error.status === 401) {
         swal.fire({
-          text: "Mã token đã hết hạn hoặc không hợp lệ, vui lòng đăng nhập lại!",
+          text: "Phiên đăng nhập đã hết hạn, vui lòng đăng nhập lại!",
           confirmButtonText: "OK",
         });
       }
@@ -581,7 +581,7 @@ const configRole = (md, type) => {
       opition.value.moduleloading = false;
       if (error && error.status === 401) {
         swal.fire({
-          text: "Mã token đã hết hạn hoặc không hợp lệ, vui lòng đăng nhập lại!",
+          text: "Phiên đăng nhập đã hết hạn, vui lòng đăng nhập lại!",
           confirmButtonText: "OK",
         });
       }
@@ -717,7 +717,7 @@ const addConfigRole = () => {
       swal.close();
       if (error.status === 401) {
         swal.fire({
-          text: "Mã token đã hết hạn hoặc không hợp lệ, vui lòng đăng nhập lại!",
+          text: "Phiên đăng nhập đã hết hạn, vui lòng đăng nhập lại!",
           confirmButtonText: "OK",
         });
       }
@@ -776,7 +776,7 @@ const editRole = (md) => {
     .catch((error) => {
       if (error.status === 401) {
         swal.fire({
-          text: "Mã token đã hết hạn hoặc không hợp lệ, vui lòng đăng nhập lại!",
+          text: "Phiên đăng nhập đã hết hạn, vui lòng đăng nhập lại!",
           confirmButtonText: "OK",
         });
       }
@@ -912,7 +912,7 @@ const deleteList = () => {
             swal.close();
             if (error.status === 401) {
               swal.fire({
-                text: "Mã token đã hết hạn hoặc không hợp lệ, vui lòng đăng nhập lại!",
+                text: "Phiên đăng nhập đã hết hạn, vui lòng đăng nhập lại!",
                 confirmButtonText: "OK",
               });
             }
@@ -968,7 +968,7 @@ const delRole = (md) => {
             swal.close();
             if (error.status === 401) {
               swal.fire({
-                text: "Mã token đã hết hạn hoặc không hợp lệ, vui lòng đăng nhập lại!",
+                text: "Phiên đăng nhập đã hết hạn, vui lòng đăng nhập lại!",
                 confirmButtonText: "OK",
               });
             }
@@ -1014,7 +1014,7 @@ const upstatusRole = (md) => {
       swal.close();
       if (error.status === 401) {
         swal.fire({
-          text: "Mã token đã hết hạn hoặc không hợp lệ, vui lòng đăng nhập lại!",
+          text: "Phiên đăng nhập đã hết hạn, vui lòng đăng nhập lại!",
           confirmButtonText: "OK",
         });
       }
@@ -1071,7 +1071,7 @@ const exportRole = (method) => {
     .catch((error) => {
       if (error.status === 401) {
         swal.fire({
-          text: "Mã token đã hết hạn hoặc không hợp lệ, vui lòng đăng nhập lại!",
+          text: "Phiên đăng nhập đã hết hạn, vui lòng đăng nhập lại!",
           confirmButtonText: "OK",
         });
       }

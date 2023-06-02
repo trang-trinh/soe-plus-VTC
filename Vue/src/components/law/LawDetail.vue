@@ -393,7 +393,7 @@ const loadDataListByID = (dataLaw) => {
 			toast.error("Tải dữ liệu không thành công!");
 			if (error && error.status === 401) {
 				swal.fire({					
-					text: "Mã token đã hết hạn hoặc không hợp lệ, vui lòng đăng nhập lại!",					
+					text: "Phiên đăng nhập đã hết hạn, vui lòng đăng nhập lại!",					
 					confirmButtonText: "OK",
 				});
 				store.commit("gologout");
@@ -528,7 +528,7 @@ const showViewLaw = (lawShow, type) => {
 
 			if (error && error.status === 401) {
 				swal.fire({
-				text: "Mã token đã hết hạn hoặc không hợp lệ, vui lòng đăng nhập lại!",
+				text: "Phiên đăng nhập đã hết hạn, vui lòng đăng nhập lại!",
 				confirmButtonText: "OK",
 				});
 				store.commit("gologout");
@@ -572,7 +572,7 @@ const listUserVisitor = (lawShow) => {
 			toast.error("Tải dữ liệu theo dõi không thành công!");
 			if (error && error.status === 401) {
 				swal.fire({
-				text: "Mã token đã hết hạn hoặc không hợp lệ, vui lòng đăng nhập lại!",
+				text: "Phiên đăng nhập đã hết hạn, vui lòng đăng nhập lại!",
 				confirmButtonText: "OK",
 				});
 				store.commit("gologout");
@@ -708,7 +708,7 @@ const reloadDataLaw = () => {
 			//console.log(error);
 			if (error && error.status === 401) {
 				swal.fire({
-				text: "Mã token đã hết hạn hoặc không hợp lệ, vui lòng đăng nhập lại!",
+				text: "Phiên đăng nhập đã hết hạn, vui lòng đăng nhập lại!",
 				confirmButtonText: "OK",
 				});
 				store.commit("gologout");
@@ -762,7 +762,7 @@ const loadComment = (id) => {
 		//options.value.loading = false;
 		if (error && error.status === 401) {
 			swal.fire({
-			text: "Mã token đã hết hạn hoặc không hợp lệ, vui lòng đăng nhập lại!",
+			text: "Phiên đăng nhập đã hết hạn, vui lòng đăng nhập lại!",
 			confirmButtonText: "OK",
 			});
 			store.commit("gologout");
@@ -819,7 +819,7 @@ const reloadComment = (id) => {
 			//options.value.loading = false;
 			if (error && error.status === 401) {
 				swal.fire({
-				text: "Mã token đã hết hạn hoặc không hợp lệ, vui lòng đăng nhập lại!",
+				text: "Phiên đăng nhập đã hết hạn, vui lòng đăng nhập lại!",
 				confirmButtonText: "OK",
 				});
 				store.commit("gologout");

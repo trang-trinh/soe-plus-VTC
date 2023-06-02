@@ -112,7 +112,7 @@ const loadNamhoc = (rf) => {
     .catch((error) => {
       if (error && error.status === 401) {
         swal.fire({
-          text: "Mã token đã hết hạn hoặc không hợp lệ, vui lòng đăng nhập lại!",
+          text: "Phiên đăng nhập đã hết hạn, vui lòng đăng nhập lại!",
           confirmButtonText: "OK",
         });
       }
@@ -155,7 +155,7 @@ const editNamhoc = (md) => {
     .catch((error) => {
       if (error.status === 401) {
         swal.fire({
-          text: "Mã token đã hết hạn hoặc không hợp lệ, vui lòng đăng nhập lại!",
+          text: "Phiên đăng nhập đã hết hạn, vui lòng đăng nhập lại!",
           confirmButtonText: "OK",
         });
       }
@@ -264,7 +264,7 @@ const delNamhoc = (md) => {
             swal.close();
             if (error.status === 401) {
               swal.fire({
-                text: "Mã token đã hết hạn hoặc không hợp lệ, vui lòng đăng nhập lại!",
+                text: "Phiên đăng nhập đã hết hạn, vui lòng đăng nhập lại!",
                 confirmButtonText: "OK",
               });
             }
@@ -310,7 +310,7 @@ const upTrangthaiNamhoc = (md) => {
       swal.close();
       if (error.status === 401) {
         swal.fire({
-          text: "Mã token đã hết hạn hoặc không hợp lệ, vui lòng đăng nhập lại!",
+          text: "Phiên đăng nhập đã hết hạn, vui lòng đăng nhập lại!",
           confirmButtonText: "OK",
         });
       }
@@ -354,7 +354,7 @@ const upTrangthaiNamhocHienhanh = (md) => {
       swal.close();
       if (error.status === 401) {
         swal.fire({
-          text: "Mã token đã hết hạn hoặc không hợp lệ, vui lòng đăng nhập lại!",
+          text: "Phiên đăng nhập đã hết hạn, vui lòng đăng nhập lại!",
           confirmButtonText: "OK",
         });
       }
@@ -412,7 +412,7 @@ const exportNamhoc = (method) => {
     .catch((error) => {
       if (error.status === 401) {
         swal.fire({
-          text: "Mã token đã hết hạn hoặc không hợp lệ, vui lòng đăng nhập lại!",
+          text: "Phiên đăng nhập đã hết hạn, vui lòng đăng nhập lại!",
           confirmButtonText: "OK",
         });
       }

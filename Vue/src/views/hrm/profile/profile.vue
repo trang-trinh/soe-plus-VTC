@@ -328,7 +328,7 @@ const exportData = (method) => {
     .catch((error) => {
       if (error.status === 401) {
         swal.fire({
-          text: "Mã token đã hết hạn hoặc không hợp lệ, vui lòng đăng nhập lại!",
+          text: "Phiên đăng nhập đã hết hạn, vui lòng đăng nhập lại!",
           confirmButtonText: "OK",
         });
         store.commit("gologout");
@@ -638,7 +638,7 @@ const deleteItem = (item) => {
               if (error && error.status === 401) {
                 swal.fire({
                   title: "Thông báo!",
-                  text: "Mã token đã hết hạn hoặc không hợp lệ, vui lòng đăng nhập lại!",
+                  text: "Phiên đăng nhập đã hết hạn, vui lòng đăng nhập lại!",
                   icon: "error",
                   confirmButtonText: "OK",
                 });
@@ -798,7 +798,7 @@ const setStar = (item) => {
       if (error && error.status === 401) {
         swal.fire({
           title: "Thông báo!",
-          text: "Mã token đã hết hạn hoặc không hợp lệ, vui lòng đăng nhập lại!",
+          text: "Phiên đăng nhập đã hết hạn, vui lòng đăng nhập lại!",
           icon: "error",
           confirmButtonText: "OK",
         });
@@ -1095,7 +1095,7 @@ const initPlace = () => {
       if (error && error.status === 401) {
         swal.fire({
           title: "Thông báo",
-          text: "Mã token đã hết hạn hoặc không hợp lệ, vui lòng đăng nhập lại!",
+          text: "Phiên đăng nhập đã hết hạn, vui lòng đăng nhập lại!",
           icon: "error",
           confirmButtonText: "OK",
         });
@@ -1375,7 +1375,7 @@ const initCountFilter = () => {
       if (error && error.status === 401) {
         swal.fire({
           title: "Thông báo!",
-          text: "Mã token đã hết hạn hoặc không hợp lệ, vui lòng đăng nhập lại!",
+          text: "Phiên đăng nhập đã hết hạn, vui lòng đăng nhập lại!",
           icon: "error",
           confirmButtonText: "OK",
         });
@@ -1594,7 +1594,7 @@ const initDataFilter = () => {
       if (error && error.status === 401) {
         swal.fire({
           title: "Thông báo!",
-          text: "Mã token đã hết hạn hoặc không hợp lệ, vui lòng đăng nhập lại!",
+          text: "Phiên đăng nhập đã hết hạn, vui lòng đăng nhập lại!",
           icon: "error",
           confirmButtonText: "OK",
         });
@@ -1781,7 +1781,7 @@ const initData = (ref) => {
       if (error && error.status === 401) {
         swal.fire({
           title: "Thông báo!",
-          text: "Mã token đã hết hạn hoặc không hợp lệ, vui lòng đăng nhập lại!",
+          text: "Phiên đăng nhập đã hết hạn, vui lòng đăng nhập lại!",
           icon: "error",
           confirmButtonText: "OK",
         });
@@ -2448,24 +2448,24 @@ const initDataFilterAdv = (f, sql, rf) => {
               selectedCols.value = cols.value.filter((x) => x.show);
             }
           }
-          swal.close();
         } else {
           options.value.total = 0;
           dataAdvAll.value = [...dataLimits.value];
           if (sql && rf) {
             initCountFilterAdv(sql);
           }
-          swal.close();
         }
       }
-      swal.close();
-      if (options.value.loading) options.value.loading = false;
+      if (rf) {
+        swal.close();
+        if (options.value.loading) options.value.loading = false;
+      }
     })
     .catch((error) => {
       swal.close();
       if (error.status === 401) {
         swal.fire({
-          text: "Mã token đã hết hạn hoặc không hợp lệ, vui lòng đăng nhập lại!",
+          text: "Phiên đăng nhập đã hết hạn, vui lòng đăng nhập lại!",
           confirmButtonText: "OK",
         });
       }
@@ -2535,7 +2535,7 @@ const initCountFilterAdv = (sql) => {
         swal.close();
         if (error.status === 401) {
           swal.fire({
-            text: "Mã token đã hết hạn hoặc không hợp lệ, vui lòng đăng nhập lại!",
+            text: "Phiên đăng nhập đã hết hạn, vui lòng đăng nhập lại!",
             confirmButtonText: "OK",
           });
         }
@@ -2772,7 +2772,11 @@ const delBlock = (gr) => {
   }
 };
 const resetFilterAdvanced = (inFilter) => {
-  if (inFilter && groupBlock.value[0].datas != null && groupBlock.value[0].datas.length == 0) {
+  if (
+    inFilter &&
+    groupBlock.value[0].datas != null &&
+    groupBlock.value[0].datas.length == 0
+  ) {
     opfilterAdvanced.value.toggle(event);
   }
   options.value.search = "";
@@ -3217,7 +3221,7 @@ const rowClassDk = () => {
                                     )
                                   "
                                   icon="pi pi-trash"
-                                  style="display:none;"
+                                  style="display: none"
                                 />
                               </template>
                             </Column>
@@ -3236,14 +3240,14 @@ const rowClassDk = () => {
                             v-tooltip.top="'Thêm điều kiện'"
                             @click="addFilter(dt.data)"
                             icon="pi pi-plus"
-                            style="display:none;"
+                            style="display: none"
                           />
                           <Button
                             class="p-button-text p-button-rounded p-button-outlined p-button-danger"
                             v-tooltip.top="'Xoá tiêu chí'"
                             @click="delFilter(dt.index, gr.datas, 0)"
                             icon="pi pi-trash"
-                            style="display:none;"
+                            style="display: none"
                           />
                         </template>
                       </Column>
