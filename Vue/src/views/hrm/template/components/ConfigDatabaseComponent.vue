@@ -211,7 +211,7 @@ export default {
               props.report.report_config.trim() != ""
             ) {
               let objConfig = JSON.parse(props.report.report_config);
-              debugger;
+     
               if (objConfig && Object.entries(objConfig.proc).length > 0) {
                 dtPars.value = objConfig.proc.parameters;
                 txtSQL.value = objConfig.proc.sql;
@@ -700,6 +700,7 @@ export default {
         />
         <div class="flex-1"></div>
         <span>
+         
           <FileUpload
             chooseLabel="Import Excel"
             class="mr-1"

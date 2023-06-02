@@ -183,7 +183,7 @@ const deleteFile = (item, idx) => {
                         });
                         if (error.status === 401) {
                             swal.fire({
-                                text: "Mã token đã hết hạn hoặc không hợp lệ, vui lòng đăng nhập lại!",
+                                text: "Phiên đăng nhập đã hết hạn, vui lòng đăng nhập lại!",
                                 confirmButtonText: "OK",
                             });
                             return;
@@ -323,7 +323,7 @@ const removeMember = (user, arr, type) => {
                     });
                     if (error.status === 401) {
                         swal.fire({
-                            text: "Mã token đã hết hạn hoặc không hợp lệ, vui lòng đăng nhập lại!",
+                            text: "Phiên đăng nhập đã hết hạn, vui lòng đăng nhập lại!",
                             confirmButtonText: "OK",
                         });
                         return;
@@ -440,7 +440,7 @@ const saveData = (frm) => {
         swal.close();
         if (error.status === 401) {
             swal.fire({
-                text: "Mã token đã hết hạn hoặc không hợp lệ, vui lòng đăng nhập lại!",
+                text: "Phiên đăng nhập đã hết hạn, vui lòng đăng nhập lại!",
                 confirmButtonText: "OK",
             });
             return;
@@ -514,7 +514,7 @@ const loadFormD = (form_id) => {
     .catch((error) => {
         if (error.status === 401) {
             swal.fire({
-                text: "Mã token đã hết hạn hoặc không hợp lệ, vui lòng đăng nhập lại!",
+                text: "Phiên đăng nhập đã hết hạn, vui lòng đăng nhập lại!",
                 confirmButtonText: "OK",
             });
             return;
@@ -582,7 +582,7 @@ const request_LoadSignUser = (Form_ID, Team_ID) => {
     .catch((error) => {
         if (error.status === 401) {
             swal.fire({
-                text: "Mã token đã hết hạn hoặc không hợp lệ, vui lòng đăng nhập lại!",
+                text: "Phiên đăng nhập đã hết hạn, vui lòng đăng nhập lại!",
                 confirmButtonText: "OK",
             });
             return;
@@ -697,7 +697,7 @@ const listLeaveDayByUser = () => {
     .catch((error) => {
         if (error.status === 401) {
             swal.fire({
-                text: "Mã token đã hết hạn hoặc không hợp lệ, vui lòng đăng nhập lại!",
+                text: "Phiên đăng nhập đã hết hạn, vui lòng đăng nhập lại!",
                 confirmButtonText: "OK",
             });
             return;

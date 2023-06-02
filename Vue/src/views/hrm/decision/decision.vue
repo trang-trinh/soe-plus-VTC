@@ -166,8 +166,10 @@ const configQuyetdinh = async (row) => {
       decision.value = dt[0][0];
       report.value = dt[1][0];
       report.value.datadic = [{ title: "Quyết định", data: decision.value }];
-      report.value.proc_name = `smartreport_decide_profile_list '${store.getters.user.user_id}', '${row.decision_id}'`;
-      report.value.proc_all = `smartreport_decide_profile_list_all '${store.getters.user.user_id}', '${row.decision_id}'`;
+      // report.value.proc_name = `smartreport_decide_profile_list `;
+      // report.value.proc_all = `smartreport_decide_profile_list_all`;
+      report.value.proc_name = `decision_profile_list '${store.getters.user.user_id}', '${row.decision_id}'`;
+      report.value.proc_all = `decision_profile_list_all '${store.getters.user.user_id}', '${row.decision_id}'`;
       let cg = {};
       if (report.value.report_config) {
         cg = JSON.parse(report.value.report_config);
@@ -367,7 +369,7 @@ const copyItem = (item, str) => {
       if (error && error.status === 401) {
         swal.fire({
           title: "Thông báo!",
-          text: "Mã token đã hết hạn hoặc không hợp lệ, vui lòng đăng nhập lại!",
+          text: "Phiên đăng nhập đã hết hạn, vui lòng đăng nhập lại!",
           icon: "error",
           confirmButtonText: "OK",
         });
@@ -585,7 +587,7 @@ const editItem = (item, str) => {
       if (error && error.status === 401) {
         swal.fire({
           title: "Thông báo!",
-          text: "Mã token đã hết hạn hoặc không hợp lệ, vui lòng đăng nhập lại!",
+          text: "Phiên đăng nhập đã hết hạn, vui lòng đăng nhập lại!",
           icon: "error",
           confirmButtonText: "OK",
         });
@@ -645,7 +647,7 @@ const udpateStatusItem = (item) => {
       if (error && error.status === 401) {
         swal.fire({
           title: "Thông báo!",
-          text: "Mã token đã hết hạn hoặc không hợp lệ, vui lòng đăng nhập lại!",
+          text: "Phiên đăng nhập đã hết hạn, vui lòng đăng nhập lại!",
           icon: "error",
           confirmButtonText: "OK",
         });
@@ -717,7 +719,7 @@ const deleteItem = (item) => {
               if (error && error.status === 401) {
                 swal.fire({
                   title: "Thông báo!",
-                  text: "Mã token đã hết hạn hoặc không hợp lệ, vui lòng đăng nhập lại!",
+                  text: "Phiên đăng nhập đã hết hạn, vui lòng đăng nhập lại!",
                   icon: "error",
                   confirmButtonText: "OK",
                 });
@@ -783,7 +785,7 @@ const setStar = (item) => {
       if (error && error.status === 401) {
         swal.fire({
           title: "Thông báo!",
-          text: "Mã token đã hết hạn hoặc không hợp lệ, vui lòng đăng nhập lại!",
+          text: "Phiên đăng nhập đã hết hạn, vui lòng đăng nhập lại!",
           icon: "error",
           confirmButtonText: "OK",
         });
@@ -1045,7 +1047,7 @@ const initData = (ref) => {
       if (error && error.status === 401) {
         swal.fire({
           title: "Thông báo!",
-          text: "Mã token đã hết hạn hoặc không hợp lệ, vui lòng đăng nhập lại!",
+          text: "Phiên đăng nhập đã hết hạn, vui lòng đăng nhập lại!",
           icon: "error",
           confirmButtonText: "OK",
         });
