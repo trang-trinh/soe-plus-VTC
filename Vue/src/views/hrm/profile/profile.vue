@@ -42,7 +42,7 @@ const options = ref({
   sort: "created_date desc",
   orderBy: "desc",
   tab: -1,
-  view: 1,
+  view: 2,
   view_copy: 1,
   filterProfile_id: null,
   organizations: [],
@@ -4486,9 +4486,6 @@ const rowClassDk = () => {
                         >
                         {{ slotProps.data.email }}</span
                       >
-                    </div>
-                    <div class="mb-1">
-                      <span>{{ slotProps.data.identity_papers_code }}</span>
                     </div>
                     <div class="mb-1">
                       <span>{{ slotProps.data.place_residence }}</span>
