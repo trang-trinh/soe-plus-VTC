@@ -181,6 +181,21 @@ const onPage = (event) => {
         bodyStyle="max-height:60px;"
       >
       </Column>
+      <template #empty>
+        <div
+          class="align-items-center justify-content-center p-4 text-center m-auto"
+          :style="{
+            display: 'flex',
+            width: '100%',
+            backgroundColor: '#fff',
+          }"
+        >
+          <div v-if="!options.loading && (!isFirst || options.total == 0)">
+            <img src="../../../../assets/background/nodata.png" height="144" />
+            <h3 class="m-1">Không có dữ liệu</h3>
+          </div>
+        </div>
+      </template>
     </DataTable>
     <template #footer>
       <Button
