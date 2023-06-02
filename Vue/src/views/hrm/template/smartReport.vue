@@ -1202,8 +1202,9 @@ const onFilterReportGr = () => {
   }
 };
 const  onChangRPGR=(item)=>{
-  if(item == 'Quyết định'){
-    smart_report.value.report_type=3;
+  if(liReportGroup.value.find(x=>x.name==item) )
+ {
+    smart_report.value.report_type=liReportGroup.value.find(x=>x.name==item).code;
   }
 }
 onMounted(() => {
