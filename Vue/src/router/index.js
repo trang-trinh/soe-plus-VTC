@@ -260,6 +260,8 @@ const TaskReportPersonal = () =>
   import("../views/task_report/TaskReportPersonal.vue");
 const TaskReportDepartment = () =>
   import("../views/task_report/TaskReportDepartment.vue");
+  const TaskReportEvaluate = () =>
+  import("../views/task_report/TaskReportEvaluate.vue");
 const TaskReviewReport = () =>
   import("../views/tasks/task_report_person/reviewReport.vue");
 const TaskPersonCreateReport = () =>
@@ -453,7 +455,8 @@ const HRM_ReportWorkingProcess= () =>
   import("../views/hrm/report/report_general/WorkingProces.vue");
 const HRM_ReportContractStatistical = () =>
   import("../views/hrm/report/report_contract/StatisticalContract.vue");
-
+const HRM_ReportDynamic= () =>
+  import("../views/hrm/report/report_general/ReportDynamic.vue");
 const HRM_ReportChartGender = () =>
   import("../views/hrm/report/chart/ChartGender.vue");
 
@@ -1437,6 +1440,11 @@ const router = createRouter({
       component: TaskReportDepartment,
     },
     {
+      path: "/tasks/report/task_evaluate",
+      name: "taskreportevaluate",
+      component: TaskReportEvaluate,
+    },
+    {
       path: "/tasks/config/group",
       name: "BrowseGroup",
       component: BrowseGroup,
@@ -2078,6 +2086,11 @@ const router = createRouter({
       path: "/hrm/hrm_report/working_process",
       name: "hrm_report_working_process",
       component: HRM_ReportWorkingProcess,
+    },
+    {
+      path: "/hrm/hrm_report/hrm_report_dynamic",
+      name: "hrm_report_dynamic",
+      component: HRM_ReportDynamic,
     },
     {
       path: "/hrm/hrm_chart/chart_gender",

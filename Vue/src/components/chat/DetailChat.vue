@@ -133,7 +133,7 @@ const listFileTailieu = () => {
 			console.log("Err c_g_fs");
 			if (error && error.status === 401) {
 				swal.fire({					
-					text: "Mã token đã hết hạn hoặc không hợp lệ, vui lòng đăng nhập lại!",					
+					text: "Phiên đăng nhập đã hết hạn, vui lòng đăng nhập lại!",					
 					confirmButtonText: "OK",
 				});
 				store.commit("gologout");
@@ -405,7 +405,7 @@ const sendMS = (loai, mesChat) => {
 		loadding.value = false;
 		if (error && error.status === 401) {
 			swal.fire({
-				text: "Mã token đã hết hạn hoặc không hợp lệ, vui lòng đăng nhập lại!",
+				text: "Phiên đăng nhập đã hết hạn, vui lòng đăng nhập lại!",
 				confirmButtonText: "OK",
 			});
 			store.commit("gologout");
@@ -505,7 +505,7 @@ const Edit_GroupChat = (gr) => {
 			//toast.error("Tải dữ liệu theo dõi không thành công!");
 			if (error && error.status === 401) {
 				swal.fire({					
-					text: "Mã token đã hết hạn hoặc không hợp lệ, vui lòng đăng nhập lại!",					
+					text: "Phiên đăng nhập đã hết hạn, vui lòng đăng nhập lại!",					
 					confirmButtonText: "OK",
 				});
 				store.commit("gologout");
@@ -618,7 +618,7 @@ const listDepartmentsUser = () => {
 			//console.log("Error chat_departments_list_tree");
 			if (error && error.status === 401) {
 				swal.fire({					
-					text: "Mã token đã hết hạn hoặc không hợp lệ, vui lòng đăng nhập lại!",					
+					text: "Phiên đăng nhập đã hết hạn, vui lòng đăng nhập lại!",					
 					confirmButtonText: "OK",
 				});
 				store.commit("gologout");
@@ -690,7 +690,7 @@ const Del_Message = (msg, i) => {
 					swal.close();
 					if (error.status === 401) {
 						swal.fire({						
-							text: "Mã token đã hết hạn hoặc không hợp lệ, vui lòng đăng nhập lại!",
+							text: "Phiên đăng nhập đã hết hạn, vui lòng đăng nhập lại!",
 							confirmButtonText: "OK",
 						});
 					}
@@ -735,7 +735,7 @@ const Remove_Message = (gr) => {
 					swal.close();
 					if (error.status === 401) {
 						swal.fire({						
-							text: "Mã token đã hết hạn hoặc không hợp lệ, vui lòng đăng nhập lại!",
+							text: "Phiên đăng nhập đã hết hạn, vui lòng đăng nhập lại!",
 							confirmButtonText: "OK",
 						});
 					}
@@ -814,7 +814,7 @@ const Del_GroupChat = (gr) => {
 					swal.close();
 					if (error.status === 401) {
 						swal.fire({						
-							text: "Mã token đã hết hạn hoặc không hợp lệ, vui lòng đăng nhập lại!",	
+							text: "Phiên đăng nhập đã hết hạn, vui lòng đăng nhập lại!",	
 							confirmButtonText: "OK",
 						});
 					}
@@ -910,7 +910,7 @@ const Out_GroupChat = (gr, type, user_leave_id, user_remove_id) => {
 					swal.close();
 					if (error.status === 401) {
 						swal.fire({						
-							text: "Mã token đã hết hạn hoặc không hợp lệ, vui lòng đăng nhập lại!",
+							text: "Phiên đăng nhập đã hết hạn, vui lòng đăng nhập lại!",
 							confirmButtonText: "OK",
 						});
 					}
@@ -978,7 +978,7 @@ const Active_Notify = (chatDetail) => {
 			swal.close();
 			if (error.status === 401) {
 				swal.fire({					
-					text: "Mã token đã hết hạn hoặc không hợp lệ, vui lòng đăng nhập lại!",					
+					text: "Phiên đăng nhập đã hết hạn, vui lòng đăng nhập lại!",					
 					confirmButtonText: "OK",
 				});
 			}
@@ -1021,7 +1021,7 @@ const goInfo = (infochat) => {
 			//toast.error("Tải dữ liệu theo dõi không thành công!");
 			if (error && error.status === 401) {
 				swal.fire({
-					text: "Mã token đã hết hạn hoặc không hợp lệ, vui lòng đăng nhập lại!",
+					text: "Phiên đăng nhập đã hết hạn, vui lòng đăng nhập lại!",
 					confirmButtonText: "OK",
 				});
 				store.commit("gologout");
@@ -1127,7 +1127,7 @@ const loadEmote = () => {
 		console.log("Error list emotes.");
 		if (error && error.status === 401) {
 			swal.fire({
-				text: "Mã token đã hết hạn hoặc không hợp lệ, vui lòng đăng nhập lại!",
+				text: "Phiên đăng nhập đã hết hạn, vui lòng đăng nhập lại!",
 				confirmButtonText: "OK",
 			});
 			store.commit("gologout");
@@ -1232,7 +1232,7 @@ const addEmote = (stick) => {
 		swal.close();
 		if (error.status === 401) {
 			swal.fire({
-				text: "Mã token đã hết hạn hoặc không hợp lệ, vui lòng đăng nhập lại!",
+				text: "Phiên đăng nhập đã hết hạn, vui lòng đăng nhập lại!",
 				confirmButtonText: "OK",
 			});
 		}
@@ -1270,7 +1270,7 @@ const getStick = (msg) => {
 		console.log("Error list emotes.");
 		if (error && error.status === 401) {
 			swal.fire({
-				text: "Mã token đã hết hạn hoặc không hợp lệ, vui lòng đăng nhập lại!",
+				text: "Phiên đăng nhập đã hết hạn, vui lòng đăng nhập lại!",
 				confirmButtonText: "OK",
 			});
 			store.commit("gologout");
@@ -1503,7 +1503,7 @@ const loadDataGroupChat = () => {
       .catch((error) => {
         if (error && error.status === 401) {
           swal.fire({
-            text: "Mã token đã hết hạn hoặc không hợp lệ, vui lòng đăng nhập lại!",
+            text: "Phiên đăng nhập đã hết hạn, vui lòng đăng nhập lại!",
             confirmButtonText: "OK",
           });
           store.commit("gologout");

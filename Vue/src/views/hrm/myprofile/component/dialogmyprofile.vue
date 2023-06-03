@@ -131,7 +131,7 @@ const sendProfile = (rf, is_approve) => {
       if (error && error.status === 401) {
         swal.fire({
           title: "Thông báo!",
-          text: "Mã token đã hết hạn hoặc không hợp lệ, vui lòng đăng nhập lại!",
+          text: "Phiên đăng nhập đã hết hạn, vui lòng đăng nhập lại!",
           icon: "error",
           confirmButtonText: "OK",
         });
@@ -281,7 +281,7 @@ const saveModel = (rf) => {
       if (error && error.status === 401) {
         swal.fire({
           title: "Thông báo!",
-          text: "Mã token đã hết hạn hoặc không hợp lệ, vui lòng đăng nhập lại!",
+          text: "Phiên đăng nhập đã hết hạn, vui lòng đăng nhập lại!",
           icon: "error",
           confirmButtonText: "OK",
         });
@@ -582,9 +582,6 @@ const initData = (rf) => {
             if (x["end_date"] != null) {
               x["end_date"] = new Date(x["end_date"]);
             }
-            if (x["birthday"] != null) {
-              x["birthday"] = new Date(x["birthday"]);
-            }
           });
           datachilds.value[1] = tbs[1];
         } else {
@@ -646,7 +643,7 @@ const initData = (rf) => {
       if (error && error.status === 401) {
         swal.fire({
           title: "Thông báo!",
-          text: "Mã token đã hết hạn hoặc không hợp lệ, vui lòng đăng nhập lại!",
+          text: "Phiên đăng nhập đã hết hạn, vui lòng đăng nhập lại!",
           icon: "error",
           confirmButtonText: "OK",
         });
@@ -736,7 +733,7 @@ const initHistory = (rf) => {
       if (error && error.status === 401) {
         swal.fire({
           title: "Thông báo!",
-          text: "Mã token đã hết hạn hoặc không hợp lệ, vui lòng đăng nhập lại!",
+          text: "Phiên đăng nhập đã hết hạn, vui lòng đăng nhập lại!",
           icon: "error",
           confirmButtonText: "OK",
         });
@@ -3458,14 +3455,12 @@ onMounted(() => {
                       class="align-items-center justify-content-center text-center"
                     >
                       <template #body="slotProps">
-                        <Calendar
+                        <InputText
                           v-model="slotProps.data.birthday"
-                          :showIcon="false"
-                          inputMask="9999"
-                          view="year"
-                          dateFormat="yy"
+                          spellcheck="false"
+                          type="text"
                           class="ip36"
-                          placeholder="yyyy"
+                          maxLength="25"
                         />
                       </template>
                     </Column>
@@ -3499,6 +3494,142 @@ onMounted(() => {
                           type="text"
                           class="ip36"
                           maxLength="50"
+                        />
+                      </template>
+                    </Column>
+                    <Column
+                      field="countryside"
+                      header="Quê quán"
+                      headerStyle="text-align:center;width:150px;height:50px"
+                      bodyStyle="text-align:center;width:150px;"
+                      class="align-items-center justify-content-center text-center"
+                    >
+                      <template #body="slotProps">
+                        <InputText
+                          v-model="slotProps.data.countryside"
+                          spellcheck="false"
+                          type="text"
+                          class="ip36"
+                          maxLength="500"
+                        />
+                      </template>
+                    </Column>
+                    <Column
+                      field="occupation"
+                      header="Nghề nghiệp"
+                      headerStyle="text-align:center;width:150px;height:50px"
+                      bodyStyle="text-align:center;width:150px;"
+                      class="align-items-center justify-content-center text-center"
+                    >
+                      <template #body="slotProps">
+                        <InputText
+                          v-model="slotProps.data.occupation"
+                          spellcheck="false"
+                          type="text"
+                          class="ip36"
+                          maxLength="500"
+                        />
+                      </template>
+                    </Column>
+                    <Column
+                      field="education"
+                      header="Học tập"
+                      headerStyle="text-align:center;width:150px;height:50px"
+                      bodyStyle="text-align:center;width:150px;"
+                      class="align-items-center justify-content-center text-center"
+                    >
+                      <template #body="slotProps">
+                        <InputText
+                          v-model="slotProps.data.education"
+                          spellcheck="false"
+                          type="text"
+                          class="ip36"
+                          maxLength="500"
+                        />
+                      </template>
+                    </Column>
+                    <Column
+                      field="company"
+                      header="Đơn vị công tác"
+                      headerStyle="text-align:center;width:150px;height:50px"
+                      bodyStyle="text-align:center;width:150px;"
+                      class="align-items-center justify-content-center text-center"
+                    >
+                      <template #body="slotProps">
+                        <InputText
+                          v-model="slotProps.data.company"
+                          spellcheck="false"
+                          type="text"
+                          class="ip36"
+                          maxLength="500"
+                        />
+                      </template>
+                    </Column>
+                    <Column
+                      field="title"
+                      header="Chức danh"
+                      headerStyle="text-align:center;width:150px;height:50px"
+                      bodyStyle="text-align:center;width:150px;"
+                      class="align-items-center justify-content-center text-center"
+                    >
+                      <template #body="slotProps">
+                        <InputText
+                          v-model="slotProps.data.title"
+                          spellcheck="false"
+                          type="text"
+                          class="ip36"
+                          maxLength="500"
+                        />
+                      </template>
+                    </Column>
+                    <Column
+                      field="position"
+                      header="Chức vụ"
+                      headerStyle="text-align:center;width:150px;height:50px"
+                      bodyStyle="text-align:center;width:150px;"
+                      class="align-items-center justify-content-center text-center"
+                    >
+                      <template #body="slotProps">
+                        <InputText
+                          v-model="slotProps.data.position"
+                          spellcheck="false"
+                          type="text"
+                          class="ip36"
+                          maxLength="500"
+                        />
+                      </template>
+                    </Column>
+                    <Column
+                      field="address"
+                      header="Nơi ở hiện nay"
+                      headerStyle="text-align:center;width:150px;height:50px"
+                      bodyStyle="text-align:center;width:150px;"
+                      class="align-items-center justify-content-center text-center"
+                    >
+                      <template #body="slotProps">
+                        <InputText
+                          v-model="slotProps.data.address"
+                          spellcheck="false"
+                          type="text"
+                          class="ip36"
+                          maxLength="500"
+                        />
+                      </template>
+                    </Column>
+                    <Column
+                      field="organization"
+                      header="Thành viên tổ chức CTXH"
+                      headerStyle="text-align:center;width:150px;height:50px"
+                      bodyStyle="text-align:center;width:150px;"
+                      class="align-items-center justify-content-center text-center"
+                    >
+                      <template #body="slotProps">
+                        <InputText
+                          v-model="slotProps.data.organization"
+                          spellcheck="false"
+                          type="text"
+                          class="ip36"
+                          maxLength="500"
                         />
                       </template>
                     </Column>
@@ -4179,14 +4310,12 @@ onMounted(() => {
         <div class="col-4 md:col-4">
           <div class="form-group">
             <label>Năm sinh</label>
-            <Calendar
+            <InputText
               v-model="modeldetail.birthday"
-              :showIcon="false"
-              inputMask="9999"
-              view="year"
-              dateFormat="yy"
+              spellcheck="false"
+              type="text"
               class="ip36"
-              placeholder="yyyy"
+              maxLength="25"
             />
           </div>
         </div>
@@ -4210,6 +4339,102 @@ onMounted(() => {
               type="text"
               class="ip36"
               maxLength="50"
+            />
+          </div>
+        </div>
+        <div class="col-4 md:col-4">
+          <div class="form-group">
+            <label>Quê quán</label>
+            <InputText
+              v-model="modeldetail.countryside"
+              spellcheck="false"
+              type="text"
+              class="ip36"
+              maxLength="500"
+            />
+          </div>
+        </div>
+        <div class="col-4 md:col-4">
+          <div class="form-group">
+            <label>Nghề nghiệp</label>
+            <InputText
+              v-model="modeldetail.occupation"
+              spellcheck="false"
+              type="text"
+              class="ip36"
+              maxLength="500"
+            />
+          </div>
+        </div>
+        <div class="col-4 md:col-4">
+          <div class="form-group">
+            <label>Học tập</label>
+            <InputText
+              v-model="modeldetail.education"
+              spellcheck="false"
+              type="text"
+              class="ip36"
+              maxLength="500"
+            />
+          </div>
+        </div>
+        <div class="col-4 md:col-4">
+          <div class="form-group">
+            <label>Đơn vị công tác</label>
+            <InputText
+              v-model="modeldetail.company"
+              spellcheck="false"
+              type="text"
+              class="ip36"
+              maxLength="500"
+            />
+          </div>
+        </div>
+        <div class="col-4 md:col-4">
+          <div class="form-group">
+            <label>Chức danh</label>
+            <InputText
+              v-model="modeldetail.title"
+              spellcheck="false"
+              type="text"
+              class="ip36"
+              maxLength="500"
+            />
+          </div>
+        </div>
+        <div class="col-4 md:col-4">
+          <div class="form-group">
+            <label>Chức vụ</label>
+            <InputText
+              v-model="modeldetail.position"
+              spellcheck="false"
+              type="text"
+              class="ip36"
+              maxLength="500"
+            />
+          </div>
+        </div>
+        <div class="col-6 md:col-6">
+          <div class="form-group">
+            <label>Nơi ở hiện nay</label>
+            <InputText
+              v-model="modeldetail.address"
+              spellcheck="false"
+              type="text"
+              class="ip36"
+              maxLength="500"
+            />
+          </div>
+        </div>
+        <div class="col-6 md:col-6">
+          <div class="form-group">
+            <label>Thành viên tổ chức CTXH</label>
+            <InputText
+              v-model="modeldetail.organization"
+              spellcheck="false"
+              type="text"
+              class="ip36"
+              maxLength="500"
             />
           </div>
         </div>

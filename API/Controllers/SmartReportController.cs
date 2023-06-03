@@ -21,6 +21,7 @@ using Microsoft.ApplicationBlocks.Data;
 using API.Helper;
 using Newtonsoft.Json.Linq;
 using System.Security.Claims;
+using System.Text.RegularExpressions;
 
 namespace API.Controllers
 {
@@ -33,7 +34,7 @@ namespace API.Controllers
 
         [HttpPost]
         //public async Task<HttpResponseMessage> PostProc([FromBody] string strSQL)
-        public async Task<HttpResponseMessage> PostProc([FromBody] JObject data)
+        public async Task<HttpResponseMessage> PostProc([System.Web.Mvc.Bind(Include = "str")][FromBody] JObject data)
         {
             string strSQL = data["str"].ToObject<string>();
             strSQL = Codec.DecryptString(strSQL, ConfigurationManager.AppSettings["EncriptKey"]!.ToString());
@@ -59,6 +60,17 @@ namespace API.Controllers
                 Task<DataTableCollection> task;
                 if (proc!.query)
                 {
+                    if (proc!.proc.ToLower().Contains("delete ") || proc!.proc.ToLower().Contains("drop ") || proc!.proc.ToLower().Contains("update ") || proc!.proc.ToLower().Contains("insert ") || proc!.proc.ToLower().Contains("--"))
+                    {
+                        proc!.proc = Regex.Replace(proc!.proc, "delete ", " ", RegexOptions.IgnoreCase);
+                        proc!.proc = Regex.Replace(proc!.proc, "drop ", " ", RegexOptions.IgnoreCase);
+                        proc!.proc = Regex.Replace(proc!.proc, "update ", " ", RegexOptions.IgnoreCase);
+                        proc!.proc = Regex.Replace(proc!.proc, "insert ", " ", RegexOptions.IgnoreCase);
+                        proc!.proc = Regex.Replace(proc!.proc, "--", "", RegexOptions.IgnoreCase);
+                    }
+                    proc!.proc = Regex.Replace(proc!.proc, "drop2table", "drop table", RegexOptions.IgnoreCase);
+                    proc!.proc = Regex.Replace(proc!.proc, "create2table", "create table", RegexOptions.IgnoreCase);
+                    proc!.proc = Regex.Replace(proc!.proc, "insert2into", "insert into", RegexOptions.IgnoreCase);
                     task = System.Threading.Tasks.Task.Run(() => SqlHelper.ExecuteDataset(Connection, CommandType.Text, proc!.proc!).Tables);
                 }
                 else
@@ -73,7 +85,7 @@ namespace API.Controllers
                 //_logger.LogInformation("[" + ip!.ToString() + "]" + proc!.proc, DateTime.UtcNow.ToLongTimeString());
                 var message = "data=" + JSONresult;
                 Log.Info(message);
-                return Request.CreateResponse(HttpStatusCode.OK, new { err = "0", data = JSONresult, time });
+                return Request.CreateResponse(HttpStatusCode.OK, new { err = "0", data = JSONresult, proc_name = (helper.debug && proc!.query != true ? proc!.proc : ""), time });
             }
             catch (Exception e)
             {
@@ -403,10 +415,10 @@ namespace API.Controllers
                 // Auto-fitting the 3rd row of the worksheet
                 worksheet.AutoFitRows();
                 worksheet.AutoFitColumns();
-                // Saving the modified Excel file
-                workbook.Save(filePath);
                 // Closing the file stream to free all resources
                 fstream.Close();
+                // Saving the modified Excel file
+                workbook.Save(filePath);
                 return Request.CreateResponse(HttpStatusCode.OK, new { err = "0", filePath, fileName });
             }
             catch (Exception e)
@@ -416,19 +428,27 @@ namespace API.Controllers
         }
         //[HttpPost("ConvertFileXLSX")]
         [HttpPost]
-        public async Task<HttpResponseMessage> ConvertFileXLSX([FromBody] string html)
+        //public async Task<HttpResponseMessage> ConvertFileXLSX([FromBody] string html)
+        public async Task<HttpResponseMessage> ConvertFileXLSX([FromBody] JObject data)
         {
-
+            string html = data["html"].ToObject<string>();
+            string filename = data["filename"].ToObject<string>();
+            var fileName = filename + DateTime.Now.ToString("ddMMyyyy_HHmmss");
             try
             {
                 //var filePathHTML = Path.Combine(Directory.GetCurrentDirectory(), @"wwwroot/Portals", "doc.html");
                 //var filePath = Path.Combine(Directory.GetCurrentDirectory(), @"wwwroot/Portals", "doc.xlsx");
-                var filePathHTML = Path.Combine(AppDomain.CurrentDomain.BaseDirectory, "Portals", "doc.html");
-                var filePath = Path.Combine(AppDomain.CurrentDomain.BaseDirectory, "Portals", "doc.xlsx");
+                var filePathHTML = Path.Combine(AppDomain.CurrentDomain.BaseDirectory, "Portals", fileName + ".html");
+                var filePath = Path.Combine(AppDomain.CurrentDomain.BaseDirectory, "Portals", fileName + ".xlsx");
                 System.IO.File.WriteAllText(filePathHTML, html);
                 SpreadsheetInfo.SetLicense("FREE-LIMITED-KEY");
                 ExcelFile.Load(filePathHTML).Save(filePath);
-                return Request.CreateResponse(HttpStatusCode.OK, new { err = "0", filePath });
+                if (File.Exists(filePathHTML))
+                {
+                    File.Delete(filePathHTML);
+                }
+                //return Request.CreateResponse(HttpStatusCode.OK, new { err = "0", filePath });
+                return Request.CreateResponse(HttpStatusCode.OK, new { err = "0", filePath, fileName });
             }
             catch (Exception e)
             {

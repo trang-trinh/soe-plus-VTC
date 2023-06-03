@@ -7,6 +7,7 @@ import moment from "moment";
 import treeuser from "../../../components/user/treeuser.vue";
 import FileInfoVue from "../component_request/file_attach_request.vue";
 import dialogApprove from "../component_request/approved_request.vue";
+import requestLogs from "../component_request/request_log.vue";
 
 const toast = useToast();
 const axios = inject("axios");
@@ -245,7 +246,7 @@ const loadDetailRequest = () => {
     .catch((error) => {
         if (error && error.status === 401) {
             swal.fire({
-                text: "Mã token đã hết hạn hoặc không hợp lệ, vui lòng đăng nhập lại!",
+                text: "Phiên đăng nhập đã hết hạn, vui lòng đăng nhập lại!",
                 confirmButtonText: "OK",
             });
             store.commit("gologout");
@@ -297,7 +298,7 @@ const listFiles = () => {
     .catch((error) => {
         if (error && error.status === 401) {
             swal.fire({
-                text: "Mã token đã hết hạn hoặc không hợp lệ, vui lòng đăng nhập lại!",
+                text: "Phiên đăng nhập đã hết hạn, vui lòng đăng nhập lại!",
                 confirmButtonText: "OK",
             });
             store.commit("gologout");
@@ -352,7 +353,7 @@ const listComments = () => {
     .catch((error) => {
         if (error && error.status === 401) {
             swal.fire({
-                text: "Mã token đã hết hạn hoặc không hợp lệ, vui lòng đăng nhập lại!",
+                text: "Phiên đăng nhập đã hết hạn, vui lòng đăng nhập lại!",
                 confirmButtonText: "OK",
             });
             store.commit("gologout");
@@ -412,7 +413,7 @@ const addEmote = (stick) => {
 		swal.close();
 		if (error.status === 401) {
 			swal.fire({
-				text: "Mã token đã hết hạn hoặc không hợp lệ, vui lòng đăng nhập lại!",
+				text: "Phiên đăng nhập đã hết hạn, vui lòng đăng nhập lại!",
 				confirmButtonText: "OK",
 			});
 		}
@@ -450,7 +451,7 @@ const getStick = (msg) => {
 		//console.log("Error list emotes.");
 		if (error && error.status === 401) {
 			swal.fire({
-				text: "Mã token đã hết hạn hoặc không hợp lệ, vui lòng đăng nhập lại!",
+				text: "Phiên đăng nhập đã hết hạn, vui lòng đăng nhập lại!",
 				confirmButtonText: "OK",
 			});
 			store.commit("gologout");
@@ -486,7 +487,7 @@ const loadEmote = () => {
 		//console.log("Error list emotes.");
 		if (error && error.status === 401) {
 			swal.fire({
-				text: "Mã token đã hết hạn hoặc không hợp lệ, vui lòng đăng nhập lại!",
+				text: "Phiên đăng nhập đã hết hạn, vui lòng đăng nhập lại!",
 				confirmButtonText: "OK",
 			});
 			store.commit("gologout");
@@ -1094,7 +1095,7 @@ const listQT_Request = () => {
 		//console.log("Error list emotes.");
 		if (error && error.status === 401) {
 			swal.fire({
-				text: "Mã token đã hết hạn hoặc không hợp lệ, vui lòng đăng nhập lại!",
+				text: "Phiên đăng nhập đã hết hạn, vui lòng đăng nhập lại!",
 				confirmButtonText: "OK",
 			});
 			store.commit("gologout");
@@ -2934,7 +2935,7 @@ onMounted(() => {
                             <span>Log</span>
                         </template>
                         <div class="" v-if="true">
-                            <div v-for="(item, logIndex) in dataLog"
+                            <!-- <div v-for="(item, logIndex) in dataLog"
                                 :class="{ 'is-close': item.is_close }"
                                 :key="logIndex"
                                 class="bg-blue-200 mb-3"
@@ -2949,7 +2950,8 @@ onMounted(() => {
 
                                     </div>
                                 </Panel>
-                            </div>
+                            </div> -->
+                            <requestLogs :id="props.id" ></requestLogs>
                         </div>
                         <div class="align-items-center justify-content-center p-4 text-center" v-else>
                             <img src="../../../assets/background/nodata.png" height="144" />

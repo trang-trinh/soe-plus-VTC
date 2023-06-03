@@ -2,10 +2,12 @@
 import { onMounted, inject, ref, watch } from "vue";
 import { encr } from "../../../util/function";
 import { useToast } from "vue-toastification";
+import { useRoute } from "vue-router";
 import dialogcontract from "../contract/component/dialogcontract.vue";
 import framepreview from "../component/framepreview.vue";
 import moment from "moment";
 
+const route = useRoute();
 const router = inject("router");
 const store = inject("store");
 const swal = inject("$swal");
@@ -52,6 +54,8 @@ const options = ref({
   end_start_date: null,
   start_end_date: null,
   end_end_date: null,
+  path: null,
+  name: null,
 });
 const bgColor = ref([
   "#F8E69A",
@@ -83,6 +87,8 @@ const datas = ref([]);
 const counts = ref([]);
 const dictionarys = ref([]);
 const contract = ref({});
+const functions = ref({});
+const rolefunctions = ref([]);
 
 const menuButMores = ref();
 const itemButMores = ref([
@@ -319,7 +325,7 @@ const copyContract = (item, str) => {
       if (error && error.status === 401) {
         swal.fire({
           title: "Thông báo!",
-          text: "Mã token đã hết hạn hoặc không hợp lệ, vui lòng đăng nhập lại!",
+          text: "Phiên đăng nhập đã hết hạn, vui lòng đăng nhập lại!",
           icon: "error",
           confirmButtonText: "OK",
         });
@@ -471,10 +477,14 @@ const editItem = (item, str) => {
               .map((x) => parseInt(x));
           }
           if (model.value["wage_start_date"] != null) {
-            model.value["wage_start_date"] = new Date(model.value["wage_start_date"]);
+            model.value["wage_start_date"] = new Date(
+              model.value["wage_start_date"]
+            );
           }
           if (model.value["wage_end_date"] != null) {
-            model.value["wage_end_date"] = new Date(model.value["wage_end_date"]);
+            model.value["wage_end_date"] = new Date(
+              model.value["wage_end_date"]
+            );
           }
         }
         if (tbs[1] != null && tbs[1].length > 0) {
@@ -524,7 +534,7 @@ const editItem = (item, str) => {
       if (error && error.status === 401) {
         swal.fire({
           title: "Thông báo!",
-          text: "Mã token đã hết hạn hoặc không hợp lệ, vui lòng đăng nhập lại!",
+          text: "Phiên đăng nhập đã hết hạn, vui lòng đăng nhập lại!",
           icon: "error",
           confirmButtonText: "OK",
         });
@@ -584,7 +594,7 @@ const udpateStatusItem = (item) => {
       if (error && error.status === 401) {
         swal.fire({
           title: "Thông báo!",
-          text: "Mã token đã hết hạn hoặc không hợp lệ, vui lòng đăng nhập lại!",
+          text: "Phiên đăng nhập đã hết hạn, vui lòng đăng nhập lại!",
           icon: "error",
           confirmButtonText: "OK",
         });
@@ -656,7 +666,7 @@ const deleteItem = (item) => {
               if (error && error.status === 401) {
                 swal.fire({
                   title: "Thông báo!",
-                  text: "Mã token đã hết hạn hoặc không hợp lệ, vui lòng đăng nhập lại!",
+                  text: "Phiên đăng nhập đã hết hạn, vui lòng đăng nhập lại!",
                   icon: "error",
                   confirmButtonText: "OK",
                 });
@@ -722,7 +732,7 @@ const setStar = (item) => {
       if (error && error.status === 401) {
         swal.fire({
           title: "Thông báo!",
-          text: "Mã token đã hết hạn hoặc không hợp lệ, vui lòng đăng nhập lại!",
+          text: "Phiên đăng nhập đã hết hạn, vui lòng đăng nhập lại!",
           icon: "error",
           confirmButtonText: "OK",
         });
@@ -817,6 +827,52 @@ const closeDialogLiquidation = () => {
 };
 
 //Init
+const initRoleFunction = () => {
+  axios
+    .post(
+      baseURL + "/api/hrm/callProc",
+      {
+        str: encr(
+          JSON.stringify({
+            proc: "hrm_profile_rolefunction_get",
+            par: [
+              { par: "user_id", va: store.getters.user.user_id },
+              { par: "is_link", va: options.value.path },
+            ],
+          }),
+          SecretKey,
+          cryoptojs
+        ).toString(),
+      },
+      config
+    )
+    .then((response) => {
+      if (response != null && response.data != null) {
+        var data = response.data.data;
+        if (data != null) {
+          let tbs = JSON.parse(data);
+          if (tbs[0] != null && tbs[0].length > 0) {
+            let permissions = Object.entries(tbs[0][0]);
+            for (const [key, value] of permissions) {
+              functions.value[key] = value;
+            }
+          }
+          if (tbs[1] != null && tbs[1].length > 0) {
+            if (
+              tbs[1][0].module_functions != null &&
+              tbs[1][0].module_functions != ""
+            ) {
+              let module_functions = tbs[1][0].module_functions.split(",");
+              for (var key in module_functions) {
+                functions.value[module_functions[key]] = true;
+              }
+            }
+          }
+          rolefunctions.value = tbs;
+        }
+      }
+    });
+};
 const initDictionary = () => {
   axios
     .post(
@@ -893,7 +949,7 @@ const initCountFilter = () => {
       {
         str: encr(
           JSON.stringify({
-            proc: "hrm_contract_count_filter",
+            proc: "hrm_contract_count_filter_2",
             par: [
               { par: "user_id", va: store.getters.user.user_id },
               { par: "search", va: options.value.search },
@@ -908,6 +964,7 @@ const initCountFilter = () => {
               { par: "end_start_date", va: options.value.end_start_date },
               { par: "start_end_date", va: options.value.start_end_date },
               { par: "end_end_date", va: options.value.end_end_date },
+              { par: "is_link", va: options.value.path },
             ],
           }),
           SecretKey,
@@ -948,10 +1005,11 @@ const initCount = () => {
       {
         str: encr(
           JSON.stringify({
-            proc: "hrm_contract_count",
+            proc: "hrm_contract_count_2",
             par: [
               { par: "user_id", va: store.getters.user.user_id },
               { par: "search", va: options.value.search },
+              { par: "is_link", va: options.value.path },
             ],
           }),
           SecretKey,
@@ -1025,7 +1083,7 @@ const initDataFilter = () => {
       {
         str: encr(
           JSON.stringify({
-            proc: "hrm_contract_list_filter",
+            proc: "hrm_contract_list_filter_2",
             par: [
               { par: "user_id", va: store.getters.user.user_id },
               { par: "search", va: options.value.search },
@@ -1043,6 +1101,7 @@ const initDataFilter = () => {
               { par: "end_start_date", va: options.value.end_start_date },
               { par: "start_end_date", va: options.value.start_end_date },
               { par: "end_end_date", va: options.value.end_end_date },
+              { par: "is_link", va: options.value.path },
             ],
           }),
           SecretKey,
@@ -1116,7 +1175,7 @@ const initDataFilter = () => {
       if (error && error.status === 401) {
         swal.fire({
           title: "Thông báo!",
-          text: "Mã token đã hết hạn hoặc không hợp lệ, vui lòng đăng nhập lại!",
+          text: "Phiên đăng nhập đã hết hạn, vui lòng đăng nhập lại!",
           icon: "error",
           confirmButtonText: "OK",
         });
@@ -1152,13 +1211,14 @@ const initData = (ref) => {
       {
         str: encr(
           JSON.stringify({
-            proc: "hrm_contract_list",
+            proc: "hrm_contract_list_2",
             par: [
               { par: "user_id", va: store.getters.user.user_id },
               { par: "search", va: options.value.search },
               { par: "pageNo", va: options.value.pageNo },
               { par: "pageSize", va: options.value.pageSize },
               { par: "tab", va: options.value.tab },
+              { par: "is_link", va: options.value.path },
             ],
           }),
           SecretKey,
@@ -1232,7 +1292,7 @@ const initData = (ref) => {
       if (error && error.status === 401) {
         swal.fire({
           title: "Thông báo!",
-          text: "Mã token đã hết hạn hoặc không hợp lệ, vui lòng đăng nhập lại!",
+          text: "Phiên đăng nhập đã hết hạn, vui lòng đăng nhập lại!",
           icon: "error",
           confirmButtonText: "OK",
         });
@@ -1251,32 +1311,11 @@ const initData = (ref) => {
 };
 const refresh = () => {
   selectedNodes.value = {};
-  options.value = {
-    loading: true,
-    user_id: store.getters.user.user_id,
-    search: "",
-    pageNo: 1,
-    pageSize: 25,
-    total: 0,
-    sort: "created_date desc",
-    orderBy: "desc",
-    tab: -1,
-    filterContract_id: null,
-    organizations: [],
-    departments: [],
-    type_contracts: [],
-    work_positions: [],
-    sign_start_date: null,
-    sign_end_date: null,
-    users: [],
-    start_start_date: null,
-    end_start_date: null,
-    start_end_date: null,
-    end_end_date: null,
-  };
+  options.value.pageNo = 1;
+  options.value.pageSize = 25;
   isFilter.value = false;
-  initCount();
   initData(true);
+  initCount();
 };
 //page
 const onPage = (event) => {
@@ -1287,9 +1326,12 @@ const onPage = (event) => {
   initData(true);
 };
 onMounted(() => {
-  initDictionary();
-  initCount();
+  options.value.path = route.path;
+  options.value.name = route.name;
   initData(true);
+  initCount();
+  initDictionary();
+  initRoleFunction();
 });
 </script>
 <template>
@@ -1831,13 +1873,13 @@ onMounted(() => {
       </template>
       <template #end>
         <Button
+          v-if="functions.is_add"
           @click="openAddDialog('Thêm mới hợp đồng')"
           label="Thêm mới"
           icon="pi pi-plus"
           class="mr-2"
         />
-        
-        <Button
+        <!-- <Button
           icon="pi pi-trash"
           label="Xóa"
           :class="{
@@ -1846,8 +1888,9 @@ onMounted(() => {
           }"
           @click="deleteItem()"
           class="mr-2"
-        />
+        /> -->
         <Button
+          v-if="functions.tienich"
           @click="toggleExport"
           label="Tiện ích"
           icon="pi pi-file-excel"
@@ -1935,9 +1978,7 @@ onMounted(() => {
           headerStyle="height:50px;max-width:auto;"
         >
           <template #body="slotProps">
-            <b @click="goProfile(slotProps.data)" class="hover">{{
-              slotProps.data.profile_user_name
-            }}</b>
+            <b>{{ slotProps.data.profile_user_name }}</b>
           </template>
         </Column>
         <!-- <Column
@@ -2060,15 +2101,17 @@ onMounted(() => {
             <div
               class="m-2"
               @click="
-                toggleStatus(slotProps.data, $event);
-                $event.stopPropagation();
+                if (slotProps.data.is_function) {
+                  toggleStatus(slotProps.data, $event);
+                  $event.stopPropagation();
+                }
               "
               aria:haspopup="true"
               aria-controls="overlay_panel_status"
             >
               <Button
                 :label="slotProps.data.status_name"
-                icon="pi pi-chevron-down"
+                :icon="slotProps.data.is_function ? 'pi pi-chevron-down' : ''"
                 iconPos="right"
                 class="p-button-outlined"
                 :style="{
@@ -2136,77 +2179,57 @@ onMounted(() => {
             </OverlayPanel>
           </template>
         </Column>
-        <!-- <Column
-          header="Chức năng"
-          headerStyle="text-align:center;max-width:120px;height:50px"
-          bodyStyle="text-align:center;max-width:120px;"
-          class="align-items-center justify-content-center text-center"
-        >
-          <template #body="slotProps">
-            <div v-if="slotProps.data.is_function">
-              <Button
-                @click="editItem(slotProps.data, 'Cập nhật thông tin nhóm')"
-                class="
-                  p-button-rounded p-button-secondary p-button-outlined
-                  mx-1
-                "
-                type="button"
-                icon="pi pi-pencil"
-                v-tooltip.top="'Sửa'"
-              ></Button>
-              <Button
-                @click="deleteItem(slotProps.data, true)"
-                class="
-                  p-button-rounded p-button-secondary p-button-outlined
-                  mx-1
-                "
-                type="button"
-                icon="pi pi-trash"
-                v-tooltip.top="'Xóa'"
-              ></Button>
-            </div>
-          </template>
-        </Column> -->
         <Column
           header=""
-          headerStyle="text-align:center;max-width:50px"
-          bodyStyle="text-align:center;max-width:50px"
+          headerStyle="text-align:center;max-width:150px"
+          bodyStyle="text-align:center;max-width:150px"
           class="align-items-center justify-content-center text-center"
         >
           <template #body="slotProps">
-            <div>
-              <a
-                @click="setStar(slotProps.data)"
-                v-tooltip.top="
-                  slotProps.data.is_star ? 'Hợp đồng cần lưu ý' : ''
-                "
-                style="font-size: 15px"
-              >
-                <i
-                  :class="{
-                    'pi pi-star-fill icon-star': slotProps.data.is_star,
-                    'pi pi-star': !slotProps.data.is_star,
-                  }"
-                ></i>
-              </a>
-            </div>
-          </template>
-        </Column>
-        <Column
-          header=""
-          headerStyle="text-align:center;max-width:50px"
-          bodyStyle="text-align:center;max-width:50px"
-          class="align-items-center justify-content-center text-center"
-        >
-          <template #body="slotProps">
-            <Button
-              icon="pi pi-ellipsis-h"
-              class="p-button-rounded p-button-text"
-              @click="toggleMores($event, slotProps.data)"
-              aria-haspopup="true"
-              aria-controls="overlay_More"
-              v-tooltip.top="'Tác vụ'"
-            />
+            <ul
+              class="flex m-0 p-0 justify-content-right"
+              style="list-style: none; justify-content: right"
+            >
+              <li>
+                <Button
+                  :icon="
+                    slotProps.data.is_star ? 'pi pi-star-fill' : 'pi pi-star'
+                  "
+                  :class="{ 'icon-star': slotProps.data.is_star }"
+                  class="p-button-rounded p-button-text"
+                  @click="
+                    () => {
+                      if (slotProps.data.is_function) {
+                        setStar(slotProps.data);
+                        $event.stopPropagation();
+                      } else {
+                        swal.fire({
+                          title: 'Thông báo!',
+                          text: 'Bạn không có quyền sử dụng tính năng này!',
+                          icon: 'error',
+                          confirmButtonText: 'OK',
+                        });
+                        return;
+                      }
+                    }
+                  "
+                  v-tooltip.top="
+                    slotProps.data.is_star ? 'Hợp đồng cần lưu ý' : ''
+                  "
+                  style="font-size: 15px; color: #000"
+                />
+              </li>
+              <li v-if="slotProps.data.is_function">
+                <Button
+                  icon="pi pi-ellipsis-h"
+                  class="p-button-rounded p-button-text"
+                  @click="toggleMores($event, slotProps.data)"
+                  aria-haspopup="true"
+                  aria-controls="overlay_More"
+                  v-tooltip.top="'Tác vụ'"
+                />
+              </li>
+            </ul>
           </template>
         </Column>
         <template #empty>

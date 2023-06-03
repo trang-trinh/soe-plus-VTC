@@ -188,7 +188,7 @@ const saveModel = (is_continue) => {
       if (error && error.status === 401) {
         swal.fire({
           title: "Thông báo!",
-          text: "Mã token đã hết hạn hoặc không hợp lệ, vui lòng đăng nhập lại!",
+          text: "Phiên đăng nhập đã hết hạn, vui lòng đăng nhập lại!",
           icon: "error",
           confirmButtonText: "OK",
         });
@@ -487,9 +487,6 @@ const initData = (rf) => {
             if (x["end_date"] != null) {
               x["end_date"] = new Date(x["end_date"]);
             }
-            if (x["birthday"] != null) {
-              x["birthday"] = new Date(x["birthday"]);
-            }
           });
           datachilds.value[1] = tbs[1];
         } else {
@@ -551,7 +548,7 @@ const initData = (rf) => {
       if (error && error.status === 401) {
         swal.fire({
           title: "Thông báo!",
-          text: "Mã token đã hết hạn hoặc không hợp lệ, vui lòng đăng nhập lại!",
+          text: "Phiên đăng nhập đã hết hạn, vui lòng đăng nhập lại!",
           icon: "error",
           confirmButtonText: "OK",
         });
@@ -3151,14 +3148,12 @@ onMounted(() => {
                       class="align-items-center justify-content-center text-center"
                     >
                       <template #body="slotProps">
-                        <Calendar
+                        <InputText
                           v-model="slotProps.data.birthday"
-                          :showIcon="false"
-                          inputMask="9999"
-                          view="year"
-                          dateFormat="yy"
+                          spellcheck="false"
+                          type="text"
                           class="ip36"
-                          placeholder="yyyy"
+                          maxLength="25"
                         />
                       </template>
                     </Column>
@@ -3975,14 +3970,12 @@ onMounted(() => {
         <div class="col-4 md:col-4">
           <div class="form-group">
             <label>Năm sinh</label>
-            <Calendar
+            <InputText
               v-model="modeldetail.birthday"
-              :showIcon="false"
-              inputMask="9999"
-              view="year"
-              dateFormat="yy"
+              spellcheck="false"
+              type="text"
               class="ip36"
-              placeholder="yyyy"
+              maxLength="25"
             />
           </div>
         </div>

@@ -31,6 +31,8 @@ const options = ref({
     is_team: false,
     optionView: 3,
     status: null,
+    type_status: 0,
+    active_tab: true,
 });
 
 const datalists = ref([]);
@@ -68,7 +70,7 @@ const datalists = ref([]);
 //             options.value.loading = false;
 //             if (error && error.status === 401) {
 //                 swal.fire({
-//                     text: "Mã token đã hết hạn hoặc không hợp lệ, vui lòng đăng nhập lại!",
+//                     text: "Phiên đăng nhập đã hết hạn, vui lòng đăng nhập lại!",
 //                     confirmButtonText: "OK",
 //                 });
 //                 store.commit("gologout");
@@ -103,6 +105,7 @@ const loadMainData = () => {
               { par: "optionView", va: options.value.optionView },
               { par: "search", va: options.value.search },
               { par: "status", va: options.value.status },
+              { par: "type", va: options.value.type_status },
             ],
           }),
           SecretKey,
@@ -200,7 +203,7 @@ const loadMainData = () => {
       if (error && error.status === 401) {
         swal.fire({
           title: "Thông báo",
-          text: "Mã token đã hết hạn hoặc không hợp lệ, vui lòng đăng nhập lại!",
+          text: "Phiên đăng nhập đã hết hạn, vui lòng đăng nhập lại!",
           icon: "error",
           confirmButtonText: "OK",
         });
@@ -208,12 +211,12 @@ const loadMainData = () => {
     });
 };
 const listStatusRequests = ref([
-    { id: 0,  text: "Mới lập", value: 0, class: "rqlap", bg:"rgb(116, 185, 255)", count: 0 },
-    { id: 1,  text: "Chờ duyệt", value: 0, class: "rqchoduyet", bg:"rgb(51, 201, 220)", count: 0 },
-    { id: 2,  text: "Hoàn thành", value: 0, classclass: "rqchapthuan", bg:"rgb(109, 210, 48)", count: 0 },
-    { id: -2, text: "Từ chối", value: 0, class: "rqtuchoi", bg:"rgb(241, 122, 199)", count: 0 },
-    { id: -1, text: "Quá hạn", value: 0, class: "rqhuy", bg:"rgb(255, 139, 78)", count: 0 },
-    { id: 3,  text: "Xử lý đánh giá", value: 0, class: "rqthuhoi", bg:"rgb(245, 176, 65)", count: 0 },
+    { id: null,  text: "Mới lập", value: 0, class: "rqlap", bg:"rgb(116, 185, 255)", count: 0, type: 0, active: true },
+    { id: 1,  text: "Chờ duyệt", value: 0, class: "rqchoduyet", bg:"rgb(51, 201, 220)", count: 0, type: 0, active: false },
+    { id: 2,  text: "Hoàn thành", value: 0, classclass: "rqchapthuan", bg:"rgb(109, 210, 48)", count: 0, type: 0, active: false },
+    { id: -2, text: "Từ chối", value: 0, class: "rqtuchoi", bg:"rgb(241, 122, 199)", count: 0, type: 0, active: false },
+    { id: null, text: "Quá hạn", value: 0, class: "rqhuy", bg:"rgb(255, 139, 78)", count: 0, type: 1, active: false },
+    { id: 3,  text: "Xử lý đánh giá", value: 0, class: "rqthuhoi", bg:"rgb(245, 176, 65)", count: 0, type: 2, active: false },
 ]);
 const LoadCount = () => {
   swal.fire({
@@ -229,7 +232,7 @@ const LoadCount = () => {
       {
         str: encr(
           JSON.stringify({
-            proc: "request_team_count",
+            proc: "report_request_count",
             par: [{ par: "user_id", va: store.getters.user.user_id }],
           }),
           SecretKey,
@@ -239,24 +242,23 @@ const LoadCount = () => {
       config,
     )
     .then((response) => {
-      let data = JSON.parse(response.data.data)[0];
-
-      listStatusRequests.value[0].value = data[0].allreq;
-      listStatusRequests.value[1].value = data[0].waiting;
-      listStatusRequests.value[2].value = data[0].completed;
-      listStatusRequests.value[3].value = data[0].refused;
-      listStatusRequests.value[4].value = data[0].finished;
-      listStatusRequests.value[5].value = data[0].expired;
+      let data = JSON.parse(response.data.data);
+      listStatusRequests.value[0].value = data[0][0].tatca;
+      listStatusRequests.value[1].value = data[2][0].dangtrinh;
+      listStatusRequests.value[2].value = data[3][0].hoanthanh;
+      listStatusRequests.value[3].value = data[6][0].tralai;
+      listStatusRequests.value[4].value = data[9][0].quahan;
+      listStatusRequests.value[5].value = data[8][0].xulydanhgia;
       swal.close();
     })
     .catch((error) => {
       if (error && error.status === 401) {
         swal.fire({
           title: "Thông báo",
-          text: "Mã token đã hết hạn hoặc không hợp lệ, vui lòng đăng nhập lại!",
+          text: "Phiên đăng nhập đã hết hạn, vui lòng đăng nhập lại!",
           icon: "error",
           confirmButtonText: "OK",
-        });
+        }); 
       }
     });
 };
@@ -270,11 +272,16 @@ const refresh = () => {
     is_team: false,
     optionView: 3,
     status: null,
+    type_status: 0,
+    active_tab: true,
   });
   loadMainData();
 }
 const ChangeStatus = (model) => {
   options.value.status = model.id;
+  listStatusRequests.value.forEach((l)=>{
+    l.active = (l.id == model.id && l.type == model.type) ? true : false;
+  })
   loadMainData();
 }
 onMounted(() => {
@@ -314,7 +321,7 @@ onMounted(() => {
         </div>
         <div class="field col-12 md:col-12 algn-items-center flex p-0" style="margin-top: 10px;">
             <div v-for="l in listStatusRequests" class="col-2 text-center p-0" style="align-items:center;">
-                <div @click="ChangeStatus(l)" style="margin: 0px 10px;color: #fff;font-size: 15px;" :style="'background-color:' + l.bg" class="zoom">
+                <div @click="ChangeStatus(l)" style="margin: 0px 10px;color: #fff;font-size: 15px;" :style="'background-color:' + l.bg" class="zoom" :class="options.active_tab == l.active ? 'active' : ''">
                     {{ l.text }} ({{ l.value }})
                 </div>
             </div>
@@ -726,5 +733,11 @@ onMounted(() => {
     transform: scale(0.9) !important;
     /* box-shadow: 10px 10px 15px rgb(0 0 0 / 23%) !important; */
     cursor: pointer !important;
+}
+.active {
+    transform: scale(0.9) !important;
+    /* box-shadow: 10px 10px 15px rgb(0 0 0 / 23%) !important; */
+    cursor: pointer !important;
+    border: solid 5px #f4d03f !important;
 }
 </style>

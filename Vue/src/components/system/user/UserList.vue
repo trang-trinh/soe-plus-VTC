@@ -301,7 +301,7 @@ const refreshKey = (data)=>{
             swal.close();
             if (error.status === 401) {
               swal.fire({
-                text: "Mã token đã hết hạn hoặc không hợp lệ, vui lòng đăng nhập lại!",
+                text: "Phiên đăng nhập đã hết hạn, vui lòng đăng nhập lại!",
                 confirmButtonText: "OK",
               });
             }
@@ -529,7 +529,6 @@ const delImg = (id) => {
 const onRefersh = () => {
   is_coppy_module.value = false;
   different_module_move.value = false;
-  role_id_check.value = null;
   opition.value = {
     search: "",
     PageNo: 1,
@@ -541,7 +540,7 @@ const onRefersh = () => {
     filter_department: -1,
     check_quyen: null,
   };
-  layout.value = "grid";
+  layout.value = "list";
   displayPhongban.value = false;
   loadUser(true);
 };
@@ -870,7 +869,7 @@ const loadUser = (rf, rfpb) => {
       console.log(error);
       if (error && error.status === 401) {
         swal.fire({
-          text: "Mã token đã hết hạn hoặc không hợp lệ, vui lòng đăng nhập lại!",
+          text: "Phiên đăng nhập đã hết hạn, vui lòng đăng nhập lại!",
           confirmButtonText: "OK",
         });
       }
@@ -923,7 +922,7 @@ const editUser = (md) => {
     .catch((error) => {
       if (error.status === 401) {
         swal.fire({
-          text: "Mã token đã hết hạn hoặc không hợp lệ, vui lòng đăng nhập lại!",
+          text: "Phiên đăng nhập đã hết hạn, vui lòng đăng nhập lại!",
           confirmButtonText: "OK",
         });
       }
@@ -1149,7 +1148,7 @@ const delUser = (md) => {
             swal.close();
             if (error.status === 401) {
               swal.fire({
-                text: "Mã token đã hết hạn hoặc không hợp lệ, vui lòng đăng nhập lại!",
+                text: "Phiên đăng nhập đã hết hạn, vui lòng đăng nhập lại!",
                 confirmButtonText: "OK",
               });
             }
@@ -1206,7 +1205,7 @@ const delListUsers = () => {
             swal.close();
             if (error.status === 401) {
               swal.fire({
-                text: "Mã token đã hết hạn hoặc không hợp lệ, vui lòng đăng nhập lại!",
+                text: "Phiên đăng nhập đã hết hạn, vui lòng đăng nhập lại!",
                 confirmButtonText: "OK",
               });
             }
@@ -1277,7 +1276,7 @@ const exportUser = (method) => {
     .catch((error) => {
       if (error.status === 401) {
         swal.fire({
-          text: "Mã token đã hết hạn hoặc không hợp lệ, vui lòng đăng nhập lại!",
+          text: "Phiên đăng nhập đã hết hạn, vui lòng đăng nhập lại!",
           confirmButtonText: "OK",
         });
       }
@@ -1355,7 +1354,7 @@ const changePermission = () => {
             swal.close();
             if (error.status === 401) {
               swal.fire({
-                text: "Mã token đã hết hạn hoặc không hợp lệ, vui lòng đăng nhập lại!",
+                text: "Phiên đăng nhập đã hết hạn, vui lòng đăng nhập lại!",
                 confirmButtonText: "OK",
               });
             }
@@ -1451,7 +1450,7 @@ const configRole = (md) => {
       opition.value.moduleloading = false;
       if (error && error.status === 401) {
         swal.fire({
-          text: "Mã token đã hết hạn hoặc không hợp lệ, vui lòng đăng nhập lại!",
+          text: "Phiên đăng nhập đã hết hạn, vui lòng đăng nhập lại!",
           confirmButtonText: "OK",
         });
       }
@@ -1569,7 +1568,7 @@ const addConfigRole = () => {
       swal.close();
       if (error.status === 401) {
         swal.fire({
-          text: "Mã token đã hết hạn hoặc không hợp lệ, vui lòng đăng nhập lại!",
+          text: "Phiên đăng nhập đã hết hạn, vui lòng đăng nhập lại!",
           confirmButtonText: "OK",
         });
       }
@@ -2085,15 +2084,19 @@ onMounted(() => {
               >
                 <h3 class="mb-1 mt-0">
                   {{ slotProps.data.full_name }}
+                  <i
+                    @click="goQuyen(slotProps.data)"
+                    v-if="slotProps.data.check_quyen == 1"
+                    v-tooltip.top="slotProps.data.check_quyen_label"
+                    style="color:red;"
+                    class="pi pi-star-fill mr-2"
+                  ></i>
                 </h3>
               </Button>
               <span style="font-size: 10pt; color: #999"
                 >{{ slotProps.data.user_id }}
-                {{ slotProps.data.phone ? "| " + slotProps.data.phone : "" }}</span
+                </span
               >
-              <span style="font-size: 10pt; color: #999">{{
-                slotProps.data.email
-              }}</span>
             </div>
             <Chip
               @click="goDonvi(slotProps.data)"

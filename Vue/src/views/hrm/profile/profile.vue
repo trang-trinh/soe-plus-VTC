@@ -42,7 +42,7 @@ const options = ref({
   sort: "created_date desc",
   orderBy: "desc",
   tab: -1,
-  view: 1,
+  view: 2,
   view_copy: 1,
   filterProfile_id: null,
   organizations: [],
@@ -236,7 +236,9 @@ const goOrganization = (item) => {
   options.value.organizations = [];
   options.value.departments = [];
 
-  if (item.data.organization_type === 0) {
+  if (item.data.organization_type === 0 && item.data.parent_id == null) {
+    options.value.organizations = [];
+  } else if (item.data.organization_type === 0) {
     options.value.organizations = [
       {
         organization_id: item.data.organization_id,
@@ -326,7 +328,7 @@ const exportData = (method) => {
     .catch((error) => {
       if (error.status === 401) {
         swal.fire({
-          text: "Mã token đã hết hạn hoặc không hợp lệ, vui lòng đăng nhập lại!",
+          text: "Phiên đăng nhập đã hết hạn, vui lòng đăng nhập lại!",
           confirmButtonText: "OK",
         });
         store.commit("gologout");
@@ -382,8 +384,15 @@ const findMinParent = (data) => {
 const renderTree = (data, id, name, title) => {
   let arrChils = [];
   let arrtreeChils = [];
+  data = data.sort((a, b) => {
+    return a.parent_id - b.parent_id;
+  });
+  let parent_id = null;
+  if (data && data.length > 0) {
+    parent_id = data[0].parent_id;
+  }
   data
-    .filter((x) => x.parent_id == null)
+    .filter((x) => x.parent_id == parent_id)
     .forEach((m, i) => {
       m.IsOrder = i + 1;
       m.label_order = m.IsOrder.toString();
@@ -629,7 +638,7 @@ const deleteItem = (item) => {
               if (error && error.status === 401) {
                 swal.fire({
                   title: "Thông báo!",
-                  text: "Mã token đã hết hạn hoặc không hợp lệ, vui lòng đăng nhập lại!",
+                  text: "Phiên đăng nhập đã hết hạn, vui lòng đăng nhập lại!",
                   icon: "error",
                   confirmButtonText: "OK",
                 });
@@ -789,7 +798,7 @@ const setStar = (item) => {
       if (error && error.status === 401) {
         swal.fire({
           title: "Thông báo!",
-          text: "Mã token đã hết hạn hoặc không hợp lệ, vui lòng đăng nhập lại!",
+          text: "Phiên đăng nhập đã hết hạn, vui lòng đăng nhập lại!",
           icon: "error",
           confirmButtonText: "OK",
         });
@@ -1086,7 +1095,7 @@ const initPlace = () => {
       if (error && error.status === 401) {
         swal.fire({
           title: "Thông báo",
-          text: "Mã token đã hết hạn hoặc không hợp lệ, vui lòng đăng nhập lại!",
+          text: "Phiên đăng nhập đã hết hạn, vui lòng đăng nhập lại!",
           icon: "error",
           confirmButtonText: "OK",
         });
@@ -1203,7 +1212,10 @@ const initRoleFunction = () => {
             }
           }
           if (tbs[1] != null && tbs[1].length > 0) {
-            if (tbs[1][0].module_functions != null && tbs[1][0].module_functions != "") {
+            if (
+              tbs[1][0].module_functions != null &&
+              tbs[1][0].module_functions != ""
+            ) {
               let module_functions = tbs[1][0].module_functions.split(",");
               for (var key in module_functions) {
                 functions.value[module_functions[key]] = true;
@@ -1363,7 +1375,7 @@ const initCountFilter = () => {
       if (error && error.status === 401) {
         swal.fire({
           title: "Thông báo!",
-          text: "Mã token đã hết hạn hoặc không hợp lệ, vui lòng đăng nhập lại!",
+          text: "Phiên đăng nhập đã hết hạn, vui lòng đăng nhập lại!",
           icon: "error",
           confirmButtonText: "OK",
         });
@@ -1582,7 +1594,7 @@ const initDataFilter = () => {
       if (error && error.status === 401) {
         swal.fire({
           title: "Thông báo!",
-          text: "Mã token đã hết hạn hoặc không hợp lệ, vui lòng đăng nhập lại!",
+          text: "Phiên đăng nhập đã hết hạn, vui lòng đăng nhập lại!",
           icon: "error",
           confirmButtonText: "OK",
         });
@@ -1599,7 +1611,7 @@ const initDataFilter = () => {
       }
     });
 };
-const initTreeOrganization = () => {
+const initTreeOrganization = (rf) => {
   treeOrganization.value = [];
   axios
     .post(
@@ -1651,7 +1663,9 @@ const initTreeOrganization = () => {
               }
             }
           }
-          initSave();
+          if (rf) {
+            initSave();
+          }
         }
       }
     });
@@ -1767,7 +1781,7 @@ const initData = (ref) => {
       if (error && error.status === 401) {
         swal.fire({
           title: "Thông báo!",
-          text: "Mã token đã hết hạn hoặc không hợp lệ, vui lòng đăng nhập lại!",
+          text: "Phiên đăng nhập đã hết hạn, vui lòng đăng nhập lại!",
           icon: "error",
           confirmButtonText: "OK",
         });
@@ -1809,6 +1823,7 @@ const refresh = () => {
   isFilter.value = false;
   isFilterAdv.value = false;
   resetFilterAdvanced();
+  initData(true);
   initCount();
   initTreeOrganization();
   //initData(true);
@@ -1822,11 +1837,7 @@ const toggleFilterAdvanced = (event) => {
 const closeOverlayFilterAdv = () => {
   opfilterAdvanced.value.toggle(event);
 };
-const showFilterAdv = ref(false);
 const isFilterAdv = ref(false);
-const activeFilterAdv = () => {
-  showFilterAdv.value = true;
-};
 
 const drTypes = ref([
   { text: "Lớn hơn", value: ">", types: ",1,2,3," },
@@ -2437,24 +2448,24 @@ const initDataFilterAdv = (f, sql, rf) => {
               selectedCols.value = cols.value.filter((x) => x.show);
             }
           }
-          swal.close();
         } else {
           options.value.total = 0;
           dataAdvAll.value = [...dataLimits.value];
           if (sql && rf) {
             initCountFilterAdv(sql);
           }
-          swal.close();
         }
       }
-      swal.close();
-      if (options.value.loading) options.value.loading = false;
+      if (rf) {
+        swal.close();
+        if (options.value.loading) options.value.loading = false;
+      }
     })
     .catch((error) => {
       swal.close();
       if (error.status === 401) {
         swal.fire({
-          text: "Mã token đã hết hạn hoặc không hợp lệ, vui lòng đăng nhập lại!",
+          text: "Phiên đăng nhập đã hết hạn, vui lòng đăng nhập lại!",
           confirmButtonText: "OK",
         });
       }
@@ -2524,7 +2535,7 @@ const initCountFilterAdv = (sql) => {
         swal.close();
         if (error.status === 401) {
           swal.fire({
-            text: "Mã token đã hết hạn hoặc không hợp lệ, vui lòng đăng nhập lại!",
+            text: "Phiên đăng nhập đã hết hạn, vui lòng đăng nhập lại!",
             confirmButtonText: "OK",
           });
         }
@@ -2545,6 +2556,8 @@ const arrayStatus = [0, 1, 2, 3, 4, 5];
 // };
 const ipsearch = ref();
 const sqlSubmit = ref();
+const arrTypeRequied = ref(["1", "2", "3", "4", "5", "6"]);
+const arrConditionRequied = ref([">", ">=", "<", "<=", "<>", "FromTo"]);
 const submitFilter = () => {
   ipsearch.value = "";
   let strSelect = " Select * ";
@@ -2553,6 +2566,7 @@ const submitFilter = () => {
   let strWhere = "";
   let strOrderby = ` order by [${cols.value[0].key}] `;
   let hasSmartSearch = false;
+  let notHasValueFilter = false;
   groupBlock.value.forEach((g) => {
     if (strWhere != "") {
       strWhere += ` ${AND.value ? " AND " : " OR "}`;
@@ -2570,6 +2584,13 @@ const submitFilter = () => {
       gx.childs.forEach((x, ix) => {
         if (strWhere != "" && ix > 0) {
           strWhere += ` ${gx.AND ? " AND " : " OR "} (`;
+        }
+        if (
+          (arrConditionRequied.value.includes(x.type) ||
+            (arrTypeRequied.value.includes(x.typdata) && x.type == "=")) &&
+          (x.value == null || x.value.trim() == "")
+        ) {
+          notHasValueFilter = true;
         }
         switch (x.type) {
           case "FromTo":
@@ -2623,7 +2644,7 @@ const submitFilter = () => {
                 x.typedate
                   ? x.typedate.replace("$date", "[" + x.key + "]")
                   : "[" + x.key + "]"
-              } ${x.type} ${vl ? `N'${vl}'` : ""}`;
+              } ${x.type} ${vl ? `N'${vl}'` : `N''`}`;
             });
             strWhere += ")";
             ipsearch.value += `${
@@ -2645,6 +2666,16 @@ const submitFilter = () => {
     });
     strWhere += ")";
   });
+  if (notHasValueFilter) {
+    options.value.search = "";
+    swal.fire({
+      title: "Thông báo!",
+      text: "Nhập giá trị của điều kiện tìm kiếm có dấu *",
+      icon: "error",
+      confirmButtonText: "OK",
+    });
+    return;
+  }
   if (!hasSmartSearch) {
     strWhere = renderAutoInput(options.value.search);
   } else {
@@ -2760,11 +2791,14 @@ const delBlock = (gr) => {
     groupBlock.value.splice(idx, 1);
   }
 };
-const resetFilterAdvanced = () => {
-  if (showFilterAdv.value == true) {
+const resetFilterAdvanced = (inFilter) => {
+  if (
+    inFilter &&
+    groupBlock.value[0].datas != null &&
+    groupBlock.value[0].datas.length == 0
+  ) {
     opfilterAdvanced.value.toggle(event);
   }
-  showFilterAdv.value = false;
   options.value.search = "";
   selectedKey.value = {};
   groupBlock.value = [
@@ -2901,12 +2935,12 @@ onMounted(() => {
     options.value.path = route.path;
     options.value.name = route.name;
     //initPlace();
+    initData(true);
+    initCount();
     initRoleFunction();
     initDictionary();
-    initCount();
-    initTreeOrganization();
     initDataFilterAdv(true, "", false);
-    //initData(true);
+    initTreeOrganization();
 
     const el = document.getElementById("buffered-scroll");
     if (el) {
@@ -2962,6 +2996,12 @@ const loadMoreRow = (data) => {
 const rowClass = (data) => {
   return "bgcolor-tree";
 };
+const rowClassTc = () => {
+  return "row-tbl-tc";
+};
+const rowClassDk = () => {
+  return "row-tbl-dk";
+};
 </script>
 <template>
   <div class="surface-100 p-2">
@@ -2978,7 +3018,7 @@ const rowClass = (data) => {
             class="input-search pr-2"
           />
           <i
-            class="pi pi-filter i-filter-advanced"
+            class="pi pi-sort-down i-filter-advanced"
             :class="isFilterAdv ? 'active-filter-adv' : ''"
             @click="toggleFilterAdvanced($event)"
             aria:haspopup="true"
@@ -2991,7 +3031,7 @@ const rowClass = (data) => {
             appendTo="body"
             class="p-0 m-0"
             id="overlay_panel_adv"
-            style="width: 75vw"
+            style="width: 65vw"
           >
             <div class="flex">
               <div>
@@ -3013,7 +3053,12 @@ const rowClass = (data) => {
                   :scrollable="true"
                   scrollHeight="flex"
                   :metaKeySelection="false"
-                  style="max-height: calc(100vh - 400px); min-width: 480px"
+                  style="
+                    max-height: calc(100vh - 400px);
+                    min-width: 22rem;
+                    max-width: 25rem;
+                    padding: 0.5rem;
+                  "
                 >
                   <template #default="slotProps">
                     <b v-if="slotProps.node.children">{{
@@ -3040,6 +3085,7 @@ const rowClass = (data) => {
                   />
                 </div>
                 <Accordion
+                  class="accor-group-criterias"
                   :activeIndex="blockindex"
                   style="max-height: calc(100vh - 300px); overflow-y: auto"
                 >
@@ -3069,7 +3115,8 @@ const rowClass = (data) => {
                       scrollHeight="calc(100vh - 220px)"
                       :value="gr.datas"
                       showGridlines
-                      class="p-datatable-sm w-full"
+                      class="p-datatable-sm w-full tbl-filter-criterias"
+                      :rowClass="rowClassTc"
                     >
                       <template #empty>
                         <div
@@ -3107,15 +3154,16 @@ const rowClass = (data) => {
                         </template>
                       </Column>
                       <template #expansion="slotProps">
-                        <div class="w-full p-3">
+                        <div class="w-full p-0">
                           <DataTable
                             class="w-full"
                             :value="slotProps.data.childs"
+                            :rowClass="rowClassDk"
                           >
                             <Column
                               header="Kiểu giá trị"
-                              headerStyle="max-width:120px"
-                              bodyStyle="max-width:120px"
+                              headerStyle="max-width:9rem"
+                              bodyStyle="max-width:9rem"
                               v-if="
                                 slotProps.data.typdata == 2 ||
                                 slotProps.data.typdata == 3
@@ -3129,13 +3177,14 @@ const rowClass = (data) => {
                                   optionLabel="text"
                                   optionValue="value"
                                   class="w-full"
+                                  style="border: none; box-shadow: none"
                                 />
                               </template>
                             </Column>
                             <Column
                               header="Điều kiện"
-                              headerStyle="max-width:250px"
-                              bodyStyle="max-width:250px"
+                              headerStyle="max-width:13rem"
+                              bodyStyle="max-width:13rem"
                             >
                               <template #body="dt">
                                 <Dropdown
@@ -3145,7 +3194,33 @@ const rowClass = (data) => {
                                   optionLabel="text"
                                   optionValue="value"
                                   class="w-full"
-                                />
+                                  style="border: none; box-shadow: none"
+                                >
+                                  <template #value="slotProps">
+                                    <div class="" v-if="slotProps.value">
+                                      <div>
+                                        {{
+                                          drTypes.find(
+                                            (x) => x.value == slotProps.value
+                                          ).text
+                                        }}
+                                        <span
+                                          class="redsao"
+                                          v-if="
+                                            arrConditionRequied.includes(
+                                              dt.data.type
+                                            ) ||
+                                            (arrTypeRequied.includes(
+                                              dt.data.typdata
+                                            ) &&
+                                              dt.data.type == '=')
+                                          "
+                                          >*</span
+                                        >
+                                      </div>
+                                    </div>
+                                  </template>
+                                </Dropdown>
                               </template>
                             </Column>
                             <Column
@@ -3169,18 +3244,19 @@ const rowClass = (data) => {
                                   v-model="dt.data.value"
                                   autoResize
                                   class="w-full"
+                                  style="border: none; box-shadow: none"
                                 />
                               </template>
                             </Column>
                             <Column
                               header=""
                               class="justify-content-center"
-                              headerStyle="max-width: 60px;"
-                              bodyStyle="max-width: 60px;"
+                              headerStyle="max-width: 5rem;"
+                              bodyStyle="max-width: 5rem;min-height:42px;padding-top: 0.25rem !important;padding-bottom: 0.25rem !important;"
                             >
                               <template #body="dt">
                                 <Button
-                                  class="p-button-sm p-button-text p-button-outlined p-button-danger"
+                                  class="p-button-text p-button-rounded p-button-outlined p-button-danger"
                                   v-tooltip.top="'Xoá điều kiện'"
                                   @click="
                                     delFilter(
@@ -3190,6 +3266,7 @@ const rowClass = (data) => {
                                     )
                                   "
                                   icon="pi pi-trash"
+                                  style="display: none"
                                 />
                               </template>
                             </Column>
@@ -3199,21 +3276,23 @@ const rowClass = (data) => {
                       <Column
                         header=""
                         class="justify-content-center"
-                        headerStyle="max-width: 8rem;"
-                        bodyStyle="max-width: 8rem;"
+                        headerStyle="max-width:100px;"
+                        bodyStyle="max-width:100px;min-height:50px;"
                       >
                         <template #body="dt">
                           <Button
-                            class="p-button-sm p-button-text p-button-outlined p-button-danger"
-                            v-tooltip.top="'Xoá tiêu chí'"
-                            @click="delFilter(dt.index, gr.datas, 0)"
-                            icon="pi pi-trash"
-                          />
-                          <Button
-                            class="p-button-sm p-button-text p-button-outlined ml-1"
+                            class="p-button-text p-button-rounded p-button-outlined mr-1"
                             v-tooltip.top="'Thêm điều kiện'"
                             @click="addFilter(dt.data)"
                             icon="pi pi-plus"
+                            style="display: none"
+                          />
+                          <Button
+                            class="p-button-text p-button-rounded p-button-outlined p-button-danger"
+                            v-tooltip.top="'Xoá tiêu chí'"
+                            @click="delFilter(dt.index, gr.datas, 0)"
+                            icon="pi pi-trash"
+                            style="display: none"
                           />
                         </template>
                       </Column>
@@ -3224,12 +3303,12 @@ const rowClass = (data) => {
             </div>
             <div class="text-center mt-2">
               <Button
-                class="p-button-sm p-button-danger mr-2 w-7rem"
-                @click="resetFilterAdvanced()"
+                class="p-button-danger mr-2 w-7rem"
+                @click="resetFilterAdvanced(true)"
                 label="Huỷ"
               />
               <Button
-                class="p-button-sm w-7rem"
+                class="w-7rem"
                 v-if="groupBlock.length > 0"
                 @click="submitFilter()"
                 label="Thực hiện"
@@ -4172,7 +4251,7 @@ const rowClass = (data) => {
       <div class="row">
         <div v-if="options.view === 2" class="col-3 md:col-3 p-0">
           <div
-            class=""
+            class="mr-2"
             :style="{
               overflowY: 'auto',
               height: 'calc(100vh - 170px)',
@@ -4207,18 +4286,22 @@ const rowClass = (data) => {
               >
                 <template #body="md">
                   <div class="row-active">
-                    <span :style="{ color: 'rgb(0, 90, 158)' }"
-                      >{{ md.node.data.organization_name }} ({{
-                        md.node.data.total
-                      }})</span
-                    >
+                    <span :style="{ color: 'rgb(0, 90, 158)' }">
+                      {{ md.node.data.organization_name }}
+                      <span v-if="md.node.data.total && md.node.data.total > 0"
+                        >({{ md.node.data.total }})</span
+                      >
+                    </span>
                   </div>
                 </template>
               </Column>
               <template #empty>
                 <div
                   class="m-auto align-items-center justify-content-center p-4 text-center"
-                  v-if="!isFirst"
+                  v-if="
+                    !options.loading &&
+                    (!isFirst || organizationtrees.length === 0)
+                  "
                 >
                   <img
                     src="../../../assets/background/nodata.png"
@@ -4426,9 +4509,6 @@ const rowClass = (data) => {
                         >
                         {{ slotProps.data.email }}</span
                       >
-                    </div>
-                    <div class="mb-1">
-                      <span>{{ slotProps.data.identity_papers_code }}</span>
                     </div>
                     <div class="mb-1">
                       <span>{{ slotProps.data.place_residence }}</span>
@@ -5060,6 +5140,12 @@ const rowClass = (data) => {
 .search-microphone:hover svg {
   color: #ffffff !important;
 }
+.row-tbl-tc:hover > td button {
+  display: block !important;
+}
+.row-tbl-dk:hover > td button {
+  display: block !important;
+}
 </style>
 <style lang="scss" scoped>
 ::v-deep(.form-group) {
@@ -5090,5 +5176,21 @@ const rowClass = (data) => {
 ::-deep(.bgcolor-tree) {
   background-color: rgb(248, 249, 250) !important;
   color: rgb(0, 90, 158) !important;
+}
+::v-deep(.accor-group-criterias) {
+  .p-accordion-tab .p-accordion-header .p-accordion-header-link {
+    padding: 0.75rem;
+  }
+  .p-accordion-tab .p-toggleable-content .p-accordion-content {
+    padding: 0.75rem;
+  }
+}
+::v-deep(.tbl-filter-criterias) {
+  .p-datatable-row-expansion td {
+    padding: 0 !important;
+  }
+  ::-webkit-input-placeholder {
+    color: #b5b5b5;
+  }
 }
 </style>

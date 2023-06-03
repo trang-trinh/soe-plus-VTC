@@ -93,7 +93,7 @@ const loadMainData = () => {
                     JSON.stringify({
                         proc: "report_request_handle_list",
                         par: [
-                            { par: "user_id", va: store.getters.user.user_id },
+                            { par: "user_id", va: store.getters.user.user_id }, 
                             { par: "optionView", va: options.value.active_group },
                             { par: "search", va: options.value.search },
                         ],
@@ -192,7 +192,7 @@ const loadMainData = () => {
             if (error && error.status === 401) {
                 swal.fire({
                     title: "Thông báo",
-                    text: "Mã token đã hết hạn hoặc không hợp lệ, vui lòng đăng nhập lại!",
+                    text: "Phiên đăng nhập đã hết hạn, vui lòng đăng nhập lại!",
                     icon: "error",
                     confirmButtonText: "OK",
                 });
@@ -245,7 +245,7 @@ const listStatusRequests = ref([
 //             if (error && error.status === 401) {
 //                 swal.fire({
 //                     title: "Thông báo",
-//                     text: "Mã token đã hết hạn hoặc không hợp lệ, vui lòng đăng nhập lại!",
+//                     text: "Phiên đăng nhập đã hết hạn, vui lòng đăng nhập lại!",
 //                     icon: "error",
 //                     confirmButtonText: "OK",
 //                 });

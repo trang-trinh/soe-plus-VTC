@@ -103,7 +103,7 @@ const swalLoadding = () => {
 };
 const errorMessage = () => {
   swal.fire({
-    text: "Mã token đã hết hạn hoặc không hợp lệ, vui lòng đăng nhập lại!",
+    text: "Phiên đăng nhập đã hết hạn, vui lòng đăng nhập lại!",
     confirmButtonText: "OK",
   });
 };
@@ -373,17 +373,7 @@ onMounted(() => {
                     </div>
                   </template>
 
-                  <template #empty>
-                    <div
-                      class="align-items-center justify-content-center p-4 text-center"
-                    >
-                      <img
-                        src="../../assets/background/nodata.png"
-                        height="144"
-                      />
-                      <h3 class="m-1">Không có dữ liệu</h3>
-                    </div>
-                  </template>
+                 
                 </DataView>
               </div>
               <div class="col-2 p-0"></div>

@@ -187,7 +187,7 @@ const loadData = (rf) => {
         console.log("0e", error);
         if (error && error.status === 401) {
           swal.fire({
-            text: "Mã token đã hết hạn hoặc không hợp lệ, vui lòng đăng nhập lại!",
+            text: "Phiên đăng nhập đã hết hạn, vui lòng đăng nhập lại!",
             confirmButtonText: "OK",
           });
           store.commit("gologout");
@@ -496,8 +496,11 @@ const configPayroll = async (row) => {
         issql: true,
       };
       report.value.report_config = JSON.stringify(cg);
+       
       if (payroll.value.payroll_config)
+      {
         report.value.is_config = JSON.parse(payroll.value.payroll_config);
+      }
 
       visibleSidebarDoc.value = true;
     }
@@ -585,7 +588,7 @@ let list_profile_f ="";
 const callbackFun = (obj) => {
    
   if (Array.isArray(obj) == false) {
-    debugger
+     
     if (obj.is_config) {
       payroll.value.payroll_config = obj.is_config;
       saveDGLuong();
@@ -677,60 +680,97 @@ const saveDGLuong = async () => {
 
     ok = false;
   }
-  if (!payroll.value.sign_user) {
-    toast.warning("Vui lòng nhập tên người ký bảng lương.");
+  // if (!payroll.value.sign_user) {
+  //   toast.warning("Vui lòng nhập tên người ký bảng lương.");
 
-    ok = false;
-  }
+  //   ok = false;
+  // }
   if (ok) {
-     
-    options.value.loading = true;
-    let strSQL = {
-      query: false,
-      proc: "hrm_payroll_add",
-      par: [
-        { par: "payroll_id", va: payroll.value.payroll_id },
-        { par: "payroll_month", va: payroll.value.payroll_month },
-        { par: "payroll_year", va: payroll.value.payroll_year },
-        { par: "payroll_name", va: payroll.value.payroll_name },
-        { par: "payroll_config", va: payroll.value.payroll_config },
-        { par: "list_profile_id", va: list_profile_id || null },
       
-        { par: "sign_date", va: payroll.value.sign_date },
-        { par: "sign_user", va: payroll.value.sign_user },
-        { par: "profile_sign_id", va: payroll.value.profile_sign_id },
-        { par: "declare_paycheck_id", va: payroll.value.declare_paycheck_id },
-        { par: "report_key", va: payroll.value.report_key },
-        { par: "status ", va: payroll.value.status },
-        { par: "user_id", va: store.getters.user.user_id },
-        { par: "ip", va: store.getters.ip },
-        { par: "organization_id", va: store.getters.user.organization_id },
-      ],
-    };
-    console.log(strSQL);
-    try {
-      const axResponse = await axios.post(
-        baseURL + "/api/HRM_SQL/PostProc",
-        {
-          str: encr(JSON.stringify(strSQL), SecretKey, cryoptojs).toString(),
-        },
-        {
-          headers: { Authorization: `Bearer ${store.getters.token}` },
-        }
-      );
-
-      if (axResponse.status == 200) {
-        displayBasic.value = false;
-        // listsalary();
+    options.value.loading = true;
+  let formData = new FormData();
+  payroll.value.list_profile_id=list_profile_id;
+formData.append("hrm_files", JSON.stringify([]));
+formData.append("hrm_payroll", JSON.stringify(payroll.value));
+swal.fire({
+  width: 110,
+  didOpen: () => {
+    swal.showLoading();
+  },
+});
+ 
+  axios
+    .put(baseURL + "/api/hrm_payroll/update_hrm_payroll", formData, config)
+    .then((response) => {
+      if (response.data.err != "1") {
+        swal.close();
+  
+        closeDialog();
       } else {
-        toast.error("Có lỗi xảy ra, vui lòng thử lại!");
+        swal.fire({
+          title: "Error!",
+          text: response.data.ms,
+          icon: "error",
+          confirmButtonText: "OK",
+        });
       }
-      options.value.loading = false;
-    } catch (e) {
-      console.log(e);
-      options.value.loading = false;
-      toast.error("Có lỗi xảy ra, vui lòng thử lại!");
-    }
+    })
+    .catch((error) => {
+      swal.close();
+      swal.fire({
+        title: "Error!",
+        text: "Có lỗi xảy ra, vui lòng kiểm tra lại!",
+        icon: "error",
+        confirmButtonText: "OK",
+      });
+    });
+ 
+    // let strSQL = {
+    //   query: false,
+    //   proc: "hrm_payroll_addd",
+    //   par: [
+    //     { par: "payroll_id", va: payroll.value.payroll_id },
+    //     { par: "payroll_month", va: payroll.value.payroll_month },
+    //     { par: "payroll_year", va: payroll.value.payroll_year },
+    //     { par: "payroll_name", va: payroll.value.payroll_name },
+    //     { par: "payroll_config", va: payroll.value.payroll_config },
+    //     { par: "list_profile_id", va: list_profile_id || null },
+      
+    //     { par: "sign_date", va: payroll.value.sign_date },
+    //     { par: "sign_user", va: payroll.value.sign_user },
+    //     { par: "profile_sign_id", va: payroll.value.profile_sign_id },
+    //     { par: "declare_paycheck_id", va: payroll.value.declare_paycheck_id },
+    //     { par: "report_key", va: payroll.value.report_key },
+    //     { par: "status ", va: payroll.value.status },
+    //     { par: "user_id", va: store.getters.user.user_id },
+    //     { par: "ip", va: store.getters.ip },
+    //     { par: "organization_id", va: store.getters.user.organization_id },
+    //   ],
+    // };
+    // console.log(strSQL);
+    // try {
+    //   const axResponse = await axios.post(
+    //     baseURL + "/api/HRM_SQL/PostProc",
+    //     {
+    //       str: encr(JSON.stringify(strSQL), SecretKey, cryoptojs).toString(),
+    //     },
+    //     {
+    //       headers: { Authorization: `Bearer ${store.getters.token}` },
+    //     }
+    //   );
+
+    //   if (axResponse.status == 200) {
+    //     displayBasic.value = false;
+    //     // listsalary();
+    //   } else {
+    //     toast.error("Có lỗi xảy ra, vui lòng thử lại!");
+    //   }
+    //   options.value.loading = false;
+    // } catch (e) {
+    //   console.log(e);
+    //   options.value.loading = false;
+    //   toast.error("Có lỗi xảy ra, vui lòng thử lại!");
+    // }
   }
 };
 //Sửa bản ghi
@@ -805,7 +845,7 @@ const delTem = (Tem) => {
             swal.close();
             if (error.status === 401) {
               swal.fire({
-                text: "Mã token đã hết hạn hoặc không hợp lệ, vui lòng đăng nhập lại!",
+                text: "Phiên đăng nhập đã hết hạn, vui lòng đăng nhập lại!",
                 confirmButtonText: "OK",
               });
             }
@@ -925,7 +965,7 @@ const loadDataSQL = () => {
       if (error && error.status === 401) {
         swal.fire({
           title: "Thông báo",
-          text: "Mã token đã hết hạn hoặc không hợp lệ, vui lòng đăng nhập lại!",
+          text: "Phiên đăng nhập đã hết hạn, vui lòng đăng nhập lại!",
           icon: "error",
           confirmButtonText: "OK",
         });
@@ -1082,7 +1122,7 @@ const deleteList = () => {
               if (error.status === 401) {
                 swal.fire({
                   title: "Error!",
-                  text: "Mã token đã hết hạn hoặc không hợp lệ, vui lòng đăng nhập lại!",
+                  text: "Phiên đăng nhập đã hết hạn, vui lòng đăng nhập lại!",
                   icon: "error",
                   confirmButtonText: "OK",
                 });
@@ -1197,7 +1237,7 @@ const initTuDien = () => {
 
       if (error && error.status === 401) {
         swal.fire({
-          text: "Mã token đã hết hạn hoặc không hợp lệ, vui lòng đăng nhập lại!",
+          text: "Phiên đăng nhập đã hết hạn, vui lòng đăng nhập lại!",
           confirmButtonText: "OK",
         });
         store.commit("gologout");

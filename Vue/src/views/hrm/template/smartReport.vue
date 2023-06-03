@@ -87,7 +87,7 @@ const configBaocao = async (row) => {
       toast.error("Không mở được bản ghi");
     } else {
       smart_report.value = JSON.parse(axResponse.data.data)[0][0];
-debugger
+ 
       if (smart_report.value.proc_name)
         smart_report.value.proc_name1 =
           smart_report.value.proc_name.split(" ")[0];
@@ -189,7 +189,7 @@ const loadData = (rf) => {
 
       if (error && error.status === 401) {
         swal.fire({
-          text: "Mã token đã hết hạn hoặc không hợp lệ, vui lòng đăng nhập lại!",
+          text: "Phiên đăng nhập đã hết hạn, vui lòng đăng nhập lại!",
           confirmButtonText: "OK",
         });
       }
@@ -336,7 +336,7 @@ const smart_report = ref({
   user_access_fake: [],
   user_deny_fake: [],
 });
-const collapsed1 = ref(true);
+const collapsed1 = ref(false);
 const collapsed2 = ref(true);
 const selectedStamps = ref();
 const submitted = ref(false);
@@ -424,6 +424,13 @@ const sttStamp = ref(1);
 const saveData = (isFormValid) => {
   submitted.value = true;
   if (!isFormValid) {
+    return;
+  }
+  if (smart_report.value.proc_get==null ||
+  smart_report.value.report_group==null ||
+  smart_report.value. proc_name1==null ||
+  smart_report.value. profile_id==null  
+  ) {
     return;
   }
 
@@ -590,7 +597,7 @@ const copyTem = (dataTem) => {
 
       if (error && error.status === 401) {
         swal.fire({
-          text: "Mã token đã hết hạn hoặc không hợp lệ, vui lòng đăng nhập lại!",
+          text: "Phiên đăng nhập đã hết hạn, vui lòng đăng nhập lại!",
           confirmButtonText: "OK",
         });
         store.commit("gologout");
@@ -646,7 +653,7 @@ const editTem = (dataTem) => {
       console.log(error);
       if (error && error.status === 401) {
         swal.fire({
-          text: "Mã token đã hết hạn hoặc không hợp lệ, vui lòng đăng nhập lại!",
+          text: "Phiên đăng nhập đã hết hạn, vui lòng đăng nhập lại!",
           confirmButtonText: "OK",
         });
         store.commit("gologout");
@@ -657,7 +664,7 @@ const callbackFun = (obj) => {
   Object.keys(obj).forEach((k) => {
     smart_report.value[k] = obj[k];
   });
-
+ 
   let formData = new FormData();
   formData.append("smart_report", JSON.stringify(smart_report.value));
    
@@ -731,7 +738,7 @@ const delTem = (Tem) => {
             swal.close();
             if (error.status === 401) {
               swal.fire({
-                text: "Mã token đã hết hạn hoặc không hợp lệ, vui lòng đăng nhập lại!",
+                text: "Phiên đăng nhập đã hết hạn, vui lòng đăng nhập lại!",
                 confirmButtonText: "OK",
               });
             }
@@ -805,7 +812,7 @@ const loadDataSQL = () => {
       if (error && error.status === 401) {
         swal.fire({
           title: "Thông báo",
-          text: "Mã token đã hết hạn hoặc không hợp lệ, vui lòng đăng nhập lại!",
+          text: "Phiên đăng nhập đã hết hạn, vui lòng đăng nhập lại!",
           icon: "error",
           confirmButtonText: "OK",
         });
@@ -1084,7 +1091,7 @@ const initTuDien = () => {
             proc: "smart_proc_list",
             par: [
               { par: "pageno", va: options.value.PageNo },
-              { par: "pagesize", va: options.value.PageSize },
+              { par: "pagesize", va:  1000},
               { par: "user_id", va: store.getters.user.user_id },
               { par: "status", va: null },
             ],
@@ -1112,7 +1119,7 @@ const initTuDien = () => {
 
       if (error && error.status === 401) {
         swal.fire({
-          text: "Mã token đã hết hạn hoặc không hợp lệ, vui lòng đăng nhập lại!",
+          text: "Phiên đăng nhập đã hết hạn, vui lòng đăng nhập lại!",
           confirmButtonText: "OK",
         });
         store.commit("gologout");
@@ -1195,8 +1202,9 @@ const onFilterReportGr = () => {
   }
 };
 const  onChangRPGR=(item)=>{
-  if(item == 'Quyết định'){
-    smart_report.value.report_type=3;
+  if(liReportGroup.value.find(x=>x.name==item) )
+ {
+    smart_report.value.report_type=liReportGroup.value.find(x=>x.name==item).code;
   }
 }
 onMounted(() => {
@@ -1462,12 +1470,7 @@ onMounted(() => {
             v-tooltip.left="'Xem báo cáo'"
           ></Button>
           <div
-            v-if="
-              store.state.user.is_super == true ||
-              store.state.user.user_id == Tem.data.created_by ||
-              (store.state.user.role_id == 'admin' &&
-                store.state.user.organization_id == Tem.data.organization_id)
-            "
+       
           >
             <Button
               @click="editTem(Tem.data)"
@@ -1538,7 +1541,7 @@ onMounted(() => {
             }"
           />
         </div>
-        <div
+        <!-- <div
           style="display: flex"
           class="field col-12 p-0 md:col-12"
           v-if="
@@ -1553,11 +1556,11 @@ onMounted(() => {
                 .replace("is required", "không được để trống")
             }}</span>
           </small>
-        </div>
+        </div> -->
 
         <div class="col-12 field md:col-12 flex">
           <div class="col-6 md:col-6 p-0 align-items-center pr-1">
-            <div class="col-12 text-left p-0 pb-2">Nhóm báo cáo</div>
+            <div class="col-12 text-left p-0 pb-2">Nhóm báo cáo  <span class="redsao">(*)</span></div>
 
             <Dropdown
               v-model="smart_report.report_group"
@@ -1567,6 +1570,9 @@ onMounted(() => {
               optionValue="name"
               spellcheck="false"
               class="col-12 ip36"
+              :class="{
+              'p-invalid': smart_report.report_group==null && submitted,
+            }"
               @change="onChangRPGR(smart_report.report_group)"
             />
           </div>
@@ -1657,7 +1663,7 @@ onMounted(() => {
 
             <div class="col-12 field md:col-12 flex">
               <div class="col-6 md:col-6 p-0 align-items-center pr-1">
-                <div class="col-12 text-left p-0 pb-2">Thủ tục lấy dữ liệu</div>
+                <div class="col-12 text-left p-0 pb-2">Thủ tục lấy dữ liệu  <span class="redsao">(*)</span></div>
                 <div class="col-12 p-0 h-full">
                   <Dropdown
                     v-model="smart_report.proc_name1"
@@ -1666,21 +1672,25 @@ onMounted(() => {
                     optionValue="code"
                     class="w-full p-0"
                     style="height: auto; min-height: 36px"
+                    :class="{
+              'p-invalid': smart_report.proc_name1==null && submitted,
+            }"
                   />
                 </div>
               </div>
               <div class="col-6 md:col-6 p-0 align-items-center pl-1">
-                <div class="col-12 text-left p-0 pb-2">Chọn nhân sự mẫu</div>
+                <div class="col-12 text-left p-0 pb-2">Chọn nhân sự mẫu  <span class="redsao">(*)</span></div>
                 <div class="col-12 p-0">
                   <DropdownUser
                     :model="smart_report.profile_id"
                     :placeholder="'Chọn nhân sự'"
-                    :class="'w-full p-0'"
+                  
                     :editable="false"
                     optionLabel="profile_user_name"
                     optionValue="code"
                     :callbackFun="getProfileUser"
                     :key_user="'profile_id'"
+                    :class="   (smart_report.proc_name1==null && submitted)?      'p-invalid w-full p-0':' w-full p-0' "
                   />
                 </div>
               </div>
@@ -1689,7 +1699,7 @@ onMounted(() => {
             <div class="col-12 field md:col-12 flex" v-if="smart_report.report_type==3"  >
               <div class="col-6 p-0   align-items-center pr-1">
                 <div class="col-12 text-left p-0 pb-2">
-                  Thủ tục lấy danh sách hiển thị khi tra cứu
+                  Thủ tục lấy danh sách hiển thị khi tra cứu  <span class="redsao">(*)</span>
                 </div>
                 <Dropdown
                   v-model="smart_report.proc_get"
@@ -1698,6 +1708,8 @@ onMounted(() => {
                   optionValue="code"
                   placeholder="Chọn thủ tục lấy dữ liệu"
                   class="col-12 p-0"
+                  :class="   (smart_report.proc_get==null && submitted)?      'p-invalid w-full p-0':'' "
+               
                 />
               </div>
               <div class="col-6 p-0   align-items-center pl-1">
@@ -1726,6 +1738,8 @@ onMounted(() => {
                   optionValue="code"
                   placeholder="Chọn thủ tục lấy dữ liệu"
                   class="col-12 p-0"
+                  :class="   (smart_report.proc_get==null && submitted)?      'p-invalid w-full p-0':'' "
+               
                 />
           
              
