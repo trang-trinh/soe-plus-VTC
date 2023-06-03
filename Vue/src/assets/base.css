@@ -1365,10 +1365,10 @@ li.p-chips-token {
 .p-rowgroup-header td{
   width: 100%;
 }
-/* .p-sidebar-mask ,   .p-rowgroup-header   {
+/* .p-sidebar-mask ,p-rowgroup-header ,  .p-rowgroup-header   {
   display: none !important;
-}
-  */
+} */
+ 
 /* Style quan */
 .menu-request .red-text .p-menuitem-link .p-menuitem-icon,
 .menu-request .red-text .p-menuitem-link .p-menuitem-text {

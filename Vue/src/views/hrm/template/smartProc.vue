@@ -854,6 +854,9 @@ onMounted(() => {
               label="Thêm mới"
               icon="pi pi-plus"
               class="mr-2"
+              v-if="
+              store.state.user.is_super == true 
+            "
             />
             <Button
               @click="refreshStamp"
@@ -888,7 +891,9 @@ onMounted(() => {
           style="padding: 5px"
           @click="openBasicWRP(true)"
           icon="pi pi-plus-circle"
-     
+          v-if="
+              store.state.user.is_super == true 
+            "
           class="ml-1 p-button-text p-button-rounded  p-button-secondary"
         />
         </div>

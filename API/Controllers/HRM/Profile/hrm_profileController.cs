@@ -2833,72 +2833,39 @@ namespace API.Controllers.HRM.Profile
                                                 var exs = await db.hrm_profile.FirstOrDefaultAsync(x => x.profile_id == profile.profile_id);
                                                 if (exs != null)
                                                 {
-                                                    exs.profile_name = profile.profile_name;
-                                                    exs.profile_name_en = profile.profile_name_en;
-                                                    exs.profile_last_name = profile.profile_last_name;
-                                                    exs.profile_user_name = profile.profile_user_name;
-                                                    exs.identity_papers_code = profile.identity_papers_code;
-                                                    exs.identity_date_issue = profile.identity_date_issue;
-                                                    exs.identity_end_date_issue = profile.identity_end_date_issue;
-                                                    exs.identity_place_id = profile.identity_place_id;
-                                                    exs.tax_code = profile.tax_code;
-                                                    exs.gender = profile.gender;
-                                                    exs.birthday = profile.birthday;
-                                                    exs.ethnic_id = profile.ethnic_id;
-                                                    exs.religion_id = profile.religion_id;
-                                                    exs.nationality_id = profile.nationality_id;
-                                                    exs.bank_id = profile.bank_id;
-                                                    exs.bank_number = profile.bank_number;
-                                                    exs.bank_account = profile.bank_account;
-                                                    exs.place_permanent = profile.place_permanent;
-                                                    exs.place_residence_name = profile.place_residence_name;
-                                                    exs.birthplace_name = profile.birthplace_name;
-                                                    exs.birthplace_origin_name = profile.birthplace_origin_name;
-                                                    exs.place_register_permanent_first = profile.place_register_permanent_first;
-                                                    exs.place_register_permanent_name = profile.place_register_permanent_name;
-                                                    exs.involved_name = profile.involved_name;
-                                                    exs.involved_phone = profile.involved_phone;
-                                                    exs.involved_place = profile.involved_place;
-                                                    exs.relationship_id = profile.relationship_id;
-                                                    exs.profile_nick_name = profile.profile_nick_name;
-                                                    exs.email = profile.email;
-                                                    exs.phone = profile.phone;
-                                                    exs.seniority_year = profile.seniority_year;
-                                                    exs.seniority_month = profile.seniority_month;
-                                                    exs.recruitment_date = profile.recruitment_date;
-                                                    exs.cultural_level_id = profile.cultural_level_id;
-                                                    exs.political_theory_id = profile.political_theory_id;
-                                                    exs.informatic_level_id = profile.informatic_level_id;
-                                                    exs.language_level_id = profile.language_level_id;
-                                                    exs.management_state_id = profile.management_state_id;
-                                                    exs.is_partisan = profile.is_partisan;
-                                                    exs.card_partisan = profile.card_partisan;
-                                                    exs.partisan_date = profile.partisan_date;
-                                                    exs.partisan_main_date = profile.partisan_main_date;
-                                                    exs.partisan_branch = profile.partisan_branch;
-                                                    exs.military_start_date = profile.military_start_date;
-                                                    exs.military_end_date = profile.military_end_date;
-                                                    exs.military_rank = profile.military_rank;
-                                                    exs.military_title = profile.military_title;
-                                                    exs.military_veterans_rank = profile.military_veterans_rank;
-                                                    exs.mission_forte = profile.mission_forte;
-                                                    exs.biography_first = profile.biography_first;
-                                                    exs.biography_second = profile.biography_second;
-                                                    exs.biography_third = profile.biography_third;
-                                                    exs.salary_family = profile.salary_family;
-                                                    exs.salary_orther = profile.salary_orther;
-                                                    exs.type_rent = profile.type_rent;
-                                                    exs.area_level = profile.area_level;
-                                                    exs.type_house = profile.type_house;
-                                                    exs.area_buy = profile.area_buy;
-                                                    exs.area_granted = profile.area_granted;
-                                                    exs.area_buy_yourself = profile.area_buy_yourself;
-                                                    exs.note = profile.note;
+                                                    profile.profile_no = exs.profile_no;
+                                                    profile.profile_code = exs.profile_code;
+                                                    profile.profile_no = exs.profile_no;
+                                                    profile.superior_no = exs.superior_no;
+                                                    profile.key_id = exs.key_id;
+                                                    profile.is_star = exs.is_star;
+                                                    profile.is_order = exs.is_order;
+                                                    profile.status = exs.status;
+                                                    profile.created_by = exs.created_by;
+                                                    profile.created_date = exs.created_date;
+                                                    profile.created_ip = exs.created_ip;
+                                                    profile.created_token_id = exs.created_token_id;
+                                                    profile.modified_by = uid;
+                                                    profile.modified_date = DateTime.Now;
+                                                    profile.modified_ip = ip;
+                                                    profile.modified_token_id = tid;
+
+                                                    Type typeAA = typeof(hrm_profile);
+                                                    Type typeBB = typeof(hrm_profile);
+                                                    foreach (var propertyA in typeAA.GetProperties())
+                                                    {
+                                                        var propertyB = typeBB.GetProperty(propertyA.Name);
+                                                        if (propertyB != null && propertyB.PropertyType == propertyA.PropertyType)
+                                                        {
+                                                            propertyB.SetValue(exs, propertyA.GetValue(profile));
+                                                        }
+                                                    }
                                                 }
                                                 else
                                                 {
                                                     profile.profile_id = helper.GenKey();
                                                     profile.organization_id = user_now.organization_id;
+                                                    profile.status = 0;
                                                     profiles.Add(profile);
                                                 }
                                                 var exss = await db.hrm_profile_health.FirstOrDefaultAsync(x => x.profile_id == profile.profile_id);
@@ -2966,11 +2933,18 @@ namespace API.Controllers.HRM.Profile
 
                                                                 break;
                                                             case "4":
+                                                                var listparent_id = db.sys_organization.FirstOrDefault(x => x.organization_id == assignment.organization_id)?.listparent_id ?? null;
                                                                 var department_name = value;
-                                                                var department_exists = await db.sys_organization.FirstOrDefaultAsync(x => x.organization_key == department_name && x.organization_type == 1 && (x.organization_id == assignment.organization_id || x.parent_id == assignment.organization_id));
+                                                                var department_exists = await db.sys_organization.FirstOrDefaultAsync(x => x.organization_key == department_name && x.organization_type == 1 && listparent_id != null && x.listparent_id.Contains(listparent_id));
                                                                 if (department_exists != null)
                                                                 {
                                                                     assignment.department_id = department_exists.organization_id;
+                                                                    assignment.department_names = value;
+                                                                    var ps = await db.hrm_profile.FirstOrDefaultAsync(x => x.profile_id == assignment.profile_id);
+                                                                    if (ps != null)
+                                                                    {
+                                                                        ps.id_department = assignment.department_id;
+                                                                    }
                                                                 }
                                                                 break;
                                                             case "5":
@@ -2979,6 +2953,7 @@ namespace API.Controllers.HRM.Profile
                                                                 if (position_exists != null)
                                                                 {
                                                                     assignment.position_id = position_exists.position_id;
+                                                                    assignment.position_names = value;
                                                                 }
                                                                 break;
                                                             case "6":
@@ -2987,6 +2962,7 @@ namespace API.Controllers.HRM.Profile
                                                                 if (title_exists != null)
                                                                 {
                                                                     assignment.title_id = title_exists.title_id;
+                                                                    assignment.title_names = value;
                                                                 }
                                                                 break;
                                                             case "7":
@@ -2995,6 +2971,7 @@ namespace API.Controllers.HRM.Profile
                                                                 if (personel_groups_exists != null)
                                                                 {
                                                                     assignment.personel_groups_id = personel_groups_exists.personel_groups_id;
+                                                                    assignment.personel_groups_names = value;
                                                                 }
                                                                 break;
                                                             case "8":
@@ -3217,6 +3194,7 @@ namespace API.Controllers.HRM.Profile
                                                                 if (relationship_exists != null)
                                                                 {
                                                                     relative.relationship_id = relationship_exists.relationship_id;
+                                                                    relative.relationship_names = value;
                                                                 }
                                                                 break;
                                                             case "5":
@@ -3419,6 +3397,7 @@ namespace API.Controllers.HRM.Profile
                                                                 if (academic_level_exists != null)
                                                                 {
                                                                     skill.academic_level_id = academic_level_exists.academic_level_id;
+                                                                    skill.academic_level_names = value;
                                                                 }
                                                                 break;
                                                             case "7":
@@ -3430,6 +3409,7 @@ namespace API.Controllers.HRM.Profile
                                                                 if (specialization_exists != null)
                                                                 {
                                                                     skill.specialized = specialization_exists.specialization_id;
+                                                                    skill.specialized_names = value;
                                                                 }
                                                                 break;
                                                             case "9":
@@ -3441,6 +3421,7 @@ namespace API.Controllers.HRM.Profile
                                                                 if (form_traning_exists != null)
                                                                 {
                                                                     skill.form_traning_id = form_traning_exists.form_traning_id;
+                                                                    skill.form_traning_names = value;
                                                                 }
                                                                 break;
                                                             case "11":
@@ -3455,6 +3436,7 @@ namespace API.Controllers.HRM.Profile
                                                                 if (certificat_exists != null)
                                                                 {
                                                                     skill.certificate_id = certificat_exists.certificate_id;
+                                                                    skill.certificate_names = value;
                                                                 }
                                                                 break;
                                                             case "14":
@@ -3825,7 +3807,7 @@ namespace API.Controllers.HRM.Profile
             }
         }
         [HttpPost]
-        public async Task<HttpResponseMessage> PostProc([System.Web.Mvc.Bind(Include = "")][FromBody] JObject data)
+        public async Task<HttpResponseMessage> PostProc([System.Web.Mvc.Bind(Include = "str")][FromBody] JObject data)
         {
             string strSQL = data["str"].ToObject<string>();
             strSQL = Codec.DecryptString(strSQL, helper.psKey);

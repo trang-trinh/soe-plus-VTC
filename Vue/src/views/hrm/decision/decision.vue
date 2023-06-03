@@ -20,7 +20,7 @@ const config = {
 const toast = useToast();
 const cryoptojs = inject("cryptojs");
 const basedomainURL = baseURL;
-
+const checkIsEdit = ref(true);
 //Declare
 const isFilter = ref(false);
 const tabs = ref([
@@ -76,8 +76,7 @@ const liquidations = ref([
 const visibleSidebarDoc = ref(false);
 const report = ref({ datadic: null });
 const selectedNodes = ref({});
-const selectedKeys = ref([]);
-const expandedKeys = ref([]);
+
 const isFirst = ref(true);
 const datas = ref([]);
 const counts = ref([]);
@@ -101,9 +100,10 @@ const itemButMores = ref([
     },
   },
   {
-    label: "In quyết định",
+    label: "Cấu hình quyết định",
     icon: "pi pi-print",
     command: (event) => {
+      checkIsEdit.value = true;
       openDialogFrame(decision.value);
     },
   },
@@ -118,6 +118,72 @@ const itemButMores = ref([
 const toggleMores = (event, item) => {
   decision.value = item;
   decision.value.isEdit = true;
+  if (item.status == 1) {
+    itemButMores.value = [
+      {
+        label: "Hiệu chỉnh nội dung",
+        icon: "pi pi-pencil",
+        command: (event) => {
+          editItem(decision.value, "Chỉnh sửa quyết định");
+        },
+      },
+      {
+        label: "Nhân bản quyết định",
+        icon: "pi pi-copy",
+        command: (event) => {
+          copyItem(decision.value, "Nhân bản quyết định");
+        },
+      },
+      {
+        label: "In quyết định",
+        icon: "pi pi-print",
+        command: (event) => {
+          checkIsEdit.value = false;
+          openDialogFrame(decision.value);
+        },
+      },
+      {
+        label: "Xoá",
+        icon: "pi pi-trash",
+        command: (event) => {
+          deleteItem(decision.value);
+        },
+      },
+    ];
+  } else {
+    itemButMores.value = [
+      {
+        label: "Hiệu chỉnh nội dung",
+        icon: "pi pi-pencil",
+        command: (event) => {
+          editItem(decision.value, "Chỉnh sửa quyết định");
+        },
+      },
+      {
+        label: "Nhân bản quyết định",
+        icon: "pi pi-copy",
+        command: (event) => {
+          copyItem(decision.value, "Nhân bản quyết định");
+        },
+      },
+      {
+        label: "Cấu hình quyết định",
+        icon: "pi pi-cog",
+        command: (event) => {
+          checkIsEdit.value = true;
+
+          configQuyetdinh(decision.value);
+        },
+      },
+      {
+        label: "Xoá",
+        icon: "pi pi-trash",
+        command: (event) => {
+          deleteItem(decision.value);
+        },
+      },
+    ];
+  }
   menuButMores.value.toggle(event);
   selectedNodes.value = item;
   options.value["filterContract_id"] = selectedNodes.value["decision_id"];
@@ -128,6 +194,7 @@ const toggleMores = (event, item) => {
 // });
 
 const configQuyetdinh = async (row) => {
+  debugger
   let strSQL = {
     query: false,
     proc: "hrm_decision_config",
@@ -157,7 +224,7 @@ const configQuyetdinh = async (row) => {
       headers: { Authorization: `Bearer ${store.getters.token}` },
     }
   );
- 
+
   if (axResponse.status == 200) {
     if (axResponse.data.error) {
       toast.error("Không mở được bản ghi");
@@ -392,7 +459,7 @@ const displayDialogFrame = ref(false);
 const openDialogFrame = (item) => {
   forceRerender(1);
   headerDialogFrame.value = "Thông tin quyết định";
-  configQuyetdinh(item);
+
   displayDialogFrame.value = true;
 };
 const closeDialogFrame = () => {
@@ -408,7 +475,6 @@ const saveDGQuyetdinhUser = async (r) => {
     query: false,
     proc: "decision_user_add",
     par: [
- 
       { par: "decision_id", va: decision.value.decision_id },
       { par: "profile_id", va: r.profile_id },
       { par: "is_data", va: JSON.stringify(r.is_data) },
@@ -429,7 +495,7 @@ const saveDGQuyetdinhUser = async (r) => {
       }
     );
     if (axResponse.status == 200) {
-    }  
+    }
   } catch (e) {
     console.log(e);
   }
@@ -445,33 +511,35 @@ const displayDialog = ref(false);
 const files = ref([]);
 const type_decision = ref({});
 const openAddDialog = (type, str) => {
+   
   type_decision.value = type;
   forceRerender(0);
   isAdd.value = true;
   isCopy.value = false;
-  model.value = {
-    type_decision_id: type.type_decision_id,
-    type_decision_code: type.type_decision_code,
-    profile: null,
-    sign_user: null,
-    contract_code: "",
-    contract_name: "",
-    employment:
-      dictionarys.value[0] != null ? dictionarys.value[0][0].address : "",
-    start_date: new Date(),
-    sign_date: new Date(),
-    status: 0,
-    is_order: options.value.total + 1,
-    allowances: [
-      {
-        allowance_id: CreateGuid(),
-        start_date: new Date(),
-        formalitys: [{}],
-        wages: [{}],
-      },
-    ],
-    files: [],
-  };
+  // decision.value = {
+  //   type_decision_id: type.type_decision_id,
+  //   type_decision_code: type.type_decision_code,
+  //   report_key: type.report_key,
+  //   profile: null,
+  //   sign_user: null,
+  //   contract_code: "",
+  //   contract_name: "",
+  //   employment:
+  //     dictionarys.value[0] != null ? dictionarys.value[0][0].address : "",
+  //   start_date: new Date(),
+  //   sign_date: new Date(),
+  //   status: 0,
+  //   is_order: options.value.total + 1,
+  //   allowances: [
+  //     {
+  //       allowance_id: CreateGuid(),
+  //       start_date: new Date(),
+  //       formalitys: [{}],
+  //       wages: [{}],
+  //     },
+  //   ],
+  //   files: [],
+  // };
   headerDialog.value = str;
   displayDialog.value = true;
 };
@@ -909,7 +977,7 @@ const initDictionary = () => {
                 label: item.type_decision_name,
                 icon: "pi pi-plus",
                 command: (event) => {
-                  openAddDialog(item, "Thêm mới quyết định");
+                  openAddDialog(item, "Thêm mới " + item.type_decision_name);
                 },
               });
             });
@@ -1393,7 +1461,7 @@ onMounted(() => {
     </template>
     <div style="padding: 0 20px">
       <DocComponent
-        :isedit="true"
+        :isedit="checkIsEdit"
         :report="report"
         :callbackFun="callbackFun"
         :readonly="true"
@@ -1412,14 +1480,14 @@ onMounted(() => {
     :decision="decision"
     :initData="initData"
   />
-  <!-- <framepreview
+  <framepreview
     :key="componentKey['1']"
     :headerDialog="headerDialogFrame"
     :displayDialog="displayDialogFrame"
     :closeDialog="closeDialogFrame"
     :type="3"
     :model="decision"
-  /> -->
+  />
   <Dialog
     :header="headerDialogLiquidation"
     v-model:visible="displayDialogLiquidation"

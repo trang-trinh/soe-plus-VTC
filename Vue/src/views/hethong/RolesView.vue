@@ -514,8 +514,10 @@ const renderTreeDV = (data, id, name, title) => {
   });
   return { arrChils: arrChils, arrtreeChils: arrtreeChils };
 };
+const check_edit_config_permission = ref();
 const configRole = (md, type) => {
   debugger
+  check_edit_config_permission.value = md.is_me;
   swal.fire({
     width: 110,
     didOpen: () => {
@@ -803,22 +805,20 @@ const handleSubmit = (isFormValid) => {
       confirmButtonText: "OK",
     });
   }
+  role.value.organization_id = store.getters.user.organization_id;
   if (store.getters.user.is_super) {
     role.value.is_system = true;
     role.value.is_organization = false;
-    role.value.organization_id = null;
     role.value.department_id = null;
   }
   else if (!store.getters.user.is_admin_child) {
     role.value.is_system = false;
     role.value.is_organization = true;
-    role.value.organization_id = store.getters.user.organization_child_id;
     role.value.organization_child_id = null;
   }
   else {
     role.value.is_system = false;
     role.value.is_organization = false;
-    role.value.organization_id = store.getters.user.organization_id;
     role.value.organization_child_id = store.getters.user.organization_child_id;
   }
   addRole();
@@ -1347,10 +1347,7 @@ onMounted(() => {
         bodyStyle="text-align:center;max-width:150px">
         <template #header> </template>
         <template #body="md">
-          <div v-if="(md.data.is_system && store.getters.user.is_super)
-            || (md.data.is_organization && !!store.getters.user.is_admin_child)
-            || (!md.data.is_system && !md.data.is_organization && (md.data.organization_child_id == store.getters.user.organization_child_id))
-            ">
+          <div v-if="md.data.is_me == 1">
             <Button type="button" icon="pi pi-key" class="p-button-rounded p-button-secondary p-button-outlined"
               style="margin-right: 0.5rem" v-tooltip.top="'Phân quyền'" @click="configRole(md.data, 1)"></Button>
             <Button type="button" icon="pi pi-pencil" class="p-button-rounded p-button-secondary p-button-outlined"
@@ -1666,7 +1663,7 @@ onMounted(() => {
     </TreeTable>
     <template #footer>
       <Button label="Huỷ" icon="pi pi-times" @click="closedisplayConfigRole" class="p-button-raised p-button-secondary" />
-      <Button label="Cập nhật" icon="pi pi-save" @click="addConfigRole" />
+      <Button v-if="check_edit_config_permission== 1" label="Cập nhật" icon="pi pi-save" @click="addConfigRole" />
     </template>
   </Dialog>
   <Dialog header="Quyền cho người dùng" v-model:visible="isViewPhanQuen" :style="{ width: '1150px', zIndex: 100 }"

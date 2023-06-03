@@ -107,6 +107,7 @@ export default {
         proc: sql || txtSQL.value,
       };
       console.log(strSQL);
+
       swal.fire({
         width: 110,
         didOpen: () => {
@@ -129,41 +130,105 @@ export default {
         } else {
           dtTables.value = [];
           let dts = JSON.parse(axResponse.data.data);
-          dts.forEach((dt, i) => {
-            dt.forEach((r) => {
-              if (r.is_data && r.is_data != "null") {
-                r.is_data = JSON.parse(r.is_data);
-                Object.keys(r.is_data[0]).forEach((k) => {
-                  r[k] = r.is_data[0][k];
+          let check = true;
+          if (dts.length > 0) {
+            dts.forEach((dt, i) => {
+              if (dt.length > 0) {
+                dt.forEach((r) => {
+                  if (r.is_data && r.is_data != "null") {
+                    r.is_data = JSON.parse(r.is_data);
+                    Object.keys(r.is_data[0]).forEach((k) => {
+                      r[k] = r.is_data[0][k];
+                    });
+                  }
+                  delete r.is_data;
                 });
+                let o = {
+                  table_id: mdProc.value ? mdProc.value.proc_name : "",
+                  table_name: "Bảng " + i,
+                  stt: i,
+                  isproc: true,
+                  cols: [],
+                };
+
+                Object.keys(dt[0]).forEach((k) => {
+                  o.cols.push({
+                    table_id: props.report.proc_name,
+                    column_id: k,
+                    column_title: dt[0][k],
+                    column_type: "",
+                  });
+                });
+                dtTables.value.push(o);
+              } else if (props.report.report_type == 3) {
+                check = false;
+                decision_config();
               }
-              delete r.is_data;
             });
-            let o = {
-              table_id: mdProc.value ? mdProc.value.proc_name : "",
-              table_name: "Bảng " + i,
-              stt: i,
-              isproc: true,
-              cols: [],
-            };
-            if (dt.length > 0)
-              Object.keys(dt[0]).forEach((k) => {
-                o.cols.push({
-                  table_id: props.report.proc_name,
-                  column_id: k,
-                  column_title: dt[0][k],
-                  column_type: "",
-                });
-              });
-            dtTables.value.push(o);
-          });
-          mdTable.value = dtTables.value.filter(
-            (x) => x.stt == (props.group.tid || props.group.key || 0)
-          )[0];
-          if (!mdTable.value) mdTable.value = dtTables.value[0];
+          } else if (props.report.report_type == 3) {
+            console.log("sosa");
+          }
+          if (check) {
+            mdTable.value = dtTables.value.filter(
+              (x) => x.stt == (props.group.tid || props.group.key || 0)
+            )[0];
+            if (!mdTable.value) mdTable.value = dtTables.value[0];
+          }
         }
       }
       swal.close();
+    };
+    const decision_config = async () => {
+      let strSQL = {
+        query: false,
+        proc: "smartreport_decision_config",
+        par: [
+          {
+            par: "user_id",
+            va: "",
+          },
+        ],
+      };
+      console.log(strSQL);
+
+      const axResponseCF = await axios.post(
+        baseURL + "/api/HRM_SQL/getData",
+        {
+          str: encr(JSON.stringify(strSQL), SecretKey, cryoptojs).toString(),
+        },
+        {
+          headers: { Authorization: `Bearer ${store.getters.token}` },
+        }
+      );
+
+      if (axResponseCF.status == 200) {
+        if (axResponseCF.data.error) {
+        } else {
+          let dt = JSON.parse(axResponseCF.data.data)[0];
+          if (dt.length > 0) {
+            let o = {
+              table_id: mdProc.value ? mdProc.value.proc_name : "",
+              table_name: "Bảng 0",
+              stt: 0,
+              isproc: true,
+              cols: [],
+            };
+            dt.forEach((k) => {
+              o.cols.push({
+                table_id: props.report.proc_name,
+                column_id: k.column_id,
+                column_title: k.column_title,
+                column_type: "",
+              });
+            });
+            dtTables.value.push(o);
+          }
+          mdTable.value = dtTables.value.filter(
+              (x) => x.stt == (props.group.tid || props.group.key || 0)
+            )[0];
+            if (!mdTable.value) mdTable.value = dtTables.value[0];
+        }
+      }
     };
     const searchCols = (s) => {
       // if (s) {
@@ -211,7 +276,7 @@ export default {
               props.report.report_config.trim() != ""
             ) {
               let objConfig = JSON.parse(props.report.report_config);
-     
+
               if (objConfig && Object.entries(objConfig.proc).length > 0) {
                 dtPars.value = objConfig.proc.parameters;
                 txtSQL.value = objConfig.proc.sql;
@@ -234,6 +299,7 @@ export default {
     };
     const saveDatabase = () => {
       var tbchons = [];
+
       let arrChons = dtTables.value.filter((x) => x.chon);
       if (arrChons.length == 0) arrChons = [mdTable.value];
       arrChons.forEach((tb) => {
@@ -520,7 +586,7 @@ export default {
         tp.id = "data-" + stt;
         objDataTemp.value.push(obj);
       });
-      //
+
       if (dochtml)
         dochtml.querySelectorAll("table").forEach((etb, i) => {
           if (
@@ -590,7 +656,7 @@ export default {
         return false;
       }
     };
-     
+
     const initdbXLS = () => {
       dochtml.querySelectorAll("tr.tablecell>td.thcell").forEach((th, i) => {
         if (th.innerText.trim() != "") {
@@ -625,14 +691,14 @@ export default {
         );
         let tn = null;
         if (th) {
-          tn=element.innerText;
+          tn = element.innerText;
           if (th.getAttribute("tname")) {
             tn = th.getAttribute("tname") + " (" + tn + ")";
           }
         }
         mdTable.value.cols.push({ column_id: tn, column_title: "" });
       });
-       
+
       showLoadding.value = false;
     };
 
@@ -695,12 +761,13 @@ export default {
           size="small"
           :label="tb.stt.toString()"
           @click="goTableProc(tb)"
-          :severity="mdTable.stt == tb.stt ? 'info' : 'secondary'"
+          :class="
+            mdTable.stt == tb.stt ? 'p-button-info' : 'p-button-secondary'
+          "
           v-for="tb in dtTables"
         />
         <div class="flex-1"></div>
         <span>
-         
           <FileUpload
             chooseLabel="Import Excel"
             class="mr-1"
@@ -734,7 +801,7 @@ export default {
         {{ slotProps.data.column_id }}
       </template>
     </Column>
-    <Column header="Ví dụ">
+    <Column header="Mô tả">
       <template #body="slotProps">
         {{ slotProps.data.column_title }}
       </template>
@@ -749,4 +816,4 @@ export default {
     @contextmenu="onRightClick"
   ></div>
 </template>
-<style lang="scss" scoped></style>
+ 

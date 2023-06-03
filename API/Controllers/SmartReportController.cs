@@ -34,7 +34,7 @@ namespace API.Controllers
 
         [HttpPost]
         //public async Task<HttpResponseMessage> PostProc([FromBody] string strSQL)
-        public async Task<HttpResponseMessage> PostProc([FromBody] JObject data)
+        public async Task<HttpResponseMessage> PostProc([System.Web.Mvc.Bind(Include = "str")][FromBody] JObject data)
         {
             string strSQL = data["str"].ToObject<string>();
             strSQL = Codec.DecryptString(strSQL, ConfigurationManager.AppSettings["EncriptKey"]!.ToString());
@@ -428,19 +428,27 @@ namespace API.Controllers
         }
         //[HttpPost("ConvertFileXLSX")]
         [HttpPost]
-        public async Task<HttpResponseMessage> ConvertFileXLSX([FromBody] string html)
+        //public async Task<HttpResponseMessage> ConvertFileXLSX([FromBody] string html)
+        public async Task<HttpResponseMessage> ConvertFileXLSX([FromBody] JObject data)
         {
-
+            string html = data["html"].ToObject<string>();
+            string filename = data["filename"].ToObject<string>();
+            var fileName = filename + DateTime.Now.ToString("ddMMyyyy_HHmmss");
             try
             {
                 //var filePathHTML = Path.Combine(Directory.GetCurrentDirectory(), @"wwwroot/Portals", "doc.html");
                 //var filePath = Path.Combine(Directory.GetCurrentDirectory(), @"wwwroot/Portals", "doc.xlsx");
-                var filePathHTML = Path.Combine(AppDomain.CurrentDomain.BaseDirectory, "Portals", "doc.html");
-                var filePath = Path.Combine(AppDomain.CurrentDomain.BaseDirectory, "Portals", "doc.xlsx");
+                var filePathHTML = Path.Combine(AppDomain.CurrentDomain.BaseDirectory, "Portals", fileName + ".html");
+                var filePath = Path.Combine(AppDomain.CurrentDomain.BaseDirectory, "Portals", fileName + ".xlsx");
                 System.IO.File.WriteAllText(filePathHTML, html);
                 SpreadsheetInfo.SetLicense("FREE-LIMITED-KEY");
                 ExcelFile.Load(filePathHTML).Save(filePath);
-                return Request.CreateResponse(HttpStatusCode.OK, new { err = "0", filePath });
+                if (File.Exists(filePathHTML))
+                {
+                    File.Delete(filePathHTML);
+                }
+                //return Request.CreateResponse(HttpStatusCode.OK, new { err = "0", filePath });
+                return Request.CreateResponse(HttpStatusCode.OK, new { err = "0", filePath, fileName });
             }
             catch (Exception e)
             {
