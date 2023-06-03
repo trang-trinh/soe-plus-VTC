@@ -832,28 +832,28 @@ const router = createRouter({
     },
     //Task
     {
-      path: "/system/project/task",
+      path: "/error/project/task",
       name: "task/project",
       component: Task,
     },
 
     {
-      path: "/system/taskgroup",
+      path: "/error/taskgroup",
       name: "taskgroupSASS",
       component: TaskGroup,
     },
     {
-      path: "/system/taskcheck",
+      path: "/error/taskcheck",
       name: "taskcheck",
       component: TaskCheck,
     },
     {
-      path: "/system/taskreport/mainreport",
+      path: "/error/taskreport/mainreport",
       name: "mainreport",
       component: MainReport,
     },
     {
-      path: "/system/taskreport/checklistreport",
+      path: "/error/taskreport/checklistreport",
       name: "checklistreport",
       component: CheckListReport,
     },

@@ -819,6 +819,20 @@ const delRow_Item = (item, type) => {
 };
 //Thêm bản ghi
 const listTrainingGroups = ref([]);
+// Tráng update code
+// Hình thức đào tạo
+const listTrainingTypes = ref([
+  {value: 0, text: 'Online'},
+  {value: 1, text: 'Offline'},
+])
+// list văn bằng
+const listTrainingDiplomas = ref([
+  {value: 0, text: 'Cấp bằng'},
+  {value: 1, text: 'Chứng chỉ'},
+  {value: 2, text: 'Giấy chứng nhận'},
+])
+
+//end
 onMounted(() => {
   if (props.displayBasic) {
     loadUserProfiles();
@@ -1395,6 +1409,76 @@ onMounted(() => {
             </div>
           </div>
         </div>
+        <div class="col-12 field p-0 flex">
+          <div class="col-6 p-0 flex text-left align-items-center">
+            <div class="w-10rem">Hình thức đào tạo</div>
+            <div style="width: calc(100% - 10rem)">
+              <Dropdown
+                v-model="training_emps.training_type"
+                :options="listTrainingTypes"
+                optionLabel="text"
+                optionValue="value"
+                placeholder="----- Chọn hình thức đào tạo -----"
+                class="sel-placeholder w-full"
+                panelClass="d-design-dropdown"
+              />
+            </div>
+          </div>
+          <div class="col-6 p-0 flex text-left align-items-center">
+            <div class="w-10rem pl-3">Văn bằng</div>
+            <div style="width: calc(100% - 10rem)">
+              <Dropdown
+                v-model="training_emps.training_diploma"
+                :options="listTrainingDiplomas"
+                optionLabel="text"
+                optionValue="value"
+                placeholder="----- Chọn văn bằng đào tạo -----"
+                class="sel-placeholder w-full"
+                panelClass="d-design-dropdown"
+              />
+            </div>
+          </div>
+        </div>
+        <div class="col-12 field p-0 flex">
+          <div class="col-12 p-0 flex text-left align-items-center">
+            <div class="w-10rem">Ghi chú</div>
+            <div style="width: calc(100% - 10rem)">
+              <Textarea
+                  :autoResize="true"
+                  rows="1"
+                  cols="30"
+                  v-model="training_emps.training_note"
+                  class="w-full"
+                  :style="
+                    training_emps.training_note
+                      ? 'background-color:white !important'
+                      : ''
+                  "
+                  placeholder="Nhập ghi chú"
+                />
+            </div>
+          </div>
+        </div>
+        <div class="col-12 field p-0 flex">
+          <div class="col-12 p-0 flex text-left align-items-center">
+            <div class="w-10rem">Mục đích</div>
+            <div style="width: calc(100% - 10rem)">
+              <Textarea
+                  :autoResize="true"
+                  rows="1"
+                  cols="30"
+                  v-model="training_emps.training_target"
+                  class="w-full"
+                  :style="
+                    training_emps.training_target
+                      ? 'background-color:white !important'
+                      : ''
+                  "
+                  placeholder="Nhập mục đích"
+                />
+            </div>
+          </div>
+        </div>
         <div class="col-12 p-0 border-1 border-300 border-solid">
           <div class="w-full surface-100 flex border-bottom-1 border-200">
             <div
@@ -1602,7 +1686,6 @@ onMounted(() => {
                                     <span v-else>{{
                                       slotProps.option.profile_code
                                     }}</span>
-
                                     <span
                                       v-if="slotProps.option.department_name"
                                     >
@@ -1620,6 +1703,54 @@ onMounted(() => {
                         </template>
                       </Dropdown>
                     </div>
+                  </template>
+                </Column>
+                <Column
+                  field=""
+                  header="Điểm"
+                  headerStyle="text-align:center;width:200px;height:50px"
+                  bodyStyle="text-align:center;width:200px;"
+                  class="align-items-center justify-content-center text-center"
+                >
+                  <template #body="slotProps">
+                    <InputNumber
+                      spellcheck="false"
+                      class="w-full h-full d-design-it"
+                      style="width: 170px;text-align: center;"
+                      v-model="slotProps.data.point"
+                    />
+                  </template>
+                </Column>
+                <Column
+                  field=""
+                  header="Đánh giá"
+                  headerStyle="text-align:center;width:200px;height:50px"
+                  bodyStyle="text-align:center;width:200px;"
+                  class="align-items-center justify-content-center text-center"
+                >
+                  <template #body="slotProps">
+                    <InputText
+                      spellcheck="false"
+                      class="w-full h-full d-design-it"
+                      style="width: 170px"
+                      v-model="slotProps.data.evaluate"
+                    />
+                  </template>
+                </Column>
+                <Column
+                  field=""
+                  header="Nhận xét"
+                  headerStyle="text-align:center;width:200px;height:50px"
+                  bodyStyle="text-align:center;width:200px;"
+                  class="align-items-center justify-content-center text-center"
+                >
+                  <template #body="slotProps">
+                    <InputText
+                      spellcheck="false"
+                      class="w-full h-full d-design-it"
+                      style="width: 170px"
+                      v-model="slotProps.data.comment"
+                    />
                   </template>
                 </Column>
                 <Column

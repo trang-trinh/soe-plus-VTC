@@ -101,9 +101,11 @@ const loadData = (rf) => {
         if (isFirst.value) isFirst.value = false;
         data.forEach((element, i) => {
           element.STT = options.value.PageNo * options.value.PageSize + i + 1;
- 
-          if(element.report_key){
-            element.report_key_name= listTypeContractSave.value.find(x=>x.report_key==element.report_key).report_name;
+
+          if (element.report_key) {
+            element.report_key_name = listTypeContractSave.value.find(
+              (x) => x.report_key == element.report_key
+            ).report_name;
           }
         });
         datalists.value = data;
@@ -235,7 +237,7 @@ const saveData = (isFormValid) => {
     let file = filesList.value[i];
     formData.append("image", file);
   }
- 
+
   formData.append("hrm_files", JSON.stringify(listFilesS.value));
   formData.append("hrm_ca_type_decision", JSON.stringify(type_decision.value));
   swal.fire({
@@ -762,7 +764,7 @@ const onUploadFile = (event) => {
 const removeFile = (event) => {
   filesList.value = filesList.value.filter((a) => a != event.file);
 };
-const  listTypeContractSave=ref([]);
+const listTypeContractSave = ref([]);
 const initTuDien = () => {
   listTypeContract.value = [];
   axios
@@ -790,8 +792,8 @@ const initTuDien = () => {
           arrGroups.push(element.report_group);
         }
       });
-       
-      listTypeContractSave.value=[...data]
+
+      listTypeContractSave.value = [...data];
       arrGroups.forEach((item) => {
         var ardf = {
           label: item,
@@ -802,11 +804,9 @@ const initTuDien = () => {
           .forEach((z) => {
             ardf.items.push({ label: z.report_name, value: z.report_key });
           });
-          listTypeContract.value.push(ardf);
-
-
+        listTypeContract.value.push(ardf);
       });
-  loadData(true);
+      loadData(true);
       options.value.loading = false;
     })
     .catch((error) => {
@@ -996,7 +996,8 @@ onMounted(() => {
         class="align-items-center justify-content-center text-center"
         headerStyle="text-align:center;max-width:70px;height:50px"
         bodyStyle="text-align:center;max-width:70px"
-         selectionMode="multiple"  v-if="store.getters.user.is_super==true"
+        selectionMode="multiple"
+        v-if="store.getters.user.is_super == true"
       >
       </Column>
 
@@ -1032,7 +1033,6 @@ onMounted(() => {
         bodyStyle="text-align:center;max-width:300px;;max-height:60px"
         class="align-items-center justify-content-center text-center"
       >
-        
       </Column>
       <Column
         field="status"
@@ -1056,7 +1056,7 @@ onMounted(() => {
             @click="onCheckBox(data.data, true, true)"
           /> </template
       ></Column>
-      <Column
+      <!-- <Column
         field="organization_id"
         header="Hệ thống"
         headerStyle="text-align:center;max-width:125px;height:50px"
@@ -1069,7 +1069,7 @@ onMounted(() => {
           </div>
           <div v-else></div>
         </template>
-      </Column>
+      </Column> -->
       <Column
         header="Chức năng"
         class="align-items-center justify-content-center text-center"
@@ -1157,22 +1157,22 @@ onMounted(() => {
             }}</span>
           </small>
         </div>
-        <div class="col-12 field md:col-12 flex  ">
-          <div
-            class="field col-6 md:col-6 p-0 align-items-center flex"
-          
-          >
+        <div class="col-12 field md:col-12 flex">
+          <div class="field col-6 md:col-6 p-0 align-items-center flex">
             <div class="col-6 text-left p-0">Gửi nhiều</div>
-            <InputSwitch v-model="type_decision.is_multiple" class="w-4rem lck-checked" />
+            <InputSwitch
+              v-model="type_decision.is_multiple"
+              class="w-4rem lck-checked"
+            />
           </div>
           <div class="field col-6 md:col-6 p-0 align-items-center flex">
             <div class="col-6 text-center p-0">Trạng thái</div>
             <InputSwitch
-              v-model="type_decision.status" class="w-4rem lck-checked"
+              v-model="type_decision.status"
+              class="w-4rem lck-checked"
               :disabled="checkDisabled"
             />
           </div>
-        
         </div>
         <div class="col-12 field md:col-12 flex">
           <div class="field col-6 md:col-6 p-0 align-items-center flex">
@@ -1183,13 +1183,16 @@ onMounted(() => {
               :disabled="checkDisabled"
             />
           </div>
-        
+
           <div
             class="field col-6 md:col-6 p-0 align-items-center flex"
             v-if="store.getters.user.is_super"
           >
             <div class="col-6 text-center p-0">Hệ thống</div>
-            <InputSwitch v-model="type_decision.is_system"  class="w-4rem lck-checked"/>
+            <InputSwitch
+              v-model="type_decision.is_system"
+              class="w-4rem lck-checked"
+            />
           </div>
         </div>
         <div class="field col-12 md:col-12">
@@ -1200,14 +1203,14 @@ onMounted(() => {
             :options="listTypeContract"
             optionLabel="label"
             optionValue="value"
-            optionGroupLabel="label" optionGroupChildren="items"
+            optionGroupLabel="label"
+            optionGroupChildren="items"
             class="col-9"
             panelClass="d-design-dropdown"
             placeholder="Chọn mẫu quyết định"
-      
           />
         </div>
-         </div>
+      </div>
     </form>
     <template #footer>
       <Button

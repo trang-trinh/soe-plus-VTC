@@ -194,6 +194,7 @@ const toggleMores = (event, item) => {
 // });
 
 const configQuyetdinh = async (row) => {
+  debugger
   let strSQL = {
     query: false,
     proc: "hrm_decision_config",
@@ -976,7 +977,7 @@ const initDictionary = () => {
                 label: item.type_decision_name,
                 icon: "pi pi-plus",
                 command: (event) => {
-                  openAddDialog(item, "Thêm mới quyết định");
+                  openAddDialog(item, "Thêm mới " + item.type_decision_name);
                 },
               });
             });
