@@ -4,7 +4,7 @@ import { useToast } from "vue-toastification";
 import { required } from "@vuelidate/validators";
 import DocReceive from "../../views/doc/DocReceive.vue";
 import DocList from "../../components/doc/DocList.vue";
-import DocFilter from "../../components/doc/DocFilter.vue";
+import DocFilter from "../../components/doc/DocFilterUpgrade.vue";
 import DocDetail from "../../components/doc/DocDetail.vue";
 import DocOrgChart from "../../components/doc/DocOrgChart.vue";
 import TreeSelectCustom from "../../components/doc/TreeSelectCustom.vue";

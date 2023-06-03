@@ -2556,7 +2556,7 @@ const arrayStatus = [0, 1, 2, 3, 4, 5];
 // };
 const ipsearch = ref();
 const sqlSubmit = ref();
-const arrTypeRequied = ref(['1', '2', '3', '4', '5', '6']);
+const arrTypeRequied = ref(["1", "2", "3", "4", "5", "6"]);
 const arrConditionRequied = ref([">", ">=", "<", "<=", "<>", "FromTo"]);
 const submitFilter = () => {
   ipsearch.value = "";
@@ -2584,9 +2584,12 @@ const submitFilter = () => {
       gx.childs.forEach((x, ix) => {
         if (strWhere != "" && ix > 0) {
           strWhere += ` ${gx.AND ? " AND " : " OR "} (`;
-        }        
-        if ((arrConditionRequied.value.includes(x.type) || (arrTypeRequied.value.includes(x.typdata) && x.type == "=")) 
-          && (x.value == null || x.value.trim() == "")) {
+        }
+        if (
+          (arrConditionRequied.value.includes(x.type) ||
+            (arrTypeRequied.value.includes(x.typdata) && x.type == "=")) &&
+          (x.value == null || x.value.trim() == "")
+        ) {
           notHasValueFilter = true;
         }
         switch (x.type) {
@@ -2724,7 +2727,7 @@ const onNodeSelectAdv = (node) => {
       typdata: node.typdata,
     };
     if (node.children) {
-      node.children.filter(!x.childs).forEach((x) => {
+      node.children.filter(x => !x.childs).forEach((x) => {
         x.childs = [obj];
       });
       groupBlock.value[blockindex.value].datas = groupBlock.value[
@@ -3194,11 +3197,28 @@ const rowClassDk = () => {
                                   style="border: none; box-shadow: none"
                                 >
                                   <template #value="slotProps">
-                                      <div class="" v-if="slotProps.value">
-                                          <div>{{ drTypes.find((x) => x.value == slotProps.value).text }}
-                                            <span class="redsao" v-if="arrConditionRequied.includes(dt.data.type) || (arrTypeRequied.includes(dt.data.typdata) && dt.data.type == '=')">*</span>
-                                          </div>
+                                    <div class="" v-if="slotProps.value">
+                                      <div>
+                                        {{
+                                          drTypes.find(
+                                            (x) => x.value == slotProps.value
+                                          ).text
+                                        }}
+                                        <span
+                                          class="redsao"
+                                          v-if="
+                                            arrConditionRequied.includes(
+                                              dt.data.type
+                                            ) ||
+                                            (arrTypeRequied.includes(
+                                              dt.data.typdata
+                                            ) &&
+                                              dt.data.type == '=')
+                                          "
+                                          >*</span
+                                        >
                                       </div>
+                                    </div>
                                   </template>
                                 </Dropdown>
                               </template>
@@ -3222,7 +3242,7 @@ const rowClassDk = () => {
                                       .placeholder
                                   "
                                   v-model="dt.data.value"
-                                  autoResize                                 
+                                  autoResize
                                   class="w-full"
                                   style="border: none; box-shadow: none"
                                 />
@@ -4278,7 +4298,10 @@ const rowClassDk = () => {
               <template #empty>
                 <div
                   class="m-auto align-items-center justify-content-center p-4 text-center"
-                  v-if="!isFirst"
+                  v-if="
+                    !options.loading &&
+                    (!isFirst || organizationtrees.length === 0)
+                  "
                 >
                   <img
                     src="../../../assets/background/nodata.png"

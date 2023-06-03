@@ -45,7 +45,7 @@ export default {
           headers: { Authorization: `Bearer ${store.getters.token}` },
         }
       );
-debugger
+
       if (axResponse.status == 200) {
         if (axResponse.data.error) {
           toast.error("Không mở được báo cáo");
@@ -67,7 +67,7 @@ debugger
         } catch (e) {
           obj = { id: qr };
         }
-        debugger
+        
         // //3 là mẫu Mẫu 2c-BNV/2008
         // //4 mẫu 2c Mau 2C TCTW-98
         // let o = { id: 3, par: { "profile_id": "auto" } }

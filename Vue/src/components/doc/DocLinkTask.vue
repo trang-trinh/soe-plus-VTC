@@ -255,7 +255,6 @@ const saveAddLinkTask = () => {
     });
 }
 const DelTaskLinkView = (item) => {
-  debugger
   swal.fire({
       title: "Thông báo",
       text: "Bạn có muốn xoá liên kết công việc này không!",
@@ -278,7 +277,6 @@ const DelTaskLinkView = (item) => {
         if (item != null) {
           ids = [item.linkdoc_id];
         }
-        debugger
         axios
           .delete(baseURL + "/api/task_origin/Delete_task_linkdoc", {
             headers: { Authorization: `Bearer ${store.getters.token}` },
@@ -300,7 +298,6 @@ const DelTaskLinkView = (item) => {
             }
           })
           .catch((error) => {
-            debugger
             swal.close();
             if (error.status === 401) {
               swal.fire({

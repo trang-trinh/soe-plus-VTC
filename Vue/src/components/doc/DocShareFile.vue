@@ -121,7 +121,6 @@ const RenderFolder = (ListTaskCategory) => {
 };
 const saveFolder = () => {
   var folder_id;
-  debugger
   if (props.typeShare == 2 && selectedKey.value) {
     folder_id = Object.keys(selectedKey.value);
   }
@@ -156,7 +155,6 @@ const saveFolder = () => {
     },
   })
     .then((response) => {
-      debugger;
       if (response.data.err != "1") {
         toast.success("Cập nhật thành công!");
         emitter.emit("emitData", {
@@ -238,7 +236,6 @@ const initDoc = (id, type) => {
     });
 };
 const onCheckBox = (u)=>{
-  debugger
   if (u.is_checked) {
       datalists.push(u.folder_id);
     } else {

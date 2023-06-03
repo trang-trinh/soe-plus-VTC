@@ -498,7 +498,6 @@ const initDictionary = () => {
     });
 };
 const initDataSQL = () => {
-  debugger
   let url = "";
   switch(props.Type){
     case 'receive':
@@ -561,7 +560,6 @@ const initDataSQL = () => {
       }
     })
     .catch((error) => {
-      debugger
       options.value.loading = false;
       toast.error("Tải dữ liệu không thành công!");
       addLog({
