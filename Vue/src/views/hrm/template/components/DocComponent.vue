@@ -1883,9 +1883,8 @@ export default {
       if (!row.value) row.value = row.name;
       dbrow.value = row;
       if (o != null) IsOne.value = o;
-      setTimeout(() => {
         isDisplayDatabase.value = true;
-      }, 750);
+     
     };
 
     
@@ -1902,7 +1901,7 @@ export default {
     const txtSQL = ref("");
     const selectedTabel = ref();
     const listProc = async () => {
-      debugger
+      
       showLoadding.value = true;
       let strSQL = {
         query: false,
@@ -1929,7 +1928,7 @@ export default {
             headers: { Authorization: `Bearer ${store.getters.token}` },
           }
         );
-        debugger
+         
 
         if (axResponse.status == 200) {
           if (axResponse.data.error) {
@@ -1987,7 +1986,7 @@ export default {
           swal.showLoading();
         },
       });
-      debugger
+      
       const axResponse = await axios.post(
         baseURL + "/api/HRM_SQL/getData",
         {
@@ -2050,6 +2049,7 @@ export default {
         } else {
           dtTablesCD.value = [];
           let dts = JSON.parse(axResponse.data.data);
+           
           dts.forEach((dt, i) => {
             dt.forEach((r) => {
               if (r.is_data && r.is_data != "null") {
@@ -2078,6 +2078,7 @@ export default {
               });
               dtTablesCD.value.push(o);
           });
+           
           if(props.group)
           mdTable.value = dtTablesCD.value.filter(
             (x) => x.stt == (props.group.tid || props.group.key || 0)
@@ -2095,6 +2096,7 @@ export default {
       
       let arrChons = dtTablesCD.value.filter((x) => x.chon);
       if (arrChons.length == 0) arrChons = [mdTable.value];
+      
       arrChons.forEach((tb) => {
         let tbc = { ...tb };
         let cc = selectedTabel.value;
@@ -2114,6 +2116,7 @@ export default {
         sql: txtSQL.value,
         issql: (txtSQL.value || "").toLowerCase().includes("select "),
       }
+      
       props.callbackFun({
         report_config: JSON.stringify({
           data: isxls.value ? dtExcels.value : objDataTemp.value,
@@ -2127,7 +2130,7 @@ export default {
         
        if(Object(proc))
        if(Object.keys(proc).length == 0){
-         debugger
+          
         listProc();
 
       }
@@ -2829,7 +2832,7 @@ export default {
       return dts;
     };
     const viewReport = async () => {
-      debugger
+       
       if (isxls.value && dtExcels.value.length > 0) {
         let pas = [];
         objConfig.proc.parameters.forEach((pa) => {
@@ -2886,7 +2889,7 @@ export default {
     let cacheobjDataTemp = [];
     async function renderTableWord(objpar) {
       let pas = [];
- 
+      debugger
       if (cacheobjDataTemp.length == 0) {
         cacheobjDataTemp = JSON.parse(JSON.stringify(objDataTemp.value));
       } else {
@@ -3066,6 +3069,7 @@ export default {
     };
     let selectdata = {};
     const onRowSelectReport = async (event) => {
+      
       let tselect = document.querySelector("tr.selected");
       if (tselect) tselect.classList.remove("selected");
       if (event.originalEvent)

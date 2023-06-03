@@ -11,9 +11,11 @@ import { useVuelidate } from "@vuelidate/core";
 import { VuemojiPicker } from "vuemoji-picker";
 import vi from "date-fns/locale/vi";
 import moment from "moment";
-import { checkURL } from "../../util/function.js";
+
+import { encr } from "../../util/function.js";
 //Khai báo
 const router = inject("router");
+const cryoptojs = inject("cryptojs");
 //Nơi nhận EMIT từ component
 const emitter = inject("emitter");
 emitter.on("emitData", (obj) => {
@@ -31,15 +33,11 @@ emitter.on("emitData", (obj) => {
       listCateSelected.value = obj.data;
       break;
 
-    case "listDropdownUser":
-      listDropdownUser.value = obj.data;
-      break;
+     
     case "listUsers":
       listUsers.value = obj.data;
       break;
-    case "listDropdownUserCheck":
-      listDropdownUserCheck.value = obj.data;
-      break;
+  
     case "UsersCount":
       UsersCount.value = obj.data;
       break;
@@ -1750,6 +1748,71 @@ const liUsers = ref();
 //Load dữ liệu khi bắt đầu
 
 const loadProject = (check) => {
+
+  axios
+    .post(
+      baseURL + "/api/device_card/getData",
+      {
+        str: encr(
+          JSON.stringify({
+            proc: "sys_users_list_dd",
+            par: [
+              { par: "search", va: null },
+              { par: "user_id", va: store.getters.user.user_id },
+              { par: "role_id", va: null },
+              {
+                par: "organization_id",
+                va: store.getters.user.organization_id,
+              },
+              { par: "department_id", va: null },
+              { par: "position_id", va: null },
+              { par: "pageno", va: 1 },
+              { par: "pagesize", va: 100000 },
+              { par: "isadmin", va: null },
+              { par: "status", va: null },
+              { par: "start_date", va: null },
+              { par: "end_date", va: null },
+            ],
+          }),
+          SecretKey,
+          cryoptojs
+        ).toString(),
+      },
+      config
+    )
+    .then((response) => {
+      let data = JSON.parse(response.data.data)[0];
+
+      data.forEach((element, i) => {
+        listDropdownUser.value.push({
+          name: element.full_name,
+          code:element.user_id,
+          user_id: element.user_id,
+          avatar: element.avatar,
+          department_name: element.department_name,
+          department_id: element.department_id,
+          role_name: element.role_name,
+          position_name: element.position_name,
+          organization_name: element.organization_name,
+          organization_id: element.organization_id,
+        });
+      });
+     
+
+      listDropdownUserCheck.value = [...listDropdownUser.value];
+     
+    })
+    .catch((error) => {
+      console.log(error);
+
+      if (error && error.status === 401) {
+        swal.fire({
+          text: "Phiên đăng nhập đã hết hạn, vui lòng đăng nhập lại!",
+          confirmButtonText: "OK",
+        });
+        store.commit("gologout");
+      }
+    });
   if (check) {
     loadCount(store.getters.user.user_id, null, categoryIdSave.value);
     loadTask(store.getters.user.user_id, null, null);
@@ -1870,9 +1933,7 @@ const printBug = () => {
       console.log(error);
     });
 };
-onMounted(() => {  if (!checkURL(window.location.pathname, store.getters.listModule)) {
-    //  router.back();
-  }
+onMounted(() => {   
   loadProject(true);
   return {
     // datalists,
