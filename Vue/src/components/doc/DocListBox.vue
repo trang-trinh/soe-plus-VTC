@@ -354,4 +354,7 @@ onMounted(() => {
 		}
 	}
 }
+::v-deep(.p-avatar){
+  background-color: unset;
+}
 </style>
