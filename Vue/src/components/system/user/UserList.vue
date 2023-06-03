@@ -529,7 +529,6 @@ const delImg = (id) => {
 const onRefersh = () => {
   is_coppy_module.value = false;
   different_module_move.value = false;
-  role_id_check.value = null;
   opition.value = {
     search: "",
     PageNo: 1,
@@ -541,7 +540,7 @@ const onRefersh = () => {
     filter_department: -1,
     check_quyen: null,
   };
-  layout.value = "grid";
+  layout.value = "list";
   displayPhongban.value = false;
   loadUser(true);
 };
@@ -2085,15 +2084,19 @@ onMounted(() => {
               >
                 <h3 class="mb-1 mt-0">
                   {{ slotProps.data.full_name }}
+                  <i
+                    @click="goQuyen(slotProps.data)"
+                    v-if="slotProps.data.check_quyen == 1"
+                    v-tooltip.top="slotProps.data.check_quyen_label"
+                    style="color:red;"
+                    class="pi pi-star-fill mr-2"
+                  ></i>
                 </h3>
               </Button>
               <span style="font-size: 10pt; color: #999"
                 >{{ slotProps.data.user_id }}
-                {{ slotProps.data.phone ? "| " + slotProps.data.phone : "" }}</span
+                </span
               >
-              <span style="font-size: 10pt; color: #999">{{
-                slotProps.data.email
-              }}</span>
             </div>
             <Chip
               @click="goDonvi(slotProps.data)"

@@ -192,7 +192,7 @@ const Upload = () => {
           ? "Đã thêm thành công " + (response.data.count || 0) + " người dùng"
           : "Nhập dữ liệu thành công";
         toast.success(mss);
-        loadUser(true);
+        loadUser(true, organization_id_label.value,organization_name_label.value);
       } else {
         swal.fire({
           title: "Thông báo",
@@ -526,7 +526,6 @@ const delImg = (id) => {
 const onRefersh = () => {
   is_coppy_module.value = false;
   different_module_move.value = false;
-  role_id_check.value = null;
   opition.value = {
     search: "",
     PageNo: 1,
@@ -540,11 +539,11 @@ const onRefersh = () => {
   };
   layout.value = "grid";
   displayPhongban.value = false;
-  loadUser(true);
+  loadUser();
 };
 const onSearch = () => {
   opition.value.PageNo = 1;
-  loadUser(true);
+  loadUser(true, organization_id_label.value,organization_name_label.value);
 };
 const donvis = ref();
 const treedonvis = ref();
@@ -735,7 +734,7 @@ const onPage = (event) => {
   isPaginator.value = true;
   opition.value.PageNo = event.page + 1;
   opition.value.PageSize = event.rows;
-  loadUser(true);
+  loadUser(true, organization_id_label.value,organization_name_label.value);
 };
 const goDonvi = (u) => {
   selectCapcha.value = {};
@@ -751,7 +750,7 @@ const goDonvi = (u) => {
     selectCapcha.value[store.getters.user.organization_parent_id] = true;
   }
   opition.value.PageNo = 1;
-  loadUser(true);
+  loadUser(true, organization_id_label.value,organization_name_label.value);
 };
 const goChucvu = (u) => {
   if (u) {
@@ -766,7 +765,7 @@ const goChucvu = (u) => {
     // }
   }
   opition.value.PageNo = 1;
-  loadUser(true);
+  loadUser(true, organization_id_label.value,organization_name_label.value);
 };
 const goRole = (u) => {
   if (u) {
@@ -783,7 +782,7 @@ const goRole = (u) => {
     // }
   }
   opition.value.PageNo = 1;
-  loadUser(true);
+  loadUser(true, organization_id_label.value,organization_name_label.value);
 };
 const gostatus = (u) => {
   if (u) {
@@ -794,7 +793,7 @@ const gostatus = (u) => {
     opition.value.tenstatus = null;
   }
   opition.value.PageNo = 1;
-  loadUser(true);
+  loadUser(true, organization_id_label.value,organization_name_label.value);
 };
 const goQuyen = (u) => {
   if (u) {
@@ -805,7 +804,7 @@ const goQuyen = (u) => {
     opition.value.check_quyen_label = null;
   }
   opition.value.PageNo = 1;
-  loadUser(true);
+  loadUser(true, organization_id_label.value,organization_name_label.value);
 };
 const resetopition = () => {
   if (opition.value.role_id && !opition.value.role_name) {
@@ -1180,7 +1179,7 @@ const delUser = (md) => {
             if (response.data.err != "1") {
               swal.close();
               toast.success("Xoá User thành công!");
-              loadUser(true);
+              loadUser(true, organization_id_label.value,organization_name_label.value);
               if (!md) selectedNodes.value = [];
             } else {
               swal.fire({
@@ -1238,7 +1237,7 @@ const delListUsers = () => {
               swal.close();
               toast.success("Xoá người dùng thành công!");
 
-              loadUser(true);
+              loadUser(true, organization_id_label.value,organization_name_label.value);
             } else {
               swal.fire({
                 title: "Thông báo!",
@@ -2276,19 +2275,18 @@ onMounted(() => {
                         >
                           <h3 class="mb-1 mt-0">
                             {{ slotProps.data.full_name }}
+                            <i
+                              @click="goQuyen(slotProps.data)"
+                              v-if="slotProps.data.check_quyen == 1"
+                              v-tooltip.top="slotProps.data.check_quyen_label"
+                              style="color:red;"
+                              class="pi pi-star-fill"
+                            ></i>
                           </h3>
                         </Button>
                         <span style="font-size: 10pt; color: #999"
-                          >{{ slotProps.data.user_id }}
-                          {{
-                            slotProps.data.phone
-                              ? "| " + slotProps.data.phone
-                              : ""
-                          }}</span
+                          >{{ slotProps.data.user_id }}</span
                         >
-                        <span style="font-size: 10pt; color: #999">{{
-                          slotProps.data.email
-                        }}</span>
                       </div>
                       <Chip
                         class="ml-2 mr-2 chippb"
