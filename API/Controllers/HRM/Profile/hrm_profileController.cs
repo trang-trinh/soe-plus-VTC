@@ -2899,6 +2899,7 @@ namespace API.Controllers.HRM.Profile
                                                 {
                                                     profile.profile_id = helper.GenKey();
                                                     profile.organization_id = user_now.organization_id;
+                                                    profile.status = 0;
                                                     profiles.Add(profile);
                                                 }
                                                 var exss = await db.hrm_profile_health.FirstOrDefaultAsync(x => x.profile_id == profile.profile_id);
