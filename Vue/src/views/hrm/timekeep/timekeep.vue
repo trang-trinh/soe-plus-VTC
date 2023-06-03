@@ -732,7 +732,6 @@ const initData = (ref) => {
         if (data != null) {
           if (data[0] != null && data[0].length > 0) {
             data[0].forEach((user, i) => {
-              user["STT"] = i + 1;
               if (user["days"] != null) {
                 user["days"] = JSON.parse(user["days"]);
                 user["days"].forEach((day) => {
@@ -772,6 +771,14 @@ const initData = (ref) => {
               };
               datas.value.push(obj);
             }
+            var count = 1;
+            datas.value.forEach((item) => {
+              if (item.users != null && item.users.length > 0) {
+                item.users.forEach((us) => {
+                  us.stt = count++;
+                });
+              }
+            });
           } else {
             datas.value = [];
           }
@@ -1308,7 +1315,7 @@ onMounted(() => {
                 textAlign: 'center',
               }"
             >
-              {{ user.STT }}
+              {{ user.stt }}
             </td>
             <td
               class="sticky text-left"
