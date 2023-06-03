@@ -1264,14 +1264,14 @@ const initView1 = (rf) => {
             //   x["end_date"] = moment(new Date(x["end_date"])).format("DD/MM/YYYY");
             // }
             if (x["start_date"] != null) {
-              if (moment(x["start_date"], moment.ISO_8601, true).isValid()) {
+              if (x["start_date"].toString().length > 6 && moment(x["start_date"], moment.ISO_8601, true).isValid()) {
                 x["start_date"] = moment(new Date(x["start_date"])).format(
                   "DD/MM/YYYY"
                 );
               }
             }
             if (x["end_date"] != null) {
-              if (moment(x["end_date"], moment.ISO_8601, true).isValid()) {
+              if (x["end_date"].toString().length > 6 && moment(x["end_date"], moment.ISO_8601, true).isValid()) {
                 x["end_date"] = moment(new Date(x["end_date"])).format(
                   "DD/MM/YYYY"
                 );
@@ -1308,30 +1308,28 @@ const initView1 = (rf) => {
         if (tbs[2] != null && tbs[2].length > 0) {
           tbs[2].forEach((x) => {
             if (x["start_date"] != null) {
-              if (moment(x["start_date"], moment.ISO_8601, true).isValid()) {
+              if (x["start_date"].toString().length > 4 && moment(x["start_date"], moment.ISO_8601, true).isValid()) {
                 x["start_date"] = moment(new Date(x["start_date"])).format(
                   "MM/YYYY"
                 );
               }
             }
             if (x["end_date"] != null) {
-              if (moment(x["end_date"], moment.ISO_8601, true).isValid()) {
+              if (x["end_date"].toString().length > 4 && moment(x["end_date"], moment.ISO_8601, true).isValid()) {
                 x["end_date"] = moment(new Date(x["end_date"])).format(
                   "MM/YYYY"
                 );
               }
             }
             if (x["graduation_year"] != null) {
-              if (
-                moment(x["graduation_year"], moment.ISO_8601, true).isValid()
-              ) {
+              if (x["graduation_year"].toString().length > 4 && moment(x["graduation_year"], moment.ISO_8601, true).isValid()) {
                 x["graduation_year"] = moment(
                   new Date(x["graduation_year"])
                 ).format("MM/YYYY");
               }
             }
             if (x["degree_date"] != null) {
-              if (moment(x["degree_date"], moment.ISO_8601, true).isValid()) {
+              if (x["degree_date"].toString().length > 4 && moment(x["degree_date"], moment.ISO_8601, true).isValid()) {
                 x["degree_date"] = moment(new Date(x["degree_date"])).format(
                   "MM/YYYY"
                 );
@@ -1392,14 +1390,14 @@ const initView1 = (rf) => {
             //   x["end_date"] = moment(new Date(x["end_date"])).format("DD/MM/YYYY");
             // }
             if (x["start_date"] != null) {
-              if (moment(x["start_date"], moment.ISO_8601, true).isValid()) {
+              if (x["start_date"].toString().length > 6 && moment(x["start_date"], moment.ISO_8601, true).isValid()) {
                 x["start_date"] = moment(new Date(x["start_date"])).format(
                   "DD/MM/YYYY"
                 );
               }
             }
             if (x["end_date"] != null) {
-              if (moment(x["end_date"], moment.ISO_8601, true).isValid()) {
+              if (x["end_date"].toString().length > 6 && moment(x["end_date"], moment.ISO_8601, true).isValid()) {
                 x["end_date"] = moment(new Date(x["end_date"])).format(
                   "DD/MM/YYYY"
                 );
@@ -1418,14 +1416,14 @@ const initView1 = (rf) => {
         if (tbs[4] != null && tbs[4].length > 0) {
           tbs[4].forEach((x) => {
             if (x["start_date"] != null) {
-              if (moment(x["start_date"], moment.ISO_8601, true).isValid()) {
+              if (x["start_date"].toString().length > 4 && moment(x["start_date"], moment.ISO_8601, true).isValid()) {
                 x["start_date"] = moment(new Date(x["start_date"])).format(
                   "MM/YYYY"
                 );
               }
             }
             if (x["end_date"] != null) {
-              if (moment(x["end_date"], moment.ISO_8601, true).isValid()) {
+              if (x["end_date"].toString().length > 4 && moment(x["end_date"], moment.ISO_8601, true).isValid()) {
                 x["end_date"] = moment(new Date(x["end_date"])).format(
                   "MM/YYYY"
                 );
