@@ -2724,7 +2724,7 @@ const onNodeSelectAdv = (node) => {
       typdata: node.typdata,
     };
     if (node.children) {
-      node.children.filter(!x.childs).forEach((x) => {
+      node.children.filter(x => !x.childs).forEach((x) => {
         x.childs = [obj];
       });
       groupBlock.value[blockindex.value].datas = groupBlock.value[
