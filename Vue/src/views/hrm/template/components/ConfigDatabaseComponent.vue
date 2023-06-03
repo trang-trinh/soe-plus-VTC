@@ -521,7 +521,7 @@ export default {
         tp.id = "data-" + stt;
         objDataTemp.value.push(obj);
       });
-      //
+   
       if (dochtml)
         dochtml.querySelectorAll("table").forEach((etb, i) => {
           if (
@@ -751,4 +751,4 @@ export default {
     @contextmenu="onRightClick"
   ></div>
 </template>
-<style lang="scss" scoped></style>
+ 

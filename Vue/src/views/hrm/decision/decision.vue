@@ -20,7 +20,7 @@ const config = {
 const toast = useToast();
 const cryoptojs = inject("cryptojs");
 const basedomainURL = baseURL;
-const checkIsEdit=ref(true);
+const checkIsEdit = ref(true);
 //Declare
 const isFilter = ref(false);
 const tabs = ref([
@@ -76,7 +76,7 @@ const liquidations = ref([
 const visibleSidebarDoc = ref(false);
 const report = ref({ datadic: null });
 const selectedNodes = ref({});
- 
+
 const isFirst = ref(true);
 const datas = ref([]);
 const counts = ref([]);
@@ -103,9 +103,8 @@ const itemButMores = ref([
     label: "Cấu hình quyết định",
     icon: "pi pi-print",
     command: (event) => {
-      checkIsEdit.value=true;
+      checkIsEdit.value = true;
       openDialogFrame(decision.value);
- 
     },
   },
   {
@@ -119,73 +118,71 @@ const itemButMores = ref([
 const toggleMores = (event, item) => {
   decision.value = item;
   decision.value.isEdit = true;
-  if(item.status==1){
-    itemButMores.value=
-    [
-  {
-    label: "Hiệu chỉnh nội dung",
-    icon: "pi pi-pencil",
-    command: (event) => {
-      editItem(decision.value, "Chỉnh sửa quyết định");
-    },
-  },
-  {
-    label: "Nhân bản quyết định",
-    icon: "pi pi-copy",
-    command: (event) => {
-      copyItem(decision.value, "Nhân bản quyết định");
-    },
-  },
-  {
-    label: "In quyết định",
-    icon: "pi pi-print",
-    command: (event) => {
-      checkIsEdit.value=false;
-      openDialogFrame(decision.value);
-    },
-  },
-  {
-    label: "Xoá",
-    icon: "pi pi-trash",
-    command: (event) => {
-      deleteItem(decision.value);
-    },
-  },
-];
-  }
-  else{
-    itemButMores.value= [
-  {
-    label: "Hiệu chỉnh nội dung",
-    icon: "pi pi-pencil",
-    command: (event) => {
-      editItem(decision.value, "Chỉnh sửa quyết định");
-    },
-  },
-  {
-    label: "Nhân bản quyết định",
-    icon: "pi pi-copy",
-    command: (event) => {
-      copyItem(decision.value, "Nhân bản quyết định");
-    },
-  },
-  {
-    label: "Cấu hình quyết định",
-    icon: "pi pi-cog",
-    command: (event) => {
-      checkIsEdit.value=true;
-   
-      configQuyetdinh(decision.value);
-    },
-  },
-  {
-    label: "Xoá",
-    icon: "pi pi-trash",
-    command: (event) => {
-      deleteItem(decision.value);
-    },
-  },
-]
+  if (item.status == 1) {
+    itemButMores.value = [
+      {
+        label: "Hiệu chỉnh nội dung",
+        icon: "pi pi-pencil",
+        command: (event) => {
+          editItem(decision.value, "Chỉnh sửa quyết định");
+        },
+      },
+      {
+        label: "Nhân bản quyết định",
+        icon: "pi pi-copy",
+        command: (event) => {
+          copyItem(decision.value, "Nhân bản quyết định");
+        },
+      },
+      {
+        label: "In quyết định",
+        icon: "pi pi-print",
+        command: (event) => {
+          checkIsEdit.value = false;
+          openDialogFrame(decision.value);
+        },
+      },
+      {
+        label: "Xoá",
+        icon: "pi pi-trash",
+        command: (event) => {
+          deleteItem(decision.value);
+        },
+      },
+    ];
+  } else {
+    itemButMores.value = [
+      {
+        label: "Hiệu chỉnh nội dung",
+        icon: "pi pi-pencil",
+        command: (event) => {
+          editItem(decision.value, "Chỉnh sửa quyết định");
+        },
+      },
+      {
+        label: "Nhân bản quyết định",
+        icon: "pi pi-copy",
+        command: (event) => {
+          copyItem(decision.value, "Nhân bản quyết định");
+        },
+      },
+      {
+        label: "Cấu hình quyết định",
+        icon: "pi pi-cog",
+        command: (event) => {
+          checkIsEdit.value = true;
+
+          configQuyetdinh(decision.value);
+        },
+      },
+      {
+        label: "Xoá",
+        icon: "pi pi-trash",
+        command: (event) => {
+          deleteItem(decision.value);
+        },
+      },
+    ];
   }
   menuButMores.value.toggle(event);
   selectedNodes.value = item;
@@ -226,7 +223,7 @@ const configQuyetdinh = async (row) => {
       headers: { Authorization: `Bearer ${store.getters.token}` },
     }
   );
-  
+
   if (axResponse.status == 200) {
     if (axResponse.data.error) {
       toast.error("Không mở được bản ghi");
@@ -477,7 +474,6 @@ const saveDGQuyetdinhUser = async (r) => {
     query: false,
     proc: "decision_user_add",
     par: [
- 
       { par: "decision_id", va: decision.value.decision_id },
       { par: "profile_id", va: r.profile_id },
       { par: "is_data", va: JSON.stringify(r.is_data) },
@@ -498,7 +494,7 @@ const saveDGQuyetdinhUser = async (r) => {
       }
     );
     if (axResponse.status == 200) {
-    }  
+    }
   } catch (e) {
     console.log(e);
   }
@@ -514,33 +510,35 @@ const displayDialog = ref(false);
 const files = ref([]);
 const type_decision = ref({});
 const openAddDialog = (type, str) => {
+   
   type_decision.value = type;
   forceRerender(0);
   isAdd.value = true;
   isCopy.value = false;
-  model.value = {
-    type_decision_id: type.type_decision_id,
-    type_decision_code: type.type_decision_code,
-    profile: null,
-    sign_user: null,
-    contract_code: "",
-    contract_name: "",
-    employment:
-      dictionarys.value[0] != null ? dictionarys.value[0][0].address : "",
-    start_date: new Date(),
-    sign_date: new Date(),
-    status: 0,
-    is_order: options.value.total + 1,
-    allowances: [
-      {
-        allowance_id: CreateGuid(),
-        start_date: new Date(),
-        formalitys: [{}],
-        wages: [{}],
-      },
-    ],
-    files: [],
-  };
+  // decision.value = {
+  //   type_decision_id: type.type_decision_id,
+  //   type_decision_code: type.type_decision_code,
+  //   report_key: type.report_key,
+  //   profile: null,
+  //   sign_user: null,
+  //   contract_code: "",
+  //   contract_name: "",
+  //   employment:
+  //     dictionarys.value[0] != null ? dictionarys.value[0][0].address : "",
+  //   start_date: new Date(),
+  //   sign_date: new Date(),
+  //   status: 0,
+  //   is_order: options.value.total + 1,
+  //   allowances: [
+  //     {
+  //       allowance_id: CreateGuid(),
+  //       start_date: new Date(),
+  //       formalitys: [{}],
+  //       wages: [{}],
+  //     },
+  //   ],
+  //   files: [],
+  // };
   headerDialog.value = str;
   displayDialog.value = true;
 };
