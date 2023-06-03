@@ -186,7 +186,7 @@ export default {
           },
         ],
       };
-
+ 
       try {
         const axResponse = await axios.post(
           baseURL + "/api/HRM_SQL/getData",
@@ -234,6 +234,7 @@ export default {
     };
     const saveDatabase = () => {
       var tbchons = [];
+      
       let arrChons = dtTables.value.filter((x) => x.chon);
       if (arrChons.length == 0) arrChons = [mdTable.value];
       arrChons.forEach((tb) => {
@@ -248,7 +249,7 @@ export default {
         tbc.cols = [cc];
         tbchons.push(tbc);
       });
-
+      
       props.callbackFun(tbchons, {
         name: mdProc.value ? mdProc.value.proc_name : "",
         parameters: dtPars.value,
@@ -520,7 +521,7 @@ export default {
         tp.id = "data-" + stt;
         objDataTemp.value.push(obj);
       });
-      //
+   
       if (dochtml)
         dochtml.querySelectorAll("table").forEach((etb, i) => {
           if (
@@ -637,6 +638,7 @@ export default {
     };
 
     onMounted(() => {
+       
       if (
         props.report.proc_name &&
         props.report.proc_name.toLowerCase().includes("select")
@@ -749,4 +751,4 @@ export default {
     @contextmenu="onRightClick"
   ></div>
 </template>
-<style lang="scss" scoped></style>
+ 

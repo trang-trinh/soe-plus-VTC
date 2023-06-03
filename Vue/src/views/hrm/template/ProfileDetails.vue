@@ -67,6 +67,7 @@ export default {
         } catch (e) {
           obj = { id: qr };
         }
+        
         // //3 là mẫu Mẫu 2c-BNV/2008
         // //4 mẫu 2c Mau 2C TCTW-98
         // let o = { id: 3, par: { "profile_id": "auto" } }
