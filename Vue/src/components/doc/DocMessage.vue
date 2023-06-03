@@ -40,10 +40,10 @@ const loadMessages = (rf) => {
         )
         .then((response) => {
             let data = JSON.parse(response.data.data)[0];
-            debugger
             if (data.length > 0) {
                 data.forEach(function (r) {
                     if (r.send_date) r.send_date = formatDate(r.send_date, 'datetime');
+                    if (r.deadline_date) r.deadline_date = formatDate(r.deadline_date, 'date');
                     if (r.recall_date) r.recall_date = formatDate(r.recall_date, 'datetime');
                     if (r.docfiles) r.docfiles = JSON.parse(r.docfiles);
                 });
@@ -87,7 +87,8 @@ onMounted(() => {
             <div class="message-content">
                 <Panel>
                     <template #header>
-                        <b class="mr-2">{{ item.send_by_name }}</b> <span>{{ item.send_date }}</span>
+                        <div><b class="mr-2">{{ item.send_by_name }}</b> <span>{{ item.send_date }}</span></div>
+                        <div class="ml-2"><b v-if="item.deadline_date" style="color:red"> (Hạn xử lý: {{ item.deadline_date }})</b></div>
                     </template>
                     <div>
                         <span class="message-text">{{ item.message }}</span>

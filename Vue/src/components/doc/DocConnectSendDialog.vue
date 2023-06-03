@@ -105,7 +105,6 @@ const sendDocConnect = () => {
     },
   })
     .then((response) => {
-      debugger;
       if (response.data.err != "1") {
         swal.close();
         toast.success("Gửi văn bản thành công!");

@@ -5,7 +5,7 @@ import { required } from "@vuelidate/validators";
 import DocList from "../../components/doc/DocList.vue";
 import DocDetail from "../../components/doc/DocDetail.vue";
 import DocSignIframe from "../../components/doc/DocSignIframe.vue";
-import DocFilter from "../../components/doc/DocFilter.vue";
+import DocFilter from "../../components/doc/DocFilterUpgrade.vue";
 import DocAdditionalCount from "../../components/doc/DocAdditionalCount.vue";
 import DocShareFile from "../../components/doc/DocShareFile.vue";
 import DocLinkTask from "../../components/doc/DocLinkTask.vue";
@@ -654,6 +654,7 @@ const loadCategorys = () => {
         item.name_fix = removeAccents(item.issue_place_name).trim().toLowerCase();
       })
       category.value.issue_places_checkbox = data[0].filter(x=>x.is_slider);
+      category.value.issue_places_online = data[0].filter(x=>x.is_online);
 
       category.value.groups = data[1];
       category.value.org_groups = data[1];
@@ -1001,6 +1002,17 @@ const fillReceivePlace = (ev) => {
     fillOnlineFromReceivePlace(ev.value);
 }
 // fill noi nhan qua mang tu noi nhan
+String.prototype.nthLastIndexOf = function(searchString, n){
+    var url = this;
+    if(url === null) {
+        return -1;
+    }
+    if(!n || isNaN(n) || n <= 1){
+        return url.lastIndexOf(searchString);
+    }
+    n--;
+    return url.lastIndexOf(searchString, url.nthLastIndexOf(searchString, n) - 1);
+}
 const fillOnlineFromReceivePlace = (text,keycode) => {
   if(!keycode){
     doc.value.arr_receive_place_online.push({value: text});
@@ -1008,42 +1020,44 @@ const fillOnlineFromReceivePlace = (text,keycode) => {
   else{
       if(keycode.trim() === ';' || keycode.trim() === ','){
         var fill = '';
-        if(text.indexOf(keycode.trim()) === text.lastIndexOf(keycode.trim())){
+        if(text.nthLastIndexOf(keycode.trim(),2) === text.lastIndexOf(keycode.trim())){
           fill = text.substring(0,text.length-1);
         }
         else{
           fill = text.substring(
-          text.indexOf(keycode.trim()) + 1, 
+          text.nthLastIndexOf(keycode.trim(),2) + 1, 
           text.lastIndexOf(keycode.trim())
         );
         }
         if(!doc.value.arr_receive_place_online)
           doc.value.arr_receive_place_online = [];
-        doc.value.arr_receive_place_online.push({value: fill});
+          if(fill.trim()){
+            autoFillReceivePlaceOnline({keyCode: 13},doc.value,'receive_place_online',fill.trim());
+          }
       }
   }
 }
 // auto fill noi nhan qua mang
-const autoFillReceivePlaceOnline = (ev,model,property_name) => {
+const autoFillReceivePlaceOnline = (ev,model,property_name,txt) => {
     if(ev.keyCode === 13){
-      let text = model['filter_' + property_name];
+      let text = txt ? txt : model['filter_' + property_name];
       if(text){
       if(!model['arr_' + property_name]) model['arr_' + property_name] = [];
       let text_fix = removeAccents(text).trim().toLowerCase();
-      var search_result_arr = category.value.issue_places.filter(x=>(x.search_code && x.search_code.trim().toLowerCase() == text.trim().toLowerCase()));
+      var search_result_arr = category.value.issue_places_online.filter(x=>(x.search_code && x.search_code.trim().toLowerCase() == text.trim().toLowerCase()));
       if(search_result_arr.length === 0){
-        search_result_arr = category.value.issue_places.filter(x=>x.name_fix.includes(text_fix))
+        search_result_arr = category.value.issue_places_online.filter(x=>x.name_fix.includes(text_fix))
       }
       search_result_arr.forEach(function (search_result) {
         if (search_result) {
           if (!search_result.parent_id) {
-            search_result.display_name = search_result.display_code;
+            search_result.display_name = search_result.issue_place_name;
           }
           else {
             var cur_issue_place = search_result;
-            search_result.display_name = search_result.display_code;
+            search_result.display_name = search_result.issue_place_name;
             while (cur_issue_place.parent_id) {
-              cur_issue_place = category.value.issue_places.find(x => x.issue_place_id === cur_issue_place.parent_id);
+              cur_issue_place = category.value.issue_places_online.find(x => x.issue_place_id === cur_issue_place.parent_id);
               search_result.display_name += '/' + cur_issue_place.display_code;
             }
           }
@@ -1058,7 +1072,7 @@ const autoFillReceivePlaceOnline = (ev,model,property_name) => {
       else if(result_not_empty.length === 1){
         if(result_not_empty[0].display_name && !model['arr_' + property_name].find(x=>x.value === result_not_empty[0].display_name)){
           model['arr_' + property_name].push({value:result_not_empty[0].display_name});
-          fillReceivePlace({value:result_not_empty[0].display_name});
+          // fillReceivePlace({value:result_not_empty[0].display_name});
         }
         model['filter_' + property_name] = '';
       }
@@ -1071,7 +1085,7 @@ const same_receive_place_online = ref([]);
 const selectReceivePlaceOnline = (receive_place_online) => {
   if(receive_place_online.display_name && !doc.value.arr_receive_place_online.find(x=>x.value === receive_place_online.display_name))
       doc.value.arr_receive_place_online.push({value:receive_place_online.display_name});
-      fillReceivePlace({value:receive_place_online.display_name});
+      // fillReceivePlace({value:receive_place_online.display_name});
 }
 const headerDialogReceivePlaceOnline = ref();
 const displayDialogReceivePlaceOnline = ref(false);
@@ -1147,17 +1161,35 @@ const changeSigner = (us) => {
   }
 }
 const fileupload = ref(null);
-const autoFocusInput = (selector) => {
-  nextTick(() => {
+const autoFocusInput = (selector,is_continued) => {
+  window.setTimeout(
+    function(){
+      let focus_ip = document.querySelector(selector);
+      if(focus_ip){
+        focus_ip.focus();
+      }
+    }
+    , 0);
+    nextTick(() => {
       let focus_ip = document.querySelector(selector);
       if(focus_ip){
         focus_ip.focus();
       }
     })
-    let focus_ip = document.querySelector(selector);
-      if(focus_ip){
-        focus_ip.focus();
-      }
+}
+const skipTabbingDropdownType = () => {
+  nextTick(() => {
+    const ip_txt = document.querySelectorAll(".p-dropdown.p-inputwrapper input.p-inputtext");
+    ip_txt.forEach((ip) => {
+      ip.tabIndex = -1;
+      ip.addEventListener("blur", function() {
+      ip.tabIndex = -1;
+      });
+      ip.addEventListener("focus", function() {
+      ip.tabIndex = 0;
+    });
+    });
+  })
 }
 const openModalSohoa = (type, data) => {
   isViewDoc.value = false;
@@ -1172,13 +1204,13 @@ const openModalSohoa = (type, data) => {
   listFileDel.value = [];
   loadRelDoc();
   selectedReservationNumber.value = "";
+  var is_continued = doc.value.is_continued ? true : false;
   if (data != null && data.doc_master_id != null) {
     isAddDoc.value = false;
     headerDoc.value = "Cập nhật văn bản " + title;
     getDetailDocByID(data);
   }
   else {
-    let is_continued = doc.value.is_continued ? true : false;
     let continued_doc = {};
     if(is_continued){
       continued_doc.dispatch_book_id = doc.value.dispatch_book_id;
@@ -1214,9 +1246,9 @@ const openModalSohoa = (type, data) => {
       keyobj[doc.value.organization_id] = true;
       doc.value.organization_id = keyobj;
     }
-    if (type === 2 || type === 3) {
-      doc.value.drafter = store.getters.user.full_name
-    };
+    // if (type === 2 || type === 3) {
+    //   doc.value.drafter = store.getters.user.full_name
+    // };
     if (doc.value.nav_type === 1 && category.value.issue_places && category.value.issue_places.length === 1) {
       doc.value.issue_place = category.value.issue_places[0].issue_place_name;
     }
@@ -1240,11 +1272,12 @@ const openModalSohoa = (type, data) => {
   displayDocSohoa.value = true;
   submitted.value = false;
   all_users_department.value = all_users.value;
+  skipTabbingDropdownType();
   if(type === 1){
-    autoFocusInput("#dw-issue-place > input");
+    autoFocusInput("#dw-issue-place > input",is_continued);
   }
   else{
-    autoFocusInput("#dw-doc-group input");
+    autoFocusInput("#dw-doc-group input",is_continued);
   }
 };
 const isVT = ref(store.getters.user.role_id === 'vanthu');
@@ -1337,6 +1370,7 @@ const checkSameDoc = (isFormValid, is_continued) => {
       config
     )
     .then((response) => {
+      swal.close();
       let data = JSON.parse(response.data.data)[0];
       if (data.length > 0) {
         if(data[0].is_same)
@@ -1372,7 +1406,6 @@ const checkSameDoc = (isFormValid, is_continued) => {
           saveDoc(isFormValid);
         }
       } 
-      swal.close();
       return false;
     })
     .catch((error) => {
@@ -1413,6 +1446,15 @@ const saveDoc = (isFormValid) => {
     swal.fire({
       title: "Thông báo!",
       text: "Chưa chọn phòng ban!",
+      icon: "error",
+      confirmButtonText: "OK",
+    });
+    return false;
+  }
+  if (doc.value.deadline_date && moment(new Date()).isAfter(doc.value.deadline_date)) {
+    swal.fire({
+      title: "Thông báo!",
+      text: "Ngày hạn văn bản không được trước thời điểm hiện tại",
       icon: "error",
       confirmButtonText: "OK",
     });
@@ -1491,7 +1533,6 @@ const saveDoc = (isFormValid) => {
       icon: "error",
       confirmButtonText: "OK",
     });
-    return false;
   }
   if(!doc.value.doc_group_id) doc.value.doc_group = null;
   // end valid date
@@ -2756,6 +2797,46 @@ const openModalFollowDepartment = () => {
     main_departments: {}
   };
 }
+// Only select parent
+const onNodeSelect = (node,model,property_name,options) => {
+  debugger
+      const selectedNode = node;
+      if (selectedNode.children) { // only allow selection of nodes without children
+        let child_keys = selectedNode.children.map(x=>x.key);
+        var obj_to_arr = Object.entries(model[property_name]);
+        var fil = obj_to_arr.filter(x => !child_keys.find(y=>y==x[0]));
+        var arr_to_obj  =  Object.fromEntries(fil);
+        model[property_name] = arr_to_obj;
+      }
+      debugger
+      if (!selectedNode.children){
+        let par = options.find(x=> x.children && x.children.find(y=>y.key == selectedNode.key))
+        if(par){
+          var obj_to_arr = Object.entries(model[property_name]);
+          obj_to_arr.find(x => x[0] == par.key)[1].checked = true;
+          var arr_to_obj  =  Object.fromEntries(obj_to_arr);
+          model[property_name] = arr_to_obj;
+        }
+      }
+}
+const onNodeUnselect = (node,model,property_name,options) => {
+      // const selectedNode = node;
+      // if (!selectedNode.children) { // only allow selection of nodes without children
+      //   let par = options.find(x=> x.children && x.children.find(y=>y.key == selectedNode.key))
+      //   if(par){
+      //     var obj_to_arr = Object.entries(model[property_name]);
+      //     var par_selected = obj_to_arr.find(x => x[0] == par.key);
+      //     if(par_selected){
+      //       var fil = obj_to_arr.filter(x => x[0] != par.key);
+      //       var new_par = [par.key,{ "checked": true, "partialChecked": false }];
+      //     var idx_child = fil.findIndex(x=>x[0] == selectedNode.key);
+      //     fil.splice(idx_child, 0, new_par);
+      //     var arr_to_obj  =  Object.fromEntries(fil);
+      //     model[property_name] = arr_to_obj;
+      //     }
+      //   }
+      // }
+}
 const saveFollowDepartment = () => {
   submitted.value = true;
   if (Object.keys(followdepartment_item.value.main_departments).length === 0) {
@@ -2767,15 +2848,15 @@ const saveFollowDepartment = () => {
     });
     return false;
   }
-  if (followdepartment_item.value.deadline_date && moment(new Date()).isAfter(followdepartment_item.value.deadline_date, 'day')) {
-    swal.fire({
-      title: "Thông báo!",
-      text: "Hạn xử lý không thể nhỏ hơn ngày hiện tại!",
-      icon: "error",
-      confirmButtonText: "OK",
-    });
-    return false;
-  }
+  // if (followdepartment_item.value.deadline_date && moment(new Date()).isAfter(followdepartment_item.value.deadline_date, 'day')) {
+  //   swal.fire({
+  //     title: "Thông báo!",
+  //     text: "Hạn xử lý không thể nhỏ hơn ngày hiện tại!",
+  //     icon: "error",
+  //     confirmButtonText: "OK",
+  //   });
+  //   return false;
+  // }
   let main_dep_ids = [];
   for(var key in followdepartment_item.value.main_departments){
     if(selectedDoc.value.is_drafted){
@@ -4281,7 +4362,7 @@ emitter.on("emitData", (obj) => {
             <label class="col-4 text-left flex p-0" style="align-items:center;">
               Phòng ban xử lý
             </label>
-            <Dropdown @change="changeUserDepartment(doc.main_department_id)" panelClass="d-design-dropdown" class="col-7 p-0" spellcheck="false" v-model="doc.main_department_id" :options="category.org_departments"
+            <Dropdown @change="changeUserDepartment(doc.main_department_id)" :showClear="true" panelClass="d-design-dropdown" class="col-7 p-0" spellcheck="false" v-model="doc.main_department_id" :options="category.org_departments"
               optionLabel="organization_name" optionValue="organization_id" :filter="true">
                 <template #option="slotProps">
                   <div :style="{'padding-left': slotProps.option.level > 1 ? ((slotProps.option.level-1) + 'rem') : '0'}">{{slotProps.option.organization_name}}</div>
@@ -4469,7 +4550,7 @@ emitter.on("emitData", (obj) => {
               Nơi nhận qua mạng
             </label>
             <div class="col-10 p-0">
-              <Dropdown :disabled="doc.receive_place_online_checkbox && doc.receive_place_online_checkbox.length > 0" placeholder="Nhấn Enter để thêm" panelClass="d-design-dropdown" @keydown="autoFillReceivePlaceOnline($event,doc, 'receive_place_online')" class="col-12 p-0" v-model="doc.filter_receive_place_online" spellcheck="false" :options="category.issue_places"
+              <Dropdown :disabled="doc.receive_place_online_checkbox && doc.receive_place_online_checkbox.length > 0" placeholder="Nhấn Enter để thêm" panelClass="d-design-dropdown" @keydown="autoFillReceivePlaceOnline($event,doc, 'receive_place_online')" class="col-12 p-0" v-model="doc.filter_receive_place_online" spellcheck="false" :options="category.issue_places_online"
               optionLabel="issue_place_name" optionValue="issue_place_name" :editable="true" :filter="true">
                 <template #option="slotProps">
                   <div :style="{'padding-left': slotProps.option.level > 1 ? ((slotProps.option.level-1) + 'rem') : '0'}">{{slotProps.option.issue_place_name}}</div>
@@ -5040,7 +5121,7 @@ emitter.on("emitData", (obj) => {
         <div class="field col-12 md:col-12 flex">
           <div class="col-12 md:col-12 m-0 p-0">
             <label class="col-4 p-0 text-left flex" style="align-items:center;">
-              <b>Đơn vị nhận &nbsp; <small style="font-weight: 500">(gửi toàn bộ công ty)</small></b>
+              <b>Đơn vị nhận &nbsp; <small style="font-weight: 500">(gửi toàn bộ cơ quan)</small></b>
             </label>
             <TreeSelect class="col-12 ip36 mt-2 p-0 text-left" v-model="publish_item.organizations" :options="treeorgs"
               :showClear="true" :max-height="200" display="chip" selectionMode="checkbox" placeholder="Đơn vị">
@@ -5114,7 +5195,7 @@ emitter.on("emitData", (obj) => {
             <label class="col-4 p-0 text-left flex" style="align-items:center;">
               <b>Phòng ban nhận</b>
             </label>
-            <TreeSelect class="col-12 ip36 mt-2" v-model="publish_item.departments" display="chip" selectionMode="checkbox" :options="category.departments" :showClear="true"
+            <TreeSelect @node-select="(node) => onNodeSelect(node,publish_item,'departments',category.departments)" class="col-12 ip36 mt-2" v-model="publish_item.departments" display="chip" selectionMode="checkbox" :options="category.departments" :showClear="true"
                     :max-height="200" placeholder="Chọn phòng ban">
             </TreeSelect>
           </div>
@@ -5549,7 +5630,7 @@ emitter.on("emitData", (obj) => {
             <label class="col-4 p-0 text-left flex" style="align-items:center;">
               <b>Phòng ban xử lý</b>
             </label>
-            <TreeSelect :propagateSelectionUp="false" @change="filterFollowDepartment(1)" class="col-12 ip36 mt-2" v-model="followdepartment_item.main_departments" display="chip" :selectionMode="selectedDoc.is_drafted ? 'single' : 'checkbox'" :options="category.departments" :showClear="true"
+            <TreeSelect @update:modelValue="(value) => onNodeSelect(value,followdepartment_item,'main_departments',category.departments)" @node-select="(node) => onNodeSelect(node,followdepartment_item,'main_departments',category.departments)" @change="filterFollowDepartment(1)" class="col-12 ip36 mt-2" v-model="followdepartment_item.main_departments" display="chip" selectionMode="checkbox" :options="category.departments" :showClear="true"
                     :max-height="200" placeholder="Chọn đơn vị">
             </TreeSelect>
           </div>
@@ -5559,7 +5640,7 @@ emitter.on("emitData", (obj) => {
             <label class="col-4 p-0 text-left flex" style="align-items:center;">
               <b>Phối hợp (phòng ban)</b>
             </label>
-            <TreeSelect @change="filterFollowDepartment(2)" class="col-12 ip36 mt-2" v-model="followdepartment_item.track_departments" display="chip" selectionMode="checkbox" :options="category.departments" :showClear="true"
+            <TreeSelect @node-select="(node) => onNodeSelect(node,followdepartment_item,'track_departments',category.departments)" @change="filterFollowDepartment(2)" class="col-12 ip36 mt-2" v-model="followdepartment_item.track_departments" display="chip" selectionMode="checkbox" :options="category.departments" :showClear="true"
                     :max-height="200" placeholder="Chọn đơn vị">
             </TreeSelect>
           </div>

@@ -468,12 +468,7 @@ watch(selectedNodeOrganization, () => {
   changeOrganizationChecked();
 });
 const filters2 = ref({});
-// const SearchBytext = () => {
-//   if (options.value.SearchText != null) {
-//     filters2.value["global"] = options.value.SearchText;
-//   } else filters2.value["global"] = "";
-// };
-
+const filtersMainTable = ref({});
 onMounted(() => {
   loadData(true);
   loadUsers();
@@ -495,27 +490,35 @@ onMounted(() => {
       class="p-treetable-sm"
       :rowHover="true"
       responsiveLayout="scroll"
-      :lazy="true"
       :scrollable="true"
       scrollHeight="flex"
+      v-model:filters="filtersMainTable"
+      globalFilterFields="['organization_id', 'organization_name']"
     >
       <template #header>
         <h3 class="module-title module-title-hidden mt-0 ml-1 mb-2">
           <i class="pi pi-microsoft"></i> Danh sách phòng ban
         </h3>
         <Toolbar class="w-full custoolbar">
-          <!-- <template #start>
+          <template #start>
             <span class="p-input-icon-left">
               <i class="pi pi-search" />
               <InputText
                 type="text"
                 spellcheck="false"
-                v-model="opition.search"
+                v-model="filtersMainTable['global']"
                 placeholder="Tìm kiếm theo tên phòng ban"
-                v-on:keyup.enter="loadData(true)"
               />
             </span>
-          </template> -->
+          </template>
+          <template #end>
+            <Button
+              @click="loadData(true)"
+              class="mr-2 p-button-outlined p-button-secondary"
+              icon="pi pi-refresh"
+              v-tooltip="'Tải lại'"
+            />
+          </template>
         </Toolbar>
       </template>
       <Column

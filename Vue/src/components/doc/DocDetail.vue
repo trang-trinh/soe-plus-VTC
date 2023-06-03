@@ -40,12 +40,10 @@ emitter.on("emitData", (obj) => {
                 loadDetailDoc(true);
                 loadDocFile();
                 loadRelatedDoc();
-                debugger
                 DetailDocItem.value.is_not_seen = props.Type === 'receive' && (!DetailDocItem.value.view_id || (!DetailDocItem.value.view_date && DetailDocItem.value.status_id !== DetailDocItem.value.first_doc_status_id));
             }
             break;
         case "updateViewDoc":
-        debugger
         updateViewDoc(DetailDocItem.value, true);
         break;
         default: break;

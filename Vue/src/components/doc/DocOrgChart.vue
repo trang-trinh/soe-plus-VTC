@@ -103,7 +103,6 @@ const loadFollows = (rf) => {
         .then((response) => {
             let data = JSON.parse(response.data.data)[0];
             if (data.length > 0) {
-                debugger
                 data.forEach(function (r) {
                     if (r.send_date) r.send_date = formatDate(r.send_date, 'datetime');
                     for(var key in lstColorStatusFollow){
@@ -178,7 +177,6 @@ const loadRecallFollows = (rf) => {
         .then((response) => {
             let data = JSON.parse(response.data.data)[0];
             if (data.length > 0) {
-                debugger
                 data.forEach(function (r) {
                     if (r.send_date) r.send_date = formatDate(r.send_date, 'datetime');
                     for(var key in lstColorStatusFollow){
