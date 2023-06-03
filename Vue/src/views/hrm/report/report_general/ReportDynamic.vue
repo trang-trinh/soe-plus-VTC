@@ -12,7 +12,7 @@ const config = {
     headers: { Authorization: `Bearer ${store.getters.token}` },
 };
 const viewDB = 'View_SearchEngine';
-const baseUrlCheck = "http://localhost:8080/";
+const baseUrlCheck = baseURL;
 const selectedCols = ref();
 const expandedKeys = ref({});
 const selectedKey = ref(null);
