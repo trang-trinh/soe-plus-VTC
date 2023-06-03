@@ -88,14 +88,15 @@ const saveModel = (is_continue) => {
     //   Object.keys(obj["select_birthplace"])[0] == -1
     //     ? null
     //     : Object.keys(obj["select_birthplace"])[0];
-    var checkname = listPlaceDetails1.value.findIndex(
+    var index = listPlaceDetails1.value.findIndex(
       (x) => x["place_details_id"] === (obj["select_birthplace"] || "")
     );
-    if (checkname === -1) {
+    if (index === -1) {
       obj["birthplace_name"] = obj["select_birthplace"] || "";
       obj["birthplace_id"] = null;
     } else {
-      obj["birthplace_id"] = obj["select_birthplace"];
+      obj["birthplace_name"] = listPlaceDetails1.value[index].name;
+      obj["birthplace_id"] = listPlaceDetails1.value[index].place_details_id;
     }
   }
   if (obj["select_birthplace_origin"] != null) {
@@ -103,14 +104,16 @@ const saveModel = (is_continue) => {
     //   Object.keys(obj["select_birthplace_origin"])[0] == -1
     //     ? null
     //     : Object.keys(obj["select_birthplace_origin"])[0];
-    var checkname = listPlaceDetails2.value.findIndex(
+    var index = listPlaceDetails2.value.findIndex(
       (x) => x["place_details_id"] === (obj["select_birthplace_origin"] || "")
     );
-    if (checkname === -1) {
+    if (index === -1) {
       obj["birthplace_origin_name"] = obj["select_birthplace_origin"] || "";
       obj["birthplace_origin_id"] = null;
     } else {
-      obj["birthplace_origin_id"] = obj["select_birthplace_origin"];
+      obj["birthplace_origin_name"] = listPlaceDetails2.value[index].name;
+      obj["birthplace_origin_id"] =
+        listPlaceDetails2.value[index].place_details_id;
     }
   }
   if (obj["select_place_register_permanent"] != null) {
@@ -121,16 +124,19 @@ const saveModel = (is_continue) => {
     // obj["place_register_permanent_name"] = Object.keys(
     //   obj["select_place_register_permanent"]
     // )[1];
-    var checkname = listPlaceDetails3.value.findIndex(
+    var index = listPlaceDetails3.value.findIndex(
       (x) =>
         x["place_details_id"] === (obj["select_place_register_permanent"] || "")
     );
-    if (checkname === -1) {
+    if (index === -1) {
       obj["place_register_permanent_name"] =
         obj["select_place_register_permanent"] || "";
       obj["place_register_permanent"] = null;
     } else {
-      obj["place_register_permanent"] = obj["select_place_register_permanent"];
+      obj["place_register_permanent_name"] =
+        listPlaceDetails3.value[index].name;
+      obj["place_register_permanent"] =
+        listPlaceDetails3.value[index].place_details_id;
     }
   }
   if (obj["select_place_residence"] != null) {
@@ -141,7 +147,9 @@ const saveModel = (is_continue) => {
       obj["place_residence_name"] = obj["select_place_residence"] || "";
       obj["place_residence_id"] = null;
     } else {
-      obj["place_residence_id"] = obj["select_place_residence"];
+      obj["place_residence_name"] = listPlaceDetails4.value[index].name;
+      obj["place_residence_id"] =
+        listPlaceDetails4.value[index].place_details_id;
     }
   }
   let formData = new FormData();
