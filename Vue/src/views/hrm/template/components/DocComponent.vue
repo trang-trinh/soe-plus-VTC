@@ -1894,18 +1894,226 @@ export default {
 
       configDBChild.value.saveDatabase();
     };
+    const dtTablesCD = ref([]);
+    const dtPars = ref([]);
+    const dtProcs = ref([]);
+    const mdTable = ref({});
+    const mdProc = ref();
+    const txtSQL = ref("");
+    const selectedTabel = ref();
+    const listProc = async () => {
+      debugger
+      showLoadding.value = true;
+      let strSQL = {
+        query: false,
+        proc: "proc_search",
+        par: [
+          {
+            par: "user_id",
+            va: "",
+          },
+          {
+            par: "report_key",
+            va: props.report.report_key,
+          },
+        ],
+      };
+ 
+      try {
+        const axResponse = await axios.post(
+          baseURL + "/api/HRM_SQL/getData",
+          {
+            str: encr(JSON.stringify(strSQL), SecretKey, cryoptojs).toString(),
+          },
+          {
+            headers: { Authorization: `Bearer ${store.getters.token}` },
+          }
+        );
+        debugger
 
+        if (axResponse.status == 200) {
+          if (axResponse.data.error) {
+            toast.error("Không tải được dữ liệu");
+          } else {
+            let dts = JSON.parse(axResponse.data.data);
+            dtProcs.value = dts[0];
+            mdProc.value = dtProcs.value[0];
 
-    const saveConfig = () => {
-        
-       if(Object(proc))
-       if(Object.keys(proc).length == 0){
-        // isShow.value=false;
-        // openCogDatabase(objDataTemp.value);
-      
+            if (
+              props.report.report_config &&
+              props.report.report_config.trim() != ""
+            ) {
+              let objConfig = JSON.parse(props.report.report_config);
+     
+              if (objConfig && Object.entries(objConfig.proc).length > 0) {
+                dtPars.value = objConfig.proc.parameters;
+                txtSQL.value = objConfig.proc.sql;
 
+                goProcCD();
+              } else {
+                goProcCD();
+              }
+            } else {
+              goProcCD();
+            }
+          }
+        }
+        showLoadding.value = false;
+      } catch (e) {
+        console.log(e);
+        showLoadding.value = false;
+        toast.error("Có lỗi xảy ra, vui lòng thử lại!");
       }
-       
+    };
+    const goProcCD = async () => {
+      let strSQL = {
+        query: false,
+        proc: "proc_get_info",
+        par: [
+          {
+            par: "user_id",
+            va: "",
+          },
+          {
+            par: "proc_name",
+            va: mdProc.value ? mdProc.value.proc_name : "",
+          },
+        ],
+      };
+      console.log(strSQL);
+      swal.fire({
+        width: 110,
+        didOpen: () => {
+          swal.showLoading();
+        },
+      });
+      debugger
+      const axResponse = await axios.post(
+        baseURL + "/api/HRM_SQL/getData",
+        {
+          str: encr(JSON.stringify(strSQL), SecretKey, cryoptojs).toString(),
+        },
+        {
+          headers: { Authorization: `Bearer ${store.getters.token}` },
+        }
+      );
+
+      if (axResponse.status == 200) {
+        if (axResponse.data.error) {
+        } else {
+          let dts = JSON.parse(axResponse.data.data)[0];
+          dtPars.value = dts;
+          if (mdProc.value) {
+            let sql = mdProc.value.proc_name + " ";
+            let dfs = props.report.proc_name
+              ? props.report.proc_name.split(" ")
+              : [];
+            if (dfs.length > 0)
+              dts.forEach((dt, i) => {
+                sql += dfs[i + 1];
+              });
+            // if (mdProc.value.proc_des) {
+            //     sql = mdProc.value.proc_des;
+            // }
+
+            goSQLCD(sql);
+          }
+        }
+      }
+      swal.close();
+    };
+    const goSQLCD = async (sql) => {
+      let strSQL = {
+        query: true,
+        proc: sql || txtSQL.value,
+      };
+      console.log(strSQL);
+      swal.fire({
+        width: 110,
+        didOpen: () => {
+          swal.showLoading();
+        },
+      });
+      const axResponse = await axios.post(
+        baseURL + "/api/HRM_SQL/PostProc",
+        {
+          str: encr(JSON.stringify(strSQL), SecretKey, cryoptojs).toString(),
+        },
+        {
+          headers: { Authorization: `Bearer ${store.getters.token}` },
+        }
+      );
+
+      if (axResponse.status == 200) {
+        if (axResponse.data.error) {
+          toast.error("Không mở được bản ghi");
+        } else {
+          dtTablesCD.value = [];
+          let dts = JSON.parse(axResponse.data.data);
+          dts.forEach((dt, i) => {
+            dt.forEach((r) => {
+              if (r.is_data && r.is_data != "null") {
+                r.is_data = JSON.parse(r.is_data);
+                Object.keys(r.is_data[0]).forEach((k) => {
+                  r[k] = r.is_data[0][k];
+                });
+              }
+              delete r.is_data;
+            });
+            let o = {
+              table_id: mdProc.value ? mdProc.value.proc_name : "",
+              table_name: "Bảng " + i,
+              stt: i,
+              isproc: true,
+              cols: [],
+            };
+            if (dt.length > 0)
+              Object.keys(dt[0]).forEach((k) => {
+                o.cols.push({
+                  table_id: props.report.proc_name,
+                  column_id: k,
+                  column_title: dt[0][k],
+                  column_type: "",
+                });
+              });
+              dtTablesCD.value.push(o);
+          });
+          if(props.group)
+          mdTable.value = dtTablesCD.value.filter(
+            (x) => x.stt == (props.group.tid || props.group.key || 0)
+          )[0];
+          if (!mdTable.value) mdTable.value = dtTablesCD.value[0];
+        }
+      }
+
+      saveDatabaseCD()
+      swal.close();
+    };
+    
+    const saveDatabaseCD = () => {
+      var tbchons = [];
+      
+      let arrChons = dtTablesCD.value.filter((x) => x.chon);
+      if (arrChons.length == 0) arrChons = [mdTable.value];
+      arrChons.forEach((tb) => {
+        let tbc = { ...tb };
+        let cc = selectedTabel.value;
+        if (!cc) {
+          cc = {
+            column_id: mdTable.value.stt,
+            column_title: mdTable.value.table_name,
+          };
+        }
+        tbc.cols = [cc];
+        tbchons.push(tbc);
+      });
+     
+      proc={
+        name: mdProc.value ? mdProc.value.proc_name : "",
+        parameters: dtPars.value,
+        sql: txtSQL.value,
+        issql: (txtSQL.value || "").toLowerCase().includes("select "),
+      }
       props.callbackFun({
         report_config: JSON.stringify({
           data: isxls.value ? dtExcels.value : objDataTemp.value,
@@ -1914,6 +2122,26 @@ export default {
         }),
       });
       toast.success("Đã lưu cấu hình thành công!");
+    };
+    const saveConfig = () => {
+        
+       if(Object(proc))
+       if(Object.keys(proc).length == 0){
+         debugger
+        listProc();
+
+      }
+      else{
+        
+      props.callbackFun({
+        report_config: JSON.stringify({
+          data: isxls.value ? dtExcels.value : objDataTemp.value,
+          proc: proc,
+          sum_key: report.sum_key,
+        }),
+      });
+      toast.success("Đã lưu cấu hình thành công!");
+    }
     };
     const nextDBrow = (f) => {
       let idx = dtTempCols.value.findIndex(
@@ -2601,6 +2829,7 @@ export default {
       return dts;
     };
     const viewReport = async () => {
+      debugger
       if (isxls.value && dtExcels.value.length > 0) {
         let pas = [];
         objConfig.proc.parameters.forEach((pa) => {
@@ -5340,6 +5569,9 @@ export default {
       </div>
     </Sidebar>
   </div>
+
+  
+ 
   <!-- <Menu style="max-height: 450px;overflow-y: auto;" ref="menuInput" :model="itemtypeInputs" popup id="overlay_tmenu" /> -->
 </template>
 <style lang="scss" scoped>

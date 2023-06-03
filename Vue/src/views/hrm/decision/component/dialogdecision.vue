@@ -53,6 +53,7 @@ const model = ref({
   is_multiple: props.type_decision.is_multiple,
   decision_date: new Date(),
   start_date: new Date(),
+  report_key:props.type_decision.report_key,
 });
 const headerDialog = ref();
 const displayDialog = ref(false);
@@ -78,7 +79,7 @@ const saveModel = (is_continue) => {
       swal.showLoading();
     },
   });
-
+debugger
   var obj = JSON.parse(JSON.stringify(model.value));
   if (obj.profile != null) {
     obj.profiles = obj.profile.map((x) => x.profile_id).join(",");

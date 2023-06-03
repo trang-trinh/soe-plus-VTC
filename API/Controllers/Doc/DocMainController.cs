@@ -632,13 +632,16 @@ namespace API.Controllers
                         var main_departments_id = int.Parse(fd_dep);
                         var model = db.doc_master.FirstOrDefault(x => x.doc_master_guid == vb.doc_master_guid);
                         var user_sendhub_main = new List<string>();
-                        var us_department = db.doc_ca_role_group_department.FirstOrDefault(x => (x.department_id ?? 0) == main_departments_id && x.role_group_id == null);
-                        if (us_department != null)
+                        var lst_us_department = db.doc_ca_role_group_department.Where(x => (x.department_id ?? 0) == main_departments_id && x.role_group_id == null).ToList();
+                        if (main_departments_id != null)
                         {
-                            var us = db.sys_users.Find(us_department.user_id);
+                            //var us = db.sys_users.Find(us_department.user_id);
                             var department = db.sys_organization.Find(main_departments_id);
 
-                            user_sendhub_main.Add(us_department.user_id);
+                            foreach (var us_department in lst_us_department)
+                            {
+                                user_sendhub_main.Add(us_department.user_id);
+                            }
 
                             var new_fl = new doc_follows();
                             new_fl.follow_id = helper.GenKey();
@@ -649,7 +652,7 @@ namespace API.Controllers
                             new_fl.send_by_name = user_now.full_name;
                             new_fl.send_date = DateTime.Now;
                             new_fl.receive_by = main_departments_id;
-                            new_fl.receive_last_group_user = us.user_key;
+                            //new_fl.receive_last_group_user = us.user_key;
 
                             new_fl.receive_by_name = department?.organization_name;
                             new_fl.receive_type = 3;
@@ -3136,13 +3139,16 @@ namespace API.Controllers
                         {
                             foreach (var main_departments_id in main_departments_ids)
                             {
-                                var us_department = db.doc_ca_role_group_department.FirstOrDefault(x => (x.department_id ?? 0) == main_departments_id && x.role_group_id == null);
-                                if (us_department != null)
+                                var lst_us_department = db.doc_ca_role_group_department.Where(x => (x.department_id ?? 0) == main_departments_id && x.role_group_id == null).ToList();
+                                if (main_departments_id != null)
                                 {
-                                    var us = db.sys_users.Find(us_department.user_id);
+                                    //var us = db.sys_users.Find(us_department.user_id);
                                     var department = db.sys_organization.Find(main_departments_id);
 
-                                    user_sendhub_main.Add(us_department.user_id);
+                                    foreach(var us_department in lst_us_department)
+                                    {
+                                        user_sendhub_main.Add(us_department.user_id);
+                                    }
 
                                     var new_fl = new doc_follows();
                                     new_fl.follow_id = helper.GenKey();
@@ -3162,7 +3168,7 @@ namespace API.Controllers
                                     }
                                     new_fl.send_date = send_date_now;
                                     new_fl.receive_by = main_departments_id;
-                                    new_fl.receive_last_group_user = us.user_key;
+                                    //new_fl.receive_last_group_user = us.user_key;
 
                                     new_fl.receive_by_name = department?.organization_name;
                                     new_fl.receive_type = 3;
@@ -3198,13 +3204,16 @@ namespace API.Controllers
                         {
                             foreach (var track_departments_id in track_departments_ids)
                             {
-                                var us_department = db.doc_ca_role_group_department.FirstOrDefault(x => (x.department_id ?? 0) == track_departments_id && x.role_group_id == null);
-                                if (us_department != null)
+                                var lst_us_department = db.doc_ca_role_group_department.Where(x => (x.department_id ?? 0) == track_departments_id && x.role_group_id == null).ToList();
+                                if (track_departments_id != null)
                                 {
-                                    var us = db.sys_users.Find(us_department.user_id);
+                                    //var us = db.sys_users.Find(us_department.user_id);
                                     var department = db.sys_organization.Find(track_departments_id);
 
-                                    user_sendhub_track.Add(us_department.user_id);
+                                    foreach (var us_department in lst_us_department)
+                                    {
+                                        user_sendhub_track.Add(us_department.user_id);
+                                    }
 
                                     var new_fl = new doc_follows();
                                     new_fl.follow_id = helper.GenKey();
@@ -3224,7 +3233,7 @@ namespace API.Controllers
                                     }
                                     new_fl.send_date = send_date_now;
                                     new_fl.receive_by = track_departments_id;
-                                    new_fl.receive_last_group_user = us.user_key;
+                                    //new_fl.receive_last_group_user = us.user_key;
 
                                     new_fl.receive_by_name = department?.organization_name;
                                     new_fl.receive_type = 3;
@@ -3562,11 +3571,11 @@ namespace API.Controllers
                             db.sys_sendhub.Add(sh);
                         }
 
-        #endregion
+                    #endregion
 
-        string res_socket = SendSocketSingle(lst_socket, "Văn bản");
+                    string res_socket = SendSocketSingle(lst_socket, "Văn bản");
 
-        db.SaveChanges();
+                    db.SaveChanges();
 
                         return Request.CreateResponse(HttpStatusCode.OK, new { err = "0" });
                     });
@@ -4054,7 +4063,7 @@ namespace API.Controllers
                                         return Request.CreateResponse(HttpStatusCode.OK, new { err = "1", ms = str });
                                     }
                                     //str = Update_Stamp_detailDoc(provider, uid, tid, ip, root, countNum++);
-                                    str = Update_Stamp_detailDoc(provider, root, countNum++);
+                                    str = Update_Stamp_detailDoc(provider, ip, root, countNum++);
                                 }
                                 while (str.Contains("duplicatedocnum") || str != "OK");
                             }
@@ -4086,12 +4095,12 @@ namespace API.Controllers
             }
         }
         //public string Update_Stamp_detailDoc([System.Web.Mvc.Bind(Include = "FormData,FileData")][FromBody] MultipartFormDataStreamProvider provider, string created_by, string tid, string ip, string root, double count = 0)
-        public string Update_Stamp_detailDoc([System.Web.Mvc.Bind(Include = "FormData,FileData")][FromBody] MultipartFormDataStreamProvider provider, string root, double count = 0)
+        public string Update_Stamp_detailDoc([System.Web.Mvc.Bind(Include = "FormData,FileData")][FromBody] MultipartFormDataStreamProvider provider,string ip, string root, double count = 0)
         {
             string fddoc = "";
             var identity = User.Identity as ClaimsIdentity;
             IEnumerable<Claim> claims = identity.Claims;
-            string ip = getipaddress();
+            //string ip = getipaddress();
             string tid = claims.Where(p => p.Type == "tid").FirstOrDefault()?.Value;
             string created_by = claims.Where(p => p.Type == "uid").FirstOrDefault()?.Value;
             using (DBEntities db = new DBEntities())
@@ -8237,22 +8246,25 @@ namespace API.Controllers
 		                                    from doc_ca_role_groups gr
 		                                    where '" + usernow.user_id + @"' in (select user_id from doc_ca_role_group_users where role_group_id = gr.role_group_id)
 	                                    ),
+                                        department_ids as(
+		                                        select department_id from doc_ca_role_group_department where user_id = '" + usernow.user_id + @"' and role_group_id is null
+	                                        ),
 	                                    approval_doc AS (
 				                                    select fl.doc_master_id, max(send_date) as send_date
 				                                    from doc_follows fl
-				                                    where ((receive_type = 0 and receive_by = " + user_key + @") or (receive_type = 1 and (receive_last_group_user = " + user_key + @" or receive_by in (select role_group_id from us_group))) or (receive_type = 2 and receive_by = " + organization_id + @") or (receive_type = 3 and receive_last_group_user = " + user_key + @")) and doc_status_id in ('xulychinh','chopheduyet','chodongdau','dadongdau','tralai') and is_recall = 0 and not exists(select follow_id from doc_follows where follow_parent_id = fl.follow_id and is_recall = 0)
+				                                    where ((receive_type = 0 and receive_by = " + user_key + @") or (receive_type = 1 and (receive_last_group_user = " + user_key + @" or receive_by in (select role_group_id from us_group))) or (receive_type = 2 and receive_by = " + organization_id + @") or (receive_type = 3 and receive_by in (select department_id from department_ids))) and doc_status_id in ('xulychinh','chopheduyet','chodongdau','dadongdau','tralai') and is_recall = 0 and not exists(select follow_id from doc_follows where follow_parent_id = fl.follow_id and is_recall = 0)
 				                                    group by fl.doc_master_id,fl.organization_id
 	                                    ),
 	                                    follows as (
 		                                    select send_by, ap.send_date, send_by_name, follow_id, fl.doc_master_id,doc_status_id,[message],case when fl.deadline_date is not null then DATEDIFF(DAY,getDate(),fl.deadline_date) else null end as date_deadline,
 		                                    view_date, is_completed, deadline_date, is_signed, is_prioritized
 		                                    from doc_follows fl join approval_doc ap on fl.doc_master_id = ap.doc_master_id and fl.send_date = ap.send_date
-		                                    where ((receive_type = 0 and receive_by = " + user_key + @") or (receive_type = 1 and (receive_last_group_user = " + user_key + @" or receive_by in (select role_group_id from us_group))) or (receive_type = 2 and receive_by = " + organization_id + @") or (receive_type = 3 and receive_last_group_user = " + user_key + @")) and doc_status_id in ('xulychinh','chopheduyet','chodongdau','dadongdau','tralai') and is_recall = 0
+		                                    where ((receive_type = 0 and receive_by = " + user_key + @") or (receive_type = 1 and (receive_last_group_user = " + user_key + @" or receive_by in (select role_group_id from us_group))) or (receive_type = 2 and receive_by = " + organization_id + @") or (receive_type = 3 and receive_by in (select department_id from department_ids))) and doc_status_id in ('xulychinh','chopheduyet','chodongdau','dadongdau','tralai') and is_recall = 0
 		                                    union all
 		                                    select send_by, send_date, send_by_name, follow_id, fl.doc_master_id,doc_status_id,[message],case when fl.deadline_date is not null then DATEDIFF(DAY,getDate(),fl.deadline_date) else null end as date_deadline,
 		                                    view_date, is_completed,deadline_date, is_signed, is_prioritized
 		                                    from doc_follows fl
-		                                    where ((receive_type = 0 and receive_by = " + user_key + @") or (receive_type = 1 and (receive_last_group_user = " + user_key + @" or receive_by in (select role_group_id from us_group))) or (receive_type = 2 and receive_by = " + organization_id + @") or (receive_type = 3 and receive_last_group_user = " + user_key + @")) and doc_status_id not in ('xulychinh','chopheduyet','chodongdau','dadongdau','tralai') and is_recall = 0
+		                                    where ((receive_type = 0 and receive_by = " + user_key + @") or (receive_type = 1 and (receive_last_group_user = " + user_key + @" or receive_by in (select role_group_id from us_group))) or (receive_type = 2 and receive_by = " + organization_id + @") or (receive_type = 3 and receive_by in (select department_id from department_ids))) and doc_status_id not in ('xulychinh','chopheduyet','chodongdau','dadongdau','tralai') and is_recall = 0
 		                                    union all 
 		                                    select created_by, created_date, (select full_name from sys_users where user_key = doc_master.created_by), null, doc_master_id,doc_status_id,null,null,null,null,null,null,null
 		                                    from doc_master
@@ -8431,20 +8443,23 @@ namespace API.Controllers
 		                                    from doc_ca_role_groups gr
 		                                    where '" + usernow.user_id + @"' in (select user_id from doc_ca_role_group_users where role_group_id = gr.role_group_id)
 	                                    ),
+                                        department_ids as(
+		                                    select department_id from doc_ca_role_group_department where user_id = '" + usernow.user_id + @"' and role_group_id is null
+	                                    ),
 	                                    approval_doc AS (
 				                                    select fl.doc_master_id, max(send_date) as send_date
 				                                    from doc_follows fl
-				                                    where ((receive_type = 0 and receive_by = " + user_key + @") or (receive_type = 1 and (receive_last_group_user = " + user_key + @" or receive_by in (select role_group_id from us_group))) or (receive_type = 2 and receive_by = " + organization_id + @") or (receive_type = 3 and receive_last_group_user = " + user_key + @")) and doc_status_id in ('xulychinh','chopheduyet','chodongdau','dadongdau','tralai') and is_recall = 0 and not exists(select follow_id from doc_follows where follow_parent_id = fl.follow_id and is_recall = 0)
+				                                    where ((receive_type = 0 and receive_by = " + user_key + @") or (receive_type = 1 and (receive_last_group_user = " + user_key + @" or receive_by in (select role_group_id from us_group))) or (receive_type = 2 and receive_by = " + organization_id + @") or (receive_type = 3 and receive_by in (select department_id from department_ids))) and doc_status_id in ('xulychinh','chopheduyet','chodongdau','dadongdau','tralai') and is_recall = 0 and not exists(select follow_id from doc_follows where follow_parent_id = fl.follow_id and is_recall = 0)
 				                                    group by fl.doc_master_id,fl.organization_id
 	                                    ),
 	                                    follows as (
 		                                    select send_by, ap.send_date, send_by_name, follow_id, fl.doc_master_id,doc_status_id,[message],deadline_date,fl.is_completed,fl.view_date
 		                                    from doc_follows fl join approval_doc ap on fl.doc_master_id = ap.doc_master_id and fl.send_date = ap.send_date
-		                                    where ((receive_type = 0 and receive_by = " + user_key + @") or (receive_type = 1 and (receive_last_group_user = " + user_key + @" or receive_by in (select role_group_id from us_group))) or (receive_type = 2 and receive_by = " + organization_id + @") or (receive_type = 3 and receive_last_group_user = " + user_key + @")) and doc_status_id in ('xulychinh','chopheduyet','dadongdau','chodongdau','tralai') and is_recall = 0
+		                                    where ((receive_type = 0 and receive_by = " + user_key + @") or (receive_type = 1 and (receive_last_group_user = " + user_key + @" or receive_by in (select role_group_id from us_group))) or (receive_type = 2 and receive_by = " + organization_id + @") or (receive_type = 3 and receive_by in (select department_id from department_ids))) and doc_status_id in ('xulychinh','chopheduyet','dadongdau','chodongdau','tralai') and is_recall = 0
 		                                    union all
 		                                    select send_by, send_date, send_by_name, follow_id, fl.doc_master_id,doc_status_id,[message],deadline_date,fl.is_completed,fl.view_date
 		                                    from doc_follows fl
-		                                    where ((receive_type = 0 and receive_by = " + user_key + @") or (receive_type = 1 and (receive_last_group_user = " + user_key + @" or receive_by in (select role_group_id from us_group))) or (receive_type = 2 and receive_by = " + organization_id + @") or (receive_type = 3 and receive_last_group_user = " + user_key + @")) and doc_status_id not in ('xulychinh','chopheduyet','dadongdau','chodongdau','tralai') and is_recall = 0
+		                                    where ((receive_type = 0 and receive_by = " + user_key + @") or (receive_type = 1 and (receive_last_group_user = " + user_key + @" or receive_by in (select role_group_id from us_group))) or (receive_type = 2 and receive_by = " + organization_id + @") or (receive_type = 3 and receive_by in (select department_id from department_ids))) and doc_status_id not in ('xulychinh','chopheduyet','dadongdau','chodongdau','tralai') and is_recall = 0
 		                                    union all 
 		                                    select created_by, created_date, (select full_name from sys_users where user_key = doc_master.created_by), null, doc_master_id,doc_status_id,null,null,null,null
 		                                    from doc_master
@@ -8646,10 +8661,12 @@ namespace API.Controllers
                             }
                             //Select
                             sql = @" 
-                                        ;WITH same_date as(
+                            ;WITH department_ids as(
+		                    select department_id from doc_ca_role_group_department where user_id = '" + usernow.user_id + @"' and role_group_id is null
+                            ),same_date as(
 			                select doc_master_id, follow_parent_id, send_date, min(is_order) as is_order
-			                from doc_follows
-			                where send_by = " + user_key + @" and is_recall = 0
+			                from doc_follows fl
+			                where (send_by = " + user_key + @" or (select receive_by from doc_follows where follow_id = fl.follow_parent_id and receive_type = 3) in (select department_id from department_ids)) and is_recall = 0
 			                group by doc_master_id, follow_parent_id, send_date
 	                ),send_doc AS (
 			                select follow_id,fl.organization_id,fl.doc_master_id,send_by,send_by_name,fl.send_date,is_completed, fl.receive_type,fl.receive_by,fl.follow_parent_id,
@@ -8658,7 +8675,7 @@ namespace API.Controllers
 			                when fl.receive_type = 1 then null
 			                else (select logo from sys_organization og where fl.receive_by = og.organization_id) end) as avatar
 			                from same_date sd join doc_follows fl on sd.doc_master_id = fl.doc_master_id and (sd.follow_parent_id is null and fl.follow_parent_id is null or (sd.follow_parent_id is not null and sd.follow_parent_id = fl.follow_parent_id)) and sd.send_date = fl.send_date and sd.is_order = fl.is_order
-			                where fl.send_by = " + user_key + @" and is_recall = 0
+			                where is_recall = 0
 	                )
 	                select handle_date, do.doc_master_id, fl.[message],compendium, doc_code,dispatch_book_code,issue_place, nav_type, doc_date,fl.send_date,fl.follow_id,fl.follow_parent_id,fl.avatar,do.urgency,do.is_not_send_paper,
 	                stt.status_id, stt.status_name, stt.background_color, stt.text_color,do.first_doc_status_id,do.file_path,fl.is_completed,
@@ -8826,24 +8843,27 @@ namespace API.Controllers
                                 WhereSQL = WhereSQL.Substring(3);
                             }
                             //Select
-                            sql = @";WITH same_date as(
+                            sql = @"
+                                   ;WITH department_ids as(
+		                            select department_id from doc_ca_role_group_department where user_id = '" + usernow.user_id + @"' and role_group_id is null
+                                    ),same_date as(
 			                        select doc_master_id, follow_parent_id, send_date, max(is_order) as is_order
-			                        from doc_follows
-			                        where send_by = " + user_key + @" and is_recall = 0
+			                        from doc_follows fl
+			                        where (send_by = " + user_key + @" or (select receive_by from doc_follows where follow_id = fl.follow_parent_id and receive_type = 3) in (select department_id from department_ids)) and is_recall = 0
 			                        group by doc_master_id, follow_parent_id, send_date
 	                        ),send_doc AS (
 			                        select follow_id,fl.organization_id,fl.doc_master_id,send_by,send_by_name,fl.send_date,is_completed,
 			                        (select nav_type from doc_master where doc_master_id = fl.doc_master_id) as nav_type,
 			                        view_date,doc_status_id,[message],fl.deadline_date
 			                        from same_date sd join doc_follows fl on sd.doc_master_id = fl.doc_master_id and (sd.follow_parent_id is null and fl.follow_parent_id is null or (sd.follow_parent_id is not null and sd.follow_parent_id = fl.follow_parent_id)) and sd.send_date = fl.send_date and sd.is_order = fl.is_order
-			                        where fl.send_by = " + user_key + @" and is_recall = 0
+			                        where is_recall = 0
 	                        )
 	                        select fl.doc_master_id, fl.[message], fl.send_by,fl.send_by_name,fl.send_date,fl.follow_id,fl.nav_type,
 	                        stt.status_id, stt.status_name, stt.background_color, stt.text_color, stt.is_handle,case when fl.deadline_date is not null then DATEDIFF(DAY,getDate(),fl.deadline_date) else null end as date_deadline,
 	                        (select count(*) from task_linkdoc ld where ld.doc_master_id = fl.doc_master_id) as countTask,gr.type_group
 	                        into #Doc
 	                        from send_doc fl join doc_master do on do.doc_master_id = fl.doc_master_id
-                            join (select type_group,doc_master_id from doc_ca_groups gr join doc_master doc on gr.doc_group_id = doc.doc_group_id) gr on gr.doc_master_id = fl.doc_master_id
+                            left join (select type_group,doc_master_id from doc_ca_groups gr join doc_master doc on gr.doc_group_id = doc.doc_group_id) gr on gr.doc_master_id = fl.doc_master_id
 	                        join doc_ca_status stt on fl.doc_status_id = stt.status_id";
 
                             if (WhereSQL.Trim() != "")
