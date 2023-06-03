@@ -149,23 +149,23 @@ onMounted(() => {
                     <span v-if="DocItem.dispatch_book_code" v-html="'<b>' + DocItem.dispatch_book_code + '</b>'"></span>
                     <span v-if="DocItem.issue_place" v-html="' | Nơi ban hành: <b>' + DocItem.issue_place + '</b>'"></span>
                 </div>
-                <div v-if="props.Type === 'receive' && DocItem.date_deadline < 0 && (DocItem.status_id !== 'dadongdau' && DocItem.status_id !== 'phanphat' && DocItem.status_id !== 'hoanthanh')" class="count-deadline">
-                  <Chip v-bind:label="'Quá hạn xử lý ' + DocItem.abs_date_deadline + ' ngày'" style="background-color: red; color: #fff; border-radius: 5px; font-size: 11px;" />
-                  <!-- <Button type="button" :label="'Quá hạn xử lý ' + DocItem.abs_date_deadline + ' ngày'" class="p-button-danger" badgeClass="p-badge-danger" /> -->
-                </div>
-                <div v-if="props.Type === 'receive' && DocItem.date_deadline > 0 && DocItem.date_deadline <= 3 && (DocItem.status_id !== 'dadongdau' && DocItem.status_id !== 'phanphat' && DocItem.status_id !== 'hoanthanh')" class="count-deadline">
-                  <Chip v-bind:label="'Hạn xử lý còn ' + DocItem.abs_date_deadline + ' ngày'" style="background-color: #ffc107; color: #fff; border-radius: 5px; font-size: 11px;" />
-                  <!-- <Button type="button" :label="'Quá hạn xử lý ' + DocItem.abs_date_deadline + ' ngày'" class="p-button-danger" badgeClass="p-badge-danger" /> -->
-                </div>
-                <div v-if="props.Type === 'receive' && DocItem.date_deadline === 0 && (DocItem.status_id !== 'dadongdau' && DocItem.status_id !== 'phanphat' && DocItem.status_id !== 'hoanthanh')" class="count-deadline">
-                  <Chip label="Đến hạn xử lý" style="background-color: #ffc107; color: #fff; border-radius: 5px; font-size: 11px;" />
-                  <!-- <Button type="button" :label="'Quá hạn xử lý ' + DocItem.abs_date_deadline + ' ngày'" class="p-button-danger" badgeClass="p-badge-danger" /> -->
-                </div>
                 <div v-if="DocItem.deadline_date_master" class="doc-deadline">
-                  <span style="font-size:10px;"><i style="font-size: 11px;" class="pi pi-clock c-red-500"></i> Hạn xử lý văn bản: {{DocItem.deadline_date_master}}</span>
+                  <span style="font-size:10px;"><i style="font-size: 11px;" class="pi pi-clock c-red-500"></i> Hạn văn bản: {{DocItem.deadline_date_master}}</span>
                 </div>
                 <div v-if="DocItem.date_deadline && DocItem.date_deadline > 3 && (DocItem.doc_status_id !== 'dadongdau' && DocItem.doc_status_id !== 'phanphat' && DocItem.doc_status_id !== 'hoanthanh')" class="follow-deadline">
                   <span style="font-size:10px;"><i style="font-size: 11px;" class="pi pi-flag c-red-500"></i> Hạn giao xử lý: {{DocItem.deadline_date}}</span>
+                </div>
+                <div v-if="props.Type === 'receive' && DocItem.date_deadline < 0 && (DocItem.status_id !== 'dadongdau' && DocItem.status_id !== 'phanphat' && DocItem.status_id !== 'hoanthanh')" class="count-deadline">
+                  <Chip v-bind:label="'Quá hạn giao xử lý ' + DocItem.abs_date_deadline + ' ngày'" style="background-color: red; color: #fff; border-radius: 5px; font-size: 11px;" />
+                  <!-- <Button type="button" :label="'Quá hạn xử lý ' + DocItem.abs_date_deadline + ' ngày'" class="p-button-danger" badgeClass="p-badge-danger" /> -->
+                </div>
+                <div v-if="props.Type === 'receive' && DocItem.date_deadline > 0 && DocItem.date_deadline <= 3 && (DocItem.status_id !== 'dadongdau' && DocItem.status_id !== 'phanphat' && DocItem.status_id !== 'hoanthanh')" class="count-deadline">
+                  <Chip v-bind:label="'Hạn giao xử lý còn ' + DocItem.abs_date_deadline + ' ngày'" style="background-color: #ffc107; color: #fff; border-radius: 5px; font-size: 11px;" />
+                  <!-- <Button type="button" :label="'Quá hạn xử lý ' + DocItem.abs_date_deadline + ' ngày'" class="p-button-danger" badgeClass="p-badge-danger" /> -->
+                </div>
+                <div v-if="props.Type === 'receive' && DocItem.date_deadline === 0 && (DocItem.status_id !== 'dadongdau' && DocItem.status_id !== 'phanphat' && DocItem.status_id !== 'hoanthanh')" class="count-deadline">
+                  <Chip label="Đến hạn giao xử lý" style="background-color: #ffc107; color: #fff; border-radius: 5px; font-size: 11px;" />
+                  <!-- <Button type="button" :label="'Quá hạn xử lý ' + DocItem.abs_date_deadline + ' ngày'" class="p-button-danger" badgeClass="p-badge-danger" /> -->
                 </div>
                 <!-- <Rating :modelValue="slotProps.data.rating" :readonly="true" :cancel="false"></Rating>
                 <i class="pi pi-tag doc-category-icon"></i><span
@@ -247,7 +247,7 @@ onMounted(() => {
 }
 
 .doc-not-file{
-	color: #ffc107;
+	color: #689f38;
 }
 
 .doc-not-seen{
@@ -258,6 +258,7 @@ onMounted(() => {
 .count-deadline{
   font-weight: 600 !important;
   color: red !important;
+  margin-top: 0.2rem
 }
 
 .c-red-500{

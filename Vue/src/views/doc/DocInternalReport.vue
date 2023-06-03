@@ -34,8 +34,8 @@ const options = ref({
   filterOrg: [],
   id: null,
   pagenoExport: 1,
-  start_dateD: null,
-  end_dateD: null,
+  start_dateD: null,	
+  end_dateD: null
 });
 
 const bgColor = ref([
@@ -85,6 +85,7 @@ const loadDataSQL = () => {
     })
     .catch((error) => {
       options.value.loading = false;
+   
     });
 };
 const loadData = () => {
@@ -101,20 +102,23 @@ const loadData = () => {
       strk = ",";
     }
   }
-  if (strG != null && strG != "")
-    options.value.department_id_process_fake = strG;
-  else options.value.department_id_process_fake = null;
-
-  strG = "";
-  strk = "";
+  if(strG!=null&& strG != "")
+  options.value.department_id_process_fake= strG;
+  else	
+    options.value.department_id_process_fake = null;	
+  
+    strG = "";
+   strk = "";
   if (options.value.department_id) {
     for (const key in options.value.department_id) {
       strG += strk + key;
       strk = ",";
     }
   }
-  if (strG != null && strG != "") options.value.department_id_fake = strG;
-  else options.value.department_id_fake = null;
+  if (strG != null && strG != "")
+    options.value.department_id_fake = strG;
+  else
+    options.value.department_id_fake = null;
   axios
     .post(
       baseURL + "/api/DocProc/CallProc",
@@ -130,17 +134,14 @@ const loadData = () => {
               { par: "dispatch_book_id", va: options.value.dispatch_book_id },
               { par: "doc_group_id", va: options.value.doc_group_id },
               { par: "field_id", va: options.value.field_id },
-              {
-                par: "department_id_process",
-                va: options.value.department_id_process,
-              },
+              { par: "department_id_process", va: options.value.department_id_process },
               { par: "department_id", va: options.value.department_id_fake },
               { par: "start_dateI", va: options.value.start_dateI },
               { par: "end_dateI", va: options.value.end_dateI },
               { par: "start_dateD", va: options.value.start_dateD },
               { par: "end_dateD", va: options.value.end_dateD },
               { par: "search", va: options.value.search },
-              { par: "sort", va: options.value.sort },
+              { par: "sort", va: options.value.sort }
             ],
           }),
           SecretKey,
@@ -167,6 +168,7 @@ const loadData = () => {
       options.value.loading = false;
     })
     .catch((error) => {
+    
       toast.error("Tải dữ liệu không thành công!");
       options.value.loading = false;
 
@@ -211,7 +213,7 @@ const refreshData = () => {
   options.value.department_id = null;
   options.value.fields_id = null;
   options.value.department_id_process = null;
-
+  
   options.value.ca_fields_list = null;
   options.value.ca_dispatch_book_list = null;
   options.value.end_dateI = null;
@@ -245,8 +247,8 @@ const refreshData = () => {
       constraints: [{ value: null, matchMode: FilterMatchMode.DATE_IS }],
     },
   };
-  first.value = 0;
-  filterSQL.value = [];
+  first.value=0;
+    filterSQL.value = [];
   loadData();
 };
 const filterButs = ref();
@@ -261,7 +263,7 @@ const hideFilter = () => {
     options.value.start_dateI == null &&
     options.value.ca_groups_list == null &&
     options.value.department_id == null &&
-    options.value.department_id_process == null &&
+    options.value.department_id_process == null&&
     options.value.ca_fields_list == null &&
     options.value.ca_dispatch_book_list == null &&
     options.value.end_dateI == null &&
@@ -347,86 +349,95 @@ const loadOrganization = () => {
         listDepartment.value = obj.arrtreeChils;
       } else {
       }
-    });
+    })
+   
 };
-
-const rightSideReport = ref(false);
-const ReportData = () => {
-  rightSideReport.value = true;
-};
-const onFilterHistory = (value) => {
-  // listFilterDM.department_list
-  if (value.doc_group_id) {
-    options.value.ca_groups_list = [];
-    value.doc_group_id.split(",").forEach((element) => {
-      listFilterDM.value.ca_groups_list.forEach((item) => {
-        if (Number(element) == item.code)
-          options.value.ca_groups_list.push(item);
-      });
-    });
-  }
-  if (value.field_id) {
-    options.value.ca_fields_list = [];
-    value.field_id.split(",").forEach((element) => {
-      listFilterDM.value.ca_fields_list.forEach((item) => {
-        if (Number(element) == item.code)
-          options.value.ca_fields_list.push(item);
-      });
-    });
-  }
-  if (value.dispatch_book_id) {
-    options.value.ca_dispatch_book_list = [];
-    value.dispatch_book_id.split(",").forEach((element) => {
-      listFilterDM.value.ca_dispatch_book_list.forEach((item) => {
-        if (Number(element) == item.code)
-          options.value.ca_dispatch_book_list.push(item);
-      });
-    });
-  }
-  if (value.user_recever) {
-    options.value.ca_user_recever_list = [];
-    value.user_recever.split(",").forEach((element) => {
-      listFilterDM.value.ca_user_recever_list.forEach((item) => {
-        if (element == item.code) options.value.ca_user_recever_list.push(item);
-      });
-    });
-  }
-  if (value.department_id) {
-    options.value.department_id = {};
-    value.department_id.split(",").forEach((element) => {
-      options.value.department_id[element] = {
-        checked: true,
-        partialChecked: false,
-      };
-    });
-  }
-  if (value.department_id_process) {
-    options.value.department_id_process = {};
-    value.department_id_process.split(",").forEach((element) => {
-      options.value.department_id_process[element] = {
-        checked: true,
-        partialChecked: false,
-      };
-    });
-  }
+	
+const rightSideReport = ref(false);	
+const ReportData = () => {	
+  rightSideReport.value = true;	
+}	
+const onFilterHistory = (value) => {	
+  // listFilterDM.department_list	
+  if (value.doc_group_id) {	
+    options.value.ca_groups_list = [];	
+    value.doc_group_id.split(',').forEach(element => {	
+      listFilterDM.value.ca_groups_list.forEach(item => {	
+        if (Number(element) == item.code)	
+          options.value.ca_groups_list.push(item);	
+      });	
+    });	
+  }	
+  if (value.field_id) {	
+    options.value.ca_fields_list = [];	
+    value.field_id.split(',').forEach(element => {	
+      listFilterDM.value.ca_fields_list.forEach(item => {	
+        if (Number(element) == item.code)	
+          options.value.ca_fields_list.push(item);	
+      });	
+    });	
+  }	
+  if (value.dispatch_book_id) {	
+    options.value.ca_dispatch_book_list = [];	
+    value.dispatch_book_id.split(',').forEach(element => {	
+      listFilterDM.value.ca_dispatch_book_list.forEach(item => {	
+        if (Number(element) == item.code)	
+          options.value.ca_dispatch_book_list.push(item);	
+      });	
+    });	
+  }	
+  if (value.user_recever) {	
+    options.value.ca_user_recever_list = [];	
+    value.user_recever.split(',').forEach(element => {	
+      listFilterDM.value.ca_user_recever_list.forEach(item => {	
+        if (element == item.code)	
+          options.value.ca_user_recever_list.push(item);	
+      });	
+    });	
+  }	
+  if (value.department_id) {	
+    options.value.department_id = {};	
+    ;	
+    value.department_id.split(',').forEach(element => {	
+      options.value.department_id[element] = {	
+        checked: true, partialChecked: false	
+      };	
+    });	
+  }	
+  if (value.department_id_process) {	
+    options.value.department_id_process = {};	
+    ;	
+    value.department_id_process.split(',').forEach(element => {	
+      options.value.department_id_process[element] = {	
+        checked: true, partialChecked: false	
+      };	
+    });	
+  }	
   if (value.start_dateI)
     options.value.start_dateI = new Date(value.start_dateI);
-  else options.value.start_dateI = null;
-  if (value.end_dateI) options.value.end_dateI = new Date(value.end_dateI);
-  else options.value.end_dateI = null;
+    else
+    options.value.start_dateI=null;
+  if (value.end_dateI)
+    options.value.end_dateI = new Date(value.end_dateI);
+    else
+    options.value.end_dateI=null;
   if (value.start_dateD)
     options.value.start_dateD = new Date(value.start_dateD);
-  else options.value.start_dateD = null;
-  if (value.end_dateD) options.value.end_dateD = new Date(value.end_dateD);
-  else options.value.end_dateD = null;
-  if (value.search) options.value.search = value.search;
-
-  options.value.pageno = value.page_no - 1;
-  options.value.pagesize = value.page_size;
-
+    else
+    options.value.start_dateD=null;
+  if (value.end_dateD)
+    options.value.end_dateD = new Date(value.end_dateD);
+    else
+    options.value.end_dateD=null;
+  if (value.search)
+    options.value.search = value.search;
+ 
+    options.value.pageno = value.page_no-1;
+  options.value.pagesize=value.page_size;
+ 
   onFilterDM(null);
-  rightSideReport.value = false;
-};
+  rightSideReport.value=false;
+}	
 
 const selectedColumns = ref();
 const columns = ref([
@@ -509,6 +520,7 @@ const loadFilterDM = () => {
       });
     })
     .catch((error) => {
+    
       options.value.loading = false;
     });
 
@@ -543,8 +555,9 @@ const loadFilterDM = () => {
           code: element.doc_group_id,
         });
       });
-    });
-
+    })
+    
+ 
   axios
     .post(
       baseURL + "/api/device_card/getData",
@@ -574,6 +587,7 @@ const loadFilterDM = () => {
       }
     })
     .catch((error) => {
+ 
       options.value.loading = false;
     });
 
@@ -605,7 +619,9 @@ const loadFilterDM = () => {
         });
       });
     })
-    .catch((error) => {});
+    .catch((error) => {
+ 
+    });
   axios
     .post(
       baseURL + "/api/DocProc/CallProc",
@@ -635,7 +651,9 @@ const loadFilterDM = () => {
         });
       });
     })
-    .catch((error) => {});
+    .catch((error) => {
+ 
+    });
 };
 
 const renderTreeDV1 = (data, id, name, title, org_id) => {
@@ -681,8 +699,7 @@ const renderTreeDV1 = (data, id, name, title, org_id) => {
       });
   }
   return { arrtreeChils: arrtreeChils };
-};
-const FilterStr = ref("");
+}; const FilterStr=ref("");
 const checkFilter = ref(false);
 const onRefilterDM = () => {
   options.value.doc_group_id = null;
@@ -692,28 +709,27 @@ const onRefilterDM = () => {
   options.value.dispatch_book_id = null;
   options.value.start_dateI = null;
   options.value.ca_groups_list = null;
-  options.value.pageno = 0;
+  options.value.pageno=0;
   options.value.ca_fields_list = null;
   options.value.ca_dispatch_book_list = null;
   options.value.end_dateI = null;
   options.value.ca_user_recever_list = null;
   options.value.end_dateD = null;
   options.value.start_dateD = null;
-  filterButs.value.hide();
-  checkFilter.value = false;
-  filterSQL.value = [];
-  options.value.pageno = 0;
+  filterButs.value.hide();checkFilter.value = false;
+  filterSQL.value = [];   options.value.pageno=0;
   options.value.loading = true;
-  first.value = 0;
+  first.value=0;
   loadData();
-};
+}; 
 const onFilterDM = (pageno) => {
   filterButs.value.hide();
   options.value.loading = true;
   checkFilter.value = true;
   filterSQL.value = [];
   let filterS = null;
-  if (pageno) options.value.pageno = pageno;
+  if(pageno)
+  options.value.pageno = pageno;
   var strG = "";
   var strk = "";
   if (options.value.ca_groups_list)
@@ -783,29 +799,32 @@ const onFilterDM = (pageno) => {
       key: "department_id",
     };
     filterSQL.value.push(filterS);
-  } else {
-    options.value.department_id = null;
+  }  else{
+    options.value.department_id =null;
   }
   strG = "";
   strk = "";
-  FilterStr.value = "";
+  FilterStr.value="";
   if (options.value.department_id_process) {
     for (const key in options.value.department_id_process) {
       strG += strk + key;
-      var tsc = listFilterDM.value.department_list.find((x) => x.key == key);
-      if (tsc) FilterStr.value += strk + tsc.label;
+      var tsc = listFilterDM.value.department_list.find(x => x.key == key);	
+      if (tsc)	
+        FilterStr.value += strk + tsc.label;
       strk = ",";
     }
   }
   if (strG != "") {
+    
     filterS = {
       filterconstraints: [],
-      filteroperator: strG,
+      filteroperator:strG,
       key: "department_id_process",
     };
     filterSQL.value.push(filterS);
-  } else {
-    options.value.department_id_process = null;
+  }
+  else{
+    options.value.department_id_process =null;
   }
 
   strG = "";
@@ -825,92 +844,84 @@ const onFilterDM = (pageno) => {
     filterSQL.value.push(filterS);
   }
 
+
+  
   if (options.value.start_dateI && options.value.end_dateI) {
     filterS = {
-      filterconstraints: [
-        { value: options.value.start_dateI, matchMode: "dateAfterH" },
-        { value: options.value.start_dateIH, matchMode: "dateIsH" },
-      ],
+      filterconstraints: [{ value: options.value.start_dateI, matchMode: "dateAfterH" }, { value: options.value.start_dateIH, matchMode: "dateIsH" }],
       filteroperator: "or",
       key: "receive_date",
     };
     filterSQL.value.push(filterS);
 
     filterS = {
-      filterconstraints: [
-        { value: options.value.end_dateIH, matchMode: "dateBeforeH" },
-        { value: options.value.end_dateIH, matchMode: "dateIsH" },
-      ],
+      filterconstraints: [{ value: options.value.end_dateIH, matchMode: "dateBeforeH" }, { value: options.value.end_dateIH, matchMode: "dateIsH" }],
       filteroperator: "or",
       key: "receive_date",
     };
     filterSQL.value.push(filterS);
-  } else {
+  }
+  else {
     if (options.value.start_dateI) {
+
       filterS = {
-        filterconstraints: [
-          { value: options.value.start_dateI, matchMode: "dateIs" },
-        ],
+        filterconstraints: [{ value: options.value.start_dateI, matchMode: "dateIs" }],
         filteroperator: "or",
         key: "receive_date",
       };
       filterSQL.value.push(filterS);
-    } else options.value.start_dateI = null;
+    }else options.value.start_dateI = null;
     if (options.value.end_dateI) {
+
       filterS = {
-        filterconstraints: [
-          { value: options.value.end_dateI, matchMode: "dateIs" },
-        ],
+        filterconstraints: [ { value: options.value.end_dateI, matchMode: "dateIs" }],
         filteroperator: "or",
         key: "receive_date",
       };
       filterSQL.value.push(filterS);
-    } else options.value.end_dateI = null;
+
+    }else options.value.end_dateI = null;
   }
 
   if (options.value.start_dateD && options.value.end_dateD) {
     filterS = {
-      filterconstraints: [
-        { value: options.value.start_dateD, matchMode: "dateAfterH" },
-        { value: options.value.start_dateD, matchMode: "dateIsH" },
-      ],
+      filterconstraints: [{ value: options.value.start_dateD, matchMode: "dateAfterH" }, { value: options.value.start_dateD, matchMode: "dateIsH" }],
       filteroperator: "or",
       key: "doc_date",
     };
     filterSQL.value.push(filterS);
 
     filterS = {
-      filterconstraints: [
-        { value: options.value.end_dateD, matchMode: "dateBeforeH" },
-        { value: options.value.end_dateD, matchMode: "dateIsH" },
-      ],
+      filterconstraints: [{ value: options.value.end_dateD, matchMode: "dateBeforeH" }, { value: options.value.end_dateD, matchMode: "dateIsH" }],
       filteroperator: "or",
       key: "doc_date",
     };
     filterSQL.value.push(filterS);
-  } else {
-    if (options.value.start_dateD) {
-      filterS = {
-        filterconstraints: [
-          { value: options.value.start_dateD, matchMode: "dateIs" },
-        ],
-        filteroperator: "or",
-        key: "doc_date",
-      };
-      filterSQL.value.push(filterS);
-    } else options.value.start_dateD = null;
-    if (options.value.end_dateD) {
-      filterS = {
-        filterconstraints: [
-          { value: options.value.end_dateD, matchMode: "dateIs" },
-        ],
-        filteroperator: "or",
-        key: "doc_date",
-      };
-      filterSQL.value.push(filterS);
-    } else options.value.end_dateD = null;
   }
-  first.value = 0;
+  else {
+    if (options.value.start_dateD) {
+
+      filterS = {
+        filterconstraints: [{ value: options.value.start_dateD, matchMode: "dateIs" }],
+        filteroperator: "or",
+        key: "doc_date",
+      };
+      filterSQL.value.push(filterS);
+
+
+    }else options.value.start_dateD = null;
+    if (options.value.end_dateD) {
+
+      filterS = {
+        filterconstraints: [{ value: options.value.end_dateD, matchMode: "dateIs" }],
+        filteroperator: "or",
+        key: "doc_date",
+      };
+      filterSQL.value.push(filterS);
+
+    }else options.value.end_dateD = null;
+  }
+  first.value=0;
 
   if (filterSQL.value.length > 0) loadDataSQL();
   else loadData(true);
@@ -927,38 +938,43 @@ const print = () => {
     printframe.document.close();
   }, 0);
 
-  let formData = new FormData();
-  if (options.value.search == "") {
-    options.value.search = null;
-  }
-  var dataUp = {
-    report_type: 2,
-    page_no: options.value.pagenoExport,
-    page_size: options.value.totalRecordsExport,
-    start_dateI: options.value.start_dateI,
-    end_dateI: options.value.end_dateI,
-    start_dateD: options.value.start_dateD,
-    end_dateD: options.value.end_dateD,
-    search: options.value.search,
-    user_recever: options.value.user_recever,
-    field_id: options.value.field_id,
-    dispatch_book_id: options.value.dispatch_book_id,
-    doc_group_id: options.value.doc_group_id,
-    department_id_process: options.value.department_id_process_fake,
-    department_id: options.value.department_id_fake,
-  };
-  formData.append("doc_export", JSON.stringify(dataUp));
-  axios
-    .post(baseURL + "/api/DocExport/add_doc_export", formData, config)
-    .catch((error) => {
-      swal.close();
-      swal.fire({
-        title: "Error!",
-        text: "Có lỗi xảy ra, vui lòng kiểm tra lại!",
-        icon: "error",
-        confirmButtonText: "OK",
-      });
-    });
+
+
+		
+  let formData = new FormData();	
+  if (options.value.search == "") {	
+    options.value.search = null;	
+  }	
+  var dataUp = {	
+    report_type: 2,	
+    page_no: options.value.pagenoExport,	
+    page_size: options.value.totalRecordsExport,	
+    start_dateI: options.value.start_dateI,	
+    end_dateI: options.value.end_dateI,	
+    start_dateD: options.value.start_dateD,	
+    end_dateD: options.value.end_dateD,	
+    search: options.value.search,	
+    user_recever: options.value.user_recever,	
+    field_id: options.value.field_id,	
+    dispatch_book_id: options.value.dispatch_book_id,	
+    doc_group_id: options.value.doc_group_id,	
+    department_id_process: options.value.department_id_process_fake,	
+    department_id: options.value.department_id_fake	
+  }	
+  formData.append("doc_export", JSON.stringify(dataUp));	
+  axios	
+    .post(baseURL + "/api/DocExport/add_doc_export", formData, config)	
+    .catch((error) => {	
+      swal.close();	
+      swal.fire({	
+        title: "Error!",	
+        text: "Có lỗi xảy ra, vui lòng kiểm tra lại!",	
+        icon: "error",	
+        confirmButtonText: "OK",	
+      });	
+    });	
+
+
 };
 
 function renderhtml(id, htmltable) {
@@ -1035,19 +1051,14 @@ function renderhtml(id, htmltable) {
   
   
   `;
-  htmltable +=
-    `<div id="formprint" style="width:100%">
+htmltable += `<div id="formprint" style="width:100%">
       <table>
         <thead>
           <tr>
             <td style="width:33.33%">
           
-              <div style="width:100%; align-item:center; font-weight:600;word-break: break-word;">` +
-    FilterStr.value +
-    ` </div>
-          <div style="width:100%; align-item:center; font-weight:600">Tổng số: ` +
-    datalistsExport.value.length +
-    ` </div>
+              <div style="width:100%; align-item:center; font-weight:600;word-break: break-word;">`+  FilterStr.value+` </div>
+          <div style="width:100%; align-item:center; font-weight:600">Tổng số: `+  datalistsExport.value.length+` </div>
           
      
               </td>
@@ -1058,9 +1069,7 @@ function renderhtml(id, htmltable) {
           <div></div>
             </td>
             <td style="width:33.33%">
-              <div  style="width:100%; text-align:right; align-item:center; font-weight:600"> Ngày in: ` +
-    moment(new Date()).format("DD/MM/YYYY") +
-    ` </div>
+              <div  style="width:100%; text-align:right; align-item:center; font-weight:600"> Ngày in: `+moment(new Date()).format("DD/MM/YYYY")+` </div>
             </td>
           </tr>
         </thead>
@@ -1094,32 +1103,36 @@ function renderhtml(id, htmltable) {
         </thead>
         <tbody class="boder">`;
 
-  var stt =
-    options.value.pagenoExport * options.value.totalRecordsExport -
-    (options.value.totalRecordsExport - 1);
+          var stt= options.value.pagenoExport*options.value.totalRecordsExport - (options.value.totalRecordsExport -1 );
   for (let index = 0; index < datalistsExport.value.length; index++) {
     const value = datalistsExport.value[index];
 
     var doc_date = "";
     var receive_date = "";
-    var num_of_pages = "";
-    var num_of_copies = "";
-    var is_not_send_paper = "";
-    var security = "";
-    var dispatch_book_code = "";
-    var doc_code = "";
-    if (value.dispatch_book_code) dispatch_book_code = value.dispatch_book_code;
-    if (value.doc_code) doc_code = value.doc_code;
-    if (value.num_of_pages) num_of_pages = value.num_of_pages;
-    if (value.num_of_copies) num_of_copies = value.num_of_copies;
-    if (value.security) security = value.security;
-
-    if (value.is_not_send_paper == 1) is_not_send_paper = "1";
-
+    var num_of_pages="";
+    var num_of_copies="";
+    var is_not_send_paper="";
+    var security="";
+    var dispatch_book_code="";
+    var doc_code="";
+    if(value.dispatch_book_code)
+    dispatch_book_code=value.dispatch_book_code;
+    if(value.doc_code)
+    doc_code=value.doc_code;
+    if(value.num_of_pages)
+    num_of_pages=value.num_of_pages;
+    if(value.num_of_copies)
+    num_of_copies=value.num_of_copies;
+    if(value.security)
+    security=value.security; 
+ 
+    if(value.is_not_send_paper==1)
+    is_not_send_paper="1";
+      
     if (value.doc_date)
       doc_date = moment(new Date(value.doc_date)).format("DD/MM/YYYY");
     if (value.receive_date)
-      receive_date = moment(new Date(value.receive_date)).format("DD/MM/YYYY");
+    receive_date=  moment(new Date(value.receive_date)).format("DD/MM/YYYY")
     htmltable +=
       `
           <tr >
@@ -1127,17 +1140,15 @@ function renderhtml(id, htmltable) {
             <td  >
               <div style="text-align: center">
                 ` +
-      stt +
+                stt +
       `
               </div>
             </td>
             <td align="center"   >
 
               <div >
-               <div style="text-align:center;padding:0px"> <div style="font-weight:600">` +
-      doc_code +
-      "</div>    " +
-      dispatch_book_code +
+               <div style="text-align:center;padding:0px"> <div style="font-weight:600">` + doc_code +'</div>    '+dispatch_book_code
+      +
       ` </div>
               
               </div>
@@ -1145,19 +1156,15 @@ function renderhtml(id, htmltable) {
             </td>
             <td   >
               <div >
-               <div style="text-align:center;padding:0px"> <div style="font-weight:600">` +
-      receive_date +
-      "</div>  " +
-      doc_date +
+               <div style="text-align:center;padding:0px"> <div style="font-weight:600">` + receive_date +'</div>  '+doc_date
+      +
       ` </div>
               
               </div>
             </td>
             <td  style=" word-break: break-word; text-align:center">
             <div >
-              ` +
-      value.issue_place +
-      `
+              ` +value.issue_place + `
        
             </div>
           </td>
@@ -1173,7 +1180,7 @@ function renderhtml(id, htmltable) {
             <td  style=" word-break: break-word">
               <div style="text-align: center">
                 ` +
-      num_of_pages +
+       num_of_pages +
       `
               </div>
             </td>
@@ -1186,15 +1193,15 @@ function renderhtml(id, htmltable) {
             </td>
             <td  style=" word-break: break-word">
               <div style="text-align: center">
-                ` +
-      security +
+                ` + 
+       security +
       `
               </div>
             </td>
             <td  style=" word-break: break-word">
               <div style="text-align: center">
                 ` +
-      is_not_send_paper +
+                is_not_send_paper +
       `
               </div>
             </td>
@@ -1223,7 +1230,7 @@ function renderhtml(id, htmltable) {
               </div>
             </td>
           </tr>`;
-    stt++;
+          stt++;
   }
   htmltable += `
         </tbody>
@@ -1269,12 +1276,9 @@ const exportExcelR = () => {
                 { par: "dispatch_book_id", va: options.value.dispatch_book_id },
                 { par: "doc_group_id", va: options.value.doc_group_id },
                 { par: "field_id", va: options.value.field_id },
-                {
-                  par: "department_id_process",
-                  va: options.value.department_id_process_fake,
-                },
+                { par: "department_id_process", va: options.value.department_id_process_fake },
                 { par: "department_id", va: options.value.department_id_fake },
-                { par: "start_dateI", va: sDateI },
+                { par: "start_dateI", va: sDateI},
                 { par: "end_dateI", va: edateI },
                 { par: "start_dateD", va: sdateD },
                 { par: "end_dateD", va: edateD },
@@ -1306,9 +1310,9 @@ const exportExcelR = () => {
           options.value.loading = false;
         } else {
           datalistsExport.value = [];
-        }
-        options.value.loading = false;
-      });
+        }options.value.loading = false;
+      })
+     
   }
 };
 
@@ -1339,22 +1343,23 @@ const itemButs = ref([
     },
   },
 ]);
-var sDateI = null;
-var eDateI = null;
-var sDateD = null;
-var eDateD = null;
+var sDateI=null;
+var eDateI=null;
+var sDateD=null;
+var eDateD=null;
 const toggleExport = (event) => {
-  if (checkFilter.value == true) {
-    sDateI = options.value.sDateI;
-    eDateI = options.value.eDateI;
-    sDateD = options.value.sDateD;
-    eDateD = options.value.eDateD;
-  } else {
-    sDateI = null;
-    eDateI = null;
-    sDateD = null;
-    eDateD = null;
-  }
+if(checkFilter.value == true){
+  sDateI=options.value.sDateI;
+  eDateI=options.value.eDateI;
+  sDateD=options.value.sDateD;
+  eDateD=options.value.eDateD;
+}
+else{
+  sDateI=null;
+  eDateI=null;
+  sDateD=null;
+  eDateD=null;
+}
   var strG = "";
   var strk = "";
 
@@ -1364,21 +1369,26 @@ const toggleExport = (event) => {
       strk = ",";
     }
   }
-  if (strG != null && strG != "")
-    options.value.department_id_process_fake = strG;
-  else options.value.department_id_process_fake = null;
+  if (strG != null && strG != "")	
+    options.value.department_id_process_fake = strG;	
+  else	
+    options.value.department_id_process_fake = null;	 
 
-  strG = "";
-  strk = "";
+
+    strG = "";
+   strk = "";
   if (options.value.department_id) {
     for (const key in options.value.department_id) {
       strG += strk + key;
       strk = ",";
     }
   }
-  if (strG != null && strG != "") options.value.department_id_fake = strG;
-  else options.value.department_id_fake = null;
+  if (strG != null && strG != "")
+    options.value.department_id_fake = strG;
+  else
+    options.value.department_id_fake = null;
 
+  
   menuButs.value.toggle(event);
 };
 const exportData = (method) => {
@@ -1402,15 +1412,12 @@ const exportData = (method) => {
           { par: "dispatch_book_id", va: options.value.dispatch_book_id },
           { par: "doc_group_id", va: options.value.doc_group_id },
           { par: "field_id", va: options.value.field_id },
-          {
-            par: "department_id_process",
-            va: options.value.department_id_process_fake,
-          },
-          { par: "department_id", va: options.value.department_id_fake },
-          { par: "start_dateI", va: sDateI },
-          { par: "end_dateI", va: eDateI },
-          { par: "start_dateD", va: sDateD },
-          { par: "end_dateD", va: sDateD },
+          { par: "department_id_process", va: options.value.department_id_process_fake },
+          { par: "department_id", va: options.value.department_id_fake  },
+          { par: "start_dateI", va:sDateI},
+          { par: "end_dateI", va: eDateI},
+          { par: "start_dateD", va: sDateD},
+          { par: "end_dateD", va:sDateD},
           { par: "search", va: options.value.search },
           { par: "sort", va: options.value.sort },
         ],
@@ -1522,7 +1529,7 @@ const onFilter = (event) => {
   isDynamicSQL.value = true;
   loadData(true);
 };
-const first = ref(0);
+const first=ref(0);
 //Sort
 const onSort = (event) => {
   if (event.sortField == null) {
@@ -1539,33 +1546,35 @@ const onSort = (event) => {
     loadData();
   }
 };
-const listHistoryRP = ref([]);
-const loadHistoryRP = () => {
-  var formData = new FormData();
-  formData.append("type", 2);
-  axios
-    .post(baseURL + "/api/DocExport/getData", formData, config)
-    .then((response) => {
-      if (response.data.data) {
-        let data = JSON.parse(response.data.data);
-        if (data.length > 0) {
-          listHistoryRP.value = data;
-          if (data[0].start_dateI)
-            options.value.start_dateI = new Date(data[0].end_dateI);
-          if (data[0].end_dateI) options.value.end_dateI = new Date();
-          if (data[0].start_dateD)
-            options.value.start_dateD = new Date(data[0].end_dateD);
-          if (data[0].end_dateD) options.value.end_dateD = new Date();
-        }
-      }
-    })
-    .catch((error) => {
-      swal.close();
-    });
-};
+const listHistoryRP = ref([]);	
+const loadHistoryRP = () => {	
+  var formData = new FormData();	
+  formData.append("type", 2);	
+  axios	
+    .post(baseURL + "/api/DocExport/getData", formData, config)	
+    .then((response) => {	
+      if(response.data.data){
+      let data = JSON.parse(response.data.data);	
+      if (data.length > 0) {	
+        listHistoryRP.value = data;	
+        if (data[0].start_dateI)	
+          options.value.start_dateI = new Date(data[0].end_dateI);	
+        if (data[0].end_dateI)	
+          options.value.end_dateI = new Date();	
+        if (data[0].start_dateD)	
+          options.value.start_dateD = new Date(data[0].end_dateD);	
+        if (data[0].end_dateD)	
+          options.value.end_dateD = new Date();	
+      }	}
+    })	
+    .catch((error) => {	
+     
+      swal.close();	
+    
+    });	
+}
 onMounted(() => {
-  loadFilterDM();
-  loadHistoryRP();
+  loadFilterDM();loadHistoryRP();
   // loadOrganization();
   loadData();
 });
@@ -1595,7 +1604,7 @@ onMounted(() => {
         :currentPageReportTemplate="
           isDynamicSQL ? '{currentPage}' : '{currentPage}/{totalPages}'
         "
-        v-model:first="first"
+         v-model:first="first"
         responsiveLayout="scroll"
         :scrollable="true"
         scrollHeight="flex"
@@ -1603,8 +1612,7 @@ onMounted(() => {
         <template #header>
           <div>
             <h3 class="module-title my-2 ml-1">
-              <font-awesome-icon icon="fa-solid fa-file-code" /> Báo cáo khối
-              nội bộ ({{ options.totalRecords ? options.totalRecords : 0 }})
+              <font-awesome-icon icon="fa-solid fa-file-code" /> Báo cáo khối nội bộ ({{ options.totalRecords ? options.totalRecords : 0 }})
             </h3>
           </div>
           <Toolbar class="custoolbar p-0 py-3 surface-50">
@@ -1618,12 +1626,13 @@ onMounted(() => {
                   spellcheck="false"
                   placeholder="Tìm kiếm"
                 />
-
+         
                 <Button
                   :class="
                     (options.doc_group_id != null ||
                       options.department_id != null ||
                       options.department_id_process != null ||
+                  
                       options.fields_id != null ||
                       options.dispatch_book_id != null ||
                       options.start_dateI != null ||
@@ -1684,7 +1693,7 @@ onMounted(() => {
                       </div>
                       <div class="col-4 p-0 align-items-center flex">
                         <Calendar
-                          :showTime="true"
+                        :showTime="true"
                           class="w-full"
                           v-model="options.start_dateI"
                           placeholder="dd/MM/yy"
@@ -1697,14 +1706,8 @@ onMounted(() => {
                       </div>
                       <div class="col-4 p-0 align-items-center flex">
                         <Calendar
-                          class="w-full"
-                          :showTime="true"
-                          v-model="options.end_dateI"
-                          :minDate="
-                            options.start_dateI
-                              ? new Date(options.start_dateI)
-                              : null
-                          "
+                          class="w-full"  :showTime="true"
+                          v-model="options.end_dateI"  :minDate="options.start_dateI? new Date(options.start_dateI) :null"
                           placeholder="dd/MM/yy"
                         />
                       </div>
@@ -1715,8 +1718,7 @@ onMounted(() => {
                       </div>
                       <div class="col-4 p-0 align-items-center flex">
                         <Calendar
-                          class="w-full"
-                          :showTime="true"
+                          class="w-full"  :showTime="true"
                           v-model="options.start_dateD"
                           placeholder="dd/MM/yy"
                         />
@@ -1728,15 +1730,10 @@ onMounted(() => {
                       </div>
                       <div class="col-4 p-0 align-items-center flex">
                         <Calendar
-                          class="w-full"
-                          :showTime="true"
+                          class="w-full"  :showTime="true"
                           v-model="options.end_dateD"
                           placeholder="dd/MM/yy"
-                          :minDate="
-                            options.start_dateD
-                              ? new Date(options.start_dateD)
-                              : null
-                          "
+                          :minDate="options.start_dateD? new Date(options.start_dateD) :null"
                         />
                       </div>
                     </div>
@@ -1982,7 +1979,16 @@ onMounted(() => {
                             <div class="country-item flex align-items-center">
                               <div class="grid w-full p-0">
                                 <div
-                                  class="field p-0 py-1 col-12 flex m-0 cursor-pointer align-items-center"
+                                  class="
+                                    field
+                                    p-0
+                                    py-1
+                                    col-12
+                                    flex
+                                    m-0
+                                    cursor-pointer
+                                    align-items-center
+                                  "
                                 >
                                   <div
                                     class="col-1 mx-2 p-0 align-items-center"
@@ -2028,7 +2034,13 @@ onMounted(() => {
                                         {{ slotProps.option.name }}
                                       </div>
                                       <div
-                                        class="flex w-full text-sm font-italic text-500"
+                                        class="
+                                          flex
+                                          w-full
+                                          text-sm
+                                          font-italic
+                                          text-500
+                                        "
                                       >
                                         <div>
                                           {{ slotProps.option.position_name }}
@@ -2075,13 +2087,8 @@ onMounted(() => {
                 class="mx-2"
                 placeholder="Hiển thị thêm"
                 @update:modelValue="onToggle"
-              />
-              <Button
-                class="mr-2 p-button-outlined p-button-secondary"
-                icon="pi pi-clock"
-                v-tooltip.top="'Lịch sử in báo cáo'"
-                @click="ReportData"
-              />
+              />   <Button class="mr-2 p-button-outlined p-button-secondary" icon="pi pi-clock"
+                v-tooltip.top="'Lịch sử in báo cáo'" @click="ReportData" />
 
               <Button
                 class="mr-2 p-button-outlined p-button-secondary"
@@ -2117,7 +2124,12 @@ onMounted(() => {
         <Column
           field="dispatch_book_code"
           header="Số vào sổ"
-          class="align-items-center justify-content-center text-center limit-line"
+          class="
+            align-items-center
+            justify-content-center
+            text-center
+            limit-line
+          "
           headerStyle="text-align:center;max-width:130px"
           bodyStyle="text-align:center;max-width:130px;word-break:break-all
           "
@@ -2137,7 +2149,12 @@ onMounted(() => {
         <Column
           field="receive_date"
           header="Ngày vào sổ"
-          class="align-items-center justify-content-center text-center limit-line"
+          class="
+            align-items-center
+            justify-content-center
+            text-center
+            limit-line
+          "
           headerStyle="text-align:center;max-width:130px"
           bodyStyle="text-align:center;max-width:130px; word-break:break-word"
           :sortable="true"
@@ -2155,11 +2172,7 @@ onMounted(() => {
           <template #body="data">
             <div>
               {{
-                data.data.receive_date
-                  ? moment(new Date(data.data.receive_date)).format(
-                      "DD/MM/YYYY"
-                    )
-                  : ""
+                data.data.receive_date?moment(new Date(data.data.receive_date)).format("DD/MM/YYYY"):''
               }}
             </div>
           </template>
@@ -2185,7 +2198,12 @@ onMounted(() => {
         <Column
           field="doc_date"
           header="Ngày văn bản"
-          class="align-items-center justify-content-center text-center limit-line"
+          class="
+            align-items-center
+            justify-content-center
+            text-center
+            limit-line
+          "
           headerStyle="text-align:center;max-width:120px"
           bodyStyle="text-align:center;max-width:120px; word-break:break-word"
           headerClass="limit-line-1"
@@ -2274,7 +2292,13 @@ onMounted(() => {
         </Column>
         <template #empty>
           <div
-            class="align-items-center justify-content-center p-4 text-center m-auto"
+            class="
+              align-items-center
+              justify-content-center
+              p-4
+              text-center
+              m-auto
+            "
             v-if="!isFirst"
           >
             <img src="../../assets/background/nodata.png" height="144" />
@@ -2330,61 +2354,50 @@ onMounted(() => {
       </div>
     </div>
   </Dialog>
-  <Sidebar
-    :showCloseIcon="false"
-    v-model:visible="rightSideReport"
-    class="p-sidebar-md"
-    :baseZIndex="10000"
-    position="right"
-  >
-    <h3>Danh sách báo cáo xuất</h3>
-    <DataTable :value="listHistoryRP">
-      <Column>
-        <template #header>
-          <div class="w-full format-center">Họ và tên</div>
-        </template>
-        <template #body="data">
-          <div class="w-full format-center font-bold">
-            {{ data.data.user_name }}
-          </div>
-        </template>
-      </Column>
-      <Column
-        headerStyle="text-align:center; width:200px"
-        bodyStyle="text-align:center; width:200px"
-        field="organization_name"
-      >
-        <template #header>
-          <div class="w-full format-center">Ngày xuất</div>
-        </template>
-        <template #body="data">
-          <div class="w-full format-center">
-            {{
-              moment(new Date(data.data.timeExport)).format("DD/MM/YYYY HH:mm")
-            }}
-          </div>
-        </template>
-      </Column>
-      <Column
-        headerStyle="text-align:center; width:100px"
-        bodyStyle="text-align:center; width:100px"
-        field="organization_name"
-      >
-        <template #header>
-          <div class="w-full">Lọc</div>
-        </template>
-        <template #body="data">
-          <div class="w-full">
-            <Button
-              class="p-button-rounded p-button-secondary p-button-outlined mx-1"
-              type="button"
-              icon="pi pi-filter"
-              @click="onFilterHistory(data.data)"
-            ></Button>
-          </div>
-        </template>
-      </Column>
-    </DataTable>
+  <Sidebar :showCloseIcon="false" v-model:visible="rightSideReport" class="p-sidebar-md" :baseZIndex="10000"	
+    position="right">	
+    <h3>Danh sách báo cáo xuất</h3>	
+    <DataTable :value="listHistoryRP">	
+      <Column>	
+        <template #header>	
+          <div class="w-full format-center">	
+            Họ và tên	
+          </div>	
+        </template>	
+        <template #body="data">	
+          <div class="w-full format-center font-bold ">	
+            {{ data.data.user_name }}	
+          </div>	
+        </template>	
+      </Column>	
+      <Column headerStyle="text-align:center; width:200px" bodyStyle="text-align:center; width:200px"	
+        field="organization_name">	
+        <template #header>	
+          <div class="w-full format-center">	
+            Ngày xuất	
+          </div>	
+        </template>	
+        <template #body="data">	
+          <div class="w-full format-center">	
+            {{ moment(new Date(data.data.timeExport)).format("DD/MM/YYYY HH:mm") }}	
+          </div>	
+        </template>	
+      </Column>	
+      <Column headerStyle="text-align:center; width:100px" bodyStyle="text-align:center; width:100px"	
+        field="organization_name">	
+        <template #header>	
+          <div class="w-full  ">	
+            Lọc	
+          </div>	
+        </template>	
+        <template #body="data">	
+          <div class="w-full  ">	
+            <Button class="p-button-rounded p-button-secondary p-button-outlined mx-1" type="button" icon="pi pi-filter"	
+              @click="onFilterHistory(data.data)"></Button>	
+          </div>	
+        </template>	
+      </Column>	
+    </DataTable>	
   </Sidebar>
 </template>
 <style scoped>
