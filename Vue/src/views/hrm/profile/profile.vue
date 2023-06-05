@@ -292,6 +292,143 @@ const toggleExport = (event) => {
 const optionsExport = ref([
   { field: "profile_code", title: "Mã hồ sơ", is_order: 1 },
   { field: "profile_user_name", title: "Họ và tên", is_order: 2 },
+  { field: "profile_nick_name", title: "Tên gọi khác", is_order: 3 },
+  { field: "profile_last_name", title: "Tên", is_order: 4 },
+  { field: "birthday", title: "Ngày sinh", is_order: 5 },
+  { field: "gender", title: "Giới tính", is_order: 6 },
+  { field: "superior_id", title: "Mã cấp trên", is_order: 7 },
+  { field: "check_in_id", title: "Mã chấm công", is_order: 8 },
+  { field: "recruitment_date", title: "Ngày tuyển dụng", is_order: 9 },
+  { field: "birthplace_id", title: "Nơi sinh", is_order: 10 },
+  { field: "birthplace_origin_id", title: "Quê quán'", is_order: 11 },
+  {
+    field: "place_register_permanent_first",
+    title: "Nơi đăng ký HKTT (Số nhà)",
+    is_order: 12,
+  },
+  {
+    field: "place_register_permanent",
+    title: "Nơi đăng ký HKTT (Phường, xã, huyện, tỉnh)",
+    is_order: 13,
+  },
+  { field: "nationality_id", title: "Quốc tịch", is_order: 14 },
+  { field: "ethnic_id", title: "Dân tộc", is_order: 15 },
+  { field: "religion_id", title: "Tôn giáo", is_order: 16 },
+  { field: "identity_papers_id", title: "Loại giấy tờ", is_order: 17 },
+  { field: "identity_papers_code", title: "Số CCCD/CMND", is_order: 18 },
+  { field: "identity_date_issue", title: "Ngày cấp", is_order: 19 },
+  { field: "identity_end_date_issue", title: "Ngày hết hạn", is_order: 20 },
+  { field: "identity_place_id", title: "Nơi cấp", is_order: 21 },
+  { field: "tax_code", title: "Mã số thuế", is_order: 22 },
+  { field: "marital_status", title: "Tình trạng hôn nhân", is_order: 23 },
+  { field: "bank_id", title: "Ngân hàng", is_order: 24 },
+  { field: "bank_number", title: "Số tài khoản", is_order: 25 },
+  { field: "bank_account", title: "Tên tài khoản", is_order: 26 },
+  { field: "phone", title: "Di động", is_order: 27 },
+  { field: "fax", title: "Số điện thoại cố định", is_order: 28 },
+  { field: "email", title: "Email", is_order: 29 },
+  { field: "place_permanent", title: "Chỗ ở hiện nay (Số nhà)", is_order: 30 },
+  {
+    field: "place_residence_id",
+    title: "Chỗ ở hiện nay (Phường, xã, huyện, tỉnh)",
+    is_order: 31,
+  },
+  { field: "involved_name", title: "Họ và tên (Người liên hệ)", is_order: 32 },
+  {
+    field: "involved_phone",
+    title: "Số điện thoại (Người liên hệ)",
+    is_order: 33,
+  },
+  {
+    field: "relationship_id",
+    title: "Mối quan hệ (Người liên hệ)",
+    is_order: 34,
+  },
+  { field: "involved_place", title: "Địa chỉ (Người liên hệ)", is_order: 35 },
+  {
+    field: "recruitment_date_first",
+    title: "Ngày tuyển dụng lần đầu",
+    is_order: 36,
+  },
+  { field: "recruitment_form", title: "Hình thức tuyển dụng", is_order: 37 },
+  {
+    field: "job_before_recruitment",
+    title: "Nghề nghiệp bản thân trước khi được tuyển dụng",
+    is_order: 38,
+  },
+  { field: "recruitment_position", title: "Vị trí tuyển dụng", is_order: 39 },
+  { field: "is_re_recruitment", title: "Tuyển dụng lại", is_order: 40 },
+  { field: "recruitment_number", title: "Lần tuyển dụng", is_order: 41 },
+  { field: "re_recruitment_date", title: "Ngày tuyển dụng lại", is_order: 42 },
+  {
+    field: "re_recruitment_form",
+    title: "Hình thức tuyển dụng lại",
+    is_order: 43,
+  },
+  {
+    field: "job_before_re_recruitment",
+    title: "Nghề nghiệp bản thân trước khi được tuyển dụng lại",
+    is_order: 44,
+  },
+  {
+    field: "re_recruitment_position",
+    title: "Vị trí tuyển dụng",
+    is_order: 45,
+  },
+  { field: "cultural_level_id", title: "Trình độ phổ thông", is_order: 46 },
+  {
+    field: "cultural_level_max",
+    title: "Trình độ học vấn cao nhất",
+    is_order: 47,
+  },
+  { field: "management_state_id", title: "Quản lý nhà nước", is_order: 48 },
+  { field: "political_theory_id", title: "Lý luận chính trị", is_order: 49 },
+  { field: "language_level_id", title: "Ngoại ngữ", is_order: 50 },
+  { field: "informatic_level_id", title: "Tin học", is_order: 51 },
+  { field: "bevy_code", title: "Số thẻ Đoàn", is_order: 52 },
+  { field: "bevy_date", title: "Ngày vào Đoàn", is_order: 53 },
+  { field: "bevy_address", title: "Nơi vào Đoàn", is_order: 54 },
+  { field: "bevy_position", title: "Chức vụ Đoàn hiện tại", is_order: 54 },
+  { field: "is_partisan", title: "Là Đảng viên", is_order: 55 },
+  { field: "civil_servant_rank_name", title: "Ngạch công chức (viên chức)", is_order: 56 },
+  { field: "card_partisan", title: "Số thẻ Đảng", is_order: 57 },
+  { field: "partisan_date", title: "Ngày vào Đảng", is_order: 58 },
+  { field: "partisan_main_date", title: "Ngày vào Đảng chính thức", is_order: 59 },
+  { field: "partisan_address", title: "Nơi kết nạp", is_order: 60 },
+  { field: "partisan_addpartisan_feeress", title: "Tính phí Đảng tại đơn vị", is_order: 61 },
+  { field: "partisan_branch", title: "Chị bộ sinh hoạt Đảng", is_order: 62 },
+  { field: "partisan_official", title: "Đảng bộ chính thức", is_order: 63 },
+  { field: "partisan_joindate", title: "Ngày tham gia cách mạng", is_order: 64 },
+  { field: "organization_joindate", title: "Ngày tham gia tổ chức", is_order: 65 },
+  { field: "organization_task", title: "Công việc trong tổ chức", is_order: 66 },
+  { field: "appellation", title: "Danh hiệu", is_order: 67 },
+  { field: "armorial", title: "Huy hiệu", is_order: 68 },
+  { field: "military_start_date", title: "Ngày nhập ngũ", is_order: 69 },
+  { field: "military_end_date", title: "Ngày xuất ngũ", is_order: 70 },
+  { field: "military_rank", title: "Quân hàm cao nhất", is_order: 71 },
+  { field: "military_title", title: "Danh hiệu phong tặng cao nhất", is_order: 72 },
+  { field: "military_veterans_rank", title: "Thương binh hạng", is_order: 73 },
+  { field: "military_policy_family", title: "Con gia đình chính sách", is_order: 74 },
+  { field: "family_member", title: "Thành phần gia đình xuất thân", is_order: 75 },
+  { field: "task_longest", title: "Công việc đã làm lâu nhất", is_order: 76 },
+  { field: "mission_forte", title: "Sở trường công tác", is_order: 77 },
+  { field: "military_reward", title: "Khen thưởng", is_order: 78 },
+  { field: "military_discipline", title: "Kỷ luật", is_order: 79 },
+  { field: "biography_first", title: "Bị bắt, bị tù, bản thân có làm việc trong chế độ cũ", is_order: 80 },
+  { field: "biography_second", title: "Tham gia hoặc có quan hệ với các tổ chức chính trị, kinh tế, xã hội nào ở nước ngoài", is_order: 81 },
+  { field: "biography_third", title: "Có thân nhân ở nước ngoài (làm gì, địa chỉ)", is_order: 82 },
+  { field: "note", title: "Nhật xét, đánh giá của cơ quan, đơn vị quản lý và sử dụng cán bộ, công chức", is_order: 83 },
+  { field: "salary_family", title: "Lương gia đình", is_order: 84 },
+  { field: "salary_orther", title: "Nguồn khác", is_order: 85 },
+  { field: "type_rent", title: "Được cấp, được thuê, loại nhà", is_order: 86 },
+  { field: "area_level", title: "Diện tích nhà sử dụng", is_order: 87 },
+  { field: "type_house", title: "Nhà tự mua, loại nhà", is_order: 88 },
+  { field: "area_buy", title: "Diện tích nhà mua", is_order: 89 },
+  { field: "area_granted", title: "Diện tích đất được cấp", is_order: 90 },
+  { field: "area_buy_yourself", title: "Diện tích đất tự mua", is_order: 91 },
+  { field: "area_manufacture", title: "Tổng diện tích", is_order: 92 },
+  { field: "sign_address", title: "Địa điểm ký", is_order: 93 },
+  { field: "sign_date", title: "Ngày ký", is_order: 94 },
 ]);
 const headerDialogExport = ref();
 const displayDialogExport = ref(false);
@@ -305,7 +442,7 @@ const closeDialogExport = () => {
   forceRerender(9);
 };
 const bindDataExport = (options) => {
-  debugger
+  debugger;
 };
 
 //Watch
@@ -1619,6 +1756,11 @@ const initTreeOrganization = (rf) => {
             // addToArray(temp, treeOrganization.value, parent, 0, "is_order");
             // treeOrganization.value = temp;
 
+            tbs[0] = tbs[0].sort((a, b) => {
+              return a.level - b.level;
+            });
+            let level = tbs[0][0].level;
+
             let obj = renderTree(
               tbs[0],
               "organization_id",
@@ -1628,7 +1770,7 @@ const initTreeOrganization = (rf) => {
             organizationtrees.value = obj.arrChils;
 
             for (let node of organizationtrees.value) {
-              if (node.data.level < 1) {
+              if (node.data.level < level + 1) {
                 expandedKeys2.value[node.key] = true;
                 expandNode(node);
               }

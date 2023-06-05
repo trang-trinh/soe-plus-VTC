@@ -372,7 +372,7 @@ const openAddRow = (type) => {
 };
 const saveRow = (type, isContinue) => {
   if (datachilds.value[type] == null) {
-    datachilds[type] = [];
+    datachilds.value[type] = [];
   }
   datachilds.value[type].unshift(modeldetail.value);
   if (modeldetail.value.is_man_degree && modeldetail.value.academic_level_id) {
@@ -1410,7 +1410,7 @@ onMounted(() => {
               </template>
               <div class="col-12 md:col-12">
                 <div class="row">
-                  <div class="col-4 md:col-4">
+                  <div class="col-3 md:col-3">
                     <div class="form-group">
                       <label>Di động</label>
                       <InputMask
@@ -1421,7 +1421,7 @@ onMounted(() => {
                       />
                     </div>
                   </div>
-                  <div class="col-4 md:col-4">
+                  <div class="col-3 md:col-3">
                     <div class="form-group">
                       <label>Số điện thoại cố định</label>
                       <InputMask
@@ -1432,13 +1432,24 @@ onMounted(() => {
                       />
                     </div>
                   </div>
-                  <div class="col-4 md:col-4">
+                  <div class="col-3 md:col-3">
                     <div class="form-group">
                       <label>Email</label>
                       <InputText
                         spellcheck="false"
                         class="ip36"
                         v-model="model.email"
+                        maxLength="50"
+                      />
+                    </div>
+                  </div>
+                  <div class="col-3 md:col-3">
+                    <div class="form-group">
+                      <label>Email đơn vị cấp</label>
+                      <InputText
+                        spellcheck="false"
+                        class="ip36"
+                        v-model="model.email_company"
                         maxLength="50"
                       />
                     </div>
@@ -4253,7 +4264,7 @@ onMounted(() => {
 
   <!--Dialog 1-->
   <Dialog
-    header="Quá trình công tác trước khi vào đơn vị"
+    header="uan hệ gia đình"
     v-model:visible="displayDialog1"
     :style="{ width: '60vw' }"
     :maximizable="true"

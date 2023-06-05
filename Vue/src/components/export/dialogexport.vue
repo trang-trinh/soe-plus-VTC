@@ -36,7 +36,9 @@ onMounted(() => {
     <form @submit.prevent="" name="submitform">
       <div class="grid formgrid m-2">
         <div class="col-5 md:col-5">
-          <DataTable :value="props.options"> </DataTable>
+          <DataTable :value="props.options">
+            
+          </DataTable>
         </div>
         <div class="col-2 md:col-2"></div>
         <div class="col-5 md:col-5">
