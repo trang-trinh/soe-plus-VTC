@@ -242,7 +242,7 @@ const configQuyetdinh = async (row) => {
         cg = JSON.parse(report.value.report_config);
       }
       cg.proc = {
-        name: "hrm_decision_user_get",
+        name: "hrm_decision_user_get1",
         parameters: [
           {
             Parameter_name: "@decision_id",
@@ -251,7 +251,7 @@ const configQuyetdinh = async (row) => {
             Param_order: 1,
           },
           {
-            Parameter_name: "@decision_user_id",
+            Parameter_name: "@profile_id",
             Type: "varchar",
             Length: 50,
             Param_order: 2,

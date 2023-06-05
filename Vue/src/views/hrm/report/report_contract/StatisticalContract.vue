@@ -245,7 +245,7 @@ const removeFilter = (idx, array) => {
 };
 const goBack = () => {
   history.back();
-};
+}; 
 //Khai báo function
 const renderTreeDV = (data, id, name, title) => {
   let arrChils = [];
@@ -343,7 +343,7 @@ onMounted(() => {
             >
               <div>
                 <span class="mr-2"><i class="pi pi-filter"></i></span>
-                <span class="mr-2">Chọn điều kiện lập báo cáo</span>
+                <span class="mr-2">Lọc dữ liệu</span>
                 <span><i class="pi pi-chevron-down"></i></span>
               </div>
             </Button>
@@ -516,7 +516,7 @@ onMounted(() => {
           </template>
         </Toolbar>
       </div>
-      <div style="overflow: scroll;max-height: calc(100vh - 147px);min-height: calc(100vh - 147px);background-color: #fff;">
+      <div id="dtData" style="overflow: scroll;max-height: calc(100vh - 147px);min-height: calc(100vh - 147px);background-color: #fff;">
           <table cellspacing=0 id="table-bc" class="table table-condensed table-hover tbpad" style="width: max-content;">
           <thead style="position: sticky; z-index: 6; top:0">
               <tr>
