@@ -1312,7 +1312,6 @@ onMounted(() => {
         @page="onPage($event)"
         @filter="onFilter($event)"
         @sort="onSort($event)"
-        v-model:first="first"
         style="max-height:calc(100vh - 150px);min-height: calc(100vh - 150px)"
       >
       <template #groupheader="slotProps">
@@ -1353,19 +1352,10 @@ onMounted(() => {
           </template>
       </Column>
       <Column
-        field="organization_name"
-        header="Phòng ban"
-        headerStyle="text-align:center;max-width:150px;height:50px"
-        bodyStyle="text-align:center;max-width:150px;"
-        class="align-items-center justify-content-center text-center"
-      >
-      </Column>
-      <Column
         field="position_name"
         header="Chức vụ"
-        headerStyle="text-align:center;max-width:150px;height:50px"
-        bodyStyle="text-align:center;max-width:150px;;"
-        class="align-items-center justify-content-center text-center"
+        headerStyle="text-align:center;max-width:200px;height:50px"
+        bodyStyle="text-align:left;justify-content:start;max-width:200px;"
       >
       </Column>
       <Column
