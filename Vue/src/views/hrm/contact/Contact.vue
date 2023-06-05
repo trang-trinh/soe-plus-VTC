@@ -525,12 +525,12 @@ onMounted(() => {
             </div>
         </SplitterPanel>
         <SplitterPanel :size="75">
-          {{ options.loading }}
           <div class="d-lang-table-r" id="buffered-scroll">
             <DataTable  class="w-full p-datatable-sm e-sm"
              :value="datalistsDetails"
               :virtualScrollerOptions="{ itemSize: 78 }"
               v-model:selection="selectedNodes"
+              :showGridlines="true"
               selectionMode="single"
               dataKey="profile_code"
               >
@@ -611,16 +611,14 @@ onMounted(() => {
               field="phone"
               header="Mobile"
               headerStyle="text-align:center;max-width:80px;height:50px"
-              bodyStyle="text-align:center;max-width:80px;"
-              class="align-items-center justify-content-center text-center"
+              bodyStyle="max-width:80px;text-align:left;word-break:break-word;justify-content:start"
               >
               </Column>   
               <Column
               field="email"
               header="Email"
               headerStyle="text-align:center;max-width:140px;height:50px"
-              bodyStyle="text-align:center;max-width:140px; word-break:break-word"
-              class="align-items-center justify-content-center text-center"
+              bodyStyle="max-width:140px;text-align:left;word-break:break-word;justify-content:start"
               >
               </Column>   
               <Column
