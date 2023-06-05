@@ -3,7 +3,33 @@ import { onMounted, inject, ref } from "vue";
 import { encr } from "../../../../util/function";
 import { useToast } from "vue-toastification";
 import moment from "moment";
+import tree_users_hrm from "../../component/tree_users_hrm.vue";
+import DropdownProfiles from "../../component/DropdownProfiles.vue";
+import DropdownProfile from "../../component/DropdownProfile.vue";
+const emitter = inject("emitter");
 
+const getProfileUsers = (user, obj) => {
+  if (user == "profile") {
+    model.value[user] = [];
+    obj.forEach((element) => {
+      model.value[user].push(element.profile_id);
+    });
+  } else {
+    options.value.list_profile_id = [];
+    obj.forEach((element) => {
+      options.value.list_profile_id.push(element.profile_id);
+    });
+  }
+};
+
+const getProfileUser=(user,obj)=>{
+ 
+ if (obj) {
+  model.value[user]=obj.profile_id;
+     } else {
+      model.value[user] = null;
+     }
+}
 const store = inject("store");
 const swal = inject("$swal");
 const axios = inject("axios");
@@ -53,7 +79,8 @@ const model = ref({
   is_multiple: props.type_decision.is_multiple,
   decision_date: new Date(),
   start_date: new Date(),
-  report_key:props.type_decision.report_key,
+  report_key: props.type_decision.report_key,
+  profile: [],
 });
 const headerDialog = ref();
 const displayDialog = ref(false);
@@ -79,10 +106,14 @@ const saveModel = (is_continue) => {
       swal.showLoading();
     },
   });
-debugger
+
   var obj = JSON.parse(JSON.stringify(model.value));
-  if (obj.profile != null) {
-    obj.profiles = obj.profile.map((x) => x.profile_id).join(",");
+  if (obj.profile != null && model.value.is_multiple) {
+    obj.profiles = obj.profile.join(",");
+  }
+  else{
+     
+    obj.profiles = obj.profile ;
   }
   if (obj.decision_date != null) {
     obj.decision_date = moment(obj.decision_date).format("YYYY-MM-DDTHH:mm:ss");
@@ -327,7 +358,15 @@ const initData = (ref) => {
           if (tbs[0] != null && tbs[0].length > 0) {
             model.value = tbs[0][0];
             if (model.value.profiles != null) {
-              model.value.profile = JSON.parse(model.value.profile);
+               
+              
+              if (model.value.profile) {
+                model.value.profile_fale = [];
+                JSON.parse(model.value.profile).forEach((element) => {
+                  model.value.profile_fale.push(element.profile_id);
+                });
+                model.value.profile= model.value.profile_fale;
+              }
             }
             if (
               model.value.discipline_id == null &&
@@ -378,12 +417,68 @@ const initData = (ref) => {
       }
     });
 };
+
+const displayDialogUser = ref(false);
+
+const selectedUser = ref();
+
+const showTreeUser = () => {
+  checkMultile.value = !model.value.is_multiple;
+  selectedUser.value = [];
+  displayDialogUser.value = true;
+};
+
+const closeDialogUser = () => {
+  displayDialogUser.value = false;
+};
+
+const checkMultile = ref(false);
+
+const choiceUser = () => {
+  model.value.profile = [];
+  if (checkMultile.value == false)
+  {
+    selectedUser.value.forEach((element) => {
+      model.value.profile.push(element.profile_id);
+    });
+  }
+  else{
+    if( selectedUser.value)
+    if( selectedUser.value.length>0)
+    model.value.profile=   selectedUser.value[0].profile_id;
+  
+  }
+  closeDialogUser();
+};
+
+emitter.on("emitData", (obj) => {
+  switch (obj.type) {
+    case "submitModel":
+      if (obj.data) {
+        if (obj.data.type == 1) {
+          model.value.profile = [];
+          obj.data.data.forEach((element) => {
+            model.value.profile.push(element.profile_id);
+          });
+        } else {
+          options.value.list_profile_id = [];
+          obj.data.data.forEach((element) => {
+            options.value.list_profile_id.push(element.profile_id);
+          });
+        }
+      }
+      break;
+
+    default:
+      break;
+  }
+});
 onMounted(() => {
   if (props.displayDialog) {
     initDictionary();
     if (!props.isAdd || props.isCopy) {
       initData(true);
-    }  
+    }
   }
 });
 </script>
@@ -394,7 +489,6 @@ onMounted(() => {
     :style="{ width: '70vw' }"
     :maximizable="true"
     :closable="true"
-   
     :modal="true"
   >
     <form @submit.prevent="" name="submitform">
@@ -488,8 +582,43 @@ onMounted(() => {
             </div>
             <div class="col-12 md:col-12">
               <div class="form-group">
-                <label>Nhân sự <span class="redsao">(*)</span></label>
-                <MultiSelect
+                <div class=" flex align-items-center">
+                  <label>Nhân sự <span class="redsao">(*)</span> </label>
+                  <Button
+              v-tooltip.top="'Chọn nhân sự'"
+              @click="showTreeUser()"
+              icon="pi pi-user-plus"
+              class="p-button-text p-button-rounded"
+            />
+                </div>
+              
+
+                <DropdownProfiles
+                  :model="model.profile"
+                  :display="'chip'"
+                  :placeholder="'Chọn nhân sự'"
+                  :class="{
+                    'p-invalid': model.profile == null && submitted,
+                  }"
+                  v-if="model.is_multiple"
+                  :callbackFun="getProfileUsers"
+                  :key_user="'profile'"
+                />
+
+                <DropdownProfile
+                :model="model.profile"
+                :placeholder="'Chọn nhân sự'"
+              
+                  v-else
+                :class=" ( model.profile == null && submitted)?'p-invalid w-full p-0':' w-full p-0' "
+                :editable="false"
+                optionLabel="profile_user_name"
+                optionValue="code"
+                :callbackFun="getProfileUser"
+                :key_user="'profile'"
+              />
+               
+                <!-- <MultiSelect
                   :options="dictionarys[2]"
                   :filter="true"
                   :showClear="true"
@@ -607,7 +736,7 @@ onMounted(() => {
                     </div>
                     <span v-else> Chưa có dữ liệu tuần </span>
                   </template>
-                </MultiSelect>
+                </MultiSelect> -->
                 <div v-if="!model.profile && submitted">
                   <small class="p-error">
                     <span class="col-12 p-0">Nhân sự không được để trống</span>
@@ -806,12 +935,13 @@ onMounted(() => {
         </div>
       </div>
     </form>
+
     <template #footer>
       <Button
         label="Hủy"
         icon="pi pi-times"
         @click="props.closeDialog()"
-        class="p-button-text"
+        class="p-button-outlined"
       />
       <Button
         v-if="props.isAdd"
@@ -827,6 +957,16 @@ onMounted(() => {
       />
     </template>
   </Dialog>
+
+  <tree_users_hrm
+    v-if="displayDialogUser === true"
+    :headerDialog="'Chọn nhân sự'"
+    :displayDialog="displayDialogUser"
+    :closeDialog="closeDialogUser"
+    :one="checkMultile"
+    :selected="selectedUser"
+    :choiceUser="choiceUser"
+  />
 </template>
 <style scoped>
 @import url(./stylehrm.css);

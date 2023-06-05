@@ -6,7 +6,7 @@ import dialogdecíion from "./component/dialogdecision.vue";
 import framepreview from "../component/framepreview.vue";
 import DocComponent from "../template/components/DocComponent.vue";
 import moment from "moment";
-
+ 
 const router = inject("router");
 const store = inject("store");
 const swal = inject("$swal");
@@ -194,7 +194,7 @@ const toggleMores = (event, item) => {
 // });
 
 const configQuyetdinh = async (row) => {
-  debugger
+  
   let strSQL = {
     query: false,
     proc: "hrm_decision_config",
@@ -453,7 +453,7 @@ const copyItem = (item, str) => {
       }
     });
 };
-
+const isView=ref(false);
 const headerDialogFrame = ref();
 const displayDialogFrame = ref(false);
 const openDialogFrame = (item) => {
@@ -559,6 +559,7 @@ const editItem = (item, str) => {
   });
   isAdd.value = false;
   isCopy.value = false;
+  
   axios
     .post(
       baseURL + "/api/hrm/callProc",
@@ -575,13 +576,16 @@ const editItem = (item, str) => {
       config
     )
     .then((response) => {
+      
       var data = response.data.data;
       if (data != null) {
         var tbs = JSON.parse(data);
         if (tbs[0] != null && tbs[0].length > 0) {
           model.value = tbs[0][0];
+           
           if (model.value["profiles"] != null) {
             model.value["profile"] = JSON.parse(model.value["profiles"])[0];
+             
           }
           if (model.value["sign_users"] != null) {
             model.value["sign_user"] = JSON.parse(model.value["sign_users"])[0];
@@ -1168,6 +1172,8 @@ const onPage = (event) => {
   options.value.pageNo = event.page + 1;
   initData(true);
 };
+
+
 onMounted(() => {
   initDictionary();
   initCount();
