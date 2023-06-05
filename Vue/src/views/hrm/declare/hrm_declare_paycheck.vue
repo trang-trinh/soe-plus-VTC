@@ -885,7 +885,7 @@ const initTuDien = () => {
       {
         str: encr(
           JSON.stringify({
-            proc: "smartreport_list ",
+            proc: "smartreport_list_paycheck ",
             par: [{ par: "user_id", va: store.getters.user.user_id }],
           }),
           SecretKey,

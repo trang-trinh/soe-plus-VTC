@@ -67,6 +67,7 @@ export default {
           swal.showLoading();
         },
       });
+      debugger
       const axResponse = await axios.post(
         baseURL + "/api/HRM_SQL/getData",
         {
@@ -82,6 +83,7 @@ export default {
         } else {
           let dts = JSON.parse(axResponse.data.data)[0];
           dtPars.value = dts;
+          debugger
           if (mdProc.value) {
             let sql = mdProc.value.proc_name + " ";
             let dfs = props.report.proc_name

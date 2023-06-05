@@ -1446,41 +1446,52 @@ namespace API.Controllers.HRM
 
 
                 sql =
+      "      (SELECT  FieldValue INTO #child FROM dbo.udf_PivotParameters((SELECT IDChild FROM view_sys_organization WHERE organization_id =  " + dvid + " ) , ','))  " +
+    "    Select ct.*, ps.position_name, tt.title_name, STUFF((SELECT ', ' + pw.professional_work_name FROM hrm_ca_professional_work pw  " +
+    "        where pw.professional_work_id in (Select FieldValue from dbo.udf_PivotParameters(ct.professional_works, ','))   FOR XML PATH('')  " +
+   "     ), 1, 1, '')professional_work_name, f.formality_name, (o.organization_name)department_name, pg.personel_groups_name, hp.profile_user_name  " +
+   "     , hp.profile_code,hp.avatar into #contract  " +
+   "     from hrm_profile_assignment ct  " +
+   "     LEFT JOIN hrm_profile hp ON ct.profile_id = hp.profile_id  " +
+  "      left join hrm_ca_title tt on tt.title_id = ct.title_id  " +
+   "     left join ca_positions ps on ct.position_id = ps.position_id  " +
+   "     left join sys_organization o on ct.department_id = o.organization_id  " +
+    "    left join hrm_ca_formality f on ct.formality_id = f.formality_id  " +
+   "     left join hrm_ca_personel_groups pg on pg.personel_groups_id = ct.personel_groups_id  " +
+   "    where(ct.organization_id =  " + dvid + "  or ct.organization_id in (Select FieldValue from #child)) and ct.is_active = 1  " +
+    "    Select p.*, DATEDIFF(day, p.recruitment_date, getdate())countRecruitment, pl.name  " +
+    "    , isNull(ct.department_id, -1)department_id, isNull(ct.department_name, N'Chưa có phòng ban')department_name  " +
+   "     , ct.title_name, ct.professional_work_name, ct.formality_name, ct.position_name, ct.personel_groups_name  " +
+   "     , Cast(case when(Select count(ps.key_id) from hrm_profile_edit ps where profile_id = p.profile_id) > 0 then 1 else 0 end as bit)isEdit  " +
+   "     , Cast(case when(select count(mt.matchaccount_id) from hrm_matchaccount mt where mt.profile_id = p.profile_id) > 0 then 1 else 0 end as bit)is_matchaccount  " +
+   "     into #temp from hrm_profile p left join ca_places pl on p.birthplace_id = pl.place_id  " +
+   "     left join #contract ct on p.profile_id = ct.profile_id  ";
 
-                    " (Select FieldValue into #child from dbo.udf_PivotParameters((Select IDChild from view_sys_organization where organization_id = " + dvid + " ), ',')) " +
-"Select tbn.*, cts.contract_id, (o.organization_id)department_id, (o.organization_name)department_name, ps.position_name, wp.work_position_name into #contract " +
-" from(Select ct.profile_id, Max(ct.sign_date)sign_date, Max(ct.is_order)maxorder from hrm_contract ct " +
 
-  "  where (ct.organization_id =" + dvid + " or ct.organization_id in (Select FieldValue from #child)) and ct.status = 1	group by ct.profile_id) tbn " +
-"inner join hrm_contract cts on cts.profile_id = tbn.profile_id and cts.sign_date = tbn.sign_date and cts.is_order = tbn.maxorder " +
-"left join sys_organization o on cts.department_id = o.organization_id " +
-"left join ca_positions ps on cts.position_id = ps.position_id " +
-"left join hrm_ca_work_position wp on cts.work_position_id = wp.work_position_id";
 
-                sql += " select  hcal.*,su.full_name,su.avatar, " +
-              "  CASE WHEN hcal.reward_type = 1 OR hcal.reward_type = 3 THEN(select distinct '[' + STUFF(( " +
-                  "   SELECT ',{\"full_name\":\"' + cast(ISNULL(hcs.profile_user_name, '') as nvarchar(150)) + '\"' " +
-                   "     + ',\"avatar\":\"' + cast(ISNULL(hcs.avatar, '') as nvarchar(250)) + '\"' " +
-                    "     + ',\"profile_id\":\"' + cast(ISNULL(hcs.profile_id, '') as nvarchar(100)) + '\"'  " +
-                    "      +',\"profile_code\":\"' + cast(ISNULL(hcs.profile_code, '') as nvarchar(250)) + '\"'" +
-                 "  + ',\"position_name\":\"' + cast(ISNULL(sc.position_name, '') as nvarchar(250)) + '\"'" +
-                 "  + ',\"department_name\":\"' + cast(ISNULL(sc.department_name, '') as nvarchar(250)) + '\"' + '}' " +
-                "    FROM hrm_profile   hcs LEFT JOIN #contract sc ON hcs.profile_id = sc.profile_id  " +
-                "  WHERE hcs.profile_id IN(SELECT * FROM dbo.udf_PivotParameters(hcal.reward_name, ',') upp) for xml path(''), type) " +
-               "  .value('.', 'nvarchar(max)'), 1, 1, '')  +']'   ) " +
+                sql += "   SELECT hcal.*,su.full_name,su.avatar,CASE WHEN hcal.reward_type = 1 OR " +
+    "    hcal.reward_type = 3 THEN(SELECT DISTINCT '[' + STUFF((SELECT " +
+            "          ',{\"full_name\":\"' + CAST(ISNULL(hcs.profile_user_name, '') AS NVARCHAR(150)) + '\"' " +
+            "          + ',\"avatar\":\"' + CAST(ISNULL(hcs.avatar, '') AS NVARCHAR(250)) + '\"' " +
+            "          + ',\"profile_id\":\"' + CAST(ISNULL(hcs.profile_id, '') AS NVARCHAR(250)) + '\"' " +
+             "         + ',\"profile_code\":\"' + CAST(ISNULL(hcs.profile_code, '') AS NVARCHAR(250)) + '\"' " +
+             "         + ',\"position_name\":\"' + CAST(ISNULL(sc.position_name, '') AS NVARCHAR(250)) + '\"' " +
+             "         + ',\"department_name\":\"' + CAST(ISNULL(sc.department_name, '') AS NVARCHAR(250)) + '\"' " +
+            "          + '}' " +
+           "         FROM hrm_profile hcs LEFT JOIN #temp sc ON hcs.profile_id = sc.profile_id   WHERE hcs.profile_id IN (SELECT " +
+           "             * FROM dbo.udf_PivotParameters(hcal.reward_name, ',') upp)  FOR XML PATH(''), TYPE).value('.', 'nvarchar(max)'), 1, 1, '') +']') " +
+        "    WHEN hcal.reward_type = 2 THEN(SELECT DISTINCT   '[' + STUFF((SELECT " +
+         "             ',{\"department_name\":\"' + CAST(ISNULL(hcs.organization_name, '') AS NVARCHAR(150)) + '\"' " +
+         "           + '}'   FROM sys_organization hcs   WHERE hcs.organization_id IN(SELECT * " +
+         "             FROM dbo.udf_PivotParameters(hcal.reward_name, ',') upp)    FOR XML PATH(''), TYPE).value('.', 'nvarchar(max)'), 1, 1, '') + ']') " +
+     "     END AS listRewards ,hcrl.reward_level_name ,hcrt.reward_title_name ,so.organization_name AS department_name ,cp.position_name " +
+   "    FROM hrm_reward hcal  LEFT JOIN sys_users su  ON su.user_id = hcal.created_by  LEFT JOIN sys_organization so " +
+      "    ON su.department_id = so.organization_id  LEFT JOIN ca_positions cp   ON su.position_id = cp.position_id " +
+    "    LEFT JOIN hrm_ca_reward_level hcrl  ON hcal.reward_level_id = hcrl.reward_level_id " +
+    "    LEFT JOIN hrm_ca_reward_title hcrt    ON hcal.reward_title_id = hcrt.reward_title_id  ";
 
-                "  WHEN hcal.reward_type = 2 THEN(select distinct '[' + STUFF((" +
-                "    SELECT     ',{\"department_name\":\"' + cast(ISNULL(hcs.organization_name, '') as nvarchar(150)) + '\"' + '}' " +
-                "   FROM sys_organization hcs  WHERE hcs.organization_id IN(SELECT * FROM dbo.udf_PivotParameters(hcal.reward_name, ',') upp) for xml path(''), type).value('.', 'nvarchar(max)'), 1, 1, '')  +']'   )  " +
-              " END as listRewards  ,  " +
-              " CASE WHEN hcal.reward_type = 1 OR hcal.reward_type = 2 THEN  " +
-              " (SELECT hcrt1.reward_title_name FROM hrm_ca_reward_title hcrt1 WHERE hcrt1.reward_title_id = hcal.reward_title_id)  " +
-              " WHEN hcal.reward_type = 3 THEN  " +
-              "  (SELECT hcd.discipline_name FROM hrm_ca_discipline hcd   WHERE hcd.discipline_id = hcal.reward_title_id) END as reward_title_name ,  " +
-              " CASE WHEN hcal.reward_type = 1 OR hcal.reward_type = 2 THEN  " +
-              " (SELECT hcrl.reward_level_name FROM hrm_ca_reward_level hcrl     WHERE hcrl.reward_level_id = hcal.reward_level_id)  WHEN hcal.reward_type = 3 THEN  " +
-               "    (SELECT hcd.discipline_level_name FROM hrm_ca_discipline_level hcd   WHERE hcd.discipline_level_id = hcal.reward_level_id) END as reward_level_name  " +
-              " from hrm_reward hcal LEFT JOIN sys_users su ON su.user_id = hcal.created_by  ";
+
+                 
                 string super = claims.Where(x => x.Type == "super").FirstOrDefault()?.Value;
                 string WhereSQL = "";
 
@@ -2194,17 +2205,26 @@ namespace API.Controllers.HRM
 
 
                 sql =
-
-                    " (Select FieldValue into #child from dbo.udf_PivotParameters((Select IDChild from view_sys_organization where organization_id = " + dvid + " ), ',')) " +
-"Select tbn.*,hp.profile_user_name,hp.avatar,hp.profile_code, cts.contract_id, (o.organization_id)department_id, (o.organization_name)department_name, ps.position_name, wp.work_position_name into #contract " +
-" from(Select ct.profile_id, Max(ct.sign_date)sign_date, Max(ct.is_order)maxorder from hrm_contract ct " +
-
-  "  where (ct.organization_id =" + dvid + " or ct.organization_id in (Select FieldValue from #child)) and ct.status = 1	group by ct.profile_id) tbn " +
-"inner join hrm_contract cts on cts.profile_id = tbn.profile_id and cts.sign_date = tbn.sign_date and cts.is_order = tbn.maxorder " +
-"left join sys_organization o on cts.department_id = o.organization_id " +
-"left join ca_positions ps on cts.position_id = ps.position_id " +
-"left join hrm_ca_work_position wp on cts.work_position_id = wp.work_position_id" +
-" LEFT JOIN hrm_profile hp ON cts.profile_id = hp.profile_id ";
+        "      (SELECT  FieldValue INTO #child FROM dbo.udf_PivotParameters((SELECT IDChild FROM view_sys_organization WHERE organization_id =  " + dvid + " ) , ','))  " +
+      "    Select ct.*, ps.position_name, tt.title_name, STUFF((SELECT ', ' + pw.professional_work_name FROM hrm_ca_professional_work pw  " +
+      "        where pw.professional_work_id in (Select FieldValue from dbo.udf_PivotParameters(ct.professional_works, ','))   FOR XML PATH('')  " +
+     "     ), 1, 1, '')professional_work_name, f.formality_name, (o.organization_name)department_name, pg.personel_groups_name, hp.profile_user_name  " +
+     "     , hp.profile_code,hp.avatar into #contract  " +
+     "     from hrm_profile_assignment ct  " +
+     "     LEFT JOIN hrm_profile hp ON ct.profile_id = hp.profile_id  " +
+    "      left join hrm_ca_title tt on tt.title_id = ct.title_id  " +
+     "     left join ca_positions ps on ct.position_id = ps.position_id  " +
+     "     left join sys_organization o on ct.department_id = o.organization_id  " +
+      "    left join hrm_ca_formality f on ct.formality_id = f.formality_id  " +
+     "     left join hrm_ca_personel_groups pg on pg.personel_groups_id = ct.personel_groups_id  " +
+     "    where(ct.organization_id =  " + dvid + "  or ct.organization_id in (Select FieldValue from #child)) and ct.is_active = 1  " +
+      "    Select p.*, DATEDIFF(day, p.recruitment_date, getdate())countRecruitment, pl.name  " +
+      "    , isNull(ct.department_id, -1)department_id, isNull(ct.department_name, N'Chưa có phòng ban')department_name  " +
+     "     , ct.title_name, ct.professional_work_name, ct.formality_name, ct.position_name, ct.personel_groups_name  " +
+     "     , Cast(case when(Select count(ps.key_id) from hrm_profile_edit ps where profile_id = p.profile_id) > 0 then 1 else 0 end as bit)isEdit  " +
+     "     , Cast(case when(select count(mt.matchaccount_id) from hrm_matchaccount mt where mt.profile_id = p.profile_id) > 0 then 1 else 0 end as bit)is_matchaccount  " +
+     "     into #temp from hrm_profile p left join ca_places pl on p.birthplace_id = pl.place_id  " +
+     "     left join #contract ct on p.profile_id = ct.profile_id  ";
 
 
 
@@ -2217,7 +2237,7 @@ namespace API.Controllers.HRM
            "     + ',\"profile_code\":\"' + CAST(ISNULL(hcs.profile_code, '') AS NVARCHAR(250)) + '\"' " +
            "     + ',\"position_name\":\"' + CAST(ISNULL(hcs.position_name, '') AS NVARCHAR(250)) + '\"' " +
            "     + ',\"department_name\":\"' + CAST(ISNULL(hcs.department_name, '') AS NVARCHAR(250)) + '\"' " +
-           "     + '}' FROM #contract hcs    WHERE hcs.profile_id IN (SELECT *  FROM dbo.udf_PivotParameters(hcal.list_profile_id, ',') upp) " +
+           "     + '}' FROM #temp hcs    WHERE hcs.profile_id IN (SELECT *  FROM dbo.udf_PivotParameters(hcal.list_profile_id, ',') upp) " +
           "    FOR XML PATH(''), TYPE).value('.', 'nvarchar(max)'), 1, 1, '') +']') AS listUsers " +
     "  FROM hrm_declare_paycheck hcal LEFT JOIN sys_users su ON su.user_id = hcal.created_by ";
 
@@ -2434,17 +2454,26 @@ namespace API.Controllers.HRM
 
 
                 sql =
-
-                    " (Select FieldValue into #child from dbo.udf_PivotParameters((Select IDChild from view_sys_organization where organization_id = " + dvid + " ), ',')) " +
-"Select tbn.*,hp.profile_user_name,hp.avatar,hp.profile_code, cts.contract_id, (o.organization_id)department_id, (o.organization_name)department_name, ps.position_name, wp.work_position_name into #contract " +
-" from(Select ct.profile_id, Max(ct.sign_date)sign_date, Max(ct.is_order)maxorder from hrm_contract ct " +
-
-  "  where (ct.organization_id =" + dvid + " or ct.organization_id in (Select FieldValue from #child)) and ct.status = 1	group by ct.profile_id) tbn " +
-"inner join hrm_contract cts on cts.profile_id = tbn.profile_id and cts.sign_date = tbn.sign_date and cts.is_order = tbn.maxorder " +
-"left join sys_organization o on cts.department_id = o.organization_id " +
-"left join ca_positions ps on cts.position_id = ps.position_id " +
-"left join hrm_ca_work_position wp on cts.work_position_id = wp.work_position_id" +
-" LEFT JOIN hrm_profile hp ON cts.profile_id = hp.profile_id ";
+        "      (SELECT  FieldValue INTO #child FROM dbo.udf_PivotParameters((SELECT IDChild FROM view_sys_organization WHERE organization_id =  " + dvid + " ) , ','))  " +
+      "    Select ct.*, ps.position_name, tt.title_name, STUFF((SELECT ', ' + pw.professional_work_name FROM hrm_ca_professional_work pw  " +
+      "        where pw.professional_work_id in (Select FieldValue from dbo.udf_PivotParameters(ct.professional_works, ','))   FOR XML PATH('')  " +
+     "     ), 1, 1, '')professional_work_name, f.formality_name, (o.organization_name)department_name, pg.personel_groups_name, hp.profile_user_name  " +
+     "     , hp.profile_code,hp.avatar into #contract  " +
+     "     from hrm_profile_assignment ct  " +
+     "     LEFT JOIN hrm_profile hp ON ct.profile_id = hp.profile_id  " +
+    "      left join hrm_ca_title tt on tt.title_id = ct.title_id  " +
+     "     left join ca_positions ps on ct.position_id = ps.position_id  " +
+     "     left join sys_organization o on ct.department_id = o.organization_id  " +
+      "    left join hrm_ca_formality f on ct.formality_id = f.formality_id  " +
+     "     left join hrm_ca_personel_groups pg on pg.personel_groups_id = ct.personel_groups_id  " +
+     "    where(ct.organization_id =  " + dvid + "  or ct.organization_id in (Select FieldValue from #child)) and ct.is_active = 1  " +
+      "    Select p.*, DATEDIFF(day, p.recruitment_date, getdate())countRecruitment, pl.name  " +
+      "    , isNull(ct.department_id, -1)department_id, isNull(ct.department_name, N'Chưa có phòng ban')department_name  " +
+     "     , ct.title_name, ct.professional_work_name, ct.formality_name, ct.position_name, ct.personel_groups_name  " +
+     "     , Cast(case when(Select count(ps.key_id) from hrm_profile_edit ps where profile_id = p.profile_id) > 0 then 1 else 0 end as bit)isEdit  " +
+     "     , Cast(case when(select count(mt.matchaccount_id) from hrm_matchaccount mt where mt.profile_id = p.profile_id) > 0 then 1 else 0 end as bit)is_matchaccount  " +
+     "     into #temp from hrm_profile p left join ca_places pl on p.birthplace_id = pl.place_id  " +
+     "     left join #contract ct on p.profile_id = ct.profile_id  ";
 
 
 
@@ -2457,7 +2486,7 @@ namespace API.Controllers.HRM
            "     + ',\"profile_code\":\"' + CAST(ISNULL(hcs.profile_code, '') AS NVARCHAR(250)) + '\"' " +
            "     + ',\"position_name\":\"' + CAST(ISNULL(hcs.position_name, '') AS NVARCHAR(250)) + '\"' " +
            "     + ',\"department_name\":\"' + CAST(ISNULL(hcs.department_name, '') AS NVARCHAR(250)) + '\"' " +
-           "     + '}' FROM #contract hcs    WHERE hcs.profile_id IN (SELECT *  FROM dbo.udf_PivotParameters(hcal.list_profile_id, ',') upp) " +
+           "     + '}' FROM #temp hcs    WHERE hcs.profile_id IN (SELECT *  FROM dbo.udf_PivotParameters(hcal.list_profile_id, ',') upp) " +
           "    FOR XML PATH(''), TYPE).value('.', 'nvarchar(max)'), 1, 1, '') +']') AS listUsers " +
     "  FROM hrm_payroll hcal LEFT JOIN sys_users su ON su.user_id = hcal.created_by ";
 

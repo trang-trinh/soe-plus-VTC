@@ -317,7 +317,7 @@ const saveData = (isFormValid) => {
   ) {
     return;
   }
-
+ 
   if (payroll.value.profile_id_fake) {
     payroll.value.list_profile_id = payroll.value.profile_id_fake.toString();
   }
@@ -344,6 +344,7 @@ const saveData = (isFormValid) => {
 
   formData.append("hrm_files", JSON.stringify(listFilesS.value));
   formData.append("hrm_payroll", JSON.stringify(payroll.value));
+  debugger
   swal.fire({
     width: 110,
     didOpen: () => {

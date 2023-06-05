@@ -26,17 +26,18 @@ const listDataUsers = ref([]);
 const listDataUsersSave = ref([]);
 const loadUserProfiles = () => {
   listDataUsers.value = [];
-
+debugger
   axios
     .post(
       baseURL + "/api/hrm_ca_SQL/getData",
       {
         str: encr(
           JSON.stringify({
-            proc: "hrm_profile_list_all_d",
+            proc: "hrm_profile_list_all_dd",
             par: [{ par: "user_id", va: store.getters.user.user_id },
             { par: "search", va: null },
             { par: "tab ", va: 1 },
+            { par: "listprofile ", va:props.model.toString() },
           ],
           }),
           SecretKey,

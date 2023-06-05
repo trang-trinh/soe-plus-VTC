@@ -41,7 +41,7 @@ const tdorganization_types = [
   // { value: 1, text: "Trường học" },
   { value: 1, text: "Phòng ban" },
 ];
-const layout = ref("list");
+const layout = ref("grid");
 const donvi = ref({
   organization_name: "",
   is_order: 1,
@@ -1283,7 +1283,8 @@ const closeOrgHistory = () => {
 
 onMounted(() => {
   //init
-  loadDonvi(true);
+  // loadDonvi(true);
+  reloadLayout();
   //loadTudien();
 });
 </script>
@@ -1504,7 +1505,9 @@ onMounted(() => {
                   >
                     aassaaa
                   </div>
-                  <div class="mt-3 font-medium text-lg" >
+                  <div class="mt-3 font-medium text-lg font-bold"
+                  
+                  >
                     {{ data.label }} 
                   </div>
                 </div>

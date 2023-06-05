@@ -615,7 +615,11 @@ li.p-chips-token {
   background-color: #eee;
   min-height: 50vh;
 }
-
+.p-dialog.appdock-2 .p-dialog-content {
+  padding-bottom: 0;
+ 
+  min-height: 50vh;
+}
 .p-dialog.appdock-1 .p-dialog-header {
   padding: 0px;
   position: relative;
@@ -1365,7 +1369,7 @@ li.p-chips-token {
 .p-rowgroup-header td{
   width: 100%;
 }
-/* .p-sidebar-mask ,p-rowgroup-header ,  .p-rowgroup-header   {
+/* .p-sidebar-mask ,p-rowgroup-header,.p-datatable-thead  ,  .p-rowgroup-header   {
   display: none !important;
 } */
  

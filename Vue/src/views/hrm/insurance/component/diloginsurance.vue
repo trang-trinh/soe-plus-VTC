@@ -74,6 +74,7 @@ const display = ref(props.displayDialog);
 const model = ref();
 const openAddRow = ()=>{
   model.value ={
+    insurance_pay_id: generateUUID(),
     start_date: new Date(), 
     end_date: null,
     organization_name: null, 
@@ -84,8 +85,10 @@ const openAddRow = ()=>{
     total_payment: null,
     company_payment: null,
     member_payment: null,
+    checkvalid_end_date: false,
+    checkvalid_start_date: false,
   }
-  onChangeDate(model.value.start_date, model.value.end_date);
+  onChangeDate(model.value);
 }
 const changeProfile = (profile_id) => {
   axios
@@ -129,10 +132,10 @@ const changeProfile = (profile_id) => {
     });
 };
 const saveRowData = ()=>{
-  if(model.value.start_date == null){
+  if(model.value.checkvalid_start_date || model.value.checkvalid_end_date){
     swal.fire({
       title: "Thông báo!",
-      text: "Vui lòng chọn tháng bắt đầu!",
+      text: "Vui lòng nhập đầy đủ thông tin vào trường bôi đỏ!",
       icon: "error",
       confirmButtonText: "OK",
     });
@@ -260,17 +263,21 @@ const saveData = () => {
     }
   });
 };
-var social_ins_company = 0, social_ins_employee=0;
-const onChangePayment = ()=>{
-  model.value.company_payment = Math.floor(model.value.total_payment/100*social_ins_company)
-  model.value.member_payment = Math.floor(model.value.total_payment/100*social_ins_employee);
+const social_ins_company = ref(0), social_ins_employee= ref(0);
+const onChangePayment = (model)=>{
+  model.company_payment = Math.floor(model.total_payment/100*model.social_ins_company)
+  model.member_payment = Math.floor(model.total_payment/100*model.social_ins_employee);
+  return model
 }
-const onChangeDate = (start_date, end_date)=>{
+const onChangeDate = (model, id)=>{
+  var start_date= model.start_date;
+  var end_date = model.end_date;
   var list_date = props.dictionarys[7];
   var check_vaild = false;
-  social_ins_company= 0;
-  social_ins_employee= 0;
+  social_ins_company.value= 0;
+  social_ins_employee.value= 0;
   if (start_date == null){
+    model.checkvalid_start_date = true;
     swal.fire({
         title: "Thông báo!",
         text: "Vui lòng nhập tháng bắt đầu!",
@@ -280,6 +287,8 @@ const onChangeDate = (start_date, end_date)=>{
       return;
   }
   else if(end_date<= start_date && end_date != null){
+    model.checkvalid_start_date = true;
+    model.checkvalid_end_date = true;
     swal.fire({
         title: "Thông báo!",
         text: "Tháng bắt đầu phải nhỏ hơn tháng kết thúc!",
@@ -289,26 +298,78 @@ const onChangeDate = (start_date, end_date)=>{
       return;
   }
   else{
+    let arr_splits=  JSON.parse(JSON.stringify(props.insurance_pays)),idx=-1;  
+    if(id) idx = props.insurance_pays.findIndex(x => x.insurance_pay_id == id)
+    if(idx!=-1) arr_splits.splice(idx,1);
+    if( arr_splits.length > 0){
+      let arrDates = arr_splits.map(x => ({start_date: x.start_date, end_date : x.end_date}));
+      if(checkExistDate(start_date,arrDates) && checkExistDate(end_date,arrDates)){
+      model.checkvalid_start_date = true;
+      model.checkvalid_end_date = true;
+      swal.fire({
+          title: "Thông báo!",
+          text: "Tháng bắt đầu và tháng kết thúc đã tồn tại, vui lòng nhập lại!",
+          icon: "error",
+          confirmButtonText: "OK",
+        });
+        return;
+      }
+      if(checkExistDate(start_date,arrDates)){
+        model.checkvalid_start_date = true;
+        swal.fire({
+            title: "Thông báo!",
+            text: "Tháng bắt đầu đã tồn tại, vui lòng nhập lại!",
+            icon: "error",
+            confirmButtonText: "OK",
+          });
+          return;
+      }
+      if(checkExistDate(end_date,arrDates) && end_date != null){
+        model.checkvalid_end_date = true;
+        swal.fire({
+            title: "Thông báo!",
+            text: "Tháng kết thúc đã tồn tại, vui lòng nhập lại!",
+            icon: "error",
+            confirmButtonText: "OK",
+          });
+          return;
+      }
+      if((end_date != null) && checkBetweenDate(start_date, end_date,arrDates )){
+        model.checkvalid_end_date = true;
+        model.checkvalid_start_date = true;
+        swal.fire({
+            title: "Thông báo!",
+            text: "Khoảng thời gian đã tồn tại, vui lòng nhập lại!",
+            icon: "error",
+            confirmButtonText: "OK",
+          });
+          return;
+      }
+    }
+    let dt = new Date;
+    if(end_date == null) end_date = new Date( dt.getFullYear(),dt.getMonth(),1);
     for (let i = 0; i < list_date.length; i++) {
       if(i < list_date.length-1){
       if(isAboutDate(list_date[i].from_month, list_date[i+1].from_month, start_date, end_date))
       {
-        social_ins_company = list_date[i].social_ins_company;
-        social_ins_employee = list_date[i].social_ins_employee;
+        social_ins_company.value = list_date[i].social_ins_company;
+        social_ins_employee.value = list_date[i].social_ins_employee;
         check_vaild = true;
         break;
       }
     }
     else{
       if(getValueDate(start_date)>= getValueDate(list_date[i].from_month)){
-        social_ins_company = list_date[i].social_ins_company;
-        social_ins_employee = list_date[i].social_ins_employee;
+        social_ins_company.value = list_date[i].social_ins_company;
+        social_ins_employee.value = list_date[i].social_ins_employee;
         check_vaild = true;
         break;
       }
     }
    }
    if(!check_vaild){
+    model.checkvalid_start_date = true;
+    model.checkvalid_end_date = true;
     swal.fire({
         title: "Thông báo!",
         text: "Vui lòng chọn khoảng thời gian có sẵn cấu hình trong hệ thống!",
@@ -317,8 +378,34 @@ const onChangeDate = (start_date, end_date)=>{
       });
       return;
    }
+   else{
+    model.checkvalid_start_date = false;
+    model.checkvalid_end_date = false;
+   }
   }
-}
+  model.social_ins_company = social_ins_company.value;
+  model.social_ins_employee = social_ins_employee.value;
+  return model;
+};
+const checkExistDate = (date,arrDates)=>{
+  if(arrDates.filter(x => getValueDate(x.start_date)== getValueDate(date) || getValueDate(x.end_date)== getValueDate(date) ).length>0)
+  return true;
+  else return false;
+};
+const checkBetweenDate = (start_date, end_date, arrDates)=>{
+  if(arrDates.filter(x => isInsideDate(x.start_date, x.end_date,start_date,end_date )).length>0)
+  return true;
+  else return false;
+};
+const isInsideDate = (start_date, end_date, start_date_check, end_date_check)=>{
+  if(!end_date)
+    return ((getValueDate(start_date)>= getValueDate(start_date_check))
+    && (getValueDate(start_date) <= getValueDate(end_date_check)))
+  else{
+    return !(getValueDate(end_date_check)< getValueDate(start_date)|| getValueDate(start_date_check)> getValueDate(end_date)
+    )
+  }
+};
 const isAboutDate = (start_date, end_date, start_date_check, end_date_check)=>{
   if(!end_date_check)
     return ((getValueDate(start_date_check)>= getValueDate(start_date))
@@ -328,10 +415,12 @@ const isAboutDate = (start_date, end_date, start_date_check, end_date_check)=>{
       && getValueDate(end_date_check)>=getValueDate(start_date) &&  getValueDate(end_date_check)<getValueDate(end_date)
     )
   }
-}
+};
 const getValueDate = (date)=>{
-  return moment(date).toDate();
-}
+  let dt = new Date(date);
+  let date_format = new Date(dt.getFullYear(), dt.getMonth(),1);
+  return date_format.getTime();
+};
 //more
 const opMore = ref();
 const toggleMore = (event) => {
@@ -352,6 +441,28 @@ function isMonth(data1, data2) {
 }
 function isEmpty(val) {
   return val === undefined || val == null || val.length <= 0 ? true : false;
+}
+function generateUUID() {
+  // Public Domain/MIT
+  var d = new Date().getTime(); //Timestamp
+  var d2 =
+    (typeof performance !== "undefined" &&
+      performance.now &&
+      performance.now() * 1000) ||
+    0; //Time in microseconds since page-load or 0 if unsupported
+  return "xxxxxxxx-xxxx-4xxx-yxxx-xxxxxxxxxxxx".replace(/[xy]/g, function (c) {
+    var r = Math.random() * 16; //random number between 0 and 16
+    if (d > 0) {
+      //Use timestamp until depleted
+      r = (d + r) % 16 | 0;
+      d = Math.floor(d / 16);
+    } else {
+      //Use microseconds since page-load if supported
+      r = (d2 + r) % 16 | 0;
+      d2 = Math.floor(d2 / 16);
+    }
+    return (c === "x" ? r : (r & 0x3) | 0x8).toString(16);
+  });
 }
 //init
 onMounted(() => {
@@ -723,7 +834,10 @@ onMounted(() => {
                 class="ip36"
                 placeholder="mm/yyyy"
                 v-model="model.start_date"
-                @update:modelValue="onChangeDate(model.start_date, model.end_date)"
+                @update:modelValue="onChangeDate(model)"
+                :class="{
+                  'p-invalid': model.checkvalid_start_date,
+                }"
               />
             </div>
           </div>
@@ -737,7 +851,10 @@ onMounted(() => {
                 class="ip36"
                 placeholder="mm/yyyy"
                 v-model="model.end_date"
-                @update:modelValue="onChangeDate(model.start_date, model.end_date)"
+                @update:modelValue="onChangeDate(model)"
+                :class="{
+                  'p-invalid': model.checkvalid_end_date,
+                }"
               />
             </div>
           </div>
@@ -832,18 +949,19 @@ onMounted(() => {
             <div class="form-group">
               <label>Mức đóng bảo hiểm</label>
               <InputText
+                  id="input-number"
                   type="number"
                   spellcheck="false"
                   mode="decimal"
                   class="ip36 text-right input-money"
                   v-model="model.total_payment"
-                  @input="onChangePayment()"
+                  @input="onChangePayment(model)"
                 />
             </div>
           </div>
           <div class="col-6 md:col-6">
             <div class="form-group">
-              <label>Công ty đóng (số tiền)</label>
+              <label>Công ty đóng (số tiền) (Tỉ lệ đóng = {{ social_ins_company }}%)</label>
               <InputNumber
                   spellcheck="false"
                   mode="decimal"
@@ -855,7 +973,7 @@ onMounted(() => {
           </div>
           <div class="col-6 md:col-6">
             <div class="form-group">
-              <label>Nhân sự đóng (số tiền)</label>
+              <label>Nhân sự đóng (số tiền) (Tỉ lệ đóng = {{ social_ins_employee }}%)</label>
               <InputNumber
                   spellcheck="false"
                   mode="decimal"
@@ -913,6 +1031,10 @@ onMounted(() => {
                   dateFormat="mm/yy"
                   class="ip36"
                   placeholder="mm/yyyy"
+                  @update:modelValue="onChangeDate(slotProps.data, slotProps.data.insurance_pay_id)"
+                  :class="{
+                  'p-invalid': slotProps.data.checkvalid_start_date,
+                }"
                 />
               </template>
             </Column>
@@ -931,6 +1053,10 @@ onMounted(() => {
                   dateFormat="mm/yy"
                   class="ip36"
                   placeholder="mm/yyyy"
+                  @update:modelValue="onChangeDate(slotProps.data,slotProps.data.insurance_pay_id)"
+                  :class="{
+                  'p-invalid': slotProps.data.checkvalid_end_date,
+                }"
                 />
               </template>
             </Column>
@@ -1079,11 +1205,14 @@ onMounted(() => {
               class="align-items-center justify-content-center text-center"
             >
               <template #body="slotProps">
-                <InputNumber
+                <InputText
+                  id="input-number"
+                  type="number"
                   spellcheck="false"
                   mode="decimal"
                   class="ip36 text-right input-money"
                   v-model="slotProps.data.total_payment"
+                  @input="onChangePayment(slotProps.data)"
                 />
               </template>
             </Column>
@@ -1099,7 +1228,7 @@ onMounted(() => {
                   mode="decimal"
                   spellcheck="false"
                   class="ip36 text-right input-money"
-                  v-model="slotProps.data.organization_payment"
+                  v-model="slotProps.data.company_payment"
                   disabled="true"
                 />
               </template>

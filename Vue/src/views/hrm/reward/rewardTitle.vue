@@ -9,18 +9,14 @@ import DropdownUser from "../component/DropdownProfiles.vue";
 import router from "@/router";
 //Khai báo
 
-const getProfileUsers=(user,obj)=>{
-   
-   if (user=="reward_name") {
-   
-     
-           options.value.reward_name = [];
-           obj.forEach((element) => {
-             options.value.reward_name.push(element.profile_id);
-           });
-         }
-  
- }
+const getProfileUsers = (user, obj) => {
+  if (user == "reward_name") {
+    options.value.reward_name = [];
+    obj.forEach((element) => {
+      options.value.reward_name.push(element.profile_id);
+    });
+  }
+};
 const emitter = inject("emitter");
 const cryoptojs = inject("cryptojs");
 const axios = inject("axios");
@@ -131,19 +127,20 @@ const loadData = (rf) => {
         if (element.listRewards) {
           element.listRewards = JSON.parse(element.listRewards);
           if (element.reward_type == 1 || element.reward_type == 3) {
-            element.listRewards.forEach((item) => {
+            element.listRewards.forEach((item, i) => {
+              item.STT = i + 1;
               if (!item.position_name) {
-                item.position_name = "";
+                item.position_name_view = "";
               } else {
-                item.position_name =
+                item.position_name_view =
                   " </br> <span class='text-sm'>" +
                   item.position_name +
                   "</span>";
               }
               if (!item.department_name) {
-                item.department_name = "";
+                item.department_name_view = "";
               } else {
-                item.department_name =
+                item.department_name_view =
                   " </br> <span class='text-sm'>" +
                   item.department_name +
                   "</span>";
@@ -152,15 +149,15 @@ const loadData = (rf) => {
           }
         }
         if (!element.position_name) {
-          element.position_name = "";
+          element.position_name_view = "";
         } else {
-          element.position_name =
+          element.position_name_view =
             " </br> <span class='text-sm'>" + element.position_name + "</span>";
         }
         if (!element.department_name) {
-          element.department_name = "";
+          element.department_name_view = "";
         } else {
-          element.department_name =
+          element.department_name_view =
             " </br> <span class='text-sm'>" +
             element.department_name +
             "</span>";
@@ -234,17 +231,16 @@ const headerDialog = ref();
 const displayBasic = ref(false);
 const openBasic = (str) => {
   reward.value = {
-    reward_name: null,
     reward_type: 1,
     status: 1,
     reward_code: null,
     is_order: sttStamp.value,
     organization_id: store.getters.user.organization_id,
-
     reward_name_fake1: [],
+
     reward_name_fake2: {},
   };
-
+  listFilesS.value =[];
   isSaveTem.value = true;
   headerDialog.value = str;
 
@@ -253,22 +249,34 @@ const openBasic = (str) => {
 
 const closeDialog = () => {
   reward.value = {
-    reward_name: "",
-    emote_file: "",
-    status: true,
-    is_default: false,
-    is_order: 1,
     reward_type: 1,
+    status: 1,
+    reward_code: null,
+    is_order: sttStamp.value,
+    organization_id: store.getters.user.organization_id,
+    reward_name_fake1: [],
+
+    reward_name_fake2: {},
   };
 
   displayBasic.value = false;
-  loadDataSQL();
+  loadData();
 };
 const sttStamp = ref(1);
 const listFilesS = ref([]);
 //Sửa bản ghi
+const viewTem = (dataTem) => {
+  reward.value = dataTem;
+
+  headerDialog.value = "Sửa bản ghi";
+  isSaveTem.value = false;
+  displayBasic.value = true;
+};
 const editTem = (dataTem) => {
   reward.value = dataTem;
+  if (reward.value.reward_name != null) {
+    reward.value.reward_name_fake1 = reward.value.reward_name.split(",");
+  }
 
   headerDialog.value = "Sửa bản ghi";
   isSaveTem.value = false;
@@ -396,44 +404,43 @@ const loadDataSQL = () => {
           element.STT = options.value.PageNo * options.value.PageSize + i + 1;
 
           if (element.listRewards) {
-            element.listRewards = JSON.parse(element.listRewards);
-            if (element.reward_type == 1 || element.reward_type == 3) {
-              element.listRewards.forEach((item) => {
-                if (!item.position_name) {
-                  item.position_name = "";
-                } else {
-                  item.position_name =
-                    " </br> <span class='text-sm'>" +
-                    item.position_name +
-                    "</span>";
-                }
-                if (!item.department_name) {
-                  item.department_name = "";
-                } else {
-                  item.department_name =
-                    " </br> <span class='text-sm'>" +
-                    item.department_name +
-                    "</span>";
-                }
-              });
-            }
-            if (!element.position_name) {
-              element.position_name = "";
-            } else {
-              element.position_name =
-                " </br> <span class='text-sm'>" +
-                element.position_name +
-                "</span>";
-            }
-            if (!element.department_name) {
-              element.department_name = "";
-            } else {
-              element.department_name =
-                " </br> <span class='text-sm'>" +
-                element.department_name +
-                "</span>";
-            }
+          element.listRewards = JSON.parse(element.listRewards);
+          if (element.reward_type == 1 || element.reward_type == 3) {
+            element.listRewards.forEach((item, i) => {
+              item.STT = i + 1;
+              if (!item.position_name) {
+                item.position_name_view = "";
+              } else {
+                item.position_name_view =
+                  " </br> <span class='text-sm'>" +
+                  item.position_name +
+                  "</span>";
+              }
+              if (!item.department_name) {
+                item.department_name_view = "";
+              } else {
+                item.department_name_view =
+                  " </br> <span class='text-sm'>" +
+                  item.department_name +
+                  "</span>";
+              }
+            });
           }
+        }
+        if (!element.position_name) {
+          element.position_name_view = "";
+        } else {
+          element.position_name_view =
+            " </br> <span class='text-sm'>" + element.position_name + "</span>";
+        }
+        if (!element.department_name) {
+          element.department_name_view = "";
+        } else {
+          element.department_name_view =
+            " </br> <span class='text-sm'>" +
+            element.department_name +
+            "</span>";
+        }
         });
 
         datalists.value = data;
@@ -744,6 +751,13 @@ const activeTab = (tab) => {
 };
 const menuButMores = ref();
 const itemButMores = ref([
+  {
+    label: "Thông tin chi tiết",
+    icon: "pi pi-eye",
+    command: (event) => {
+      showSidbar(reward.value);
+    },
+  },
   {
     label: "Hiệu chỉnh nội dung",
     icon: "pi pi-pencil",
@@ -1094,12 +1108,13 @@ const loadUserProfiles = () => {
         str: encr(
           JSON.stringify({
             proc: "hrm_profile_list_2",
-            par: [{ par: "user_id", va: store.getters.user.user_id },
-            { par: "search", va: null },
-            { par: "pageNo ", va:1},
-            { par: "pageSize ", va: 100000 },
-            { par: "tab ", va: 1 },
-          ],
+            par: [
+              { par: "user_id", va: store.getters.user.user_id },
+              { par: "search", va: null },
+              { par: "pageNo ", va: 1 },
+              { par: "pageSize ", va: 100000 },
+              { par: "tab ", va: 1 },
+            ],
           }),
           SecretKey,
           cryoptojs
@@ -1138,13 +1153,11 @@ const loadUserProfiles = () => {
     });
 };
 
-
 emitter.on("emitData", (obj) => {
   switch (obj.type) {
     case "submitModel":
       if (obj.data) {
         if (obj.data.type == 2) {
-    
           options.value.list_profile_id = [];
           obj.data.data.forEach((element) => {
             options.value.list_profile_id.push(element.profile_id);
@@ -1152,11 +1165,45 @@ emitter.on("emitData", (obj) => {
         }
       }
       break;
-    
+
     default:
       break;
   }
-}); 
+});
+
+const visibleRight = ref(false);
+
+const showSidbar = (item) => {
+  axios
+      .post(
+        baseURL + "/api/hrm_ca_SQL/getData",
+        {
+          str: encr(
+            JSON.stringify({
+              proc: "hrm_reward_get",
+              par: [
+                {
+                  par: "reward_id",
+                  va: item.reward_id,
+                },
+              ],
+            }),
+            SecretKey,
+            cryoptojs
+          ).toString(),
+        },
+        config
+      )
+      .then((response) => {
+        
+        let data1 = JSON.parse(response.data.data)[1];
+        if (data1) {
+          listFilesS.value = data1;
+        }
+      })
+      .catch((error) => {});
+  visibleRight.value = true;
+};
 onMounted(() => {
   loadUserProfiles();
   initTudien();
@@ -1244,7 +1291,7 @@ onMounted(() => {
                               :placeholder="'Chọn đối tượng khen thưởng'"
                               :type="2"
                               :callbackFun="getProfileUsers"
-                :key_user="'reward_name'"
+                              :key_user="'reward_name'"
                             />
                           </div>
                           <div class="col-12 md:col-12">
@@ -1359,7 +1406,7 @@ onMounted(() => {
 
           <template #end>
             <Button
-              @click="openBasic('Thêm mới')"
+              @click="openBasic('Thêm mới thông tin khen thưởng/kỷ luật')"
               label="Thêm mới"
               icon="pi pi-plus"
               class="mr-2"
@@ -1430,7 +1477,6 @@ onMounted(() => {
             responsiveLayout="scroll"
             filterDisplay="menu"
             filterMode="lenient"
-     
             :scrollable="true"
             scrollHeight="flex"
             :showGridlines="true"
@@ -1447,7 +1493,6 @@ onMounted(() => {
             :rowsPerPageOptions="[20, 30, 50, 100, 200]"
             :paginator="true"
             dataKey="reward_id"
-       
             v-model:selection="selectedStamps"
             :row-hover="true"
           >
@@ -1531,8 +1576,8 @@ onMounted(() => {
                       v-tooltip.top="{
                         value:
                           item.full_name +
-                          item.position_name +
-                          item.department_name,
+                          item.position_name_view +
+                          item.department_name_view,
                         escape: true,
                       }"
                       @click="goProfile(item)"
@@ -1647,8 +1692,8 @@ onMounted(() => {
                     v-tooltip.top="{
                       value:
                         slotProps.data.full_name +
-                        slotProps.data.position_name +
-                        slotProps.data.department_name,
+                        slotProps.data.position_name_view +
+                        slotProps.data.department_name_view,
                       escape: true,
                     }"
                   />
@@ -1740,6 +1785,251 @@ onMounted(() => {
       </div>
     </div>
   </Dialog>
+  <Sidebar v-model:visible="visibleRight" position="right" style="width: 65%">
+    <h2 class="px-2">
+      {{
+        reward.reward_type == 1
+          ? "Khen thưởng cá nhân"
+          : reward.reward_type == 2
+          ? "Khen thưởng phòng ban"
+          : "Kỷ luật nhân sự"
+      }}
+    </h2>
+    <div class="grid formgrid m-2 mb-0 text-lg">
+      <div class="col-12 field p-0">
+        Số quyết định:
+        <span class="font-bold"> {{ reward.reward_number }}</span>
+      </div>
+      <div class="col-12 field p-0 flex">
+        <div class="col-6 p-0">
+          Ngày quyết định:
+          <span class="font-bold">
+            {{
+              moment(new Date(reward.decision_date)).format("DD/MM/YYYY")
+            }}</span
+          >
+        </div>
+        <div class="col-6 p-0">
+          Năm quyết định:
+          <span class="font-bold pl-2"> {{ reward.reward_year }} </span>
+        </div>
+      </div>
+      <div class="col-12 field p-0 flex">
+        <div class="col-6 p-0">
+          Người ký:
+          <span class="font-bold pl-2"> {{ reward.signer }}</span>
+        </div>
+        <div class="col-6 p-0">
+          Nơi quyết định:<span class="font-bold pl-2">
+            {{ reward.decision_place }}</span
+          >
+        </div>
+      </div>
+      <div class="col-12 field p-0 flex">
+        <div class="col-6 p-0">
+         
+          <span  v-if="reward.reward_type != 3"> Cấp khen thưởng:</span>
+        <span v-else> Cấp kỷ luật:</span>
+          <span class="font-bold pl-2"> {{ reward.reward_level_name }} </span>
+        </div>
+        <div class="col-6 p-0">
+        <span  v-if="reward.reward_type != 3">Danh hiệu:</span>
+        <span v-else>Hình thức:</span>
+        
+        <span class="font-bold pl-2">
+            {{ reward.reward_title_name }}</span
+          >
+        </div>
+      </div>
+      <div class="col-12 field p-0 flex">
+        <div class="col-6 p-0">
+          Ngày hiệu lực:
+          <span class="font-bold pl-2">
+            {{
+              moment(new Date(reward.effective_date)).format("DD/MM/YYYY")
+            }}</span
+          >
+        </div>
+        <div class="col-6 p-0" v-if="reward.reward_type != 3">
+          Giá trị: <span class="font-bold pl-2" v-if="reward.reward_cost"> {{ reward.reward_cost.toLocaleString() + " VND" }}</span>
+        </div>
+      </div>
+      <div class="col-12 field p-0 flex">
+        Nội dung: <span class="font-bold pl-2"> {{ reward.reward_content }}</span>
+      </div>
+      <div class="col-12 field p-0 flex"  v-if="reward.reward_type != 2">
+        Danh sách nhân sự:
+     
+      </div>
+      <div class="col-12 field p-0 flex"  v-else>
+        Danh sách phòng ban:
+     
+      </div>
+      <div class="col-12 field p-0 flex">
+        <DataTable
+          class="w-full"
+          responsiveLayout="scroll"
+          filterDisplay="menu"
+          filterMode="lenient"
+          :scrollable="true"
+          scrollHeight="flex"
+          :showGridlines="true"
+          columnResizeMode="fit"
+          :lazy="true"
+          :reorderableColumns="true"
+          :value="reward.listRewards"
+          removableSort
+          dataKey="STT"
+          :row-hover="true"
+        >
+          <Column
+            field="STT"
+            header="STT"
+            class="align-items-center justify-content-center text-center overflow-hidden"
+            headerStyle="text-align:center;max-width:55px;height:50px"
+            bodyStyle="text-align:center;max-width:55px"
+          >
+          </Column>
+          <Column
+            field="profile_code"
+            header="Mã nhân sự"
+            class="align-items-center justify-content-center text-center overflow-hidden"
+           v-if="reward.reward_type != 2"
+            headerStyle="text-align:center;max-width:200px;height:50px"
+            bodyStyle="text-align:center;max-width:200px"
+          >
+          </Column>
+          <Column
+            :field="reward.reward_type == 2 ? 'department_name' : 'full_name'"
+            :header="reward.reward_type == 2 ? 'Phòng ban' : 'Nhân sự'"
+            headerStyle="text-align:left;height:50px"
+        
+            bodyStyle="text-align:left"
+          >
+          </Column>
+          <Column
+          field="position_name"
+            header="Chức vụ"
+            v-if="reward.reward_type != 2"
+            class="align-items-center justify-content-center text-center overflow-hidden"
+            headerStyle="text-align:center;max-width:300px;height:50px"
+            bodyStyle="text-align:center;max-width:300px"
+          >
+         
+          </Column>
+          <Column
+          field="department_name"
+            header="Phòng ban"
+            v-if="reward.reward_type != 2"
+            class="align-items-center justify-content-center text-center overflow-hidden"
+            headerStyle="text-align:center;max-width:300px;height:50px"
+            bodyStyle="text-align:center;max-width:300px"
+          >
+       
+          </Column>
+        </DataTable>
+      </div>
+      <div class="col-12 field p-0 flex"  v-if="listFilesS.length > 0">
+      Quyết định đính kèm:
+     
+      </div>
+      <div class="col-12 p-0" v-if="listFilesS.length > 0">
+            <DataTable
+              :value="listFilesS"
+              filterDisplay="menu"
+              filterMode="lenient"
+              scrollHeight="flex"
+              :showGridlines="true"
+              :paginator="false"
+              :row-hover="true"
+              columnResizeMode="fit"
+            >
+              <Column field="code" header="  File đính kèm">
+                <template #body="item">
+                  <div
+                    class="p-0 d-style-hover"
+                    style="width: 100%; border-radius: 10px"
+                  >
+                    <div class="w-full flex align-items-center">
+                      <div class="flex w-full text-900">
+                        <div
+                          v-if="item.data.is_image"
+                          class="align-items-center flex"
+                        >
+                          <Image
+                            :src="basedomainURL + item.data.file_path"
+                            alt=""
+                            width="70"
+                            height="50"
+                            style="
+                              object-fit: contain;
+                              border: 1px solid #ccc;
+                              width: 70px;
+                              height: 50px;
+                            "
+                            preview
+                            class="pr-2"
+                          />
+                          <div class="ml-2" style="word-break: break-all">
+                            {{ item.data.file_name }}
+                          </div>
+                        </div>
+                        <div v-else>
+                          <a
+                            :href="basedomainURL + item.data.file_path"
+                            download
+                            class="w-full no-underline cursor-pointer text-900"
+                          >
+                            <div class="align-items-center flex">
+                              <div>
+                                <img
+                                  :src="
+                                    basedomainURL +
+                                    '/Portals/Image/file/' +
+                                    item.data.file_path.substring(
+                                      item.data.file_path.lastIndexOf('.') + 1
+                                    ) +
+                                    '.png'
+                                  "
+                                  style="
+                                    width: 70px;
+                                    height: 50px;
+                                    object-fit: contain;
+                                  "
+                                  alt=""
+                                />
+                              </div>
+                              <div class="ml-2" style="word-break: break-all">
+                                <div class="ml-2" style="word-break: break-all">
+                                  <div style="word-break: break-all">
+                                    {{ item.data.file_name }}
+                                  </div>
+                                  <div
+                                    v-if="store.getters.user.is_super"
+                                    style="
+                                      word-break: break-all;
+                                      font-size: 11px;
+                                      font-style: italic;
+                                    "
+                                  >
+                                    {{ item.data.organization_name }}
+                                  </div>
+                                </div>
+                              </div>
+                            </div>
+                          </a>
+                        </div>
+                      </div>
+              
+                    </div>
+                  </div>
+                </template>
+              </Column>
+            </DataTable>
+
+         </div>
+    </div>
+  </Sidebar>
 </template>
   
 <style scoped>
