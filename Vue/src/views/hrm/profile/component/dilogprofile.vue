@@ -279,18 +279,22 @@ const openAddRow = (type) => {
 };
 const saveRow = (type, isContinue) => {
   if (datachilds.value[type] == null) {
-    datachilds[type] = [];
+    datachilds.value[type] = [];
   }
-  datachilds.value[type].unshift(modeldetail.value);
-  if (modeldetail.value.is_man_degree && modeldetail.value.academic_level_id) {
+  const modeldt = { ...modeldetail.value };
+  if (modeldt.is_man_degree && modeldt.academic_level_id) {
+    datachilds.value[type].forEach((item) => {
+      item.is_man_degree = false;
+    });
     var idx = props.dictionarys[6].findIndex(
-      (x) => x.academic_level_id === modeldetail.value.academic_level_id
+      (x) => x.academic_level_id === modeldt.academic_level_id
     );
     if (idx !== -1) {
       model.value.cultural_level_max =
         props.dictionarys[6][idx].academic_level_name;
     }
   }
+  datachilds.value[type].unshift(modeldt);
   if (!isContinue) {
     closeDialog();
   }
@@ -471,6 +475,11 @@ const initData = (rf) => {
           if (model.value.military_end_date != null) {
             model.value.military_end_date = new Date(
               model.value.military_end_date
+            );
+          }
+          if (model.value.recruitment_date_first != null) {
+            model.value.recruitment_date_first = new Date(
+              model.value.recruitment_date_first
             );
           }
           if (model.value["sign_date"] != null) {
@@ -1103,7 +1112,7 @@ onMounted(() => {
               </template>
               <div class="col-12 md:col-12">
                 <div class="row">
-                  <div class="col-4 md:col-4">
+                  <div class="col-3 md:col-3">
                     <div class="form-group">
                       <label>Di động</label>
                       <InputMask
@@ -1114,7 +1123,7 @@ onMounted(() => {
                       />
                     </div>
                   </div>
-                  <div class="col-4 md:col-4">
+                  <div class="col-3 md:col-3">
                     <div class="form-group">
                       <label>Số điện thoại cố định</label>
                       <InputMask
@@ -1125,13 +1134,24 @@ onMounted(() => {
                       />
                     </div>
                   </div>
-                  <div class="col-4 md:col-4">
+                  <div class="col-3 md:col-3">
                     <div class="form-group">
                       <label>Email</label>
                       <InputText
                         spellcheck="false"
                         class="ip36"
                         v-model="model.email"
+                        maxLength="50"
+                      />
+                    </div>
+                  </div>
+                  <div class="col-3 md:col-3">
+                    <div class="form-group">
+                      <label>Email đơn vị cấp</label>
+                      <InputText
+                        spellcheck="false"
+                        class="ip36"
+                        v-model="model.email_company"
                         maxLength="50"
                       />
                     </div>
@@ -2521,7 +2541,7 @@ onMounted(() => {
                   </div>
                   <div class="col-6 md:col-6">
                     <div class="form-group">
-                      <label>Chị bộ sinh hoạt Đảng</label>
+                      <label>Chi bộ sinh hoạt Đảng</label>
                       <InputText
                         spellcheck="false"
                         class="ip36"
@@ -3913,7 +3933,7 @@ onMounted(() => {
 
   <!--Dialog 1-->
   <Dialog
-    header="Quá trình công tác trước khi vào đơn vị"
+    header="Quan hệ gia đình"
     v-model:visible="displayDialog1"
     :style="{ width: '60vw' }"
     :maximizable="true"
