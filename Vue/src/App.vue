@@ -116,6 +116,8 @@ const passModuleToSidebar = () => {
         "/hrm/contact",
         "/hrm/hrm_headbar_calendar",
         "/tasks/taskmaintype",
+        "/birthday",
+        "/birthday/send",
       ];
       if (
         data[1].filter((x) => x.is_link == root_path).length == 0 &&
