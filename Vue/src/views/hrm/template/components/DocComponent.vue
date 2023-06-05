@@ -1478,7 +1478,18 @@ export default {
                 obj[c.value] = null;
               }
             });
-
+            if(!obj['Họ tên']){
+              obj['Họ tên']='';
+            }
+            if(!obj['Họ tên']){
+              obj['Họ tên']='';
+            }
+            if(!obj['Họ và tên']){
+              obj['Họ và tên']='';
+            }
+            if(!obj['HỌ VÀ TÊN']){
+              obj['HỌ VÀ TÊN']='';
+            }
             rows.push(obj);
           }
         }
@@ -1488,12 +1499,12 @@ export default {
         dtDataReports.value.forEach((r) => {
           let rr = rows.find(
             (x) =>
-              x["Họ tên"].trim().toUpperCase() ==
+               (x["Họ tên"].trim().toUpperCase() ==
                 r["Họ tên"].split("<br/>")[0].trim().toUpperCase() ||
               x["Họ và tên"].trim().toUpperCase() ==
                 r["Họ tên"].split("<br/>")[0].trim().toUpperCase() ||
               x["HỌ VÀ TÊN"].trim().toUpperCase() ==
-                r["Họ tên"].split("<br/>")[0].trim().toUpperCase() ||
+                r["Họ tên"].split("<br/>")[0].trim().toUpperCase()) ||
               (r["profile_code"] &&
                 (x["Mã NS"] == r["profile_code"] ||
                   x["Mã Nhân sự"] == r["profile_code"] ||
@@ -2721,7 +2732,7 @@ export default {
         if (document.getElementById("app-body"))
           document.getElementById("app-body").classList.remove("p-2");
       }
-      console.log("sps", props.report);
+   
       if (props.report) {
         initTemplate();
       }
@@ -2804,7 +2815,7 @@ export default {
           swal.showLoading();
         },
       });
-
+    
       const axResponse = await axios.post(
         baseURL + "/api/HRM_SQL/PostProc",
         {
@@ -2889,7 +2900,7 @@ export default {
     let cacheobjDataTemp = [];
     async function renderTableWord(objpar) {
       let pas = [];
-      debugger
+      
       if (cacheobjDataTemp.length == 0) {
         cacheobjDataTemp = JSON.parse(JSON.stringify(objDataTemp.value));
       } else {
@@ -3573,12 +3584,14 @@ export default {
         dtProfile = dts[0][0];
       }
       let objvalue = {};
+       
       props.report.datadic.forEach((dic) => {
         let obj = {
           label: dic.title,
           icon: "pi pi-database",
           items: [],
         };
+        
         Object.keys(dic.data).forEach((k) => {
           objvalue[k] = dic.data[k];
           if (!k.includes("_")) {
