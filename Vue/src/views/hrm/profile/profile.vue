@@ -11,6 +11,7 @@ import dialogcontract from "../contract/component/dialogcontract.vue";
 import diloginsurance from "../profile/component/diloginsurance.vue";
 import dialogstatus from "../profile/component/dialogstatus.vue";
 import dialogmatchaccount from "../profile/component/dialogmatchaccount.vue";
+import dialogexport from "../../../components/export/dialogexport.vue";
 import moment from "moment";
 import { groupBy } from "lodash";
 import { useRoute } from "vue-router";
@@ -272,7 +273,7 @@ const itemButs = ref([
   //   label: "Export dữ liệu ra Excel",
   //   icon: "pi pi-file-excel",
   //   command: (event) => {
-  //     exportData("ExportExcel");
+  //     exportData();
   //   },
   // },
   {
@@ -286,55 +287,25 @@ const itemButs = ref([
 const toggleExport = (event) => {
   menuButs.value.toggle(event);
 };
-const exportData = (method) => {
-  swal.fire({
-    width: 110,
-    didOpen: () => {
-      swal.showLoading();
-    },
-  });
-  axios
-    .post(
-      baseURL + "/api/Excel/ExportExcel",
-      {
-        excelname: "DANH SÁCH PHÒNG HỌP",
-        proc: "calendar_ca_boardroom_listexport",
-        par: [
-          { par: "organization_id", va: store.getters.user.organization_id },
-          { par: "search", va: options.value.search },
-        ],
-      },
-      config
-    )
-    .then((response) => {
-      swal.close();
-      if (response.data.err != "1") {
-        swal.close();
 
-        toast.success("Kết xuất Data thành công!");
-        if (response.data.path != null) {
-          window.open(baseURL + response.data.path);
-        }
-      } else {
-        swal.fire({
-          title: "Thông báo!",
-          text: response.data.ms,
-          icon: "error",
-          confirmButtonText: "OK",
-        });
-        return;
-      }
-    })
-    .catch((error) => {
-      if (error.status === 401) {
-        swal.fire({
-          text: "Phiên đăng nhập đã hết hạn, vui lòng đăng nhập lại!",
-          confirmButtonText: "OK",
-        });
-        store.commit("gologout");
-        return;
-      }
-    });
+//Export
+const optionsExport = ref([
+  { field: "profile_code", title: "Mã hồ sơ", is_order: 1 },
+  { field: "profile_user_name", title: "Họ và tên", is_order: 2 },
+]);
+const headerDialogExport = ref();
+const displayDialogExport = ref(false);
+const exportData = () => {
+  headerDialogExport.value = "Chọn thông tin kết xuất excel";
+  displayDialogExport.value = true;
+  forceRerender(9);
+};
+const closeDialogExport = () => {
+  displayDialogExport.value = false;
+  forceRerender(9);
+};
+const bindDataExport = (options) => {
+  debugger
 };
 
 //Watch
@@ -2727,9 +2698,11 @@ const onNodeSelectAdv = (node) => {
       typdata: node.typdata,
     };
     if (node.children) {
-      node.children.filter(x => !x.childs).forEach((x) => {
-        x.childs = [obj];
-      });
+      node.children
+        .filter((x) => !x.childs)
+        .forEach((x) => {
+          x.childs = [obj];
+        });
       groupBlock.value[blockindex.value].datas = groupBlock.value[
         blockindex.value
       ].datas.concat(node.children);
@@ -4822,6 +4795,14 @@ const rowClassDk = () => {
     :displayDialog="displayDialogMatchAccount"
     :closeDialog="closeDialogMatchAccount"
     :profile="profile"
+  />
+  <dialogexport
+    :key="componentKey['9']"
+    :headerDialog="headerDialogExport"
+    :displayDialog="displayDialogExport"
+    :closeDialog="closeDialogExport"
+    :options="optionsExport"
+    :bindData="bindDataExport"
   />
   <Menu
     id="overlay_More"
