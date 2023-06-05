@@ -98,8 +98,9 @@ const rules = {
 };
 const listFilesS = ref([]);
 const training_emps = ref({
-  user_verify_fake: [],
-  user_follows_fake: [],
+ 
+  user_verify_fake: props.training_emps.user_verify.split(","),
+  user_follows_fake: props.training_emps.user_follows.split(",") ,
 });
 const submitted = ref(false);
 const list_users_training = ref([]);
@@ -111,6 +112,7 @@ const loadData = () => {
 
     training_emps.value = props.training_emps;
   } else {
+   
     axios
       .post(
         baseURL + "/api/hrm_ca_SQL/getData",
@@ -136,32 +138,32 @@ const loadData = () => {
         let data1 = JSON.parse(response.data.data)[1];
         let data2 = JSON.parse(response.data.data)[2];
         let data3 = JSON.parse(response.data.data)[3];
+
         if (data) {
-          training_emps.value = data[0];
+          
 
-          if (training_emps.value.start_date)
-            training_emps.value.start_date = new Date(
-              training_emps.value.start_date
+          if (data[0].start_date)
+            data[0].start_date = new Date(data[0].start_date);
+          if (data[0].end_date) data[0].end_date = new Date(data[0].end_date);
+          if (data[0].registration_deadline)
+            data[0].registration_deadline = new Date(
+              data[0].registration_deadline
             );
-          if (training_emps.value.end_date)
-            training_emps.value.end_date = new Date(
-              training_emps.value.end_date
-            );
-          if (training_emps.value.registration_deadline)
-            training_emps.value.registration_deadline = new Date(
-              training_emps.value.registration_deadline
-            );
-
-          training_emps.value.user_verify_fake =
-            training_emps.value.user_verify.split(",");
-          training_emps.value.user_follows_fake =
-            training_emps.value.user_follows.split(",");
+          if (data[0].user_verify)
+            data[0].user_verify_fake = data[0].user_verify.split(",");
+            else 
+            data[0].user_verify_fake =[];
+          if (data[0].user_follows)
+            data[0].user_follows_fake = data[0].user_follows.split(",");
+            else 
+            data[0].user_follows_fake =[];
         }
-        training_emps.value.organization_training_fake = {};
-        training_emps.value.organization_training_fake[
-          training_emps.value.organization_training
+        data[0].organization_training_fake = {};
+        data[0].organization_training_fake[
+          data[0].organization_training
         ] = true;
 
+        training_emps.value = data[0];
         data1.forEach((element) => {
           element.data = {
             profile_id: element.profile_id,
@@ -295,7 +297,6 @@ const saveData = (isFormValid) => {
     let file = filesList.value[i];
     formData.append("image", file);
   }
-  debugger;
   formData.append("hrm_training_emps", JSON.stringify(training_emps.value));
   formData.append("hrm_students", JSON.stringify(list_users_training.value));
   formData.append("hrm_schedule", JSON.stringify(list_schedule.value));
@@ -676,22 +677,29 @@ const listMultileUsers = ref([]);
 const listMultileUsersSave = ref([]);
 const listDataUsers = ref([]);
 const listDataUsersSave = ref([]);
+ 
 const loadUserProfiles = () => {
   listDataUsers.value = [];
   listMultileUsers.value = [];
+
   axios
     .post(
       baseURL + "/api/hrm_ca_SQL/getData",
       {
         str: encr(
           JSON.stringify({
-            proc: "hrm_profile_list_2",
+            proc: "hrm_profile_list_all_dd",
             par: [
               { par: "user_id", va: store.getters.user.user_id },
               { par: "search", va: null },
-              { par: "pageNo ", va: 1 },
-              { par: "pageSize ", va: 100000 },
               { par: "tab ", va: 1 },
+              {
+                par: "listprofile ",
+                va:
+                  props.training_emps.user_follows +
+                  "," +
+                  props.training_emps.user_verify,
+              },
             ],
           }),
           SecretKey,
@@ -822,15 +830,15 @@ const listTrainingGroups = ref([]);
 // Tráng update code
 // Hình thức đào tạo
 const listTrainingTypes = ref([
-  {value: 0, text: 'Online'},
-  {value: 1, text: 'Offline'},
-])
+  { value: 0, text: "Online" },
+  { value: 1, text: "Offline" },
+]);
 // list văn bằng
 const listTrainingDiplomas = ref([
-  {value: 0, text: 'Cấp bằng'},
-  {value: 1, text: 'Chứng chỉ'},
-  {value: 2, text: 'Giấy chứng nhận'},
-])
+  { value: 0, text: "Cấp bằng" },
+  { value: 1, text: "Chứng chỉ" },
+  { value: 2, text: "Giấy chứng nhận" },
+]);
 
 //end
 onMounted(() => {
@@ -1444,18 +1452,18 @@ onMounted(() => {
             <div class="w-10rem">Ghi chú</div>
             <div style="width: calc(100% - 10rem)">
               <Textarea
-                  :autoResize="true"
-                  rows="1"
-                  cols="30"
-                  v-model="training_emps.training_note"
-                  class="w-full"
-                  :style="
-                    training_emps.training_note
-                      ? 'background-color:white !important'
-                      : ''
-                  "
-                  placeholder="Nhập ghi chú"
-                />
+                :autoResize="true"
+                rows="1"
+                cols="30"
+                v-model="training_emps.training_note"
+                class="w-full"
+                :style="
+                  training_emps.training_note
+                    ? 'background-color:white !important'
+                    : ''
+                "
+                placeholder="Nhập ghi chú"
+              />
             </div>
           </div>
         </div>
@@ -1464,18 +1472,18 @@ onMounted(() => {
             <div class="w-10rem">Mục đích</div>
             <div style="width: calc(100% - 10rem)">
               <Textarea
-                  :autoResize="true"
-                  rows="1"
-                  cols="30"
-                  v-model="training_emps.training_target"
-                  class="w-full"
-                  :style="
-                    training_emps.training_target
-                      ? 'background-color:white !important'
-                      : ''
-                  "
-                  placeholder="Nhập mục đích"
-                />
+                :autoResize="true"
+                rows="1"
+                cols="30"
+                v-model="training_emps.training_target"
+                class="w-full"
+                :style="
+                  training_emps.training_target
+                    ? 'background-color:white !important'
+                    : ''
+                "
+                placeholder="Nhập mục đích"
+              />
             </div>
           </div>
         </div>
@@ -1716,7 +1724,7 @@ onMounted(() => {
                     <InputNumber
                       spellcheck="false"
                       class="w-full h-full d-design-it"
-                      style="width: 170px;text-align: center;"
+                      style="width: 170px; text-align: center"
                       v-model="slotProps.data.point"
                     />
                   </template>

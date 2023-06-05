@@ -4,21 +4,73 @@ import { useToast } from "vue-toastification";
 import { required } from "@vuelidate/validators";
 import { useVuelidate } from "@vuelidate/core";
 import { encr, autoFillDate } from "../../../../util/function.js";
-import DropdownProfile from "../../component/DropdownProfile.vue";
+
 import moment from "moment";
+import tree_users_hrm from "../../component/tree_users_hrm.vue";
+import DropdownProfiles from "../../component/DropdownProfiles.vue";
+const emitter = inject("emitter");
+
+const getProfileUsers = (user, obj) => {
+  if (user == "reward_name_fake1") {
+    reward.value[user] = [];
+    obj.forEach((element) => {
+      reward.value[user].push(element.profile_id);
+    });
+  }
+};
+
+const displayDialogUser = ref(false);
+
+const selectedUser = ref();
+
+const showTreeUser = () => {
+  checkMultile.value = false;
+  selectedUser.value = [];
+  displayDialogUser.value = true;
+};
+
+const closeDialogUser = () => {
+  displayDialogUser.value = false;
+};
+
+const checkMultile = ref(false);
+
+const choiceUser = () => {
+  reward.value.reward_name_fake1 = [];
+  if (checkMultile.value == false) {
+    selectedUser.value.forEach((element) => {
+      reward.value.reward_name_fake1.push(element.profile_id);
+    });
+  } else {
+    if (selectedUser.value)
+      if (selectedUser.value.length > 0)
+        reward.value.reward_name_fake1 = selectedUser.value[0].profile_id;
+  }
+  closeDialogUser();
+};
+
+emitter.on("emitData", (obj) => {
+  switch (obj.type) {
+    case "submitModel":
+      if (obj.data) {
+        if (obj.data.type == 1) {
+          reward.value.reward_name_fake1 = [];
+          obj.data.data.forEach((element) => {
+            reward.value.reward_name_fake1.push(element.profile_id);
+          });
+        }
+      }
+      break;
+
+    default:
+      break;
+  }
+});
 const cryoptojs = inject("cryptojs");
 const store = inject("store");
 const swal = inject("$swal");
 const axios = inject("axios");
 
-const getProfileUser=(user,obj)=>{
- 
- if (obj) {
-  reward.value[user]=obj.profile_id;
-     } else {
-      reward.value[user] = null;
-     }
-}
 const basedomainURL = baseURL;
 const config = {
   headers: {
@@ -45,54 +97,20 @@ const bgColor = ref([
   "#CCADD7",
 ]);
 
-const rules = {
-  reward_name_fake1: {
-    required,
-    $errors: [
-      {
-        $property: "reward_name_fake1",
-        $validator: "required",
-        $message: "Tên khen thưởng không được để trống!",
-      },
-    ],
-  },
-  num_vacancies: {
-    required,
-    $errors: [
-      {
-        $property: "num_vacancies",
-        $validator: "required",
-        $message: "Số lượng tuyển không được để trống!",
-      },
-    ],
-  },
-  reward_code: {
-    required,
-    $errors: [
-      {
-        $property: "reward_code",
-        $validator: "required",
-        $message: "Số lượng tuyển không được để trống!",
-      },
-    ],
-  },
-};
 const listFilesS = ref([]);
 const reward = ref({
-  reward_name_fake1: [],
+   
   is_recruitment_proposal: null,
   reward_code: null,
   reward_name_fake2: {},
+  reward_name_fake1: [],
 });
 const submitted = ref(false);
 
 const saveData = () => {
   submitted.value = true;
 
-  if (
-    reward.value.reward_level_id == null ||
-    reward.value.reward_title_id == null
-  ) {
+  if (reward.value.reward_level_id == null) {
     return;
   }
   if (reward.value.reward_type == 1 || reward.value.reward_type == 3) {
@@ -280,7 +298,7 @@ const initTudien = () => {
     .catch((error) => {
       console.log(error);
     });
-  
+
   axios
     .post(
       baseURL + "/api/hrm_ca_SQL/getData",
@@ -352,7 +370,6 @@ const initTudien = () => {
           });
         }
       });
-      
     })
     .catch((error) => {
       console.log(error);
@@ -510,12 +527,13 @@ const loadUserProfiles = () => {
         str: encr(
           JSON.stringify({
             proc: "hrm_profile_list_2",
-            par: [{ par: "user_id", va: store.getters.user.user_id },
-            { par: "search", va: null },
-            { par: "pageNo ", va:1},
-            { par: "pageSize ", va: 100000 },
-            { par: "tab ", va: 1 },
-          ],
+            par: [
+              { par: "user_id", va: store.getters.user.user_id },
+              { par: "search", va: null },
+              { par: "pageNo ", va: 1 },
+              { par: "pageSize ", va: 100000 },
+              { par: "tab ", va: 1 },
+            ],
           }),
           SecretKey,
           cryoptojs
@@ -567,9 +585,12 @@ const reward_type_1 = ref(true);
 
 const reward_type_2 = ref(false);
 const onChangeTypeR = () => {
+  
   if (reward_type.value == 2) {
     reward.value.reward_type = 3;
   } else {
+    reward_type_1.value=true;
+    reward_type_2.value=false;
     reward.value.reward_type = 1;
   }
 };
@@ -592,9 +613,11 @@ const onChangeSwType2 = () => {
     reward_type_1.value = true;
   }
 };
+
 onMounted(() => {
   if (props.checkadd) {
     reward.value = props.reward;
+    
     listFilesS.value = [];
   } else {
     axios
@@ -623,9 +646,10 @@ onMounted(() => {
         if (data) {
           reward.value = data[0];
           if (reward.value.reward_type == 1 || reward.value.reward_type == 3) {
-            reward.value.reward_name_fake1 =
-              reward.value.reward_name.split(",");
-            reward.value.reward_name_fake2 = null;
+             
+            if (reward.value.reward_name != null) {
+              reward.value.reward_name_fake1 = reward.value.reward_name.split(",");
+            }
           } else {
             reward.value.reward_name_fake2 = {};
             reward.value.reward_name.split(",").forEach((element) => {
@@ -662,10 +686,11 @@ onMounted(() => {
     :modal="true"
     :closable="true"
     @hide="props.closeDialog"
+    class="appdock-2"
   >
     <form>
       <div class="grid formgrid m-2 mb-0">
-        <div class="field col-12 md:col-12 flex format-center">
+        <div class="field p-0 col-12 md:col-12 flex format-center">
           <div class="col-6 p-0">
             <SelectButton
               v-model="reward_type"
@@ -676,7 +701,7 @@ onMounted(() => {
             />
           </div>
         </div>
-        <div class="col-12 field p-0 text-lg font-bold">Thông tin chung</div>
+        <!-- <div class="col-12 field p-0 text-lg font-bold">Thông tin chung</div> -->
 
         <div
           class="col-12 field p-0 text-lg flex"
@@ -703,8 +728,8 @@ onMounted(() => {
           </div>
           <div class="col-2 p-0"></div>
         </div>
-        <div class="col-12 field p-0 flex text-left align-items-center">
-          <div class="col-6 p-0 flex text-left align-items-center">
+        <div class="col-12 p-0 text-left align-items-center">
+          <div class="col-12 p-0 flex field text-left align-items-center">
             <div class="w-10rem">
               Số quyết định <span class="redsao pl-1"> (*)</span>
             </div>
@@ -714,23 +739,44 @@ onMounted(() => {
                 v-model="reward.reward_number"
                 :class="{
                   'p-invalid': reward.reward_number == null && submitted,
-                }"   :style="{ backgroundColor: '#FEF9E7', fontWeight: 'bold' }"
+                }"
+                :style="{ backgroundColor: '#FEF9E7', fontWeight: 'bold' }"
               />
             </div>
           </div>
-          <div class="col-6 p-0 flex text-left align-items-center">
-            <div class="w-10rem pl-3">Ngày quyết định</div>
-            <div style="width: calc(100% - 10rem)">
-              <Calendar
-              @blur="autoFillDate(reward,'decision_date')"
-              id="decision_date"
-                class="w-full"    :manualInput="true" 
-               
-                v-model="reward.decision_date"
-                autocomplete="off" :showOnFocus="false"
-                :showIcon="true"
-                placeholder="dd/mm/yyyy"
-              />
+          <div class="col-12 p-0 field flex text-left align-items-center">
+            <div class="col-6 p-0 flex align-items-center">
+              <div class="w-10rem">Ngày quyết định</div>
+              <div style="width: calc(100% - 10rem)">
+                <Calendar
+                  @blur="autoFillDate(reward, 'decision_date')"
+                  id="decision_date"
+                  class="w-full"
+                  :manualInput="true"
+                  v-model="reward.decision_date"
+                  autocomplete="off"
+                  :showOnFocus="false"
+                  :showIcon="true"
+                  placeholder="dd/mm/yyyy"
+                />
+              </div>
+            </div>
+            <div class="col-6 p-0 flex align-items-center">
+              <div class="w-10rem pl-3">Năm quyết định</div>
+              <div style="width: calc(100% - 10rem)" v-if="reward_type">
+                <InputMask
+                  class="w-full px-2"
+                  v-model="reward.reward_year"
+                  mask="9999"
+                />
+              </div>
+              <div style="width: calc(100% - 10rem)" v-else>
+                <InputMask
+                  class="w-full px-2"
+                  v-model="reward.reward_year"
+                  mask="9999-9999"
+                />
+              </div>
             </div>
           </div>
         </div>
@@ -753,29 +799,77 @@ onMounted(() => {
           <div class="col-6 p-0 flex text-left align-items-center">
             <div class="w-10rem">Người ký</div>
             <div style="width: calc(100% - 10rem)">
-              <DropdownProfile
-                :model="reward.signer"
-                :placeholder="'Chọn người ký'"
-                :class="'w-full p-0'"
-                :editable="false"
+              <Dropdown
+                :options="listDataUsers"
+                :filter="true"
+                :showClear="true"
+                :editable="true"
                 optionLabel="profile_user_name"
-                optionValue="code"
-                :callbackFun="getProfileUser"
-                :key_user="'signer'"
-              />
+                optionValue="profile_user_name"
+                v-model="reward.signer"
+                class="d-dropdown-design w-full"
+                style="height: auto; min-height: 36px"
+                placeholder="Nhân sự ký quyết định"
+                :class="props.class"
+                :disabled="props.disabled"
+              >
+                <template #option="slotProps">
+                  <div v-if="slotProps.option" class="flex">
+                    <div class="format-center">
+                      <Avatar
+                        v-bind:label="
+                          slotProps.option.avatar
+                            ? ''
+                            : slotProps.option.profile_user_name.substring(0, 1)
+                        "
+                        v-bind:image="
+                          slotProps.option.avatar
+                            ? basedomainURL + slotProps.option.avatar
+                            : basedomainURL + '/Portals/Image/noimg.jpg'
+                        "
+                        style="
+                          background-color: #2196f3;
+                          color: #ffffff;
+                          width: 3rem;
+                          height: 3rem;
+                          font-size: 1.4rem !important;
+                        "
+                        :style="{
+                          background:
+                            bgColor[
+                              slotProps.option.profile_user_name.length % 7
+                            ],
+                        }"
+                        class="text-avatar"
+                        size="xlarge"
+                        shape="circle"
+                      />
+                    </div>
+                    <div class="format-center text-left ml-3">
+                      <div>
+                        <div class="mb-1">
+                          {{ slotProps.option.profile_user_name }}
+                        </div>
+                        <div class="description">
+                          <div>
+                            <span>{{ slotProps.option.profile_code }}</span
+                            ><span v-if="slotProps.option.department_name">
+                              | {{ slotProps.option.department_name }}</span
+                            >
+                          </div>
+                        </div>
+                      </div>
+                    </div>
+                  </div>
+                  <span v-else> Chưa có dữ liệu </span>
+                </template>
+              </Dropdown>
             </div>
           </div>
-          <div
-            class="col-6 p-0 flex text-left align-items-center"
-            v-if="reward.reward_type != 3"
-          >
+          <div class="col-6 p-0 flex text-left align-items-center">
             <div class="w-10rem pl-3">Nơi quyết định</div>
             <div style="width: calc(100% - 10rem)">
-              <InputText
-                class="w-full"
-                v-model="reward.decision_place"
-               
-              />
+              <InputText class="w-full" v-model="reward.decision_place" />
             </div>
           </div>
         </div>
@@ -784,14 +878,34 @@ onMounted(() => {
           v-if="reward.reward_type == 1 || reward.reward_type == 3"
         >
           <div class="col-12 field flex p-0 align-items-center">
-            <div class="w-10rem">
-              Nhân sự <span class="redsao pl-1"> (*)</span>
+            <div class="w-10rem align-items-center flex">
+              <div>Nhân sự <span class="redsao pl-1"> (*)</span></div>
+              <Button
+                v-tooltip.top="'Chọn nhân sự'"
+                @click="showTreeUser()"
+                icon="pi pi-user-plus"
+                class="p-button-text p-button-rounded"
+              />
             </div>
             <div style="width: calc(100% - 10rem)">
               <div class="col-12 p-0">
                 <div class="p-inputgroup">
-                  <MultiSelect
-                    v-model="reward.reward_name_fake1"
+                  <DropdownProfiles
+                    :model="reward.reward_name_fake1"
+                    :display="'chip'"
+                    :placeholder="
+                      reward.reward_type == 1
+                        ? '-------- Chọn người nhận khen thưởng --------'
+                        : '-------- Chọn nhân sự kỷ luật --------'
+                    "
+                    :class="{
+                      'p-invalid': reward.reward_name_fake1 == null && submitted,
+                    }"
+                    :callbackFun="getProfileUsers"
+                    :key_user="'reward_name_fake1'"
+                  />
+                  <!-- <MultiSelect
+                    v-model="reward.reward_name"
                     :options="listDataUsers"
                     optionLabel="profile_user_name"
                     optionValue="code"
@@ -804,12 +918,11 @@ onMounted(() => {
                     class="w-full p-0 d-tree-input"
                     :class="{
                       'p-invalid':
-                        reward.reward_name_fake1.length == 0 && submitted,
+                        reward.reward_name.length == 0 && submitted,
                     }"
                     display="chip"
                     :filter="true"
                   >
-               
                     <template #option="slotProps">
                       <div v-if="slotProps.option" class="flex">
                         <div class="format-center">
@@ -867,7 +980,7 @@ onMounted(() => {
                       </div>
                       <span v-else> Chưa có dữ liệu </span>
                     </template>
-                  </MultiSelect>
+                  </MultiSelect> -->
                 </div>
               </div>
             </div>
@@ -910,7 +1023,8 @@ onMounted(() => {
                     optionValue="data.department_id"
                     panelClass="d-design-dropdown"
                     class="w-full d-tree-input"
-                     selectionMode="multiple"  v-if="store.getters.user.is_super==true"
+                    selectionMode="multiple"
+                    v-if="store.getters.user.is_super == true"
                     :metaKeySelection="false"
                     placeholder="-------- Chọn phòng ban khen thưởng--------"
                     display="chip"
@@ -964,9 +1078,7 @@ onMounted(() => {
             </div>
           </div>
           <div class="col-6 p-0 flex text-left align-items-center">
-            <div class="w-10rem pl-3">
-              Danh hiệu <span class="redsao pl-1"> (*)</span>
-            </div>
+            <div class="w-10rem pl-3">Danh hiệu</div>
             <div style="width: calc(100% - 10rem)">
               <Dropdown
                 :filter="true"
@@ -977,9 +1089,6 @@ onMounted(() => {
                 class="w-full"
                 panelClass="d-design-dropdown"
                 placeholder="Chọn danh hiệu khen thưởng"
-                :class="{
-                  'p-invalid': reward.reward_title_id == null && submitted,
-                }"
               />
             </div>
           </div>
@@ -1059,28 +1168,6 @@ onMounted(() => {
               </small>
             </div>
           </div>
-          <div class="p-0 col-6">
-            <div
-              class="col-12 p-0 flex"
-              v-if="reward.reward_title_id == null && submitted"
-            >
-              <div class="w-10rem"></div>
-              <small style="width: calc(100% - 10rem)">
-                <span
-                  style="color: red"
-                  class="w-full"
-                  v-if="reward.reward_type == 1 || reward.reward_type == 2"
-                  >Danh hiệu không được để trống!</span
-                >
-                <span
-                  style="color: red"
-                  class="w-full"
-                  v-if="reward.reward_type == 3"
-                  >Hình thức kỷ luật không được để trống!</span
-                >
-              </small>
-            </div>
-          </div>
         </div>
 
         <div class="col-12 field p-0 flex text-left align-items-center">
@@ -1088,14 +1175,14 @@ onMounted(() => {
             <div class="w-10rem">Ngày hiệu lực</div>
             <div style="width: calc(100% - 10rem)">
               <Calendar
-              @blur="autoFillDate(reward,'effective_date')"
-              id="effective_date"
+                @blur="autoFillDate(reward, 'effective_date')"
+                id="effective_date"
                 class="w-full"
                 placeholder="dd/mm/yyyy"
-               
                 v-model="reward.effective_date"
                 autocomplete="off"
-                :showIcon="true" :showOnFocus="false"
+                :showIcon="true"
+                :showOnFocus="false"
               />
             </div>
           </div>
@@ -1108,7 +1195,8 @@ onMounted(() => {
               <InputNumber
                 class="w-full"
                 v-model="reward.reward_cost"
-                inputId="locale-german" locale="de-DE"  
+                inputId="locale-german"
+                locale="de-DE"
               />
             </div>
           </div>
@@ -1147,8 +1235,10 @@ onMounted(() => {
             />
           </div>
         </div>
-        
-        <div class="col-12 field p-0 text-lg font-bold">File đính kèm</div>
+
+        <div class="col-12 field p-0 text-lg font-bold">
+          Đính kèm quyết định
+        </div>
         <div class="w-full col-12 field p-0">
           <FileUpload
             chooseLabel="Chọn File"
@@ -1165,107 +1255,111 @@ onMounted(() => {
             </template>
           </FileUpload>
 
-          <div class="col-12 p-0" v-if="listFilesS.length>0">
+          <div class="col-12 p-0" v-if="listFilesS.length > 0">
             <DataTable
-            :value="listFilesS"
-            filterDisplay="menu"
-            filterMode="lenient"
-            scrollHeight="flex"
-            :showGridlines="true"
-            :paginator="false"
-            :row-hover="true"
-            columnResizeMode="fit"
-          >
-            <Column field="code" header="  File đính kèm">
-              <template #body="item">
-                <div class="p-0 d-style-hover" style="width: 100%; border-radius: 10px">
-                  <div class="w-full flex align-items-center">
-                    <div class="flex w-full text-900">
-                      <div
-                        v-if="item.data.is_image"
-                        class="align-items-center flex"
-                      >
-                        <Image
-                          :src="basedomainURL + item.data.file_path"
-                          alt=""
-                          width="70"
-                          height="50"
-                          style="
-                            object-fit: contain;
-                            border: 1px solid #ccc;
-                            width: 70px;
-                            height: 50px;
-                          "
-                          preview
-                          class="pr-2"
-                        />
-                        <div class="ml-2" style="word-break: break-all">
-                          {{ item.data.file_name }}
-                        </div>
-                      </div>
-                      <div v-else>
-                        <a
-                          :href="basedomainURL + item.data.file_path"
-                          download
-                          class="w-full no-underline cursor-pointer text-900"
+              :value="listFilesS"
+              filterDisplay="menu"
+              filterMode="lenient"
+              scrollHeight="flex"
+              :showGridlines="true"
+              :paginator="false"
+              :row-hover="true"
+              columnResizeMode="fit"
+            >
+              <Column field="code" header="  File đính kèm">
+                <template #body="item">
+                  <div
+                    class="p-0 d-style-hover"
+                    style="width: 100%; border-radius: 10px"
+                  >
+                    <div class="w-full flex align-items-center">
+                      <div class="flex w-full text-900">
+                        <div
+                          v-if="item.data.is_image"
+                          class="align-items-center flex"
                         >
-                          <div class="align-items-center flex">
-                            <div>
-                              <img
-                                :src="
-                                  basedomainURL +
-                                  '/Portals/Image/file/' +
-                                  item.data.file_path.substring(
-                                    item.data.file_path.lastIndexOf('.') + 1
-                                  ) +
-                                  '.png'
-                                "
-                                style="
-                                  width: 70px;
-                                  height: 50px;
-                                  object-fit: contain;
-                                "
-                                alt=""
-                              />
-                            </div>
-                            <div class="ml-2" style="word-break: break-all">
-                              <div class="ml-2" style="word-break: break-all">
-                          <div style="word-break: break-all">
+                          <Image
+                            :src="basedomainURL + item.data.file_path"
+                            alt=""
+                            width="70"
+                            height="50"
+                            style="
+                              object-fit: contain;
+                              border: 1px solid #ccc;
+                              width: 70px;
+                              height: 50px;
+                            "
+                            preview
+                            class="pr-2"
+                          />
+                          <div class="ml-2" style="word-break: break-all">
                             {{ item.data.file_name }}
                           </div>
-                          <div
-                            v-if="store.getters.user.is_super"
-                            style="
-                              word-break: break-all;
-                              font-size: 11px;
-                              font-style: italic;
-                            "
-                          >
-                            {{ item.data.organization_name }}
-                          </div>
                         </div>
+                        <div v-else>
+                          <a
+                            :href="basedomainURL + item.data.file_path"
+                            download
+                            class="w-full no-underline cursor-pointer text-900"
+                          >
+                            <div class="align-items-center flex">
+                              <div>
+                                <img
+                                  :src="
+                                    basedomainURL +
+                                    '/Portals/Image/file/' +
+                                    item.data.file_path.substring(
+                                      item.data.file_path.lastIndexOf('.') + 1
+                                    ) +
+                                    '.png'
+                                  "
+                                  style="
+                                    width: 70px;
+                                    height: 50px;
+                                    object-fit: contain;
+                                  "
+                                  alt=""
+                                />
+                              </div>
+                              <div class="ml-2" style="word-break: break-all">
+                                <div class="ml-2" style="word-break: break-all">
+                                  <div style="word-break: break-all">
+                                    {{ item.data.file_name }}
+                                  </div>
+                                  <div
+                                    v-if="store.getters.user.is_super"
+                                    style="
+                                      word-break: break-all;
+                                      font-size: 11px;
+                                      font-style: italic;
+                                    "
+                                  >
+                                    {{ item.data.organization_name }}
+                                  </div>
+                                </div>
+                              </div>
                             </div>
-                          </div>
-                        </a>
+                          </a>
+                        </div>
+                      </div>
+                      <div
+                        class="w-3rem align-items-center d-style-hover-1"
+                        v-if="
+                          store.getters.user.organization_id ==
+                          item.data.organization_id
+                        "
+                      >
+                        <Button
+                          icon="pi pi-times"
+                          class="p-button-rounded bg-red-300 border-none"
+                          @click="deleteFileH(item.data)"
+                        />
                       </div>
                     </div>
-                    <div
-                      class="w-3rem align-items-center d-style-hover-1"
-                      v-if="
-                    store.getters.user.organization_id == item.data.organization_id
-                  "
-                    >
-                      <Button
-                        icon="pi pi-times"
-                        class="p-button-rounded  bg-red-300 border-none"
-                        @click="deleteFileH(item.data)"
-                      />
-                    </div>
                   </div>
-                </div>
-              </template>
-            </Column>
-          </DataTable>
+                </template>
+              </Column>
+            </DataTable>
 
             <!-- <div
               class="p-0 w-full flex"
@@ -1353,6 +1447,16 @@ onMounted(() => {
       </div>
     </template>
   </Dialog>
+
+  <tree_users_hrm
+    v-if="displayDialogUser === true"
+    :headerDialog="'Chọn nhân sự'"
+    :displayDialog="displayDialogUser"
+    :closeDialog="closeDialogUser"
+    :one="checkMultile"
+    :selected="selectedUser"
+    :choiceUser="choiceUser"
+  />
 </template>
 <style scoped>
 #formprint {

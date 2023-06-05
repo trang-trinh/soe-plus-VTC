@@ -562,6 +562,7 @@ const initOrganization = (ref) => {
       }
     });
 };
+const datatodaybirthdays=ref();
 const initNote = (ref) => {
   if (ref) {
     swal.fire({

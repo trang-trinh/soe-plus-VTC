@@ -32,11 +32,12 @@ const loadUserProfiles = () => {
       {
         str: encr(
           JSON.stringify({
-            proc: "hrm_profile_list_all_d",
+            proc: "hrm_profile_list_all_dd",
             par: [{ par: "user_id", va: store.getters.user.user_id },
             { par: "search", va: null },
  
             { par: "tab ", va: 1 },
+            { par: "listprofile ", va:props.model },
           ],
           }),
           SecretKey,

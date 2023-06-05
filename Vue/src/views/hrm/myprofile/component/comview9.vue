@@ -191,11 +191,12 @@ onMounted(() => {
                         <b>{{ slotProps.item.reward_number }}</b>
                       </div>
                       <div class="mb-2">
-                        Cấp khen thưởng:
+                        {{slotProps.item.reward_type==3?'Cấp kỷ luật: ':'Cấp khen thưởng: '   }}
+                   
                         <b>{{ slotProps.item.reward_level_name }}</b>
                       </div>
                       <div class="mb-2">
-                        Danh hiệu: <b>{{ slotProps.item.reward_title_name }}</b>
+                       <span > {{slotProps.item.reward_type==3?'Hình thức: ':'Danh hiệu: '   }} </span><b>{{ slotProps.item.reward_title_name }}</b>
                       </div>
                       <div>
                         Đính kèm:
@@ -245,11 +246,12 @@ onMounted(() => {
                         <b>{{ slotProps.item.reward_number }}</b>
                       </div>
                       <div class="mb-2">
-                        Cấp khen thưởng:
+                        {{slotProps.item.reward_type==3?'Cấp kỷ luật: ':'Cấp khen thưởng: '   }}
+                   
                         <b>{{ slotProps.item.reward_level_name }}</b>
                       </div>
                       <div class="mb-2">
-                        Danh hiệu: <b>{{ slotProps.item.reward_title_name }}</b>
+                       <span > {{slotProps.item.reward_type==3?'Hình thức: ':'Danh hiệu: '   }} </span><b>{{ slotProps.item.reward_title_name }}</b>
                       </div>
                       <div>
                         Đính kèm:
