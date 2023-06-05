@@ -187,8 +187,8 @@ const loadDonvi = (rf) => {
       donvis.value = obj.arrChils;
       
       for (let node of donvis.value) {
-        if (node.data.is_level < 1) {
-          expandedKeys.value[node.key] = true;
+        expandedKeys.value[node.key] = true;
+        if (node.data.is_level < 1) {   
           expandNode(node);
         }
       }
@@ -202,7 +202,7 @@ const loadDonvi = (rf) => {
       if (data[0] != null){
         selectedKey.value ={};
         selectedKey.value[data[0].organization_id] = true;
-        loadDataDetail(data[0].organization_id, data[0].organization_name);
+        loadDataDetail(data[0].organization_id, data[0].organization_name, true);
 
       }
       swal.close();
@@ -229,7 +229,15 @@ const expandNode = (node) => {
     // }
   }
 };
-const loadDataDetail = (id, name) => {
+const onSearch = ()=>{
+  loadDataDetail(id_active.value, department_name.value, true);
+}
+const loadDataDetail = (id, name, rf) => {
+  if(rf) {
+    options.value.PageNo = 1;
+    options.value.limitItem = 20;
+    datalistsDetails.value = [];
+  }
   options.value.total=0;
   id_active.value = id;
   department_name.value = name;
@@ -262,7 +270,6 @@ const loadDataDetail = (id, name) => {
         data[0].forEach((element, i) => {
         element.STT = (options.value.PageNo-1) * options.value.PageSize + i + 1;
       });
-      debugger
       datalistsDetails.value = datalistsDetails.value.concat(data[0])
       }
       else datalistsDetails.value= [];
@@ -278,7 +285,6 @@ const loadDataDetail = (id, name) => {
     });
 };
 
-const filteredItems = ref([]);
 const onRefresh = ()=>{
   options.value = {
     IsNext: true,
@@ -292,6 +298,7 @@ const onRefresh = ()=>{
     searchP: "",
     total: 0,
   };
+  datalistsDetails.value = [];
   loadDonvi(true);
 }
 const itemButs = ref([
@@ -418,7 +425,7 @@ onMounted(() => {
               <InputText
                 style="width:320px"
                 v-model="options.SearchText"
-                v-on:keyup.enter="loadDataDetail(id_active,department_name)"
+                v-on:keyup.enter="onSearch()"
                 type="text"
                 spellcheck="false"
                 placeholder="Tìm kiếm"
@@ -497,6 +504,7 @@ onMounted(() => {
                     @nodeSelect= "(node)=> loadDataDetail(
                     node.data.organization_id,
                     node.data.organization_name,
+                    true
                   )"
                   >
                     <Column
