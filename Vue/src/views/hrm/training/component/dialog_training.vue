@@ -98,9 +98,8 @@ const rules = {
 };
 const listFilesS = ref([]);
 const training_emps = ref({
- 
-  user_verify_fake: props.training_emps.user_verify.split(","),
-  user_follows_fake: props.training_emps.user_follows.split(",") ,
+  user_verify_fake: props.training_emps.user_verify.split(",") ? props.training_emps.user_verify.split(",") : [],
+  user_follows_fake: props.training_emps.user_follows.split(",") ? props.training_emps.user_follows.split(",") : [] ,
 });
 const submitted = ref(false);
 const list_users_training = ref([]);
