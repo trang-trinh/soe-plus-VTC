@@ -152,16 +152,16 @@ const loadData = () => {
               training_emps.value.registration_deadline
             );
 
-          training_emps.value.user_verify_fake =
-            training_emps.value.user_verify.split(",");
-          training_emps.value.user_follows_fake =
-            training_emps.value.user_follows.split(",");
+          training_emps.value.user_verify_fake = training_emps.value.user_verify ?
+            training_emps.value.user_verify.split(",") : [];
+          training_emps.value.user_follows_fake = training_emps.value.user_follows ?
+            training_emps.value.user_follows.split(",") : [];
         }
         training_emps.value.organization_training_fake = {};
         training_emps.value.organization_training_fake[
           training_emps.value.organization_training
         ] = true;
-
+        
         data1.forEach((element) => {
           element.data = {
             profile_id: element.profile_id,
@@ -277,10 +277,11 @@ const saveData = (isFormValid) => {
         return;
       }
   });
-  if (training_emps.value.user_verify_fake.length > 0)
+  debugger
+  if (training_emps.value.user_verify_fake)
     training_emps.value.user_verify =
       training_emps.value.user_verify_fake.toString();
-  if (training_emps.value.user_follows_fake.length > 0)
+  if (training_emps.value.user_follows_fake)
     training_emps.value.user_follows =
       training_emps.value.user_follows_fake.toString();
   if (training_emps.value.organization_training_fake)
@@ -295,7 +296,7 @@ const saveData = (isFormValid) => {
     let file = filesList.value[i];
     formData.append("image", file);
   }
-  debugger;
+  // debugger;
   formData.append("hrm_training_emps", JSON.stringify(training_emps.value));
   formData.append("hrm_students", JSON.stringify(list_users_training.value));
   formData.append("hrm_schedule", JSON.stringify(list_schedule.value));
@@ -822,8 +823,8 @@ const listTrainingGroups = ref([]);
 // Tráng update code
 // Hình thức đào tạo
 const listTrainingTypes = ref([
-  {value: 0, text: 'Online'},
-  {value: 1, text: 'Offline'},
+  {value: 0, text: 'Trực tuyến'},
+  {value: 1, text: 'Tại địa điểm đào tạo'},
 ])
 // list văn bằng
 const listTrainingDiplomas = ref([
@@ -844,10 +845,11 @@ onMounted(() => {
   <Dialog
     :header="props.headerDialog"
     v-model:visible="display"
-    :style="{ width: '65vw' }"
+    :style="{ width: '75vw' }"
     :maximizable="true"
     :modal="true"
     :closable="true"
+    @update:visible="props.closeDialog"
   >
     <form>
       <div class="grid formgrid m-2">
@@ -1441,26 +1443,6 @@ onMounted(() => {
         </div>
         <div class="col-12 field p-0 flex">
           <div class="col-12 p-0 flex text-left align-items-center">
-            <div class="w-10rem">Ghi chú</div>
-            <div style="width: calc(100% - 10rem)">
-              <Textarea
-                  :autoResize="true"
-                  rows="1"
-                  cols="30"
-                  v-model="training_emps.training_note"
-                  class="w-full"
-                  :style="
-                    training_emps.training_note
-                      ? 'background-color:white !important'
-                      : ''
-                  "
-                  placeholder="Nhập ghi chú"
-                />
-            </div>
-          </div>
-        </div>
-        <div class="col-12 field p-0 flex">
-          <div class="col-12 p-0 flex text-left align-items-center">
             <div class="w-10rem">Mục đích</div>
             <div style="width: calc(100% - 10rem)">
               <Textarea
@@ -1475,6 +1457,26 @@ onMounted(() => {
                       : ''
                   "
                   placeholder="Nhập mục đích"
+                />
+            </div>
+          </div>
+        </div>
+        <div class="col-12 field p-0 flex">
+          <div class="col-12 p-0 flex text-left align-items-center">
+            <div class="w-10rem">Ghi chú</div>
+            <div style="width: calc(100% - 10rem)">
+              <Textarea
+                  :autoResize="true"
+                  rows="1"
+                  cols="30"
+                  v-model="training_emps.training_note"
+                  class="w-full"
+                  :style="
+                    training_emps.training_note
+                      ? 'background-color:white !important'
+                      : ''
+                  "
+                  placeholder="Nhập ghi chú"
                 />
             </div>
           </div>
@@ -1522,6 +1524,7 @@ onMounted(() => {
                 :rowHover="true"
                 :showGridlines="true"
                 scrollDirection="both"
+                class="table-dialog-training"
               >
                 <Column
                   header=""
@@ -1706,54 +1709,6 @@ onMounted(() => {
                   </template>
                 </Column>
                 <Column
-                  field=""
-                  header="Điểm"
-                  headerStyle="text-align:center;width:200px;height:50px"
-                  bodyStyle="text-align:center;width:200px;"
-                  class="align-items-center justify-content-center text-center"
-                >
-                  <template #body="slotProps">
-                    <InputNumber
-                      spellcheck="false"
-                      class="w-full h-full d-design-it"
-                      style="width: 170px;text-align: center;"
-                      v-model="slotProps.data.point"
-                    />
-                  </template>
-                </Column>
-                <Column
-                  field=""
-                  header="Đánh giá"
-                  headerStyle="text-align:center;width:200px;height:50px"
-                  bodyStyle="text-align:center;width:200px;"
-                  class="align-items-center justify-content-center text-center"
-                >
-                  <template #body="slotProps">
-                    <InputText
-                      spellcheck="false"
-                      class="w-full h-full d-design-it"
-                      style="width: 170px"
-                      v-model="slotProps.data.evaluate"
-                    />
-                  </template>
-                </Column>
-                <Column
-                  field=""
-                  header="Nhận xét"
-                  headerStyle="text-align:center;width:200px;height:50px"
-                  bodyStyle="text-align:center;width:200px;"
-                  class="align-items-center justify-content-center text-center"
-                >
-                  <template #body="slotProps">
-                    <InputText
-                      spellcheck="false"
-                      class="w-full h-full d-design-it"
-                      style="width: 170px"
-                      v-model="slotProps.data.comment"
-                    />
-                  </template>
-                </Column>
-                <Column
                   field="start_date"
                   header="Phòng ban"
                   headerStyle="text-align:center;width:200px;height:50px"
@@ -1800,6 +1755,57 @@ onMounted(() => {
                       class="w-full h-full d-design-it"
                       style="width: 170px"
                       v-model="slotProps.data.position_name"
+                      disabled
+                    />
+                  </template>
+                </Column>
+                <Column
+                  field=""
+                  header="Điểm"
+                  headerStyle="text-align:center;width:100px;height:50px"
+                  bodyStyle="text-align:center;width:100px;"
+                  class="align-items-center justify-content-center text-center"
+                >
+                  <template #body="slotProps">
+                    <InputNumber
+                      spellcheck="false"
+                      class="w-full h-full d-design-it input-point"
+                      style="width: 170px;text-align: center;"
+                      v-model="slotProps.data.point"
+                      
+                    />
+                  </template>
+                </Column>
+                <Column
+                  field=""
+                  header="Đánh giá"
+                  headerStyle="text-align:center;width:200px;height:50px"
+                  bodyStyle="text-align:center;width:200px;"
+                  class="align-items-center justify-content-center text-center"
+                >
+                  <template #body="slotProps">
+                    <InputText
+                      spellcheck="false"
+                      class="w-full h-full d-design-it"
+                      style="width: 170px"
+                      v-model="slotProps.data.evaluate"
+                      disabled
+                    />
+                  </template>
+                </Column>
+                <Column
+                  field=""
+                  header="Nhận xét"
+                  headerStyle="text-align:center;width:200px;height:50px"
+                  bodyStyle="text-align:center;width:200px;"
+                  class="align-items-center justify-content-center text-center"
+                >
+                  <template #body="slotProps">
+                    <InputText
+                      spellcheck="false"
+                      class="w-full h-full d-design-it"
+                      style="width: 170px"
+                      v-model="slotProps.data.comment"
                       disabled
                     />
                   </template>
@@ -2430,6 +2436,11 @@ tfoot {
   p {
     margin: 0 !important;
     padding: 0 !important;
+  }
+}
+::v-deep(.table-dialog-training){
+  .input-point .p-inputnumber-input{
+    text-align: center;
   }
 }
 </style>
