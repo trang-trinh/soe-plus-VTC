@@ -48,6 +48,7 @@ toDay.value = {
   Giay: currentDay.getSeconds(),
   Time: currentDay.getTime(),
 };
+const is_hrm = 1;
 const dateAgo = (ngaysinhnhat) => {
   var ngay = new Date(ngaysinhnhat);
   ngay = new Date(currentDay.getFullYear(), ngay.getMonth(), ngay.getDate());
@@ -74,6 +75,7 @@ const Get_BirthdayUserRecently = () => {
             par: [
               { par: "myDate", va: currentDay },
               { par: "user", va: id },
+              { par: "is_hrm", va: is_hrm },
             ],
           }),
           SecretKey,
@@ -115,6 +117,7 @@ const Get_BirthdayUserComming = () => {
             par: [
               { par: "myDate", va: currentDay },
               { par: "user", va: id },
+              { par: "is_hrm", va: is_hrm },
             ],
           }),
           SecretKey,
@@ -144,6 +147,7 @@ const Get_BirthdayUserToday = () => {
             par: [
               { par: "myDate", va: currentDay },
               { par: "user", va: id },
+              { par: "is_hrm", va: is_hrm },
             ],
           }),
           SecretKey,
@@ -182,6 +186,7 @@ const Get_BirthdayUserToMonthOther = () => {
             par: [
               { par: "myDate", va: currentDay },
               { par: "user", va: id },
+              { par: "is_hrm", va: is_hrm },
             ],
           }),
           SecretKey,
@@ -463,7 +468,7 @@ onMounted(() => {
                                             v-for="(u, index) in m.users[0]"
                                             :key="index"
                                           >
-                                            <div v-if="u.display_birthday">
+                                            <div>
                                               <Avatar
                                                 v-tooltip.right="{
                                                   value:
@@ -684,7 +689,6 @@ onMounted(() => {
                                 padding-left: 15px;
                                 color: gray;
                               "
-                              v-if="m.display_birthday == true"
                             >
                               {{
                                 m.birthday != null ? moment(new Date(m.birthday)).format(
@@ -745,7 +749,7 @@ onMounted(() => {
                                 class="col"
                                 style="font-weight: 500"
                               >
-                                Tên truy cập: {{ m.user_id }}
+                                Mã nhân sự: {{ m.user_id }}
                               </div>
                               <div class="col">{{ m.tenChucVu }}</div>
                             </div>
