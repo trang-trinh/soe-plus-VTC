@@ -42,7 +42,7 @@ const groups = ref([
   { view: 1, icon: "pi pi-list", title: "list" },
   { view: 2, icon: "pi pi-align-right", title: "tree" },
 ]);
-const first = ref(0);
+const first = ref(1);
 const insurance_pays = ref([]);
 const insurance_resolves = ref();
 const dictionarys = ref();
@@ -883,9 +883,12 @@ const loadDataTree = ()=>{
           data.forEach((element, i) => {
             element.STT = options.value.PageNo * options.value.PageSize + i + 1;
             element.data = JSON.parse(element.data);
-            element.listDays = element.data != null? element.data.map(x => x.pay_date): [];
-            element.total_payment = element.data != null? element.data.map(x => parseInt(x.total_payment)): [];
-            element.amount_paid = element.data != null? element.data.map(x => parseInt(x.amount_paid)): [];
+           // element.listDays = element.data;
+            element.listDays = element.data? groupDataMonth(listDate.value,element.data ) : [];
+            // element.listDays = element.data != null? element.data.map(x => ({start_date: x.start_date, end_date : x.end_date})): [];
+            //element.listDays = element.data != null? geAllMonth(listDate.value,element.data): [];
+            element.total_payment = element.listDays != null? element.listDays.map(x => parseInt(x.total_payment || 0)): [];
+            element.amount_paid = element.listDays != null? element.listDays.map(x => parseInt(x.amount_paid || 0)): [];
             element.payment_all = element.total_payment.length== 0 ?0 : element.total_payment.reduce((a, b) => a + b, 0);
             element.amount_paid_all = element.amount_paid.length== 0 ?0 : element.amount_paid.reduce((a, b) => a + b, 0);
             payment_final.value += element.payment_all;
@@ -897,9 +900,9 @@ const loadDataTree = ()=>{
             item.payment_all = 0;
             item.amount_paid_all = 0;
             data.forEach((user)=>{
-              if(user.data && user.data.filter(x => x.pay_date == item.value).length>0){
-                item.payment_all += parseInt(user.data.filter(x => x.pay_date == item.value)[0].total_payment);
-                item.amount_paid_all += parseInt(user.data.filter(x => x.pay_date == item.value)[0].amount_paid);
+              if(user.listDays && user.listDays.filter(x => x.pay_date == item.value).length>0){
+                item.payment_all += parseInt(user.listDays.filter(x => x.pay_date == item.value)[0].total_payment || 0);
+                item.amount_paid_all += parseInt(user.listDays.filter(x => x.pay_date == item.value)[0].amount_paid|| 0);
               }
             })
           })
@@ -920,6 +923,33 @@ const loadDataTree = ()=>{
         });
   
 }
+// lay tat ca thang hop le 
+const groupDataMonth = (arr1, arr2)=>{
+  var arr = [];
+  arr1.forEach((date1)=>{
+   if(arr2.filter(x => isDuringMonth(x.start_date, x.end_date,date1.value)).length>0){
+    let obj = arr2.filter(x => isDuringMonth(x.start_date, x.end_date,date1.value)).sort((a, b) => b.start_date - a.start_date)[0]; // lay ngay muon nhat
+    arr.push({pay_date: date1.value, amount_paid: obj.amount_paid, total_payment: obj.total_payment})
+   }
+  })
+  return arr;
+};
+//item.listDays.filter(x => isDuringMonth(x.start_date, x.end_date,item_month.value))
+const checkExistDate = (date,arrDates)=>{
+  if(arrDates.filter(x => getValueDate(x.start_date)== getValueDate(date) || getValueDate(x.end_date)== getValueDate(date) ).length>0)
+  return true;
+  else return false;
+};
+const isDuringMonth = (start_date, end_date, date_check)=>{
+  if(!end_date) return (getValueDate(date_check) > getValueDate(start_date));
+  else 
+  return (getValueDate(date_check) >= getValueDate(start_date) && getValueDate(date_check) < getValueDate(end_date));
+}
+const getValueDate = (date)=>{
+  let dt = new Date(date);
+  let date_format = new Date(dt.getFullYear(), dt.getMonth(),1);
+  return date_format.getTime();
+};
 //excel
 const exportExcel = () => {
   let text_string = "";
@@ -1117,9 +1147,9 @@ onMounted(() => {
           <i class="pi pi-building"></i> Danh sách đóng bảo hiểm  
           <span v-if="options.view == 1 && options.date">tháng {{moment(new Date(options.date)).format("MM/YYYY")}} </span>
           <span v-if="options.view == 2"> từ tháng {{moment(new Date(options.start_date)).format("MM/YYYY")}} đến tháng {{moment(new Date(options.end_date)).format("MM/YYYY")}}</span>
-           <!-- ({{
+           ({{
             options.totalRecords
-          }}) -->
+          }})
         </h3>
         <Toolbar class="w-full custoolbar">
           <template #start>
@@ -1260,6 +1290,7 @@ onMounted(() => {
       :row-hover="true"
     > -->
     <DataTable
+      v-if="options.view == 1"
         class="w-full p-datatable-sm e-sm"
         :value="datalists"
         dataKey="insurance_id"
@@ -1272,7 +1303,6 @@ onMounted(() => {
         rowGroupMode="subheader"
         groupRowsBy="department_origin_name"
         :rows="options.PageSize"
-        :lazy="true"
         :loading="options.loading"
         :paginator="true"
         :rowsPerPageOptions="[20, 30, 50, 100, 200]"
@@ -1283,9 +1313,9 @@ onMounted(() => {
         @filter="onFilter($event)"
         @sort="onSort($event)"
         v-model:first="first"
+        style="max-height:calc(100vh - 150px);min-height: calc(100vh - 150px)"
       >
       <template #groupheader="slotProps">
-        <i class="pi pi-building mr-2"></i>
         {{ slotProps.data.department_origin_name || "Không thuộc phòng ban" }}
       </template>
       <!-- <Column
@@ -1496,10 +1526,16 @@ onMounted(() => {
           </td>
           <template v-for="(item_month,index2) in listDate" :key="index2">
             <td class="text-right item-date bg-white" style="padding: 0.5rem">
-              <span v-if="item.listDays.includes(item_month.value)">{{ item.data.filter(x => x.pay_date == item_month.value).length> 0 ?formatNumber(item.data.filter(x => x.pay_date == item_month.value)[0].total_payment, 0, ".", "."): ''}}</span>
+              <span v-if="item.listDays.filter(x => x.pay_date == item_month.value).length>0">{{ item.listDays.filter(x => x.pay_date == item_month.value).length> 0 ?formatNumber(item.listDays.filter(x => x.pay_date == item_month.value)[0].total_payment, 0, ".", "."): ''}}</span>
+              <!-- <span v-if="item.listDays && item.listDays.filter(x => isDuringMonth(x.start_date, x.end_date,item_month.value)).length > 0">
+               {{  formatNumber(item.listDays.filter(x => isDuringMonth(x.start_date, x.end_date,item_month.value))[0].total_payment , 0, ".", ".")}} 
+              </span> -->
             </td>
-            <td class="text-right item-date bg-white" style="padding: 0.5rem" >
-              <span v-if="item.listDays.includes(item_month.value)">{{ item.data.filter(x => x.pay_date == item_month.value).length> 0 ?formatNumber(item.data.filter(x => x.pay_date == item_month.value)[0].amount_paid, 0, ".", "."): ''}}</span>
+            <td class="text-right item-date bg-white" style="padding: 0.5rem">
+              <span v-if="item.listDays.filter(x => x.pay_date == item_month.value).length>0">{{ item.listDays.filter(x => x.pay_date == item_month.value).length> 0 ?formatNumber(item.listDays.filter(x => x.pay_date == item_month.value)[0].amount_paid, 0, ".", "."): ''}}</span>
+              <!-- <span v-if="item.listDays && item.listDays.filter(x => isDuringMonth(x.start_date, x.end_date,item_month.value)).length > 0">
+               {{  formatNumber(item.listDays.filter(x => isDuringMonth(x.start_date, x.end_date,item_month.value))[0].total_payment , 0, ".", ".")}} 
+              </span> -->
             </td>
           </template>
           <td class="text-right item-date bg-white" style="padding: 0.5rem">
@@ -1613,6 +1649,11 @@ onMounted(() => {
 ::v-deep(.p-datatable) {
   .p-datatable-tbody > tr > td{
   word-break: break-word;
+  }
+}
+::v-deep(.dp__input_wrap ) {
+  .dp__input_reg{
+    border:1px solid #ced4da;
   }
 }
 </style>

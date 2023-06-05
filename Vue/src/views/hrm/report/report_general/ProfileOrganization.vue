@@ -22,7 +22,12 @@ const bgColor = ref([
     "#CCADD7",
     "#B0DE09",
 ]);
-
+const genders = ref(
+  [
+    {text: "Nam",value:1},
+    {text: "Nữ",value:2}
+  ]
+)
 //Khai báo biến
 const store = inject("store");
 var data_org = [];
@@ -31,31 +36,22 @@ const id_active = ref();
 const department_name = ref();
 department_name.value= store.getters.user.organization_name;
 const datalists = ref();
-const personel_groups = ref();
 const selectedNodes = ref([]);
 const filters = ref({});
 const options = ref({
-    IsNext: true,
-    sort: "created_date",
-    SearchText: null,
-    PageNo: 0,
-    PageSize: 20,
     loading: true,
     totalRecords: null,
-    loadingP: true,
-    pagenoP: 0,
-    pagesizeP: 20,
-    searchP: "",
-    sortP: "created_date",
     department_id: store.getters.user.organization_id,
-    gender: null,
-    academic_level_id: null, 
-    specialization_id: null,
-    professional_work_id: null,
-    title_id: null,
+    genders: null,
+    is_partisans: null, 
+    positions: null,
+    titles: null,
     description: null,
     is_link: null,
     departments: null,
+    genders: null,
+    is_bevys: null,
+    personel_groups: null,
   });
 const is_partisans = ref(
   [
@@ -71,6 +67,7 @@ const is_bevys = ref(
 );
 const titles = ref([]);
 const positions = ref([]);
+const personel_groups = ref([]);
 const tudiens= ref();
 const isFirst = ref(true);
 const toast = useToast();
@@ -86,11 +83,7 @@ const selectCapcha = ref();
 selectCapcha.value = {};
 
 // on event
-const department_id = ref(null);
-const title_id = ref(null);
-const position_id = ref(null);
-const is_partisan = ref(null);
-const is_bevy = ref(null);
+var department_id,title_id,position_id,is_partisan,is_bevy,gender, personel_groups_id;
 const loadData = () => {
   if (options.value.departments != null && Object.keys(options.value.departments).length > 0) {
     var dep_ids = [];
@@ -101,15 +94,12 @@ const loadData = () => {
     }
     department_id.value = dep_ids.join(",");
   }
-  if (options.value.titles != null && options.value.titles.length > 0) {
-    title_id.value = options.value.titles.map((x) => x["title_id"]).join(",");
-  } else title_id.value = null;
-  if (options.value.positions != null && options.value.positions.length > 0) {
-    position_id.value = options.value.positions.map((x) => x["position_id"]).join(",");
-  } else position_id.value = null;
-  if (options.value.is_partisans != null && options.value.is_partisans.length > 0) {
-    is_partisan.value = options.value.is_partisans.map((x) => x["value"]).join(",");
-  } else is_partisan.value = null;
+  title_id = getListStringfromArr(options.value.titles, 'title_id');
+  position_id = getListStringfromArr(options.value.positions, 'position_id');
+  is_partisan = getListStringfromArr(options.value.is_partisans, 'value');
+  is_bevy = getListStringfromArr(options.value.is_bevys, 'value');
+  gender = getListStringfromArr(options.value.genders, 'value');
+  personel_groups_id = getListStringfromArr(options.value.personel_groups, 'personel_groups_name');
   swal.fire({
     width: 110,
     didOpen: () => {
@@ -122,15 +112,16 @@ const loadData = () => {
           {
               str: encr(
                   JSON.stringify({
-                      proc: "hrm_report_profile_organization_list2",
+                      proc: "hrm_report_profile_organization_list",
                       par: [
-                          { par: "search", va: options.value.SearchText },
                           { par: "user_id", va: store.getters.user.user_id },
-                          { par: "department_id", va: department_id.value},
-                          { par: "position_id", va: position_id.value},
-                          { par: "title_id", va: title_id.value},
-                          { par: "is_partisan", va: is_partisan.value},
-                          { par: "is_bevy", va: is_bevy.value},
+                          { par: "department_id", va: department_id},
+                          { par: "position_id", va: position_id},
+                          { par: "title_id", va: title_id},
+                          { par: "is_partisan", va: is_partisan},
+                          { par: "is_bevy", va: is_bevy},
+                          { par: "gender", va: gender},
+                          { par: "personel_groups_id", va: personel_groups_id},
                           { par: "is_link", va: options.value.is_link},
                       ],
                   }),
@@ -187,6 +178,7 @@ const loadData = () => {
           
           titles.value= data[2];
           positions.value= data[3];
+          personel_groups.value = data[4];
           swal.close();
           options.value.loading = false;
       })
@@ -217,6 +209,13 @@ const resetFilter = (f) => {
   if(f) loadData(true);
 };
 //Khai báo function
+function getListStringfromArr(arr, type){
+  let id = null
+  if (arr != null && arr.length > 0) {
+    id = arr.map((x) => x[type]).join(",");
+  } else id = null;
+  return id;
+}
 const removeFilter = (idx, array) => {
   array.splice(idx, 1);
 };
@@ -427,6 +426,110 @@ onMounted(() => {
                           v-model="options.departments"  selectionMode="multiple" :metaKeySelection="false"
                           :showClear="true" :max-height="200" display="chip" placeholder="Chọn phòng ban/ Đơn vị">
                         </TreeSelect>
+                      </div>
+                    </div>
+                    <div class="col-6 md:col-6">
+                      <div class="form-group">
+                        <label>Giới tính</label>
+                        <MultiSelect
+                          :options="genders"
+                          :filter="true"
+                          :showClear="true"
+                          :editable="false"
+                          v-model="options.genders"
+                          optionLabel="text"
+                          placeholder="Chọn giới tính"
+                          class="w-full limit-width"
+                          style="min-height: 36px"
+                          panelClass="d-design-dropdown"
+                        >
+                          <template #value="slotProps">
+                            <ul
+                              class="p-ulchip"
+                              v-if="
+                                slotProps.value && slotProps.value.length > 0
+                              "
+                            >
+                              <li
+                                class="p-lichip"
+                                v-for="(value, index) in slotProps.value"
+                                :key="index"
+                              >
+                                <Chip class="mr-2 mb-2 px-3 py-2">
+                                  <div class="flex">
+                                    <div>
+                                      <span>{{ value.text }}</span>
+                                    </div>
+                                    <span
+                                      tabindex="0"
+                                      class="p-chip-remove-icon pi pi-times-circle format-flex-center"
+                                      @click="
+                                        removeFilter(index, options.genders);
+                                        $event.stopPropagation();
+                                      "
+                                      v-tooltip.top="'Xóa'"
+                                    ></span>
+                                  </div>
+                                </Chip>
+                              </li>
+                            </ul>
+                            <span v-else>
+                              {{ slotProps.placeholder }}
+                            </span>
+                          </template>
+                        </MultiSelect>
+                      </div>
+                    </div>  
+                    <div class="col-6 md:col-6">
+                      <div class="form-group">
+                        <label>Loại lao động</label>
+                        <MultiSelect
+                          :options="personel_groups"
+                          :filter="true"
+                          :showClear="true"
+                          :editable="false"
+                          v-model="options.personel_groups"
+                          optionLabel="personel_groups_name"
+                          placeholder="Chọn loại"
+                          class="w-full limit-width"
+                          style="min-height: 36px"
+                          panelClass="d-design-dropdown"
+                        >
+                          <template #value="slotProps">
+                            <ul
+                              class="p-ulchip"
+                              v-if="
+                                slotProps.value && slotProps.value.length > 0
+                              "
+                            >
+                              <li
+                                class="p-lichip"
+                                v-for="(value, index) in slotProps.value"
+                                :key="index"
+                              >
+                                <Chip class="mr-2 mb-2 px-3 py-2">
+                                  <div class="flex">
+                                    <div>
+                                      <span>{{ value.personel_groups_name }}</span>
+                                    </div>
+                                    <span
+                                      tabindex="0"
+                                      class="p-chip-remove-icon pi pi-times-circle format-flex-center"
+                                      @click="
+                                        removeFilter(index, options.personel_groups);
+                                        $event.stopPropagation();
+                                      "
+                                      v-tooltip.top="'Xóa'"
+                                    ></span>
+                                  </div>
+                                </Chip>
+                              </li>
+                            </ul>
+                            <span v-else>
+                              {{ slotProps.placeholder }}
+                            </span>
+                          </template>
+                        </MultiSelect>
                       </div>
                     </div>
                     <div class="col-6 md:col-6">

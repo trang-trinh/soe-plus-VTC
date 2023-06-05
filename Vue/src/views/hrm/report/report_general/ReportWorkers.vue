@@ -130,6 +130,7 @@ const loadData = () => {
             let data = JSON.parse(response.data.data);
             options.value.totalRecords =data[0].length;
             if (data[0].length > 0) {
+              datas.value = data[0];
               data[0] = groupBy(data[0], 'department_id');
                     let arr = [];
                     var count = 1;
@@ -280,6 +281,199 @@ const activeRow = (row)=>{
 const goBack = () => {
   history.back();
 };
+function bindRow(r, td, rp,stt) {
+    let trs = "";
+    if (!r[td.key]) {
+        trs += `<td rowspan=${rp}></td>`
+    } else {
+        if (r[td.key].toString().includes("Portals"))
+            trs += `<td rowspan=${rp}><img width=48 src="${imgurl + r[td.key]}"></td>`
+        else if (td.typedata == 5) {
+            let objr = JSON.parse(r[td.key]);
+            trs += `<td rowspan=${rp}>`
+            objr.forEach(rs => {
+                trs += `<p>${rs.json}</p>`;
+            });
+            trs += "</td>"
+        } else if (td.typedata == 4) {
+            trs += `<td style="text-align:center" rowspan=${rp}>${r[td.key] ? 'X' : ''} </td>`
+        }
+        else if (td.typedata == 2 || td.typedata == 3) {
+            trs += `<td rowspan=${rp} class='date' style='text-align:center'>`;
+            if (r[td.key]) {
+                try {
+                    trs += r[td.key].toLocaleString("vi-VN", {
+                        year: 'numeric',
+                        month: '2-digit', day: '2-digit'
+                    })
+                } catch (e) { }
+            }
+            trs += "</td>"
+        }
+        else {
+            let str = r[td.key];
+            trs += `<td rowspan=${rp} class="text">${str} </td>`
+        }
+    }
+    return trs;
+}
+const selectedCols = ref([
+  {title: "STT", float:2},
+  {title: "Mã nhân viên	", float:1},
+  {title: "Họ và tên", float:1},
+  {title: "Đơn vị/phòng ban", float:1},
+  {title: "Giới tính", float:2},
+  {title: "Ngày sinh", float:2},
+  {title: "Tuổi", float:2},
+  {title: "Dân tộc", float:1},
+  {title: "Trình độ văn hóa", float:1},
+  {title: "Công việc chuyên môn	", float:1},
+  {title: "Mô tả chi tiết công việc", float:1},
+  {title: "Ngày vào đơn vị	", float:2},
+  {title: "Đảng viên", float:2},
+  {title: "Chức vụ", float:2},
+  {title: "Chức danh	", float:2},
+  {title: "Nơi ở hiện nay	", float:1},
+  {title: "Ghi chú", float:1},
+]);
+const datas = ref();
+const getHTMLTable = (f) => {
+    let titlebaocao = `
+        <table style="border:none;">
+          <tr style="border:none"><td style="border:none;text-align:center" colspan=${selectedCols.value.length + 1}>DANH SÁCH BÁO CÁO</td></tr>        </table>
+    `;
+    let divid = "dtData";
+    let colgroup = "<colgroup>"
+    let widths = [];
+    document.getElementById(divid).querySelectorAll("table>thead>tr:last-child>th").forEach(th => {
+        colgroup += `<col style="width:${th.offsetWidth}px;padding:5pt">`;
+        widths.push(th.offsetWidth);
+    })
+    colgroup += "</colgroup>"
+    let trs = "";
+    trs += "<thead>"
+    trs += "<tr>"
+    trs += `<th style='text-align:center;width:${widths[0]}px'>STT</th>`
+    selectedCols.value.forEach((c, i) => {
+        trs += `<th class="text" style='width:${widths[i + 1]}px;text-align:${c.float == 2 || c.float == 3 ? "center" : "left"}'>${c.title}</th>`
+    })
+    trs += "</tr>"
+    trs += "</thead>"
+    trs += "<tbody>"
+    if (selectedCols.value.length>0) {
+       let grs = (groupBy(datas.value, 'department_id'));
+       Object.keys(grs).forEach((k, i) => {
+            trs += "<tr>"
+            let r = grs[k][0];
+            let isrspan = grs[k].length > 1;
+            let rosp = grs[k].length;
+            trs += `<td rowspan=${rosp} style='text-align:center;'>${i + 1}</td>`
+            selectedCols.value.forEach(td => {
+                trs += bindRow(r, td, td.group == "Quá trình ký hợp đồng" ? 1 : rosp);
+            });
+            trs += "</tr>"
+            if (isrspan) {
+                trs += "</tr>"
+                grs[k].forEach((r, j) => {
+                    if (j > 0) {
+                        trs += "<tr>"
+                        selectedCols.value.filter(x => x.group == "Quá trình ký hợp đồng").forEach(td => {
+                            trs += bindRow(r, td, 1);
+                        });
+                        trs += "</tr>"
+                    }
+                })
+            }
+        })
+    }
+    else {
+        datas.value.forEach((r, i) => {
+            trs += "<tr>"
+            trs += `<td style='text-align:center;'>${i + 1}</td>`
+            selectedCols.value.forEach(td => {
+                trs += bindRow(r, td, 1);
+            });
+            trs += "</tr>"
+        })
+    }
+    trs += "</tbody>"
+    let style = `
+    body{font-family: "Times New Roman";font-size:14pt}
+    table { 
+        border-spacing: 0;
+        border-collapse: collapse;
+        width:100%;
+    }
+    th,td{border:1px solid #999;padding:5pt;white-space: nowrap;}
+    thead th {background-color: #e6e6e6!important;min-height:40px;text-align: left;}
+    .num {mso-number-format:General;}
+    .text{mso-number-format:"\@";}
+    .date{mso-number-format:"Short Date";text-align:center}
+    @page{
+            margin:1.27cm;
+            mso-paper-source:0;
+            size: 'landscape';
+        }
+        table {page-break-inside: auto;}
+        tr {page-break-inside: avoid;page-break-after: auto;}
+        thead {display: table-header-group;}
+        tfoot {
+            display: table-footer-group;
+        }
+    `;
+    let html = "<style>" + style + "</style>" + titlebaocao + "<table>" + colgroup + trs + "</table>";
+    return html;
+}
+const downloadFileExport = (
+      name_func,
+      file_name_download,
+      file_name,
+      file_type
+    ) => {
+      let nameF = (file_name || "file_download") + file_type;
+      let nameDownload = (file_name_download || "file_download") + file_type;
+      const a = document.createElement("a");
+      a.href = baseURL + "/api/SRC/" + name_func + "?name=" + nameF;
+      a.download = nameDownload;
+      a.target = "_blank";
+      a.click();
+      a.remove();
+  };
+const downloadFile = async () => {
+    // var wnd = window.open("about:blank", "", "_blank");
+    // wnd.document.write(getHTMLTable(true));
+    // return false;
+    let filename = 'test';
+    swal.fire({
+        width: 110,
+        didOpen: () => {
+            swal.showLoading();
+        },
+    });
+    try {
+        let dataHtml = { html: getHTMLTable(true), filename: filename || "doc" };
+        const axResponse = await axios
+            .post(
+              baseURL + "api/SRC/ConvertFileXLS",
+                dataHtml,
+                {
+                    headers: { "Content-Type": "application/json" }
+                }
+            );
+
+        if (axResponse.status == 200) {
+            downloadFileExport(
+                "GetDownloadXLS",
+                dataHtml.filename,
+                axResponse.data.fileName,
+                ".xlsx"
+            );
+        }
+    } catch (e) {
+        console.log(e);
+    }
+    swal.close();
+}
 //Khai báo function
 const renderTreeDV = (data, id, name, title) => {
   let arrChils = [];
@@ -751,7 +945,7 @@ onMounted(() => {
           </template>
         </Toolbar>
       </div>
-      <div style="overflow: scroll;max-height: calc(100vh - 147px);min-height: calc(100vh - 147px);background-color: #fff;">
+      <div id="dtData" style="overflow: scroll;max-height: calc(100vh - 147px);min-height: calc(100vh - 147px);background-color: #fff;">
           <table cellspacing=0 id="table-bc" class="table table-condensed table-hover tbpad" style="table-layout: fixed;width: 100%;">
           <thead style="position: sticky; z-index: 6; top:0">
               <tr>
